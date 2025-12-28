@@ -2,7 +2,7 @@ const Hero = () => {
   return (
     <section
       id="inicio"
-      className="min-h-screen flex items-center justify-center bg-background px-6"
+      className="min-h-screen flex items-center justify-center px-6"
     >
       <div className="max-w-3xl">
         {/* Main Headline */}
