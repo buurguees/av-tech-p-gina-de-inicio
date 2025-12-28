@@ -14,11 +14,19 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsMobileMenuOpen(false);
+  };
+
   const navLinks = [
-    { label: 'Alcance', href: '#alcance' },
-    { label: 'Proyectos', href: '#proyectos' },
-    { label: 'Productos', href: '#productos' },
-    { label: 'Sobre Nosotros', href: '#sobre-nosotros' },
+    { label: 'Alcance', id: 'alcance' },
+    { label: 'Proyectos', id: 'proyectos' },
+    { label: 'Productos', id: 'productos' },
+    { label: 'Sobre Nosotros', id: 'sobre-nosotros' },
   ];
 
   return (
@@ -30,31 +38,34 @@ const Header = () => {
       <div className="container mx-auto px-6">
         <nav className="flex items-center justify-between">
           {/* Logo */}
-          <a href="#inicio" className="relative z-10">
+          <button
+            onClick={() => scrollToSection('inicio')}
+            className="relative z-10"
+          >
             <img
               src={logoAvtech}
               alt="AV TECH"
               className="h-6 md:h-8 w-auto"
             />
-          </a>
+          </button>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-10">
             {navLinks.map((link) => (
-              <a
+              <button
                 key={link.label}
-                href={link.href}
+                onClick={() => scrollToSection(link.id)}
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-300 tracking-wide uppercase"
               >
                 {link.label}
-              </a>
+              </button>
             ))}
-            <a
-              href="#contacto"
+            <button
+              onClick={() => scrollToSection('contacto')}
               className="text-xs text-foreground border-b border-foreground pb-0.5 tracking-wide uppercase"
             >
               Contáctanos
-            </a>
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -77,22 +88,20 @@ const Header = () => {
             }`}
           >
             {navLinks.map((link) => (
-              <a
+              <button
                 key={link.label}
-                href={link.href}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => scrollToSection(link.id)}
                 className="text-lg text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wide"
               >
                 {link.label}
-              </a>
+              </button>
             ))}
-            <a
-              href="#contacto"
-              onClick={() => setIsMobileMenuOpen(false)}
+            <button
+              onClick={() => scrollToSection('contacto')}
               className="text-lg text-foreground border-b border-foreground pb-1 uppercase tracking-wide"
             >
               Contáctanos
-            </a>
+            </button>
           </div>
         </nav>
       </div>
