@@ -319,13 +319,13 @@ const Alcance = () => {
       <div ref={ref} className="max-w-[1800px] mx-auto">
         {/* Section header + Globe side by side */}
         <div className="px-6 sm:px-8 md:px-16">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:gap-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:gap-0">
             {/* Globe Container - Left side on desktop */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 1.0, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full lg:w-1/2 order-2 lg:order-1"
+              className="relative w-full lg:w-3/5 order-2 lg:order-1 -ml-16 lg:-ml-32"
             >
               {!isGlobeReady && (
                 <div className="absolute inset-0 flex items-center justify-center z-30 bg-background">
@@ -344,8 +344,8 @@ const Alcance = () => {
                 ref={globeRef} 
                 className="w-full relative z-0 pointer-events-none"
                 style={{ 
-                  height: isMobile ? '400px' : '500px',
-                  minHeight: isMobile ? '400px' : '500px',
+                  height: isMobile ? '450px' : '700px',
+                  minHeight: isMobile ? '450px' : '700px',
                 }}
               />
 
@@ -353,34 +353,34 @@ const Alcance = () => {
               <div 
                 className="absolute inset-0 pointer-events-none z-10"
                 style={{
-                  background: 'radial-gradient(ellipse 60% 65% at center, transparent 25%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.7) 75%, hsl(var(--background)) 100%)',
+                  background: 'radial-gradient(ellipse 70% 70% at center, transparent 30%, rgba(0, 0, 0, 0.3) 55%, rgba(0, 0, 0, 0.8) 80%, hsl(var(--background)) 100%)',
                 }}
               />
 
               <div 
                 className="absolute inset-0 pointer-events-none z-10"
                 style={{
-                  boxShadow: 'inset 0 0 180px 80px rgba(0, 0, 0, 0.8)',
+                  boxShadow: 'inset 0 0 150px 60px rgba(0, 0, 0, 0.7)',
                 }}
               />
 
               <div 
-                className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-10"
+                className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none z-10"
                 style={{
-                  background: 'linear-gradient(to top, hsl(var(--background)) 0%, rgba(0, 0, 0, 0.7) 40%, transparent 100%)',
+                  background: 'linear-gradient(to top, hsl(var(--background)) 0%, rgba(0, 0, 0, 0.8) 50%, transparent 100%)',
                 }}
               />
 
               <div 
-                className="absolute top-0 left-0 right-0 h-32 pointer-events-none z-10"
+                className="absolute top-0 left-0 right-0 h-40 pointer-events-none z-10"
                 style={{
-                  background: 'linear-gradient(to bottom, hsl(var(--background)) 0%, rgba(0, 0, 0, 0.5) 50%, transparent 100%)',
+                  background: 'linear-gradient(to bottom, hsl(var(--background)) 0%, rgba(0, 0, 0, 0.6) 50%, transparent 100%)',
                 }}
               />
             </motion.div>
 
-            {/* Text - Right side on desktop */}
-            <div className="flex flex-col items-end text-right lg:w-1/2 order-1 lg:order-2 mb-8 lg:mb-0">
+            {/* Text - Right side on desktop, vertically centered */}
+            <div className="flex flex-col items-end text-right lg:w-2/5 order-1 lg:order-2 mb-8 lg:mb-0 lg:pl-8">
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -398,7 +398,9 @@ const Alcance = () => {
                 <p className="section-description mt-4 ml-auto">
                   Desde Barcelona hasta el mundo.
                   <br />
-                  Proyectos audiovisuales de alto impacto en Europa, Medio Oriente, Asia y América.
+                  Proyectos audiovisuales de alto impacto en Europa,
+                  <br />
+                  Medio Oriente, Asia y América.
                 </p>
               </motion.div>
             </div>
