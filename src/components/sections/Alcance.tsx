@@ -434,15 +434,6 @@ const Alcance = () => {
             </motion.div>
           )}
 
-          {/* Instructions hint */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={isInView && isGlobeReady ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ duration: 0.6, delay: 1.6 }}
-            className="text-center mt-6 font-mono text-xs text-muted-foreground/50"
-          >
-            El globo recorre automáticamente todas las zonas con proyectos
-          </motion.div>
 
           {/* Stats */}
           <motion.div
