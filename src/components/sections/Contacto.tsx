@@ -1,13 +1,41 @@
+import { motion } from 'motion/react';
+
 const Contacto = () => {
   return (
-    <section id="contacto" className="py-32">
-      <div className="container mx-auto px-6 max-w-4xl">
-        <h2 className="font-display text-3xl md:text-4xl tracking-tight mb-6">
-          Contáctanos
-        </h2>
-        <p className="text-muted-foreground text-lg">
-          Contenido de la sección Contacto.
-        </p>
+    <section id="contacto" className="relative py-20 sm:py-32 overflow-hidden">
+      <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <div className="font-mono text-xs text-muted-foreground tracking-[0.2em] uppercase mb-6 sm:mb-8">
+            Hablemos
+          </div>
+          <h2 className="font-display text-4xl sm:text-5xl md:text-7xl tracking-tighter max-w-3xl">
+            Empecemos{' '}
+            <span className="text-muted-foreground">tu proyecto</span>
+          </h2>
+          <p className="mt-4 font-mono text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed">
+            ¿Tienes una idea en mente?
+            <br />
+            Cuéntanos tu visión y la haremos realidad.
+          </p>
+        </motion.div>
+
+        {/* Placeholder para formulario de contacto */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-16"
+        >
+          <p className="font-mono text-sm text-muted-foreground">
+            Próximamente: formulario de contacto.
+          </p>
+        </motion.div>
       </div>
     </section>
   );
