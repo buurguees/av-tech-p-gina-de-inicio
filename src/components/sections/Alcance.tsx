@@ -317,36 +317,14 @@ const Alcance = () => {
   return (
     <section ref={sectionRef} id="alcance" className="relative py-20 sm:py-32 overflow-hidden">
       <div ref={ref} className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16">
-        {/* Title and Globe side by side */}
+        {/* Globe and Title side by side */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-          {/* Section header - Left side */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:flex-1"
-          >
-            <div className="section-tag">
-              Presencia global
-            </div>
-            <h2 className="section-title max-w-xl">
-              <span className="section-title-primary">De Barcelona </span>
-              <span className="section-title-secondary">al mundo</span>
-            </h2>
-            <p className="section-description mt-4">
-              Desde Barcelona hasta el mundo.
-              <br />
-              Proyectos audiovisuales de alto impacto en Europa, Medio Oriente, Asia y América.
-            </p>
-          </motion.div>
-
-          {/* Globe Container - Right side */}
+          {/* Globe Container - Left side */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 1.0, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="relative lg:flex-1 flex justify-center lg:justify-end"
+            className="relative lg:flex-1 flex justify-center lg:justify-start order-2 lg:order-1"
           >
             {!isGlobeReady && (
               <div className="absolute inset-0 flex items-center justify-center z-30 bg-background">
@@ -385,6 +363,28 @@ const Alcance = () => {
                 boxShadow: 'inset 0 0 120px 60px rgba(0, 0, 0, 0.8)',
               }}
             />
+          </motion.div>
+
+          {/* Section header - Right side */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="lg:flex-1 text-right order-1 lg:order-2"
+          >
+            <div className="section-tag">
+              Presencia global
+            </div>
+            <h2 className="section-title max-w-xl ml-auto">
+              <span className="section-title-primary">De Barcelona </span>
+              <span className="section-title-secondary">al mundo</span>
+            </h2>
+            <p className="section-description mt-4 ml-auto">
+              Desde Barcelona hasta el mundo.
+              <br />
+              Proyectos audiovisuales de alto impacto en Europa, Medio Oriente, Asia y América.
+            </p>
           </motion.div>
         </div>
 
