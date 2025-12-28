@@ -318,7 +318,7 @@ const Alcance = () => {
     <section ref={sectionRef} id="alcance" className="relative py-20 sm:py-32 overflow-hidden">
       <div ref={ref} className="max-w-[1800px] mx-auto">
         {/* Section header */}
-        <div className="px-6 sm:px-8 md:px-16">
+        <div className="px-6 sm:px-8 md:px-16 flex flex-col items-end text-right">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -332,7 +332,7 @@ const Alcance = () => {
               <span className="section-title-primary">De Barcelona </span>
               <span className="section-title-secondary">al mundo</span>
             </h2>
-            <p className="section-description mt-4">
+            <p className="section-description mt-4 ml-auto">
               Desde Barcelona hasta el mundo.
               <br />
               Proyectos audiovisuales de alto impacto en Europa, Medio Oriente, Asia y América.
