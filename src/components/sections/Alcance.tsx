@@ -317,187 +317,189 @@ const Alcance = () => {
   return (
     <section ref={sectionRef} id="alcance" className="relative py-20 sm:py-32 overflow-hidden">
       <div ref={ref} className="max-w-[1800px] mx-auto">
-        {/* Section header + Globe side by side */}
-        <div className="px-6 sm:px-8 md:px-16">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:gap-0">
-            {/* Globe Container - Left side on desktop */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 1.0, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full lg:w-3/5 order-2 lg:order-1 -ml-16 lg:-ml-32"
-            >
-              {!isGlobeReady && (
-                <div className="absolute inset-0 flex items-center justify-center z-30 bg-background">
-                  <div className="flex flex-col items-center gap-4">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                      className="w-12 h-12 border-2 border-muted border-t-foreground rounded-full"
-                    />
-                    <span className="font-mono text-sm text-muted-foreground">Cargando proyectos...</span>
-                  </div>
-                </div>
-              )}
-
-              <div 
-                ref={globeRef} 
-                className="w-full relative z-0 pointer-events-none"
-                style={{ 
-                  height: isMobile ? '175px' : '275px',
-                  minHeight: isMobile ? '175px' : '275px',
-                }}
-              />
-
-              {/* Gradients for seamless integration */}
-              <div 
-                className="absolute inset-0 pointer-events-none z-10"
-                style={{
-                  background: 'radial-gradient(ellipse 70% 70% at center, transparent 30%, rgba(0, 0, 0, 0.3) 55%, rgba(0, 0, 0, 0.8) 80%, hsl(var(--background)) 100%)',
-                }}
-              />
-
-              <div 
-                className="absolute inset-0 pointer-events-none z-10"
-                style={{
-                  boxShadow: 'inset 0 0 150px 60px rgba(0, 0, 0, 0.7)',
-                }}
-              />
-
-              <div 
-                className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none z-10"
-                style={{
-                  background: 'linear-gradient(to top, hsl(var(--background)) 0%, rgba(0, 0, 0, 0.8) 50%, transparent 100%)',
-                }}
-              />
-
-              <div 
-                className="absolute top-0 left-0 right-0 h-40 pointer-events-none z-10"
-                style={{
-                  background: 'linear-gradient(to bottom, hsl(var(--background)) 0%, rgba(0, 0, 0, 0.6) 50%, transparent 100%)',
-                }}
-              />
-            </motion.div>
-
-            {/* Text - Right side on desktop, vertically centered */}
-            <div className="flex flex-col items-end text-right lg:w-2/5 order-1 lg:order-2 mb-8 lg:mb-0 lg:pl-8">
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <div className="section-tag">
-                  Presencia global
-                </div>
-                <h2 className="section-title max-w-3xl">
-                  <span className="section-title-primary">De Barcelona</span>
-                  <br />
-                  <span className="section-title-secondary">al mundo</span>
-                </h2>
-                <p className="section-description mt-4 ml-auto">
-                  Desde Barcelona hasta el mundo.
-                  <br />
-                  Proyectos audiovisuales de alto impacto en Europa,
-                  <br />
-                  Medio Oriente, Asia y América.
-                </p>
-              </motion.div>
+        {/* Section header */}
+        <div className="px-6 sm:px-8 md:px-16 flex flex-col items-end text-right">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="section-tag">
+              Presencia global
             </div>
-          </div>
+            <h2 className="section-title max-w-3xl">
+              <span className="section-title-primary">De Barcelona </span>
+              <span className="section-title-secondary">al mundo</span>
+            </h2>
+            <p className="section-description mt-4 ml-auto">
+              Desde Barcelona hasta el mundo.
+              <br />
+              Proyectos audiovisuales de alto impacto en Europa, Medio Oriente, Asia y América.
+            </p>
+          </motion.div>
         </div>
 
-        {/* Lista de proyectos por región */}
-        <div className="px-6 sm:px-8 md:px-16 mt-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView && isGlobeReady ? { opacity: 1, y: 0 } : { opacity: 0 }}
-            transition={{ duration: 0.6, delay: 1.0, ease: [0.22, 1, 0.36, 1] }}
+        {/* Globe Container */}
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+          className="relative w-full max-w-6xl mx-auto"
+        >
+          <div className="h-8 md:h-12" />
+
+          <motion.div 
+            className="relative w-full overflow-hidden"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 1.0, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-8">
-              {Object.entries(visibleRegions).map(([region, regionProjects], regionIndex) => (
-                <motion.div
-                  key={region}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isInView && isGlobeReady ? { opacity: 1, y: 0 } : { opacity: 0 }}
-                  transition={{ 
-                    delay: 1.1 + regionIndex * 0.06,
-                    duration: 0.45,
-                    ease: [0.16, 1, 0.3, 1]
-                  }}
-                  className="space-y-2"
-                >
-                  <div className="font-mono text-xs text-muted-foreground tracking-wider uppercase font-medium">{region}</div>
-                  <div className="font-mono text-sm text-foreground/60 leading-relaxed">
-                    {regionProjects.map(p => p.name).join(', ')}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            {!isGlobeReady && (
+              <div className="absolute inset-0 flex items-center justify-center z-30 bg-background">
+                <div className="flex flex-col items-center gap-4">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                    className="w-12 h-12 border-2 border-muted border-t-foreground rounded-full"
+                  />
+                  <span className="font-mono text-sm text-muted-foreground">Cargando proyectos...</span>
+                </div>
+              </div>
+            )}
+
+            <div 
+              ref={globeRef} 
+              className="w-full relative z-0 pointer-events-none"
+              style={{ 
+                height: isMobile ? '600px' : '800px',
+                minHeight: isMobile ? '600px' : '800px',
+              }}
+            />
+
+            {/* Gradients for seamless integration */}
+            <div 
+              className="absolute inset-0 pointer-events-none z-10"
+              style={{
+                background: 'radial-gradient(ellipse 60% 65% at center, transparent 25%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.7) 75%, hsl(var(--background)) 100%)',
+              }}
+            />
+
+            <div 
+              className="absolute inset-0 pointer-events-none z-10"
+              style={{
+                boxShadow: 'inset 0 0 180px 80px rgba(0, 0, 0, 0.8)',
+              }}
+            />
+
+            <div 
+              className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none z-10"
+              style={{
+                background: 'linear-gradient(to top, hsl(var(--background)) 0%, rgba(0, 0, 0, 0.7) 40%, transparent 100%)',
+              }}
+            />
+
+            <div 
+              className="absolute top-0 left-0 right-0 h-40 pointer-events-none z-10"
+              style={{
+                background: 'linear-gradient(to bottom, hsl(var(--background)) 0%, rgba(0, 0, 0, 0.5) 50%, transparent 100%)',
+              }}
+            />
           </motion.div>
 
-          {/* Botón "Ver más" solo visible en móvil */}
-          {isMobile && (
+          {/* Lista de proyectos por región */}
+          <div className="px-6 sm:px-8 md:px-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={isInView && isGlobeReady ? { opacity: 1, y: 0 } : { opacity: 0 }}
-              transition={{ duration: 0.6, delay: 2.8, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-6 flex justify-center"
+              transition={{ duration: 0.6, delay: 1.0, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-8 md:mt-10"
             >
-              <button
-                onClick={() => setShowAllRegions(!showAllRegions)}
-                className="font-mono px-8 py-4 border border-border hover:border-foreground/30 text-muted-foreground hover:text-foreground transition-all duration-500 text-sm tracking-wide uppercase"
-              >
-                {showAllRegions ? 'Ver menos' : 'Ver más países'}
-              </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-8">
+                {Object.entries(visibleRegions).map(([region, regionProjects], regionIndex) => (
+                  <motion.div
+                    key={region}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={isInView && isGlobeReady ? { opacity: 1, y: 0 } : { opacity: 0 }}
+                    transition={{ 
+                      delay: 1.1 + regionIndex * 0.06,
+                      duration: 0.45,
+                      ease: [0.16, 1, 0.3, 1]
+                    }}
+                    className="space-y-2"
+                  >
+                    <div className="font-mono text-xs text-muted-foreground tracking-wider uppercase font-medium">{region}</div>
+                    <div className="font-mono text-sm text-foreground/60 leading-relaxed">
+                      {regionProjects.map(p => p.name).join(', ')}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
-          )}
 
-          {/* Instructions hint */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={isInView && isGlobeReady ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ duration: 0.6, delay: 1.6 }}
-            className="text-center mt-6 font-mono text-xs text-muted-foreground/50"
-          >
-            El globo recorre automáticamente todas las zonas con proyectos
-          </motion.div>
-
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.7, delay: 3.0, ease: [0.16, 1, 0.3, 1] }}
-            className="grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-8 mt-12 md:mt-16 pt-10 md:pt-12 border-t border-border"
-          >
-            {[
-              { value: '50', label: 'Ciudades' },
-              { value: '3', label: 'Continentes' },
-              { value: '18', label: 'Países' },
-              { value: 'Global', label: 'Presencia' },
-            ].map((stat, index) => (
+            {/* Botón "Ver más" solo visible en móvil */}
+            {isMobile && (
               <motion.div
-                key={index}
                 initial={{ opacity: 0, y: 20 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ 
-                  delay: 3.1 + index * 0.08,
-                  duration: 0.6,
-                  ease: [0.16, 1, 0.3, 1]
-                }}
-                whileHover={isMobile ? {} : { scale: 1.05 }}
-                className="text-center sm:text-left"
+                animate={isInView && isGlobeReady ? { opacity: 1, y: 0 } : { opacity: 0 }}
+                transition={{ duration: 0.6, delay: 2.8, ease: [0.22, 1, 0.36, 1] }}
+                className="mt-6 flex justify-center"
               >
-                <div className="font-display text-2xl sm:text-3xl md:text-4xl mb-2 tracking-tight">
-                  {stat.value}
-                </div>
-                <div className="font-mono text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                  {stat.label}
-                </div>
+                <button
+                  onClick={() => setShowAllRegions(!showAllRegions)}
+                  className="font-mono px-8 py-4 border border-border hover:border-foreground/30 text-muted-foreground hover:text-foreground transition-all duration-500 text-sm tracking-wide uppercase"
+                >
+                  {showAllRegions ? 'Ver menos' : 'Ver más países'}
+                </button>
               </motion.div>
-            ))}
-          </motion.div>
-        </div>
+            )}
+
+            {/* Instructions hint */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={isInView && isGlobeReady ? { opacity: 1 } : { opacity: 0 }}
+              transition={{ duration: 0.6, delay: 1.6 }}
+              className="text-center mt-6 font-mono text-xs text-muted-foreground/50"
+            >
+              El globo recorre automáticamente todas las zonas con proyectos
+            </motion.div>
+
+            {/* Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.7, delay: 3.0, ease: [0.16, 1, 0.3, 1] }}
+              className="grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-8 mt-12 md:mt-16 pt-10 md:pt-12 border-t border-border"
+            >
+              {[
+                { value: '50', label: 'Ciudades' },
+                { value: '3', label: 'Continentes' },
+                { value: '18', label: 'Países' },
+                { value: 'Global', label: 'Presencia' },
+              ].map((stat, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ 
+                    delay: 3.1 + index * 0.08,
+                    duration: 0.6,
+                    ease: [0.16, 1, 0.3, 1]
+                  }}
+                  whileHover={isMobile ? {} : { scale: 1.05 }}
+                  className="text-center sm:text-left"
+                >
+                  <div className="font-display text-2xl sm:text-3xl md:text-4xl mb-2 tracking-tight">
+                    {stat.value}
+                  </div>
+                  <div className="font-mono text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    {stat.label}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
