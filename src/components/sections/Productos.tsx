@@ -11,14 +11,14 @@ const Productos = () => {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="text-left"
         >
-          <div className="font-mono text-xs text-foreground/50 tracking-[0.2em] uppercase mb-6 sm:mb-8">
+          <div className="section-tag">
             Catálogo
           </div>
-          <h2 className="font-display text-4xl sm:text-5xl md:text-7xl tracking-tighter max-w-3xl text-foreground">
-            Tecnología{' '}
-            <span className="text-foreground/40">de vanguardia</span>
+          <h2 className="section-title max-w-3xl">
+            <span className="section-title-primary">Tecnología </span>
+            <span className="section-title-secondary">de vanguardia</span>
           </h2>
-          <p className="mt-4 font-mono text-base md:text-lg text-foreground/50 max-w-2xl leading-relaxed">
+          <p className="section-description mt-4">
             Equipos y soluciones de última generación.
             <br />
             Pantallas LED, sistemas de sonido profesional y control audiovisual.
