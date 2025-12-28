@@ -87,7 +87,7 @@
 
   /* Section title - large display */
   .section-title {
-    @apply text-4xl sm:text-5xl md:text-7xl tracking-tighter leading-tight;
+    @apply text-4xl sm:text-5xl md:text-7xl tracking-tighter leading-tight font-bold;
     font-family: 'IBM Plex Mono', monospace;
   }
 
