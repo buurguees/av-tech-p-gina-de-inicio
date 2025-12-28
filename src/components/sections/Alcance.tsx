@@ -324,7 +324,7 @@ const Alcance = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 1.0, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="relative lg:flex-1 flex justify-center lg:justify-start order-2 lg:order-1"
+            className="relative lg:flex-1 flex justify-center lg:justify-start order-2 lg:order-1 mt-[10px]"
           >
             {!isGlobeReady && (
               <div className="absolute inset-0 flex items-center justify-center z-30 bg-background">
@@ -389,7 +389,7 @@ const Alcance = () => {
         </div>
 
         {/* Lista de proyectos por región */}
-        <div className="mt-12">
+        <div className="mt-[32px]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={isInView && isGlobeReady ? { opacity: 1, y: 0 } : { opacity: 0 }}
