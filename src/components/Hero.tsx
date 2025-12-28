@@ -8,7 +8,7 @@ const Hero = () => {
         <div className="max-w-3xl text-left">
           {/* Main Headline */}
           <h1 className="section-title mb-8 animate-fade-in-up">
-            <span className="section-title-primary">Convertimos espacios</span>
+            <span className="section-title-primary">Convertimos espacios físicos</span>
             <br />
             <span className="section-title-secondary">en experiencias</span>
             <br />
