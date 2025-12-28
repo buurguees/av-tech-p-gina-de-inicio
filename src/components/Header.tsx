@@ -5,12 +5,30 @@ import logoAvtech from '@/assets/logo-avtech-white.png';
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('inicio');
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
+
+      // Detectar sección activa
+      const sections = ['inicio', 'alcance', 'proyectos', 'productos', 'sobre-nosotros', 'contacto'];
+      const scrollPosition = window.scrollY + 150;
+
+      for (const sectionId of sections) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          const { offsetTop, offsetHeight } = element;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveSection(sectionId);
+            break;
+          }
+        }
+      }
     };
+
     window.addEventListener('scroll', handleScroll);
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -32,7 +50,9 @@ const Header = () => {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'border-b border-border/50 py-4' : 'py-6'
+        isScrolled 
+          ? 'bg-background/80 backdrop-blur-md border-b border-border/50 py-4' 
+          : 'bg-background/40 backdrop-blur-sm py-6'
       }`}
     >
       <div className="container mx-auto px-6">
@@ -55,14 +75,22 @@ const Header = () => {
               <button
                 key={link.label}
                 onClick={() => scrollToSection(link.id)}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-300 tracking-wide uppercase"
+                className={`text-xs tracking-wide uppercase transition-colors duration-300 ${
+                  activeSection === link.id 
+                    ? 'text-foreground' 
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
                 {link.label}
               </button>
             ))}
             <button
               onClick={() => scrollToSection('contacto')}
-              className="text-xs text-foreground border-b border-foreground pb-0.5 tracking-wide uppercase"
+              className={`text-xs tracking-wide uppercase transition-colors duration-300 ${
+                activeSection === 'contacto'
+                  ? 'text-foreground border-b border-foreground pb-0.5'
+                  : 'text-foreground border-b border-foreground pb-0.5 opacity-80 hover:opacity-100'
+              }`}
             >
               Contáctanos
             </button>
@@ -91,7 +119,11 @@ const Header = () => {
               <button
                 key={link.label}
                 onClick={() => scrollToSection(link.id)}
-                className="text-lg text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wide"
+                className={`text-lg uppercase tracking-wide transition-colors ${
+                  activeSection === link.id 
+                    ? 'text-foreground' 
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
                 {link.label}
               </button>

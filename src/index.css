@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Roboto+Mono:wght@300;400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,6 +37,10 @@
 
     --radius: 0.25rem;
 
+    /* Text colors */
+    --text-primary: 0 0% 100%;
+    --text-secondary: 0 0% 70%;
+
     /* Shadows */
     --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.5);
     --shadow-md: 0 4px 12px hsl(0 0% 0% / 0.4);
@@ -68,6 +74,35 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'IBM Plex Mono', monospace;
+  }
+}
+
+/* Global Typography Classes */
+@layer components {
+  /* Section tag - small mono uppercase */
+  .section-tag {
+    @apply font-mono text-xs tracking-[0.2em] uppercase mb-6 sm:mb-8;
+    color: hsl(var(--text-secondary));
+  }
+
+  /* Section title - large display */
+  .section-title {
+    @apply text-4xl sm:text-5xl md:text-7xl tracking-tighter leading-tight;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .section-title-primary {
+    color: hsl(var(--text-primary));
+  }
+
+  .section-title-secondary {
+    color: hsl(var(--text-secondary));
+  }
+
+  /* Section description */
+  .section-description {
+    @apply font-mono text-base md:text-lg leading-relaxed max-w-2xl;
+    color: hsl(var(--text-secondary));
   }
 }
 

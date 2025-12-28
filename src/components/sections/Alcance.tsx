@@ -325,14 +325,14 @@ const Alcance = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="font-mono text-xs text-foreground/50 tracking-[0.2em] uppercase mb-6 sm:mb-8">
+            <div className="section-tag">
               Presencia global
             </div>
-            <h2 className="font-display text-4xl sm:text-5xl md:text-7xl tracking-tighter max-w-3xl text-foreground">
-              Transformamos espacios{' '}
-              <span className="text-foreground/40">en todo el mundo</span>
+            <h2 className="section-title max-w-3xl">
+              <span className="section-title-primary">Transformamos espacios </span>
+              <span className="section-title-secondary">en todo el mundo</span>
             </h2>
-            <p className="mt-4 font-mono text-base md:text-lg text-foreground/50 max-w-2xl leading-relaxed">
+            <p className="section-description mt-4">
               Desde Barcelona hasta el mundo.
               <br />
               Proyectos audiovisuales de alto impacto en Europa, Medio Oriente, Asia y América.
