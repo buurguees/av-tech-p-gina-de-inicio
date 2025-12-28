@@ -329,8 +329,8 @@ const Alcance = () => {
               Presencia global
             </div>
             <h2 className="section-title max-w-3xl">
-              <span className="section-title-primary">Transformamos espacios </span>
-              <span className="section-title-secondary">en todo el mundo</span>
+              <span className="section-title-primary">De Barcelona </span>
+              <span className="section-title-secondary">al mundo</span>
             </h2>
             <p className="section-description mt-4">
               Desde Barcelona hasta el mundo.
