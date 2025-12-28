@@ -189,7 +189,7 @@ const Alcance = () => {
         .atmosphereAltitude(0.15)
         
         .width(globeRef.current.offsetWidth)
-        .height(isMobile ? 600 : 800)
+        .height(isMobile ? 300 : 400)
         
         .pointOfView(INITIAL_VIEW)
         
@@ -287,7 +287,7 @@ const Alcance = () => {
       if (globeInstance.current && globeRef.current) {
         try {
           globeInstance.current.width(globeRef.current.offsetWidth);
-          globeInstance.current.height(isMobile ? 600 : 800);
+          globeInstance.current.height(isMobile ? 300 : 400);
         } catch (error) {
           console.error('Error resizing globe:', error);
         }
@@ -372,8 +372,8 @@ const Alcance = () => {
               ref={globeRef} 
               className="w-full relative z-0 pointer-events-none"
               style={{ 
-                height: isMobile ? '600px' : '800px',
-                minHeight: isMobile ? '600px' : '800px',
+                height: isMobile ? '300px' : '400px',
+                minHeight: isMobile ? '300px' : '400px',
               }}
             />
 
