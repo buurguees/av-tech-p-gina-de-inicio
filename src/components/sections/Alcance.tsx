@@ -344,8 +344,8 @@ const Alcance = () => {
                 ref={globeRef} 
                 className="w-full relative z-0 pointer-events-none"
                 style={{ 
-                  height: isMobile ? '350px' : '550px',
-                  minHeight: isMobile ? '350px' : '550px',
+                  height: isMobile ? '175px' : '275px',
+                  minHeight: isMobile ? '175px' : '275px',
                 }}
               />
 
