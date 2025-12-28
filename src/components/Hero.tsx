@@ -59,6 +59,13 @@ const Hero = () => {
             background: 'linear-gradient(to right, hsl(var(--background)) 0%, hsl(var(--background) / 0.8) 40%, transparent 100%)'
           }}
         />
+        {/* Bottom gradient for seamless section transition */}
+        <div 
+          className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none"
+          style={{
+            background: 'linear-gradient(to top, hsl(var(--background)) 0%, transparent 100%)'
+          }}
+        />
       </div>
 
       {/* Content */}
