@@ -93,9 +93,9 @@ const Hero = () => {
           </h1>
 
           {/* Subheadline */}
-          <h2 className="section-description mb-6 animate-fade-in-up-delay-1">
+          <h2 className="section-description mb-6 animate-fade-in-up-delay-1 text-justify">
             Ayudamos a empresas y marcas a mejorar la forma en la que se muestran, 
-            se escuchan y se recuerdan, a través de soluciones audiovisuales 
+            se escuchan y se recuerdan; a través de soluciones audiovisuales 
             profesionales adaptadas a cada espacio.
           </h2>
 
