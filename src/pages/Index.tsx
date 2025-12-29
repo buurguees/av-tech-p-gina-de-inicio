@@ -8,6 +8,7 @@ import SobreNosotros from '@/components/sections/SobreNosotros';
 import Contacto from '@/components/sections/Contacto';
 import Footer from '@/components/Footer';
 import LoadingScreen from '@/components/LoadingScreen';
+import CookieConsent from '@/components/CookieConsent';
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +26,7 @@ const Index = () => {
           <SobreNosotros />
           <Contacto />
           <Footer />
+          <CookieConsent />
         </main>
       )}
     </>
