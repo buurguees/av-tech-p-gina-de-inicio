@@ -98,7 +98,7 @@ const SobreNosotros = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-16 pr-6 border-r-2 border-foreground/20 text-right"
+              className="mt-10 pr-6 border-r-2 border-foreground/20 text-right"
             >
               <p className="text-quote">
                 AV TECH nace con la voluntad de acercar la tecnología audiovisual profesional a más tipos de negocio, adaptando cada proyecto a su contexto real, independientemente de su tamaño.
