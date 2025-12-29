@@ -42,19 +42,19 @@ const HowItWorks = () => {
     <section id="como-funciona" className="relative min-h-screen overflow-hidden">
       {/* Visual - Left Side */}
       <div className="absolute inset-y-0 left-0 w-1/2 hidden lg:block">
-        <div className="absolute inset-0 flex items-center justify-center">
+        {/* Top gradient */}
+        <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-background to-transparent z-10" />
+        
+        {/* Bottom gradient */}
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent z-10" />
+
+        <div className="absolute inset-0 flex items-center justify-center p-8">
           <img 
             src={howItWorksVisual} 
             alt="Antes y después de instalación de pantalla LED" 
-            className="w-full h-full object-contain"
+            className="max-w-full max-h-full object-contain"
           />
         </div>
-
-        {/* Top gradient */}
-        <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-background via-background/60 to-transparent z-10" />
-        
-        {/* Bottom gradient */}
-        <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-background via-background/60 to-transparent z-10" />
       </div>
 
       {/* Content - Right Side on desktop, full width on mobile */}
