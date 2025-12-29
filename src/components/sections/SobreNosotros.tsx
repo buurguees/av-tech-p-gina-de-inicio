@@ -312,8 +312,8 @@ const SobreNosotros = () => {
                   transition={{ duration: 0.6, delay: 0.4 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
                   className="flex items-start gap-4 p-4 border border-foreground/5 bg-transparent hover:border-foreground/15 transition-colors duration-300 text-right flex-row-reverse"
                 >
-                  <span className="text-caption">{step.num}</span>
-                  <span className="text-body text-justify">{step.text}</span>
+                  <span className="text-caption" style={{ textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))' }}>{step.num}</span>
+                  <span className="text-body text-justify" style={{ textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))' }}>{step.text}</span>
                 </motion.div>
               ))}
             </motion.div>
