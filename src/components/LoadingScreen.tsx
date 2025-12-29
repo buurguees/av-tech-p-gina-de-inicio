@@ -27,8 +27,8 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black"
         >
           <motion.svg
-            width="900"
-            height="900"
+            width="300"
+            height="300"
             viewBox="0 0 800 800"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
