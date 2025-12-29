@@ -3,29 +3,6 @@ import { motion } from 'motion/react';
 const SobreNosotros = () => {
   return (
     <section id="sobre-nosotros" className="relative bg-background overflow-hidden">
-      {/* Animated grid background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px),
-              linear-gradient(to bottom, hsl(var(--foreground)) 1px, transparent 1px)
-            `,
-            backgroundSize: '60px 60px'
-          }}
-        />
-        {/* Animated scan line */}
-        <motion.div
-          className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent"
-          initial={{ top: '0%' }}
-          animate={{ top: '100%' }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-        />
-      </div>
-
-      {/* Glowing orbs */}
-      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-foreground/5 rounded-full blur-[100px]" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-foreground/3 rounded-full blur-[120px]" />
 
       {/* Block 1: Header */}
       <div className="relative min-h-screen flex items-center">
