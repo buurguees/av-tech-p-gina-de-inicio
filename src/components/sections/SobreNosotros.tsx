@@ -73,7 +73,8 @@ const SobreNosotros = () => {
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               className="section-title text-right"
             >
-              <span className="section-title-primary">Por qué nació </span>
+              <span className="section-title-primary">Por qué nació</span>
+              <br />
               <span className="section-title-secondary">AV TECH</span>
             </motion.h3>
 
