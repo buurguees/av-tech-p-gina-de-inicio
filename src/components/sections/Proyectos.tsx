@@ -18,14 +18,14 @@ import project7 from '@/assets/projects/project-7.jpg';
 import project8 from '@/assets/projects/project-8.jpg';
 
 const projects = [
-  { id: 1, image: project1, title: 'ARS Gràcia', category: 'Eventos' },
+  { id: 1, image: project1, title: 'Metro Barcelona ARS Gràcia', category: 'Transporte' },
   { id: 2, image: project2, title: 'Bershka Milan', category: 'Retail LED' },
   { id: 3, image: project3, title: 'Escaparate Digital', category: 'Escaparates' },
-  { id: 4, image: project4, title: 'Lefties Pare Sur', category: 'LED Transparente' },
-  { id: 5, image: project5, title: 'Monitor Producto', category: 'Señalización' },
+  { id: 4, image: project4, title: 'Lefties Parque Sur', category: 'LED Transparente' },
+  { id: 5, image: project5, title: 'Digital Signage Jack & Jones', category: 'Señalización' },
   { id: 6, image: project6, title: 'Pantalla Circular', category: 'Displays Especiales' },
   { id: 7, image: project7, title: 'Interior Retail', category: 'Experiencia Visual' },
-  { id: 8, image: project8, title: 'Interior Show', category: 'Espacios Inmersivos' },
+  { id: 8, image: project8, title: 'Corporate Lobby Experience', category: 'Espacios Corporativos' },
 ];
 
 const Proyectos = () => {
