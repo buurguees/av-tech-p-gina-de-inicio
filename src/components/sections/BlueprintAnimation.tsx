@@ -1,38 +1,43 @@
 import { motion } from 'motion/react';
 
 const BlueprintAnimation = () => {
-  const baseDuration = 0.8;
-  const staggerDelay = 0.08;
-  const totalAnimTime = 3;
-  const pauseTime = 1.5;
-  const cycleDuration = totalAnimTime + pauseTime;
+  const baseDuration = 0.6;
+  const staggerDelay = 0.06;
+  const totalAnimTime = 4;
 
-  // Create transition for path drawing with loop
+  // Create transition for path drawing (no reverse, plays once per view)
   const getPathTransition = (index: number) => ({
     pathLength: {
       duration: baseDuration,
       delay: index * staggerDelay,
-      repeat: Infinity,
-      repeatType: "reverse" as const,
-      repeatDelay: cycleDuration - (index * staggerDelay) - baseDuration,
-      ease: "easeInOut" as const
+      ease: "easeOut" as const
     },
     opacity: {
-      duration: 0.2,
-      delay: index * staggerDelay,
-      repeat: Infinity,
-      repeatType: "reverse" as const,
-      repeatDelay: cycleDuration
+      duration: 0.3,
+      delay: index * staggerDelay
     }
   });
 
   const getFadeTransition = (index: number) => ({
     duration: 0.4,
-    delay: index * staggerDelay + 0.3,
-    repeat: Infinity,
-    repeatType: "reverse" as const,
-    repeatDelay: cycleDuration
+    delay: index * staggerDelay + 0.2
   });
+
+  // Panel dimensions: 4 squares wide (100mm each = 1000mm), 8 squares tall (250mm each = 2000mm)
+  const squareSize = 40; // pixels per square
+  const panelWidth = squareSize * 4; // 160px = 4 squares
+  const panelHeight = squareSize * 8; // 320px = 8 squares
+  const panelGap = 30;
+  const startX = 140;
+  const startY = 60;
+
+  const panels = [
+    { x: startX, label: 'Panel 1' },
+    { x: startX + panelWidth + panelGap, label: 'Panel 2' },
+    { x: startX + (panelWidth + panelGap) * 2, label: 'Panel 3' }
+  ];
+
+  const totalWidth = panelWidth * 3 + panelGap * 2; // 540px
 
   return (
     <section className="relative py-20 sm:py-32 overflow-hidden bg-background">
@@ -63,306 +68,263 @@ const BlueprintAnimation = () => {
             </defs>
             <rect width="800" height="500" fill="url(#grid)" />
 
-            {/* Main LED Panel Frame - Left */}
-            <motion.rect
-              x="100"
-              y="80"
-              width="180"
-              height="340"
-              stroke="hsl(var(--primary))"
-              strokeWidth="2"
-              fill="none"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={getPathTransition(1)}
-            />
-            
-            {/* LED Module Grid - Left Panel */}
-            {[0, 1, 2, 3, 4, 5].map((row) => (
-              <motion.line
-                key={`h-left-${row}`}
-                x1="100"
-                y1={80 + row * 56.67}
-                x2="280"
-                y2={80 + row * 56.67}
-                stroke="hsl(var(--primary))"
-                strokeWidth="0.5"
-                strokeOpacity="0.6"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.6 }}
-                transition={getPathTransition(2 + row * 0.5)}
-              />
-            ))}
-            {[0, 1, 2, 3].map((col) => (
-              <motion.line
-                key={`v-left-${col}`}
-                x1={100 + col * 60}
-                y1="80"
-                x2={100 + col * 60}
-                y2="420"
-                stroke="hsl(var(--primary))"
-                strokeWidth="0.5"
-                strokeOpacity="0.6"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.6 }}
-                transition={getPathTransition(5 + col * 0.5)}
-              />
+            {/* Draw all 3 panels */}
+            {panels.map((panel, panelIndex) => (
+              <g key={`panel-${panelIndex}`}>
+                {/* Main panel frame */}
+                <motion.rect
+                  x={panel.x}
+                  y={startY}
+                  width={panelWidth}
+                  height={panelHeight}
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="2"
+                  fill="none"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={getPathTransition(1 + panelIndex * 6)}
+                />
+
+                {/* Horizontal grid lines (8 rows = 9 lines including edges) */}
+                {[1, 2, 3, 4, 5, 6, 7].map((row) => (
+                  <motion.line
+                    key={`h-${panelIndex}-${row}`}
+                    x1={panel.x}
+                    y1={startY + row * squareSize}
+                    x2={panel.x + panelWidth}
+                    y2={startY + row * squareSize}
+                    stroke="hsl(var(--primary))"
+                    strokeWidth="0.5"
+                    strokeOpacity="0.6"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 0.6 }}
+                    transition={getPathTransition(2 + panelIndex * 6 + row * 0.3)}
+                  />
+                ))}
+
+                {/* Vertical grid lines (4 columns = 5 lines including edges) */}
+                {[1, 2, 3].map((col) => (
+                  <motion.line
+                    key={`v-${panelIndex}-${col}`}
+                    x1={panel.x + col * squareSize}
+                    y1={startY}
+                    x2={panel.x + col * squareSize}
+                    y2={startY + panelHeight}
+                    stroke="hsl(var(--primary))"
+                    strokeWidth="0.5"
+                    strokeOpacity="0.6"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 0.6 }}
+                    transition={getPathTransition(4 + panelIndex * 6 + col * 0.3)}
+                  />
+                ))}
+
+                {/* Corner markers */}
+                {[
+                  [panel.x, startY],
+                  [panel.x + panelWidth, startY],
+                  [panel.x, startY + panelHeight],
+                  [panel.x + panelWidth, startY + panelHeight]
+                ].map(([cx, cy], i) => (
+                  <motion.circle
+                    key={`corner-${panelIndex}-${i}`}
+                    cx={cx}
+                    cy={cy}
+                    r="3"
+                    fill="hsl(var(--primary))"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={getFadeTransition(20 + panelIndex * 2 + i * 0.2)}
+                  />
+                ))}
+              </g>
             ))}
 
-            {/* Main LED Panel Frame - Center */}
-            <motion.rect
-              x="310"
-              y="80"
-              width="180"
-              height="340"
-              stroke="hsl(var(--primary))"
-              strokeWidth="2"
-              fill="none"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={getPathTransition(7)}
-            />
-
-            {/* LED Module Grid - Center Panel */}
-            {[0, 1, 2, 3, 4, 5].map((row) => (
-              <motion.line
-                key={`h-center-${row}`}
-                x1="310"
-                y1={80 + row * 56.67}
-                x2="490"
-                y2={80 + row * 56.67}
-                stroke="hsl(var(--primary))"
-                strokeWidth="0.5"
-                strokeOpacity="0.6"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.6 }}
-                transition={getPathTransition(8 + row * 0.5)}
-              />
-            ))}
-            {[0, 1, 2, 3].map((col) => (
-              <motion.line
-                key={`v-center-${col}`}
-                x1={310 + col * 60}
-                y1="80"
-                x2={310 + col * 60}
-                y2="420"
-                stroke="hsl(var(--primary))"
-                strokeWidth="0.5"
-                strokeOpacity="0.6"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.6 }}
-                transition={getPathTransition(11 + col * 0.5)}
-              />
-            ))}
-
-            {/* Main LED Panel Frame - Right */}
-            <motion.rect
-              x="520"
-              y="80"
-              width="180"
-              height="340"
-              stroke="hsl(var(--primary))"
-              strokeWidth="2"
-              fill="none"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={getPathTransition(13)}
-            />
-
-            {/* LED Module Grid - Right Panel */}
-            {[0, 1, 2, 3, 4, 5].map((row) => (
-              <motion.line
-                key={`h-right-${row}`}
-                x1="520"
-                y1={80 + row * 56.67}
-                x2="700"
-                y2={80 + row * 56.67}
-                stroke="hsl(var(--primary))"
-                strokeWidth="0.5"
-                strokeOpacity="0.6"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.6 }}
-                transition={getPathTransition(14 + row * 0.5)}
-              />
-            ))}
-            {[0, 1, 2, 3].map((col) => (
-              <motion.line
-                key={`v-right-${col}`}
-                x1={520 + col * 60}
-                y1="80"
-                x2={520 + col * 60}
-                y2="420"
-                stroke="hsl(var(--primary))"
-                strokeWidth="0.5"
-                strokeOpacity="0.6"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.6 }}
-                transition={getPathTransition(17 + col * 0.5)}
-              />
-            ))}
-
-            {/* Dimension lines - Width */}
+            {/* Dimension line - Width per panel (1000mm) */}
             <motion.line
-              x1="100"
-              y1="450"
-              x2="700"
-              y2="450"
+              x1={startX}
+              y1={startY + panelHeight + 25}
+              x2={startX + panelWidth}
+              y2={startY + panelHeight + 25}
               stroke="hsl(var(--foreground))"
               strokeWidth="0.8"
               strokeOpacity="0.5"
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 0.5 }}
-              transition={getPathTransition(19)}
+              transition={getPathTransition(25)}
             />
             <motion.line
-              x1="100"
-              y1="445"
-              x2="100"
-              y2="455"
+              x1={startX}
+              y1={startY + panelHeight + 20}
+              x2={startX}
+              y2={startY + panelHeight + 30}
               stroke="hsl(var(--foreground))"
               strokeWidth="0.8"
               strokeOpacity="0.5"
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 0.5 }}
-              transition={getPathTransition(19.5)}
+              transition={getPathTransition(25.2)}
             />
             <motion.line
-              x1="700"
-              y1="445"
-              x2="700"
-              y2="455"
+              x1={startX + panelWidth}
+              y1={startY + panelHeight + 20}
+              x2={startX + panelWidth}
+              y2={startY + panelHeight + 30}
               stroke="hsl(var(--foreground))"
               strokeWidth="0.8"
               strokeOpacity="0.5"
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 0.5 }}
-              transition={getPathTransition(19.5)}
+              transition={getPathTransition(25.2)}
             />
+            <motion.text
+              x={startX + panelWidth / 2}
+              y={startY + panelHeight + 45}
+              textAnchor="middle"
+              fill="hsl(var(--foreground))"
+              fontSize="11"
+              fontFamily="monospace"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              transition={getFadeTransition(26)}
+            >
+              1000mm
+            </motion.text>
 
-            {/* Dimension lines - Height */}
+            {/* Dimension line - Total width (3000mm) */}
             <motion.line
-              x1="50"
-              y1="80"
-              x2="50"
-              y2="420"
+              x1={startX}
+              y1={startY + panelHeight + 60}
+              x2={startX + totalWidth}
+              y2={startY + panelHeight + 60}
               stroke="hsl(var(--foreground))"
               strokeWidth="0.8"
               strokeOpacity="0.5"
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 0.5 }}
-              transition={getPathTransition(20)}
+              transition={getPathTransition(27)}
             />
             <motion.line
-              x1="45"
-              y1="80"
-              x2="55"
-              y2="80"
+              x1={startX}
+              y1={startY + panelHeight + 55}
+              x2={startX}
+              y2={startY + panelHeight + 65}
               stroke="hsl(var(--foreground))"
               strokeWidth="0.8"
               strokeOpacity="0.5"
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 0.5 }}
-              transition={getPathTransition(20.5)}
+              transition={getPathTransition(27.2)}
             />
             <motion.line
-              x1="45"
-              y1="420"
-              x2="55"
-              y2="420"
+              x1={startX + totalWidth}
+              y1={startY + panelHeight + 55}
+              x2={startX + totalWidth}
+              y2={startY + panelHeight + 65}
               stroke="hsl(var(--foreground))"
               strokeWidth="0.8"
               strokeOpacity="0.5"
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 0.5 }}
-              transition={getPathTransition(20.5)}
+              transition={getPathTransition(27.2)}
             />
+            <motion.text
+              x={startX + totalWidth / 2}
+              y={startY + panelHeight + 80}
+              textAnchor="middle"
+              fill="hsl(var(--foreground))"
+              fontSize="11"
+              fontFamily="monospace"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              transition={getFadeTransition(28)}
+            >
+              3000mm
+            </motion.text>
+
+            {/* Dimension line - Height (2000mm) */}
+            <motion.line
+              x1={startX - 25}
+              y1={startY}
+              x2={startX - 25}
+              y2={startY + panelHeight}
+              stroke="hsl(var(--foreground))"
+              strokeWidth="0.8"
+              strokeOpacity="0.5"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.5 }}
+              transition={getPathTransition(29)}
+            />
+            <motion.line
+              x1={startX - 30}
+              y1={startY}
+              x2={startX - 20}
+              y2={startY}
+              stroke="hsl(var(--foreground))"
+              strokeWidth="0.8"
+              strokeOpacity="0.5"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.5 }}
+              transition={getPathTransition(29.2)}
+            />
+            <motion.line
+              x1={startX - 30}
+              y1={startY + panelHeight}
+              x2={startX - 20}
+              y2={startY + panelHeight}
+              stroke="hsl(var(--foreground))"
+              strokeWidth="0.8"
+              strokeOpacity="0.5"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.5 }}
+              transition={getPathTransition(29.2)}
+            />
+            <motion.text
+              x={startX - 45}
+              y={startY + panelHeight / 2}
+              textAnchor="middle"
+              fill="hsl(var(--foreground))"
+              fontSize="11"
+              fontFamily="monospace"
+              transform={`rotate(-90, ${startX - 45}, ${startY + panelHeight / 2})`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              transition={getFadeTransition(30)}
+            >
+              2000mm
+            </motion.text>
 
             {/* Structural support lines */}
-            {[100, 280, 520, 700].map((x, i) => (
-              <motion.line
-                key={`support-${i}`}
-                x1={x}
-                y1="420"
-                x2={x}
-                y2="480"
-                stroke="hsl(var(--foreground))"
-                strokeWidth="1"
-                strokeOpacity="0.3"
-                strokeDasharray="4 2"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.3 }}
-                transition={getPathTransition(21 + i * 0.3)}
-              />
+            {panels.map((panel, i) => (
+              <g key={`support-${i}`}>
+                <motion.line
+                  x1={panel.x}
+                  y1={startY + panelHeight}
+                  x2={panel.x}
+                  y2={startY + panelHeight + 15}
+                  stroke="hsl(var(--foreground))"
+                  strokeWidth="1"
+                  strokeOpacity="0.3"
+                  strokeDasharray="4 2"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 0.3 }}
+                  transition={getPathTransition(31 + i * 0.3)}
+                />
+                <motion.line
+                  x1={panel.x + panelWidth}
+                  y1={startY + panelHeight}
+                  x2={panel.x + panelWidth}
+                  y2={startY + panelHeight + 15}
+                  stroke="hsl(var(--foreground))"
+                  strokeWidth="1"
+                  strokeOpacity="0.3"
+                  strokeDasharray="4 2"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 0.3 }}
+                  transition={getPathTransition(31.5 + i * 0.3)}
+                />
+              </g>
             ))}
-
-            {/* Technical labels */}
-            <motion.text
-              x="400"
-              y="470"
-              textAnchor="middle"
-              fill="hsl(var(--foreground))"
-              fontSize="12"
-              fontFamily="monospace"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.6 }}
-              transition={getFadeTransition(22)}
-            >
-              6000mm
-            </motion.text>
-            <motion.text
-              x="30"
-              y="255"
-              textAnchor="middle"
-              fill="hsl(var(--foreground))"
-              fontSize="12"
-              fontFamily="monospace"
-              transform="rotate(-90, 30, 255)"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.6 }}
-              transition={getFadeTransition(22.5)}
-            >
-              3400mm
-            </motion.text>
-
-
-            {/* Corner detail markers */}
-            {[[100, 80], [280, 80], [100, 420], [280, 420]].map(([x, y], i) => (
-              <motion.circle
-                key={`corner-left-${i}`}
-                cx={x}
-                cy={y}
-                r="3"
-                fill="hsl(var(--primary))"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={getFadeTransition(25 + i * 0.2)}
-              />
-            ))}
-            {[[310, 80], [490, 80], [310, 420], [490, 420]].map(([x, y], i) => (
-              <motion.circle
-                key={`corner-center-${i}`}
-                cx={x}
-                cy={y}
-                r="3"
-                fill="hsl(var(--primary))"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={getFadeTransition(26 + i * 0.2)}
-              />
-            ))}
-            {[[520, 80], [700, 80], [520, 420], [700, 420]].map(([x, y], i) => (
-              <motion.circle
-                key={`corner-right-${i}`}
-                cx={x}
-                cy={y}
-                r="3"
-                fill="hsl(var(--primary))"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={getFadeTransition(27 + i * 0.2)}
-              />
-            ))}
-
           </svg>
         </motion.div>
       </div>
