@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 
 const SobreNosotros = () => {
   return (
-    <section id="sobre-nosotros" className="relative bg-background overflow-hidden">
+    <section id="sobre-nosotros" className="relative overflow-hidden">
 
       {/* Block 1: Header */}
       <div className="relative min-h-screen flex items-center">
@@ -28,13 +28,13 @@ const SobreNosotros = () => {
             className="mt-12 max-w-2xl"
           >
             <p className="font-mono text-lg md:text-xl leading-relaxed text-foreground/80">
-              Somos técnicos audiovisuales con más de cinco años de experiencia trabajando en instalaciones, eventos y proyectos reales.
+              Somos técnicos audiovisuales con más de cinco años de experiencia trabajando en instalaciones, eventos y proyectos reales, tanto en entornos comerciales como en proyectos de mayor envergadura.
             </p>
             <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60 mt-6">
-              Antes de fundar AV TECH, ya estábamos en el terreno: instalando, configurando, resolviendo problemas y entendiendo cómo funciona de verdad un espacio cuando se integra tecnología audiovisual.
+              Antes de fundar AV TECH, ya estábamos en el terreno: montando, configurando, resolviendo incidencias y entendiendo cómo funciona de verdad un espacio cuando se integra tecnología audiovisual.
             </p>
             <p className="font-mono text-sm tracking-wide text-foreground/40 mt-8 uppercase">
-              Esa experiencia práctica es la base de todo lo que hacemos hoy.
+              Esa experiencia técnica y operativa es la base de todo lo que hacemos hoy.
             </p>
           </motion.div>
 
@@ -44,7 +44,7 @@ const SobreNosotros = () => {
             whileInView={{ scaleX: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.2, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-20 h-px bg-gradient-to-r from-foreground/30 via-foreground/10 to-transparent origin-left max-w-xl"
+            className="mt-20 h-px bg-foreground/20 origin-left max-w-xl"
           />
         </div>
       </div>
@@ -82,13 +82,10 @@ const SobreNosotros = () => {
             className="mt-12 max-w-2xl space-y-6"
           >
             <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/70">
-              Con el tiempo detectamos una realidad clara: para muchas pequeñas y medianas empresas, acceder a tecnología audiovisual profesional —especialmente pantallas LED— seguía siendo poco viable.
+              Con el tiempo detectamos una realidad clara: muchas empresas —especialmente pequeñas y medianas— querían incorporar soluciones audiovisuales profesionales, pero no siempre encontraban propuestas ajustadas a su escala, a su ritmo de crecimiento o a su forma de trabajar.
             </p>
             <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60">
-              El sector estaba dominado por grandes integradores con márgenes elevados, soluciones sobredimensionadas y precios fuera del alcance de las PYMEs.
-            </p>
-            <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60">
-              Negocios con potencial se quedaban fuera no por falta de visión, sino por falta de accesibilidad.
+              Al mismo tiempo, vimos que la tecnología audiovisual podía aplicarse de una forma más flexible, más cercana y más adaptada, sin perder nivel técnico ni calidad de ejecución.
             </p>
           </motion.div>
 
@@ -100,14 +97,14 @@ const SobreNosotros = () => {
             className="mt-16 pl-6 border-l-2 border-foreground/20"
           >
             <p className="font-mono text-xl md:text-2xl text-foreground font-medium">
-              AV TECH nace precisamente para romper esa barrera.
+              AV TECH nace con la voluntad de acercar la tecnología audiovisual profesional a más tipos de negocio, adaptando cada proyecto a su contexto real, independientemente de su tamaño.
             </p>
           </motion.div>
         </div>
       </div>
 
       {/* Block 3: Nuestra visión */}
-      <div className="relative min-h-screen flex items-center border-t border-foreground/5 bg-foreground/[0.02]">
+      <div className="relative min-h-screen flex items-center border-t border-foreground/5">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32">
           <motion.div
             initial={{ opacity: 0 }}
@@ -139,10 +136,10 @@ const SobreNosotros = () => {
             className="mt-12 max-w-2xl space-y-6"
           >
             <p className="font-mono text-lg md:text-xl leading-relaxed text-foreground/80">
-              Creemos que la tecnología audiovisual no debería ser un privilegio reservado a grandes marcas.
+              Creemos que la tecnología audiovisual no debería entenderse como una solución única ni rígida.
             </p>
             <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60">
-              Creemos que cualquier espacio, por pequeño que sea, puede comunicar mejor, generar emociones y dejar huella.
+              Creemos que cada espacio, cada empresa y cada proyecto requieren una lectura propia.
             </p>
           </motion.div>
 
@@ -151,11 +148,28 @@ const SobreNosotros = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-16 p-8 md:p-12 bg-foreground/[0.03] border border-foreground/10 max-w-2xl"
+            className="mt-16 p-8 md:p-12 border border-foreground/10 max-w-2xl"
           >
             <p className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40 mb-4">Nuestra finalidad</p>
-            <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/80">
-              Hacer accesible la tecnología audiovisual profesional a pequeñas y medianas empresas, tanto en entornos retail como en espacios pensados para crear experiencias memorables.
+            <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/80 mb-6">
+              Desarrollar soluciones audiovisuales que permitan:
+            </p>
+            <ul className="space-y-3 font-mono text-base md:text-lg text-foreground/70">
+              <li className="flex items-start gap-3">
+                <span className="text-foreground/40">—</span>
+                <span>mejorar la comunicación visual,</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-foreground/40">—</span>
+                <span>generar impacto,</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-foreground/40">—</span>
+                <span>y crear experiencias memorables,</span>
+              </li>
+            </ul>
+            <p className="font-mono text-sm text-foreground/50 mt-6">
+              tanto en entornos retail y PYMEs como en proyectos corporativos y de mayor escala.
             </p>
           </motion.div>
         </div>
@@ -203,7 +217,7 @@ const SobreNosotros = () => {
             transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="mt-4 font-mono text-xl md:text-2xl text-foreground font-medium italic"
           >
-            ¿Qué necesita este espacio para comunicar mejor?
+            ¿Qué necesita este espacio para comunicar mejor y cumplir su objetivo?
           </motion.p>
 
           <motion.div
@@ -214,10 +228,10 @@ const SobreNosotros = () => {
             className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl"
           >
             {[
-              { num: '01', text: 'Analizamos el entorno' },
-              { num: '02', text: 'Diseñamos la solución adecuada' },
-              { num: '03', text: 'Integramos tecnología audiovisual de forma coherente' },
-              { num: '04', text: 'Acompañamos al cliente antes, durante y después' },
+              { num: '01', text: 'Analizamos el entorno y el uso real del espacio' },
+              { num: '02', text: 'Diseñamos una solución audiovisual coherente y escalable' },
+              { num: '03', text: 'Integramos la tecnología de forma precisa y cuidada' },
+              { num: '04', text: 'Acompañamos al cliente antes, durante y después de la instalación' },
             ].map((step, index) => (
               <motion.div
                 key={step.num}
@@ -225,7 +239,7 @@ const SobreNosotros = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.4 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="flex items-start gap-4 p-4 bg-foreground/[0.02] border border-foreground/5 hover:border-foreground/15 transition-colors duration-300"
+                className="flex items-start gap-4 p-4 border border-foreground/5 hover:border-foreground/15 transition-colors duration-300"
               >
                 <span className="font-mono text-xs text-foreground/30">{step.num}</span>
                 <span className="font-mono text-sm md:text-base text-foreground/70">{step.text}</span>
@@ -240,13 +254,13 @@ const SobreNosotros = () => {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="mt-12 font-mono text-sm text-foreground/50 max-w-xl"
           >
-            Desarrollamos proyectos únicos, adaptados a cada necesidad, cada espacio y cada objetivo.
+            Desarrollamos proyectos únicos, adaptados a cada necesidad, cada espacio y cada fase de crecimiento.
           </motion.p>
         </div>
       </div>
 
       {/* Block 5: Lo que nos define */}
-      <div className="relative min-h-screen flex items-center border-t border-foreground/5 bg-foreground/[0.02]">
+      <div className="relative min-h-screen flex items-center border-t border-foreground/5">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32">
           <motion.div
             initial={{ opacity: 0 }}
@@ -279,9 +293,9 @@ const SobreNosotros = () => {
           >
             {[
               'Experiencia técnica real',
-              'Enfoque claro en PYMEs',
-              'Tecnología bien aplicada, sin exceso',
-              'Proyectos pensados para personas, no solo para pantallas',
+              'Capacidad para trabajar a distintas escalas',
+              'Enfoque claro en soluciones bien dimensionadas',
+              'Tecnología aplicada con criterio, no por exceso',
             ].map((value, index) => (
               <motion.div
                 key={index}
@@ -304,7 +318,7 @@ const SobreNosotros = () => {
             transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="mt-16 font-mono text-lg md:text-xl text-foreground/70 max-w-2xl"
           >
-            Más que proveedores, buscamos ser un <span className="text-foreground">partner audiovisual de confianza</span>, cercano y transparente.
+            Más que proveedores, buscamos ser un <span className="text-foreground">partner audiovisual de confianza</span>, capaz de acompañar proyectos pequeños, medianos o complejos con la misma seriedad y atención al detalle.
           </motion.p>
         </div>
       </div>
@@ -320,10 +334,10 @@ const SobreNosotros = () => {
             className="max-w-3xl mx-auto"
           >
             <p className="font-mono text-xl sm:text-2xl md:text-3xl leading-relaxed text-foreground/60">
-              AV TECH no nace para vender más tecnología,
+              AV TECH no nace para imponer tecnología,
             </p>
             <p className="font-mono text-xl sm:text-2xl md:text-3xl leading-relaxed text-foreground mt-2">
-              nace para ayudar a las empresas a comunicarse mejor a través de ella.
+              nace para ponerla al servicio de las personas, los espacios y los proyectos, sea cual sea su tamaño.
             </p>
           </motion.div>
 
