@@ -155,7 +155,6 @@ const SobreNosotros = () => {
             <video 
               src={visionVideo}
               autoPlay
-              loop
               muted
               playsInline
               className="w-full h-auto object-contain"
@@ -235,7 +234,6 @@ const SobreNosotros = () => {
               <video 
                 src={visionVideo}
                 autoPlay
-                loop
                 muted
                 playsInline
                 className="w-full h-auto object-contain"
