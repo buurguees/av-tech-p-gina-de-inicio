@@ -6,40 +6,48 @@ const SobreNosotros = () => {
 
       {/* Block 1: Header - IZQUIERDA */}
       <div className="relative min-h-screen flex items-center">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div className="flex items-center gap-4 mb-12">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32 w-full">
+          <div className="max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1 }}
+              className="flex items-center gap-4 mb-12"
+            >
               <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
               <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Quiénes somos</span>
-            </div>
-            <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+            </motion.div>
+
+            <motion.h3
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight"
+            >
               <span className="text-foreground">Técnicos </span>
               <span className="text-foreground/50">antes que empresa</span>
-            </h3>
-          </motion.div>
+            </motion.h3>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-12 max-w-2xl"
-          >
-            <p className="font-mono text-lg md:text-xl leading-relaxed text-foreground/80">
-              Somos técnicos audiovisuales con más de cinco años de experiencia trabajando en instalaciones, eventos y proyectos reales, tanto en entornos comerciales como en proyectos de mayor envergadura.
-            </p>
-            <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60 mt-6">
-              Antes de fundar AV TECH, ya estábamos en el terreno: montando, configurando, resolviendo incidencias y entendiendo cómo funciona de verdad un espacio cuando se integra tecnología audiovisual.
-            </p>
-            <p className="font-mono text-sm tracking-wide text-foreground/40 mt-8 uppercase">
-              Esa experiencia técnica y operativa es la base de todo lo que hacemos hoy.
-            </p>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-12 space-y-6"
+            >
+              <p className="font-mono text-lg md:text-xl leading-relaxed text-foreground/80">
+                Somos técnicos audiovisuales con más de cinco años de experiencia trabajando en instalaciones, eventos y proyectos reales, tanto en entornos comerciales como en proyectos de mayor envergadura.
+              </p>
+              <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60">
+                Antes de fundar AV TECH, ya estábamos en el terreno: montando, configurando, resolviendo incidencias y entendiendo cómo funciona de verdad un espacio cuando se integra tecnología audiovisual.
+              </p>
+              <p className="font-mono text-sm tracking-wide text-foreground/40 uppercase">
+                Esa experiencia técnica y operativa es la base de todo lo que hacemos hoy.
+              </p>
+            </motion.div>
+          </div>
         </div>
       </div>
 
