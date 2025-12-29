@@ -19,7 +19,7 @@ const buttonVariants = cva(
         hero: "bg-primary text-primary-foreground font-semibold hover:shadow-[0_0_30px_hsl(var(--glow-primary)/0.3)] hover:scale-105 active:scale-100",
         "hero-outline": "border-2 border-foreground bg-transparent text-foreground font-semibold hover:bg-foreground hover:text-background hover:shadow-[0_0_30px_hsl(var(--glow-primary)/0.2)]",
         glass: "bg-secondary/30 backdrop-blur-md border border-border/50 text-foreground hover:bg-secondary/50 hover:border-foreground/30",
-        catalog: "rounded-[30px] border-2 border-foreground bg-primary text-primary-foreground font-semibold hover:bg-transparent hover:text-foreground",
+        catalog: "!rounded-[30px] border-2 border-foreground bg-primary text-primary-foreground font-semibold hover:bg-transparent hover:text-foreground",
       },
       size: {
         default: "h-10 px-4 py-2",
