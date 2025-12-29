@@ -12,6 +12,14 @@ const catalogImages = [catalogImage1, catalogImage2, catalogImage3, catalogImage
 
 const Productos = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -20,10 +28,74 @@ const Productos = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <section id="productos" className="relative py-20 overflow-hidden">
+        <div className="px-6 sm:px-8">
+          {/* Title first on mobile */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="text-left mb-8"
+          >
+            <div className="section-tag">
+              Catálogo
+            </div>
+            <h2 className="section-title">
+              <span className="section-title-primary">Soluciones diseñadas </span>
+              <span className="section-title-secondary">para tu espacio</span>
+            </h2>
+            <p className="section-description mt-4">
+              Packs pensados para comunicar mejor, generar impacto y conectar con más personas.
+            </p>
+          </motion.div>
+
+          {/* Carousel with button inside */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="relative aspect-[3/4] -mx-6 overflow-hidden"
+          >
+            <AnimatePresence mode="sync">
+              <motion.img
+                key={currentIndex}
+                src={catalogImages[currentIndex]}
+                alt={`Catálogo producto ${currentIndex + 1}`}
+                className="absolute inset-0 w-full h-full object-cover"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 2.5, ease: "easeInOut" }}
+              />
+            </AnimatePresence>
+
+            {/* Gradients */}
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-background to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent" />
+
+            {/* Button inside carousel */}
+            <div className="absolute bottom-8 left-6 right-6 z-10">
+              <Button variant="catalog" size="lg" className="group w-full">
+                Ver catálogo
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+    );
+  }
+
+  // Desktop Layout
   return (
-    <section id="productos" className="relative min-h-screen lg:min-h-screen overflow-hidden">
-      {/* Full height carousel - Left Side on desktop, top half on mobile */}
-      <div className="absolute inset-x-0 top-0 h-[50vh] lg:h-full lg:inset-y-0 lg:left-0 lg:w-1/2 lg:right-auto">
+    <section id="productos" className="relative min-h-screen overflow-hidden">
+      {/* Full height carousel - Left Side */}
+      <div className="absolute inset-y-0 left-0 w-1/2">
         <AnimatePresence mode="sync">
           <motion.img
             key={currentIndex}
@@ -38,33 +110,33 @@ const Productos = () => {
         </AnimatePresence>
 
         {/* Top gradient */}
-        <div className="absolute inset-x-0 top-0 h-32 lg:h-72 bg-gradient-to-b from-background via-background/60 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-background via-background/60 to-transparent" />
         
         {/* Bottom gradient */}
-        <div className="absolute inset-x-0 bottom-0 h-32 lg:h-72 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-background via-background/60 to-transparent" />
       </div>
 
-      {/* Content - Right Side on desktop, bottom on mobile */}
-      <div className="relative min-h-screen flex items-end lg:items-center pb-16 lg:pb-0">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full pt-[45vh] lg:pt-0">
+      {/* Content - Right Side */}
+      <div className="relative min-h-screen flex items-center">
+        <div className="max-w-[1800px] mx-auto px-16 w-full">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-            className="lg:w-1/2 lg:ml-auto text-left lg:text-right lg:pl-8"
+            className="w-1/2 ml-auto text-right pl-8"
           >
             <div className="section-tag">
               Catálogo
             </div>
-            <h2 className="section-title max-w-3xl lg:ml-auto">
+            <h2 className="section-title max-w-3xl ml-auto">
               <span className="section-title-primary">Soluciones diseñadas </span>
               <span className="section-title-secondary">para tu espacio</span>
             </h2>
-            <p className="section-subtitle mt-4 lg:ml-auto">
+            <p className="section-subtitle mt-4 ml-auto">
               Convierte cada espacio en un punto de conexión con tus clientes.
             </p>
-            <p className="section-description mt-4 lg:ml-auto">
+            <p className="section-description mt-4 ml-auto">
               Packs pensados para comunicar mejor, generar impacto y conectar con más personas en cada espacio.
             </p>
             

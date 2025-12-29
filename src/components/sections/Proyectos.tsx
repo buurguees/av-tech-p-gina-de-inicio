@@ -1,4 +1,6 @@
 import { motion } from 'motion/react';
+import { useEffect, useState, useCallback } from 'react';
+import useEmblaCarousel from 'embla-carousel-react';
 import {
   Carousel,
   CarouselContent,
@@ -36,7 +38,111 @@ const projects = [
   { id: 11, image: pantallaLedInterior, title: 'Pantalla LED Retail Interior', category: 'LED Interior' },
 ];
 
+// Mobile auto-scroll carousel component
+const MobileCarousel = () => {
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: 'center',
+    loop: true,
+    skipSnaps: false,
+  });
+
+  const autoplay = useCallback(() => {
+    if (!emblaApi) return;
+    emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const interval = setInterval(autoplay, 2500);
+    return () => clearInterval(interval);
+  }, [emblaApi, autoplay]);
+
+  return (
+    <div className="overflow-hidden -mx-6" ref={emblaRef}>
+      <div className="flex">
+        {projects.map((project) => (
+          <div 
+            key={project.id} 
+            className="flex-shrink-0 px-2"
+            style={{ flexBasis: '75%' }}
+          >
+            <div className="relative overflow-hidden rounded-sm">
+              <div className="aspect-square overflow-hidden">
+                <img
+                  src={project.image}
+                  alt={project.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <p className="font-mono text-xs uppercase tracking-wider" style={{ color: 'hsl(var(--text-secondary))' }}>
+                  {project.category}
+                </p>
+                <h3 className="font-mono text-sm mt-1" style={{ color: 'hsl(var(--text-primary))' }}>
+                  {project.title}
+                </h3>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Desktop carousel component
+const DesktopCarousel = () => {
+  return (
+    <Carousel
+      opts={{
+        align: 'start',
+        loop: true,
+      }}
+      className="w-full"
+    >
+      <CarouselContent className="-ml-4">
+        {projects.map((project) => (
+          <CarouselItem key={project.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
+            <div className="group relative overflow-hidden rounded-sm">
+              <div className="aspect-square overflow-hidden">
+                <img
+                  src={project.image}
+                  alt={project.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                <p className="font-mono text-xs uppercase tracking-wider" style={{ color: 'hsl(var(--text-secondary))' }}>
+                  {project.category}
+                </p>
+                <h3 className="font-mono text-lg mt-1" style={{ color: 'hsl(var(--text-primary))' }}>
+                  {project.title}
+                </h3>
+              </div>
+            </div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <div className="flex justify-end gap-2 mt-6">
+        <CarouselPrevious className="static translate-y-0 bg-secondary border-border hover:bg-accent h-10 w-10" />
+        <CarouselNext className="static translate-y-0 bg-secondary border-border hover:bg-accent h-10 w-10" />
+      </div>
+    </Carousel>
+  );
+};
+
 const Proyectos = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <section id="proyectos" className="relative py-20 sm:py-32 overflow-hidden">
       <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16">
@@ -68,45 +174,9 @@ const Proyectos = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-16"
+          className="mt-12 md:mt-16"
         >
-          <Carousel
-            opts={{
-              align: 'start',
-              loop: true,
-            }}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-3 md:-ml-4">
-              {projects.map((project) => (
-                <CarouselItem key={project.id} className="pl-3 md:pl-4 basis-[85%] sm:basis-1/2 lg:basis-1/3">
-                  <div className="group relative overflow-hidden rounded-sm">
-                    <div className="aspect-square overflow-hidden">
-                      <img
-                        src={project.image}
-                        alt={project.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
-                    {/* Always visible on mobile, hover on desktop */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-300">
-                      <p className="font-mono text-xs uppercase tracking-wider" style={{ color: 'hsl(var(--text-secondary))' }}>
-                        {project.category}
-                      </p>
-                      <h3 className="font-mono text-sm md:text-lg mt-1" style={{ color: 'hsl(var(--text-primary))' }}>
-                        {project.title}
-                      </h3>
-                    </div>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <div className="flex justify-end gap-2 mt-6">
-              <CarouselPrevious className="static translate-y-0 bg-secondary border-border hover:bg-accent h-10 w-10 md:h-10 md:w-10" />
-              <CarouselNext className="static translate-y-0 bg-secondary border-border hover:bg-accent h-10 w-10 md:h-10 md:w-10" />
-            </div>
-          </Carousel>
+          {isMobile ? <MobileCarousel /> : <DesktopCarousel />}
         </motion.div>
       </div>
     </section>
