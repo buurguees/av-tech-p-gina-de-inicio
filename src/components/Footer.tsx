@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Instagram } from 'lucide-react';
 import logoAvtech from '@/assets/logo-avtech-white.png';
 
@@ -164,18 +165,18 @@ const Footer = () => {
             © {new Date().getFullYear()} AV TECH. Todos los derechos reservados.
           </p>
           <div className="flex items-center gap-4 md:gap-6">
-            <a
-              href="#"
+            <Link
+              to="/privacidad"
               className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm"
             >
               Privacidad
-            </a>
-            <a
-              href="#"
+            </Link>
+            <Link
+              to="/terminos"
               className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm"
             >
               Términos
-            </a>
+            </Link>
           </div>
         </div>
       </div>
