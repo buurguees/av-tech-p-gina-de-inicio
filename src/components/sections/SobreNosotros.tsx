@@ -108,114 +108,108 @@ const SobreNosotros = () => {
         </div>
       </div>
 
-      {/* Block 3: Nuestra visión - TWO COLUMNS */}
+      {/* Block 3: Nuestra visión - IZQUIERDA */}
       <div className="relative py-24 sm:py-32">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Title - Always first */}
-            <div className="order-1">
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1 }}
-                className="flex items-center gap-4 mb-12"
-              >
-                <div className="section-indicator" />
-                <span className="section-tag mb-0">Visión</span>
-              </motion.div>
-
-              <motion.h3
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                className="section-title"
-              >
-                <span className="section-title-primary">Nuestra</span>
-                <br />
-                <span className="section-title-secondary">visión</span>
-              </motion.h3>
-            </div>
-
-            {/* Video - Second on mobile, right column on desktop */}
+          <div className="max-w-2xl">
             <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              className="relative flex items-center justify-center order-2 lg:order-3 lg:row-span-2"
+              transition={{ duration: 1 }}
+              className="flex items-center gap-4 mb-12"
             >
-              {/* Top gradient */}
-              <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
-              
-              {/* Bottom gradient */}
-              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
-              
-              {/* Left gradient */}
-              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-              
-              {/* Right gradient */}
-              <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-
-              <video 
-                src={visionVideo}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-auto object-contain"
-              />
+              <div className="section-indicator" />
+              <span className="section-tag mb-0">Visión</span>
             </motion.div>
 
-            {/* Text content - Third on mobile, left column on desktop */}
-            <div className="order-3 lg:order-2">
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                className="space-y-6"
-              >
-                <p className="text-lead text-justify">
-                  Creemos que la tecnología audiovisual no debería entenderse como una solución única ni rígida.
-                </p>
-                <p className="text-body-muted text-justify">
-                  Cada espacio, cada empresa y cada proyecto requieren una lectura propia.
-                </p>
-              </motion.div>
+            <motion.h3
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="section-title"
+            >
+              <span className="section-title-primary">Nuestra</span>
+              <br />
+              <span className="section-title-secondary">visión</span>
+            </motion.h3>
 
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-16 p-8 md:p-12 border border-foreground/10"
-              >
-                <p className="text-caption mb-4">Nuestra finalidad</p>
-                <p className="text-body text-justify mb-6">
-                  Desarrollar soluciones audiovisuales que permitan:
-                </p>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
-                    <span className="text-body">Mejorar la comunicación visual</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
-                    <span className="text-body">Generar impacto</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
-                    <span className="text-body">Crear experiencias memorables</span>
-                  </li>
-                </ul>
-                <p className="text-small text-justify mt-6">
-                  Tanto en entornos retail y PYMEs como en proyectos corporativos y de mayor escala.
-                </p>
-              </motion.div>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-12 space-y-6"
+            >
+              <p className="text-lead text-justify">
+                Creemos que la tecnología audiovisual no debería entenderse como una solución única ni rígida.
+              </p>
+              <p className="text-body-muted text-justify">
+                Cada espacio, cada empresa y cada proyecto requieren una lectura propia.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-10 pl-6 border-l-2 border-foreground/20"
+            >
+              <p className="text-caption mb-4">Nuestra finalidad</p>
+              <p className="text-body text-justify mb-6">
+                Desarrollar soluciones audiovisuales que permitan:
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                  <span className="text-body">Mejorar la comunicación visual</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                  <span className="text-body">Generar impacto</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                  <span className="text-body">Crear experiencias memorables</span>
+                </li>
+              </ul>
+              <p className="text-small text-justify mt-6">
+                Tanto en entornos retail y PYMEs como en proyectos corporativos y de mayor escala.
+              </p>
+            </motion.div>
           </div>
+
+          {/* Video debajo del contenido */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="relative mt-16 max-w-3xl"
+          >
+            {/* Top gradient */}
+            <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+            
+            {/* Bottom gradient */}
+            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+            
+            {/* Left gradient */}
+            <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+            
+            {/* Right gradient */}
+            <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+
+            <video 
+              src={visionVideo}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-auto object-contain"
+            />
+          </motion.div>
         </div>
       </div>
 
