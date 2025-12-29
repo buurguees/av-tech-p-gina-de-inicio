@@ -15,16 +15,18 @@ const Index = () => {
   return (
     <>
       {isLoading && <LoadingScreen onLoadingComplete={() => setIsLoading(false)} />}
-      <main className="min-h-screen">
-        <Header />
-        <Hero />
-        <Alcance />
-        <Proyectos />
-        <Productos />
-        <SobreNosotros />
-        <Contacto />
-        <Footer />
-      </main>
+      {!isLoading && (
+        <main className="min-h-screen">
+          <Header />
+          <Hero />
+          <Alcance />
+          <Proyectos />
+          <Productos />
+          <SobreNosotros />
+          <Contacto />
+          <Footer />
+        </main>
+      )}
     </>
   );
 };
