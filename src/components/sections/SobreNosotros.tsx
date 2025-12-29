@@ -1,8 +1,14 @@
+import { useRef } from 'react';
 import { motion } from 'motion/react';
+import ScrollLine from './ScrollLine';
 
 const SobreNosotros = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  
   return (
-    <section id="sobre-nosotros" className="relative overflow-hidden">
+    <section ref={sectionRef} id="sobre-nosotros" className="relative overflow-hidden">
+      {/* Animated scroll line */}
+      <ScrollLine containerRef={sectionRef} />
 
       {/* Block 1: Header - IZQUIERDA */}
       <div className="relative min-h-screen flex items-center">
