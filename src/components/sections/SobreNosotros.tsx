@@ -269,65 +269,67 @@ const SobreNosotros = () => {
 
       {/* Block 5: Lo que nos define - IZQUIERDA */}
       <div className="relative min-h-screen flex items-center">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-            className="flex items-center gap-4 mb-12"
-          >
-            <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
-            <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Valores</span>
-          </motion.div>
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32 w-full">
+          <div className="max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1 }}
+              className="flex items-center gap-4 mb-12"
+            >
+              <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
+              <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Valores</span>
+            </motion.div>
 
-          <motion.h3
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight max-w-3xl"
-          >
-            <span className="text-foreground">Lo que </span>
-            <span className="text-foreground/50">nos define</span>
-          </motion.h3>
+            <motion.h3
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight"
+            >
+              <span className="text-foreground">Lo que </span>
+              <span className="text-foreground/50">nos define</span>
+            </motion.h3>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-16 grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-3xl"
-          >
-            {[
-              'Experiencia técnica real',
-              'Capacidad para trabajar a distintas escalas',
-              'Enfoque claro en soluciones bien dimensionadas',
-              'Tecnología aplicada con criterio, no por exceso',
-            ].map((value, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.3 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="flex items-center gap-4"
-              >
-                <div className="w-1 h-8 bg-foreground/20" />
-                <span className="font-mono text-base md:text-lg text-foreground/80">{value}</span>
-              </motion.div>
-            ))}
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-16 grid grid-cols-1 sm:grid-cols-2 gap-8"
+            >
+              {[
+                'Experiencia técnica real',
+                'Capacidad para trabajar a distintas escalas',
+                'Enfoque claro en soluciones bien dimensionadas',
+                'Tecnología aplicada con criterio, no por exceso',
+              ].map((value, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.3 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex items-center gap-4"
+                >
+                  <div className="w-1 h-8 bg-foreground/20" />
+                  <span className="font-mono text-base md:text-lg text-foreground/80">{value}</span>
+                </motion.div>
+              ))}
+            </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-16 font-mono text-lg md:text-xl text-foreground/70 max-w-2xl"
-          >
-            Más que proveedores, buscamos ser un <span className="text-foreground">partner audiovisual de confianza</span>, capaz de acompañar proyectos pequeños, medianos o complejos con la misma seriedad y atención al detalle.
-          </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-16 font-mono text-lg md:text-xl text-foreground/70"
+            >
+              Más que proveedores, buscamos ser un <span className="text-foreground">partner audiovisual de confianza</span>, capaz de acompañar proyectos pequeños, medianos o complejos con la misma seriedad y atención al detalle.
+            </motion.p>
+          </div>
         </div>
       </div>
 
