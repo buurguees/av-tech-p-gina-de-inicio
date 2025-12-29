@@ -17,6 +17,11 @@ import project6 from '@/assets/projects/project-6.png';
 import project7 from '@/assets/projects/project-7.jpg';
 import project8 from '@/assets/projects/project-8.jpg';
 
+// Import catalog images for projects
+import totemLcd from '@/assets/catalog/totem-lcd.png';
+import mupysLed from '@/assets/catalog/mupys-led.png';
+import pantallaLedInterior from '@/assets/catalog/pantalla-led-interior.png';
+
 const projects = [
   { id: 1, image: project1, title: 'Metro Barcelona ARS Gràcia', category: 'Transporte' },
   { id: 2, image: project2, title: 'Bershka Milan', category: 'Retail LED' },
@@ -26,6 +31,9 @@ const projects = [
   { id: 6, image: project6, title: 'Pantalla Circular', category: 'Displays Especiales' },
   { id: 7, image: project7, title: 'Interior Retail', category: 'Experiencia Visual' },
   { id: 8, image: project8, title: 'Corporate Lobby Experience', category: 'Espacios Corporativos' },
+  { id: 9, image: totemLcd, title: 'Totem LCD Ayuntamiento El Bruc', category: 'Señalización Exterior' },
+  { id: 10, image: mupysLed, title: 'Mupis LED Gimnasio', category: 'Digital Signage' },
+  { id: 11, image: pantallaLedInterior, title: 'Pantalla LED Retail Interior', category: 'LED Interior' },
 ];
 
 const Proyectos = () => {
@@ -72,7 +80,7 @@ const Proyectos = () => {
               {projects.map((project) => (
                 <CarouselItem key={project.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
                   <div className="group relative overflow-hidden rounded-sm">
-                    <div className="aspect-[4/3] overflow-hidden">
+                    <div className="aspect-square overflow-hidden">
                       <img
                         src={project.image}
                         alt={project.title}
