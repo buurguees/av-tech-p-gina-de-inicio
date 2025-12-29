@@ -24,19 +24,6 @@ const Productos = () => {
             Packs pensados para comunicar mejor, generar impacto y conectar con más personas en cada espacio.
           </p>
         </motion.div>
-
-        {/* Placeholder para contenido de productos */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-16 text-left"
-        >
-          <p className="font-mono text-sm text-foreground/50">
-            Próximamente: catálogo de productos.
-          </p>
-        </motion.div>
       </div>
     </section>
   );
