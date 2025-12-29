@@ -21,9 +21,9 @@ const Productos = () => {
   }, []);
 
   return (
-    <section id="productos" className="relative min-h-screen overflow-hidden">
-      {/* Full height carousel - Left Side */}
-      <div className="absolute inset-y-0 left-0 w-full lg:w-1/2">
+    <section id="productos" className="relative min-h-screen lg:min-h-screen overflow-hidden">
+      {/* Full height carousel - Left Side on desktop, top half on mobile */}
+      <div className="absolute inset-x-0 top-0 h-[50vh] lg:h-full lg:inset-y-0 lg:left-0 lg:w-1/2 lg:right-auto">
         <AnimatePresence mode="sync">
           <motion.img
             key={currentIndex}
@@ -37,34 +37,34 @@ const Productos = () => {
           />
         </AnimatePresence>
 
-        {/* Top gradient - transparent to black */}
-        <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-background via-background/60 to-transparent" />
+        {/* Top gradient */}
+        <div className="absolute inset-x-0 top-0 h-32 lg:h-72 bg-gradient-to-b from-background via-background/60 to-transparent" />
         
-        {/* Bottom gradient - transparent to black */}
-        <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        {/* Bottom gradient */}
+        <div className="absolute inset-x-0 bottom-0 h-32 lg:h-72 bg-gradient-to-t from-background via-background/60 to-transparent" />
       </div>
 
-      {/* Content - Right Side */}
-      <div className="relative min-h-screen flex items-center">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
+      {/* Content - Right Side on desktop, bottom on mobile */}
+      <div className="relative min-h-screen flex items-end lg:items-center pb-16 lg:pb-0">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full pt-[45vh] lg:pt-0">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-            className="lg:w-1/2 lg:ml-auto text-right lg:pl-8"
+            className="lg:w-1/2 lg:ml-auto text-left lg:text-right lg:pl-8"
           >
             <div className="section-tag">
               Catálogo
             </div>
-            <h2 className="section-title max-w-3xl ml-auto">
+            <h2 className="section-title max-w-3xl lg:ml-auto">
               <span className="section-title-primary">Soluciones diseñadas </span>
               <span className="section-title-secondary">para tu espacio</span>
             </h2>
-            <p className="section-subtitle mt-4 ml-auto">
+            <p className="section-subtitle mt-4 lg:ml-auto">
               Convierte cada espacio en un punto de conexión con tus clientes.
             </p>
-            <p className="section-description mt-4 ml-auto">
+            <p className="section-description mt-4 lg:ml-auto">
               Packs pensados para comunicar mejor, generar impacto y conectar con más personas en cada espacio.
             </p>
             

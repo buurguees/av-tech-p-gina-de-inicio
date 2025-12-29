@@ -54,17 +54,24 @@ const Hero = () => {
           />
         </AnimatePresence>
         
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-background/70" />
+        {/* Dark overlay for text readability - stronger on mobile */}
+        <div className="absolute inset-0 bg-background/80 md:bg-background/70" />
         <div 
-          className="absolute inset-0"
+          className="absolute inset-0 hidden md:block"
           style={{
             background: 'linear-gradient(to right, hsl(var(--background)) 0%, hsl(var(--background) / 0.8) 40%, transparent 100%)'
           }}
         />
+        {/* Mobile gradient - bottom heavy for text readability */}
+        <div 
+          className="absolute inset-0 md:hidden"
+          style={{
+            background: 'linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.6) 50%, transparent 100%)'
+          }}
+        />
         {/* Bottom gradient for seamless section transition */}
         <div 
-          className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none"
+          className="absolute bottom-0 left-0 right-0 h-32 md:h-48 pointer-events-none"
           style={{
             background: 'linear-gradient(to top, hsl(var(--background)) 0%, transparent 100%)'
           }}
@@ -99,8 +106,8 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Carousel indicators */}
-      <div className="absolute bottom-8 right-8 z-10 flex gap-2">
+      {/* Carousel indicators - hidden on mobile for cleaner look */}
+      <div className="absolute bottom-8 right-8 z-10 hidden md:flex gap-2">
         {projectImages.map((_, index) => (
           <button
             key={index}
