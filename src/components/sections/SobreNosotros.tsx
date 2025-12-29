@@ -4,7 +4,7 @@ const SobreNosotros = () => {
   return (
     <section id="sobre-nosotros" className="relative overflow-hidden">
 
-      {/* Block 1: Header */}
+      {/* Block 1: Header - IZQUIERDA */}
       <div className="relative min-h-screen flex items-center">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32">
           <motion.div
@@ -37,74 +37,67 @@ const SobreNosotros = () => {
               Esa experiencia técnica y operativa es la base de todo lo que hacemos hoy.
             </p>
           </motion.div>
-
-          {/* Decorative line */}
-          <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.2, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-20 h-px bg-foreground/20 origin-left max-w-xl"
-          />
         </div>
       </div>
 
-      {/* Block 2: Por qué nació AV TECH */}
-      <div className="relative min-h-screen flex items-center border-t border-foreground/5">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-            className="flex items-center gap-4 mb-12"
-          >
-            <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
-            <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Origen</span>
-          </motion.div>
+      {/* Block 2: Por qué nació AV TECH - DERECHA */}
+      <div className="relative min-h-screen flex items-center">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32 w-full">
+          <div className="ml-auto max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1 }}
+              className="flex items-center gap-4 mb-12 justify-end"
+            >
+              <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Origen</span>
+              <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
+            </motion.div>
 
-          <motion.h3
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight max-w-3xl"
-          >
-            <span className="text-foreground">Por qué nació </span>
-            <span className="text-foreground/50">AV TECH</span>
-          </motion.h3>
+            <motion.h3
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-right"
+            >
+              <span className="text-foreground">Por qué nació </span>
+              <span className="text-foreground/50">AV TECH</span>
+            </motion.h3>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-12 max-w-2xl space-y-6"
-          >
-            <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/70">
-              Con el tiempo detectamos una realidad clara: muchas empresas —especialmente pequeñas y medianas— querían incorporar soluciones audiovisuales profesionales, pero no siempre encontraban propuestas ajustadas a su escala, a su ritmo de crecimiento o a su forma de trabajar.
-            </p>
-            <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60">
-              Al mismo tiempo, vimos que la tecnología audiovisual podía aplicarse de una forma más flexible, más cercana y más adaptada, sin perder nivel técnico ni calidad de ejecución.
-            </p>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-12 space-y-6 text-right"
+            >
+              <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/70">
+                Con el tiempo detectamos una realidad clara: muchas empresas —especialmente pequeñas y medianas— querían incorporar soluciones audiovisuales profesionales, pero no siempre encontraban propuestas ajustadas a su escala, a su ritmo de crecimiento o a su forma de trabajar.
+              </p>
+              <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60">
+                Al mismo tiempo, vimos que la tecnología audiovisual podía aplicarse de una forma más flexible, más cercana y más adaptada, sin perder nivel técnico ni calidad de ejecución.
+              </p>
+            </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-16 pl-6 border-l-2 border-foreground/20"
-          >
-            <p className="font-mono text-xl md:text-2xl text-foreground font-medium">
-              AV TECH nace con la voluntad de acercar la tecnología audiovisual profesional a más tipos de negocio, adaptando cada proyecto a su contexto real, independientemente de su tamaño.
-            </p>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-16 pr-6 border-r-2 border-foreground/20 text-right"
+            >
+              <p className="font-mono text-xl md:text-2xl text-foreground font-medium">
+                AV TECH nace con la voluntad de acercar la tecnología audiovisual profesional a más tipos de negocio, adaptando cada proyecto a su contexto real, independientemente de su tamaño.
+              </p>
+            </motion.div>
+          </div>
         </div>
       </div>
 
-      {/* Block 3: Nuestra visión */}
-      <div className="relative min-h-screen flex items-center border-t border-foreground/5">
+      {/* Block 3: Nuestra visión - IZQUIERDA */}
+      <div className="relative min-h-screen flex items-center">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32">
           <motion.div
             initial={{ opacity: 0 }}
@@ -175,92 +168,94 @@ const SobreNosotros = () => {
         </div>
       </div>
 
-      {/* Block 4: Cómo trabajamos */}
-      <div className="relative min-h-screen flex items-center border-t border-foreground/5">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-            className="flex items-center gap-4 mb-12"
-          >
-            <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
-            <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Proceso</span>
-          </motion.div>
+      {/* Block 4: Cómo trabajamos - DERECHA */}
+      <div className="relative min-h-screen flex items-center">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32 w-full">
+          <div className="ml-auto max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1 }}
+              className="flex items-center gap-4 mb-12 justify-end"
+            >
+              <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Proceso</span>
+              <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
+            </motion.div>
 
-          <motion.h3
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight max-w-3xl"
-          >
-            <span className="text-foreground">Cómo </span>
-            <span className="text-foreground/50">trabajamos</span>
-          </motion.h3>
+            <motion.h3
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-right"
+            >
+              <span className="text-foreground">Cómo </span>
+              <span className="text-foreground/50">trabajamos</span>
+            </motion.h3>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-8 font-mono text-lg md:text-xl leading-relaxed text-foreground/70 max-w-2xl"
-          >
-            No ofrecemos soluciones genéricas. Cada proyecto parte de una pregunta simple:
-          </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-8 font-mono text-lg md:text-xl leading-relaxed text-foreground/70 text-right"
+            >
+              No ofrecemos soluciones genéricas. Cada proyecto parte de una pregunta simple:
+            </motion.p>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-4 font-mono text-xl md:text-2xl text-foreground font-medium italic"
-          >
-            ¿Qué necesita este espacio para comunicar mejor y cumplir su objetivo?
-          </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-4 font-mono text-xl md:text-2xl text-foreground font-medium italic text-right"
+            >
+              ¿Qué necesita este espacio para comunicar mejor y cumplir su objetivo?
+            </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl"
-          >
-            {[
-              { num: '01', text: 'Analizamos el entorno y el uso real del espacio' },
-              { num: '02', text: 'Diseñamos una solución audiovisual coherente y escalable' },
-              { num: '03', text: 'Integramos la tecnología de forma precisa y cuidada' },
-              { num: '04', text: 'Acompañamos al cliente antes, durante y después de la instalación' },
-            ].map((step, index) => (
-              <motion.div
-                key={step.num}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.4 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="flex items-start gap-4 p-4 border border-foreground/5 hover:border-foreground/15 transition-colors duration-300"
-              >
-                <span className="font-mono text-xs text-foreground/30">{step.num}</span>
-                <span className="font-mono text-sm md:text-base text-foreground/70">{step.text}</span>
-              </motion.div>
-            ))}
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+              {[
+                { num: '01', text: 'Analizamos el entorno y el uso real del espacio' },
+                { num: '02', text: 'Diseñamos una solución audiovisual coherente y escalable' },
+                { num: '03', text: 'Integramos la tecnología de forma precisa y cuidada' },
+                { num: '04', text: 'Acompañamos al cliente antes, durante y después de la instalación' },
+              ].map((step, index) => (
+                <motion.div
+                  key={step.num}
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.4 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex items-start gap-4 p-4 border border-foreground/5 hover:border-foreground/15 transition-colors duration-300 text-right flex-row-reverse"
+                >
+                  <span className="font-mono text-xs text-foreground/30">{step.num}</span>
+                  <span className="font-mono text-sm md:text-base text-foreground/70">{step.text}</span>
+                </motion.div>
+              ))}
+            </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="mt-12 font-mono text-sm text-foreground/50 max-w-xl"
-          >
-            Desarrollamos proyectos únicos, adaptados a cada necesidad, cada espacio y cada fase de crecimiento.
-          </motion.p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="mt-12 font-mono text-sm text-foreground/50 text-right"
+            >
+              Desarrollamos proyectos únicos, adaptados a cada necesidad, cada espacio y cada fase de crecimiento.
+            </motion.p>
+          </div>
         </div>
       </div>
 
-      {/* Block 5: Lo que nos define */}
-      <div className="relative min-h-screen flex items-center border-t border-foreground/5">
+      {/* Block 5: Lo que nos define - IZQUIERDA */}
+      <div className="relative min-h-screen flex items-center">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32">
           <motion.div
             initial={{ opacity: 0 }}
@@ -323,8 +318,8 @@ const SobreNosotros = () => {
         </div>
       </div>
 
-      {/* Block 6: Cierre */}
-      <div className="relative min-h-[70vh] flex items-center justify-center border-t border-foreground/5">
+      {/* Block 6: Cierre - CENTRADO */}
+      <div className="relative min-h-[70vh] flex items-center justify-center">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
