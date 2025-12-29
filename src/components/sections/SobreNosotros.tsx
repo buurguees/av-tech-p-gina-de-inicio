@@ -46,9 +46,6 @@ const SobreNosotros = () => {
               <p className="text-body-muted text-justify">
                 Antes de fundar AV TECH, ya estábamos en el terreno: montando, configurando, resolviendo incidencias y entendiendo cómo funciona de verdad un espacio cuando se integra tecnología audiovisual.
               </p>
-              <p className="text-caption text-justify">
-                Esa experiencia técnica y operativa es la base de todo lo que hacemos hoy.
-              </p>
             </motion.div>
           </div>
         </div>
