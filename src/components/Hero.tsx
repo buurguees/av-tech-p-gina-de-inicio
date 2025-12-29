@@ -15,11 +15,12 @@ import project8 from '@/assets/projects/project-8.jpg';
 import catalogImage1 from '@/assets/catalog/pantalla-led-interior.png';
 import catalogImage2 from '@/assets/catalog/mupys-led.png';
 import catalogImage3 from '@/assets/catalog/totem-lcd.png';
+import catalogImage4 from '@/assets/catalog/lcd-techo.png';
 
 const projectImages = [
   project1, project2, project3, project4,
   project5, project6, project7, project8,
-  catalogImage1, catalogImage2, catalogImage3
+  catalogImage1, catalogImage2, catalogImage3, catalogImage4
 ];
 
 const Hero = () => {
