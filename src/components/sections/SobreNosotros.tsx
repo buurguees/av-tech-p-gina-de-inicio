@@ -31,7 +31,7 @@ const SobreNosotros = () => {
               Somos técnicos audiovisuales con más de cinco años de experiencia trabajando en instalaciones, eventos y proyectos reales.
             </p>
             <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60 mt-6">
-              Antes de fundar AV TECH, ya estábamos en el terreno: montando, configurando, resolviendo problemas y entendiendo cómo funciona de verdad un espacio cuando se integra tecnología audiovisual.
+              Antes de fundar AV TECH, ya estábamos en el terreno: instalando, configurando, resolviendo problemas y entendiendo cómo funciona de verdad un espacio cuando se integra tecnología audiovisual.
             </p>
             <p className="font-mono text-sm tracking-wide text-foreground/40 mt-8 uppercase">
               Esa experiencia práctica es la base de todo lo que hacemos hoy.
