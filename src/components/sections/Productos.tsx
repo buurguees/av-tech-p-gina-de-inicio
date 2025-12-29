@@ -20,57 +20,54 @@ const Productos = () => {
   }, []);
 
   return (
-    <section id="productos" className="relative py-20 sm:py-32 overflow-hidden">
-      <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-          {/* Carousel - Left Side */}
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full lg:w-1/2 relative aspect-[3/4] max-h-[600px] rounded-2xl overflow-hidden"
-          >
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={currentIndex}
-                src={catalogImages[currentIndex]}
-                alt={`Catálogo producto ${currentIndex + 1}`}
-                className="absolute inset-0 w-full h-full object-cover"
-                initial={{ opacity: 0, scale: 1.05 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              />
-            </AnimatePresence>
+    <section id="productos" className="relative min-h-screen overflow-hidden">
+      {/* Full height carousel - Left Side */}
+      <div className="absolute inset-y-0 left-0 w-full lg:w-1/2">
+        <AnimatePresence mode="sync">
+          <motion.img
+            key={currentIndex}
+            src={catalogImages[currentIndex]}
+            alt={`Catálogo producto ${currentIndex + 1}`}
+            className="absolute inset-0 w-full h-full object-cover"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          />
+        </AnimatePresence>
 
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+        {/* Top gradient - transparent to black */}
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-background to-transparent" />
+        
+        {/* Bottom gradient - transparent to black */}
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
 
-            {/* Carousel indicators */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-              {catalogImages.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    index === currentIndex 
-                      ? 'bg-primary w-6' 
-                      : 'bg-foreground/40 hover:bg-foreground/60'
-                  }`}
-                  aria-label={`Ir a imagen ${index + 1}`}
-                />
-              ))}
-            </div>
-          </motion.div>
+        {/* Carousel indicators */}
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {catalogImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentIndex 
+                  ? 'bg-primary w-6' 
+                  : 'bg-foreground/40 hover:bg-foreground/60'
+              }`}
+              aria-label={`Ir a imagen ${index + 1}`}
+            />
+          ))}
+        </div>
+      </div>
 
-          {/* Content - Right Side */}
+      {/* Content - Right Side */}
+      <div className="relative min-h-screen flex items-center">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-            className="w-full lg:w-1/2 text-right lg:pl-8"
+            className="lg:w-1/2 lg:ml-auto text-right lg:pl-8"
           >
             <div className="section-tag">
               Catálogo
