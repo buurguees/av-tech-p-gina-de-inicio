@@ -217,118 +217,116 @@ const SobreNosotros = () => {
         </div>
       </div>
 
-      {/* Block 4: Cómo trabajamos - TWO COLUMNS */}
-      <div className="relative py-24 sm:py-32">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left: Image with gradients */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="relative"
-            >
-              {/* Top gradient */}
-              <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
-              
-              {/* Bottom gradient */}
-              <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
-              
-              {/* Left gradient */}
-              <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-              
-              {/* Right gradient */}
-              <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+      {/* Block 4: Cómo trabajamos - Background Image Layout */}
+      <div className="relative py-24 sm:py-32 overflow-hidden">
+        {/* Background Image - 60% width from left */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-y-0 left-0 w-[60%] z-0"
+        >
+          {/* Top gradient */}
+          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+          
+          {/* Bottom gradient */}
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+          
+          {/* Right gradient - stronger to blend into content */}
+          <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+          
+          {/* Left gradient */}
+          <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
 
-              <img 
-                src={comoTrabajamosVisual} 
-                alt="Antes y después de instalación de pantalla LED en tienda" 
-                className="w-full h-auto object-contain"
-              />
+          <img 
+            src={comoTrabajamosVisual} 
+            alt="Antes y después de instalación de pantalla LED en tienda" 
+            className="w-full h-full object-cover object-center"
+          />
+        </motion.div>
+
+        {/* Content - positioned on the right */}
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full relative z-10">
+          <div className="ml-auto max-w-xl lg:max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1 }}
+              className="flex items-center gap-4 mb-12 justify-end"
+            >
+              <span className="section-tag mb-0">Proceso</span>
+              <div className="section-indicator" />
             </motion.div>
 
-            {/* Right: Content */}
-            <div>
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1 }}
-                className="flex items-center gap-4 mb-12 justify-end"
-              >
-                <span className="section-tag mb-0">Proceso</span>
-                <div className="section-indicator" />
-              </motion.div>
+            <motion.h3
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="section-title text-right"
+            >
+              <span className="section-title-primary">Cómo </span>
+              <span className="section-title-secondary">trabajamos</span>
+            </motion.h3>
 
-              <motion.h3
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                className="section-title text-right"
-              >
-                <span className="section-title-primary">Cómo </span>
-                <span className="section-title-secondary">trabajamos</span>
-              </motion.h3>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-8 text-lead text-right"
+            >
+              No ofrecemos soluciones genéricas. Cada proyecto parte de una pregunta simple:
+            </motion.p>
 
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-8 text-lead text-right"
-              >
-                No ofrecemos soluciones genéricas. Cada proyecto parte de una pregunta simple:
-              </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-4 text-quote italic text-right"
+            >
+              ¿Qué necesita este espacio para comunicar mejor y cumplir su objetivo?
+            </motion.p>
 
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-4 text-quote italic text-right"
-              >
-                ¿Qué necesita este espacio para comunicar mejor y cumplir su objetivo?
-              </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+              {[
+                { num: '01', text: 'Analizamos el entorno y el uso real del espacio' },
+                { num: '02', text: 'Diseñamos una solución audiovisual coherente y escalable' },
+                { num: '03', text: 'Integramos la tecnología de forma precisa y cuidada' },
+                { num: '04', text: 'Acompañamos al cliente antes, durante y después de la instalación' },
+              ].map((step, index) => (
+                <motion.div
+                  key={step.num}
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.4 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex items-start gap-4 p-4 border border-foreground/5 bg-background/80 backdrop-blur-sm hover:border-foreground/15 transition-colors duration-300 text-right flex-row-reverse"
+                >
+                  <span className="text-caption">{step.num}</span>
+                  <span className="text-body">{step.text}</span>
+                </motion.div>
+              ))}
+            </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6"
-              >
-                {[
-                  { num: '01', text: 'Analizamos el entorno y el uso real del espacio' },
-                  { num: '02', text: 'Diseñamos una solución audiovisual coherente y escalable' },
-                  { num: '03', text: 'Integramos la tecnología de forma precisa y cuidada' },
-                  { num: '04', text: 'Acompañamos al cliente antes, durante y después de la instalación' },
-                ].map((step, index) => (
-                  <motion.div
-                    key={step.num}
-                    initial={{ opacity: 0, x: 20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.4 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                    className="flex items-start gap-4 p-4 border border-foreground/5 hover:border-foreground/15 transition-colors duration-300 text-right flex-row-reverse"
-                  >
-                    <span className="text-caption">{step.num}</span>
-                    <span className="text-body">{step.text}</span>
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              <motion.p
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-                className="mt-12 text-small text-right"
-              >
-                Desarrollamos proyectos únicos, adaptados a cada necesidad, cada espacio y cada fase de crecimiento.
-              </motion.p>
-            </div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="mt-12 text-small text-right"
+            >
+              Desarrollamos proyectos únicos, adaptados a cada necesidad, cada espacio y cada fase de crecimiento.
+            </motion.p>
           </div>
         </div>
       </div>
