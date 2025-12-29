@@ -14,8 +14,8 @@ const Productos = () => {
             Catálogo
           </div>
           <h2 className="section-title max-w-3xl">
-            <span className="section-title-primary">Soluciones audiovisuales </span>
-            <span className="section-title-secondary">para cada tipo de espacio</span>
+            <span className="section-title-primary">Soluciones diseñadas </span>
+            <span className="section-title-secondary">para tu espacio</span>
           </h2>
           <p className="section-subtitle mt-4 ml-auto">
             Convierte cada espacio en un punto de conexión con tus clientes.
