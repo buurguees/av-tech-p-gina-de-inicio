@@ -324,46 +324,6 @@ const BlueprintAnimation = () => {
               3400mm
             </motion.text>
 
-            {/* Panel labels */}
-            <motion.text
-              x="190"
-              y="60"
-              textAnchor="middle"
-              fill="hsl(var(--primary))"
-              fontSize="10"
-              fontFamily="monospace"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.8 }}
-              transition={getFadeTransition(23)}
-            >
-              MÓDULO A
-            </motion.text>
-            <motion.text
-              x="400"
-              y="60"
-              textAnchor="middle"
-              fill="hsl(var(--primary))"
-              fontSize="10"
-              fontFamily="monospace"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.8 }}
-              transition={getFadeTransition(23.5)}
-            >
-              MÓDULO B
-            </motion.text>
-            <motion.text
-              x="610"
-              y="60"
-              textAnchor="middle"
-              fill="hsl(var(--primary))"
-              fontSize="10"
-              fontFamily="monospace"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.8 }}
-              transition={getFadeTransition(24)}
-            >
-              MÓDULO C
-            </motion.text>
 
             {/* Corner detail markers */}
             {[[100, 80], [280, 80], [100, 420], [280, 420]].map(([x, y], i) => (
@@ -403,46 +363,6 @@ const BlueprintAnimation = () => {
               />
             ))}
 
-            {/* Title block */}
-            <motion.rect
-              x="580"
-              y="10"
-              width="210"
-              height="35"
-              stroke="hsl(var(--foreground))"
-              strokeWidth="0.5"
-              strokeOpacity="0.3"
-              fill="none"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={getPathTransition(28)}
-            />
-            <motion.text
-              x="685"
-              y="25"
-              textAnchor="middle"
-              fill="hsl(var(--foreground))"
-              fontSize="8"
-              fontFamily="monospace"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              transition={getFadeTransition(29)}
-            >
-              AVTECH PANTALLAS LED
-            </motion.text>
-            <motion.text
-              x="685"
-              y="38"
-              textAnchor="middle"
-              fill="hsl(var(--foreground))"
-              fontSize="7"
-              fontFamily="monospace"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
-              transition={getFadeTransition(29.5)}
-            >
-              PLANO TÉCNICO - ESCALA 1:50
-            </motion.text>
           </svg>
         </motion.div>
       </div>
