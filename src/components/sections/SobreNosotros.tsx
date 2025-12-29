@@ -187,7 +187,7 @@ const SobreNosotros = () => {
       <div className="relative py-24 sm:py-32">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left: Image */}
+            {/* Left: Image with gradients */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -195,6 +195,18 @@ const SobreNosotros = () => {
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               className="relative"
             >
+              {/* Top gradient */}
+              <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+              
+              {/* Bottom gradient */}
+              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+              
+              {/* Left gradient */}
+              <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+              
+              {/* Right gradient */}
+              <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+
               <img 
                 src={comoTrabajamosVisual} 
                 alt="Antes y después de instalación de pantalla LED en tienda" 
