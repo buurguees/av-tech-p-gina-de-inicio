@@ -11,9 +11,15 @@ import project6 from '@/assets/projects/project-6.png';
 import project7 from '@/assets/projects/project-7.jpg';
 import project8 from '@/assets/projects/project-8.jpg';
 
+// Import catalog images
+import catalogImage1 from '@/assets/catalog/pantalla-led-interior.png';
+import catalogImage2 from '@/assets/catalog/mupys-led.png';
+import catalogImage3 from '@/assets/catalog/totem-lcd.png';
+
 const projectImages = [
   project1, project2, project3, project4,
-  project5, project6, project7, project8
+  project5, project6, project7, project8,
+  catalogImage1, catalogImage2, catalogImage3
 ];
 
 const Hero = () => {
