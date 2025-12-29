@@ -165,8 +165,9 @@ const Proyectos = () => {
             Nuestro trabajo
           </div>
           <h2 className="section-title max-w-3xl">
-            <span className="section-title-primary">Proyectos que </span>
-            <span className="section-title-secondary">inspiran</span>
+            <span className="section-title-primary">Proyectos</span>
+            <br />
+            <span className="section-title-secondary">que inspiran</span>
           </h2>
           <p className="section-description mt-4">
             Cada proyecto es una historia única.

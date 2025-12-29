@@ -40,7 +40,9 @@ const Services = () => {
             Nuestros Servicios
           </span>
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Todo incluido, sin sorpresas
+            Todo incluido,
+            <br />
+            sin sorpresas
           </h2>
           <p className="text-muted-foreground text-lg text-justify">
             Un servicio integral que transforma la complejidad técnica en una

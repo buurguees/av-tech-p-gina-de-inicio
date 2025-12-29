@@ -14,7 +14,8 @@ const Contacto = () => {
             Hablemos
           </div>
           <h2 className="section-title max-w-3xl">
-            <span className="section-title-primary">Empecemos </span>
+            <span className="section-title-primary">Empecemos</span>
+            <br />
             <span className="section-title-secondary">tu proyecto</span>
           </h2>
           <p className="section-description mt-4 ml-auto">
