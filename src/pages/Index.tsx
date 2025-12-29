@@ -6,6 +6,7 @@ import Proyectos from '@/components/sections/Proyectos';
 import Productos from '@/components/sections/Productos';
 import SobreNosotros from '@/components/sections/SobreNosotros';
 import Contacto from '@/components/sections/Contacto';
+import BlueprintAnimation from '@/components/sections/BlueprintAnimation';
 import Footer from '@/components/Footer';
 import LoadingScreen from '@/components/LoadingScreen';
 import CookieConsent from '@/components/CookieConsent';
@@ -25,6 +26,7 @@ const Index = () => {
           <Productos />
           <SobreNosotros />
           <Contacto />
+          <BlueprintAnimation />
           <Footer />
           <CookieConsent />
         </main>
