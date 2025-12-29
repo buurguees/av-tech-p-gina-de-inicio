@@ -24,10 +24,10 @@ const SobreNosotros = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight"
+              className="section-title"
             >
-              <span className="text-foreground">Técnicos </span>
-              <span className="text-foreground/50">antes que empresa</span>
+              <span className="section-title-primary">Técnicos </span>
+              <span className="section-title-secondary">antes que empresa</span>
             </motion.h3>
 
             <motion.div
@@ -71,10 +71,10 @@ const SobreNosotros = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-right"
+              className="section-title text-right"
             >
-              <span className="text-foreground">Por qué nació </span>
-              <span className="text-foreground/50">AV TECH</span>
+              <span className="section-title-primary">Por qué nació </span>
+              <span className="section-title-secondary">AV TECH</span>
             </motion.h3>
 
             <motion.div
@@ -127,10 +127,10 @@ const SobreNosotros = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight"
+              className="section-title"
             >
-              <span className="text-foreground">Nuestra </span>
-              <span className="text-foreground/50">visión</span>
+              <span className="section-title-primary">Nuestra </span>
+              <span className="section-title-secondary">visión</span>
             </motion.h3>
 
             <motion.div
@@ -201,10 +201,10 @@ const SobreNosotros = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-right"
+              className="section-title text-right"
             >
-              <span className="text-foreground">Cómo </span>
-              <span className="text-foreground/50">trabajamos</span>
+              <span className="section-title-primary">Cómo </span>
+              <span className="section-title-secondary">trabajamos</span>
             </motion.h3>
 
             <motion.p
@@ -287,10 +287,10 @@ const SobreNosotros = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight"
+              className="section-title"
             >
-              <span className="text-foreground">Lo que </span>
-              <span className="text-foreground/50">nos define</span>
+              <span className="section-title-primary">Lo que </span>
+              <span className="section-title-secondary">nos define</span>
             </motion.h3>
 
             <motion.div
