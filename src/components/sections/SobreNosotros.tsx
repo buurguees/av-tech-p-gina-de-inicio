@@ -13,11 +13,14 @@ const SobreNosotros = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="section-tag">Quiénes somos</div>
-            <h2 className="section-title max-w-4xl">
-              <span className="section-title-primary">Técnicos </span>
-              <span className="section-title-secondary">antes que empresa</span>
-            </h2>
+            <div className="flex items-center gap-4 mb-12">
+              <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
+              <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Quiénes somos</span>
+            </div>
+            <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+              <span className="text-foreground">Técnicos </span>
+              <span className="text-foreground/50">antes que empresa</span>
+            </h3>
           </motion.div>
 
           <motion.div
@@ -98,73 +101,75 @@ const SobreNosotros = () => {
 
       {/* Block 3: Nuestra visión - IZQUIERDA */}
       <div className="relative min-h-screen flex items-center">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-            className="flex items-center gap-4 mb-12"
-          >
-            <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
-            <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Visión</span>
-          </motion.div>
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32 w-full">
+          <div className="max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1 }}
+              className="flex items-center gap-4 mb-12"
+            >
+              <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
+              <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Visión</span>
+            </motion.div>
 
-          <motion.h3
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight max-w-3xl"
-          >
-            <span className="text-foreground">Nuestra </span>
-            <span className="text-foreground/50">visión</span>
-          </motion.h3>
+            <motion.h3
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight"
+            >
+              <span className="text-foreground">Nuestra </span>
+              <span className="text-foreground/50">visión</span>
+            </motion.h3>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-12 max-w-2xl space-y-6"
-          >
-            <p className="font-mono text-lg md:text-xl leading-relaxed text-foreground/80">
-              Creemos que la tecnología audiovisual no debería entenderse como una solución única ni rígida.
-            </p>
-            <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60">
-              Creemos que cada espacio, cada empresa y cada proyecto requieren una lectura propia.
-            </p>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-12 space-y-6"
+            >
+              <p className="font-mono text-lg md:text-xl leading-relaxed text-foreground/80">
+                Creemos que la tecnología audiovisual no debería entenderse como una solución única ni rígida.
+              </p>
+              <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60">
+                Creemos que cada espacio, cada empresa y cada proyecto requieren una lectura propia.
+              </p>
+            </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-16 p-8 md:p-12 border border-foreground/10 max-w-2xl"
-          >
-            <p className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40 mb-4">Nuestra finalidad</p>
-            <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/80 mb-6">
-              Desarrollar soluciones audiovisuales que permitan:
-            </p>
-            <ul className="space-y-3 font-mono text-base md:text-lg text-foreground/70">
-              <li className="flex items-start gap-3">
-                <span className="text-foreground/40">—</span>
-                <span>mejorar la comunicación visual,</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-foreground/40">—</span>
-                <span>generar impacto,</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-foreground/40">—</span>
-                <span>y crear experiencias memorables,</span>
-              </li>
-            </ul>
-            <p className="font-mono text-sm text-foreground/50 mt-6">
-              tanto en entornos retail y PYMEs como en proyectos corporativos y de mayor escala.
-            </p>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-16 p-8 md:p-12 border border-foreground/10"
+            >
+              <p className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40 mb-4">Nuestra finalidad</p>
+              <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/80 mb-6">
+                Desarrollar soluciones audiovisuales que permitan:
+              </p>
+              <ul className="space-y-3 font-mono text-base md:text-lg text-foreground/70">
+                <li className="flex items-start gap-3">
+                  <span className="text-foreground/40">—</span>
+                  <span>mejorar la comunicación visual,</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-foreground/40">—</span>
+                  <span>generar impacto,</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-foreground/40">—</span>
+                  <span>y crear experiencias memorables,</span>
+                </li>
+              </ul>
+              <p className="font-mono text-sm text-foreground/50 mt-6">
+                tanto en entornos retail y PYMEs como en proyectos corporativos y de mayor escala.
+              </p>
+            </motion.div>
+          </div>
         </div>
       </div>
 
