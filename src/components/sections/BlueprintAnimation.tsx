@@ -1,39 +1,45 @@
-import { motion, type Easing } from 'motion/react';
+import { motion } from 'motion/react';
 
 const BlueprintAnimation = () => {
-  const customEase: Easing = [0.43, 0.13, 0.23, 0.96];
-  
-  // Animation variants for drawing effect
-  const drawPath = {
-    hidden: { pathLength: 0, opacity: 0 },
-    visible: (i: number) => ({
-      pathLength: 1,
-      opacity: 1,
-      transition: {
-        pathLength: { 
-          delay: i * 0.15, 
-          duration: 1.2, 
-          ease: customEase
-        },
-        opacity: { delay: i * 0.15, duration: 0.3 }
-      }
-    })
-  };
+  const baseDuration = 0.8;
+  const staggerDelay = 0.08;
+  const totalAnimTime = 3;
+  const pauseTime = 1.5;
+  const cycleDuration = totalAnimTime + pauseTime;
 
-  const fadeIn = {
-    hidden: { opacity: 0 },
-    visible: (i: number) => ({
-      opacity: 1,
-      transition: { delay: i * 0.15 + 0.5, duration: 0.8 }
-    })
-  };
+  // Create transition for path drawing with loop
+  const getPathTransition = (index: number) => ({
+    pathLength: {
+      duration: baseDuration,
+      delay: index * staggerDelay,
+      repeat: Infinity,
+      repeatType: "reverse" as const,
+      repeatDelay: cycleDuration - (index * staggerDelay) - baseDuration,
+      ease: "easeInOut" as const
+    },
+    opacity: {
+      duration: 0.2,
+      delay: index * staggerDelay,
+      repeat: Infinity,
+      repeatType: "reverse" as const,
+      repeatDelay: cycleDuration
+    }
+  });
+
+  const getFadeTransition = (index: number) => ({
+    duration: 0.4,
+    delay: index * staggerDelay + 0.3,
+    repeat: Infinity,
+    repeatType: "reverse" as const,
+    repeatDelay: cycleDuration
+  });
 
   return (
     <section className="relative py-20 sm:py-32 overflow-hidden bg-background">
       <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16">
         <motion.div
-          initial="hidden"
-          whileInView="visible"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true, margin: "-100px" }}
           className="flex justify-center"
         >
@@ -55,13 +61,7 @@ const BlueprintAnimation = () => {
                 />
               </pattern>
             </defs>
-            <motion.rect 
-              width="800" 
-              height="500" 
-              fill="url(#grid)"
-              variants={fadeIn}
-              custom={0}
-            />
+            <rect width="800" height="500" fill="url(#grid)" />
 
             {/* Main LED Panel Frame - Left */}
             <motion.rect
@@ -71,8 +71,10 @@ const BlueprintAnimation = () => {
               height="340"
               stroke="hsl(var(--primary))"
               strokeWidth="2"
-              variants={drawPath}
-              custom={1}
+              fill="none"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={getPathTransition(1)}
             />
             
             {/* LED Module Grid - Left Panel */}
@@ -86,8 +88,9 @@ const BlueprintAnimation = () => {
                 stroke="hsl(var(--primary))"
                 strokeWidth="0.5"
                 strokeOpacity="0.6"
-                variants={drawPath}
-                custom={2 + row * 0.1}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.6 }}
+                transition={getPathTransition(2 + row * 0.5)}
               />
             ))}
             {[0, 1, 2, 3].map((col) => (
@@ -100,8 +103,9 @@ const BlueprintAnimation = () => {
                 stroke="hsl(var(--primary))"
                 strokeWidth="0.5"
                 strokeOpacity="0.6"
-                variants={drawPath}
-                custom={2.5 + col * 0.1}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.6 }}
+                transition={getPathTransition(5 + col * 0.5)}
               />
             ))}
 
@@ -113,8 +117,10 @@ const BlueprintAnimation = () => {
               height="340"
               stroke="hsl(var(--primary))"
               strokeWidth="2"
-              variants={drawPath}
-              custom={3}
+              fill="none"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={getPathTransition(7)}
             />
 
             {/* LED Module Grid - Center Panel */}
@@ -128,8 +134,9 @@ const BlueprintAnimation = () => {
                 stroke="hsl(var(--primary))"
                 strokeWidth="0.5"
                 strokeOpacity="0.6"
-                variants={drawPath}
-                custom={4 + row * 0.1}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.6 }}
+                transition={getPathTransition(8 + row * 0.5)}
               />
             ))}
             {[0, 1, 2, 3].map((col) => (
@@ -142,8 +149,9 @@ const BlueprintAnimation = () => {
                 stroke="hsl(var(--primary))"
                 strokeWidth="0.5"
                 strokeOpacity="0.6"
-                variants={drawPath}
-                custom={4.5 + col * 0.1}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.6 }}
+                transition={getPathTransition(11 + col * 0.5)}
               />
             ))}
 
@@ -155,8 +163,10 @@ const BlueprintAnimation = () => {
               height="340"
               stroke="hsl(var(--primary))"
               strokeWidth="2"
-              variants={drawPath}
-              custom={5}
+              fill="none"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={getPathTransition(13)}
             />
 
             {/* LED Module Grid - Right Panel */}
@@ -170,8 +180,9 @@ const BlueprintAnimation = () => {
                 stroke="hsl(var(--primary))"
                 strokeWidth="0.5"
                 strokeOpacity="0.6"
-                variants={drawPath}
-                custom={6 + row * 0.1}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.6 }}
+                transition={getPathTransition(14 + row * 0.5)}
               />
             ))}
             {[0, 1, 2, 3].map((col) => (
@@ -184,8 +195,9 @@ const BlueprintAnimation = () => {
                 stroke="hsl(var(--primary))"
                 strokeWidth="0.5"
                 strokeOpacity="0.6"
-                variants={drawPath}
-                custom={6.5 + col * 0.1}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.6 }}
+                transition={getPathTransition(17 + col * 0.5)}
               />
             ))}
 
@@ -198,8 +210,9 @@ const BlueprintAnimation = () => {
               stroke="hsl(var(--foreground))"
               strokeWidth="0.8"
               strokeOpacity="0.5"
-              variants={drawPath}
-              custom={7}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.5 }}
+              transition={getPathTransition(19)}
             />
             <motion.line
               x1="100"
@@ -209,8 +222,9 @@ const BlueprintAnimation = () => {
               stroke="hsl(var(--foreground))"
               strokeWidth="0.8"
               strokeOpacity="0.5"
-              variants={drawPath}
-              custom={7.1}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.5 }}
+              transition={getPathTransition(19.5)}
             />
             <motion.line
               x1="700"
@@ -220,8 +234,9 @@ const BlueprintAnimation = () => {
               stroke="hsl(var(--foreground))"
               strokeWidth="0.8"
               strokeOpacity="0.5"
-              variants={drawPath}
-              custom={7.2}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.5 }}
+              transition={getPathTransition(19.5)}
             />
 
             {/* Dimension lines - Height */}
@@ -233,8 +248,9 @@ const BlueprintAnimation = () => {
               stroke="hsl(var(--foreground))"
               strokeWidth="0.8"
               strokeOpacity="0.5"
-              variants={drawPath}
-              custom={7.5}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.5 }}
+              transition={getPathTransition(20)}
             />
             <motion.line
               x1="45"
@@ -244,8 +260,9 @@ const BlueprintAnimation = () => {
               stroke="hsl(var(--foreground))"
               strokeWidth="0.8"
               strokeOpacity="0.5"
-              variants={drawPath}
-              custom={7.6}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.5 }}
+              transition={getPathTransition(20.5)}
             />
             <motion.line
               x1="45"
@@ -255,59 +272,28 @@ const BlueprintAnimation = () => {
               stroke="hsl(var(--foreground))"
               strokeWidth="0.8"
               strokeOpacity="0.5"
-              variants={drawPath}
-              custom={7.7}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.5 }}
+              transition={getPathTransition(20.5)}
             />
 
             {/* Structural support lines */}
-            <motion.line
-              x1="100"
-              y1="420"
-              x2="100"
-              y2="480"
-              stroke="hsl(var(--foreground))"
-              strokeWidth="1"
-              strokeOpacity="0.3"
-              strokeDasharray="4 2"
-              variants={drawPath}
-              custom={8}
-            />
-            <motion.line
-              x1="280"
-              y1="420"
-              x2="280"
-              y2="480"
-              stroke="hsl(var(--foreground))"
-              strokeWidth="1"
-              strokeOpacity="0.3"
-              strokeDasharray="4 2"
-              variants={drawPath}
-              custom={8.1}
-            />
-            <motion.line
-              x1="520"
-              y1="420"
-              x2="520"
-              y2="480"
-              stroke="hsl(var(--foreground))"
-              strokeWidth="1"
-              strokeOpacity="0.3"
-              strokeDasharray="4 2"
-              variants={drawPath}
-              custom={8.2}
-            />
-            <motion.line
-              x1="700"
-              y1="420"
-              x2="700"
-              y2="480"
-              stroke="hsl(var(--foreground))"
-              strokeWidth="1"
-              strokeOpacity="0.3"
-              strokeDasharray="4 2"
-              variants={drawPath}
-              custom={8.3}
-            />
+            {[100, 280, 520, 700].map((x, i) => (
+              <motion.line
+                key={`support-${i}`}
+                x1={x}
+                y1="420"
+                x2={x}
+                y2="480"
+                stroke="hsl(var(--foreground))"
+                strokeWidth="1"
+                strokeOpacity="0.3"
+                strokeDasharray="4 2"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.3 }}
+                transition={getPathTransition(21 + i * 0.3)}
+              />
+            ))}
 
             {/* Technical labels */}
             <motion.text
@@ -317,9 +303,9 @@ const BlueprintAnimation = () => {
               fill="hsl(var(--foreground))"
               fontSize="12"
               fontFamily="monospace"
-              opacity="0.6"
-              variants={fadeIn}
-              custom={9}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              transition={getFadeTransition(22)}
             >
               6000mm
             </motion.text>
@@ -330,10 +316,10 @@ const BlueprintAnimation = () => {
               fill="hsl(var(--foreground))"
               fontSize="12"
               fontFamily="monospace"
-              opacity="0.6"
               transform="rotate(-90, 30, 255)"
-              variants={fadeIn}
-              custom={9.5}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              transition={getFadeTransition(22.5)}
             >
               3400mm
             </motion.text>
@@ -346,9 +332,9 @@ const BlueprintAnimation = () => {
               fill="hsl(var(--primary))"
               fontSize="10"
               fontFamily="monospace"
-              opacity="0.8"
-              variants={fadeIn}
-              custom={10}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.8 }}
+              transition={getFadeTransition(23)}
             >
               MÓDULO A
             </motion.text>
@@ -359,9 +345,9 @@ const BlueprintAnimation = () => {
               fill="hsl(var(--primary))"
               fontSize="10"
               fontFamily="monospace"
-              opacity="0.8"
-              variants={fadeIn}
-              custom={10.5}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.8 }}
+              transition={getFadeTransition(23.5)}
             >
               MÓDULO B
             </motion.text>
@@ -372,9 +358,9 @@ const BlueprintAnimation = () => {
               fill="hsl(var(--primary))"
               fontSize="10"
               fontFamily="monospace"
-              opacity="0.8"
-              variants={fadeIn}
-              custom={11}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.8 }}
+              transition={getFadeTransition(24)}
             >
               MÓDULO C
             </motion.text>
@@ -387,8 +373,9 @@ const BlueprintAnimation = () => {
                 cy={y}
                 r="3"
                 fill="hsl(var(--primary))"
-                variants={fadeIn}
-                custom={12 + i * 0.1}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={getFadeTransition(25 + i * 0.2)}
               />
             ))}
             {[[310, 80], [490, 80], [310, 420], [490, 420]].map(([x, y], i) => (
@@ -398,8 +385,9 @@ const BlueprintAnimation = () => {
                 cy={y}
                 r="3"
                 fill="hsl(var(--primary))"
-                variants={fadeIn}
-                custom={12.5 + i * 0.1}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={getFadeTransition(26 + i * 0.2)}
               />
             ))}
             {[[520, 80], [700, 80], [520, 420], [700, 420]].map(([x, y], i) => (
@@ -409,8 +397,9 @@ const BlueprintAnimation = () => {
                 cy={y}
                 r="3"
                 fill="hsl(var(--primary))"
-                variants={fadeIn}
-                custom={13 + i * 0.1}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={getFadeTransition(27 + i * 0.2)}
               />
             ))}
 
@@ -424,8 +413,9 @@ const BlueprintAnimation = () => {
               strokeWidth="0.5"
               strokeOpacity="0.3"
               fill="none"
-              variants={drawPath}
-              custom={14}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={getPathTransition(28)}
             />
             <motion.text
               x="685"
@@ -434,9 +424,9 @@ const BlueprintAnimation = () => {
               fill="hsl(var(--foreground))"
               fontSize="8"
               fontFamily="monospace"
-              opacity="0.5"
-              variants={fadeIn}
-              custom={14.5}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              transition={getFadeTransition(29)}
             >
               AVTECH PANTALLAS LED
             </motion.text>
@@ -447,9 +437,9 @@ const BlueprintAnimation = () => {
               fill="hsl(var(--foreground))"
               fontSize="7"
               fontFamily="monospace"
-              opacity="0.4"
-              variants={fadeIn}
-              custom={15}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.4 }}
+              transition={getFadeTransition(29.5)}
             >
               PLANO TÉCNICO - ESCALA 1:50
             </motion.text>
