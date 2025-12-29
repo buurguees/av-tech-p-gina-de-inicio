@@ -1,55 +1,70 @@
 import { motion } from 'motion/react';
 import comoTrabajamosVisual from '@/assets/como-trabajamos-visual.png';
 import visionVideo from '@/assets/vision-video.mp4';
+import MorphingIconAnimation from '@/components/MorphingIconAnimation';
 
 const SobreNosotros = () => {
   return (
     <section id="sobre-nosotros" className="relative overflow-hidden">
 
-      {/* Block 1: Header - IZQUIERDA */}
+      {/* Block 1: Header - IZQUIERDA con animación */}
       <div className="relative py-24 sm:py-32">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
-          <div className="max-w-2xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Animación SVG Morphing - Izquierda */}
             <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 1 }}
-              className="flex items-center gap-4 mb-12"
+              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+              className="order-2 lg:order-1 aspect-square max-w-md mx-auto lg:mx-0 w-full"
             >
-              <div className="section-indicator" />
-              <span className="section-tag mb-0">Quiénes somos</span>
+              <MorphingIconAnimation />
             </motion.div>
 
-            <motion.h3
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="section-title"
-            >
-              <span className="section-title-primary">Técnicos</span>
-              <br />
-              <span className="section-title-secondary">antes que empresa</span>
-            </motion.h3>
+            {/* Contenido - Derecha */}
+            <div className="order-1 lg:order-2">
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 1 }}
+                className="flex items-center gap-4 mb-12 lg:justify-end"
+              >
+                <span className="section-tag mb-0 lg:order-1">Quiénes somos</span>
+                <div className="section-indicator lg:order-2" />
+              </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-12 space-y-6"
-            >
-              <p className="text-lead text-justify">
-                Somos técnicos audiovisuales con más de cinco años de experiencia trabajando en instalaciones, eventos y proyectos reales; tanto en entornos comerciales como en proyectos de mayor envergadura.
-              </p>
-              <p className="text-body-muted text-justify">
-                Antes de fundar AV TECH, ya estábamos en el terreno: montando, configurando, resolviendo incidencias y entendiendo cómo funciona de verdad un espacio cuando se integra tecnología audiovisual.
-              </p>
-              <p className="text-caption text-justify">
-                Esa experiencia técnica y operativa es la base de todo lo que hacemos hoy.
-              </p>
-            </motion.div>
+              <motion.h3
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                className="section-title lg:text-right"
+              >
+                <span className="section-title-primary">Técnicos</span>
+                <br />
+                <span className="section-title-secondary">antes que empresa</span>
+              </motion.h3>
+
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                className="mt-12 space-y-6"
+              >
+                <p className="text-lead text-justify">
+                  Somos técnicos audiovisuales con más de cinco años de experiencia trabajando en instalaciones, eventos y proyectos reales; tanto en entornos comerciales como en proyectos de mayor envergadura.
+                </p>
+                <p className="text-body-muted text-justify">
+                  Antes de fundar AV TECH, ya estábamos en el terreno: montando, configurando, resolviendo incidencias y entendiendo cómo funciona de verdad un espacio cuando se integra tecnología audiovisual.
+                </p>
+                <p className="text-caption text-justify">
+                  Esa experiencia técnica y operativa es la base de todo lo que hacemos hoy.
+                </p>
+              </motion.div>
+            </div>
           </div>
         </div>
       </div>
