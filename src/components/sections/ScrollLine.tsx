@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 
 interface ScrollLineProps {
@@ -6,7 +6,7 @@ interface ScrollLineProps {
 }
 
 const ScrollLine = ({ containerRef }: ScrollLineProps) => {
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [dimensions, setDimensions] = useState({ width: 1000, height: 5000 });
   const svgRef = useRef<SVGSVGElement>(null);
 
   const { scrollYProgress } = useScroll({
@@ -14,8 +14,9 @@ const ScrollLine = ({ containerRef }: ScrollLineProps) => {
     offset: ["start start", "end end"]
   });
 
-  // Calculate path length for drawing animation
+  // All hooks must be called before any conditional returns
   const pathLength = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const offsetDistance = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -32,34 +33,29 @@ const ScrollLine = ({ containerRef }: ScrollLineProps) => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, [containerRef]);
 
-  if (dimensions.width === 0 || dimensions.height === 0) return null;
+  // Build path using memoized calculation
+  const { mainPath, isMobile } = useMemo(() => {
+    const w = dimensions.width;
+    const h = dimensions.height;
+    const mobile = w < 768;
+    
+    // Section heights (6 sections, 5 full height + 1 at 70%)
+    const sectionHeight = h / 5.7;
+    
+    // Margins for positioning
+    const textLeftEdge = mobile ? w * 0.12 : w * 0.08;
+    const textRightEdge = mobile ? w * 0.88 : w * 0.75;
+    const leftMargin = mobile ? w * 0.08 : w * 0.06;
+    
+    // Category label positions (approximate Y positions for each section's category label)
+    const categoryY = [
+      sectionHeight * 0.45,           // Block 1: "Quiénes somos" - LEFT
+      sectionHeight * 1.45,           // Block 2: "Origen" - RIGHT
+      sectionHeight * 2.45,           // Block 3: "Visión" - LEFT
+      sectionHeight * 3.45,           // Block 4: "Proceso" - RIGHT
+      sectionHeight * 4.45,           // Block 5: "Valores" - LEFT
+    ];
 
-  // Responsive calculations
-  const w = dimensions.width;
-  const h = dimensions.height;
-  const isMobile = w < 768;
-  
-  // Section heights (6 sections, 5 full height + 1 at 70%)
-  const sectionHeight = h / 5.7;
-  
-  // Margins for positioning
-  const leftMargin = isMobile ? w * 0.08 : w * 0.06;
-  const rightMargin = isMobile ? w * 0.92 : w * 0.94;
-  const textLeftEdge = isMobile ? w * 0.12 : w * 0.08;
-  const textRightEdge = isMobile ? w * 0.88 : w * 0.75;
-  
-  // Category label positions (approximate Y positions for each section's category label)
-  const categoryY = [
-    sectionHeight * 0.45,           // Block 1: "Quiénes somos" - LEFT
-    sectionHeight * 1.45,           // Block 2: "Origen" - RIGHT
-    sectionHeight * 2.45,           // Block 3: "Visión" - LEFT
-    sectionHeight * 3.45,           // Block 4: "Proceso" - RIGHT
-    sectionHeight * 4.45,           // Block 5: "Valores" - LEFT
-  ];
-
-  // Build the flowing path with curves, spirals and loops
-  // The path flows from left sections to right sections, creating emotional curves
-  const buildPath = () => {
     const points: string[] = [];
     
     // Start from top left, slightly outside viewport
@@ -72,7 +68,6 @@ const ScrollLine = ({ containerRef }: ScrollLineProps) => {
     const circle1X = textLeftEdge + 80;
     const circle1Y = categoryY[0];
     points.push(`Q ${leftMargin + 60} ${circle1Y - 60}, ${circle1X - 40} ${circle1Y - 25}`);
-    // Elegant loop around the category
     points.push(`C ${circle1X - 60} ${circle1Y - 40}, ${circle1X - 70} ${circle1Y + 10}, ${circle1X - 50} ${circle1Y + 30}`);
     points.push(`C ${circle1X - 30} ${circle1Y + 50}, ${circle1X + 30} ${circle1Y + 40}, ${circle1X + 50} ${circle1Y + 10}`);
     points.push(`C ${circle1X + 60} ${circle1Y - 20}, ${circle1X + 40} ${circle1Y - 45}, ${circle1X} ${circle1Y - 35}`);
@@ -84,7 +79,6 @@ const ScrollLine = ({ containerRef }: ScrollLineProps) => {
     const circle2X = textRightEdge - 30;
     const circle2Y = categoryY[1];
     points.push(`Q ${w * 0.8} ${circle2Y - 80}, ${circle2X + 60} ${circle2Y - 40}`);
-    // Elegant circle around category
     points.push(`C ${circle2X + 80} ${circle2Y - 20}, ${circle2X + 70} ${circle2Y + 30}, ${circle2X + 40} ${circle2Y + 40}`);
     points.push(`C ${circle2X + 10} ${circle2Y + 50}, ${circle2X - 40} ${circle2Y + 30}, ${circle2X - 50} ${circle2Y}`);
     points.push(`C ${circle2X - 55} ${circle2Y - 30}, ${circle2X - 30} ${circle2Y - 50}, ${circle2X + 10} ${circle2Y - 40}`);
@@ -96,7 +90,6 @@ const ScrollLine = ({ containerRef }: ScrollLineProps) => {
     const circle3X = textLeftEdge + 60;
     const circle3Y = categoryY[2];
     points.push(`Q ${w * 0.15} ${circle3Y - 60}, ${circle3X - 30} ${circle3Y - 35}`);
-    // Circle around category
     points.push(`C ${circle3X - 55} ${circle3Y - 25}, ${circle3X - 60} ${circle3Y + 20}, ${circle3X - 40} ${circle3Y + 40}`);
     points.push(`C ${circle3X - 15} ${circle3Y + 55}, ${circle3X + 40} ${circle3Y + 40}, ${circle3X + 55} ${circle3Y + 10}`);
     points.push(`C ${circle3X + 65} ${circle3Y - 15}, ${circle3X + 45} ${circle3Y - 45}, ${circle3X + 5} ${circle3Y - 38}`);
@@ -108,7 +101,6 @@ const ScrollLine = ({ containerRef }: ScrollLineProps) => {
     const circle4X = textRightEdge - 40;
     const circle4Y = categoryY[3];
     points.push(`Q ${w * 0.85} ${circle4Y - 50}, ${circle4X + 50} ${circle4Y - 30}`);
-    // Circle around category
     points.push(`C ${circle4X + 70} ${circle4Y - 10}, ${circle4X + 65} ${circle4Y + 35}, ${circle4X + 35} ${circle4Y + 45}`);
     points.push(`C ${circle4X} ${circle4Y + 55}, ${circle4X - 45} ${circle4Y + 30}, ${circle4X - 55} ${circle4Y - 5}`);
     points.push(`C ${circle4X - 60} ${circle4Y - 35}, ${circle4X - 35} ${circle4Y - 55}, ${circle4X + 5} ${circle4Y - 45}`);
@@ -120,7 +112,6 @@ const ScrollLine = ({ containerRef }: ScrollLineProps) => {
     const circle5X = textLeftEdge + 55;
     const circle5Y = categoryY[4];
     points.push(`Q ${w * 0.12} ${circle5Y - 55}, ${circle5X - 35} ${circle5Y - 30}`);
-    // Final elegant circle
     points.push(`C ${circle5X - 58} ${circle5Y - 15}, ${circle5X - 55} ${circle5Y + 30}, ${circle5X - 35} ${circle5Y + 45}`);
     points.push(`C ${circle5X - 10} ${circle5Y + 60}, ${circle5X + 45} ${circle5Y + 45}, ${circle5X + 60} ${circle5Y + 15}`);
     points.push(`C ${circle5X + 70} ${circle5Y - 15}, ${circle5X + 50} ${circle5Y - 45}, ${circle5X + 10} ${circle5Y - 40}`);
@@ -128,10 +119,8 @@ const ScrollLine = ({ containerRef }: ScrollLineProps) => {
     // Exit gracefully towards the bottom center with a final flourish
     points.push(`C ${w * 0.3} ${categoryY[4] + sectionHeight * 0.4}, ${w * 0.5} ${h - 200}, ${w * 0.5} ${h - 50}`);
     
-    return points.join(' ');
-  };
-
-  const mainPath = buildPath();
+    return { mainPath: points.join(' '), isMobile: mobile };
+  }, [dimensions]);
 
   return (
     <svg
@@ -161,7 +150,7 @@ const ScrollLine = ({ containerRef }: ScrollLineProps) => {
         fill="hsl(var(--foreground) / 0.3)"
         style={{
           offsetPath: `path('${mainPath}')`,
-          offsetDistance: useTransform(scrollYProgress, [0, 1], ['0%', '100%']),
+          offsetDistance,
         }}
       />
     </svg>
