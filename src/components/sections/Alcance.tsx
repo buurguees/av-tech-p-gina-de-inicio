@@ -393,7 +393,7 @@ const Alcance = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={isInView && isGlobeReady ? { opacity: 1, y: 0 } : { opacity: 0 }}
-            transition={{ duration: 0.6, delay: 1.0, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.4, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-8">
               {Object.entries(visibleRegions).map(([region, regionProjects], regionIndex) => (
@@ -402,8 +402,8 @@ const Alcance = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={isInView && isGlobeReady ? { opacity: 1, y: 0 } : { opacity: 0 }}
                   transition={{ 
-                    delay: 1.1 + regionIndex * 0.06,
-                    duration: 0.45,
+                    delay: 0.4 + regionIndex * 0.03,
+                    duration: 0.3,
                     ease: [0.16, 1, 0.3, 1]
                   }}
                   className="space-y-2"
