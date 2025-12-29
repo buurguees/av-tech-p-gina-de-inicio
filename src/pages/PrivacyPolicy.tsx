@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import logoAvtech from '@/assets/logo-avtech-white.png';
@@ -17,6 +18,10 @@ function formatDateEs(date: Date) {
 
 const PrivacyPolicy = () => {
   const lastUpdated = formatDateEs(new Date());
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
