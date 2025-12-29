@@ -20,7 +20,7 @@ import project8 from '@/assets/projects/project-8.jpg';
 const projects = [
   { id: 1, image: project1, title: 'Metro Barcelona ARS Gràcia', category: 'Transporte' },
   { id: 2, image: project2, title: 'Bershka Milan', category: 'Retail LED' },
-  { id: 3, image: project3, title: 'Escaparate Digital', category: 'Escaparates' },
+  { id: 3, image: project3, title: 'Oxford Street Flagship Window', category: 'Escaparate a Medida' },
   { id: 4, image: project4, title: 'Lefties Parque Sur', category: 'LED Transparente' },
   { id: 5, image: project5, title: 'Digital Signage Jack & Jones', category: 'Señalización' },
   { id: 6, image: project6, title: 'Pantalla Circular', category: 'Displays Especiales' },
