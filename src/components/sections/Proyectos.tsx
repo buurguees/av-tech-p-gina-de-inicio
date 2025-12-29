@@ -56,7 +56,8 @@ const Proyectos = () => {
           </h2>
           <p className="section-description mt-4">
             Cada proyecto es una historia única.
-            <br />
+            <br className="hidden sm:block" />
+            <span className="sm:hidden"> </span>
             Soluciones audiovisuales que transforman espacios y experiencias.
           </p>
         </motion.div>
@@ -76,9 +77,9 @@ const Proyectos = () => {
             }}
             className="w-full"
           >
-            <CarouselContent className="-ml-4">
+            <CarouselContent className="-ml-3 md:-ml-4">
               {projects.map((project) => (
-                <CarouselItem key={project.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                <CarouselItem key={project.id} className="pl-3 md:pl-4 basis-[85%] sm:basis-1/2 lg:basis-1/3">
                   <div className="group relative overflow-hidden rounded-sm">
                     <div className="aspect-square overflow-hidden">
                       <img
@@ -87,12 +88,13 @@ const Proyectos = () => {
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    {/* Always visible on mobile, hover on desktop */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-300">
                       <p className="font-mono text-xs uppercase tracking-wider" style={{ color: 'hsl(var(--text-secondary))' }}>
                         {project.category}
                       </p>
-                      <h3 className="font-mono text-lg mt-1" style={{ color: 'hsl(var(--text-primary))' }}>
+                      <h3 className="font-mono text-sm md:text-lg mt-1" style={{ color: 'hsl(var(--text-primary))' }}>
                         {project.title}
                       </h3>
                     </div>
@@ -101,8 +103,8 @@ const Proyectos = () => {
               ))}
             </CarouselContent>
             <div className="flex justify-end gap-2 mt-6">
-              <CarouselPrevious className="static translate-y-0 bg-secondary border-border hover:bg-accent" />
-              <CarouselNext className="static translate-y-0 bg-secondary border-border hover:bg-accent" />
+              <CarouselPrevious className="static translate-y-0 bg-secondary border-border hover:bg-accent h-10 w-10 md:h-10 md:w-10" />
+              <CarouselNext className="static translate-y-0 bg-secondary border-border hover:bg-accent h-10 w-10 md:h-10 md:w-10" />
             </div>
           </Carousel>
         </motion.div>
