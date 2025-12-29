@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import comoTrabajamosVisual from '@/assets/como-trabajamos-visual.png';
 import visionVideo from '@/assets/vision-video.mp4';
+import logoAvtech from '@/assets/logo-avtech-white.png';
 
 const SobreNosotros = () => {
   return (
@@ -521,21 +522,19 @@ const SobreNosotros = () => {
             </p>
           </motion.div>
 
-          {/* Decorative element */}
+          {/* Logo AV TECH */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="mt-16 flex justify-center gap-2"
+            className="mt-16 flex justify-center"
           >
-            {[...Array(3)].map((_, i) => (
-              <div
-                key={i}
-                className="section-indicator"
-                style={{ animationDelay: `${i * 0.2}s` }}
-              />
-            ))}
+            <img 
+              src={logoAvtech} 
+              alt="AV TECH" 
+              className="h-8 w-auto opacity-60"
+            />
           </motion.div>
         </div>
       </div>
