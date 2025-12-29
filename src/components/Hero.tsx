@@ -41,21 +41,17 @@ const Hero = () => {
     >
       {/* Background Carousel */}
       <div className="absolute inset-0 z-0">
-        <AnimatePresence mode="wait">
-          <motion.div
+        <AnimatePresence mode="sync">
+          <motion.img
             key={currentIndex}
-            initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: 1, scale: 1 }}
+            src={projectImages[currentIndex]}
+            alt="Proyecto AV Tech"
+            className="absolute inset-0 w-full h-full object-cover"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-0"
-          >
-            <img
-              src={projectImages[currentIndex]}
-              alt="Proyecto AV Tech"
-              className="w-full h-full object-cover"
-            />
-          </motion.div>
+            transition={{ duration: 2.5, ease: "easeInOut" }}
+          />
         </AnimatePresence>
         
         {/* Dark overlay for text readability */}
