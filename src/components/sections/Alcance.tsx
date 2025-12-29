@@ -439,7 +439,7 @@ const Alcance = () => {
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.7, delay: 3.0, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.5, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-8 mt-12 md:mt-16 pt-10 md:pt-12 border-t border-border"
           >
             {[
@@ -453,8 +453,8 @@ const Alcance = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ 
-                  delay: 3.1 + index * 0.08,
-                  duration: 0.6,
+                  delay: 0.7 + index * 0.05,
+                  duration: 0.4,
                   ease: [0.16, 1, 0.3, 1]
                 }}
                 whileHover={isMobile ? {} : { scale: 1.05 }}
