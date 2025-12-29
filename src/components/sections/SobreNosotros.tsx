@@ -15,8 +15,8 @@ const SobreNosotros = () => {
               transition={{ duration: 1 }}
               className="flex items-center gap-4 mb-12"
             >
-              <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
-              <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Quiénes somos</span>
+              <div className="section-indicator" />
+              <span className="section-tag mb-0">Quiénes somos</span>
             </motion.div>
 
             <motion.h3
@@ -37,13 +37,13 @@ const SobreNosotros = () => {
               transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="mt-12 space-y-6"
             >
-              <p className="font-mono text-lg md:text-xl leading-relaxed text-foreground/80">
+              <p className="text-lead">
                 Somos técnicos audiovisuales con más de cinco años de experiencia trabajando en instalaciones, eventos y proyectos reales, tanto en entornos comerciales como en proyectos de mayor envergadura.
               </p>
-              <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60">
+              <p className="text-body-muted">
                 Antes de fundar AV TECH, ya estábamos en el terreno: montando, configurando, resolviendo incidencias y entendiendo cómo funciona de verdad un espacio cuando se integra tecnología audiovisual.
               </p>
-              <p className="font-mono text-sm tracking-wide text-foreground/40 uppercase">
+              <p className="text-caption">
                 Esa experiencia técnica y operativa es la base de todo lo que hacemos hoy.
               </p>
             </motion.div>
@@ -62,8 +62,8 @@ const SobreNosotros = () => {
               transition={{ duration: 1 }}
               className="flex items-center gap-4 mb-12 justify-end"
             >
-              <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Origen</span>
-              <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
+              <span className="section-tag mb-0">Origen</span>
+              <div className="section-indicator" />
             </motion.div>
 
             <motion.h3
@@ -84,10 +84,10 @@ const SobreNosotros = () => {
               transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="mt-12 space-y-6 text-right"
             >
-              <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/70">
+              <p className="text-body">
                 Con el tiempo detectamos una realidad clara: muchas empresas —especialmente pequeñas y medianas— querían incorporar soluciones audiovisuales profesionales, pero no siempre encontraban propuestas ajustadas a su escala, a su ritmo de crecimiento o a su forma de trabajar.
               </p>
-              <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60">
+              <p className="text-body-muted">
                 Al mismo tiempo, vimos que la tecnología audiovisual podía aplicarse de una forma más flexible, más cercana y más adaptada, sin perder nivel técnico ni calidad de ejecución.
               </p>
             </motion.div>
@@ -99,7 +99,7 @@ const SobreNosotros = () => {
               transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="mt-16 pr-6 border-r-2 border-foreground/20 text-right"
             >
-              <p className="font-mono text-xl md:text-2xl text-foreground font-medium">
+              <p className="text-quote">
                 AV TECH nace con la voluntad de acercar la tecnología audiovisual profesional a más tipos de negocio, adaptando cada proyecto a su contexto real, independientemente de su tamaño.
               </p>
             </motion.div>
@@ -118,8 +118,8 @@ const SobreNosotros = () => {
               transition={{ duration: 1 }}
               className="flex items-center gap-4 mb-12"
             >
-              <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
-              <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Visión</span>
+              <div className="section-indicator" />
+              <span className="section-tag mb-0">Visión</span>
             </motion.div>
 
             <motion.h3
@@ -140,10 +140,10 @@ const SobreNosotros = () => {
               transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="mt-12 space-y-6"
             >
-              <p className="font-mono text-lg md:text-xl leading-relaxed text-foreground/80">
+              <p className="text-lead">
                 Creemos que la tecnología audiovisual no debería entenderse como una solución única ni rígida.
               </p>
-              <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/60">
+              <p className="text-body-muted">
                 Creemos que cada espacio, cada empresa y cada proyecto requieren una lectura propia.
               </p>
             </motion.div>
@@ -155,25 +155,25 @@ const SobreNosotros = () => {
               transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="mt-16 p-8 md:p-12 border border-foreground/10"
             >
-              <p className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40 mb-4">Nuestra finalidad</p>
-              <p className="font-mono text-base md:text-lg leading-relaxed text-foreground/80 mb-6">
+              <p className="text-caption mb-4">Nuestra finalidad</p>
+              <p className="text-body mb-6">
                 Desarrollar soluciones audiovisuales que permitan:
               </p>
-              <ul className="space-y-3 font-mono text-base md:text-lg text-foreground/70">
+              <ul className="space-y-3">
                 <li className="flex items-start gap-3">
-                  <span className="text-foreground/40">—</span>
-                  <span>mejorar la comunicación visual,</span>
+                  <span className="text-body-muted">—</span>
+                  <span className="text-body">mejorar la comunicación visual,</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-foreground/40">—</span>
-                  <span>generar impacto,</span>
+                  <span className="text-body-muted">—</span>
+                  <span className="text-body">generar impacto,</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-foreground/40">—</span>
-                  <span>y crear experiencias memorables,</span>
+                  <span className="text-body-muted">—</span>
+                  <span className="text-body">y crear experiencias memorables,</span>
                 </li>
               </ul>
-              <p className="font-mono text-sm text-foreground/50 mt-6">
+              <p className="text-small mt-6">
                 tanto en entornos retail y PYMEs como en proyectos corporativos y de mayor escala.
               </p>
             </motion.div>
@@ -192,8 +192,8 @@ const SobreNosotros = () => {
               transition={{ duration: 1 }}
               className="flex items-center gap-4 mb-12 justify-end"
             >
-              <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Proceso</span>
-              <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
+              <span className="section-tag mb-0">Proceso</span>
+              <div className="section-indicator" />
             </motion.div>
 
             <motion.h3
@@ -212,7 +212,7 @@ const SobreNosotros = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-8 font-mono text-lg md:text-xl leading-relaxed text-foreground/70 text-right"
+              className="mt-8 text-lead text-right"
             >
               No ofrecemos soluciones genéricas. Cada proyecto parte de una pregunta simple:
             </motion.p>
@@ -222,7 +222,7 @@ const SobreNosotros = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-4 font-mono text-xl md:text-2xl text-foreground font-medium italic text-right"
+              className="mt-4 text-quote italic text-right"
             >
               ¿Qué necesita este espacio para comunicar mejor y cumplir su objetivo?
             </motion.p>
@@ -248,8 +248,8 @@ const SobreNosotros = () => {
                   transition={{ duration: 0.6, delay: 0.4 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
                   className="flex items-start gap-4 p-4 border border-foreground/5 hover:border-foreground/15 transition-colors duration-300 text-right flex-row-reverse"
                 >
-                  <span className="font-mono text-xs text-foreground/30">{step.num}</span>
-                  <span className="font-mono text-sm md:text-base text-foreground/70">{step.text}</span>
+                  <span className="text-caption">{step.num}</span>
+                  <span className="text-body">{step.text}</span>
                 </motion.div>
               ))}
             </motion.div>
@@ -259,7 +259,7 @@ const SobreNosotros = () => {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.6 }}
-              className="mt-12 font-mono text-sm text-foreground/50 text-right"
+              className="mt-12 text-small text-right"
             >
               Desarrollamos proyectos únicos, adaptados a cada necesidad, cada espacio y cada fase de crecimiento.
             </motion.p>
@@ -278,8 +278,8 @@ const SobreNosotros = () => {
               transition={{ duration: 1 }}
               className="flex items-center gap-4 mb-12"
             >
-              <div className="w-2 h-2 bg-foreground/40 rounded-full animate-pulse" />
-              <span className="font-mono text-xs tracking-[0.2em] uppercase text-foreground/40">Valores</span>
+              <div className="section-indicator" />
+              <span className="section-tag mb-0">Valores</span>
             </motion.div>
 
             <motion.h3
@@ -315,7 +315,7 @@ const SobreNosotros = () => {
                   className="flex items-center gap-4"
                 >
                   <div className="w-1 h-8 bg-foreground/20" />
-                  <span className="font-mono text-base md:text-lg text-foreground/80">{value}</span>
+                  <span className="text-body">{value}</span>
                 </motion.div>
               ))}
             </motion.div>
@@ -325,9 +325,9 @@ const SobreNosotros = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-16 font-mono text-lg md:text-xl text-foreground/70"
+              className="mt-16 text-lead"
             >
-              Más que proveedores, buscamos ser un <span className="text-foreground">partner audiovisual de confianza</span>, capaz de acompañar proyectos pequeños, medianos o complejos con la misma seriedad y atención al detalle.
+              Más que proveedores, buscamos ser un <span className="section-title-primary">partner audiovisual de confianza</span>, capaz de acompañar proyectos pequeños, medianos o complejos con la misma seriedad y atención al detalle.
             </motion.p>
           </div>
         </div>
@@ -343,10 +343,10 @@ const SobreNosotros = () => {
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
             className="max-w-3xl mx-auto"
           >
-            <p className="font-mono text-xl sm:text-2xl md:text-3xl leading-relaxed text-foreground/60">
+            <p className="text-statement text-statement-secondary">
               AV TECH no nace para imponer tecnología,
             </p>
-            <p className="font-mono text-xl sm:text-2xl md:text-3xl leading-relaxed text-foreground mt-2">
+            <p className="text-statement text-statement-primary mt-2">
               nace para ponerla al servicio de las personas, los espacios y los proyectos, sea cual sea su tamaño.
             </p>
           </motion.div>
@@ -362,7 +362,7 @@ const SobreNosotros = () => {
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                className="w-1.5 h-1.5 bg-foreground/30 rounded-full"
+                className="section-indicator"
                 style={{ animationDelay: `${i * 0.2}s` }}
               />
             ))}
