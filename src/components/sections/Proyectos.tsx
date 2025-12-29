@@ -91,45 +91,53 @@ const MobileCarousel = () => {
   );
 };
 
-// Desktop carousel component
+// Desktop carousel component with auto-scroll
 const DesktopCarousel = () => {
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: 'start',
+    loop: true,
+  });
+
+  const autoplay = useCallback(() => {
+    if (!emblaApi) return;
+    emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const interval = setInterval(autoplay, 800);
+    return () => clearInterval(interval);
+  }, [emblaApi, autoplay]);
+
   return (
-    <Carousel
-      opts={{
-        align: 'start',
-        loop: true,
-      }}
-      className="w-full"
-    >
-      <CarouselContent className="-ml-4">
-        {projects.map((project) => (
-          <CarouselItem key={project.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
-            <div className="group relative overflow-hidden rounded-sm">
-              <div className="aspect-square overflow-hidden">
-                <img
-                  src={project.image}
-                  alt={project.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                <p className="font-mono text-xs uppercase tracking-wider" style={{ color: 'hsl(var(--text-secondary))' }}>
-                  {project.category}
-                </p>
-                <h3 className="font-mono text-lg mt-1" style={{ color: 'hsl(var(--text-primary))' }}>
-                  {project.title}
-                </h3>
+    <div className="w-full">
+      <div className="overflow-hidden" ref={emblaRef}>
+        <div className="flex -ml-4">
+          {projects.map((project) => (
+            <div key={project.id} className="flex-shrink-0 pl-4 md:basis-1/2 lg:basis-1/3" style={{ minWidth: '33.333%' }}>
+              <div className="group relative overflow-hidden rounded-sm">
+                <div className="aspect-square overflow-hidden">
+                  <img
+                    src={project.image}
+                    alt={project.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <p className="font-mono text-xs uppercase tracking-wider" style={{ color: 'hsl(var(--text-secondary))' }}>
+                    {project.category}
+                  </p>
+                  <h3 className="font-mono text-lg mt-1" style={{ color: 'hsl(var(--text-primary))' }}>
+                    {project.title}
+                  </h3>
+                </div>
               </div>
             </div>
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-      <div className="flex justify-end gap-2 mt-6">
-        <CarouselPrevious className="static translate-y-0 bg-secondary border-border hover:bg-accent h-10 w-10" />
-        <CarouselNext className="static translate-y-0 bg-secondary border-border hover:bg-accent h-10 w-10" />
+          ))}
+        </div>
       </div>
-    </Carousel>
+    </div>
   );
 };
 
