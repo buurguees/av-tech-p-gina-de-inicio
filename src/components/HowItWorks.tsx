@@ -1,4 +1,5 @@
 import { CheckCircle2 } from 'lucide-react';
+import howItWorksVisual from '@/assets/how-it-works-visual.png';
 
 const steps = [
   {
@@ -39,16 +40,14 @@ const benefits = [
 const HowItWorks = () => {
   return (
     <section id="como-funciona" className="relative min-h-screen overflow-hidden">
-      {/* Video placeholder - Left Side */}
+      {/* Visual - Left Side */}
       <div className="absolute inset-y-0 left-0 w-1/2 hidden lg:block">
-        {/* Video placeholder container with 1:1 aspect ratio centered */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative w-full max-w-[min(100%,100vh)] aspect-square bg-secondary/20 border border-border/30">
-            {/* Placeholder for future video */}
-            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/30">
-              {/* Empty for video */}
-            </div>
-          </div>
+          <img 
+            src={howItWorksVisual} 
+            alt="Antes y después de instalación de pantalla LED" 
+            className="w-full h-full object-contain"
+          />
         </div>
 
         {/* Top gradient */}
