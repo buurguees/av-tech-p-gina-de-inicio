@@ -6,8 +6,9 @@ import { ArrowRight } from 'lucide-react';
 import catalogImage1 from '@/assets/catalog/pantalla-led-interior.png';
 import catalogImage2 from '@/assets/catalog/mupys-led.png';
 import catalogImage3 from '@/assets/catalog/totem-lcd.png';
+import catalogImage4 from '@/assets/catalog/lcd-techo.png';
 
-const catalogImages = [catalogImage1, catalogImage2, catalogImage3];
+const catalogImages = [catalogImage1, catalogImage2, catalogImage3, catalogImage4];
 
 const Productos = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
