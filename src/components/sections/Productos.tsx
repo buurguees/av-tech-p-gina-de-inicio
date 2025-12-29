@@ -14,13 +14,14 @@ const Productos = () => {
             Catálogo
           </div>
           <h2 className="section-title max-w-3xl">
-            <span className="section-title-primary">Tecnología </span>
-            <span className="section-title-secondary">de vanguardia</span>
+            <span className="section-title-primary">Soluciones audiovisuales </span>
+            <span className="section-title-secondary">para cada tipo de espacio</span>
           </h2>
+          <p className="section-subtitle mt-4 ml-auto">
+            Convierte cada espacio en un punto de conexión con tus clientes.
+          </p>
           <p className="section-description mt-4 ml-auto">
-            Equipos y soluciones de última generación.
-            <br />
-            Pantallas LED, sistemas de sonido profesional y control audiovisual.
+            Packs pensados para comunicar mejor, generar impacto y conectar con más personas en cada espacio.
           </p>
         </motion.div>
 
