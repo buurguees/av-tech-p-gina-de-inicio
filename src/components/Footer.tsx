@@ -121,28 +121,30 @@ const Footer = () => {
             <h4 className="font-semibold text-sm md:text-base mb-4 md:mb-6">Contacto</h4>
             <ul className="space-y-3 md:space-y-4">
               <li className="flex items-start gap-2 md:gap-3">
-                <MapPin className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground shrink-0 mt-0.5" />
-                <span className="text-muted-foreground text-xs md:text-sm">
-                  Barcelona, España
-                </span>
+                <Mail className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground shrink-0 mt-0.5" />
+                <a
+                  href="mailto:info@avtechesdeveniments.com"
+                  className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm break-all"
+                >
+                  info@avtechesdeveniments.com
+                </a>
               </li>
               <li className="flex items-center gap-2 md:gap-3">
                 <Phone className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground shrink-0" />
                 <a
-                  href="tel:+34900000000"
+                  href="tel:+34616579640"
                   className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm"
                 >
-                  +34 900 000 000
+                  +34 616 579 640
                 </a>
               </li>
-              <li className="flex items-center gap-2 md:gap-3">
-                <Mail className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground shrink-0" />
-                <a
-                  href="mailto:info@avtech.es"
-                  className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm"
-                >
-                  info@avtech.es
-                </a>
+              <li className="flex items-start gap-2 md:gap-3">
+                <MapPin className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground shrink-0 mt-0.5" />
+                <span className="text-muted-foreground text-xs md:text-sm">
+                  C/ Francesc Hombravella Maristany, 13
+                  <br />
+                  08320, El Masnou, Barcelona
+                </span>
               </li>
             </ul>
           </div>
