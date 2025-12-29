@@ -5,8 +5,8 @@ const SobreNosotros = () => {
     <section id="sobre-nosotros" className="relative overflow-hidden">
 
       {/* Block 1: Header - IZQUIERDA */}
-      <div className="relative min-h-screen flex items-center">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32 w-full">
+      <div className="relative py-24 sm:py-32">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
           <div className="max-w-2xl">
             <motion.div
               initial={{ opacity: 0 }}
@@ -52,8 +52,8 @@ const SobreNosotros = () => {
       </div>
 
       {/* Block 2: Por qué nació AV TECH - DERECHA */}
-      <div className="relative min-h-screen flex items-center">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32 w-full">
+      <div className="relative py-24 sm:py-32">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
           <div className="ml-auto max-w-2xl">
             <motion.div
               initial={{ opacity: 0 }}
@@ -108,8 +108,8 @@ const SobreNosotros = () => {
       </div>
 
       {/* Block 3: Nuestra visión - IZQUIERDA */}
-      <div className="relative min-h-screen flex items-center">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32 w-full">
+      <div className="relative py-24 sm:py-32">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
           <div className="max-w-2xl">
             <motion.div
               initial={{ opacity: 0 }}
@@ -182,8 +182,8 @@ const SobreNosotros = () => {
       </div>
 
       {/* Block 4: Cómo trabajamos - DERECHA */}
-      <div className="relative min-h-screen flex items-center">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32 w-full">
+      <div className="relative py-24 sm:py-32">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
           <div className="ml-auto max-w-2xl">
             <motion.div
               initial={{ opacity: 0 }}
@@ -268,8 +268,8 @@ const SobreNosotros = () => {
       </div>
 
       {/* Block 5: Lo que nos define - IZQUIERDA */}
-      <div className="relative min-h-screen flex items-center">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32 w-full">
+      <div className="relative py-24 sm:py-32">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
           <div className="max-w-2xl">
             <motion.div
               initial={{ opacity: 0 }}
@@ -334,8 +334,8 @@ const SobreNosotros = () => {
       </div>
 
       {/* Block 6: Cierre - CENTRADO */}
-      <div className="relative min-h-[70vh] flex items-center justify-center">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-20 sm:py-32 text-center">
+      <div className="relative py-24 sm:py-32 flex items-center justify-center">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
