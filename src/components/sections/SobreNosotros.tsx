@@ -310,7 +310,7 @@ const SobreNosotros = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.4 + index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex items-start gap-4 p-4 border border-foreground/5 bg-background/80 backdrop-blur-sm hover:border-foreground/15 transition-colors duration-300 text-right flex-row-reverse"
+                  className="flex items-start gap-4 p-4 border border-foreground/5 bg-transparent hover:border-foreground/15 transition-colors duration-300 text-right flex-row-reverse"
                 >
                   <span className="text-caption">{step.num}</span>
                   <span className="text-body text-justify">{step.text}</span>
