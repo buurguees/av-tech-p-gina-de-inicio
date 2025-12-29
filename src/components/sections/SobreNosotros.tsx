@@ -28,7 +28,8 @@ const SobreNosotros = () => {
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               className="section-title"
             >
-              <span className="section-title-primary">Técnicos </span>
+              <span className="section-title-primary">Técnicos</span>
+              <br />
               <span className="section-title-secondary">antes que empresa</span>
             </motion.h3>
 
@@ -134,7 +135,8 @@ const SobreNosotros = () => {
                 transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 className="section-title"
               >
-                <span className="section-title-primary">Nuestra </span>
+                <span className="section-title-primary">Nuestra</span>
+                <br />
                 <span className="section-title-secondary">visión</span>
               </motion.h3>
             </div>
@@ -465,7 +467,8 @@ const SobreNosotros = () => {
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               className="section-title"
             >
-              <span className="section-title-primary">Lo que </span>
+              <span className="section-title-primary">Lo que</span>
+              <br />
               <span className="section-title-secondary">nos define</span>
             </motion.h3>
 
