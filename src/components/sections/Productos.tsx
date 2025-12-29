@@ -45,7 +45,7 @@ const Productos = () => {
               Catálogo
             </div>
             <h2 className="section-title">
-              <span className="section-title-primary">Soluciones</span>
+              <span className="section-title-primary">Soluciones diseñadas</span>
               <br />
               <span className="section-title-secondary">para tu espacio</span>
             </h2>
@@ -131,7 +131,7 @@ const Productos = () => {
               Catálogo
             </div>
             <h2 className="section-title max-w-3xl ml-auto">
-              <span className="section-title-primary">Soluciones</span>
+              <span className="section-title-primary">Soluciones diseñadas</span>
               <br />
               <span className="section-title-secondary">para tu espacio</span>
             </h2>
