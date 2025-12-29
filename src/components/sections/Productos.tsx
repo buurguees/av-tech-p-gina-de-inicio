@@ -32,31 +32,15 @@ const Productos = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 2.5, ease: "easeInOut" }}
           />
         </AnimatePresence>
 
         {/* Top gradient - transparent to black */}
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-background to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-background via-background/60 to-transparent" />
         
         {/* Bottom gradient - transparent to black */}
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
-
-        {/* Carousel indicators */}
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-          {catalogImages.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === currentIndex 
-                  ? 'bg-primary w-6' 
-                  : 'bg-foreground/40 hover:bg-foreground/60'
-              }`}
-              aria-label={`Ir a imagen ${index + 1}`}
-            />
-          ))}
-        </div>
+        <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-background via-background/60 to-transparent" />
       </div>
 
       {/* Content - Right Side */}
