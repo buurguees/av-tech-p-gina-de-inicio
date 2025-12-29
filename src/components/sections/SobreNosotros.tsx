@@ -225,7 +225,7 @@ const SobreNosotros = () => {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute top-1/2 -translate-y-1/2 left-0 w-[45%] z-0"
+          className="absolute top-1/2 -translate-y-1/2 left-16 w-[40%] z-0"
         >
           {/* Top gradient */}
           <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
