@@ -21,7 +21,7 @@ const Footer = () => {
           {/* Brand - Full width on mobile */}
           <div className="col-span-2 lg:col-span-1">
             <img src={logoAvtech} alt="AV TECH" className="h-8 md:h-10 w-auto mb-4 md:mb-6" />
-            <p className="text-muted-foreground text-sm leading-relaxed mb-4 md:mb-6">
+            <p className="text-muted-foreground text-sm leading-relaxed mb-4 md:mb-6 text-justify">
               Transformamos espacios físicos en experiencias visuales de alto
               impacto.
             </p>

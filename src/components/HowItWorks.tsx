@@ -69,7 +69,7 @@ const HowItWorks = () => {
               <h2 className="text-3xl md:text-5xl font-bold mb-6">
                 ¿Cómo funciona?
               </h2>
-              <p className="text-muted-foreground text-lg">
+              <p className="text-muted-foreground text-lg text-justify">
                 De la idea a la realidad en 4 simples pasos. Nos encargamos de todo
                 para que tú solo disfrutes de los resultados.
               </p>
@@ -84,7 +84,7 @@ const HowItWorks = () => {
                       {step.number}
                     </span>
                     <h3 className="text-xl font-semibold mt-4 mb-3">{step.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
+                    <p className="text-muted-foreground text-sm leading-relaxed text-justify">
                       {step.description}
                     </p>
                   </div>
@@ -99,7 +99,7 @@ const HowItWorks = () => {
                   <h3 className="text-2xl md:text-3xl font-bold mb-4">
                     La tecnología profesional que tu negocio merece
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground text-justify">
                     Eliminamos las barreras de entrada para que cualquier PYME pueda
                     acceder a soluciones audiovisuales de alto impacto.
                   </p>

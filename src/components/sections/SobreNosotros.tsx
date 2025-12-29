@@ -39,13 +39,13 @@ const SobreNosotros = () => {
               transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="mt-12 space-y-6"
             >
-              <p className="text-lead">
-                Somos técnicos audiovisuales con más de cinco años de experiencia trabajando en instalaciones, eventos y proyectos reales, tanto en entornos comerciales como en proyectos de mayor envergadura.
+              <p className="text-lead text-justify">
+                Somos técnicos audiovisuales con más de cinco años de experiencia trabajando en instalaciones, eventos y proyectos reales; tanto en entornos comerciales como en proyectos de mayor envergadura.
               </p>
-              <p className="text-body-muted">
+              <p className="text-body-muted text-justify">
                 Antes de fundar AV TECH, ya estábamos en el terreno: montando, configurando, resolviendo incidencias y entendiendo cómo funciona de verdad un espacio cuando se integra tecnología audiovisual.
               </p>
-              <p className="text-caption">
+              <p className="text-caption text-justify">
                 Esa experiencia técnica y operativa es la base de todo lo que hacemos hoy.
               </p>
             </motion.div>
@@ -145,11 +145,11 @@ const SobreNosotros = () => {
                 transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
                 className="mt-12 space-y-6"
               >
-                <p className="text-lead">
+                <p className="text-lead text-justify">
                   Creemos que la tecnología audiovisual no debería entenderse como una solución única ni rígida.
                 </p>
-                <p className="text-body-muted">
-                  Creemos que cada espacio, cada empresa y cada proyecto requieren una lectura propia.
+                <p className="text-body-muted text-justify">
+                  Cada espacio, cada empresa y cada proyecto requieren una lectura propia.
                 </p>
               </motion.div>
 
@@ -161,7 +161,7 @@ const SobreNosotros = () => {
                 className="mt-16 p-8 md:p-12 border border-foreground/10"
               >
                 <p className="text-caption mb-4">Nuestra finalidad</p>
-                <p className="text-body mb-6">
+                <p className="text-body text-justify mb-6">
                   Desarrollar soluciones audiovisuales que permitan:
                 </p>
                 <ul className="space-y-2">
@@ -178,8 +178,8 @@ const SobreNosotros = () => {
                     <span className="text-body">Crear experiencias memorables</span>
                   </li>
                 </ul>
-                <p className="text-small mt-6">
-                  tanto en entornos retail y PYMEs como en proyectos corporativos y de mayor escala.
+                <p className="text-small text-justify mt-6">
+                  Tanto en entornos retail y PYMEs como en proyectos corporativos y de mayor escala.
                 </p>
               </motion.div>
             </div>
@@ -313,7 +313,7 @@ const SobreNosotros = () => {
                   className="flex items-start gap-4 p-4 border border-foreground/5 bg-background/80 backdrop-blur-sm hover:border-foreground/15 transition-colors duration-300 text-right flex-row-reverse"
                 >
                   <span className="text-caption">{step.num}</span>
-                  <span className="text-body">{step.text}</span>
+                  <span className="text-body text-justify">{step.text}</span>
                 </motion.div>
               ))}
             </motion.div>
@@ -323,7 +323,7 @@ const SobreNosotros = () => {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.6 }}
-              className="mt-12 text-small text-right"
+              className="mt-12 text-small text-justify"
             >
               Desarrollamos proyectos únicos, adaptados a cada necesidad, cada espacio y cada fase de crecimiento.
             </motion.p>

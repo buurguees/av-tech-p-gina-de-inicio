@@ -42,7 +42,7 @@ const Services = () => {
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             Todo incluido, sin sorpresas
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-lg text-justify">
             Un servicio integral que transforma la complejidad técnica en una
             solución simple y efectiva para tu negocio.
           </p>
@@ -60,7 +60,7 @@ const Services = () => {
                 <service.icon className="w-6 h-6 text-foreground" />
               </div>
               <h3 className="text-xl font-semibold mb-3">{service.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+              <p className="text-muted-foreground text-sm leading-relaxed text-justify">
                 {service.description}
               </p>
             </div>
