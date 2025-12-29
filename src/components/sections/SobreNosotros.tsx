@@ -87,11 +87,11 @@ const SobreNosotros = () => {
               transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="mt-12 space-y-6 text-right"
             >
-              <p className="text-body">
-                Con el tiempo detectamos una realidad clara: muchas empresas —especialmente pequeñas y medianas— querían incorporar soluciones audiovisuales profesionales, pero no siempre encontraban propuestas ajustadas a su escala, a su ritmo de crecimiento o a su forma de trabajar.
+              <p className="text-body text-justify">
+                Con el tiempo detectamos una realidad clara: muchas empresas, especialmente pequeñas y medianas, querían incorporar soluciones audiovisuales profesionales, pero no siempre encontraban propuestas ajustadas a su escala, a su ritmo de crecimiento o a su forma de trabajar.
               </p>
-              <p className="text-body-muted">
-                Al mismo tiempo, vimos que la tecnología audiovisual podía aplicarse de una forma más flexible, más cercana y más adaptada, sin perder nivel técnico ni calidad de ejecución.
+              <p className="text-body-muted text-justify">
+                Al mismo tiempo, vimos que la tecnología audiovisual podía aplicarse de una forma más flexible, más cercana y más adaptada; sin perder nivel técnico ni calidad de ejecución.
               </p>
             </motion.div>
 
@@ -164,18 +164,18 @@ const SobreNosotros = () => {
                 <p className="text-body mb-6">
                   Desarrollar soluciones audiovisuales que permitan:
                 </p>
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3">
-                    <span className="text-body-muted">—</span>
-                    <span className="text-body">Mejorar la comunicación visual.</span>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                    <span className="text-body">Mejorar la comunicación visual</span>
                   </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-body-muted">—</span>
-                    <span className="text-body">Generar impacto.</span>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                    <span className="text-body">Generar impacto</span>
                   </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-body-muted">—</span>
-                    <span className="text-body">Crear experiencias memorables.</span>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                    <span className="text-body">Crear experiencias memorables</span>
                   </li>
                 </ul>
                 <p className="text-small mt-6">
