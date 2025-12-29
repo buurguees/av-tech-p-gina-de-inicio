@@ -164,15 +164,15 @@ const SobreNosotros = () => {
               <ul className="space-y-3">
                 <li className="flex items-start gap-3">
                   <span className="text-body-muted">—</span>
-                  <span className="text-body">mejorar la comunicación visual,</span>
+                  <span className="text-body">Mejorar la comunicación visual.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-body-muted">—</span>
-                  <span className="text-body">generar impacto,</span>
+                  <span className="text-body">Generar impacto.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-body-muted">—</span>
-                  <span className="text-body">y crear experiencias memorables,</span>
+                  <span className="text-body">Crear experiencias memorables.</span>
                 </li>
               </ul>
               <p className="text-small mt-6">
