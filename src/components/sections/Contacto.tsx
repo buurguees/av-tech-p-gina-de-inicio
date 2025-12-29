@@ -114,7 +114,7 @@ const Contacto = () => {
                 </div>
                 <div>
                   <p className="text-caption mb-1">Teléfono</p>
-                  <p className="text-body">+34 XXX XXX XXX</p>
+                  <a href="tel:+34616579640" className="text-body hover:text-foreground transition-colors">+34 616 579 640</a>
                 </div>
               </motion.div>
 
@@ -130,7 +130,7 @@ const Contacto = () => {
                 </div>
                 <div>
                   <p className="text-caption mb-1">Email</p>
-                  <p className="text-body">info@avtech.es</p>
+                  <a href="mailto:info@avtechesdeveniments.com" className="text-body hover:text-foreground transition-colors">info@avtechesdeveniments.com</a>
                 </div>
               </motion.div>
 
@@ -146,7 +146,8 @@ const Contacto = () => {
                 </div>
                 <div>
                   <p className="text-caption mb-1">Ubicación</p>
-                  <p className="text-body">Madrid, España</p>
+                  <p className="text-body">C/ Francesc Hombravella Maristany, 13</p>
+                  <p className="text-small">08320, El Masnou, Barcelona</p>
                 </div>
               </motion.div>
             </div>
