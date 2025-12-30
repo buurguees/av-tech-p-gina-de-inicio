@@ -105,7 +105,7 @@ const DesktopCarousel = () => {
 
   useEffect(() => {
     if (!emblaApi) return;
-    const interval = setInterval(autoplay, 800);
+    const interval = setInterval(autoplay, 2500);
     return () => clearInterval(interval);
   }, [emblaApi, autoplay]);
 
