@@ -61,6 +61,14 @@ const Footer = () => {
               </li>
               <li>
                 <a
+                  href="#alcance"
+                  className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm"
+                >
+                  Alcance
+                </a>
+              </li>
+              <li>
+                <a
                   href="#proyectos"
                   className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm"
                 >
@@ -80,7 +88,15 @@ const Footer = () => {
                   href="#sobre-nosotros"
                   className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm"
                 >
-                  Sobre Nosotros
+                  Nosotros
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#contacto"
+                  className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm"
+                >
+                  Contacto
                 </a>
               </li>
             </ul>
@@ -177,6 +193,12 @@ const Footer = () => {
             >
               Términos
             </Link>
+            <a
+              href="#"
+              className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm"
+            >
+              NEXO AV
+            </a>
           </div>
         </div>
       </div>
