@@ -326,7 +326,9 @@ const SobreNosotros = () => {
             }} transition={{
               duration: 1
             }} className="flex items-center gap-4 mb-12 justify-end">
-                <span className="section-tag mb-0">Proceso</span>
+                <span className="section-tag mb-0" style={{
+                  textShadow: '-2px -2px 0 hsl(var(--background)), 2px -2px 0 hsl(var(--background)), -2px 2px 0 hsl(var(--background)), 2px 2px 0 hsl(var(--background))'
+                }}>Proceso</span>
                 <div className="section-indicator" />
               </motion.div>
 
@@ -341,7 +343,9 @@ const SobreNosotros = () => {
             }} transition={{
               duration: 0.8,
               ease: [0.22, 1, 0.36, 1]
-            }} className="section-title text-right">
+            }} className="section-title text-right" style={{
+              textShadow: '-2px -2px 0 hsl(var(--background)), 2px -2px 0 hsl(var(--background)), -2px 2px 0 hsl(var(--background)), 2px 2px 0 hsl(var(--background))'
+            }}>
                 <span className="section-title-primary">Cómo </span>
                 <span className="section-title-secondary">trabajamos</span>
               </motion.h3>
@@ -358,7 +362,9 @@ const SobreNosotros = () => {
               duration: 0.8,
               delay: 0.15,
               ease: [0.22, 1, 0.36, 1]
-            }} className="mt-8 space-y-4 text-right">
+            }} className="mt-8 space-y-4 text-right" style={{
+              textShadow: '-2px -2px 0 hsl(var(--background)), 2px -2px 0 hsl(var(--background)), -2px 2px 0 hsl(var(--background)), 2px 2px 0 hsl(var(--background))'
+            }}>
                 <p className="text-lead">
                   Cada proyecto comienza con una pregunta diferente.
                 </p>
@@ -385,7 +391,9 @@ const SobreNosotros = () => {
               duration: 0.8,
               delay: 0.25,
               ease: [0.22, 1, 0.36, 1]
-            }} className="mt-8 text-quote italic text-right">
+            }} className="mt-8 text-quote italic text-right" style={{
+              textShadow: '-2px -2px 0 hsl(var(--background)), 2px -2px 0 hsl(var(--background)), -2px 2px 0 hsl(var(--background)), 2px 2px 0 hsl(var(--background))'
+            }}>
                 ¿Qué necesita este espacio para dejar huella?
               </motion.p>
 
@@ -428,10 +436,10 @@ const SobreNosotros = () => {
                 ease: [0.22, 1, 0.36, 1]
               }} className="gap-4 p-4 border border-foreground/5 bg-transparent hover:border-foreground/15 transition-colors duration-300 text-right items-center justify-center flex flex-row px-[10px] py-[10px]">
                     <span className="text-caption" style={{
-                  textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
+                  textShadow: '-2px -2px 0 hsl(var(--background)), 2px -2px 0 hsl(var(--background)), -2px 2px 0 hsl(var(--background)), 2px 2px 0 hsl(var(--background))'
                 }}>{step.num}</span>
                     <span style={{
-                  textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
+                  textShadow: '-2px -2px 0 hsl(var(--background)), 2px -2px 0 hsl(var(--background)), -2px 2px 0 hsl(var(--background)), 2px 2px 0 hsl(var(--background))'
                 }} className="text-body text-left">{step.text}</span>
                   </motion.div>)}
               </motion.div>
@@ -445,7 +453,9 @@ const SobreNosotros = () => {
             }} transition={{
               duration: 0.8,
               delay: 0.6
-            }} className="mt-12 space-y-2 text-right">
+            }} className="mt-12 space-y-2 text-right" style={{
+              textShadow: '-2px -2px 0 hsl(var(--background)), 2px -2px 0 hsl(var(--background)), -2px 2px 0 hsl(var(--background)), 2px 2px 0 hsl(var(--background))'
+            }}>
                 <p className="text-small">
                   No hacemos instalaciones.
                 </p>
@@ -458,11 +468,11 @@ const SobreNosotros = () => {
         </div>
       </div>
 
-      {/* Block 3: Nuestra visión - Layout 40/60 */}
+      {/* Block 3: Nuestra visión - Layout 60/40 (texto izquierda, video derecha) */}
       <div className="relative py-16 sm:py-32">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
-          <div className="flex flex-col lg:flex-row-reverse lg:gap-16 items-stretch">
-            {/* Right column - Text (60%) */}
+          <div className="flex flex-col lg:flex-row lg:gap-16 items-stretch">
+            {/* Left column - Text (60%) */}
             <div className="w-full lg:w-[60%]">
               <motion.div initial={{
               opacity: 0
@@ -472,9 +482,9 @@ const SobreNosotros = () => {
               once: true
             }} transition={{
               duration: 1
-            }} className="flex items-center gap-4 mb-12 lg:justify-end">
-                <span className="section-tag mb-0 lg:order-1">Visión</span>
-                <div className="section-indicator lg:order-2" />
+            }} className="flex items-center gap-4 mb-12">
+                <div className="section-indicator" />
+                <span className="section-tag mb-0">Visión</span>
               </motion.div>
 
               <motion.h3 initial={{
@@ -488,9 +498,8 @@ const SobreNosotros = () => {
             }} transition={{
               duration: 0.8,
               ease: [0.22, 1, 0.36, 1]
-            }} className="section-title lg:text-right">
-                <span className="section-title-primary">Nuestra</span>
-                <br />
+            }} className="section-title">
+                <span className="section-title-primary">Nuestra </span>
                 <span className="section-title-secondary">visión</span>
               </motion.h3>
 
@@ -508,7 +517,7 @@ const SobreNosotros = () => {
               ease: [0.22, 1, 0.36, 1]
             }} className="mt-12 space-y-8">
                 <div>
-                  <p className="text-lead mb-4 lg:text-right">
+                  <p className="text-lead mb-4">
                     La tecnología audiovisual no debería ser una imposición.
                   </p>
                   <p className="text-body-muted text-justify">
@@ -520,7 +529,7 @@ const SobreNosotros = () => {
                   <p className="text-body text-justify">
                     Cada lugar tiene su propia personalidad. Cada marca, su propio lenguaje. Cada proyecto, su propio ritmo.
                   </p>
-                  <p className="text-lead mt-4 lg:text-right">
+                  <p className="text-lead mt-4">
                     Por eso no creemos en soluciones estándar.
                   </p>
                 </div>
@@ -528,7 +537,7 @@ const SobreNosotros = () => {
 
               <motion.div initial={{
               opacity: 0,
-              x: 20
+              x: -20
             }} whileInView={{
               opacity: 1,
               x: 0
@@ -538,23 +547,23 @@ const SobreNosotros = () => {
               duration: 0.8,
               delay: 0.4,
               ease: [0.22, 1, 0.36, 1]
-            }} className="mt-10 pr-6 border-r-2 border-foreground/20 lg:ml-auto lg:max-w-xl">
-                <p className="text-caption mb-4 text-right uppercase tracking-widest">Nuestra finalidad</p>
+            }} className="mt-10 pl-6 border-l-2 border-foreground/20">
+                <p className="text-caption mb-4 uppercase tracking-widest">Nuestra finalidad</p>
                 <p className="text-body text-justify mb-6">
                   Diseñar experiencias audiovisuales que:
                 </p>
                 <ul className="space-y-3">
-                  <li className="flex items-center gap-3 justify-end">
+                  <li className="flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40 shrink-0" />
                     <span className="text-body">Amplifiquen tu mensaje sin que nadie note la tecnología</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40 shrink-0" />
                   </li>
-                  <li className="flex items-center gap-3 justify-end">
+                  <li className="flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40 shrink-0" />
                     <span className="text-body">Generen impacto visual que se quede grabado en la memoria</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40 shrink-0" />
                   </li>
-                  <li className="flex items-center gap-3 justify-end">
-                    <span className="text-body">Transformen espacios en lugares donde las personas quieren estar</span>
+                  <li className="flex items-center gap-3">
                     <span className="w-1.5 h-1.5 rounded-full bg-foreground/40 shrink-0" />
+                    <span className="text-body">Transformen espacios en lugares donde las personas quieren estar</span>
                   </li>
                 </ul>
                 <p className="text-small text-justify mt-6">
@@ -574,26 +583,38 @@ const SobreNosotros = () => {
               duration: 0.8,
               delay: 0.5,
               ease: [0.22, 1, 0.36, 1]
-            }} className="mt-10 text-quote lg:text-right">
+            }} className="mt-10 text-quote">
                 Porque cuando la tecnología desaparece, solo queda la experiencia. Y eso es lo que importa.
               </motion.p>
             </div>
 
-            {/* Left column - Video (40%) */}
+            {/* Right column - Video (40%) with gradient effect */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 1.2, delay: 0.3 }}
-              className="hidden lg:flex w-[40%] items-center justify-center"
+              className="hidden lg:flex w-[40%] items-center justify-center relative"
             >
+              {/* Top gradient */}
+              <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+              
+              {/* Bottom gradient */}
+              <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+              
+              {/* Left gradient */}
+              <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+              
+              {/* Right gradient */}
+              <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+
               <video 
                 src={visionVideo} 
                 autoPlay 
                 muted 
                 loop
                 playsInline 
-                className="w-full max-w-[500px] h-auto object-contain rounded-lg"
+                className="w-full h-auto object-contain"
               />
             </motion.div>
 
@@ -645,8 +666,7 @@ const SobreNosotros = () => {
             duration: 0.8,
             ease: [0.22, 1, 0.36, 1]
           }} className="section-title text-right">
-              <span className="section-title-primary">Lo que</span>
-              <br />
+              <span className="section-title-primary">Lo que </span>
               <span className="section-title-secondary">nos define</span>
             </motion.h3>
 
