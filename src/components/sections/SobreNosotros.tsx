@@ -13,7 +13,7 @@ const SobreNosotros = () => {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1.2, delay: 0.3 }}
-          className="absolute top-1/2 -translate-y-1/2 right-16 w-[45%] hidden lg:flex items-center justify-center z-0"
+          className="absolute top-[45%] -translate-y-1/2 right-16 w-[45%] hidden lg:flex items-center justify-center z-0"
         >
           <motion.img 
             src="/favicon.png" 
