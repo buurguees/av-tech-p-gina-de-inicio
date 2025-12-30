@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import comoTrabajamosVisual from '@/assets/como-trabajamos-visual.png';
 import visionVideo from '@/assets/vision-video.mp4';
-import logoAvtech from '@/assets/logos/Logo_AVTECH_Banner_Fondo_Transparente_Letras_Blanco.png';
+import logoAvtech from '@/assets/logos/Logto_AVETCH_Simple_Fondo_Negro_Logo_Blanco.png';
 const SobreNosotros = () => {
   return <section id="sobre-nosotros" className="relative overflow-hidden">
 
