@@ -8,7 +8,7 @@ const SobreNosotros = () => {
       {/* Block 1: Por qué nació AV TECH - Layout 60/40 */}
       <div className="relative py-16 sm:py-32">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
-          <div className="flex flex-col lg:flex-row lg:gap-16 items-start">
+          <div className="flex flex-col lg:flex-row lg:gap-16 items-stretch">
             {/* Left column - Text (60%) */}
             <div className="w-full lg:w-[60%]">
               <motion.div initial={{
