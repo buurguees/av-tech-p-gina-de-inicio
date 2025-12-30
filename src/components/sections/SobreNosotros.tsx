@@ -139,265 +139,7 @@ const SobreNosotros = () => {
         </div>
       </div>
 
-      {/* Block 3: Nuestra visión - Video Background Layout */}
-      <div className="relative py-16 sm:py-32 overflow-hidden">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full relative z-10">
-          {/* Mobile: Title first */}
-          <div className="lg:hidden">
-            <motion.div initial={{
-            opacity: 0
-          }} whileInView={{
-            opacity: 1
-          }} viewport={{
-            once: true
-          }} transition={{
-            duration: 1
-          }} className="flex items-center gap-4 mb-12">
-              <div className="section-indicator" />
-              <span className="section-tag mb-0">Visión</span>
-            </motion.div>
-
-            <motion.h3 initial={{
-            opacity: 0,
-            y: 40
-          }} whileInView={{
-            opacity: 1,
-            y: 0
-          }} viewport={{
-            once: true
-          }} transition={{
-            duration: 0.8,
-            ease: [0.22, 1, 0.36, 1]
-          }} className="section-title">
-              <span className="section-title-primary">Nuestra</span>
-              <br />
-              <span className="section-title-secondary">visión</span>
-            </motion.h3>
-          </div>
-
-          {/* Mobile: Video second */}
-          <motion.div initial={{
-          opacity: 0
-        }} whileInView={{
-          opacity: 1
-        }} viewport={{
-          once: true
-        }} transition={{
-          duration: 1.2,
-          ease: [0.22, 1, 0.36, 1]
-        }} className="lg:hidden relative my-12 -mx-6">
-            {/* Top gradient */}
-            <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
-            
-            {/* Bottom gradient */}
-            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
-
-            <video src={visionVideo} autoPlay muted playsInline className="w-full h-auto object-contain" />
-          </motion.div>
-
-          {/* Mobile: Text third */}
-          <div className="lg:hidden">
-            <motion.div initial={{
-            opacity: 0,
-            y: 30
-          }} whileInView={{
-            opacity: 1,
-            y: 0
-          }} viewport={{
-            once: true
-          }} transition={{
-            duration: 0.8,
-            delay: 0.2,
-            ease: [0.22, 1, 0.36, 1]
-          }} className="space-y-6">
-              <p className="text-lead text-justify">
-                Creemos que la tecnología audiovisual no debería entenderse como una solución única ni rígida.
-              </p>
-              <p className="text-body-muted text-justify">
-                Cada espacio, cada empresa y cada proyecto requieren una lectura propia.
-              </p>
-            </motion.div>
-
-            <motion.div initial={{
-            opacity: 0,
-            x: -20
-          }} whileInView={{
-            opacity: 1,
-            x: 0
-          }} viewport={{
-            once: true
-          }} transition={{
-            duration: 0.8,
-            delay: 0.4,
-            ease: [0.22, 1, 0.36, 1]
-          }} className="mt-10 pl-6 border-l-2 border-foreground/20">
-              <p className="text-caption mb-4">Nuestra finalidad</p>
-              <p className="text-body text-justify mb-6">
-                Desarrollar soluciones audiovisuales que permitan:
-              </p>
-              <ul className="space-y-2">
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
-                  <span className="text-body">Mejorar la comunicación visual</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
-                  <span className="text-body">Generar impacto</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
-                  <span className="text-body">Crear experiencias memorables</span>
-                </li>
-              </ul>
-              <p className="text-small text-justify mt-6">
-                Tanto en entornos retail y PYMEs como en proyectos corporativos y de mayor escala.
-              </p>
-            </motion.div>
-          </div>
-
-          {/* Desktop: Layout with background video on the right */}
-          <div className="hidden lg:block">
-            {/* Background Video - positioned absolute on the right */}
-            <motion.div initial={{
-            opacity: 0
-          }} whileInView={{
-            opacity: 1
-          }} viewport={{
-            once: true
-          }} transition={{
-            duration: 1.2,
-            ease: [0.22, 1, 0.36, 1]
-          }} className="absolute top-1/2 -translate-y-1/2 right-16 w-[50%] z-0">
-              {/* Top gradient */}
-              <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
-              
-              {/* Bottom gradient */}
-              <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
-              
-              {/* Left gradient - stronger to blend into content */}
-              <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-              
-              {/* Right gradient */}
-              <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-
-              <video src={visionVideo} autoPlay muted playsInline className="w-full h-auto object-contain" />
-            </motion.div>
-
-            {/* Content - positioned on the left */}
-            <div className="mr-auto max-w-xl lg:max-w-2xl relative z-10">
-              <motion.div initial={{
-              opacity: 0
-            }} whileInView={{
-              opacity: 1
-            }} viewport={{
-              once: true
-            }} transition={{
-              duration: 1
-            }} className="flex items-center gap-4 mb-12">
-                <div className="section-indicator" />
-                <span className="section-tag mb-0">Visión</span>
-              </motion.div>
-
-              <motion.h3 initial={{
-              opacity: 0,
-              y: 40
-            }} whileInView={{
-              opacity: 1,
-              y: 0
-            }} viewport={{
-              once: true
-            }} transition={{
-              duration: 0.8,
-              ease: [0.22, 1, 0.36, 1]
-            }} className="section-title">
-                <span className="section-title-primary" style={{
-                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
-              }}>Nuestra</span>
-                <br />
-                <span className="section-title-secondary" style={{
-                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
-              }}>visión</span>
-              </motion.h3>
-
-              <motion.div initial={{
-              opacity: 0,
-              y: 30
-            }} whileInView={{
-              opacity: 1,
-              y: 0
-            }} viewport={{
-              once: true
-            }} transition={{
-              duration: 0.8,
-              delay: 0.2,
-              ease: [0.22, 1, 0.36, 1]
-            }} className="mt-8 space-y-6">
-                <p className="text-lead text-justify" style={{
-                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
-              }}>
-                  Creemos que la tecnología audiovisual no debería entenderse como una solución única ni rígida.
-                </p>
-                <p className="text-body-muted text-justify" style={{
-                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
-              }}>
-                  Cada espacio, cada empresa y cada proyecto requieren una lectura propia.
-                </p>
-              </motion.div>
-
-              <motion.div initial={{
-              opacity: 0,
-              x: -20
-            }} whileInView={{
-              opacity: 1,
-              x: 0
-            }} viewport={{
-              once: true
-            }} transition={{
-              duration: 0.8,
-              delay: 0.4,
-              ease: [0.22, 1, 0.36, 1]
-            }} className="mt-10 pl-6 border-l-2 border-foreground/20">
-                <p className="text-caption mb-4" style={{
-                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
-              }}>Nuestra finalidad</p>
-                <p className="text-body text-justify mb-6" style={{
-                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
-              }}>
-                  Desarrollar soluciones audiovisuales que permitan:
-                </p>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
-                    <span className="text-body" style={{
-                    textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
-                  }}>Mejorar la comunicación visual</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
-                    <span className="text-body" style={{
-                    textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
-                  }}>Generar impacto</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
-                    <span className="text-body" style={{
-                    textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
-                  }}>Crear experiencias memorables</span>
-                  </li>
-                </ul>
-                <p className="text-small text-justify mt-6" style={{
-                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
-              }}>
-                  Tanto en entornos retail y PYMEs como en proyectos corporativos y de mayor escala.
-                </p>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-      {/* Block 4: Cómo trabajamos - Background Image Layout */}
+      {/* Block 3: Cómo trabajamos - Background Image Layout - IZQUIERDA */}
       <div className="relative py-16 sm:py-32 overflow-hidden">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full relative z-10">
           {/* Mobile: Title first */}
@@ -543,9 +285,9 @@ const SobreNosotros = () => {
             </motion.p>
           </div>
 
-          {/* Desktop: Original layout with background image */}
+          {/* Desktop: Original layout with background image on the right */}
           <div className="hidden lg:block">
-            {/* Background Image - positioned absolute */}
+            {/* Background Image - positioned absolute on the right */}
             <motion.div initial={{
             opacity: 0
           }} whileInView={{
@@ -555,24 +297,24 @@ const SobreNosotros = () => {
           }} transition={{
             duration: 1.2,
             ease: [0.22, 1, 0.36, 1]
-          }} className="absolute top-1/2 -translate-y-1/2 left-16 w-[50%] z-0">
+          }} className="absolute top-1/2 -translate-y-1/2 right-16 w-[50%] z-0">
               {/* Top gradient */}
               <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
               
               {/* Bottom gradient */}
               <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
               
-              {/* Right gradient - stronger to blend into content */}
-              <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+              {/* Left gradient - stronger to blend into content */}
+              <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
               
-              {/* Left gradient */}
-              <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+              {/* Right gradient */}
+              <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
               <img src={comoTrabajamosVisual} alt="Antes y después de instalación de pantalla LED en tienda" className="w-full h-auto object-contain" />
             </motion.div>
 
-            {/* Content - positioned on the right */}
-            <div className="ml-auto max-w-xl lg:max-w-2xl relative z-10">
+            {/* Content - positioned on the left */}
+            <div className="mr-auto max-w-xl lg:max-w-2xl relative z-10">
               <motion.div initial={{
               opacity: 0
             }} whileInView={{
@@ -581,9 +323,9 @@ const SobreNosotros = () => {
               once: true
             }} transition={{
               duration: 1
-            }} className="flex items-center gap-4 mb-12 justify-end">
-                <span className="section-tag mb-0">Proceso</span>
+            }} className="flex items-center gap-4 mb-12">
                 <div className="section-indicator" />
+                <span className="section-tag mb-0">Proceso</span>
               </motion.div>
 
               <motion.h3 initial={{
@@ -597,7 +339,7 @@ const SobreNosotros = () => {
             }} transition={{
               duration: 0.8,
               ease: [0.22, 1, 0.36, 1]
-            }} className="section-title text-right">
+            }} className="section-title">
                 <span className="section-title-primary">Cómo </span>
                 <span className="section-title-secondary">trabajamos</span>
               </motion.h3>
@@ -614,7 +356,7 @@ const SobreNosotros = () => {
               duration: 0.8,
               delay: 0.15,
               ease: [0.22, 1, 0.36, 1]
-            }} className="mt-8 text-lead text-right">
+            }} className="mt-8 text-lead">
                 No ofrecemos soluciones genéricas. Cada proyecto parte de una pregunta simple:
               </motion.p>
 
@@ -630,7 +372,7 @@ const SobreNosotros = () => {
               duration: 0.8,
               delay: 0.25,
               ease: [0.22, 1, 0.36, 1]
-            }} className="mt-4 text-quote italic text-right">
+            }} className="mt-4 text-quote italic">
                 ¿Qué necesita este espacio para comunicar mejor y cumplir su objetivo?
               </motion.p>
 
@@ -661,7 +403,7 @@ const SobreNosotros = () => {
                 text: 'Acompañamos al cliente antes, durante y después de la instalación'
               }].map((step, index) => <motion.div key={step.num} initial={{
                 opacity: 0,
-                x: 20
+                x: -20
               }} whileInView={{
                 opacity: 1,
                 x: 0
@@ -671,7 +413,7 @@ const SobreNosotros = () => {
                 duration: 0.6,
                 delay: 0.4 + index * 0.1,
                 ease: [0.22, 1, 0.36, 1]
-              }} className="gap-4 p-4 border border-foreground/5 bg-transparent hover:border-foreground/15 transition-colors duration-300 text-right items-center justify-center flex flex-row px-[10px] py-[10px]">
+              }} className="gap-4 p-4 border border-foreground/5 bg-transparent hover:border-foreground/15 transition-colors duration-300 items-center justify-center flex flex-row px-[10px] py-[10px]">
                     <span className="text-caption" style={{
                   textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
                 }}>{step.num}</span>
@@ -693,6 +435,263 @@ const SobreNosotros = () => {
             }} className="mt-12 text-small text-justify">
                 Desarrollamos proyectos únicos, adaptados a cada necesidad, cada espacio y cada fase de crecimiento.
               </motion.p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Block 4: Nuestra visión - Video Background Layout - DERECHA */}
+      <div className="relative py-16 sm:py-32 overflow-hidden">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full relative z-10">
+          {/* Mobile: Title first */}
+          <div className="lg:hidden">
+            <motion.div initial={{
+            opacity: 0
+          }} whileInView={{
+            opacity: 1
+          }} viewport={{
+            once: true
+          }} transition={{
+            duration: 1
+          }} className="flex items-center gap-4 mb-12 justify-end">
+              <span className="section-tag mb-0">Visión</span>
+              <div className="section-indicator" />
+            </motion.div>
+
+            <motion.h3 initial={{
+            opacity: 0,
+            y: 40
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} viewport={{
+            once: true
+          }} transition={{
+            duration: 0.8,
+            ease: [0.22, 1, 0.36, 1]
+          }} className="section-title text-right">
+              <span className="section-title-primary">Nuestra</span>
+              <br />
+              <span className="section-title-secondary">visión</span>
+            </motion.h3>
+          </div>
+
+          {/* Mobile: Video second */}
+          <motion.div initial={{
+          opacity: 0
+        }} whileInView={{
+          opacity: 1
+        }} viewport={{
+          once: true
+        }} transition={{
+          duration: 1.2,
+          ease: [0.22, 1, 0.36, 1]
+        }} className="lg:hidden relative my-12 -mx-6">
+            {/* Top gradient */}
+            <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+            
+            {/* Bottom gradient */}
+            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+
+            <video src={visionVideo} autoPlay muted playsInline className="w-full h-auto object-contain" />
+          </motion.div>
+
+          {/* Mobile: Text third */}
+          <div className="lg:hidden">
+            <motion.div initial={{
+            opacity: 0,
+            y: 30
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} viewport={{
+            once: true
+          }} transition={{
+            duration: 0.8,
+            delay: 0.2,
+            ease: [0.22, 1, 0.36, 1]
+          }} className="space-y-6 text-right">
+              <p className="text-lead text-justify">
+                Creemos que la tecnología audiovisual no debería entenderse como una solución única ni rígida.
+              </p>
+              <p className="text-body-muted text-justify">
+                Cada espacio, cada empresa y cada proyecto requieren una lectura propia.
+              </p>
+            </motion.div>
+
+            <motion.div initial={{
+            opacity: 0,
+            x: 20
+          }} whileInView={{
+            opacity: 1,
+            x: 0
+          }} viewport={{
+            once: true
+          }} transition={{
+            duration: 0.8,
+            delay: 0.4,
+            ease: [0.22, 1, 0.36, 1]
+          }} className="mt-10 pr-6 border-r-2 border-foreground/20 text-right">
+              <p className="text-caption mb-4">Nuestra finalidad</p>
+              <p className="text-body text-justify mb-6">
+                Desarrollar soluciones audiovisuales que permitan:
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-center gap-2 justify-end">
+                  <span className="text-body">Mejorar la comunicación visual</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                </li>
+                <li className="flex items-center gap-2 justify-end">
+                  <span className="text-body">Generar impacto</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                </li>
+                <li className="flex items-center gap-2 justify-end">
+                  <span className="text-body">Crear experiencias memorables</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                </li>
+              </ul>
+              <p className="text-small text-justify mt-6">
+                Tanto en entornos retail y PYMEs como en proyectos corporativos y de mayor escala.
+              </p>
+            </motion.div>
+          </div>
+
+          {/* Desktop: Layout with background video on the left */}
+          <div className="hidden lg:block">
+            {/* Background Video - positioned absolute on the left */}
+            <motion.div initial={{
+            opacity: 0
+          }} whileInView={{
+            opacity: 1
+          }} viewport={{
+            once: true
+          }} transition={{
+            duration: 1.2,
+            ease: [0.22, 1, 0.36, 1]
+          }} className="absolute top-1/2 -translate-y-1/2 left-16 w-[50%] z-0">
+              {/* Top gradient */}
+              <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+              
+              {/* Bottom gradient */}
+              <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+              
+              {/* Right gradient - stronger to blend into content */}
+              <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+              
+              {/* Left gradient */}
+              <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+
+              <video src={visionVideo} autoPlay muted playsInline className="w-full h-auto object-contain" />
+            </motion.div>
+
+            {/* Content - positioned on the right */}
+            <div className="ml-auto max-w-xl lg:max-w-2xl relative z-10">
+              <motion.div initial={{
+              opacity: 0
+            }} whileInView={{
+              opacity: 1
+            }} viewport={{
+              once: true
+            }} transition={{
+              duration: 1
+            }} className="flex items-center gap-4 mb-12 justify-end">
+                <span className="section-tag mb-0">Visión</span>
+                <div className="section-indicator" />
+              </motion.div>
+
+              <motion.h3 initial={{
+              opacity: 0,
+              y: 40
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true
+            }} transition={{
+              duration: 0.8,
+              ease: [0.22, 1, 0.36, 1]
+            }} className="section-title text-right">
+                <span className="section-title-primary" style={{
+                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
+              }}>Nuestra</span>
+                <br />
+                <span className="section-title-secondary" style={{
+                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
+              }}>visión</span>
+              </motion.h3>
+
+              <motion.div initial={{
+              opacity: 0,
+              y: 30
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true
+            }} transition={{
+              duration: 0.8,
+              delay: 0.2,
+              ease: [0.22, 1, 0.36, 1]
+            }} className="mt-8 space-y-6 text-right">
+                <p className="text-lead text-justify" style={{
+                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
+              }}>
+                  Creemos que la tecnología audiovisual no debería entenderse como una solución única ni rígida.
+                </p>
+                <p className="text-body-muted text-justify" style={{
+                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
+              }}>
+                  Cada espacio, cada empresa y cada proyecto requieren una lectura propia.
+                </p>
+              </motion.div>
+
+              <motion.div initial={{
+              opacity: 0,
+              x: 20
+            }} whileInView={{
+              opacity: 1,
+              x: 0
+            }} viewport={{
+              once: true
+            }} transition={{
+              duration: 0.8,
+              delay: 0.4,
+              ease: [0.22, 1, 0.36, 1]
+            }} className="mt-10 pr-6 border-r-2 border-foreground/20 text-right">
+                <p className="text-caption mb-4" style={{
+                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
+              }}>Nuestra finalidad</p>
+                <p className="text-body text-justify mb-6" style={{
+                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
+              }}>
+                  Desarrollar soluciones audiovisuales que permitan:
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 justify-end">
+                    <span className="text-body" style={{
+                    textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
+                  }}>Mejorar la comunicación visual</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                  </li>
+                  <li className="flex items-center gap-2 justify-end">
+                    <span className="text-body" style={{
+                    textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
+                  }}>Generar impacto</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                  </li>
+                  <li className="flex items-center gap-2 justify-end">
+                    <span className="text-body" style={{
+                    textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
+                  }}>Crear experiencias memorables</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-foreground/40" />
+                  </li>
+                </ul>
+                <p className="text-small text-justify mt-6" style={{
+                textShadow: '-1px -1px 0 hsl(var(--background)), 1px -1px 0 hsl(var(--background)), -1px 1px 0 hsl(var(--background)), 1px 1px 0 hsl(var(--background))'
+              }}>
+                  Tanto en entornos retail y PYMEs como en proyectos corporativos y de mayor escala.
+                </p>
+              </motion.div>
             </div>
           </div>
         </div>
