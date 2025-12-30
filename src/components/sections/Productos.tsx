@@ -50,7 +50,7 @@ const Productos = () => {
               <span className="section-title-secondary">para tu espacio</span>
             </h2>
             <p className="section-description mt-4">
-              Packs pensados para comunicar mejor, generar impacto y conectar con más personas.
+              Packs audiovisuales que convierten pantallas en herramientas de comunicación real: pantallas LED, tótems LCD, mupis digitales y sistemas de cartelería diseñados para atraer miradas y generar impacto continuo.
             </p>
           </motion.div>
 
@@ -135,11 +135,8 @@ const Productos = () => {
               <br />
               <span className="section-title-secondary">para tu espacio</span>
             </h2>
-            <p className="section-subtitle mt-4 ml-auto">
-              Convierte cada espacio en un punto de conexión con tus clientes.
-            </p>
             <p className="section-description mt-4 ml-auto">
-              Packs pensados para comunicar mejor, generar impacto y conectar con más personas en cada espacio.
+              Packs audiovisuales que convierten pantallas en herramientas de comunicación real: pantallas LED, tótems LCD, mupis digitales y sistemas de cartelería diseñados para atraer miradas y generar impacto continuo.
             </p>
             
             <motion.div
