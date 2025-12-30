@@ -60,6 +60,30 @@ const SobreNosotros = () => {
               </p>
             </motion.div>
 
+            {/* Logo breathing animation */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="mt-12 mb-8"
+            >
+              <motion.img 
+                src={logoAvtech} 
+                alt="AV TECH" 
+                className="h-12 w-auto opacity-80"
+                animate={{ 
+                  scale: [1, 1.06, 1],
+                }}
+                transition={{
+                  duration: 3,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                  repeatType: "loop"
+                }}
+              />
+            </motion.div>
+
             <motion.div initial={{
             opacity: 0,
             x: -20
