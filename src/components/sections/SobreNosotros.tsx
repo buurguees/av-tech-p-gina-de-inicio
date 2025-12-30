@@ -6,8 +6,32 @@ const SobreNosotros = () => {
   return <section id="sobre-nosotros" className="relative overflow-hidden">
 
       {/* Block 1: Por qué nació AV TECH - IZQUIERDA */}
-      <div className="relative py-16 sm:py-32">
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
+      <div className="relative py-16 sm:py-32 overflow-hidden">
+        {/* Logo breathing animation - positioned on the right (desktop only) */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.2, delay: 0.3 }}
+          className="absolute top-1/2 -translate-y-1/2 right-16 w-[45%] hidden lg:flex items-center justify-center z-0"
+        >
+          <motion.img 
+            src="/favicon.png" 
+            alt="AV TECH" 
+            className="w-[60%] max-w-[400px] opacity-20"
+            animate={{ 
+              scale: [1, 1.07, 1],
+            }}
+            transition={{
+              duration: 4,
+              ease: "easeInOut",
+              repeat: Infinity,
+              repeatType: "loop"
+            }}
+          />
+        </motion.div>
+
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full relative z-10">
           <div className="max-w-2xl">
             <motion.div initial={{
             opacity: 0
@@ -58,30 +82,6 @@ const SobreNosotros = () => {
               <p className="text-body-muted text-justify">
                 Al mismo tiempo, vimos que la tecnología audiovisual podía aplicarse de una forma más flexible, más cercana y más adaptada; sin perder nivel técnico ni calidad de ejecución.
               </p>
-            </motion.div>
-
-            {/* Logo breathing animation */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="mt-12 mb-8"
-            >
-              <motion.img 
-                src={logoAvtech} 
-                alt="AV TECH" 
-                className="h-12 w-auto opacity-80"
-                animate={{ 
-                  scale: [1, 1.06, 1],
-                }}
-                transition={{
-                  duration: 3,
-                  ease: "easeInOut",
-                  repeat: Infinity,
-                  repeatType: "loop"
-                }}
-              />
             </motion.div>
 
             <motion.div initial={{
