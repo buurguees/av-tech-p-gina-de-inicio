@@ -89,9 +89,7 @@ const Hero = () => {
               <br />
               <span className="section-title-primary">en tu espacio refleja</span>
               <br />
-              <span className="section-title-secondary">el valor de</span>
-              <br />
-              <span className="section-title-secondary">tu marca?</span>
+              <span className="section-title-secondary">el valor de tu marca?</span>
             </h1>
 
             {/* Subheadline */}
