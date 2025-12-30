@@ -29,7 +29,7 @@ const Hero = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % projectImages.length);
-    }, 4000);
+    }, 4500);
 
     return () => clearInterval(interval);
   }, []);
