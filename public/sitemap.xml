@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <!-- Página Principal -->
+  <url>
+    <loc>https://avtechesdeveniments.com/</loc>
+    <lastmod>2025-12-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Sección Sobre Nosotros -->
+  <url>
+    <loc>https://avtechesdeveniments.com/#sobre-nosotros</loc>
+    <lastmod>2025-12-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Sección Productos/Servicios -->
+  <url>
+    <loc>https://avtechesdeveniments.com/#productos</loc>
+    <lastmod>2025-12-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Sección Proyectos -->
+  <url>
+    <loc>https://avtechesdeveniments.com/#proyectos</loc>
+    <lastmod>2025-12-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Sección Alcance -->
+  <url>
+    <loc>https://avtechesdeveniments.com/#alcance</loc>
+    <lastmod>2025-12-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Sección Contacto -->
+  <url>
+    <loc>https://avtechesdeveniments.com/#contacto</loc>
+    <lastmod>2025-12-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Política de Privacidad -->
+  <url>
+    <loc>https://avtechesdeveniments.com/privacy</loc>
+    <lastmod>2025-12-30</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Términos y Condiciones -->
+  <url>
+    <loc>https://avtechesdeveniments.com/terms</loc>
+    <lastmod>2025-12-30</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>
+

@@ -1,73 +1,126 @@
-# Welcome to your Lovable project
+# AV TECH - Soluciones Audiovisuales Profesionales
 
-## Project info
+## Sobre el Proyecto
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Sitio web corporativo de **AV TECH**, empresa líder en soluciones audiovisuales profesionales. Especialistas en pantallas LED, cartelería digital, sistemas de sonido y gestión de contenidos para negocios.
 
-## How can I edit this code?
+**URL**: [https://avtechesdeveniments.com/](https://avtechesdeveniments.com/)
 
-There are several ways of editing your application.
+## Servicios
 
-**Use Lovable**
+- 🖥️ **Pantallas LED** - Interior y exterior
+- 📺 **Cartelería Digital** - Señalización digital interactiva
+- 🔊 **Sistemas de Sonido** - Audio profesional
+- 📱 **Gestión de Contenidos** - Plataforma centralizada
+- 🛠️ **Instalación y Soporte** - Técnicos especializados
+- 📦 **Alquiler de Equipos** - Soluciones flexibles
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Tecnologías Utilizadas
 
-Changes made via Lovable will be committed automatically to this repo.
+Este proyecto está construido con tecnologías modernas:
 
-**Use your preferred IDE**
+- **Vite** - Build tool ultrarrápido
+- **React 18** - Framework de interfaz de usuario
+- **TypeScript** - Tipado estático para JavaScript
+- **Tailwind CSS** - Framework CSS utility-first
+- **shadcn/ui** - Componentes UI accesibles y personalizables
+- **Supabase** - Backend as a Service
+- **React Router** - Navegación
+- **Framer Motion** - Animaciones fluidas
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Instalación y Desarrollo
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Requisitos Previos
 
-Follow these steps:
+- Node.js 18+ y npm instalados - [instalar con nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
+### Pasos de Instalación
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Paso 1: Clonar el repositorio
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Paso 2: Navegar al directorio del proyecto
+cd av-tech-p-gina-de-inicio
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Paso 3: Instalar dependencias
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Paso 4: Iniciar el servidor de desarrollo
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+El sitio estará disponible en `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Scripts Disponibles
 
-**Use GitHub Codespaces**
+- `npm run dev` - Inicia el servidor de desarrollo
+- `npm run build` - Construye la aplicación para producción
+- `npm run build:dev` - Construye en modo desarrollo
+- `npm run preview` - Preview de la build de producción
+- `npm run lint` - Ejecuta el linter
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Estructura del Proyecto
 
-## What technologies are used for this project?
+```
+├── public/              # Archivos estáticos
+├── src/
+│   ├── assets/         # Imágenes y recursos
+│   ├── components/     # Componentes React
+│   │   ├── sections/   # Secciones de la página
+│   │   └── ui/         # Componentes UI reutilizables
+│   ├── hooks/          # Custom React hooks
+│   ├── lib/            # Utilidades y helpers
+│   ├── pages/          # Páginas de la aplicación
+│   └── integrations/   # Integraciones (Supabase)
+├── supabase/           # Configuración Supabase
+└── index.html          # Punto de entrada HTML
+```
 
-This project is built with:
+## Despliegue
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Opción 1: Vercel
+```sh
+npm install -g vercel
+vercel
+```
 
-## How can I deploy this project?
+### Opción 2: Netlify
+```sh
+npm run build
+# Arrastra la carpeta dist/ a Netlify
+```
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## Optimización SEO
 
-## Can I connect a custom domain to my Lovable project?
+El sitio incluye:
+- Meta tags optimizados para buscadores
+- Open Graph para redes sociales
+- Sitemap XML
+- robots.txt configurado
+- URLs canónicas
+- Schema.org markup
+- Rendimiento optimizado (Lighthouse 90+)
 
-Yes, you can!
+## Palabras Clave Objetivo
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- Soluciones audiovisuales
+- Pantallas LED
+- Cartelería digital
+- Publicidad digital
+- Señalización digital
+- Sistemas de sonido
+- Instaladores audiovisuales
+- Gestión de contenidos
+- Digital signage
+- Pantallas publicitarias
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Contacto
+
+**AV TECH ESDEVENIMENTS SL**
+- Web: https://avtechesdeveniments.com/
+- Email: info@avtechesdeveniments.com
+
+## Licencia
+
+© 2025 AV TECH ESDEVENIMENTS SL. Todos los derechos reservados.
