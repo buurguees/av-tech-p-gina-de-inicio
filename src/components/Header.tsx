@@ -109,31 +109,33 @@ const Header = () => {
             )}
           </button>
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu - Optimized dropdown */}
           <div
-            className={`fixed inset-0 bg-background flex flex-col items-center justify-center gap-8 transition-all duration-300 md:hidden ${
-              isMobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+            className={`fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-md border-b border-border/50 pt-20 pb-6 px-6 transition-all duration-200 md:hidden ${
+              isMobileMenuOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-4'
             }`}
           >
-            {navLinks.map((link) => (
+            <div className="flex flex-col gap-4">
+              {navLinks.map((link) => (
+                <button
+                  key={link.label}
+                  onClick={() => scrollToSection(link.id)}
+                  className={`text-sm uppercase tracking-wide transition-colors text-left py-2 ${
+                    activeSection === link.id 
+                      ? 'text-foreground' 
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  {link.label}
+                </button>
+              ))}
               <button
-                key={link.label}
-                onClick={() => scrollToSection(link.id)}
-                className={`text-lg uppercase tracking-wide transition-colors ${
-                  activeSection === link.id 
-                    ? 'text-foreground' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
+                onClick={() => scrollToSection('contacto')}
+                className="text-sm text-foreground border-b border-foreground pb-1 uppercase tracking-wide text-left py-2 w-fit"
               >
-                {link.label}
+                Contáctanos
               </button>
-            ))}
-            <button
-              onClick={() => scrollToSection('contacto')}
-              className="text-lg text-foreground border-b border-foreground pb-1 uppercase tracking-wide"
-            >
-              Contáctanos
-            </button>
+            </div>
           </div>
         </nav>
       </div>
