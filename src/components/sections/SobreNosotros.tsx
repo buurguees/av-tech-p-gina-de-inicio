@@ -637,10 +637,11 @@ const SobreNosotros = () => {
         </div>
       </div>
 
-      {/* Block 4: Lo que nos define - DERECHA */}
+      {/* Block 4: Lo que nos define - Full width with cards */}
       <div className="relative py-24 sm:py-32">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
-          <div className="ml-auto max-w-2xl">
+          {/* Header centered */}
+          <div className="text-center mb-16 sm:mb-24">
             <motion.div initial={{
             opacity: 0
           }} whileInView={{
@@ -649,7 +650,8 @@ const SobreNosotros = () => {
             once: true
           }} transition={{
             duration: 1
-          }} className="flex items-center gap-4 mb-12 justify-end">
+          }} className="flex items-center gap-4 mb-8 justify-center">
+              <div className="section-indicator" />
               <span className="section-tag mb-0">Valores</span>
               <div className="section-indicator" />
             </motion.div>
@@ -665,14 +667,14 @@ const SobreNosotros = () => {
           }} transition={{
             duration: 0.8,
             ease: [0.22, 1, 0.36, 1]
-          }} className="section-title text-right">
+          }} className="section-title">
               <span className="section-title-primary">Lo que </span>
               <span className="section-title-secondary">nos define</span>
             </motion.h3>
 
             <motion.div initial={{
             opacity: 0,
-            y: 30
+            y: 20
           }} whileInView={{
             opacity: 1,
             y: 0
@@ -682,51 +684,66 @@ const SobreNosotros = () => {
             duration: 0.8,
             delay: 0.2,
             ease: [0.22, 1, 0.36, 1]
-          }} className="mt-12 space-y-4 text-right">
+          }} className="mt-8 max-w-xl mx-auto">
               <p className="text-lead">
                 Hay cosas que no se ven en un portfolio,
               </p>
-              <p className="text-lead">
+              <p className="text-body-muted mt-2">
                 pero que hacen toda la diferencia:
               </p>
             </motion.div>
+          </div>
 
-            <motion.div initial={{
-            opacity: 0,
-            y: 30
-          }} whileInView={{
-            opacity: 1,
-            y: 0
-          }} viewport={{
-            once: true
-          }} transition={{
-            duration: 0.8,
-            delay: 0.3,
-            ease: [0.22, 1, 0.36, 1]
-          }} className="mt-10 grid grid-cols-1 gap-4">
-              {[
-                'Experiencia real de campo, no solo de catálogo',
-                'Flexibilidad para adaptarnos a cualquier escala sin perder calidad',
-                'Criterio técnico: sabemos cuándo más es mejor, y cuándo menos es más',
-                'Obsesión por el detalle (el tipo de obsesión que hace que todo funcione perfecto)'
-              ].map((value, index) => <motion.div key={index} initial={{
-              opacity: 0,
-              y: 20
-            }} whileInView={{
-              opacity: 1,
-              y: 0
-            }} viewport={{
-              once: true
-            }} transition={{
-              duration: 0.6,
-              delay: 0.35 + index * 0.1,
-              ease: [0.22, 1, 0.36, 1]
-            }} className="flex items-center gap-4 flex-row-reverse">
-                  <div className="w-1 h-8 bg-foreground/20" />
-                  <span className="text-body text-right">{value}</span>
-                </motion.div>)}
-            </motion.div>
+          {/* Cards grid */}
+          <motion.div initial={{
+          opacity: 0,
+          y: 40
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} viewport={{
+          once: true
+        }} transition={{
+          duration: 0.8,
+          delay: 0.3,
+          ease: [0.22, 1, 0.36, 1]
+        }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { num: '01', title: 'Experiencia real', desc: 'De campo, no solo de catálogo' },
+              { num: '02', title: 'Flexibilidad', desc: 'Nos adaptamos a cualquier escala sin perder calidad' },
+              { num: '03', title: 'Criterio técnico', desc: 'Sabemos cuándo más es mejor, y cuándo menos es más' },
+              { num: '04', title: 'Obsesión por el detalle', desc: 'El tipo de obsesión que hace que todo funcione perfecto' }
+            ].map((item, index) => (
+              <motion.div 
+                key={index} 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  duration: 0.6,
+                  delay: 0.4 + index * 0.1,
+                  ease: [0.22, 1, 0.36, 1]
+                }}
+                className="group relative p-6 sm:p-8 border border-foreground/10 bg-card/50 hover:border-foreground/30 hover:bg-card transition-all duration-500"
+              >
+                <span className="absolute top-4 right-4 text-caption opacity-40 group-hover:opacity-100 transition-opacity duration-300">
+                  {item.num}
+                </span>
+                <div className="pt-8">
+                  <h4 className="text-lg sm:text-xl font-medium mb-3 text-foreground group-hover:text-foreground transition-colors duration-300">
+                    {item.title}
+                  </h4>
+                  <p className="text-small leading-relaxed">
+                    {item.desc}
+                  </p>
+                </div>
+                <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-foreground/40 group-hover:w-full transition-all duration-500" />
+              </motion.div>
+            ))}
+          </motion.div>
 
+          {/* Bottom section - Partner message */}
+          <div className="mt-20 sm:mt-28 max-w-3xl mx-auto text-center">
             <motion.div initial={{
             opacity: 0,
             y: 20
@@ -739,11 +756,17 @@ const SobreNosotros = () => {
             duration: 0.8,
             delay: 0.5,
             ease: [0.22, 1, 0.36, 1]
-          }} className="mt-12 space-y-2 text-right">
-              <p className="text-small">
+          }} className="space-y-6">
+              <div className="flex items-center justify-center gap-8 mb-8">
+                <div className="w-16 h-px bg-foreground/20" />
+                <span className="text-caption">Partner</span>
+                <div className="w-16 h-px bg-foreground/20" />
+              </div>
+              
+              <p className="text-body-muted">
                 No queremos ser tu proveedor.
               </p>
-              <p className="text-small">
+              <p className="text-lead">
                 Queremos ser tu cómplice creativo.
               </p>
             </motion.div>
@@ -760,7 +783,7 @@ const SobreNosotros = () => {
             duration: 0.8,
             delay: 0.6,
             ease: [0.22, 1, 0.36, 1]
-          }} className="mt-10 text-body text-right">
+          }} className="mt-8 text-body max-w-2xl mx-auto">
               Ese partner que entiende tu visión, desafía tus límites cuando es necesario, y celebra contigo cuando el resultado supera las expectativas.
             </motion.p>
 
@@ -776,7 +799,7 @@ const SobreNosotros = () => {
             duration: 0.8,
             delay: 0.7,
             ease: [0.22, 1, 0.36, 1]
-          }} className="mt-8 text-quote text-right">
+          }} className="mt-10 text-quote">
               Porque al final, tu éxito es nuestro mejor proyecto.
             </motion.p>
           </div>
