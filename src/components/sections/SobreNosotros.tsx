@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import comoTrabajamosVisual from '@/assets/como-trabajamos-visual.png';
 import visionVideo from '@/assets/vision-video.mp4';
-import logoAvtech from '@/assets/logo-avtech-white.png';
+import logoAvtech from '@/assets/logos/Logo_AVTECH_Banner_Fondo_Transparente_Letras_Blanco.png';
 const SobreNosotros = () => {
   return <section id="sobre-nosotros" className="relative overflow-hidden">
 
@@ -104,9 +104,9 @@ const SobreNosotros = () => {
               className="hidden lg:flex w-[40%] items-center justify-center"
             >
               <motion.img 
-                src="/favicon.png" 
+                src={logoAvtech} 
                 alt="AV TECH" 
-                className="w-[80%] max-w-[450px] brightness-0 invert"
+                className="w-[80%] max-w-[450px]"
                 animate={{ 
                   scale: [1, 1.07, 1],
                 }}
