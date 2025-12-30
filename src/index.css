@@ -100,7 +100,7 @@
 
   /* Section title - large display */
   .section-title {
-    @apply text-[2.125rem] sm:text-[2.875rem] md:text-[4.25rem] tracking-tighter leading-tight font-bold;
+    @apply text-[1.875rem] sm:text-[2.5rem] md:text-[4.25rem] tracking-tighter leading-tight font-bold;
     font-family: 'IBM Plex Mono', monospace;
   }
 
@@ -112,47 +112,53 @@
     color: hsl(var(--text-secondary));
   }
 
+  /* Section subtitle - secondary emphasis for h2 */
+  .section-subtitle {
+    @apply font-mono text-base sm:text-lg md:text-xl leading-relaxed max-w-2xl;
+    color: hsl(var(--text-primary) / 0.85);
+  }
+
   /* Section description - primary emphasis */
   .section-description {
-    @apply font-mono text-base md:text-lg leading-relaxed max-w-2xl;
+    @apply font-mono text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl;
     color: hsl(var(--text-secondary));
   }
 
   /* Text hierarchy for content blocks */
   .text-lead {
-    @apply font-mono text-lg md:text-xl leading-relaxed;
+    @apply font-mono text-base sm:text-lg md:text-xl leading-relaxed;
     color: hsl(var(--text-primary) / 0.8);
   }
 
   .text-body {
-    @apply font-mono text-base md:text-lg leading-relaxed;
+    @apply font-mono text-sm sm:text-base md:text-lg leading-relaxed;
     color: hsl(var(--text-secondary) / 0.85);
   }
 
   .text-body-muted {
-    @apply font-mono text-base md:text-lg leading-relaxed;
+    @apply font-mono text-sm sm:text-base md:text-lg leading-relaxed;
     color: hsl(var(--text-secondary) / 0.7);
   }
 
   .text-caption {
-    @apply font-mono text-sm tracking-wide uppercase;
+    @apply font-mono text-xs sm:text-sm tracking-wide uppercase;
     color: hsl(var(--text-secondary) / 0.6);
   }
 
   .text-small {
-    @apply font-mono text-sm;
+    @apply font-mono text-xs sm:text-sm;
     color: hsl(var(--text-secondary) / 0.7);
   }
 
   /* Quote/highlight text */
   .text-quote {
-    @apply font-mono text-xl md:text-2xl font-medium;
+    @apply font-mono text-lg sm:text-xl md:text-2xl font-medium;
     color: hsl(var(--text-primary));
   }
 
   /* Large statement text */
   .text-statement {
-    @apply font-mono text-xl sm:text-2xl md:text-3xl leading-relaxed;
+    @apply font-mono text-lg sm:text-xl md:text-3xl leading-relaxed;
   }
 
   .text-statement-primary {

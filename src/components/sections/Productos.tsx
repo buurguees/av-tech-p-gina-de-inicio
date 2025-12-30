@@ -31,8 +31,8 @@ const Productos = () => {
   // Mobile Layout
   if (isMobile) {
     return (
-      <section id="productos" className="relative py-20 overflow-hidden">
-        <div className="px-6 sm:px-8">
+      <section id="productos" className="relative py-16 sm:py-20 overflow-hidden">
+        <div className="px-6 sm:px-8 md:px-16">
           {/* Title first on mobile */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}

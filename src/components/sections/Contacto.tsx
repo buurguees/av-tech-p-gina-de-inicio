@@ -103,9 +103,9 @@ const Contacto = () => {
   };
 
   return (
-    <section id="contacto" className="relative py-20 sm:py-32 overflow-hidden">
+    <section id="contacto" className="relative py-16 sm:py-32 overflow-hidden">
       <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16">
-        <div className="grid lg:grid-cols-2 gap-16 lg:gap-24">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-24">
           {/* Left column - Info */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -232,28 +232,28 @@ const Contacto = () => {
                 <RadioGroup
                   value={formData.tipoSolicitud}
                   onValueChange={(value) => handleChange('tipoSolicitud', value)}
-                  className="flex gap-4"
+                  className="flex flex-col sm:flex-row gap-3 sm:gap-4"
                 >
                   <label 
-                    className={`flex-1 flex items-center gap-3 p-4 border rounded-sm cursor-pointer transition-colors ${
+                    className={`flex-1 flex items-center gap-3 p-3 sm:p-4 border rounded-sm cursor-pointer transition-colors ${
                       formData.tipoSolicitud === 'presupuesto' 
                         ? 'border-foreground bg-secondary' 
                         : 'border-border hover:border-foreground/50'
                     }`}
                   >
                     <RadioGroupItem value="presupuesto" id="presupuesto" />
-                    <FileText className="w-5 h-5" />
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="text-small">Solicitar presupuesto</span>
                   </label>
                   <label 
-                    className={`flex-1 flex items-center gap-3 p-4 border rounded-sm cursor-pointer transition-colors ${
+                    className={`flex-1 flex items-center gap-3 p-3 sm:p-4 border rounded-sm cursor-pointer transition-colors ${
                       formData.tipoSolicitud === 'visita' 
                         ? 'border-foreground bg-secondary' 
                         : 'border-border hover:border-foreground/50'
                     }`}
                   >
                     <RadioGroupItem value="visita" id="visita" />
-                    <Calendar className="w-5 h-5" />
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="text-small">Agendar visita</span>
                   </label>
                 </RadioGroup>
@@ -311,13 +311,13 @@ const Contacto = () => {
               {/* Tipo de espacio */}
               <div className="space-y-3">
                 <Label className="text-caption">Tipo de espacio *</Label>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
                   {tiposEspacio.map((tipo) => (
                     <button
                       key={tipo.value}
                       type="button"
                       onClick={() => handleChange('tipoEspacio', tipo.value)}
-                      className={`px-4 py-2 border rounded-sm text-small transition-colors ${
+                      className={`px-3 sm:px-4 py-2 border rounded-sm text-xs sm:text-small transition-colors ${
                         formData.tipoEspacio === tipo.value
                           ? 'border-foreground bg-foreground text-background'
                           : 'border-border hover:border-foreground/50'

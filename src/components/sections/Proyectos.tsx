@@ -152,7 +152,7 @@ const Proyectos = () => {
   }, []);
 
   return (
-    <section id="proyectos" className="relative py-20 sm:py-32 overflow-hidden">
+    <section id="proyectos" className="relative py-16 sm:py-32 overflow-hidden">
       <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16">
         <motion.div
           initial={{ opacity: 0, y: 40 }}

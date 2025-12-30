@@ -6,7 +6,7 @@ const SobreNosotros = () => {
   return <section id="sobre-nosotros" className="relative overflow-hidden">
 
       {/* Block 1: Header - IZQUIERDA */}
-      <div className="relative py-24 sm:py-32">
+      <div className="relative py-16 sm:py-32">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
           <div className="max-w-2xl">
             <motion.div initial={{
@@ -64,7 +64,7 @@ const SobreNosotros = () => {
       </div>
 
       {/* Block 2: Por qué nació AV TECH - DERECHA */}
-      <div className="relative py-24 sm:py-32">
+      <div className="relative py-16 sm:py-32">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
           <div className="ml-auto max-w-2xl">
             <motion.div initial={{
@@ -140,7 +140,7 @@ const SobreNosotros = () => {
       </div>
 
       {/* Block 3: Nuestra visión - Video Background Layout */}
-      <div className="relative py-24 sm:py-32 overflow-hidden">
+      <div className="relative py-16 sm:py-32 overflow-hidden">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full relative z-10">
           {/* Mobile: Title first */}
           <div className="lg:hidden">
@@ -398,7 +398,7 @@ const SobreNosotros = () => {
 
 
       {/* Block 4: Cómo trabajamos - Background Image Layout */}
-      <div className="relative py-24 sm:py-32 overflow-hidden">
+      <div className="relative py-16 sm:py-32 overflow-hidden">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full relative z-10">
           {/* Mobile: Title first */}
           <div className="lg:hidden">
