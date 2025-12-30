@@ -27,11 +27,12 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black"
         >
           <motion.svg
-            width="250"
-            height="250"
+            width="200"
+            height="200"
             viewBox="0 0 800 800"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            className="w-[200px] h-[200px] md:w-[250px] md:h-[250px]"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
