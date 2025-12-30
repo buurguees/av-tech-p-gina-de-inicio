@@ -315,7 +315,7 @@ const Alcance = () => {
     : projectsByRegion;
 
   return (
-    <section ref={sectionRef} id="alcance" className="relative py-20 sm:py-32 overflow-hidden">
+    <section ref={sectionRef} id="alcance" className="relative py-16 sm:py-32 overflow-hidden">
       <div ref={ref} className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16">
         {/* Globe and Title side by side */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">

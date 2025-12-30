@@ -15,9 +15,9 @@ const TikTokIcon = ({ className }: { className?: string }) => (
 
 const Footer = () => {
   return (
-    <footer id="contacto" className="bg-card border-t border-border">
-      <div className="container mx-auto px-6 md:px-8 py-12 md:py-16">
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+    <footer id="footer" className="bg-card border-t border-border">
+      <div className="container mx-auto px-6 sm:px-8 md:px-16 py-10 md:py-16">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-12">
           {/* Brand - Full width on mobile */}
           <div className="col-span-2 lg:col-span-1">
             <img src={logoAvtech} alt="AV TECH" className="h-8 md:h-10 w-auto mb-4 md:mb-6" />
