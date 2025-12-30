@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { Send, Calendar, FileText, Phone, Mail, Instagram } from 'lucide-react';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
 
 // TikTok icon component (not available in lucide-react)
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -58,8 +59,18 @@ const Contacto = () => {
     try {
       const validatedData = contactSchema.parse(formData);
       
-      // Aquí se integraría con el backend
-      console.log('Formulario enviado:', validatedData);
+      // Enviar a la edge function
+      const { data, error } = await supabase.functions.invoke('send-contact-form', {
+        body: validatedData
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Error al enviar el formulario');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
       
       toast.success(
         formData.tipoSolicitud === 'presupuesto' 
@@ -80,6 +91,10 @@ const Contacto = () => {
         const firstError = error.errors[0];
         toast.error('Error en el formulario', {
           description: firstError.message,
+        });
+      } else {
+        toast.error('Error al enviar', {
+          description: error instanceof Error ? error.message : 'Por favor, inténtalo de nuevo.',
         });
       }
     } finally {
