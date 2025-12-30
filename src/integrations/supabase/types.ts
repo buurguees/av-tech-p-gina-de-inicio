@@ -47,6 +47,20 @@ export type Database = {
         }
         Returns: boolean
       }
+      insert_contact_message: {
+        Args: {
+          _email: string
+          _empresa: string
+          _ip_address?: unknown
+          _mensaje: string
+          _nombre: string
+          _telefono: string
+          _tipo_espacio: string
+          _tipo_solicitud: string
+          _user_agent?: string
+        }
+        Returns: string
+      }
       is_allowed_domain: { Args: { _email: string }; Returns: boolean }
     }
     Enums: {

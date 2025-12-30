@@ -84,23 +84,18 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Insertar en la base de datos
-    const { data: insertedMessage, error: dbError } = await supabaseAdmin
-      .schema("crm")
-      .from("contact_messages")
-      .insert({
-        nombre: data.nombre.trim(),
-        empresa: data.empresa?.trim() || null,
-        email: data.email.trim().toLowerCase(),
-        telefono: data.telefono?.trim() || null,
-        tipo_solicitud: data.tipoSolicitud,
-        tipo_espacio: data.tipoEspacio || null,
-        mensaje: data.mensaje?.trim() || null,
-        ip_address: ipAddress,
-        user_agent: userAgent
-      })
-      .select("id")
-      .single();
+    // Insertar en la base de datos usando RPC (el schema crm no está expuesto via PostgREST)
+    const { data: messageId, error: dbError } = await supabaseAdmin.rpc("insert_contact_message", {
+      _nombre: data.nombre.trim(),
+      _empresa: data.empresa?.trim() || null,
+      _email: data.email.trim().toLowerCase(),
+      _telefono: data.telefono?.trim() || null,
+      _tipo_solicitud: data.tipoSolicitud,
+      _tipo_espacio: data.tipoEspacio || null,
+      _mensaje: data.mensaje?.trim() || null,
+      _ip_address: ipAddress,
+      _user_agent: userAgent
+    });
 
     if (dbError) {
       console.error("Database error:", dbError);
@@ -109,6 +104,8 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    const insertedMessage = { id: messageId };
 
     console.log("Message saved to database:", insertedMessage?.id);
 
