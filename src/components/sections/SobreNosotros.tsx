@@ -268,9 +268,9 @@ const SobreNosotros = () => {
             </motion.p>
           </div>
 
-          {/* Desktop: Layout with background image on the left */}
-          <div className="hidden lg:block">
-            {/* Background Image - positioned absolute on the left */}
+          {/* Desktop: Layout 60/40 with background image */}
+          <div className="hidden lg:flex lg:flex-row-reverse lg:gap-16 items-stretch">
+            {/* Background Image - positioned absolute (unchanged) */}
             <motion.div initial={{
             opacity: 0
           }} whileInView={{
@@ -296,8 +296,11 @@ const SobreNosotros = () => {
               <img src={comoTrabajamosVisual} alt="Antes y después de instalación de pantalla LED en tienda" className="w-full h-auto object-contain" />
             </motion.div>
 
-            {/* Content - positioned on the right */}
-            <div className="ml-auto max-w-xl lg:max-w-2xl relative z-10">
+            {/* Left column - Empty space for background image (40%) */}
+            <div className="w-[40%]" />
+
+            {/* Right column - Text (60%) */}
+            <div className="w-[60%] relative z-10">
               <motion.div initial={{
               opacity: 0
             }} whileInView={{
