@@ -382,9 +382,12 @@ const Alcance = () => {
               <span className="section-title-secondary">al mundo</span>
             </h2>
             <p className="section-description mt-4 ml-auto">
-              Desde Barcelona hasta el mundo.
+              Hemos llevado experiencias audiovisuales a más de 15 países.
               <br />
-              Proyectos audiovisuales de alto impacto en Europa, Medio Oriente, Asia y América.
+              De Atenas a México, de Dubai a Amsterdam.
+            </p>
+            <p className="font-mono text-xs sm:text-sm mt-4 ml-auto max-w-xl" style={{ color: 'hsl(var(--text-secondary) / 0.6)' }}>
+              Porque las grandes ideas no entienden de fronteras, solo de espacios que merecen transformarse.
             </p>
           </motion.div>
         </div>
