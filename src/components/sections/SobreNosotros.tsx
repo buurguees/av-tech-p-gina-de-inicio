@@ -682,8 +682,34 @@ const SobreNosotros = () => {
             duration: 0.8,
             delay: 0.2,
             ease: [0.22, 1, 0.36, 1]
-          }} className="mt-16 grid grid-cols-1 sm:grid-cols-2 gap-8">
-              {['Experiencia técnica real', 'Capacidad para trabajar a distintas escalas', 'Enfoque claro en soluciones bien dimensionadas', 'Tecnología aplicada con criterio, no por exceso'].map((value, index) => <motion.div key={index} initial={{
+          }} className="mt-12 space-y-4 text-right">
+              <p className="text-lead">
+                Hay cosas que no se ven en un portfolio,
+              </p>
+              <p className="text-lead">
+                pero que hacen toda la diferencia:
+              </p>
+            </motion.div>
+
+            <motion.div initial={{
+            opacity: 0,
+            y: 30
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} viewport={{
+            once: true
+          }} transition={{
+            duration: 0.8,
+            delay: 0.3,
+            ease: [0.22, 1, 0.36, 1]
+          }} className="mt-10 grid grid-cols-1 gap-4">
+              {[
+                'Experiencia real de campo, no solo de catálogo',
+                'Flexibilidad para adaptarnos a cualquier escala sin perder calidad',
+                'Criterio técnico: sabemos cuándo más es mejor, y cuándo menos es más',
+                'Obsesión por el detalle (el tipo de obsesión que hace que todo funcione perfecto)'
+              ].map((value, index) => <motion.div key={index} initial={{
               opacity: 0,
               y: 20
             }} whileInView={{
@@ -693,12 +719,33 @@ const SobreNosotros = () => {
               once: true
             }} transition={{
               duration: 0.6,
-              delay: 0.3 + index * 0.1,
+              delay: 0.35 + index * 0.1,
               ease: [0.22, 1, 0.36, 1]
             }} className="flex items-center gap-4 flex-row-reverse">
                   <div className="w-1 h-8 bg-foreground/20" />
                   <span className="text-body text-right">{value}</span>
                 </motion.div>)}
+            </motion.div>
+
+            <motion.div initial={{
+            opacity: 0,
+            y: 20
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} viewport={{
+            once: true
+          }} transition={{
+            duration: 0.8,
+            delay: 0.5,
+            ease: [0.22, 1, 0.36, 1]
+          }} className="mt-12 space-y-2 text-right">
+              <p className="text-small">
+                No queremos ser tu proveedor.
+              </p>
+              <p className="text-small">
+                Queremos ser tu cómplice creativo.
+              </p>
             </motion.div>
 
             <motion.p initial={{
@@ -711,10 +758,26 @@ const SobreNosotros = () => {
             once: true
           }} transition={{
             duration: 0.8,
-            delay: 0.5,
+            delay: 0.6,
             ease: [0.22, 1, 0.36, 1]
-          }} className="mt-16 text-lead text-right">
-              Más que proveedores, buscamos ser un <span className="section-title-primary">partner audiovisual de confianza</span>, capaz de acompañar proyectos pequeños, medianos o complejos con la misma seriedad y atención al detalle.
+          }} className="mt-10 text-body text-right">
+              Ese partner que entiende tu visión, desafía tus límites cuando es necesario, y celebra contigo cuando el resultado supera las expectativas.
+            </motion.p>
+
+            <motion.p initial={{
+            opacity: 0,
+            y: 20
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} viewport={{
+            once: true
+          }} transition={{
+            duration: 0.8,
+            delay: 0.7,
+            ease: [0.22, 1, 0.36, 1]
+          }} className="mt-8 text-quote text-right">
+              Porque al final, tu éxito es nuestro mejor proyecto.
             </motion.p>
           </div>
         </div>
@@ -736,10 +799,16 @@ const SobreNosotros = () => {
           ease: [0.22, 1, 0.36, 1]
         }} className="max-w-3xl mx-auto">
             <p className="text-statement text-statement-secondary">
-              AV TECH no nace para imponer tecnología,
+              AV TECH no existe para vender tecnología.
             </p>
-            <p className="text-statement text-statement-primary mt-2">
-              nace para ponerla al servicio de las personas, los espacios y los proyectos, sea cual sea su tamaño.
+            <p className="text-statement text-statement-primary mt-4">
+              Existimos para crear momentos en los que alguien entra en un espacio y piensa: <span className="italic">"Wow, esto es diferente"</span>.
+            </p>
+            <p className="text-body-muted mt-6">
+              Porque la mejor tecnología no se ve.
+            </p>
+            <p className="text-lead mt-2">
+              Solo se siente.
             </p>
           </motion.div>
 
