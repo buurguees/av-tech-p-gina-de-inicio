@@ -83,25 +83,24 @@ const Hero = () => {
         <div className="max-w-3xl text-left">
           {/* Main Headline */}
           <h1 className="section-title mb-6 sm:mb-8 animate-fade-in-up">
-            <span className="section-title-primary">Convertimos</span>
+            <span className="section-title-primary">¿La experiencia que satisface</span>
             <br />
-            <span className="section-title-primary">espacios físicos</span>
+            <span className="section-title-primary">en tu espacio refleja</span>
             <br />
-            <span className="section-title-secondary">en experiencias</span>
+            <span className="section-title-secondary">el valor de</span>
             <br />
-            <span className="section-title-secondary">visuales</span>
+            <span className="section-title-secondary">tu marca?</span>
           </h1>
 
           {/* Subheadline */}
           <h2 className="section-description mb-4 sm:mb-6 animate-fade-in-up-delay-1 text-justify">
-            Ayudamos a empresas y marcas a mejorar la forma en la que se muestran, 
-            se escuchan y se recuerdan; a través de soluciones audiovisuales 
-            profesionales adaptadas a cada espacio.
+            Transformamos lugares ordinarios en experiencias visuales que conectan, 
+            impactan y se quedan en la memoria.
           </h2>
 
           {/* Supporting text */}
           <p className="font-mono text-xs sm:text-sm animate-fade-in-up-delay-2" style={{ color: 'hsl(var(--text-secondary) / 0.6)' }}>
-            Desde pantallas LED y sistemas de sonido hasta gestión de contenidos y soporte continuo.
+            Porque la tecnología audiovisual no debería notarse. Debería hacer sentir.
           </p>
         </div>
       </div>
