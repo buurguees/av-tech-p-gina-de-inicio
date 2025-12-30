@@ -179,7 +179,7 @@ const SobreNosotros = () => {
 
           {/* Mobile: Text third */}
           <div className="lg:hidden">
-            <motion.p initial={{
+            <motion.div initial={{
             opacity: 0,
             y: 20
           }} whileInView={{
@@ -191,9 +191,20 @@ const SobreNosotros = () => {
             duration: 0.8,
             delay: 0.15,
             ease: [0.22, 1, 0.36, 1]
-          }} className="text-lead text-right">
-              No ofrecemos soluciones genéricas. Cada proyecto parte de una pregunta simple:
-            </motion.p>
+          }} className="space-y-4 text-right">
+              <p className="text-lead">
+                Cada proyecto comienza con una pregunta diferente.
+              </p>
+              <p className="text-lead">
+                Nunca con una solución predefinida.
+              </p>
+              <p className="text-body-muted mt-6">
+                Porque no creemos en imponer tecnología.
+              </p>
+              <p className="text-body-muted">
+                Creemos en escuchar primero, diseñar después.
+              </p>
+            </motion.div>
 
             <motion.p initial={{
             opacity: 0,
@@ -207,8 +218,8 @@ const SobreNosotros = () => {
             duration: 0.8,
             delay: 0.25,
             ease: [0.22, 1, 0.36, 1]
-          }} className="mt-4 text-quote italic text-right">
-              ¿Qué necesita este espacio para comunicar mejor y cumplir su objetivo?
+          }} className="mt-8 text-quote italic text-right">
+              ¿Qué necesita este espacio para dejar huella?
             </motion.p>
 
             <motion.div initial={{
@@ -226,16 +237,16 @@ const SobreNosotros = () => {
           }} className="mt-12 grid grid-cols-1 gap-4">
               {[{
               num: '01',
-              text: 'Analizamos el entorno y el uso real del espacio'
+              text: 'Escuchamos tu visión y analizamos el potencial real del espacio'
             }, {
               num: '02',
-              text: 'Diseñamos una solución audiovisual coherente y escalable'
+              text: 'Diseñamos una propuesta audiovisual única, pensada solo para ti'
             }, {
               num: '03',
-              text: 'Integramos la tecnología de forma precisa y cuidada'
+              text: 'Integramos cada elemento con precisión milimétrica, porque los detalles son los que marcan la diferencia'
             }, {
               num: '04',
-              text: 'Acompañamos al cliente antes, durante y después de la instalación'
+              text: 'Te acompañamos en cada fase: desde la idea hasta el día que todo cobra vida, y más allá'
             }].map((step, index) => <motion.div key={step.num} initial={{
               opacity: 0,
               y: 20
@@ -254,7 +265,7 @@ const SobreNosotros = () => {
                 </motion.div>)}
             </motion.div>
 
-            <motion.p initial={{
+            <motion.div initial={{
             opacity: 0
           }} whileInView={{
             opacity: 1
@@ -263,9 +274,14 @@ const SobreNosotros = () => {
           }} transition={{
             duration: 0.8,
             delay: 0.6
-          }} className="mt-12 text-small text-justify">
-              Desarrollamos proyectos únicos, adaptados a cada necesidad, cada espacio y cada fase de crecimiento.
-            </motion.p>
+          }} className="mt-12 space-y-2 text-right">
+              <p className="text-small">
+                No hacemos instalaciones.
+              </p>
+              <p className="text-small">
+                Creamos experiencias que crecen contigo.
+              </p>
+            </motion.div>
           </div>
 
           {/* Desktop: Layout 40/60 with background image (text on right) */}
@@ -330,7 +346,7 @@ const SobreNosotros = () => {
                 <span className="section-title-secondary">trabajamos</span>
               </motion.h3>
 
-              <motion.p initial={{
+              <motion.div initial={{
               opacity: 0,
               y: 20
             }} whileInView={{
@@ -342,9 +358,20 @@ const SobreNosotros = () => {
               duration: 0.8,
               delay: 0.15,
               ease: [0.22, 1, 0.36, 1]
-            }} className="mt-8 text-lead text-right">
-                No ofrecemos soluciones genéricas. Cada proyecto parte de una pregunta simple:
-              </motion.p>
+            }} className="mt-8 space-y-4 text-right">
+                <p className="text-lead">
+                  Cada proyecto comienza con una pregunta diferente.
+                </p>
+                <p className="text-lead">
+                  Nunca con una solución predefinida.
+                </p>
+                <p className="text-body-muted mt-6">
+                  Porque no creemos en imponer tecnología.
+                </p>
+                <p className="text-body-muted">
+                  Creemos en escuchar primero, diseñar después.
+                </p>
+              </motion.div>
 
               <motion.p initial={{
               opacity: 0,
@@ -358,8 +385,8 @@ const SobreNosotros = () => {
               duration: 0.8,
               delay: 0.25,
               ease: [0.22, 1, 0.36, 1]
-            }} className="mt-4 text-quote italic text-right">
-                ¿Qué necesita este espacio para comunicar mejor y cumplir su objetivo?
+            }} className="mt-8 text-quote italic text-right">
+                ¿Qué necesita este espacio para dejar huella?
               </motion.p>
 
               <motion.div initial={{
@@ -377,16 +404,16 @@ const SobreNosotros = () => {
             }} className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[{
                 num: '01',
-                text: 'Analizamos el entorno y el uso real del espacio'
+                text: 'Escuchamos tu visión y analizamos el potencial real del espacio'
               }, {
                 num: '02',
-                text: 'Diseñamos una solución audiovisual coherente y escalable'
+                text: 'Diseñamos una propuesta audiovisual única, pensada solo para ti'
               }, {
                 num: '03',
-                text: 'Integramos la tecnología de forma precisa y cuidada'
+                text: 'Integramos cada elemento con precisión milimétrica, porque los detalles son los que marcan la diferencia'
               }, {
                 num: '04',
-                text: 'Acompañamos al cliente antes, durante y después de la instalación'
+                text: 'Te acompañamos en cada fase: desde la idea hasta el día que todo cobra vida, y más allá'
               }].map((step, index) => <motion.div key={step.num} initial={{
                 opacity: 0,
                 x: 20
@@ -409,7 +436,7 @@ const SobreNosotros = () => {
                   </motion.div>)}
               </motion.div>
 
-              <motion.p initial={{
+              <motion.div initial={{
               opacity: 0
             }} whileInView={{
               opacity: 1
@@ -418,9 +445,14 @@ const SobreNosotros = () => {
             }} transition={{
               duration: 0.8,
               delay: 0.6
-            }} className="mt-12 text-small text-justify">
-                Desarrollamos proyectos únicos, adaptados a cada necesidad, cada espacio y cada fase de crecimiento.
-              </motion.p>
+            }} className="mt-12 space-y-2 text-right">
+                <p className="text-small">
+                  No hacemos instalaciones.
+                </p>
+                <p className="text-small">
+                  Creamos experiencias que crecen contigo.
+                </p>
+              </motion.div>
             </div>
           </div>
         </div>
