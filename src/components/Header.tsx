@@ -55,7 +55,7 @@ const Header = () => {
           : 'bg-background/40 backdrop-blur-sm py-6'
       }`}
     >
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-6 md:px-8">
         <nav className="flex items-center justify-between">
           {/* Logo */}
           <button
