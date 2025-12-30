@@ -13,7 +13,7 @@ const SobreNosotros = () => {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1.2, delay: 0.3 }}
-          className="absolute top-[45%] -translate-y-1/2 right-16 w-[45%] hidden lg:flex items-center justify-center z-0"
+          className="absolute top-32 right-16 w-[45%] hidden lg:flex items-start justify-center z-0"
         >
           <motion.img 
             src="/favicon.png" 
@@ -75,13 +75,24 @@ const SobreNosotros = () => {
             duration: 0.8,
             delay: 0.2,
             ease: [0.22, 1, 0.36, 1]
-          }} className="mt-12 space-y-6">
-              <p className="text-body text-justify">
-                Con el tiempo detectamos una realidad clara: muchas empresas, especialmente pequeñas y medianas, querían incorporar soluciones audiovisuales profesionales, pero no siempre encontraban propuestas ajustadas a su escala, a su ritmo de crecimiento o a su forma de trabajar.
-              </p>
-              <p className="text-body-muted text-justify">
-                Al mismo tiempo, vimos que la tecnología audiovisual podía aplicarse de una forma más flexible, más cercana y más adaptada; sin perder nivel técnico ni calidad de ejecución.
-              </p>
+          }} className="mt-12 space-y-8">
+              <div>
+                <p className="text-lead mb-4">
+                  Detectamos algo frustrante en el mercado:
+                </p>
+                <p className="text-body-muted text-justify">
+                  Empresas con grandes ideas se encontraban con proveedores que solo ofrecían soluciones rígidas, pensadas para grandes corporaciones. Presupuestos inflados. Propuestas que no escuchaban lo que realmente necesitaban.
+                </p>
+              </div>
+
+              <div>
+                <p className="text-lead mb-4">
+                  Vimos una oportunidad:
+                </p>
+                <p className="text-body-muted text-justify">
+                  ¿Y si la tecnología audiovisual profesional pudiera ser flexible, cercana y perfectamente ajustada a cada tipo de negocio?
+                </p>
+              </div>
             </motion.div>
 
             <motion.div initial={{
@@ -96,9 +107,12 @@ const SobreNosotros = () => {
             duration: 0.8,
             delay: 0.4,
             ease: [0.22, 1, 0.36, 1]
-          }} className="mt-10 pl-6 border-l-2 border-foreground/20">
+          }} className="mt-10 pl-6 border-l-2 border-foreground/20 space-y-4">
+              <p className="text-body text-justify">
+                AV TECH nace para democratizar el acceso a experiencias audiovisuales de alto impacto. Sin importar si tienes una boutique en Barcelona o una cadena de hoteles en Europa.
+              </p>
               <p className="text-quote">
-                AV TECH nace con la voluntad de acercar la tecnología audiovisual profesional a más tipos de negocio, adaptando cada proyecto a su contexto real, independientemente de su tamaño.
+                Porque creemos que cada espacio, sea cual sea su tamaño, merece brillar con la misma intensidad.
               </p>
             </motion.div>
           </div>
