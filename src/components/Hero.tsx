@@ -81,8 +81,8 @@ const Hero = () => {
       {/* Content - 60/40 Layout */}
       <div className="relative z-10 max-w-[1800px] w-full">
         <div className="flex flex-col md:flex-row">
-          {/* Title Block - 60% width */}
-          <div className="w-full md:w-[60%] text-left">
+          {/* Title Block - 70% width */}
+          <div className="w-full md:w-[70%] text-left">
             {/* Main Headline */}
             <h1 className="section-title mb-6 sm:mb-8 animate-fade-in-up">
               <span className="section-title-primary">¿La experiencia que satisface</span>
@@ -106,8 +106,8 @@ const Hero = () => {
             </p>
           </div>
           
-          {/* Right Block - 40% width (empty for now, reserved for future content) */}
-          <div className="hidden md:block w-[40%]" />
+          {/* Right Block - 30% width (reserved for future content) */}
+          <div className="hidden md:block w-[30%]" />
         </div>
       </div>
 
