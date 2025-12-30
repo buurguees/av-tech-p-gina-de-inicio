@@ -180,22 +180,23 @@ const Footer = () => {
           <p className="text-muted-foreground text-xs md:text-sm text-center md:text-left">
             © {new Date().getFullYear()} AV TECH. Todos los derechos reservados.
           </p>
-          <div className="flex items-center gap-4 md:gap-6">
+          <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
             <Link
               to="/privacidad"
-              className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm"
+              className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm px-2 py-3 min-h-[44px] flex items-center"
             >
               Privacidad
             </Link>
             <Link
               to="/terminos"
-              className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm"
+              className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm px-2 py-3 min-h-[44px] flex items-center"
             >
               Términos
             </Link>
             <a
               href="#"
-              className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm"
+              className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm px-3 py-3 min-h-[44px] min-w-[44px] flex items-center justify-center font-medium"
+              aria-label="NEXO AV - Enlace corporativo"
             >
               NEXO AV
             </a>
