@@ -5,115 +5,118 @@ import logoAvtech from '@/assets/logo-avtech-white.png';
 const SobreNosotros = () => {
   return <section id="sobre-nosotros" className="relative overflow-hidden">
 
-      {/* Block 1: Por qué nació AV TECH - IZQUIERDA */}
-      <div className="relative py-16 sm:py-32 overflow-hidden">
-        {/* Logo breathing animation - positioned on the right (desktop only) */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.8 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.2, delay: 0.3 }}
-          className="absolute top-32 right-16 w-[45%] hidden lg:flex items-start justify-center z-0"
-        >
-          <motion.img 
-            src="/favicon.png" 
-            alt="AV TECH" 
-            className="w-[84%] max-w-[530px] opacity-100 brightness-0 invert"
-            animate={{ 
-              scale: [1, 1.07, 1],
-            }}
-            transition={{
-              duration: 4,
-              ease: "easeInOut",
-              repeat: Infinity,
-              repeatType: "loop"
-            }}
-          />
-        </motion.div>
+      {/* Block 1: Por qué nació AV TECH - Layout 60/40 */}
+      <div className="relative py-16 sm:py-32">
+        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full">
+          <div className="flex flex-col lg:flex-row lg:gap-16 items-start">
+            {/* Left column - Text (60%) */}
+            <div className="w-full lg:w-[60%]">
+              <motion.div initial={{
+              opacity: 0
+            }} whileInView={{
+              opacity: 1
+            }} viewport={{
+              once: true
+            }} transition={{
+              duration: 1
+            }} className="flex items-center gap-4 mb-12">
+                <div className="section-indicator" />
+                <span className="section-tag mb-0">Quiénes somos</span>
+              </motion.div>
 
-        <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 w-full relative z-10">
-          <div className="max-w-2xl">
-            <motion.div initial={{
-            opacity: 0
-          }} whileInView={{
-            opacity: 1
-          }} viewport={{
-            once: true
-          }} transition={{
-            duration: 1
-          }} className="flex items-center gap-4 mb-12">
-              <div className="section-indicator" />
-              <span className="section-tag mb-0">Quiénes somos</span>
-            </motion.div>
+              <motion.h3 initial={{
+              opacity: 0,
+              y: 40
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true
+            }} transition={{
+              duration: 0.8,
+              ease: [0.22, 1, 0.36, 1]
+            }} className="section-title">
+                <span className="section-title-primary">Por qué nació</span>
+                <br />
+                <span className="section-title-secondary">AV TECH</span>
+              </motion.h3>
 
-            <motion.h3 initial={{
-            opacity: 0,
-            y: 40
-          }} whileInView={{
-            opacity: 1,
-            y: 0
-          }} viewport={{
-            once: true
-          }} transition={{
-            duration: 0.8,
-            ease: [0.22, 1, 0.36, 1]
-          }} className="section-title">
-              <span className="section-title-primary">Por qué nació</span>
-              <br />
-              <span className="section-title-secondary">AV TECH</span>
-            </motion.h3>
+              <motion.div initial={{
+              opacity: 0,
+              y: 30
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true
+            }} transition={{
+              duration: 0.8,
+              delay: 0.2,
+              ease: [0.22, 1, 0.36, 1]
+            }} className="mt-12 space-y-8">
+                <div>
+                  <p className="text-lead mb-4">
+                    Detectamos algo frustrante en el mercado:
+                  </p>
+                  <p className="text-body-muted text-justify">
+                    Empresas con grandes ideas se encontraban con proveedores que solo ofrecían soluciones rígidas, pensadas para grandes corporaciones. Presupuestos inflados. Propuestas que no escuchaban lo que realmente necesitaban.
+                  </p>
+                </div>
 
-            <motion.div initial={{
-            opacity: 0,
-            y: 30
-          }} whileInView={{
-            opacity: 1,
-            y: 0
-          }} viewport={{
-            once: true
-          }} transition={{
-            duration: 0.8,
-            delay: 0.2,
-            ease: [0.22, 1, 0.36, 1]
-          }} className="mt-12 space-y-8">
-              <div>
-                <p className="text-lead mb-4">
-                  Detectamos algo frustrante en el mercado:
+                <div>
+                  <p className="text-lead mb-4">
+                    Vimos una oportunidad:
+                  </p>
+                  <p className="text-body-muted text-justify">
+                    ¿Y si la tecnología audiovisual profesional pudiera ser flexible, cercana y perfectamente ajustada a cada tipo de negocio?
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div initial={{
+              opacity: 0,
+              x: -20
+            }} whileInView={{
+              opacity: 1,
+              x: 0
+            }} viewport={{
+              once: true
+            }} transition={{
+              duration: 0.8,
+              delay: 0.4,
+              ease: [0.22, 1, 0.36, 1]
+            }} className="mt-10 pl-6 border-l-2 border-foreground/20 space-y-4">
+                <p className="text-body text-justify">
+                  AV TECH nace para democratizar el acceso a experiencias audiovisuales de alto impacto. Sin importar si tienes una boutique en Barcelona o una cadena de hoteles en Europa.
                 </p>
-                <p className="text-body-muted text-justify">
-                  Empresas con grandes ideas se encontraban con proveedores que solo ofrecían soluciones rígidas, pensadas para grandes corporaciones. Presupuestos inflados. Propuestas que no escuchaban lo que realmente necesitaban.
+                <p className="text-quote">
+                  Porque creemos que cada espacio, sea cual sea su tamaño, merece brillar con la misma intensidad.
                 </p>
-              </div>
+              </motion.div>
+            </div>
 
-              <div>
-                <p className="text-lead mb-4">
-                  Vimos una oportunidad:
-                </p>
-                <p className="text-body-muted text-justify">
-                  ¿Y si la tecnología audiovisual profesional pudiera ser flexible, cercana y perfectamente ajustada a cada tipo de negocio?
-                </p>
-              </div>
-            </motion.div>
-
-            <motion.div initial={{
-            opacity: 0,
-            x: -20
-          }} whileInView={{
-            opacity: 1,
-            x: 0
-          }} viewport={{
-            once: true
-          }} transition={{
-            duration: 0.8,
-            delay: 0.4,
-            ease: [0.22, 1, 0.36, 1]
-          }} className="mt-10 pl-6 border-l-2 border-foreground/20 space-y-4">
-              <p className="text-body text-justify">
-                AV TECH nace para democratizar el acceso a experiencias audiovisuales de alto impacto. Sin importar si tienes una boutique en Barcelona o una cadena de hoteles en Europa.
-              </p>
-              <p className="text-quote">
-                Porque creemos que cada espacio, sea cual sea su tamaño, merece brillar con la misma intensidad.
-              </p>
+            {/* Right column - Logo (40%) */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2, delay: 0.3 }}
+              className="hidden lg:flex w-[40%] items-center justify-center"
+            >
+              <motion.img 
+                src="/favicon.png" 
+                alt="AV TECH" 
+                className="w-[80%] max-w-[450px] brightness-0 invert"
+                animate={{ 
+                  scale: [1, 1.07, 1],
+                }}
+                transition={{
+                  duration: 4,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                  repeatType: "loop"
+                }}
+              />
             </motion.div>
           </div>
         </div>
