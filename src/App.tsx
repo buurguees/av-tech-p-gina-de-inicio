@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
+import NexoLogin from "./pages/nexo_av/Login";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/privacidad" element={<PrivacyPolicy />} />
             <Route path="/terminos" element={<TermsAndConditions />} />
+            {/* NEXO AV Routes */}
+            <Route path="/nexo-av" element={<NexoLogin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
