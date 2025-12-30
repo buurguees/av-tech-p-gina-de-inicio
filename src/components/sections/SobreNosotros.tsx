@@ -18,7 +18,7 @@ const SobreNosotros = () => {
           <motion.img 
             src="/favicon.png" 
             alt="AV TECH" 
-            className="w-[70%] max-w-[440px] opacity-100 brightness-0 invert"
+            className="w-[84%] max-w-[530px] opacity-100 brightness-0 invert"
             animate={{ 
               scale: [1, 1.07, 1],
             }}
