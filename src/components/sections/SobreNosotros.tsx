@@ -3,7 +3,8 @@ import comoTrabajamosVisual from '@/assets/como-trabajamos-visual.png';
 import visionVideo from '@/assets/vision-video.mp4';
 import logoAvtech from '@/assets/logos/Logto_AVETCH_Simple_Fondo_Negro_Logo_Blanco.png';
 const SobreNosotros = () => {
-  return <section id="sobre-nosotros" className="relative overflow-hidden">
+  return (
+    <section id="sobre-nosotros" className="relative overflow-hidden">
 
       {/* Block 1: Por qué nació AV TECH - Layout 60/40 */}
       <div className="relative py-16 sm:py-32">
@@ -852,6 +853,8 @@ const SobreNosotros = () => {
           </motion.div>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default SobreNosotros;
