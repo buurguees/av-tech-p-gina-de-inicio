@@ -54,19 +54,19 @@ const Hero = () => {
           />
         </AnimatePresence>
         
-        {/* Dark overlay for text readability - stronger on mobile */}
-        <div className="absolute inset-0 bg-background/80 md:bg-background/70" />
+        {/* Dark overlay for text readability - lighter for better image visibility */}
+        <div className="absolute inset-0 bg-background/60 md:bg-background/50" />
         <div 
           className="absolute inset-0 hidden md:block"
           style={{
-            background: 'linear-gradient(to right, hsl(var(--background)) 0%, hsl(var(--background) / 0.8) 40%, transparent 100%)'
+            background: 'linear-gradient(to right, hsl(var(--background)) 0%, hsl(var(--background) / 0.6) 40%, transparent 100%)'
           }}
         />
         {/* Mobile gradient - bottom heavy for text readability */}
         <div 
           className="absolute inset-0 md:hidden"
           style={{
-            background: 'linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.6) 50%, transparent 100%)'
+            background: 'linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.4) 50%, transparent 100%)'
           }}
         />
         {/* Bottom gradient for seamless section transition */}
