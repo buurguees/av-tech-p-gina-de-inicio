@@ -268,8 +268,8 @@ const SobreNosotros = () => {
             </motion.p>
           </div>
 
-          {/* Desktop: Layout 60/40 with background image */}
-          <div className="hidden lg:flex lg:flex-row-reverse lg:gap-16 items-stretch">
+          {/* Desktop: Layout 40/60 with background image (text on right) */}
+          <div className="hidden lg:flex lg:flex-row lg:gap-16 items-stretch">
             {/* Background Image - positioned absolute (unchanged) */}
             <motion.div initial={{
             opacity: 0
