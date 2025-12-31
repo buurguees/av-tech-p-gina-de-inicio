@@ -130,8 +130,27 @@ const monitoresData: Pack[] = [
   },
 ];
 
-// Columna derecha: LED y Cartelería (vacía por ahora, los packs "Próximamente" se muestran solo en /catalogo)
-const otrosPacksData: Pack[] = [];
+// Columna derecha: LED y Cartelería
+const otrosPacksData: Pack[] = [
+  {
+    id: 'pack-led-pro',
+    name: 'LED Pro',
+    description: 'Cuando tu espacio necesita algo más que una pantalla',
+    secondaryDescription: 'Para proyectos ambiciosos, marcas atrevidas y espacios que quieren marcar diferencia.',
+    gradient: 'from-rose-600/20 via-orange-600/10 to-transparent',
+    accentColor: 'hsl(350, 70%, 55%)',
+    subPacks: [],
+  },
+  {
+    id: 'pack-signage-360',
+    name: 'Signage 360',
+    description: 'La comunicación visual, totalmente integrada',
+    secondaryDescription: 'Ideal para franquicias, cadenas, gimnasios y negocios en crecimiento.',
+    gradient: 'from-violet-600/20 via-purple-600/10 to-transparent',
+    accentColor: 'hsl(270, 70%, 60%)',
+    subPacks: [],
+  },
+];
 
 // Componente de Pack reutilizable (sin precios)
 const PackCard = ({ 
@@ -410,21 +429,47 @@ const Productos = () => {
           </p>
         </motion.div>
 
-        {/* Packs Grid */}
+        {/* Packs Grid - 2 columnas */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-start">
-          {monitoresData.map((pack) => (
-            <PackCard
-              key={pack.id}
-              pack={pack}
-              expandedPack={expandedPack}
-              selectedSubPack={selectedSubPack}
-              onPackEnter={handlePackEnter}
-              onPackLeave={handlePackLeave}
-              onPackClick={handlePackClick}
-              onSubPackClick={handleSubPackClick}
-              isMobile={isMobile}
-            />
-          ))}
+          {/* Columna Izquierda: Monitores */}
+          <div className="space-y-3">
+            <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-3">
+              Monitores Profesionales
+            </div>
+            {monitoresData.map((pack) => (
+              <PackCard
+                key={pack.id}
+                pack={pack}
+                expandedPack={expandedPack}
+                selectedSubPack={selectedSubPack}
+                onPackEnter={handlePackEnter}
+                onPackLeave={handlePackLeave}
+                onPackClick={handlePackClick}
+                onSubPackClick={handleSubPackClick}
+                isMobile={isMobile}
+              />
+            ))}
+          </div>
+
+          {/* Columna Derecha: LED y Cartelería */}
+          <div className="space-y-3">
+            <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-3">
+              Soluciones Especiales
+            </div>
+            {otrosPacksData.map((pack) => (
+              <PackCard
+                key={pack.id}
+                pack={pack}
+                expandedPack={expandedPack}
+                selectedSubPack={selectedSubPack}
+                onPackEnter={handlePackEnter}
+                onPackLeave={handlePackLeave}
+                onPackClick={handlePackClick}
+                onSubPackClick={handleSubPackClick}
+                isMobile={isMobile}
+              />
+            ))}
+          </div>
         </div>
 
         {/* CTA to full catalog */}
