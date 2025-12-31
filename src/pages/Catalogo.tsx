@@ -113,11 +113,14 @@ const Catalogo = () => {
   const [expandedPack, setExpandedPack] = useState<string | null>(null);
   const [selectedSubPack, setSelectedSubPack] = useState<string | null>(null);
 
-  const handlePackHover = (packId: string) => {
-    if (expandedPack !== packId) {
-      setExpandedPack(packId);
-      setSelectedSubPack(null);
-    }
+  const handlePackEnter = (packId: string) => {
+    setExpandedPack(packId);
+    setSelectedSubPack(null);
+  };
+
+  const handlePackLeave = () => {
+    setExpandedPack(null);
+    setSelectedSubPack(null);
   };
 
   return (
@@ -174,7 +177,8 @@ const Catalogo = () => {
                   delay: 0.1 * index,
                   ease: [0.22, 1, 0.36, 1] 
                 }}
-                onMouseEnter={() => handlePackHover(pack.id)}
+                onMouseEnter={() => handlePackEnter(pack.id)}
+                onMouseLeave={handlePackLeave}
                 className={`relative overflow-hidden rounded-lg border transition-all duration-500 cursor-pointer ${
                   expandedPack === pack.id 
                     ? 'border-foreground/30 bg-secondary/50' 
