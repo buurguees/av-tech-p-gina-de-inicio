@@ -338,15 +338,6 @@ const PackCard = ({
           )}
         </AnimatePresence>
 
-        {/* Collapsed Indicator */}
-        {!isExpanded && !pack.comingSoon && pack.subPacks.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-border/20">
-            <div className="font-mono text-xs text-muted-foreground flex items-center gap-2">
-              <span>{isMobile ? 'Toca para ver opciones' : 'Hover para ver opciones'}</span>
-              <ChevronRight className="w-3 h-3" />
-            </div>
-          </div>
-        )}
       </div>
     </motion.div>
   );
