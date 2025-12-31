@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 
@@ -81,10 +82,12 @@ const Productos = () => {
 
             {/* Button inside carousel */}
             <div className="absolute bottom-8 left-6 right-6 z-10">
-              <Button variant="catalog" size="lg" className="group w-full">
-                Ver catálogo
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
+              <Link to="/catalogo" className="block">
+                <Button variant="catalog" size="lg" className="group w-full">
+                  Ver catálogo
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -146,10 +149,12 @@ const Productos = () => {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="mt-8"
             >
-              <Button variant="catalog" size="lg" className="group">
-                Ver catálogo
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
+              <Link to="/catalogo">
+                <Button variant="catalog" size="lg" className="group">
+                  Ver catálogo
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
             </motion.div>
           </motion.div>
         </div>
