@@ -33,6 +33,7 @@ interface Pack {
   id: string;
   name: string;
   description: string;
+  secondaryDescription?: string;
   priceMin?: number;
   priceMax?: number;
   comingSoon?: boolean;
@@ -46,7 +47,7 @@ const monitoresData: Pack[] = [
   {
     id: 'starter-pack-plus',
     name: 'Starter Pack Plus',
-    description: 'Monitores de gran formato para espacios que requieren máximo impacto visual',
+    description: 'Más tamaño. Más impacto. Más presencia.',
     priceMin: 1599,
     priceMax: 7099,
     gradient: 'from-emerald-600/20 via-teal-600/10 to-transparent',
@@ -101,7 +102,8 @@ const monitoresData: Pack[] = [
   {
     id: 'starter-pack',
     name: 'Starter Pack',
-    description: 'Solución ideal para comenzar a digitalizar tu espacio con monitores profesionales de alta calidad',
+    description: 'La forma más sencilla de empezar a destacar',
+    secondaryDescription: 'Perfecto para tiendas, oficinas, centros de atención al cliente y espacios corporativos.',
     priceMin: 1099,
     priceMax: 1199,
     gradient: 'from-blue-600/20 via-indigo-600/10 to-transparent',
@@ -138,7 +140,7 @@ const otrosPacksData: Pack[] = [
   {
     id: 'pack-led-pro',
     name: 'LED Pro',
-    description: 'Pantallas LED de alto impacto para los más atrevidos',
+    description: 'Cuando tu espacio necesita algo más que una pantalla',
     comingSoon: true,
     gradient: 'from-rose-600/20 via-orange-600/10 to-transparent',
     accentColor: 'hsl(350, 70%, 55%)',
@@ -147,7 +149,7 @@ const otrosPacksData: Pack[] = [
   {
     id: 'pack-signage-360',
     name: 'Signage 360',
-    description: 'Soluciones completas de cartelería digital para quienes quieren dar un paso más allá',
+    description: 'La comunicación visual, totalmente integrada',
     comingSoon: true,
     gradient: 'from-violet-600/20 via-purple-600/10 to-transparent',
     accentColor: 'hsl(270, 70%, 60%)',
@@ -231,9 +233,14 @@ const PackCard = ({
               </span>
             )}
           </div>
-          <p className="font-mono text-sm text-muted-foreground max-w-md mb-3">
+          <p className="font-mono text-sm text-muted-foreground max-w-md mb-1">
             {pack.description}
           </p>
+          {pack.secondaryDescription && (
+            <p className="font-mono text-xs text-muted-foreground/70 max-w-md mb-3">
+              {pack.secondaryDescription}
+            </p>
+          )}
           {pack.priceMin && pack.priceMax && (
             <div className="font-mono text-sm">
               <span className="text-muted-foreground">Desde </span>
