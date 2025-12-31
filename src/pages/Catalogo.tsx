@@ -48,6 +48,7 @@ const monitoresData: Pack[] = [
     id: 'starter-pack-plus',
     name: 'Starter Pack Plus',
     description: 'Más tamaño. Más impacto. Más presencia.',
+    secondaryDescription: 'Ideal para escaparates, zonas de paso, showrooms y espacios de alto tráfico.',
     priceMin: 1599,
     priceMax: 7099,
     gradient: 'from-emerald-600/20 via-teal-600/10 to-transparent',
@@ -141,6 +142,7 @@ const otrosPacksData: Pack[] = [
     id: 'pack-led-pro',
     name: 'LED Pro',
     description: 'Cuando tu espacio necesita algo más que una pantalla',
+    secondaryDescription: 'Para proyectos ambiciosos, marcas atrevidas y espacios que quieren marcar diferencia.',
     comingSoon: true,
     gradient: 'from-rose-600/20 via-orange-600/10 to-transparent',
     accentColor: 'hsl(350, 70%, 55%)',
@@ -150,6 +152,7 @@ const otrosPacksData: Pack[] = [
     id: 'pack-signage-360',
     name: 'Signage 360',
     description: 'La comunicación visual, totalmente integrada',
+    secondaryDescription: 'Ideal para franquicias, cadenas, gimnasios y negocios en crecimiento.',
     comingSoon: true,
     gradient: 'from-violet-600/20 via-purple-600/10 to-transparent',
     accentColor: 'hsl(270, 70%, 60%)',
@@ -236,18 +239,18 @@ const PackCard = ({
           <p className="font-mono text-sm text-muted-foreground max-w-md mb-1">
             {pack.description}
           </p>
-          {pack.secondaryDescription && (
-            <p className="font-mono text-xs text-muted-foreground/70 max-w-md mb-3">
-              {pack.secondaryDescription}
-            </p>
-          )}
           {pack.priceMin && pack.priceMax && (
-            <div className="font-mono text-sm">
+            <div className="font-mono text-sm mb-2">
               <span className="text-muted-foreground">Desde </span>
               <span className="text-foreground font-medium">{pack.priceMin.toLocaleString('es-ES')}€</span>
               <span className="text-muted-foreground"> hasta </span>
               <span className="text-foreground font-medium">{pack.priceMax.toLocaleString('es-ES')}€</span>
             </div>
+          )}
+          {pack.secondaryDescription && (
+            <p className="font-mono text-xs text-muted-foreground/70 max-w-md">
+              {pack.secondaryDescription}
+            </p>
           )}
         </div>
 
