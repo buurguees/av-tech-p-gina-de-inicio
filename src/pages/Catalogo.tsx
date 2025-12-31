@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Check, ChevronRight, Monitor } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
@@ -9,8 +9,6 @@ interface SubPack {
   id: string;
   name: string;
   size: string;
-  priceMin: number;
-  priceMax: number;
   features: string[];
 }
 
@@ -18,128 +16,98 @@ interface Pack {
   id: string;
   name: string;
   description: string;
-  priceRange: { min: number; max: number };
   subPacks: SubPack[];
   gradient: string;
   accentColor: string;
 }
 
-// Datos de ejemplo (placeholder - se actualizarán con datos reales)
+// Datos reales
 const packsData: Pack[] = [
   {
-    id: 'pack-monitores',
-    name: 'Pack Monitores',
-    description: 'Soluciones de visualización profesional para espacios comerciales y corporativos',
-    priceRange: { min: 1500, max: 4500 },
+    id: 'starter-pack',
+    name: 'Starter Pack',
+    description: 'Solución ideal para comenzar a digitalizar tu espacio con monitores profesionales de alta calidad',
     gradient: 'from-blue-600/20 via-indigo-600/10 to-transparent',
     accentColor: 'hsl(220, 70%, 60%)',
     subPacks: [
       {
-        id: 'monitor-49',
-        name: 'Pack Monitor 49"',
+        id: 'pack-49',
+        name: 'Pack 49"',
         size: '49 pulgadas',
-        priceMin: 1500,
-        priceMax: 2200,
         features: [
-          'Pantalla profesional 4K',
+          'Monitor profesional de 49"',
           'Soporte de pared incluido',
-          'Reproductor multimedia integrado',
-          'Instalación profesional',
+          'Puesta en marcha',
+          'Posibilidad de añadir monitores adicionales',
         ],
       },
       {
-        id: 'monitor-55',
-        name: 'Pack Monitor 55"',
+        id: 'pack-55',
+        name: 'Pack 55"',
         size: '55 pulgadas',
-        priceMin: 2200,
-        priceMax: 3200,
         features: [
-          'Pantalla comercial 4K HDR',
-          'Soporte articulado premium',
-          'Software de gestión remota',
-          'Instalación y configuración',
-          'Garantía extendida 3 años',
-        ],
-      },
-      {
-        id: 'monitor-65',
-        name: 'Pack Monitor 65"',
-        size: '65 pulgadas',
-        priceMin: 3200,
-        priceMax: 4500,
-        features: [
-          'Pantalla comercial 4K HDR Pro',
-          'Estructura de suelo o pared',
-          'Sistema de gestión de contenidos',
-          'Instalación llave en mano',
-          'Soporte técnico premium 24/7',
-          'Mantenimiento primer año incluido',
+          'Monitor profesional de 55"',
+          'Soporte de pared incluido',
+          'Puesta en marcha',
+          'Posibilidad de añadir monitores adicionales',
         ],
       },
     ],
   },
   {
-    id: 'pack-led',
-    name: 'Pack LED',
-    description: 'Pantallas LED de alto impacto para eventos, retail y espacios de gran formato',
-    priceRange: { min: 5000, max: 25000 },
+    id: 'starter-pack-plus',
+    name: 'Starter Pack Plus',
+    description: 'Monitores de gran formato para espacios que requieren máximo impacto visual',
     gradient: 'from-emerald-600/20 via-teal-600/10 to-transparent',
     accentColor: 'hsl(160, 70%, 50%)',
     subPacks: [
       {
-        id: 'led-interior-small',
-        name: 'Pack LED Interior S',
-        size: '2m² - 4m²',
-        priceMin: 5000,
-        priceMax: 9000,
+        id: 'pack-65',
+        name: 'Pack 65"',
+        size: '65 pulgadas',
         features: [
-          'Pantalla LED P2.5 alta definición',
-          'Estructura de montaje incluida',
-          'Controlador de video',
-          'Instalación profesional',
+          'Monitor profesional de 65"',
+          'Soporte de pared incluido',
+          'Puesta en marcha',
+          'Posibilidad de añadir monitores adicionales',
         ],
       },
       {
-        id: 'led-interior-medium',
-        name: 'Pack LED Interior M',
-        size: '4m² - 8m²',
-        priceMin: 9000,
-        priceMax: 16000,
+        id: 'pack-75',
+        name: 'Pack 75"',
+        size: '75 pulgadas',
         features: [
-          'Pantalla LED P2.5/P3 premium',
-          'Estructura modular adaptable',
-          'Sistema de control avanzado',
-          'Software de gestión incluido',
-          'Instalación y formación',
+          'Monitor profesional de 75"',
+          'Soporte de pared incluido',
+          'Puesta en marcha',
+          'Posibilidad de añadir monitores adicionales',
         ],
       },
       {
-        id: 'led-interior-large',
-        name: 'Pack LED Interior L',
-        size: '8m² - 16m²',
-        priceMin: 16000,
-        priceMax: 25000,
+        id: 'pack-86',
+        name: 'Pack 86"',
+        size: '86 pulgadas',
         features: [
-          'Pantalla LED P2.5 broadcast quality',
-          'Estructura personalizada',
-          'Procesador de video profesional',
-          'Gestión de contenidos cloud',
-          'Instalación llave en mano',
-          'Mantenimiento anual incluido',
+          'Monitor profesional de 86"',
+          'Soporte de pared incluido',
+          'Puesta en marcha',
+          'Posibilidad de añadir monitores adicionales',
+        ],
+      },
+      {
+        id: 'pack-98',
+        name: 'Pack 98"',
+        size: '98 pulgadas',
+        features: [
+          'Monitor profesional de 98"',
+          'Soporte de pared incluido',
+          'Puesta en marcha',
+          'Posibilidad de añadir monitores adicionales',
         ],
       },
     ],
   },
 ];
-
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price);
-};
 
 const Catalogo = () => {
   const [expandedPack, setExpandedPack] = useState<string | null>(packsData[0].id);
@@ -190,7 +158,7 @@ const Catalogo = () => {
             </h1>
             <p className="section-description max-w-2xl">
               Packs diseñados para maximizar el impacto visual de tu negocio. 
-              Cada solución incluye hardware, instalación y soporte.
+              Cada solución incluye monitor, soporte y puesta en marcha.
             </p>
           </motion.div>
 
@@ -232,10 +200,12 @@ const Catalogo = () => {
                         {pack.description}
                       </p>
                     </div>
-                    <div className="text-right shrink-0 ml-4">
-                      <div className="font-mono text-xs text-muted-foreground mb-1">Desde</div>
-                      <div className="font-mono text-lg lg:text-xl font-medium text-foreground">
-                        {formatPrice(pack.priceRange.min)}
+                    <div className="shrink-0 ml-4">
+                      <div 
+                        className="w-12 h-12 rounded-lg flex items-center justify-center"
+                        style={{ backgroundColor: `${pack.accentColor}20` }}
+                      >
+                        <Monitor className="w-6 h-6" style={{ color: pack.accentColor }} />
                       </div>
                     </div>
                   </div>
@@ -288,9 +258,6 @@ const Catalogo = () => {
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="font-mono text-sm text-foreground/80">
-                                    {formatPrice(subPack.priceMin)} - {formatPrice(subPack.priceMax)}
-                                  </div>
                                 </div>
 
                                 {/* Sub-pack Features */}
@@ -318,13 +285,15 @@ const Catalogo = () => {
                                             </div>
                                           ))}
                                         </div>
-                                        <Button 
-                                          variant="outline" 
-                                          size="sm" 
-                                          className="mt-4 font-mono text-xs"
-                                        >
-                                          Solicitar presupuesto
-                                        </Button>
+                                        <Link to="/#contacto">
+                                          <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="mt-4 font-mono text-xs"
+                                          >
+                                            Solicitar presupuesto
+                                          </Button>
+                                        </Link>
                                       </div>
                                     </motion.div>
                                   )}
