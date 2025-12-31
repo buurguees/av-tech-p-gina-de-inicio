@@ -16,6 +16,8 @@ interface Pack {
   id: string;
   name: string;
   description: string;
+  priceMin: number;
+  priceMax: number;
   subPacks: SubPack[];
   gradient: string;
   accentColor: string;
@@ -27,6 +29,8 @@ const packsData: Pack[] = [
     id: 'starter-pack',
     name: 'Starter Pack',
     description: 'Solución ideal para comenzar a digitalizar tu espacio con monitores profesionales de alta calidad',
+    priceMin: 1099,
+    priceMax: 1199,
     gradient: 'from-blue-600/20 via-indigo-600/10 to-transparent',
     accentColor: 'hsl(220, 70%, 60%)',
     subPacks: [
@@ -58,6 +62,8 @@ const packsData: Pack[] = [
     id: 'starter-pack-plus',
     name: 'Starter Pack Plus',
     description: 'Monitores de gran formato para espacios que requieren máximo impacto visual',
+    priceMin: 1599,
+    priceMax: 7099,
     gradient: 'from-emerald-600/20 via-teal-600/10 to-transparent',
     accentColor: 'hsl(160, 70%, 50%)',
     subPacks: [
@@ -196,13 +202,19 @@ const Catalogo = () => {
                 <div className="relative z-10 p-6 lg:p-8">
                   {/* Pack Header */}
                   <div className="flex items-start justify-between mb-4">
-                    <div>
+                    <div className="flex-1">
                       <h2 className="font-mono text-xl lg:text-2xl font-medium text-foreground mb-2">
                         {pack.name}
                       </h2>
-                      <p className="font-mono text-sm text-muted-foreground max-w-md">
+                      <p className="font-mono text-sm text-muted-foreground max-w-md mb-3">
                         {pack.description}
                       </p>
+                      <div className="font-mono text-sm">
+                        <span className="text-muted-foreground">Desde </span>
+                        <span className="text-foreground font-medium">{pack.priceMin.toLocaleString('es-ES')}€</span>
+                        <span className="text-muted-foreground"> hasta </span>
+                        <span className="text-foreground font-medium">{pack.priceMax.toLocaleString('es-ES')}€</span>
+                      </div>
                     </div>
                     <div className="shrink-0 ml-4">
                       <div 
