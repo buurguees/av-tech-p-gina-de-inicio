@@ -138,7 +138,7 @@ const otrosPacksData: Pack[] = [
   {
     id: 'pack-led-pro',
     name: 'LED Pro',
-    description: 'Pantallas LED de alto impacto para eventos, retail y espacios de gran formato',
+    description: 'Pantallas LED de alto impacto para los más atrevidos',
     comingSoon: true,
     gradient: 'from-rose-600/20 via-orange-600/10 to-transparent',
     accentColor: 'hsl(350, 70%, 55%)',
@@ -147,7 +147,7 @@ const otrosPacksData: Pack[] = [
   {
     id: 'pack-signage-360',
     name: 'Signage 360',
-    description: 'Soluciones completas de cartelería digital para comunicación corporativa y retail',
+    description: 'Soluciones completas de cartelería digital para quienes quieren dar un paso más allá',
     comingSoon: true,
     gradient: 'from-violet-600/20 via-purple-600/10 to-transparent',
     accentColor: 'hsl(270, 70%, 60%)',
@@ -202,7 +202,7 @@ const PackCard = ({
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`relative overflow-hidden rounded-lg border transition-all duration-500 ${
+      className={`relative overflow-hidden rounded-lg border transition-all duration-500 min-h-[200px] ${
         pack.comingSoon 
           ? 'border-border/30 bg-secondary/10 cursor-default'
           : isExpanded 
