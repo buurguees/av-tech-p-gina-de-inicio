@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check, ChevronRight, Monitor } from 'lucide-react';
+import { ArrowLeft, Check, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
@@ -16,48 +16,16 @@ interface Pack {
   id: string;
   name: string;
   description: string;
-  priceMin: number;
-  priceMax: number;
+  priceMin?: number;
+  priceMax?: number;
+  comingSoon?: boolean;
   subPacks: SubPack[];
   gradient: string;
   accentColor: string;
 }
 
-// Datos reales
-const packsData: Pack[] = [
-  {
-    id: 'starter-pack',
-    name: 'Starter Pack',
-    description: 'Solución ideal para comenzar a digitalizar tu espacio con monitores profesionales de alta calidad',
-    priceMin: 1099,
-    priceMax: 1199,
-    gradient: 'from-blue-600/20 via-indigo-600/10 to-transparent',
-    accentColor: 'hsl(220, 70%, 60%)',
-    subPacks: [
-      {
-        id: 'pack-49',
-        name: 'Pack 49"',
-        size: '49 pulgadas',
-        features: [
-          'Monitor profesional de 49"',
-          'Soporte de pared incluido',
-          'Puesta en marcha',
-          'Posibilidad de añadir monitores adicionales',
-        ],
-      },
-      {
-        id: 'pack-55',
-        name: 'Pack 55"',
-        size: '55 pulgadas',
-        features: [
-          'Monitor profesional de 55"',
-          'Soporte de pared incluido',
-          'Puesta en marcha',
-          'Posibilidad de añadir monitores adicionales',
-        ],
-      },
-    ],
-  },
+// Columna izquierda: Monitores
+const monitoresData: Pack[] = [
   {
     id: 'starter-pack-plus',
     name: 'Starter Pack Plus',
@@ -113,7 +81,237 @@ const packsData: Pack[] = [
       },
     ],
   },
+  {
+    id: 'starter-pack',
+    name: 'Starter Pack',
+    description: 'Solución ideal para comenzar a digitalizar tu espacio con monitores profesionales de alta calidad',
+    priceMin: 1099,
+    priceMax: 1199,
+    gradient: 'from-blue-600/20 via-indigo-600/10 to-transparent',
+    accentColor: 'hsl(220, 70%, 60%)',
+    subPacks: [
+      {
+        id: 'pack-49',
+        name: 'Pack 49"',
+        size: '49 pulgadas',
+        features: [
+          'Monitor profesional de 49"',
+          'Soporte de pared incluido',
+          'Puesta en marcha',
+          'Posibilidad de añadir monitores adicionales',
+        ],
+      },
+      {
+        id: 'pack-55',
+        name: 'Pack 55"',
+        size: '55 pulgadas',
+        features: [
+          'Monitor profesional de 55"',
+          'Soporte de pared incluido',
+          'Puesta en marcha',
+          'Posibilidad de añadir monitores adicionales',
+        ],
+      },
+    ],
+  },
 ];
+
+// Columna derecha: LED y Cartelería
+const otrosPacksData: Pack[] = [
+  {
+    id: 'pack-led-pro',
+    name: 'LED Pro',
+    description: 'Pantallas LED de alto impacto para eventos, retail y espacios de gran formato',
+    comingSoon: true,
+    gradient: 'from-rose-600/20 via-orange-600/10 to-transparent',
+    accentColor: 'hsl(350, 70%, 55%)',
+    subPacks: [],
+  },
+  {
+    id: 'pack-signage-360',
+    name: 'Signage 360',
+    description: 'Soluciones completas de cartelería digital para comunicación corporativa y retail',
+    comingSoon: true,
+    gradient: 'from-violet-600/20 via-purple-600/10 to-transparent',
+    accentColor: 'hsl(270, 70%, 60%)',
+    subPacks: [],
+  },
+];
+
+// Componente de Pack reutilizable
+const PackCard = ({ 
+  pack, 
+  expandedPack, 
+  selectedSubPack, 
+  onPackEnter, 
+  onPackLeave, 
+  onSubPackClick 
+}: { 
+  pack: Pack;
+  expandedPack: string | null;
+  selectedSubPack: string | null;
+  onPackEnter: (id: string) => void;
+  onPackLeave: () => void;
+  onSubPackClick: (id: string) => void;
+}) => {
+  const isExpanded = expandedPack === pack.id;
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      onMouseEnter={() => !pack.comingSoon && onPackEnter(pack.id)}
+      onMouseLeave={onPackLeave}
+      className={`relative overflow-hidden rounded-lg border transition-all duration-500 ${
+        pack.comingSoon 
+          ? 'border-border/30 bg-secondary/10 cursor-default'
+          : isExpanded 
+            ? 'border-foreground/30 bg-secondary/50 cursor-pointer' 
+            : 'border-border/50 bg-secondary/20 hover:border-border cursor-pointer'
+      }`}
+    >
+      {/* Gradient Background */}
+      <div 
+        className={`absolute inset-0 bg-gradient-to-br ${pack.gradient} transition-opacity duration-500 ${
+          isExpanded ? 'opacity-100' : 'opacity-30'
+        }`}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 p-6 lg:p-8">
+        {/* Pack Header */}
+        <div className="mb-4">
+          <div className="flex items-center gap-3 mb-2">
+            <h2 className="font-mono text-xl lg:text-2xl font-medium text-foreground">
+              {pack.name}
+            </h2>
+            {pack.comingSoon && (
+              <span className="px-2 py-1 text-xs font-mono uppercase tracking-wider rounded bg-muted text-muted-foreground">
+                Próximamente
+              </span>
+            )}
+          </div>
+          <p className="font-mono text-sm text-muted-foreground max-w-md mb-3">
+            {pack.description}
+          </p>
+          {pack.priceMin && pack.priceMax && (
+            <div className="font-mono text-sm">
+              <span className="text-muted-foreground">Desde </span>
+              <span className="text-foreground font-medium">{pack.priceMin.toLocaleString('es-ES')}€</span>
+              <span className="text-muted-foreground"> hasta </span>
+              <span className="text-foreground font-medium">{pack.priceMax.toLocaleString('es-ES')}€</span>
+            </div>
+          )}
+        </div>
+
+        {/* Expanded Content */}
+        <AnimatePresence mode="wait">
+          {isExpanded && pack.subPacks.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="pt-6 border-t border-border/30 mt-4">
+                <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-4">
+                  Opciones disponibles
+                </div>
+                
+                {/* Sub-packs */}
+                <div className="space-y-3">
+                  {pack.subPacks.map((subPack) => (
+                    <motion.div
+                      key={subPack.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                      onClick={() => onSubPackClick(subPack.id)}
+                      className={`group p-4 rounded-md border transition-all duration-300 cursor-pointer ${
+                        selectedSubPack === subPack.id
+                          ? 'border-foreground/40 bg-foreground/5'
+                          : 'border-border/30 hover:border-border/60 bg-background/30'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <ChevronRight 
+                            className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${
+                              selectedSubPack === subPack.id ? 'rotate-90' : ''
+                            }`}
+                          />
+                          <div>
+                            <div className="font-mono text-sm font-medium text-foreground">
+                              {subPack.name}
+                            </div>
+                            <div className="font-mono text-xs text-muted-foreground">
+                              {subPack.size}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Sub-pack Features */}
+                      <AnimatePresence>
+                        {selectedSubPack === subPack.id && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pt-4 mt-4 border-t border-border/20">
+                              <div className="grid gap-2">
+                                {subPack.features.map((feature, i) => (
+                                  <div 
+                                    key={i}
+                                    className="flex items-center gap-2 font-mono text-xs text-muted-foreground"
+                                  >
+                                    <Check 
+                                      className="w-3 h-3 shrink-0" 
+                                      style={{ color: pack.accentColor }}
+                                    />
+                                    {feature}
+                                  </div>
+                                ))}
+                              </div>
+                              <Link to="/#contacto">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="mt-4 font-mono text-xs"
+                                >
+                                  Solicitar presupuesto
+                                </Button>
+                              </Link>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Collapsed Indicator */}
+        {!isExpanded && !pack.comingSoon && pack.subPacks.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-border/20">
+            <div className="font-mono text-xs text-muted-foreground flex items-center gap-2">
+              <span>Hover para ver opciones</span>
+              <ChevronRight className="w-3 h-3" />
+            </div>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
 
 const Catalogo = () => {
   const [expandedPack, setExpandedPack] = useState<string | null>(null);
@@ -127,6 +325,10 @@ const Catalogo = () => {
   const handlePackLeave = () => {
     setExpandedPack(null);
     setSelectedSubPack(null);
+  };
+
+  const handleSubPackClick = (subPackId: string) => {
+    setSelectedSubPack(selectedSubPack === subPackId ? null : subPackId);
   };
 
   return (
@@ -167,173 +369,47 @@ const Catalogo = () => {
             </h1>
             <p className="section-description max-w-2xl">
               Packs diseñados para maximizar el impacto visual de tu negocio. 
-              Cada solución incluye monitor, soporte y puesta en marcha.
+              Cada solución incluye hardware, instalación y puesta en marcha.
             </p>
           </motion.div>
 
-          {/* Packs Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-start">
-            {packsData.map((pack, index) => (
-              <motion.div
-                key={pack.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ 
-                  duration: 0.5, 
-                  delay: 0.1 * index,
-                  ease: [0.22, 1, 0.36, 1] 
-                }}
-                onMouseEnter={() => handlePackEnter(pack.id)}
-                onMouseLeave={handlePackLeave}
-                className={`relative overflow-hidden rounded-lg border transition-all duration-500 cursor-pointer ${
-                  expandedPack === pack.id 
-                    ? 'border-foreground/30 bg-secondary/50' 
-                    : 'border-border/50 bg-secondary/20 hover:border-border'
-                }`}
-              >
-                {/* Gradient Background */}
-                <div 
-                  className={`absolute inset-0 bg-gradient-to-br ${pack.gradient} opacity-50 transition-opacity duration-500 ${
-                    expandedPack === pack.id ? 'opacity-100' : 'opacity-30'
-                  }`}
+          {/* Packs Grid - 2 columnas */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+            {/* Columna Izquierda: Monitores */}
+            <div className="space-y-4">
+              <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-4">
+                Monitores Profesionales
+              </div>
+              {monitoresData.map((pack) => (
+                <PackCard
+                  key={pack.id}
+                  pack={pack}
+                  expandedPack={expandedPack}
+                  selectedSubPack={selectedSubPack}
+                  onPackEnter={handlePackEnter}
+                  onPackLeave={handlePackLeave}
+                  onSubPackClick={handleSubPackClick}
                 />
+              ))}
+            </div>
 
-                {/* Content */}
-                <div className="relative z-10 p-6 lg:p-8">
-                  {/* Pack Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h2 className="font-mono text-xl lg:text-2xl font-medium text-foreground mb-2">
-                        {pack.name}
-                      </h2>
-                      <p className="font-mono text-sm text-muted-foreground max-w-md mb-3">
-                        {pack.description}
-                      </p>
-                      <div className="font-mono text-sm">
-                        <span className="text-muted-foreground">Desde </span>
-                        <span className="text-foreground font-medium">{pack.priceMin.toLocaleString('es-ES')}€</span>
-                        <span className="text-muted-foreground"> hasta </span>
-                        <span className="text-foreground font-medium">{pack.priceMax.toLocaleString('es-ES')}€</span>
-                      </div>
-                    </div>
-                    <div className="shrink-0 ml-4">
-                      <div 
-                        className="w-12 h-12 rounded-lg flex items-center justify-center"
-                        style={{ backgroundColor: `${pack.accentColor}20` }}
-                      >
-                        <Monitor className="w-6 h-6" style={{ color: pack.accentColor }} />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Expanded Content */}
-                  <AnimatePresence mode="wait">
-                    {expandedPack === pack.id && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pt-6 border-t border-border/30 mt-4">
-                          <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-4">
-                            Opciones disponibles
-                          </div>
-                          
-                          {/* Sub-packs */}
-                          <div className="space-y-3">
-                            {pack.subPacks.map((subPack) => (
-                              <motion.div
-                                key={subPack.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.3 }}
-                                onClick={() => setSelectedSubPack(
-                                  selectedSubPack === subPack.id ? null : subPack.id
-                                )}
-                                className={`group p-4 rounded-md border transition-all duration-300 cursor-pointer ${
-                                  selectedSubPack === subPack.id
-                                    ? 'border-foreground/40 bg-foreground/5'
-                                    : 'border-border/30 hover:border-border/60 bg-background/30'
-                                }`}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <ChevronRight 
-                                      className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${
-                                        selectedSubPack === subPack.id ? 'rotate-90' : ''
-                                      }`}
-                                    />
-                                    <div>
-                                      <div className="font-mono text-sm font-medium text-foreground">
-                                        {subPack.name}
-                                      </div>
-                                      <div className="font-mono text-xs text-muted-foreground">
-                                        {subPack.size}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Sub-pack Features */}
-                                <AnimatePresence>
-                                  {selectedSubPack === subPack.id && (
-                                    <motion.div
-                                      initial={{ opacity: 0, height: 0 }}
-                                      animate={{ opacity: 1, height: 'auto' }}
-                                      exit={{ opacity: 0, height: 0 }}
-                                      transition={{ duration: 0.3 }}
-                                      className="overflow-hidden"
-                                    >
-                                      <div className="pt-4 mt-4 border-t border-border/20">
-                                        <div className="grid gap-2">
-                                          {subPack.features.map((feature, i) => (
-                                            <div 
-                                              key={i}
-                                              className="flex items-center gap-2 font-mono text-xs text-muted-foreground"
-                                            >
-                                              <Check 
-                                                className="w-3 h-3 shrink-0" 
-                                                style={{ color: pack.accentColor }}
-                                              />
-                                              {feature}
-                                            </div>
-                                          ))}
-                                        </div>
-                                        <Link to="/#contacto">
-                                          <Button 
-                                            variant="outline" 
-                                            size="sm" 
-                                            className="mt-4 font-mono text-xs"
-                                          >
-                                            Solicitar presupuesto
-                                          </Button>
-                                        </Link>
-                                      </div>
-                                    </motion.div>
-                                  )}
-                                </AnimatePresence>
-                              </motion.div>
-                            ))}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Collapsed Indicator */}
-                  {expandedPack !== pack.id && (
-                    <div className="mt-4 pt-4 border-t border-border/20">
-                      <div className="font-mono text-xs text-muted-foreground flex items-center gap-2">
-                        <span>Hover para ver opciones</span>
-                        <ChevronRight className="w-3 h-3" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+            {/* Columna Derecha: LED y Cartelería */}
+            <div className="space-y-4">
+              <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-4">
+                Soluciones Especiales
+              </div>
+              {otrosPacksData.map((pack) => (
+                <PackCard
+                  key={pack.id}
+                  pack={pack}
+                  expandedPack={expandedPack}
+                  selectedSubPack={selectedSubPack}
+                  onPackEnter={handlePackEnter}
+                  onPackLeave={handlePackLeave}
+                  onSubPackClick={handleSubPackClick}
+                />
+              ))}
+            </div>
           </div>
 
           {/* CTA Section */}
