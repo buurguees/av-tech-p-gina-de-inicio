@@ -1,8 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+
+// Importar imágenes para el carrusel de fondo
+import catalogImage1 from '@/assets/catalog/pantalla-led-interior.png';
+import catalogImage2 from '@/assets/catalog/mupys-led.png';
+import catalogImage3 from '@/assets/catalog/totem-lcd.png';
+import catalogImage4 from '@/assets/catalog/lcd-techo.png';
+import project5 from '@/assets/projects/project-5.png';
+import project7 from '@/assets/projects/project-7.jpg';
+
+const backgroundImages = [
+  catalogImage1,
+  catalogImage2,
+  catalogImage3,
+  catalogImage4,
+  project5,
+  project7,
+];
 
 // Tipos
 interface SubPack {
@@ -316,6 +333,15 @@ const PackCard = ({
 const Catalogo = () => {
   const [expandedPack, setExpandedPack] = useState<string | null>(null);
   const [selectedSubPack, setSelectedSubPack] = useState<string | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Auto-rotate background images
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, []);
 
   const handlePackEnter = (packId: string) => {
     setExpandedPack(packId);
@@ -332,7 +358,34 @@ const Catalogo = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Background Carousel */}
+      <div className="fixed inset-0 z-0">
+        <AnimatePresence mode="sync">
+          <motion.img
+            key={currentImageIndex}
+            src={backgroundImages[currentImageIndex]}
+            alt="Fondo catálogo"
+            className="absolute inset-0 w-full h-full object-cover"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2.5, ease: "easeInOut" }}
+          />
+        </AnimatePresence>
+        
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-background/85" />
+        
+        {/* Gradient overlays */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'radial-gradient(ellipse at center, transparent 0%, hsl(var(--background)) 70%)'
+          }}
+        />
+      </div>
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16 py-4">
@@ -352,7 +405,7 @@ const Catalogo = () => {
       </header>
 
       {/* Main Content */}
-      <main className="pt-24 pb-16">
+      <main className="relative z-10 pt-24 pb-16">
         <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16">
           {/* Hero Section */}
           <motion.div
