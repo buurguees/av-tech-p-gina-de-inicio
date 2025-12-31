@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import comoTrabajamosVisual from '@/assets/como-trabajamos-visual.png';
 import visionVideo from '@/assets/vision-video.mp4';
 import logoAvtech from '@/assets/logos/Logto_AVETCH_Simple_Fondo_Negro_Logo_Blanco.png';
