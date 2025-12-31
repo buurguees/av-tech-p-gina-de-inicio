@@ -110,7 +110,7 @@ const packsData: Pack[] = [
 ];
 
 const Catalogo = () => {
-  const [expandedPack, setExpandedPack] = useState<string | null>(packsData[0].id);
+  const [expandedPack, setExpandedPack] = useState<string | null>(null);
   const [selectedSubPack, setSelectedSubPack] = useState<string | null>(null);
 
   const handlePackHover = (packId: string) => {
