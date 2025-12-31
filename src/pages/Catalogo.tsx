@@ -162,24 +162,46 @@ const PackCard = ({
   selectedSubPack, 
   onPackEnter, 
   onPackLeave, 
-  onSubPackClick 
+  onPackClick,
+  onSubPackClick,
+  isMobile
 }: { 
   pack: Pack;
   expandedPack: string | null;
   selectedSubPack: string | null;
   onPackEnter: (id: string) => void;
   onPackLeave: () => void;
+  onPackClick: (id: string) => void;
   onSubPackClick: (id: string) => void;
+  isMobile: boolean;
 }) => {
   const isExpanded = expandedPack === pack.id;
+
+  const handleClick = () => {
+    if (pack.comingSoon) return;
+    if (isMobile) {
+      onPackClick(pack.id);
+    }
+  };
+
+  const handleMouseEnter = () => {
+    if (pack.comingSoon || isMobile) return;
+    onPackEnter(pack.id);
+  };
+
+  const handleMouseLeave = () => {
+    if (isMobile) return;
+    onPackLeave();
+  };
   
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      onMouseEnter={() => !pack.comingSoon && onPackEnter(pack.id)}
-      onMouseLeave={onPackLeave}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className={`relative overflow-hidden rounded-lg border transition-all duration-500 ${
         pack.comingSoon 
           ? 'border-border/30 bg-secondary/10 cursor-default'
@@ -320,7 +342,7 @@ const PackCard = ({
         {!isExpanded && !pack.comingSoon && pack.subPacks.length > 0 && (
           <div className="mt-4 pt-4 border-t border-border/20">
             <div className="font-mono text-xs text-muted-foreground flex items-center gap-2">
-              <span>Hover para ver opciones</span>
+              <span>{isMobile ? 'Toca para ver opciones' : 'Hover para ver opciones'}</span>
               <ChevronRight className="w-3 h-3" />
             </div>
           </div>
@@ -334,6 +356,15 @@ const Catalogo = () => {
   const [expandedPack, setExpandedPack] = useState<string | null>(null);
   const [selectedSubPack, setSelectedSubPack] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Auto-rotate background images
   useEffect(() => {
@@ -350,6 +381,11 @@ const Catalogo = () => {
 
   const handlePackLeave = () => {
     setExpandedPack(null);
+    setSelectedSubPack(null);
+  };
+
+  const handlePackClick = (packId: string) => {
+    setExpandedPack(expandedPack === packId ? null : packId);
     setSelectedSubPack(null);
   };
 
@@ -441,7 +477,9 @@ const Catalogo = () => {
                   selectedSubPack={selectedSubPack}
                   onPackEnter={handlePackEnter}
                   onPackLeave={handlePackLeave}
+                  onPackClick={handlePackClick}
                   onSubPackClick={handleSubPackClick}
+                  isMobile={isMobile}
                 />
               ))}
             </div>
@@ -459,7 +497,9 @@ const Catalogo = () => {
                   selectedSubPack={selectedSubPack}
                   onPackEnter={handlePackEnter}
                   onPackLeave={handlePackLeave}
+                  onPackClick={handlePackClick}
                   onSubPackClick={handleSubPackClick}
+                  isMobile={isMobile}
                 />
               ))}
             </div>
