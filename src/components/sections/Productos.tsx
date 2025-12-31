@@ -46,12 +46,12 @@ const Productos = () => {
               Catálogo
             </div>
             <h2 className="section-title">
-              <span className="section-title-primary">Soluciones diseñadas</span>
+              <span className="section-title-primary">Tu marca brillando</span>
               <br />
-              <span className="section-title-secondary">para tu espacio</span>
+              <span className="section-title-secondary">donde más importa</span>
             </h2>
             <p className="section-description mt-4">
-              Packs audiovisuales que convierten pantallas en herramientas de comunicación real: pantallas LED, tótems LCD, mupis digitales y sistemas de cartelería diseñados para atraer miradas y generar impacto continuo.
+              Cada mirada cuenta. Cada rincón es una oportunidad. Pantallas LED, tótems digitales y cartelería inteligente que convierten espacios olvidados en experiencias visuales imposibles de ignorar. No es tecnología. Es tu negocio trabajando 24/7.
             </p>
           </motion.div>
 
@@ -84,7 +84,7 @@ const Productos = () => {
             <div className="absolute bottom-8 left-6 right-6 z-10">
               <Link to="/catalogo" className="block">
                 <Button variant="catalog" size="lg" className="group w-full">
-                  Ver catálogo
+                  Descubre tu solución
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
@@ -134,12 +134,12 @@ const Productos = () => {
               Catálogo
             </div>
             <h2 className="section-title max-w-3xl ml-auto">
-              <span className="section-title-primary">Soluciones diseñadas</span>
+              <span className="section-title-primary">Tu marca brillando</span>
               <br />
-              <span className="section-title-secondary">para tu espacio</span>
+              <span className="section-title-secondary">donde más importa</span>
             </h2>
             <p className="section-description mt-4 ml-auto">
-              Packs audiovisuales que convierten pantallas en herramientas de comunicación real: pantallas LED, tótems LCD, mupis digitales y sistemas de cartelería diseñados para atraer miradas y generar impacto continuo.
+              Cada mirada cuenta. Cada rincón es una oportunidad. Pantallas LED, tótems digitales y cartelería inteligente que convierten espacios olvidados en experiencias visuales imposibles de ignorar. No es tecnología. Es tu negocio trabajando 24/7.
             </p>
             
             <motion.div
@@ -151,7 +151,7 @@ const Productos = () => {
             >
               <Link to="/catalogo">
                 <Button variant="catalog" size="lg" className="group">
-                  Ver catálogo
+                  Descubre tu solución
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
