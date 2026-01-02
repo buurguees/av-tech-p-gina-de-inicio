@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronRight, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
 import { ContactFormDialog } from '@/components/ContactFormDialog';
 // Importar imágenes para el carrusel de fondo
@@ -495,11 +495,13 @@ const Productos = () => {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="mt-12 text-center"
         >
-          <Link to="/catalogo">
-            <Button variant="catalog" size="lg" className="font-mono">
-              Ver catálogo completo
-            </Button>
-          </Link>
+          <ContactFormDialog
+            trigger={
+              <Button variant="catalog" size="lg" className="font-mono">
+                Solicita Presupuesto
+              </Button>
+            }
+          />
         </motion.div>
       </div>
     </section>
