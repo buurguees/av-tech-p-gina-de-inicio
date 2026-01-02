@@ -7,7 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
-import Catalogo from "./pages/Catalogo";
+
 import NexoLogin from "./pages/nexo_av/Login";
 
 const queryClient = new QueryClient();
@@ -21,7 +21,7 @@ const App = () => (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/catalogo" element={<Catalogo />} />
+            
             <Route path="/privacidad" element={<PrivacyPolicy />} />
             <Route path="/terminos" element={<TermsAndConditions />} />
             {/* NEXO AV Routes */}
