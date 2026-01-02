@@ -34,8 +34,6 @@ interface Pack {
   name: string;
   description: string;
   secondaryDescription?: string;
-  priceMin?: number;
-  priceMax?: number;
   comingSoon?: boolean;
   subPacks: SubPack[];
   gradient: string;
@@ -49,8 +47,6 @@ const monitoresData: Pack[] = [
     name: 'Starter Pack Plus',
     description: 'Más tamaño. Más impacto. Más presencia.',
     secondaryDescription: 'Ideal para escaparates, zonas de paso, showrooms y espacios de alto tráfico.',
-    priceMin: 1599,
-    priceMax: 7099,
     gradient: 'from-emerald-600/20 via-teal-600/10 to-transparent',
     accentColor: 'hsl(160, 70%, 50%)',
     subPacks: [
@@ -105,8 +101,6 @@ const monitoresData: Pack[] = [
     name: 'Starter Pack',
     description: 'La forma más sencilla de empezar a destacar',
     secondaryDescription: 'Perfecto para tiendas, oficinas, centros de atención al cliente y espacios corporativos.',
-    priceMin: 1099,
-    priceMax: 1199,
     gradient: 'from-blue-600/20 via-indigo-600/10 to-transparent',
     accentColor: 'hsl(220, 70%, 60%)',
     subPacks: [
@@ -143,7 +137,6 @@ const otrosPacksData: Pack[] = [
     name: 'LED Pro',
     description: 'Cuando tu espacio necesita algo más que una pantalla',
     secondaryDescription: 'Para proyectos ambiciosos, marcas atrevidas y espacios que quieren marcar diferencia.',
-    priceMin: 5999,
     comingSoon: true,
     gradient: 'from-rose-600/20 via-orange-600/10 to-transparent',
     accentColor: 'hsl(350, 70%, 55%)',
@@ -154,7 +147,6 @@ const otrosPacksData: Pack[] = [
     name: 'Signage 360',
     description: 'La comunicación visual, totalmente integrada',
     secondaryDescription: 'Ideal para franquicias, cadenas, gimnasios y negocios en crecimiento.',
-    priceMin: 4999,
     comingSoon: true,
     gradient: 'from-violet-600/20 via-purple-600/10 to-transparent',
     accentColor: 'hsl(270, 70%, 60%)',
@@ -238,21 +230,9 @@ const PackCard = ({
               </span>
             )}
           </div>
-          <p className="font-mono text-sm text-muted-foreground max-w-md mb-1">
+          <p className="font-mono text-sm text-muted-foreground max-w-md mb-2">
             {pack.description}
           </p>
-          {pack.priceMin && (
-            <div className="font-mono text-sm mb-2">
-              <span className="text-muted-foreground">Desde </span>
-              <span className="text-foreground font-medium">{pack.priceMin.toLocaleString('es-ES')}€</span>
-              {pack.priceMax && (
-                <>
-                  <span className="text-muted-foreground"> hasta </span>
-                  <span className="text-foreground font-medium">{pack.priceMax.toLocaleString('es-ES')}€</span>
-                </>
-              )}
-            </div>
-          )}
           {pack.secondaryDescription && (
             <p className="font-mono text-xs text-muted-foreground/70 max-w-md">
               {pack.secondaryDescription}
