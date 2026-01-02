@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronRight, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-
+import { ContactFormDialog } from '@/components/ContactFormDialog';
 // Importar imágenes para el carrusel de fondo
 import catalogImage1 from '@/assets/catalog/pantalla-led-interior.png';
 import catalogImage2 from '@/assets/catalog/mupys-led.png';
@@ -308,15 +308,17 @@ const PackExpanded = ({
                               </div>
                             ))}
                           </div>
-                          <Link to="/#contacto">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="mt-3 font-mono text-xs"
-                            >
-                              Solicitar presupuesto
-                            </Button>
-                          </Link>
+                          <ContactFormDialog
+                            trigger={
+                              <Button 
+                                variant="catalog" 
+                                size="sm" 
+                                className="mt-3 font-mono text-xs"
+                              >
+                                Solicitar presupuesto
+                              </Button>
+                            }
+                          />
                         </div>
                       </motion.div>
                     )}
@@ -330,15 +332,17 @@ const PackExpanded = ({
             <p className="font-mono text-sm text-muted-foreground mb-4">
               Solución personalizada según las necesidades de tu proyecto.
             </p>
-            <Link to="/#contacto">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="font-mono text-xs"
-              >
-                Solicitar información
-              </Button>
-            </Link>
+            <ContactFormDialog
+              trigger={
+                <Button 
+                  variant="catalog" 
+                  size="sm" 
+                  className="font-mono text-xs"
+                >
+                  Solicitar información
+                </Button>
+              }
+            />
           </div>
         )}
       </div>
@@ -493,7 +497,7 @@ const Productos = () => {
         >
           <Link to="/catalogo">
             <Button variant="catalog" size="lg" className="font-mono">
-              Ver catálogo completo con precios
+              Ver catálogo completo
             </Button>
           </Link>
         </motion.div>

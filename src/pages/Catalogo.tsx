@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-
+import { ContactFormDialog } from '@/components/ContactFormDialog';
 // Importar imágenes para el carrusel de fondo
 import catalogImage1 from '@/assets/catalog/pantalla-led-interior.png';
 import catalogImage2 from '@/assets/catalog/mupys-led.png';
@@ -313,15 +313,17 @@ const PackCard = ({
                                   </div>
                                 ))}
                               </div>
-                              <Link to="/#contacto">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="mt-4 font-mono text-xs"
-                                >
-                                  Solicitar presupuesto
-                                </Button>
-                              </Link>
+                              <ContactFormDialog
+                                trigger={
+                                  <Button 
+                                    variant="catalog" 
+                                    size="sm" 
+                                    className="mt-4 font-mono text-xs"
+                                  >
+                                    Solicitar presupuesto
+                                  </Button>
+                                }
+                              />
                             </div>
                           </motion.div>
                         )}
@@ -502,11 +504,13 @@ const Catalogo = () => {
             <p className="font-mono text-sm text-muted-foreground mb-4">
               ¿Necesitas una solución personalizada?
             </p>
-            <Link to="/#contacto">
-              <Button variant="default" size="lg" className="font-mono">
-                Contactar
-              </Button>
-            </Link>
+            <ContactFormDialog
+              trigger={
+                <Button variant="catalog" size="lg" className="font-mono">
+                  Contactar
+                </Button>
+              }
+            />
           </motion.div>
         </div>
       </main>
