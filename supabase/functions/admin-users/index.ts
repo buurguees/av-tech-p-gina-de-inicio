@@ -144,7 +144,7 @@ serve(async (req) => {
             full_name,
             phone,
             department,
-            position,
+            job_position,
             is_active,
             created_at,
             last_login_at,
@@ -158,9 +158,11 @@ serve(async (req) => {
 
         if (error) throw error;
 
-        // Transform the data to flatten roles
+        // Transform the data to flatten roles and rename job_position to position for frontend
         const transformedUsers = users?.map(user => ({
           ...user,
+          position: user.job_position, // Map job_position to position for frontend
+          job_position: undefined,
           roles: user.user_roles?.map((ur: any) => ur.role?.name).filter(Boolean) || [],
           user_roles: undefined,
         }));
@@ -242,7 +244,7 @@ serve(async (req) => {
             full_name: userData.full_name,
             phone: userData.phone,
             department: userData.department || 'COMMERCIAL',
-            position: userData.position,
+            job_position: userData.position,
             auth_user_id: authData.user?.id,
             is_active: true,
           })
@@ -313,7 +315,7 @@ serve(async (req) => {
             full_name: userData.full_name,
             phone: userData.phone,
             department: userData.department,
-            position: userData.position,
+            job_position: userData.position,
             is_active: userData.is_active,
           })
           .eq('id', userId);
