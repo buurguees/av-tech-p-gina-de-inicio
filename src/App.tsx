@@ -11,6 +11,7 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 
 import NexoLogin from "./pages/nexo_av/Login";
 import NexoDashboard from "./pages/nexo_av/Dashboard";
+import NexoUsersPage from "./pages/nexo_av/UsersPage";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
             {/* NEXO AV Routes */}
             <Route path="/nexo-av" element={<NexoLogin />} />
             <Route path="/nexo-av/:userId/dashboard" element={<NexoDashboard />} />
+            <Route path="/nexo-av/:userId/users" element={<NexoUsersPage />} />
             {/* Legacy route - redirects to login */}
             <Route path="/nexo-av/dashboard" element={<NexoLogin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
