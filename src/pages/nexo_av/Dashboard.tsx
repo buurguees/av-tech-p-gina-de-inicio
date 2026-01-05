@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +14,7 @@ import {
   Plus,
   Home,
   UserCog,
+  ShieldAlert,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -49,32 +49,55 @@ const NexoLogo = () => (
 );
 
 const Dashboard = () => {
+  const { userId } = useParams<{ userId: string }>();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate('/nexo-av');
-        return;
-      }
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          navigate('/nexo-av');
+          return;
+        }
 
-      // Get user info
-      const { data, error } = await supabase.rpc('get_current_user_info');
-      
-      if (error || !data || data.length === 0) {
-        console.error('Error getting user info:', error);
-        await supabase.auth.signOut();
-        navigate('/nexo-av');
-        return;
-      }
+        // Get user info from internal.authorized_users
+        const { data, error } = await supabase.rpc('get_current_user_info');
+        
+        if (error || !data || data.length === 0) {
+          console.error('Error getting user info:', error);
+          await supabase.auth.signOut();
+          navigate('/nexo-av');
+          return;
+        }
 
-      setUserInfo(data[0] as UserInfo);
-      setLoading(false);
+        const currentUserInfo = data[0] as UserInfo;
+
+        // CRITICAL SECURITY: Verify URL user_id matches authenticated user
+        if (userId && userId !== currentUserInfo.user_id) {
+          console.error('Access denied: URL user_id does not match authenticated user');
+          setAccessDenied(true);
+          setLoading(false);
+          return;
+        }
+
+        // If no userId in URL, redirect to proper URL with user_id
+        if (!userId) {
+          navigate(`/nexo-av/${currentUserInfo.user_id}/dashboard`, { replace: true });
+          return;
+        }
+
+        setUserInfo(currentUserInfo);
+        setLoading(false);
+      } catch (err) {
+        console.error('Auth check error:', err);
+        navigate('/nexo-av');
+      }
     };
 
     checkAuth();
@@ -88,7 +111,7 @@ const Dashboard = () => {
     );
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, userId]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -103,6 +126,25 @@ const Dashboard = () => {
   const isManager = userInfo?.roles?.includes('manager');
   const isSales = userInfo?.roles?.includes('sales');
   const isTech = userInfo?.roles?.includes('tech');
+
+  // Access denied screen
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <ShieldAlert className="h-16 w-16 text-red-500 mx-auto" />
+          <h1 className="text-2xl font-bold text-white">Acceso Denegado</h1>
+          <p className="text-white/60">No tienes permiso para acceder a este recurso.</p>
+          <Button 
+            onClick={() => navigate('/nexo-av')}
+            className="bg-white text-black hover:bg-white/90"
+          >
+            Volver al inicio
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -240,6 +282,7 @@ const Dashboard = () => {
                 isManager={isManager}
                 isSales={isSales}
                 isTech={isTech}
+                userId={userId}
               />
             </TabsContent>
 
@@ -255,6 +298,7 @@ const Dashboard = () => {
             isManager={isManager}
             isSales={isSales}
             isTech={isTech}
+            userId={userId}
           />
         )}
       </main>
@@ -269,7 +313,8 @@ const DashboardContent = ({
   isAdmin, 
   isManager, 
   isSales, 
-  isTech 
+  isTech,
+  userId,
 }: {
   userInfo: UserInfo | null;
   modules: any[];
@@ -277,6 +322,7 @@ const DashboardContent = ({
   isManager: boolean | undefined;
   isSales: boolean | undefined;
   isTech: boolean | undefined;
+  userId: string | undefined;
 }) => {
   return (
     <>

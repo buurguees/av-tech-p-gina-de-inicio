@@ -28,7 +28,9 @@ const App = () => (
             <Route path="/terminos" element={<TermsAndConditions />} />
             {/* NEXO AV Routes */}
             <Route path="/nexo-av" element={<NexoLogin />} />
-            <Route path="/nexo-av/dashboard" element={<NexoDashboard />} />
+            <Route path="/nexo-av/:userId/dashboard" element={<NexoDashboard />} />
+            {/* Legacy route - redirects to login */}
+            <Route path="/nexo-av/dashboard" element={<NexoLogin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
