@@ -60,6 +60,7 @@ const LEAD_STAGES = [
   { value: 'PROPOSAL', label: 'Propuesta', color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' },
   { value: 'NEGOTIATION', label: 'Negociación', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
   { value: 'WON', label: 'Ganado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  { value: 'RECURRING', label: 'Recurrente', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
   { value: 'LOST', label: 'Perdido', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
   { value: 'PAUSED', label: 'Pausado', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
 ];
@@ -77,6 +78,7 @@ const ClientsPage = () => {
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -135,6 +137,7 @@ const ClientsPage = () => {
         }
 
         setCurrentUserId(currentUserInfo.user_id);
+        setIsAdmin(currentUserInfo.roles?.includes('admin') || false);
         setLoading(false);
       } catch (err) {
         console.error('Auth check error:', err);
@@ -343,6 +346,7 @@ const ClientsPage = () => {
           });
         }}
         currentUserId={currentUserId}
+        isAdmin={isAdmin}
       />
     </div>
   );
