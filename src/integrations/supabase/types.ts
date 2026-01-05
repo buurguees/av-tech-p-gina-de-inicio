@@ -40,6 +40,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_current_user_info: {
+        Args: never
+        Returns: {
+          department: "COMMERCIAL" | "TECHNICAL" | "ADMIN" | "DIRECTION"
+          email: string
+          full_name: string
+          roles: string[]
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -62,6 +72,7 @@ export type Database = {
         Returns: string
       }
       is_allowed_domain: { Args: { _email: string }; Returns: boolean }
+      is_email_authorized: { Args: { p_email: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "comercial" | "tecnico"

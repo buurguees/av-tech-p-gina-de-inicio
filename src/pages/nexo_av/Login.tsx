@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, Loader2, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import NexoLoadingScreen from "./components/NexoLoadingScreen";
 
 const NexoLogo = () => (
@@ -28,14 +31,120 @@ const NexoLogo = () => (
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // Verify user is authorized
+        const { data: authorized } = await supabase.rpc('is_email_authorized', {
+          p_email: session.user.email
+        });
+        
+        if (authorized) {
+          navigate('/nexo-av/dashboard');
+        } else {
+          // User is logged in but not authorized
+          await supabase.auth.signOut();
+        }
+      }
+    };
+    
+    checkSession();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          // Verify user is authorized
+          const { data: authorized } = await supabase.rpc('is_email_authorized', {
+            p_email: session.user.email
+          });
+          
+          if (authorized) {
+            navigate('/nexo-av/dashboard');
+          } else {
+            await supabase.auth.signOut();
+            setError('Tu email no está autorizado para acceder a esta plataforma.');
+          }
+        }
+      }
+    );
+    
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Sin funcionalidad por ahora
-    console.log("Login attempt:", { email, password });
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      // Validate email domain
+      if (!email.endsWith('@avtechesdeveniments.com')) {
+        setError('Solo se permite el acceso con emails corporativos (@avtechesdeveniments.com)');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Check if email is in authorized list
+      const { data: authorized, error: authCheckError } = await supabase.rpc('is_email_authorized', {
+        p_email: email
+      });
+
+      if (authCheckError) {
+        console.error('Auth check error:', authCheckError);
+        setError('Error al verificar autorización. Inténtalo de nuevo.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!authorized) {
+        setError('Tu email no está autorizado para acceder a esta plataforma. Contacta con el administrador.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Attempt to sign in
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        if (signInError.message.includes('Invalid login credentials')) {
+          setError('Email o contraseña incorrectos.');
+        } else if (signInError.message.includes('Email not confirmed')) {
+          setError('Por favor, confirma tu email antes de iniciar sesión.');
+        } else {
+          setError(signInError.message);
+        }
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (data.session) {
+        toast({
+          title: "Bienvenido",
+          description: "Has iniciado sesión correctamente.",
+        });
+        // Navigation will be handled by onAuthStateChange
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Ha ocurrido un error inesperado. Inténtalo de nuevo.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isLoading) {
@@ -77,6 +186,18 @@ const Login = () => {
           </motion.p>
         </div>
 
+        {/* Error message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3"
+          >
+            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <p className="text-red-400 text-sm">{error}</p>
+          </motion.div>
+        )}
+
         {/* Formulario */}
         <motion.form
           initial={{ opacity: 0 }}
@@ -97,7 +218,9 @@ const Login = () => {
                 placeholder="usuario@avtechesdeveniments.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/10 h-12"
+                disabled={isSubmitting}
+                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/10 h-12 disabled:opacity-50"
+                required
               />
             </div>
           </div>
@@ -114,12 +237,16 @@ const Login = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/10 h-12"
+                disabled={isSubmitting}
+                className="pl-10 pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/10 h-12 disabled:opacity-50"
+                required
+                minLength={8}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/50 transition-colors"
+                disabled={isSubmitting}
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -132,9 +259,17 @@ const Login = () => {
 
           <Button
             type="submit"
-            className="w-full h-12 bg-white text-black font-medium hover:bg-white/90 transition-all"
+            disabled={isSubmitting}
+            className="w-full h-12 bg-white text-black font-medium hover:bg-white/90 transition-all disabled:opacity-50"
           >
-            Iniciar sesión
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Iniciando sesión...
+              </>
+            ) : (
+              'Iniciar sesión'
+            )}
           </Button>
 
           <p className="text-center text-white/30 text-xs mt-8">
