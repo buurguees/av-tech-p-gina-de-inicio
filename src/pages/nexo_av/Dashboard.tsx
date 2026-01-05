@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, NavigateFunction } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, 
   FileText, 
@@ -161,67 +160,85 @@ const Dashboard = () => {
 
   const modules = [
     {
+      id: 'dashboard',
+      title: 'Dashboard',
+      icon: BarChart3,
+      color: 'from-indigo-500/20 to-indigo-600/10',
+      borderColor: 'border-indigo-500/30',
+      available: isAdmin || isManager,
+      path: `/nexo-av/${userId}/dashboard/analytics`,
+    },
+    {
       id: 'clients',
       title: 'Clientes / Leads',
-      description: 'Gestión de clientes potenciales y activos',
       icon: Users,
       color: 'from-blue-500/20 to-blue-600/10',
       borderColor: 'border-blue-500/30',
       available: isAdmin || isManager || isSales,
+      path: `/nexo-av/${userId}/clients`,
     },
     {
       id: 'quotes',
       title: 'Presupuestos',
-      description: 'Crear y gestionar presupuestos',
       icon: FileText,
       color: 'from-green-500/20 to-green-600/10',
       borderColor: 'border-green-500/30',
       available: isAdmin || isManager || isSales,
+      path: `/nexo-av/${userId}/quotes`,
     },
     {
       id: 'projects',
       title: 'Proyectos',
-      description: 'Gestión de proyectos técnicos',
       icon: FolderKanban,
       color: 'from-purple-500/20 to-purple-600/10',
       borderColor: 'border-purple-500/30',
       available: isAdmin || isManager || isTech,
+      path: `/nexo-av/${userId}/projects`,
     },
     {
       id: 'catalog',
       title: 'Catálogo',
-      description: 'Productos y servicios',
       icon: Package,
       color: 'from-orange-500/20 to-orange-600/10',
       borderColor: 'border-orange-500/30',
       available: true,
+      path: `/nexo-av/${userId}/catalog`,
     },
     {
       id: 'calculator',
       title: 'Calculadora',
-      description: 'Cálculos técnicos y estimaciones',
       icon: Calculator,
       color: 'from-pink-500/20 to-pink-600/10',
       borderColor: 'border-pink-500/30',
       available: true,
+      path: `/nexo-av/${userId}/calculator`,
     },
     {
       id: 'reports',
       title: 'Informes',
-      description: 'Estadísticas y métricas',
       icon: BarChart3,
       color: 'from-cyan-500/20 to-cyan-600/10',
       borderColor: 'border-cyan-500/30',
       available: isAdmin || isManager,
+      path: `/nexo-av/${userId}/reports`,
+    },
+    {
+      id: 'users',
+      title: 'Usuarios',
+      icon: UserCog,
+      color: 'from-rose-500/20 to-rose-600/10',
+      borderColor: 'border-rose-500/30',
+      available: isAdmin,
+      path: `/nexo-av/${userId}/users`,
     },
     {
       id: 'settings',
       title: 'Configuración',
-      description: 'Usuarios y sistema',
       icon: Settings,
       color: 'from-gray-500/20 to-gray-600/10',
       borderColor: 'border-gray-500/30',
       available: isAdmin,
+      path: `/nexo-av/${userId}/settings`,
     },
   ];
 
@@ -259,54 +276,18 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Main content with tabs for admin */}
+      {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {isAdmin ? (
-          <Tabs defaultValue="dashboard" className="space-y-6">
-            <TabsList className="bg-white/5 border border-white/10">
-              <TabsTrigger 
-                value="dashboard" 
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-              >
-                <Home className="h-4 w-4 mr-2" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger 
-                value="users" 
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-              >
-                <UserCog className="h-4 w-4 mr-2" />
-                Gestión de Usuarios
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="dashboard">
-              <DashboardContent 
-                userInfo={userInfo} 
-                modules={modules}
-                isAdmin={isAdmin}
-                isManager={isManager}
-                isSales={isSales}
-                isTech={isTech}
-                userId={userId}
-              />
-            </TabsContent>
-
-            <TabsContent value="users">
-              <UserManagement />
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <DashboardContent 
-            userInfo={userInfo} 
-            modules={modules}
-            isAdmin={isAdmin}
-            isManager={isManager}
-            isSales={isSales}
-            isTech={isTech}
-            userId={userId}
-          />
-        )}
+        <DashboardContent 
+          userInfo={userInfo} 
+          modules={modules}
+          isAdmin={isAdmin}
+          isManager={isManager}
+          isSales={isSales}
+          isTech={isTech}
+          userId={userId}
+          navigate={navigate}
+        />
       </main>
     </div>
   );
@@ -321,6 +302,7 @@ const DashboardContent = ({
   isSales, 
   isTech,
   userId,
+  navigate,
 }: {
   userInfo: UserInfo | null;
   modules: any[];
@@ -329,6 +311,7 @@ const DashboardContent = ({
   isSales: boolean | undefined;
   isTech: boolean | undefined;
   userId: string | undefined;
+  navigate: NavigateFunction;
 }) => {
   return (
     <>
@@ -383,6 +366,7 @@ const DashboardContent = ({
             transition={{ delay: 0.1 + index * 0.05 }}
           >
             <button
+              onClick={() => navigate(module.path)}
               className={`w-full h-40 p-6 rounded-xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 transition-all group text-left flex flex-col justify-between`}
             >
               <div className="p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors w-fit">
