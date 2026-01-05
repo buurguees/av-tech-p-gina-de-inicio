@@ -366,16 +366,21 @@ const CreateClientDialog = ({
                   <FormItem>
                     <FormLabel>Asignar a {!isAdmin && "(auto)"}</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value}
+                      onValueChange={(value) => field.onChange(value === "_none_" ? undefined : value)} 
+                      value={field.value || "_none_"}
                       disabled={!isAdmin}
                     >
                       <FormControl>
                         <SelectTrigger className="bg-white/5 border-white/10 text-white disabled:opacity-70">
-                          <SelectValue placeholder="Seleccionar usuario" />
+                          <SelectValue placeholder="Sin asignar" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-zinc-900 border-white/10">
+                        {isAdmin && (
+                          <SelectItem value="_none_" className="text-white/60">
+                            Sin asignar
+                          </SelectItem>
+                        )}
                         {assignableUsers.map((user) => (
                           <SelectItem key={user.id} value={user.id} className="text-white">
                             {user.full_name}
