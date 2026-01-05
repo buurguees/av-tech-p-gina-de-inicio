@@ -215,7 +215,7 @@ const Login = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="usuario@avtechesdeveniments.com"
+                placeholder="example@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isSubmitting}
