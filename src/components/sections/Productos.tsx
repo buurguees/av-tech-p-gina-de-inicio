@@ -7,7 +7,6 @@ import { ContactFormDialog } from '@/components/ContactFormDialog';
 // Importar imágenes para el carrusel de fondo
 import catalogImage1 from '@/assets/catalog/pantalla-led-interior.png';
 import catalogImage2 from '@/assets/catalog/mupys-led.png';
-import catalogImage3 from '@/assets/catalog/totem-lcd.png';
 import catalogImage4 from '@/assets/catalog/lcd-techo.png';
 import project5 from '@/assets/projects/project-5.png';
 import project7 from '@/assets/projects/project-7.jpg';
@@ -15,7 +14,6 @@ import project7 from '@/assets/projects/project-7.jpg';
 const backgroundImages = [
   catalogImage1,
   catalogImage2,
-  catalogImage3,
   catalogImage4,
   project5,
   project7,

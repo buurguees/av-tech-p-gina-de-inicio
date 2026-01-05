@@ -20,7 +20,6 @@ import project7 from '@/assets/projects/project-7.jpg';
 import project8 from '@/assets/projects/project-8.jpg';
 
 // Import catalog images for projects
-import totemLcd from '@/assets/catalog/totem-lcd.png';
 import mupysLed from '@/assets/catalog/mupys-led.png';
 import pantallaLedInterior from '@/assets/catalog/pantalla-led-interior.png';
 
@@ -33,9 +32,8 @@ const projects = [
   { id: 6, image: project6, title: 'Pantalla Circular', category: 'Displays Especiales' },
   { id: 7, image: project7, title: 'Interior Retail', category: 'Experiencia Visual' },
   { id: 8, image: project8, title: 'Corporate Lobby Experience', category: 'Espacios Corporativos' },
-  { id: 9, image: totemLcd, title: 'Totem LCD Ayuntamiento El Bruc', category: 'Señalización Exterior' },
-  { id: 10, image: mupysLed, title: 'Mupis LED Gimnasio', category: 'Digital Signage' },
-  { id: 11, image: pantallaLedInterior, title: 'Pantalla LED Retail Interior', category: 'LED Interior' },
+  { id: 9, image: mupysLed, title: 'Mupis LED Gimnasio', category: 'Digital Signage' },
+  { id: 10, image: pantallaLedInterior, title: 'Pantalla LED Retail Interior', category: 'LED Interior' },
 ];
 
 // Mobile auto-scroll carousel component
