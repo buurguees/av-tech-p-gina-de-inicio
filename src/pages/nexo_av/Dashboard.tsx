@@ -27,6 +27,8 @@ interface UserInfo {
   full_name: string;
   department: string;
   roles: string[];
+  phone?: string;
+  job_position?: string;
 }
 
 const NexoLogo = () => (
@@ -248,6 +250,8 @@ const Dashboard = () => {
                 fullName={userInfo?.full_name || ''}
                 email={userInfo?.email || ''}
                 userId={userInfo?.user_id || ''}
+                phone={userInfo?.phone || ''}
+                position={userInfo?.job_position || ''}
                 onLogout={handleLogout}
               />
             </div>
@@ -377,18 +381,17 @@ const DashboardContent = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + index * 0.05 }}
-            className="h-full"
           >
             <button
-              className={`w-full h-full min-h-[160px] p-6 rounded-xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 transition-all group text-left flex flex-col`}
+              className={`w-full h-40 p-6 rounded-xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 transition-all group text-left flex flex-col`}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
                   <module.icon className="h-6 w-6 text-white" />
                 </div>
               </div>
-              <h3 className="text-white font-semibold mb-1">{module.title}</h3>
-              <p className="text-white/50 text-sm flex-1">{module.description}</p>
+              <h3 className="text-white font-semibold mb-1 truncate">{module.title}</h3>
+              <p className="text-white/50 text-sm line-clamp-2">{module.description}</p>
             </button>
           </motion.div>
         ))}

@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { User, LogOut, Settings } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, LogOut, Key, Eye, EyeOff } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,16 +25,48 @@ interface UserAvatarDropdownProps {
   fullName: string;
   email: string;
   userId: string;
+  phone?: string;
+  position?: string;
   onLogout: () => void;
 }
 
-const UserAvatarDropdown = ({ fullName, email, userId, onLogout }: UserAvatarDropdownProps) => {
+const UserAvatarDropdown = ({ 
+  fullName, 
+  email, 
+  userId, 
+  phone = '',
+  position = '',
+  onLogout 
+}: UserAvatarDropdownProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
   const [editForm, setEditForm] = useState({
     full_name: fullName,
+    phone: phone,
+    position: position,
   });
+
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
   const { toast } = useToast();
+
+  // Update form when props change
+  useEffect(() => {
+    setEditForm({
+      full_name: fullName,
+      phone: phone,
+      position: position,
+    });
+  }, [fullName, phone, position]);
 
   // Get initials from full name (first letter of first name + first letter of first surname)
   const getInitials = (name: string) => {
@@ -52,14 +83,12 @@ const UserAvatarDropdown = ({ fullName, email, userId, onLogout }: UserAvatarDro
     setIsLoading(true);
 
     try {
-      // Update in Supabase using service role via edge function or direct update
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
         throw new Error("No session found");
       }
 
-      // Call edge function to update user info
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL || 'https://takvthfatlcjsqgssnta.supabase.co'}/functions/v1/admin-users`,
         {
@@ -72,6 +101,8 @@ const UserAvatarDropdown = ({ fullName, email, userId, onLogout }: UserAvatarDro
             action: 'update_own_info',
             userId: userId,
             full_name: editForm.full_name,
+            phone: editForm.phone,
+            position: editForm.position,
           }),
         }
       );
@@ -87,12 +118,76 @@ const UserAvatarDropdown = ({ fullName, email, userId, onLogout }: UserAvatarDro
       });
 
       setIsEditDialogOpen(false);
-      // Reload to reflect changes
       window.location.reload();
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "No se pudo actualizar la información.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Las contraseñas nuevas no coinciden.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 8) {
+      toast({
+        title: "Error",
+        description: "La contraseña debe tener al menos 8 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // First verify current password by re-authenticating
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: passwordForm.currentPassword,
+      });
+
+      if (signInError) {
+        throw new Error("La contraseña actual es incorrecta.");
+      }
+
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: passwordForm.newPassword,
+      });
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      toast({
+        title: "Contraseña actualizada",
+        description: "Tu contraseña ha sido cambiada correctamente.",
+      });
+
+      setIsPasswordDialogOpen(false);
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo cambiar la contraseña.",
         variant: "destructive",
       });
     } finally {
@@ -124,6 +219,13 @@ const UserAvatarDropdown = ({ fullName, email, userId, onLogout }: UserAvatarDro
             <User className="mr-2 h-4 w-4" />
             <span>Editar información</span>
           </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={() => setIsPasswordDialogOpen(true)}
+            className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
+          >
+            <Key className="mr-2 h-4 w-4" />
+            <span>Cambiar contraseña</span>
+          </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-white/10" />
           <DropdownMenuItem 
             onClick={onLogout}
@@ -135,9 +237,9 @@ const UserAvatarDropdown = ({ fullName, email, userId, onLogout }: UserAvatarDro
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Edit Dialog */}
+      {/* Edit Info Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white">
+        <DialogContent className="bg-zinc-900 border-white/10 text-white sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Editar información</DialogTitle>
             <DialogDescription className="text-white/60">
@@ -166,6 +268,27 @@ const UserAvatarDropdown = ({ fullName, email, userId, onLogout }: UserAvatarDro
                   placeholder="Tu nombre completo"
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-white/80">Teléfono</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  className="bg-white/5 border-white/10 text-white focus:border-white/30"
+                  placeholder="+34 600 000 000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="position" className="text-white/80">Cargo</Label>
+                <Input
+                  id="position"
+                  value={editForm.position}
+                  onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
+                  className="bg-white/5 border-white/10 text-white focus:border-white/30"
+                  placeholder="Tu cargo en la empresa"
+                />
+              </div>
             </div>
             <DialogFooter>
               <Button
@@ -181,7 +304,104 @@ const UserAvatarDropdown = ({ fullName, email, userId, onLogout }: UserAvatarDro
                 disabled={isLoading}
                 className="bg-white text-black hover:bg-white/90"
               >
-                {isLoading ? "Guardando..." : "Guardar cambios"}
+                {isLoading ? "Guardando..." : "Guardar"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Password Dialog */}
+      <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+        <DialogContent className="bg-zinc-900 border-white/10 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cambiar contraseña</DialogTitle>
+            <DialogDescription className="text-white/60">
+              Introduce tu contraseña actual y la nueva contraseña.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handlePasswordSubmit}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword" className="text-white/80">Contraseña actual</Label>
+                <div className="relative">
+                  <Input
+                    id="currentPassword"
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    className="bg-white/5 border-white/10 text-white focus:border-white/30 pr-10"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                  >
+                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword" className="text-white/80">Nueva contraseña</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    className="bg-white/5 border-white/10 text-white focus:border-white/30 pr-10"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <p className="text-xs text-white/40">Mínimo 8 caracteres.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-white/80">Confirmar nueva contraseña</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    className="bg-white/5 border-white/10 text-white focus:border-white/30 pr-10"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsPasswordDialogOpen(false);
+                  setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                }}
+                className="border-white/20 text-white hover:bg-white/10"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="bg-white text-black hover:bg-white/90"
+              >
+                {isLoading ? "Cambiando..." : "Cambiar contraseña"}
               </Button>
             </DialogFooter>
           </form>

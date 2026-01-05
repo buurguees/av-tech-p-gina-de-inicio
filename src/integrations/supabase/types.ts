@@ -46,6 +46,8 @@ export type Database = {
           department: "COMMERCIAL" | "TECHNICAL" | "ADMIN" | "DIRECTION"
           email: string
           full_name: string
+          job_position: string
+          phone: string
           roles: string[]
           user_id: string
         }[]
