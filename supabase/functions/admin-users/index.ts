@@ -76,7 +76,7 @@ serve(async (req) => {
 
     // Handle update_own_info action - doesn't require admin
     if (action === 'update_own_info') {
-      const { userId, full_name } = body;
+      const { userId, full_name, phone, position } = body;
 
       // Verify user is updating their own info
       if (userId !== authorizedUser.id) {
@@ -86,10 +86,16 @@ serve(async (req) => {
         );
       }
 
+      // Build update object with only provided fields
+      const updateData: Record<string, any> = {};
+      if (full_name !== undefined) updateData.full_name = full_name;
+      if (phone !== undefined) updateData.phone = phone;
+      if (position !== undefined) updateData.job_position = position;
+
       const { error: updateError } = await supabaseAdmin
         .schema('internal')
         .from('authorized_users')
-        .update({ full_name })
+        .update(updateData)
         .eq('id', userId);
 
       if (updateError) throw updateError;
