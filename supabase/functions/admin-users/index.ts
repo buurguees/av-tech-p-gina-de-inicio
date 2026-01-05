@@ -75,8 +75,11 @@ serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
+    console.log('Action requested:', action);
+
     switch (action) {
       case 'list': {
+        console.log('Fetching users list...');
         // List all authorized users with their roles
         const { data: users, error } = await supabaseAdmin
           .schema('internal')
@@ -97,6 +100,8 @@ serve(async (req) => {
           `)
           .order('created_at', { ascending: false });
 
+        console.log('Users fetched:', users?.length, 'Error:', error);
+
         if (error) throw error;
 
         // Transform the data to flatten roles
@@ -105,6 +110,8 @@ serve(async (req) => {
           roles: user.user_roles?.map((ur: any) => ur.role?.name).filter(Boolean) || [],
           user_roles: undefined,
         }));
+
+        console.log('Returning users:', transformedUsers?.length);
 
         return new Response(
           JSON.stringify({ users: transformedUsers }),
