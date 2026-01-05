@@ -40,6 +40,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_user_role: {
+        Args: { p_assigned_by: string; p_role_name: string; p_user_id: string }
+        Returns: boolean
+      }
+      check_email_exists: { Args: { p_email: string }; Returns: boolean }
+      clear_user_roles: { Args: { p_user_id: string }; Returns: undefined }
+      create_authorized_user: {
+        Args: {
+          p_auth_user_id: string
+          p_department: string
+          p_email: string
+          p_full_name: string
+          p_job_position: string
+          p_phone: string
+        }
+        Returns: string
+      }
+      delete_authorized_user: { Args: { p_user_id: string }; Returns: string }
+      get_authorized_user_by_auth_id: {
+        Args: { p_auth_user_id: string }
+        Returns: {
+          email: string
+          id: string
+          is_active: boolean
+        }[]
+      }
       get_current_user_info: {
         Args: never
         Returns: {
@@ -50,6 +76,13 @@ export type Database = {
           phone: string
           roles: string[]
           user_id: string
+        }[]
+      }
+      get_user_auth_id: { Args: { p_user_id: string }; Returns: string }
+      get_user_roles_by_user_id: {
+        Args: { p_user_id: string }
+        Returns: {
+          role_name: string
         }[]
       }
       has_role: {
@@ -75,6 +108,54 @@ export type Database = {
       }
       is_allowed_domain: { Args: { _email: string }; Returns: boolean }
       is_email_authorized: { Args: { p_email: string }; Returns: boolean }
+      list_authorized_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          department: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          job_position: string
+          last_login_at: string
+          phone: string
+          roles: string[]
+        }[]
+      }
+      list_roles: {
+        Args: never
+        Returns: {
+          display_name: string
+          id: string
+          level: number
+          name: string
+        }[]
+      }
+      toggle_user_status: {
+        Args: { p_is_active: boolean; p_user_id: string }
+        Returns: boolean
+      }
+      update_authorized_user: {
+        Args: {
+          p_department: string
+          p_full_name: string
+          p_is_active: boolean
+          p_job_position: string
+          p_phone: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      update_own_user_info: {
+        Args: {
+          p_full_name?: string
+          p_job_position?: string
+          p_phone?: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "comercial" | "tecnico"
