@@ -57,13 +57,64 @@ export type Database = {
         }
         Returns: string
       }
+      create_client: {
+        Args: {
+          p_assigned_to?: string
+          p_company_name: string
+          p_contact_email: string
+          p_contact_phone: string
+          p_created_by?: string
+          p_industry_sector?: string
+          p_lead_source?: string
+          p_lead_stage?: string
+          p_legal_name?: string
+          p_notes?: string
+          p_tax_id?: string
+        }
+        Returns: string
+      }
       delete_authorized_user: { Args: { p_user_id: string }; Returns: string }
+      delete_client: { Args: { p_client_id: string }; Returns: boolean }
       get_authorized_user_by_auth_id: {
         Args: { p_auth_user_id: string }
         Returns: {
           email: string
           id: string
           is_active: boolean
+        }[]
+      }
+      get_client: {
+        Args: { p_client_id: string }
+        Returns: {
+          approximate_budget: number
+          assigned_to: string
+          billing_address: string
+          billing_city: string
+          billing_country: string
+          billing_postal_code: string
+          billing_province: string
+          company_name: string
+          contact_email: string
+          contact_phone: string
+          created_at: string
+          estimated_close_date: string
+          id: string
+          industry_sector: string
+          instagram_handle: string
+          lead_source: string
+          lead_stage: string
+          legal_name: string
+          linkedin_url: string
+          lost_reason: string
+          next_follow_up_date: string
+          notes: string
+          number_of_locations: number
+          target_objectives: string[]
+          tax_id: string
+          tiktok_handle: string
+          updated_at: string
+          urgency: string
+          website: string
         }[]
       }
       get_current_user_info: {
@@ -108,6 +159,15 @@ export type Database = {
       }
       is_allowed_domain: { Args: { _email: string }; Returns: boolean }
       is_email_authorized: { Args: { p_email: string }; Returns: boolean }
+      list_assignable_users: {
+        Args: never
+        Returns: {
+          department: string
+          email: string
+          full_name: string
+          id: string
+        }[]
+      }
       list_authorized_users: {
         Args: never
         Returns: {
@@ -121,6 +181,26 @@ export type Database = {
           last_login_at: string
           phone: string
           roles: string[]
+        }[]
+      }
+      list_clients: {
+        Args: { p_lead_stage?: string; p_search?: string }
+        Returns: {
+          assigned_to: string
+          assigned_to_name: string
+          company_name: string
+          contact_email: string
+          contact_phone: string
+          created_at: string
+          id: string
+          industry_sector: string
+          lead_source: string
+          lead_stage: string
+          legal_name: string
+          next_follow_up_date: string
+          notes: string
+          tax_id: string
+          urgency: string
         }[]
       }
       list_roles: {
@@ -144,6 +224,30 @@ export type Database = {
           p_job_position: string
           p_phone: string
           p_user_id: string
+        }
+        Returns: boolean
+      }
+      update_client: {
+        Args: {
+          p_assigned_to?: string
+          p_billing_address?: string
+          p_billing_city?: string
+          p_billing_country?: string
+          p_billing_postal_code?: string
+          p_billing_province?: string
+          p_client_id: string
+          p_company_name?: string
+          p_contact_email?: string
+          p_contact_phone?: string
+          p_industry_sector?: string
+          p_lead_source?: string
+          p_lead_stage?: string
+          p_legal_name?: string
+          p_next_follow_up_date?: string
+          p_notes?: string
+          p_tax_id?: string
+          p_urgency?: string
+          p_website?: string
         }
         Returns: boolean
       }
