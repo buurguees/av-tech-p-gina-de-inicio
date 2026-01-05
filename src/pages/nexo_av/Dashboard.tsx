@@ -383,15 +383,12 @@ const DashboardContent = ({
             transition={{ delay: 0.1 + index * 0.05 }}
           >
             <button
-              className={`w-full h-40 p-6 rounded-xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 transition-all group text-left flex flex-col`}
+              className={`w-full h-40 p-6 rounded-xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 transition-all group text-left flex flex-col justify-between`}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
-                  <module.icon className="h-6 w-6 text-white" />
-                </div>
+              <div className="p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors w-fit">
+                <module.icon className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-white font-semibold mb-1 truncate">{module.title}</h3>
-              <p className="text-white/50 text-sm line-clamp-2">{module.description}</p>
+              <h3 className="text-white font-semibold">{module.title}</h3>
             </button>
           </motion.div>
         ))}
