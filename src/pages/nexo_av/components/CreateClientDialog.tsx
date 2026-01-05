@@ -56,6 +56,7 @@ interface CreateClientDialogProps {
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
   currentUserId: string | null;
+  isAdmin: boolean;
 }
 
 const LEAD_SOURCES = [
@@ -66,6 +67,7 @@ const LEAD_SOURCES = [
   { value: 'TRADE_SHOW', label: 'Feria' },
   { value: 'PARTNER', label: 'Partner' },
   { value: 'LINKEDIN', label: 'LinkedIn' },
+  { value: 'COMMERCIAL', label: 'Comercial' },
   { value: 'OTHER', label: 'Otro' },
 ];
 
@@ -77,6 +79,7 @@ const INDUSTRY_SECTORS = [
   { value: 'EVENTS', label: 'Eventos' },
   { value: 'EDUCATION', label: 'Educación' },
   { value: 'HEALTHCARE', label: 'Salud' },
+  { value: 'DIGITAL_SIGNAGE', label: 'Cartelería Digital' },
   { value: 'OTHER', label: 'Otro' },
 ];
 
@@ -87,6 +90,7 @@ const LEAD_STAGES = [
   { value: 'PROPOSAL', label: 'Propuesta Enviada' },
   { value: 'NEGOTIATION', label: 'En Negociación' },
   { value: 'WON', label: 'Cliente (Ganado)' },
+  { value: 'RECURRING', label: 'Recurrente' },
   { value: 'LOST', label: 'Perdido' },
   { value: 'PAUSED', label: 'Pausado' },
 ];
@@ -95,7 +99,8 @@ const CreateClientDialog = ({
   open, 
   onOpenChange, 
   onSuccess,
-  currentUserId 
+  currentUserId,
+  isAdmin
 }: CreateClientDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
@@ -112,9 +117,26 @@ const CreateClientDialog = ({
       tax_id: "",
       legal_name: "",
       notes: "",
-      assigned_to: undefined,
+      assigned_to: isAdmin ? undefined : currentUserId || undefined,
     },
   });
+
+  // Watch lead_source to auto-assign when "COMMERCIAL"
+  const leadSource = form.watch('lead_source');
+
+  useEffect(() => {
+    // When source is COMMERCIAL, auto-assign to current user
+    if (leadSource === 'COMMERCIAL' && currentUserId) {
+      form.setValue('assigned_to', currentUserId);
+    }
+  }, [leadSource, currentUserId, form]);
+
+  useEffect(() => {
+    // Set default assigned_to for non-admins when dialog opens
+    if (open && !isAdmin && currentUserId) {
+      form.setValue('assigned_to', currentUserId);
+    }
+  }, [open, isAdmin, currentUserId, form]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -342,10 +364,14 @@ const CreateClientDialog = ({
                 name="assigned_to"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Asignar a</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <FormLabel>Asignar a {!isAdmin && "(auto)"}</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                      disabled={!isAdmin}
+                    >
                       <FormControl>
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                        <SelectTrigger className="bg-white/5 border-white/10 text-white disabled:opacity-70">
                           <SelectValue placeholder="Seleccionar usuario" />
                         </SelectTrigger>
                       </FormControl>
