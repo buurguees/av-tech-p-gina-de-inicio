@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   LogOut, 
   Users, 
@@ -10,10 +11,13 @@ import {
   Package,
   Settings,
   BarChart3,
-  Plus
+  Plus,
+  Home,
+  UserCog,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import UserManagement from "./components/UserManagement";
 
 interface UserInfo {
   user_id: string;
@@ -206,91 +210,157 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Main content */}
+      {/* Main content with tabs for admin */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Bienvenido, {userInfo?.full_name?.split(' ')[0]}
-          </h2>
-          <p className="text-white/50">
-            ¿Qué quieres hacer hoy?
-          </p>
-        </motion.div>
-
-        {/* Quick actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex flex-wrap gap-3 mb-8"
-        >
-          {(isAdmin || isManager || isSales) && (
-            <Button className="bg-white text-black hover:bg-white/90">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Lead
-            </Button>
-          )}
-          {(isAdmin || isManager || isSales) && (
-            <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Presupuesto
-            </Button>
-          )}
-          {(isAdmin || isManager || isTech) && (
-            <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Proyecto
-            </Button>
-          )}
-        </motion.div>
-
-        {/* Modules grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {modules.filter(m => m.available).map((module, index) => (
-            <motion.div
-              key={module.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + index * 0.05 }}
-            >
-              <button
-                className={`w-full p-6 rounded-xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 transition-all group text-left`}
+        {isAdmin ? (
+          <Tabs defaultValue="dashboard" className="space-y-6">
+            <TabsList className="bg-white/5 border border-white/10">
+              <TabsTrigger 
+                value="dashboard" 
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors`}>
-                    <module.icon className="h-6 w-6 text-white" />
-                  </div>
-                  {module.count !== null && (
-                    <span className="text-white/40 text-sm font-medium">
-                      {module.count}
-                    </span>
-                  )}
-                </div>
-                <h3 className="text-white font-semibold mb-1">{module.title}</h3>
-                <p className="text-white/50 text-sm">{module.description}</p>
-              </button>
-            </motion.div>
-          ))}
-        </div>
+                <Home className="h-4 w-4 mr-2" />
+                Dashboard
+              </TabsTrigger>
+              <TabsTrigger 
+                value="users" 
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+              >
+                <UserCog className="h-4 w-4 mr-2" />
+                Gestión de Usuarios
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Coming soon notice */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-12 text-center"
-        >
-          <p className="text-white/30 text-sm">
-            Los módulos están en desarrollo. Próximamente más funcionalidades.
-          </p>
-        </motion.div>
+            <TabsContent value="dashboard">
+              <DashboardContent 
+                userInfo={userInfo} 
+                modules={modules}
+                isAdmin={isAdmin}
+                isManager={isManager}
+                isSales={isSales}
+                isTech={isTech}
+              />
+            </TabsContent>
+
+            <TabsContent value="users">
+              <UserManagement />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <DashboardContent 
+            userInfo={userInfo} 
+            modules={modules}
+            isAdmin={isAdmin}
+            isManager={isManager}
+            isSales={isSales}
+            isTech={isTech}
+          />
+        )}
       </main>
     </div>
+  );
+};
+
+// Extracted dashboard content component
+const DashboardContent = ({ 
+  userInfo, 
+  modules, 
+  isAdmin, 
+  isManager, 
+  isSales, 
+  isTech 
+}: {
+  userInfo: UserInfo | null;
+  modules: any[];
+  isAdmin: boolean | undefined;
+  isManager: boolean | undefined;
+  isSales: boolean | undefined;
+  isTech: boolean | undefined;
+}) => {
+  return (
+    <>
+      {/* Welcome section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <h2 className="text-2xl font-bold text-white mb-2">
+          Bienvenido, {userInfo?.full_name?.split(' ')[0]}
+        </h2>
+        <p className="text-white/50">
+          ¿Qué quieres hacer hoy?
+        </p>
+      </motion.div>
+
+      {/* Quick actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="flex flex-wrap gap-3 mb-8"
+      >
+        {(isAdmin || isManager || isSales) && (
+          <Button className="bg-white text-black hover:bg-white/90">
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Lead
+          </Button>
+        )}
+        {(isAdmin || isManager || isSales) && (
+          <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Presupuesto
+          </Button>
+        )}
+        {(isAdmin || isManager || isTech) && (
+          <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Proyecto
+          </Button>
+        )}
+      </motion.div>
+
+      {/* Modules grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {modules.filter(m => m.available).map((module, index) => (
+          <motion.div
+            key={module.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 + index * 0.05 }}
+          >
+            <button
+              className={`w-full p-6 rounded-xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 transition-all group text-left`}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors`}>
+                  <module.icon className="h-6 w-6 text-white" />
+                </div>
+                {module.count !== null && (
+                  <span className="text-white/40 text-sm font-medium">
+                    {module.count}
+                  </span>
+                )}
+              </div>
+              <h3 className="text-white font-semibold mb-1">{module.title}</h3>
+              <p className="text-white/50 text-sm">{module.description}</p>
+            </button>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Coming soon notice */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="mt-12 text-center"
+      >
+        <p className="text-white/30 text-sm">
+          Los módulos están en desarrollo. Próximamente más funcionalidades.
+        </p>
+      </motion.div>
+    </>
   );
 };
 
