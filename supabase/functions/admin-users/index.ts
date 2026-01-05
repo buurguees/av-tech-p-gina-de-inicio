@@ -50,27 +50,50 @@ serve(async (req) => {
     }
 
     // Check if the requesting user is an admin
-    const { data: userInfo } = await supabaseAdmin
+    console.log('Checking admin status for auth_user_id:', user.id);
+    
+    // First get the authorized user
+    const { data: authorizedUser, error: authUserError } = await supabaseAdmin
       .schema('internal')
       .from('authorized_users')
-      .select(`
-        id,
-        email,
-        user_roles!inner(
-          role:roles!inner(name)
-        )
-      `)
+      .select('id, email, is_active')
       .eq('auth_user_id', user.id)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
-    const isAdmin = userInfo?.user_roles?.some((ur: any) => ur.role?.name === 'admin');
+    console.log('Authorized user:', authorizedUser, 'Error:', authUserError);
+
+    if (!authorizedUser) {
+      return new Response(
+        JSON.stringify({ error: 'User not found in authorized users' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Now check if user has admin role
+    const { data: userRoles, error: rolesError } = await supabaseAdmin
+      .schema('internal')
+      .from('user_roles')
+      .select(`
+        role_id,
+        roles!inner(name)
+      `)
+      .eq('user_id', authorizedUser.id);
+
+    console.log('User roles:', userRoles, 'Error:', rolesError);
+
+    const isAdmin = userRoles?.some((ur: any) => ur.roles?.name === 'admin');
+    console.log('Is admin:', isAdmin);
+
     if (!isAdmin) {
       return new Response(
         JSON.stringify({ error: 'Forbidden: Admin access required' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Store userInfo for later use
+    const userInfo = { id: authorizedUser.id, email: authorizedUser.email };
 
     const body = await req.json();
     const { action } = body;
