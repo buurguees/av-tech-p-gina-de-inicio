@@ -45,15 +45,13 @@ const Login = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // Verify user is authorized
-        const { data: authorized } = await supabase.rpc('is_email_authorized', {
-          p_email: session.user.email
-        });
+        // Get user info to get the user_id for the URL
+        const { data: userInfo } = await supabase.rpc('get_current_user_info');
         
-        if (authorized) {
-          navigate('/nexo-av/dashboard');
+        if (userInfo && userInfo.length > 0) {
+          navigate(`/nexo-av/${userInfo[0].user_id}/dashboard`, { replace: true });
         } else {
-          // User is logged in but not authorized
+          // User is logged in but not in authorized_users
           await supabase.auth.signOut();
         }
       }
@@ -63,19 +61,19 @@ const Login = () => {
     
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          // Verify user is authorized
-          const { data: authorized } = await supabase.rpc('is_email_authorized', {
-            p_email: session.user.email
-          });
-          
-          if (authorized) {
-            navigate('/nexo-av/dashboard');
-          } else {
-            await supabase.auth.signOut();
-            setError('Tu email no está autorizado para acceder a esta plataforma.');
-          }
+          // Defer Supabase call to prevent deadlock
+          setTimeout(async () => {
+            const { data: userInfo } = await supabase.rpc('get_current_user_info');
+            
+            if (userInfo && userInfo.length > 0) {
+              navigate(`/nexo-av/${userInfo[0].user_id}/dashboard`, { replace: true });
+            } else {
+              await supabase.auth.signOut();
+              setError('Tu email no está autorizado para acceder a esta plataforma.');
+            }
+          }, 0);
         }
       }
     );
