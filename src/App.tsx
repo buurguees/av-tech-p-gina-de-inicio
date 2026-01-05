@@ -10,6 +10,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 
 import NexoLogin from "./pages/nexo_av/Login";
+import NexoDashboard from "./pages/nexo_av/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/terminos" element={<TermsAndConditions />} />
             {/* NEXO AV Routes */}
             <Route path="/nexo-av" element={<NexoLogin />} />
+            <Route path="/nexo-av/dashboard" element={<NexoDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
