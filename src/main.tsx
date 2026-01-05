@@ -3,4 +3,5 @@ import App from "./App.tsx";
 import "./index.css";
 import "./firebase";
 
+
 createRoot(document.getElementById("root")!).render(<App />);
