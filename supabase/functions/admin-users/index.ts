@@ -49,25 +49,22 @@ serve(async (req) => {
       );
     }
 
-    // Get the authorized user for the current auth user
+    // Get the authorized user using RPC function
     console.log('Getting authorized user for auth_user_id:', user.id);
     
-    const { data: authorizedUser, error: authUserError } = await supabaseAdmin
-      .schema('internal')
-      .from('authorized_users')
-      .select('id, email, is_active')
-      .eq('auth_user_id', user.id)
-      .eq('is_active', true)
-      .maybeSingle();
+    const { data: authorizedUserData, error: authUserError } = await supabaseAdmin
+      .rpc('get_authorized_user_by_auth_id', { p_auth_user_id: user.id });
 
-    console.log('Authorized user:', authorizedUser, 'Error:', authUserError);
+    console.log('Authorized user:', authorizedUserData, 'Error:', authUserError);
 
-    if (!authorizedUser) {
+    if (authUserError || !authorizedUserData || authorizedUserData.length === 0) {
       return new Response(
         JSON.stringify({ error: 'User not found in authorized users' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const authorizedUser = authorizedUserData[0];
 
     const body = await req.json();
     const { action } = body;
@@ -86,17 +83,13 @@ serve(async (req) => {
         );
       }
 
-      // Build update object with only provided fields
-      const updateData: Record<string, any> = {};
-      if (full_name !== undefined) updateData.full_name = full_name;
-      if (phone !== undefined) updateData.phone = phone;
-      if (position !== undefined) updateData.job_position = position;
-
       const { error: updateError } = await supabaseAdmin
-        .schema('internal')
-        .from('authorized_users')
-        .update(updateData)
-        .eq('id', userId);
+        .rpc('update_own_user_info', { 
+          p_user_id: userId,
+          p_full_name: full_name || null,
+          p_phone: phone || null,
+          p_job_position: position || null
+        });
 
       if (updateError) throw updateError;
 
@@ -108,17 +101,11 @@ serve(async (req) => {
 
     // For all other actions, check if user has admin role
     const { data: userRoles, error: rolesError } = await supabaseAdmin
-      .schema('internal')
-      .from('user_roles')
-      .select(`
-        role_id,
-        roles!inner(name)
-      `)
-      .eq('user_id', authorizedUser.id);
+      .rpc('get_user_roles_by_user_id', { p_user_id: authorizedUser.id });
 
     console.log('User roles:', userRoles, 'Error:', rolesError);
 
-    const isAdmin = userRoles?.some((ur: any) => ur.roles?.name === 'admin');
+    const isAdmin = userRoles?.some((ur: any) => ur.role_name === 'admin');
     console.log('Is admin:', isAdmin);
 
     if (!isAdmin) {
@@ -134,37 +121,18 @@ serve(async (req) => {
     switch (action) {
       case 'list': {
         console.log('Fetching users list...');
-        // List all authorized users with their roles
-        const { data: users, error } = await supabaseAdmin
-          .schema('internal')
-          .from('authorized_users')
-          .select(`
-            id,
-            email,
-            full_name,
-            phone,
-            department,
-            job_position,
-            is_active,
-            created_at,
-            last_login_at,
-            user_roles(
-              role:roles(name)
-            )
-          `)
-          .order('created_at', { ascending: false });
+        
+        const { data: users, error } = await supabaseAdmin.rpc('list_authorized_users');
 
         console.log('Users fetched:', users?.length, 'Error:', error);
 
         if (error) throw error;
 
-        // Transform the data to flatten roles and rename job_position to position for frontend
-        const transformedUsers = users?.map(user => ({
+        // Transform the data to rename job_position to position for frontend
+        const transformedUsers = users?.map((user: any) => ({
           ...user,
-          position: user.job_position, // Map job_position to position for frontend
+          position: user.job_position,
           job_position: undefined,
-          roles: user.user_roles?.map((ur: any) => ur.role?.name).filter(Boolean) || [],
-          user_roles: undefined,
         }));
 
         console.log('Returning users:', transformedUsers?.length);
@@ -176,11 +144,7 @@ serve(async (req) => {
       }
 
       case 'list-roles': {
-        const { data: roles, error } = await supabaseAdmin
-          .schema('internal')
-          .from('roles')
-          .select('id, name, display_name, level')
-          .order('level', { ascending: true });
+        const { data: roles, error } = await supabaseAdmin.rpc('list_roles');
 
         if (error) throw error;
 
@@ -208,15 +172,11 @@ serve(async (req) => {
           );
         }
 
-        // Check if user already exists in authorized_users
-        const { data: existingUser } = await supabaseAdmin
-          .schema('internal')
-          .from('authorized_users')
-          .select('id')
-          .eq('email', userData.email)
-          .single();
+        // Check if user already exists
+        const { data: emailExists } = await supabaseAdmin
+          .rpc('check_email_exists', { p_email: userData.email });
 
-        if (existingUser) {
+        if (emailExists) {
           return new Response(
             JSON.stringify({ error: 'User with this email already exists' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -227,7 +187,7 @@ serve(async (req) => {
         const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
           email: userData.email,
           password: userData.password,
-          email_confirm: true, // Auto-confirm email
+          email_confirm: true,
           user_metadata: {
             full_name: userData.full_name,
           }
@@ -236,20 +196,15 @@ serve(async (req) => {
         if (authError) throw authError;
 
         // Create the authorized user record
-        const { data: newUser, error: insertError } = await supabaseAdmin
-          .schema('internal')
-          .from('authorized_users')
-          .insert({
-            email: userData.email,
-            full_name: userData.full_name,
-            phone: userData.phone,
-            department: userData.department || 'COMMERCIAL',
-            job_position: userData.position,
-            auth_user_id: authData.user?.id,
-            is_active: true,
-          })
-          .select()
-          .single();
+        const { data: newUserId, error: insertError } = await supabaseAdmin
+          .rpc('create_authorized_user', {
+            p_email: userData.email,
+            p_full_name: userData.full_name,
+            p_phone: userData.phone || null,
+            p_department: userData.department || 'COMMERCIAL',
+            p_job_position: userData.position || null,
+            p_auth_user_id: authData.user?.id
+          });
 
         if (insertError) {
           // Rollback: delete the auth user if authorized_users insert fails
@@ -259,25 +214,17 @@ serve(async (req) => {
 
         // Assign roles
         if (userData.roles && userData.roles.length > 0) {
-          const { data: roleRecords } = await supabaseAdmin
-            .schema('internal')
-            .from('roles')
-            .select('id, name')
-            .in('name', userData.roles);
-
-          if (roleRecords && roleRecords.length > 0) {
-            const roleAssignments = roleRecords.map(role => ({
-              user_id: newUser.id,
-              role_id: role.id,
-              assigned_by: userInfo?.id,
-            }));
-
-            await supabaseAdmin.schema('internal').from('user_roles').insert(roleAssignments);
+          for (const roleName of userData.roles) {
+            await supabaseAdmin.rpc('assign_user_role', {
+              p_user_id: newUserId,
+              p_role_name: roleName,
+              p_assigned_by: userInfo.id
+            });
           }
         }
 
         return new Response(
-          JSON.stringify({ success: true, user: newUser }),
+          JSON.stringify({ success: true, userId: newUserId }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -292,62 +239,31 @@ serve(async (req) => {
           );
         }
 
-        // Get the user to update
-        const { data: targetUser, error: fetchError } = await supabaseAdmin
-          .schema('internal')
-          .from('authorized_users')
-          .select('id, auth_user_id')
-          .eq('id', userId)
-          .single();
-
-        if (fetchError || !targetUser) {
-          return new Response(
-            JSON.stringify({ error: 'User not found' }),
-            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
         // Update the authorized user record
         const { error: updateError } = await supabaseAdmin
-          .schema('internal')
-          .from('authorized_users')
-          .update({
-            full_name: userData.full_name,
-            phone: userData.phone,
-            department: userData.department,
-            job_position: userData.position,
-            is_active: userData.is_active,
-          })
-          .eq('id', userId);
+          .rpc('update_authorized_user', {
+            p_user_id: userId,
+            p_full_name: userData.full_name,
+            p_phone: userData.phone || null,
+            p_department: userData.department,
+            p_job_position: userData.position || null,
+            p_is_active: userData.is_active
+          });
 
         if (updateError) throw updateError;
 
         // Update roles
         if (userData.roles !== undefined) {
-          // Delete existing roles
-          await supabaseAdmin
-            .schema('internal')
-            .from('user_roles')
-            .delete()
-            .eq('user_id', userId);
+          // Clear existing roles
+          await supabaseAdmin.rpc('clear_user_roles', { p_user_id: userId });
 
           // Assign new roles
-          if (userData.roles.length > 0) {
-            const { data: roleRecords } = await supabaseAdmin
-              .schema('internal')
-              .from('roles')
-              .select('id, name')
-              .in('name', userData.roles);
-
-            if (roleRecords && roleRecords.length > 0) {
-              const roleAssignments = roleRecords.map(role => ({
-                user_id: userId,
-                role_id: role.id,
-                assigned_by: userInfo?.id,
-              }));
-
-              await supabaseAdmin.schema('internal').from('user_roles').insert(roleAssignments);
-            }
+          for (const roleName of userData.roles) {
+            await supabaseAdmin.rpc('assign_user_role', {
+              p_user_id: userId,
+              p_role_name: roleName,
+              p_assigned_by: userInfo.id
+            });
           }
         }
 
@@ -368,47 +284,22 @@ serve(async (req) => {
         }
 
         // Prevent self-deletion
-        if (userId === userInfo?.id) {
+        if (userId === userInfo.id) {
           return new Response(
             JSON.stringify({ error: 'Cannot delete your own account' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        // Get the user to delete
-        const { data: targetUser, error: fetchError } = await supabaseAdmin
-          .schema('internal')
-          .from('authorized_users')
-          .select('id, auth_user_id')
-          .eq('id', userId)
-          .single();
-
-        if (fetchError || !targetUser) {
-          return new Response(
-            JSON.stringify({ error: 'User not found' }),
-            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Delete roles first
-        await supabaseAdmin
-          .schema('internal')
-          .from('user_roles')
-          .delete()
-          .eq('user_id', userId);
-
-        // Delete the authorized user record
-        const { error: deleteError } = await supabaseAdmin
-          .schema('internal')
-          .from('authorized_users')
-          .delete()
-          .eq('id', userId);
+        // Delete the user and get auth_user_id
+        const { data: authUserId, error: deleteError } = await supabaseAdmin
+          .rpc('delete_authorized_user', { p_user_id: userId });
 
         if (deleteError) throw deleteError;
 
         // Delete the auth user if exists
-        if (targetUser.auth_user_id) {
-          await supabaseAdmin.auth.admin.deleteUser(targetUser.auth_user_id);
+        if (authUserId) {
+          await supabaseAdmin.auth.admin.deleteUser(authUserId);
         }
 
         return new Response(
@@ -427,15 +318,11 @@ serve(async (req) => {
           );
         }
 
-        // Get the user
-        const { data: targetUser, error: fetchError } = await supabaseAdmin
-          .schema('internal')
-          .from('authorized_users')
-          .select('id, auth_user_id')
-          .eq('id', userId)
-          .single();
+        // Get the auth_user_id
+        const { data: authUserId, error: fetchError } = await supabaseAdmin
+          .rpc('get_user_auth_id', { p_user_id: userId });
 
-        if (fetchError || !targetUser || !targetUser.auth_user_id) {
+        if (fetchError || !authUserId) {
           return new Response(
             JSON.stringify({ error: 'User not found or not linked to auth' }),
             { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -444,7 +331,7 @@ serve(async (req) => {
 
         // Update the password
         const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(
-          targetUser.auth_user_id,
+          authUserId,
           { password: newPassword }
         );
 
@@ -467,7 +354,7 @@ serve(async (req) => {
         }
 
         // Prevent self-deactivation
-        if (userId === userInfo?.id && !isActive) {
+        if (userId === userInfo.id && !isActive) {
           return new Response(
             JSON.stringify({ error: 'Cannot deactivate your own account' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -475,10 +362,7 @@ serve(async (req) => {
         }
 
         const { error: updateError } = await supabaseAdmin
-          .schema('internal')
-          .from('authorized_users')
-          .update({ is_active: isActive })
-          .eq('id', userId);
+          .rpc('toggle_user_status', { p_user_id: userId, p_is_active: isActive });
 
         if (updateError) throw updateError;
 
