@@ -450,10 +450,10 @@ const UserManagement = () => {
           <TableHeader>
             <TableRow className="border-white/10 hover:bg-transparent">
               <TableHead className="text-white/60">Usuario</TableHead>
+              <TableHead className="text-white/60">Contacto</TableHead>
               <TableHead className="text-white/60">Departamento</TableHead>
               <TableHead className="text-white/60">Roles</TableHead>
               <TableHead className="text-white/60">Estado</TableHead>
-              <TableHead className="text-white/60">Último acceso</TableHead>
               <TableHead className="text-white/60 text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -471,6 +471,18 @@ const UserManagement = () => {
                     <div>
                       <p className="text-white font-medium">{user.full_name}</p>
                       <p className="text-white/50 text-sm">{user.email}</p>
+                      {user.position && (
+                        <p className="text-white/40 text-xs mt-0.5">{user.position}</p>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      {user.phone ? (
+                        <p className="text-white/70 text-sm">{user.phone}</p>
+                      ) : (
+                        <p className="text-white/30 text-sm italic">Sin teléfono</p>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -506,19 +518,6 @@ const UserManagement = () => {
                         </Badge>
                       )}
                     </button>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-white/50 text-sm">
-                      {user.last_login_at
-                        ? new Date(user.last_login_at).toLocaleDateString('es-ES', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })
-                        : 'Nunca'}
-                    </span>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
