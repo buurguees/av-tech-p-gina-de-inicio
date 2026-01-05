@@ -49,10 +49,9 @@ serve(async (req) => {
       );
     }
 
-    // Check if the requesting user is an admin
-    console.log('Checking admin status for auth_user_id:', user.id);
+    // Get the authorized user for the current auth user
+    console.log('Getting authorized user for auth_user_id:', user.id);
     
-    // First get the authorized user
     const { data: authorizedUser, error: authUserError } = await supabaseAdmin
       .schema('internal')
       .from('authorized_users')
@@ -70,7 +69,38 @@ serve(async (req) => {
       );
     }
 
-    // Now check if user has admin role
+    const body = await req.json();
+    const { action } = body;
+
+    console.log('Action requested:', action);
+
+    // Handle update_own_info action - doesn't require admin
+    if (action === 'update_own_info') {
+      const { userId, full_name } = body;
+
+      // Verify user is updating their own info
+      if (userId !== authorizedUser.id) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden: Can only update your own information' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { error: updateError } = await supabaseAdmin
+        .schema('internal')
+        .from('authorized_users')
+        .update({ full_name })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // For all other actions, check if user has admin role
     const { data: userRoles, error: rolesError } = await supabaseAdmin
       .schema('internal')
       .from('user_roles')
@@ -94,11 +124,6 @@ serve(async (req) => {
 
     // Store userInfo for later use
     const userInfo = { id: authorizedUser.id, email: authorizedUser.email };
-
-    const body = await req.json();
-    const { action } = body;
-
-    console.log('Action requested:', action);
 
     switch (action) {
       case 'list': {

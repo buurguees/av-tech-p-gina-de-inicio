@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  LogOut, 
   Users, 
   FileText, 
   FolderKanban, 
@@ -15,10 +14,12 @@ import {
   Home,
   UserCog,
   ShieldAlert,
+  Calculator,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import UserManagement from "./components/UserManagement";
+import UserAvatarDropdown from "./components/UserAvatarDropdown";
 
 interface UserInfo {
   user_id: string;
@@ -165,7 +166,6 @@ const Dashboard = () => {
       color: 'from-blue-500/20 to-blue-600/10',
       borderColor: 'border-blue-500/30',
       available: isAdmin || isManager || isSales,
-      count: null,
     },
     {
       id: 'quotes',
@@ -175,7 +175,6 @@ const Dashboard = () => {
       color: 'from-green-500/20 to-green-600/10',
       borderColor: 'border-green-500/30',
       available: isAdmin || isManager || isSales,
-      count: null,
     },
     {
       id: 'projects',
@@ -185,7 +184,6 @@ const Dashboard = () => {
       color: 'from-purple-500/20 to-purple-600/10',
       borderColor: 'border-purple-500/30',
       available: isAdmin || isManager || isTech,
-      count: null,
     },
     {
       id: 'catalog',
@@ -195,7 +193,15 @@ const Dashboard = () => {
       color: 'from-orange-500/20 to-orange-600/10',
       borderColor: 'border-orange-500/30',
       available: true,
-      count: null,
+    },
+    {
+      id: 'calculator',
+      title: 'Calculadora',
+      description: 'Cálculos técnicos y estimaciones',
+      icon: Calculator,
+      color: 'from-pink-500/20 to-pink-600/10',
+      borderColor: 'border-pink-500/30',
+      available: true,
     },
     {
       id: 'reports',
@@ -205,7 +211,6 @@ const Dashboard = () => {
       color: 'from-cyan-500/20 to-cyan-600/10',
       borderColor: 'border-cyan-500/30',
       available: isAdmin || isManager,
-      count: null,
     },
     {
       id: 'settings',
@@ -215,7 +220,6 @@ const Dashboard = () => {
       color: 'from-gray-500/20 to-gray-600/10',
       borderColor: 'border-gray-500/30',
       available: isAdmin,
-      count: null,
     },
   ];
 
@@ -234,20 +238,18 @@ const Dashboard = () => {
             </div>
             
             <div className="flex items-center gap-4">
-              <div className="text-right">
+              <div className="text-right hidden sm:block">
                 <p className="text-white text-sm font-medium">{userInfo?.full_name}</p>
                 <p className="text-white/40 text-xs capitalize">
                   {userInfo?.roles?.join(', ')}
                 </p>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleLogout}
-                className="text-white/60 hover:text-white hover:bg-white/10"
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
+              <UserAvatarDropdown
+                fullName={userInfo?.full_name || ''}
+                email={userInfo?.email || ''}
+                userId={userInfo?.user_id || ''}
+                onLogout={handleLogout}
+              />
             </div>
           </div>
         </div>
@@ -375,22 +377,18 @@ const DashboardContent = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + index * 0.05 }}
+            className="h-full"
           >
             <button
-              className={`w-full p-6 rounded-xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 transition-all group text-left`}
+              className={`w-full h-full min-h-[160px] p-6 rounded-xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 transition-all group text-left flex flex-col`}
             >
               <div className="flex items-start justify-between mb-4">
-                <div className={`p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors`}>
+                <div className="p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
                   <module.icon className="h-6 w-6 text-white" />
                 </div>
-                {module.count !== null && (
-                  <span className="text-white/40 text-sm font-medium">
-                    {module.count}
-                  </span>
-                )}
               </div>
               <h3 className="text-white font-semibold mb-1">{module.title}</h3>
-              <p className="text-white/50 text-sm">{module.description}</p>
+              <p className="text-white/50 text-sm flex-1">{module.description}</p>
             </button>
           </motion.div>
         ))}
