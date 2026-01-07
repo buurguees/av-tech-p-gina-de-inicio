@@ -62,8 +62,13 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientI
   // Form state
   const [selectedClientId, setSelectedClientId] = useState<string>(preselectedClientId || "");
   const [status, setStatus] = useState<string>("PLANNED");
-  const [projectAddress, setProjectAddress] = useState("");
+  // Address fields
+  const [projectStreet, setProjectStreet] = useState("");
+  const [projectPostalCode, setProjectPostalCode] = useState("");
   const [projectCity, setProjectCity] = useState("");
+  const [projectProvince, setProjectProvince] = useState("");
+  const [projectCountry, setProjectCountry] = useState("España");
+  // Other fields
   const [clientOrderNumber, setClientOrderNumber] = useState("");
   const [localName, setLocalName] = useState("");
 
@@ -97,8 +102,11 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientI
   const resetForm = () => {
     setSelectedClientId(preselectedClientId || "");
     setStatus("PLANNED");
-    setProjectAddress("");
+    setProjectStreet("");
+    setProjectPostalCode("");
     setProjectCity("");
+    setProjectProvince("");
+    setProjectCountry("España");
     setClientOrderNumber("");
     setLocalName("");
   };
@@ -109,12 +117,22 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientI
       return;
     }
 
+    // Combine address fields into a single address string
+    const addressParts = [
+      projectStreet,
+      projectPostalCode,
+      projectCity,
+      projectProvince,
+      projectCountry
+    ].filter(Boolean);
+    const fullAddress = addressParts.join(', ');
+
     setSubmitting(true);
     try {
       const { data, error } = await supabase.rpc('create_project', {
         p_client_id: selectedClientId,
         p_status: status,
-        p_project_address: projectAddress || null,
+        p_project_address: fullAddress || null,
         p_project_city: projectCity || null,
         p_client_order_number: clientOrderNumber || null,
         p_local_name: localName || null,
@@ -225,26 +243,64 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientI
             </Select>
           </div>
 
-          {/* Dirección del proyecto */}
-          <div className="space-y-2">
-            <Label className="text-white/80">Dirección del Proyecto</Label>
-            <Input
-              value={projectAddress}
-              onChange={(e) => setProjectAddress(e.target.value)}
-              placeholder="Calle, número, código postal..."
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
-            />
-          </div>
+          {/* Dirección del proyecto - Sección */}
+          <div className="space-y-3">
+            <Label className="text-white/80 font-medium">Dirección del Proyecto</Label>
+            
+            {/* Calle y número */}
+            <div className="space-y-1.5">
+              <Label className="text-white/60 text-xs">Calle y Número</Label>
+              <Input
+                value={projectStreet}
+                onChange={(e) => setProjectStreet(e.target.value)}
+                placeholder="Ej: Calle Mayor, 25"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
+              />
+            </div>
 
-          {/* Ciudad */}
-          <div className="space-y-2">
-            <Label className="text-white/80">Ciudad</Label>
-            <Input
-              value={projectCity}
-              onChange={(e) => setProjectCity(e.target.value)}
-              placeholder="Ciudad del proyecto"
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
-            />
+            {/* Código Postal y Población en una fila */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-white/60 text-xs">Código Postal</Label>
+                <Input
+                  value={projectPostalCode}
+                  onChange={(e) => setProjectPostalCode(e.target.value)}
+                  placeholder="Ej: 28001"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-white/60 text-xs">Población</Label>
+                <Input
+                  value={projectCity}
+                  onChange={(e) => setProjectCity(e.target.value)}
+                  placeholder="Ej: Madrid"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                />
+              </div>
+            </div>
+
+            {/* Provincia y País en una fila */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-white/60 text-xs">Provincia</Label>
+                <Input
+                  value={projectProvince}
+                  onChange={(e) => setProjectProvince(e.target.value)}
+                  placeholder="Ej: Madrid"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-white/60 text-xs">País</Label>
+                <Input
+                  value={projectCountry}
+                  onChange={(e) => setProjectCountry(e.target.value)}
+                  placeholder="España"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Nº de Pedido del cliente */}
