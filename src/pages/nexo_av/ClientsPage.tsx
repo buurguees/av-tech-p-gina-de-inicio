@@ -364,7 +364,7 @@ const ClientsPage = () => {
                             <Building2 className="h-4 w-4 text-white/60" />
                           </div>
                           <div>
-                            <p className="text-white font-medium">{client.company_name}</p>
+                            <p className="text-white font-medium uppercase">{client.company_name}</p>
                             {client.industry_sector && (
                               <p className="text-white/40 text-xs capitalize">
                                 {client.industry_sector.toLowerCase()}
