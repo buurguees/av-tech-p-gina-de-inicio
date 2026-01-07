@@ -64,7 +64,7 @@ const AddressAutocomplete = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Search addresses using Nominatim
+  // Search addresses using Nominatim - focused on Spain
   const searchAddresses = async (query: string) => {
     if (query.length < 3) {
       setSuggestions([]);
@@ -73,11 +73,17 @@ const AddressAutocomplete = ({
 
     setIsLoading(true);
     try {
+      // Add "España" to query if not already included to improve Spanish results
+      const enhancedQuery = query.toLowerCase().includes("españa") || query.toLowerCase().includes("spain")
+        ? query
+        : `${query}, España`;
+      
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&countrycodes=es&limit=5`,
+        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(enhancedQuery)}&countrycodes=es&limit=8&bounded=1&viewbox=-9.392884,35.946850,4.315816,43.748337`,
         {
           headers: {
             'Accept-Language': 'es',
+            'User-Agent': 'NexoAV-CRM/1.0',
           },
         }
       );
