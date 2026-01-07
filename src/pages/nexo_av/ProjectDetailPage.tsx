@@ -18,6 +18,7 @@ import {
   Receipt, 
   Wallet,
   Users,
+  CalendarDays,
   ChevronDown,
   Edit
 } from "lucide-react";
@@ -25,6 +26,7 @@ import { motion } from "motion/react";
 import { toast } from "sonner";
 import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import ProjectDashboardTab from "./components/ProjectDashboardTab";
+import ProjectPlanningTab from "./components/ProjectPlanningTab";
 import ProjectQuotesTab from "./components/ProjectQuotesTab";
 import ProjectTechniciansTab from "./components/ProjectTechniciansTab";
 import ProjectExpensesTab from "./components/ProjectExpensesTab";
@@ -255,6 +257,13 @@ const ProjectDetailPage = () => {
                 Dashboard
               </TabsTrigger>
               <TabsTrigger 
+                value="planning"
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+              >
+                <CalendarDays className="h-4 w-4 mr-2" />
+                Planificación
+              </TabsTrigger>
+              <TabsTrigger 
                 value="quotes"
                 className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
               >
@@ -286,6 +295,10 @@ const ProjectDetailPage = () => {
 
             <TabsContent value="dashboard" className="mt-6">
               <ProjectDashboardTab project={project} />
+            </TabsContent>
+
+            <TabsContent value="planning" className="mt-6">
+              <ProjectPlanningTab projectId={project.id} />
             </TabsContent>
 
             <TabsContent value="quotes" className="mt-6">
