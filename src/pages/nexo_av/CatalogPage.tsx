@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Package, Boxes, Loader2 } from 'lucide-react';
 import NexoHeader from './components/NexoHeader';
+import ProductsTab from './components/catalog/ProductsTab';
+import PacksTab from './components/catalog/PacksTab';
 
 interface UserInfo {
   user_id: string;
@@ -74,30 +76,33 @@ export default function CatalogPage() {
         showBack
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card className="bg-white/5 border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Catálogo de Productos
-            </CardTitle>
-            <CardDescription className="text-white/60">
-              Gestiona tu catálogo de productos con precios, costes e impuestos.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-white/40 text-center py-12">
-              <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Próximamente...</p>
-              <p className="text-sm mt-2">
-                Aquí podrás ver y gestionar todos los productos del catálogo con exportación a Excel.
-              </p>
-              <p className="text-sm mt-1 text-orange-400">
-                Primero configura las categorías en Configuración → Categorías de Producto
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Tabs defaultValue="products" className="space-y-6">
+          <TabsList className="bg-white/5 border border-white/10">
+            <TabsTrigger 
+              value="products" 
+              className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/60"
+            >
+              <Package className="w-4 h-4 mr-2" />
+              Productos
+            </TabsTrigger>
+            <TabsTrigger 
+              value="packs"
+              className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/60"
+            >
+              <Boxes className="w-4 h-4 mr-2" />
+              Packs
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="products">
+            <ProductsTab />
+          </TabsContent>
+
+          <TabsContent value="packs">
+            <PacksTab />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
