@@ -7,7 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Download, Search, Trash2, Loader2, Upload, FileSpreadsheet } from 'lucide-react';
+import { Plus, Download, Search, Loader2, Upload, FileSpreadsheet, MoreHorizontal, Eye, Power, Archive } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface Product {
@@ -78,6 +80,7 @@ const initialFormState: NewProductForm = {
 };
 
 export default function ProductsTab({ isAdmin }: ProductsTabProps) {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
@@ -193,21 +196,34 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
     }
   };
 
-  const handleDeleteProduct = async (productId: string) => {
+  const handleToggleActive = async (productId: string, currentlyActive: boolean) => {
     if (!isAdmin) {
-      toast.error('Solo los administradores pueden eliminar productos');
+      toast.error('Solo los administradores pueden modificar productos');
       return;
     }
 
     try {
-      const { error } = await supabase.rpc('delete_product', { p_product_id: productId });
+      const { error } = await supabase.rpc('update_product', { 
+        p_product_id: productId,
+        p_is_active: !currentlyActive
+      });
       if (error) throw error;
-      toast.success('Producto eliminado');
+      toast.success(currentlyActive ? 'Producto desactivado' : 'Producto activado');
       await loadProducts();
     } catch (error) {
-      console.error('Error deleting product:', error);
-      toast.error('Error al eliminar producto');
+      console.error('Error toggling product:', error);
+      toast.error('Error al actualizar producto');
     }
+  };
+
+  const handleArchiveProduct = async (productId: string) => {
+    // TODO: Implement archive functionality
+    toast.info('Funcionalidad de archivar próximamente');
+  };
+
+  const handleViewDetails = (productId: string) => {
+    // TODO: Navigate to product detail page when implemented
+    toast.info('Página de detalle próximamente');
   };
 
   const startEditing = (productId: string, field: string, currentValue: string | number) => {
@@ -736,38 +752,38 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
               <TableHead className="text-white/60 w-24">Categoría</TableHead>
               <TableHead className="text-white/60 w-24">Subcat.</TableHead>
               <TableHead className="text-white/60">Nombre</TableHead>
-              <TableHead className="text-white/60 w-40">Descripción</TableHead>
-              <TableHead className="text-white/60 w-24 text-right">Coste</TableHead>
-              <TableHead className="text-white/60 w-24 text-right">P. Base</TableHead>
+              <TableHead className="text-white/60 w-28 text-right">Coste</TableHead>
+              <TableHead className="text-white/60 w-28 text-right">P. Base</TableHead>
               <TableHead className="text-white/60 w-28">Impuesto</TableHead>
-              <TableHead className="text-white/60 w-24 text-right">P. con IVA</TableHead>
-              {isAdmin && <TableHead className="text-white/60 w-12"></TableHead>}
+              <TableHead className="text-white/60 w-28 text-right">P. con IVA</TableHead>
+              <TableHead className="text-white/60 w-16">Estado</TableHead>
+              <TableHead className="text-white/60 w-12"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow className="border-white/10">
-                <TableCell colSpan={isAdmin ? 10 : 9} className="text-center py-8">
+                <TableCell colSpan={10} className="text-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin mx-auto text-white/40" />
                 </TableCell>
               </TableRow>
             ) : products.length === 0 ? (
               <TableRow className="border-white/10">
-                <TableCell colSpan={isAdmin ? 10 : 9} className="text-center py-8 text-white/40">
+                <TableCell colSpan={10} className="text-center py-8 text-white/40">
                   No hay productos. {isAdmin && 'Haz clic en "Añadir Producto" para crear uno.'}
                 </TableCell>
               </TableRow>
             ) : (
               products.map(product => (
-                <TableRow key={product.id} className="border-white/10 hover:bg-white/5">
+                <TableRow 
+                  key={product.id} 
+                  className={`border-white/10 hover:bg-white/5 ${!product.is_active ? 'opacity-50' : ''}`}
+                >
                   <TableCell className="text-orange-400 font-mono text-xs">{product.product_number}</TableCell>
                   <TableCell className="text-white/60 text-xs">{product.category_code}</TableCell>
                   <TableCell className="text-white/60 text-xs">{product.subcategory_code || '-'}</TableCell>
                   <TableCell className="text-white text-sm">
                     {renderEditableCell(product, 'name', product.name)}
-                  </TableCell>
-                  <TableCell className="text-white/60 text-xs">
-                    {renderEditableCell(product, 'description', product.description)}
                   </TableCell>
                   <TableCell className="text-right">
                     {renderEditableCell(product, 'cost_price', product.cost_price, true)}
@@ -799,18 +815,51 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
                   <TableCell className="text-right text-green-400 font-medium text-sm">
                     {product.price_with_tax.toFixed(2)} €
                   </TableCell>
-                  {isAdmin && (
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteProduct(product.id)}
-                        className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  )}
+                  <TableCell>
+                    <span className={`text-xs px-2 py-1 rounded ${product.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                      {product.is_active ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-white/60 hover:text-white hover:bg-white/10"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                        <DropdownMenuItem 
+                          onClick={() => handleViewDetails(product.id)}
+                          className="text-white hover:bg-white/10 cursor-pointer"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver detalles
+                        </DropdownMenuItem>
+                        {isAdmin && (
+                          <>
+                            <DropdownMenuItem 
+                              onClick={() => handleToggleActive(product.id, product.is_active)}
+                              className="text-white hover:bg-white/10 cursor-pointer"
+                            >
+                              <Power className="w-4 h-4 mr-2" />
+                              {product.is_active ? 'Desactivar' : 'Activar'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleArchiveProduct(product.id)}
+                              className="text-white hover:bg-white/10 cursor-pointer"
+                            >
+                              <Archive className="w-4 h-4 mr-2" />
+                              Archivar
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
               ))
             )}
