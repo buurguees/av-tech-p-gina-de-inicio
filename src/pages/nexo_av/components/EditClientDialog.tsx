@@ -237,7 +237,7 @@ const EditClientDialog = ({
     try {
       const { error } = await supabase.rpc('update_client', {
         p_client_id: client.id,
-        p_company_name: data.company_name,
+        p_company_name: data.company_name.toUpperCase(),
         p_contact_email: data.contact_email,
         p_contact_phone: data.contact_phone,
         p_lead_stage: data.lead_stage,
