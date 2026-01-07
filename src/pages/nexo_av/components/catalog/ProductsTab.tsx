@@ -173,7 +173,7 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
       const { data, error } = await supabase.rpc('create_product', {
         p_category_id: formData.categoryId,
         p_subcategory_id: formData.subcategoryId || null,
-        p_name: formData.name.trim(),
+        p_name: formData.name.trim().toUpperCase(),
         p_description: formData.description.trim() || null,
         p_cost_price: parseFloat(formData.costPrice) || 0,
         p_base_price: parseFloat(formData.basePrice) || 0,
@@ -236,7 +236,7 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
           cancelEditing();
           return;
         }
-        updateData.p_name = editValue.trim();
+        updateData.p_name = editValue.trim().toUpperCase();
         break;
       case 'description':
         if (editValue === (product.description || '')) {
@@ -551,9 +551,9 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
               <Label className="text-white/70">Nombre del producto *</Label>
               <Input
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ej: Jornada técnico instalación"
-                className="bg-white/5 border-white/10 text-white"
+                onChange={(e) => setFormData({ ...formData, name: e.target.value.toUpperCase() })}
+                placeholder="Ej: JORNADA TÉCNICO INSTALACIÓN"
+                className="bg-white/5 border-white/10 text-white uppercase"
               />
             </div>
 
