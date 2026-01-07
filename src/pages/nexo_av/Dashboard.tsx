@@ -365,10 +365,14 @@ const DashboardContent = ({
           </Button>
         )}
         {(isAdmin || isManager || isSales) && (
-          <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4 min-w-[110px] md:min-w-[140px]">
-            <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
-            Presupuesto
-          </Button>
+          <QuickQuoteDialog 
+            trigger={
+              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4 min-w-[110px] md:min-w-[140px]">
+                <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
+                Presupuesto
+              </Button>
+            }
+          />
         )}
         {(isAdmin || isManager || isTech) && (
           <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4 min-w-[110px] md:min-w-[140px]">
