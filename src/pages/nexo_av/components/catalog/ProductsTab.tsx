@@ -38,6 +38,7 @@ interface Category {
   id: string;
   code: string;
   name: string;
+  type?: string;
 }
 
 interface Subcategory {
@@ -386,6 +387,9 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const filteredSubcategories = subcategories.filter(s => 
     filterCategory === 'all' || s.category_id === filterCategory
   );
+
+  // Filter categories by type for the form
+  const formCategories = categories.filter(c => c.type === filterType);
 
   const formSubcategories = subcategories.filter(s => s.category_id === formData.categoryId);
 
