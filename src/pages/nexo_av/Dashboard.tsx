@@ -14,6 +14,7 @@ import {
   UserCog,
   ShieldAlert,
   Calculator,
+  Shield,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -250,6 +251,15 @@ const Dashboard = () => {
       borderColor: 'border-gray-500/30',
       available: isAdmin,
       path: `/nexo-av/${userId}/settings`,
+    },
+    {
+      id: 'audit',
+      title: 'Auditoría',
+      icon: Shield,
+      color: 'from-red-500/20 to-red-600/10',
+      borderColor: 'border-red-500/30',
+      available: isAdmin,
+      path: `/nexo-av/${userId}/audit`,
     },
   ];
 
