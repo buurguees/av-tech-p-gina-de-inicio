@@ -40,6 +40,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_pack_item: {
+        Args: { p_pack_id: string; p_product_id: string; p_quantity?: number }
+        Returns: string
+      }
       add_quote_line: {
         Args: {
           p_concept: string
@@ -85,6 +89,21 @@ export type Database = {
         }
         Returns: string
       }
+      create_product: {
+        Args: {
+          p_base_price?: number
+          p_category_id: string
+          p_cost_price?: number
+          p_description?: string
+          p_name?: string
+          p_subcategory_id?: string
+          p_tax_rate?: number
+        }
+        Returns: {
+          product_id: string
+          product_number: string
+        }[]
+      }
       create_product_category: {
         Args: {
           p_code: string
@@ -93,6 +112,18 @@ export type Database = {
           p_name: string
         }
         Returns: string
+      }
+      create_product_pack: {
+        Args: {
+          p_description?: string
+          p_discount_percent?: number
+          p_name?: string
+          p_tax_rate?: number
+        }
+        Returns: {
+          pack_id: string
+          pack_number: string
+        }[]
       }
       create_product_subcategory: {
         Args: {
@@ -154,10 +185,12 @@ export type Database = {
           }
       delete_authorized_user: { Args: { p_user_id: string }; Returns: string }
       delete_client: { Args: { p_client_id: string }; Returns: boolean }
+      delete_product: { Args: { p_product_id: string }; Returns: boolean }
       delete_product_category: {
         Args: { p_category_id: string }
         Returns: boolean
       }
+      delete_product_pack: { Args: { p_pack_id: string }; Returns: boolean }
       delete_product_subcategory: {
         Args: { p_subcategory_id: string }
         Returns: boolean
@@ -215,6 +248,18 @@ export type Database = {
           phone: string
           roles: string[]
           user_id: string
+        }[]
+      }
+      get_pack_items: {
+        Args: { p_pack_id: string }
+        Returns: {
+          id: string
+          product_id: string
+          product_name: string
+          product_number: string
+          quantity: number
+          subtotal: number
+          unit_price: number
         }[]
       }
       get_project: {
@@ -365,6 +410,24 @@ export type Database = {
           updated_at: string
         }[]
       }
+      list_product_packs: {
+        Args: { p_search?: string }
+        Returns: {
+          base_price: number
+          created_at: string
+          description: string
+          discount_percent: number
+          final_price: number
+          id: string
+          is_active: boolean
+          name: string
+          pack_number: string
+          price_with_tax: number
+          product_count: number
+          tax_rate: number
+          updated_at: string
+        }[]
+      }
       list_product_subcategories: {
         Args: { p_category_id?: string }
         Returns: {
@@ -379,6 +442,32 @@ export type Database = {
           is_active: boolean
           name: string
           product_count: number
+          updated_at: string
+        }[]
+      }
+      list_products: {
+        Args: {
+          p_category_id?: string
+          p_search?: string
+          p_subcategory_id?: string
+        }
+        Returns: {
+          base_price: number
+          category_code: string
+          category_id: string
+          category_name: string
+          cost_price: number
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          price_with_tax: number
+          product_number: string
+          subcategory_code: string
+          subcategory_id: string
+          subcategory_name: string
+          tax_rate: number
           updated_at: string
         }[]
       }
@@ -450,6 +539,7 @@ export type Database = {
           name: string
         }[]
       }
+      remove_pack_item: { Args: { p_item_id: string }; Returns: boolean }
       toggle_user_status: {
         Args: { p_is_active: boolean; p_user_id: string }
         Returns: boolean
@@ -499,6 +589,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_pack_item: {
+        Args: { p_item_id: string; p_quantity: number }
+        Returns: boolean
+      }
+      update_product: {
+        Args: {
+          p_base_price?: number
+          p_cost_price?: number
+          p_description?: string
+          p_is_active?: boolean
+          p_name?: string
+          p_product_id: string
+          p_tax_rate?: number
+        }
+        Returns: boolean
+      }
       update_product_category: {
         Args: {
           p_category_id: string
@@ -507,6 +613,17 @@ export type Database = {
           p_display_order?: number
           p_is_active?: boolean
           p_name?: string
+        }
+        Returns: boolean
+      }
+      update_product_pack: {
+        Args: {
+          p_description?: string
+          p_discount_percent?: number
+          p_is_active?: boolean
+          p_name?: string
+          p_pack_id: string
+          p_tax_rate?: number
         }
         Returns: boolean
       }
