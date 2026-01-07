@@ -29,6 +29,12 @@ interface Client {
   company_name: string;
 }
 
+interface Project {
+  id: string;
+  project_number: string;
+  project_name: string;
+}
+
 interface QuoteLine {
   id?: string;
   tempId?: string;
@@ -59,8 +65,10 @@ const NewQuotePage = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>(clientId || "");
-  const [projectName, setProjectName] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [quoteNumber, setQuoteNumber] = useState("Generando...");
   const [validUntil, setValidUntil] = useState(() => {
     const date = new Date();
@@ -76,6 +84,16 @@ const NewQuotePage = () => {
     }
   }, [clientId]);
 
+  // Fetch projects when client changes
+  useEffect(() => {
+    if (selectedClientId) {
+      fetchClientProjects(selectedClientId);
+    } else {
+      setProjects([]);
+      setSelectedProjectId("");
+    }
+  }, [selectedClientId]);
+
   const fetchClients = async () => {
     try {
       const { data, error } = await supabase.rpc("list_clients", {});
@@ -83,6 +101,28 @@ const NewQuotePage = () => {
       setClients(data?.map((c: any) => ({ id: c.id, company_name: c.company_name })) || []);
     } catch (error) {
       console.error("Error fetching clients:", error);
+    }
+  };
+
+  const fetchClientProjects = async (clientId: string) => {
+    setLoadingProjects(true);
+    try {
+      const { data, error } = await supabase.rpc("list_projects", {
+        p_search: null
+      });
+      if (error) throw error;
+      // Filter projects by client_id
+      const clientProjects = (data || []).filter((p: any) => p.client_id === clientId);
+      setProjects(clientProjects.map((p: any) => ({
+        id: p.id,
+        project_number: p.project_number,
+        project_name: p.project_name,
+      })));
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      setProjects([]);
+    } finally {
+      setLoadingProjects(false);
     }
   };
 
@@ -167,12 +207,14 @@ const NewQuotePage = () => {
     setSaving(true);
     try {
       // Create quote with auto-generated number
+      const selectedProject = projects.find(p => p.id === selectedProjectId);
       const { data: quoteData, error: quoteError } = await supabase.rpc(
         "create_quote_with_number",
         {
           p_client_id: selectedClientId,
-          p_project_name: projectName || null,
+          p_project_name: selectedProject?.project_name || null,
           p_valid_until: validUntil,
+          p_project_id: selectedProjectId || null,
         }
       );
 
@@ -319,13 +361,36 @@ const NewQuotePage = () => {
             </div>
 
             <div className="mt-4">
-              <Label className="text-white/70">Proyecto</Label>
-              <Input
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                placeholder="Nombre del proyecto (opcional)"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 mt-2"
-              />
+              <Label className="text-white/70">Proyecto del cliente</Label>
+              <Select 
+                value={selectedProjectId} 
+                onValueChange={setSelectedProjectId}
+                disabled={!selectedClientId || loadingProjects}
+              >
+                <SelectTrigger className="bg-white/5 border-white/10 text-white mt-2">
+                  <SelectValue placeholder={
+                    !selectedClientId 
+                      ? "Selecciona un cliente primero" 
+                      : loadingProjects 
+                        ? "Cargando proyectos..." 
+                        : projects.length === 0 
+                          ? "No hay proyectos para este cliente"
+                          : "Seleccionar proyecto"
+                  } />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10">
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id} className="text-white">
+                      {project.project_number} - {project.project_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedClientId && projects.length === 0 && !loadingProjects && (
+                <p className="text-white/40 text-xs mt-2">
+                  Este cliente no tiene proyectos. Crea uno primero desde la sección de Proyectos.
+                </p>
+              )}
             </div>
           </div>
 

@@ -48,15 +48,14 @@ const ProjectQuotesTab = ({ projectId }: ProjectQuotesTabProps) => {
     const fetchQuotes = async () => {
       try {
         setLoading(true);
-        // For now, we'll fetch quotes that might be linked to this project
-        // This will need to be updated once we have proper project-quote linking
         const { data, error } = await supabase.rpc('list_quotes', {
           p_search: null
         });
 
         if (error) throw error;
-        // Filter quotes by project_id if available (future implementation)
-        setQuotes(data || []);
+        // Filter quotes by project_id
+        const projectQuotes = (data || []).filter((q: any) => q.project_id === projectId);
+        setQuotes(projectQuotes);
       } catch (error) {
         console.error('Error fetching quotes:', error);
       } finally {
