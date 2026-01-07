@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Search, FileText, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import NexoHeader from "./components/NexoHeader";
-import QuickQuoteDialog from "./components/QuickQuoteDialog";
 
 interface Quote {
   id: string;
