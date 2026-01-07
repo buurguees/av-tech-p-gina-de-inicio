@@ -2,8 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Download, Search, Trash2, Loader2, Upload, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -47,12 +50,32 @@ interface ProductsTabProps {
   isAdmin: boolean;
 }
 
+interface NewProductForm {
+  categoryId: string;
+  subcategoryId: string;
+  name: string;
+  description: string;
+  costPrice: string;
+  basePrice: string;
+  taxRate: string;
+}
+
 const TAX_OPTIONS = [
   { value: '21', label: 'IVA 21%' },
   { value: '10', label: 'IVA 10%' },
   { value: '4', label: 'IVA 4%' },
   { value: '0', label: 'Exento' },
 ];
+
+const initialFormState: NewProductForm = {
+  categoryId: '',
+  subcategoryId: '',
+  name: '',
+  description: '',
+  costPrice: '0',
+  basePrice: '0',
+  taxRate: '21',
+};
 
 export default function ProductsTab({ isAdmin }: ProductsTabProps) {
   const [products, setProducts] = useState<Product[]>([]);
@@ -67,6 +90,11 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
   const [importing, setImporting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Dialog state
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [formData, setFormData] = useState<NewProductForm>(initialFormState);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -121,31 +149,47 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
     }
   };
 
-  const handleAddProduct = async () => {
+  const handleOpenAddDialog = () => {
     if (!isAdmin) {
       toast.error('Solo los administradores pueden añadir productos');
       return;
     }
+    setFormData(initialFormState);
+    setShowAddDialog(true);
+  };
 
-    if (filterCategory === 'all') {
-      toast.error('Selecciona una categoría para añadir un producto');
+  const handleSaveProduct = async () => {
+    if (!formData.categoryId) {
+      toast.error('Selecciona una categoría');
+      return;
+    }
+    if (!formData.name.trim()) {
+      toast.error('El nombre es obligatorio');
       return;
     }
 
+    setSaving(true);
     try {
       const { data, error } = await supabase.rpc('create_product', {
-        p_category_id: filterCategory,
-        p_subcategory_id: filterSubcategory !== 'all' ? filterSubcategory : null,
-        p_name: 'NUEVO PRODUCTO'
+        p_category_id: formData.categoryId,
+        p_subcategory_id: formData.subcategoryId || null,
+        p_name: formData.name.trim(),
+        p_description: formData.description.trim() || null,
+        p_cost_price: parseFloat(formData.costPrice) || 0,
+        p_base_price: parseFloat(formData.basePrice) || 0,
+        p_tax_rate: parseFloat(formData.taxRate) || 21
       });
 
       if (error) throw error;
 
       toast.success(`Producto ${data?.[0]?.product_number} creado`);
+      setShowAddDialog(false);
       await loadProducts();
     } catch (error) {
       console.error('Error creating product:', error);
       toast.error('Error al crear producto');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -288,7 +332,6 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
   };
 
   const downloadTemplate = () => {
-    // Build template with categories and subcategories info
     const categoryInfo = categories.map(c => {
       const subs = subcategories.filter(s => s.category_id === c.id);
       const subInfo = subs.length > 0 
@@ -350,7 +393,6 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
         return;
       }
 
-      // Skip header row
       const dataLines = lines.slice(1);
       let imported = 0;
       let errors = 0;
@@ -361,7 +403,6 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
 
         const [catCode, subCode, name, description, costPrice, basePrice, taxRate] = cols;
         
-        // Find category
         const category = categories.find(c => c.code === catCode.trim());
         if (!category) {
           console.error(`Categoría no encontrada: ${catCode}`);
@@ -369,7 +410,6 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
           continue;
         }
 
-        // Find subcategory (optional)
         let subcategoryId = null;
         if (subCode?.trim()) {
           const subcategory = subcategories.find(
@@ -416,6 +456,8 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
     filterCategory === 'all' || s.category_id === filterCategory
   );
 
+  const formSubcategories = subcategories.filter(s => s.category_id === formData.categoryId);
+
   const renderEditableCell = (product: Product, field: string, value: string | number | null, isNumeric = false) => {
     const isEditing = editingCell?.productId === product.id && editingCell?.field === field;
 
@@ -454,6 +496,154 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
         onChange={handleFileUpload}
         className="hidden"
       />
+
+      {/* Add Product Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Nuevo Producto</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-white/70">Categoría *</Label>
+                <Select 
+                  value={formData.categoryId} 
+                  onValueChange={(v) => setFormData({ ...formData, categoryId: v, subcategoryId: '' })}
+                >
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                    <SelectValue placeholder="Seleccionar..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10">
+                    {categories.map(c => (
+                      <SelectItem key={c.id} value={c.id} className="text-white">
+                        {c.code} - {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-white/70">Subcategoría</Label>
+                <Select 
+                  value={formData.subcategoryId} 
+                  onValueChange={(v) => setFormData({ ...formData, subcategoryId: v })}
+                  disabled={!formData.categoryId}
+                >
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                    <SelectValue placeholder="Opcional..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10">
+                    <SelectItem value="" className="text-white/60">Sin subcategoría</SelectItem>
+                    {formSubcategories.map(s => (
+                      <SelectItem key={s.id} value={s.id} className="text-white">
+                        {s.code} - {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white/70">Nombre del producto *</Label>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Ej: Jornada técnico instalación"
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white/70">Descripción</Label>
+              <Textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Descripción opcional del producto..."
+                rows={2}
+                className="bg-white/5 border-white/10 text-white resize-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-white/70">Precio coste (€)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.costPrice}
+                  onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+                  className="bg-white/5 border-white/10 text-white"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-white/70">Precio base (€)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.basePrice}
+                  onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                  className="bg-white/5 border-white/10 text-white"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-white/70">Impuesto</Label>
+                <Select 
+                  value={formData.taxRate} 
+                  onValueChange={(v) => setFormData({ ...formData, taxRate: v })}
+                >
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10">
+                    {TAX_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value} className="text-white">
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {formData.categoryId && formData.basePrice && (
+              <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-white/60">Precio con IVA:</span>
+                  <span className="text-green-400 font-semibold">
+                    {(parseFloat(formData.basePrice) * (1 + parseFloat(formData.taxRate) / 100)).toFixed(2)} €
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowAddDialog(false)}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveProduct}
+              disabled={saving || !formData.categoryId || !formData.name.trim()}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Guardar Producto
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Toolbar */}
       <div className="flex flex-wrap gap-3 items-center justify-between">
@@ -497,8 +687,7 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
           {isAdmin && (
             <>
               <Button
-                onClick={handleAddProduct}
-                disabled={filterCategory === 'all'}
+                onClick={handleOpenAddDialog}
                 className="bg-orange-500 hover:bg-orange-600 text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -565,9 +754,7 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
             ) : products.length === 0 ? (
               <TableRow className="border-white/10">
                 <TableCell colSpan={isAdmin ? 10 : 9} className="text-center py-8 text-white/40">
-                  {filterCategory === 'all' 
-                    ? 'Selecciona una categoría para ver productos'
-                    : 'No hay productos en esta categoría'}
+                  No hay productos. {isAdmin && 'Haz clic en "Añadir Producto" para crear uno.'}
                 </TableCell>
               </TableRow>
             ) : (
