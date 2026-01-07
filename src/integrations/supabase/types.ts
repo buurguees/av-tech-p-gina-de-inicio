@@ -96,8 +96,10 @@ export type Database = {
           p_cost_price?: number
           p_description?: string
           p_name?: string
+          p_stock?: number
           p_subcategory_id?: string
           p_tax_rate?: number
+          p_type?: Database["public"]["Enums"]["product_type"]
         }
         Returns: {
           product_id: string
@@ -464,10 +466,12 @@ export type Database = {
           name: string
           price_with_tax: number
           product_number: string
+          stock: number
           subcategory_code: string
           subcategory_id: string
           subcategory_name: string
           tax_rate: number
+          type: Database["public"]["Enums"]["product_type"]
           updated_at: string
         }[]
       }
@@ -593,18 +597,33 @@ export type Database = {
         Args: { p_item_id: string; p_quantity: number }
         Returns: boolean
       }
-      update_product: {
-        Args: {
-          p_base_price?: number
-          p_cost_price?: number
-          p_description?: string
-          p_is_active?: boolean
-          p_name?: string
-          p_product_id: string
-          p_tax_rate?: number
-        }
-        Returns: boolean
-      }
+      update_product:
+        | {
+            Args: {
+              p_base_price?: number
+              p_cost_price?: number
+              p_description?: string
+              p_is_active?: boolean
+              p_name?: string
+              p_product_id: string
+              p_tax_rate?: number
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_base_price?: number
+              p_cost_price?: number
+              p_description?: string
+              p_is_active?: boolean
+              p_name?: string
+              p_product_id: string
+              p_stock?: number
+              p_tax_rate?: number
+              p_type?: Database["public"]["Enums"]["product_type"]
+            }
+            Returns: boolean
+          }
       update_product_category: {
         Args: {
           p_category_id: string
@@ -676,6 +695,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "comercial" | "tecnico"
+      product_type: "product" | "service"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -804,6 +824,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "comercial", "tecnico"],
+      product_type: ["product", "service"],
     },
   },
 } as const
