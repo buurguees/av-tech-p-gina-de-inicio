@@ -10,7 +10,9 @@ import {
   Mail,
   Calendar,
   User,
-  Filter
+  Filter,
+  Users,
+  UserCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,10 +32,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import CreateClientDialog from "./components/CreateClientDialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Client {
   id: string;
@@ -71,11 +76,13 @@ const getStageInfo = (stage: string) => {
 
 const ClientsPage = () => {
   const { userId } = useParams<{ userId: string }>();
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [stageFilter, setStageFilter] = useState<string>("all");
+  const [showOnlyMine, setShowOnlyMine] = useState(true); // Default to true on mobile
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -182,6 +189,11 @@ const ClientsPage = () => {
     );
   }
 
+  // Filter clients based on showOnlyMine toggle
+  const filteredClients = showOnlyMine
+    ? clients.filter(c => c.assigned_to === currentUserId || c.assigned_to === null)
+    : clients;
+
   return (
     <div className="min-h-screen bg-black">
       <NexoHeader 
@@ -189,53 +201,128 @@ const ClientsPage = () => {
         userId={userId || ''} 
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
         {/* Actions bar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row gap-4 mb-6"
+          className="flex flex-col gap-3 md:gap-4 mb-4 md:mb-6"
         >
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-            <Input
-              placeholder="Buscar por empresa, email o teléfono..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40"
-            />
-          </div>
-          
-          <Select value={stageFilter} onValueChange={setStageFilter}>
-            <SelectTrigger className="w-full sm:w-48 bg-white/5 border-white/10 text-white">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filtrar por estado" />
-            </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-white/10">
-              <SelectItem value="all" className="text-white">Todos los estados</SelectItem>
-              {LEAD_STAGES.map((stage) => (
-                <SelectItem key={stage.value} value={stage.value} className="text-white">
-                  {stage.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Search and filters row */}
+          <div className="flex flex-col sm:flex-row gap-2 md:gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+              <Input
+                placeholder="Buscar..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-9 md:h-10 text-sm"
+              />
+            </div>
+            
+            <Select value={stageFilter} onValueChange={setStageFilter}>
+              <SelectTrigger className="w-full sm:w-40 bg-white/5 border-white/10 text-white h-9 md:h-10 text-sm">
+                <Filter className="h-3.5 w-3.5 mr-2" />
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-900 border-white/10">
+                <SelectItem value="all" className="text-white text-sm">Todos</SelectItem>
+                {LEAD_STAGES.map((stage) => (
+                  <SelectItem key={stage.value} value={stage.value} className="text-white text-sm">
+                    {stage.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <Button 
-            onClick={() => setShowCreateDialog(true)}
-            className="bg-white text-black hover:bg-white/90"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Cliente
-          </Button>
+            <Button 
+              onClick={() => setShowCreateDialog(true)}
+              className="bg-white text-black hover:bg-white/90 h-9 md:h-10 text-sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Nuevo Cliente</span>
+              <span className="sm:hidden">Nuevo</span>
+            </Button>
+          </div>
+
+          {/* Filter toggle */}
+          <div className="flex items-center gap-2 px-1">
+            <Switch
+              id="show-mine"
+              checked={showOnlyMine}
+              onCheckedChange={setShowOnlyMine}
+              className="data-[state=checked]:bg-white"
+            />
+            <Label htmlFor="show-mine" className="text-white/60 text-xs md:text-sm flex items-center gap-1.5 cursor-pointer">
+              {showOnlyMine ? (
+                <>
+                  <UserCheck className="h-3.5 w-3.5" />
+                  Mis clientes y sin asignar
+                </>
+              ) : (
+                <>
+                  <Users className="h-3.5 w-3.5" />
+                  Todos los clientes
+                </>
+              )}
+            </Label>
+          </div>
         </motion.div>
 
-        {/* Clients table */}
+        {/* Mobile card view */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-xl border border-white/10 overflow-hidden"
+          className="md:hidden space-y-2"
+        >
+          {filteredClients.length === 0 ? (
+            <div className="text-center py-12 rounded-xl border border-white/10 bg-white/5">
+              <Building2 className="h-10 w-10 text-white/20 mx-auto mb-3" />
+              <p className="text-white/40 text-sm">No hay clientes</p>
+              <Button
+                variant="link"
+                onClick={() => setShowCreateDialog(true)}
+                className="text-white/60 hover:text-white text-sm mt-2"
+              >
+                Crear el primero
+              </Button>
+            </div>
+          ) : (
+            filteredClients.map((client) => {
+              const stageInfo = getStageInfo(client.lead_stage);
+              return (
+                <button
+                  key={client.id}
+                  onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
+                  className="w-full p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-left"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="p-1.5 rounded-lg bg-white/5 shrink-0">
+                        <Building2 className="h-3.5 w-3.5 text-white/60" />
+                      </div>
+                      <p className="text-white font-medium text-sm truncate">{client.company_name}</p>
+                    </div>
+                    <Badge 
+                      variant="outline" 
+                      className={`${stageInfo.color} border text-[10px] px-1.5 py-0 shrink-0`}
+                    >
+                      {stageInfo.label}
+                    </Badge>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </motion.div>
+
+        {/* Desktop table view */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="hidden md:block rounded-xl border border-white/10 overflow-hidden"
         >
           <Table>
             <TableHeader>
@@ -248,7 +335,7 @@ const ClientsPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clients.length === 0 ? (
+              {filteredClients.length === 0 ? (
                 <TableRow className="border-white/10">
                   <TableCell colSpan={5} className="text-center py-12">
                     <Building2 className="h-12 w-12 text-white/20 mx-auto mb-3" />
@@ -263,7 +350,7 @@ const ClientsPage = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                clients.map((client) => {
+                filteredClients.map((client) => {
                   const stageInfo = getStageInfo(client.lead_stage);
                   return (
                     <TableRow 
