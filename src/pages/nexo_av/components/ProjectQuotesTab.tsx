@@ -24,6 +24,7 @@ interface Quote {
 
 interface ProjectQuotesTabProps {
   projectId: string;
+  clientId?: string;
 }
 
 const QUOTE_STATUSES = [
@@ -38,7 +39,7 @@ const getStatusInfo = (status: string) => {
   return QUOTE_STATUSES.find(s => s.value === status) || QUOTE_STATUSES[0];
 };
 
-const ProjectQuotesTab = ({ projectId }: ProjectQuotesTabProps) => {
+const ProjectQuotesTab = ({ projectId, clientId }: ProjectQuotesTabProps) => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -67,8 +68,11 @@ const ProjectQuotesTab = ({ projectId }: ProjectQuotesTabProps) => {
   }, [projectId]);
 
   const handleCreateQuote = () => {
-    // Navigate to create quote page with project context
-    navigate(`/nexo-av/${userId}/quotes/new?projectId=${projectId}`);
+    // Navigate to create quote page with project and client context
+    const params = new URLSearchParams();
+    params.set('projectId', projectId);
+    if (clientId) params.set('clientId', clientId);
+    navigate(`/nexo-av/${userId}/quotes/new?${params.toString()}`);
   };
 
   if (loading) {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus, FileText, Download, Eye } from "lucide-react";
+import { Plus, FileText, Download, Eye, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ClientQuotesTabProps {
   clientId: string;
@@ -42,13 +44,41 @@ const getStatusInfo = (status: string) => {
 };
 
 const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
+  const { userId } = useParams();
+  const navigate = useNavigate();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch quotes from database when quotes table exists
-    setLoading(false);
+    const fetchQuotes = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase.rpc('list_quotes', {
+          p_search: null
+        });
+
+        if (error) throw error;
+        // Filter quotes by client_id
+        const clientQuotes = (data || []).filter((q: any) => q.client_id === clientId);
+        setQuotes(clientQuotes);
+      } catch (error) {
+        console.error('Error fetching quotes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuotes();
   }, [clientId]);
+
+  const handleCreateQuote = () => {
+    // Navigate to create quote page with client context
+    navigate(`/nexo-av/${userId}/quotes/new?clientId=${clientId}`);
+  };
+
+  const handleQuoteClick = (quoteId: string) => {
+    navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
+  };
 
   const formatCurrency = (amount: number) => {
     return `${amount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€`;
@@ -57,7 +87,7 @@ const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
       </div>
     );
   }
@@ -66,7 +96,10 @@ const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
     <div className="space-y-4">
       {/* Actions */}
       <div className="flex justify-end">
-        <Button className="bg-white text-black hover:bg-white/90">
+        <Button 
+          className="bg-white text-black hover:bg-white/90"
+          onClick={handleCreateQuote}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Nuevo Presupuesto
         </Button>
@@ -99,6 +132,7 @@ const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
                   <Button
                     variant="link"
                     className="text-white/60 hover:text-white mt-2"
+                    onClick={handleCreateQuote}
                   >
                     Crear el primer presupuesto
                   </Button>
@@ -110,7 +144,8 @@ const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
                 return (
                   <TableRow 
                     key={quote.id} 
-                    className="border-white/10 hover:bg-white/5"
+                    className="border-white/10 hover:bg-white/5 cursor-pointer"
+                    onClick={() => handleQuoteClick(quote.id)}
                   >
                     <TableCell className="text-white font-medium">
                       {quote.quote_number}
