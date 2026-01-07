@@ -10,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { validatePassword } from "@/hooks/usePasswordValidation";
+import PasswordStrengthIndicator from "./PasswordStrengthIndicator";
 import {
   Dialog,
   DialogContent,
@@ -165,6 +167,17 @@ const UserManagement = () => {
       return;
     }
 
+    // Validate password strength
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      toast({
+        title: "Contraseña no válida",
+        description: passwordValidation.errors.join(', '),
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke('admin-users', {
@@ -283,7 +296,17 @@ const UserManagement = () => {
   const handleResetPassword = async () => {
     if (!selectedUser || !formData.password) return;
 
-    setIsSubmitting(true);
+    // Validate password strength
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      toast({
+        title: "Contraseña no válida",
+        description: passwordValidation.errors.join(', '),
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke('admin-users', {
         body: {
@@ -606,11 +629,16 @@ const UserManagement = () => {
               <Label className="text-white/70">Contraseña *</Label>
               <Input
                 type="password"
-                placeholder="Mínimo 8 caracteres"
+                placeholder="Mínimo 12 caracteres con mayúsculas, números y símbolos"
                 value={formData.password}
                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
+              {formData.password && (
+                <PasswordStrengthIndicator 
+                  validation={validatePassword(formData.password)} 
+                />
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -855,11 +883,16 @@ const UserManagement = () => {
               <Label className="text-white/70">Nueva contraseña *</Label>
               <Input
                 type="password"
-                placeholder="Mínimo 8 caracteres"
+                placeholder="Mínimo 12 caracteres con mayúsculas, números y símbolos"
                 value={formData.password}
                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
+              {formData.password && (
+                <PasswordStrengthIndicator 
+                  validation={validatePassword(formData.password)} 
+                />
+              )}
             </div>
           </div>
 
