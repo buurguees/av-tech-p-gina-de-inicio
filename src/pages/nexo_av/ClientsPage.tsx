@@ -82,7 +82,7 @@ const ClientsPage = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [stageFilter, setStageFilter] = useState<string>("all");
-  const [showOnlyMine, setShowOnlyMine] = useState(true); // Default to true on mobile
+  const [showOnlyMine, setShowOnlyMine] = useState<boolean | null>(null); // Will be set based on role
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -144,7 +144,10 @@ const ClientsPage = () => {
         }
 
         setCurrentUserId(currentUserInfo.user_id);
-        setIsAdmin(currentUserInfo.roles?.includes('admin') || false);
+        const userIsAdmin = currentUserInfo.roles?.includes('admin') || false;
+        setIsAdmin(userIsAdmin);
+        // For admins, default to showing all clients; for others, show only their clients
+        setShowOnlyMine(!userIsAdmin);
         setLoading(false);
       } catch (err) {
         console.error('Auth check error:', err);
@@ -190,7 +193,7 @@ const ClientsPage = () => {
   }
 
   // Filter clients based on showOnlyMine toggle
-  const filteredClients = showOnlyMine
+  const filteredClients = showOnlyMine === true
     ? clients.filter(c => c.assigned_to === currentUserId || c.assigned_to === null)
     : clients;
 
@@ -249,12 +252,12 @@ const ClientsPage = () => {
           <div className="flex items-center gap-2 px-1">
             <Switch
               id="show-mine"
-              checked={showOnlyMine}
+              checked={showOnlyMine === true}
               onCheckedChange={setShowOnlyMine}
               className="data-[state=checked]:bg-white"
             />
             <Label htmlFor="show-mine" className="text-white/60 text-xs md:text-sm flex items-center gap-1.5 cursor-pointer">
-              {showOnlyMine ? (
+              {showOnlyMine === true ? (
                 <>
                   <UserCheck className="h-3.5 w-3.5" />
                   Mis clientes y sin asignar
