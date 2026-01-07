@@ -150,7 +150,7 @@ const CreateClientDialog = ({
     setLoading(true);
     try {
       const { error } = await supabase.rpc('create_client', {
-        p_company_name: data.company_name,
+        p_company_name: data.company_name.toUpperCase(),
         p_contact_phone: data.contact_phone,
         p_contact_email: data.contact_email,
         p_lead_stage: data.lead_stage,
