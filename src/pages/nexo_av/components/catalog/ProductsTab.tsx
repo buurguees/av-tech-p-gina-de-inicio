@@ -47,10 +47,6 @@ interface Subcategory {
   name: string;
 }
 
-interface EditingCell {
-  productId: string;
-  field: string;
-}
 
 interface ProductsTabProps {
   isAdmin: boolean;
@@ -102,10 +98,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterSubcategory, setFilterSubcategory] = useState<string>('all');
-  const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
-  const [editValue, setEditValue] = useState('');
   const [importing, setImporting] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Dialog state
@@ -123,13 +116,6 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   useEffect(() => {
     loadProducts();
   }, [filterCategory, filterSubcategory, search]);
-
-  useEffect(() => {
-    if (editingCell && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [editingCell]);
 
   const loadData = async () => {
     try {
@@ -243,101 +229,9 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   };
 
   const handleViewDetails = (productId: string) => {
-    // TODO: Navigate to product detail page when implemented
-    toast.info('Página de detalle próximamente');
+    navigate(`/nexo-av/${window.location.pathname.split('/')[2]}/catalog/${productId}`);
   };
 
-  const startEditing = (productId: string, field: string, currentValue: string | number) => {
-    if (!isAdmin) return;
-    setEditingCell({ productId, field });
-    setEditValue(String(currentValue ?? ''));
-  };
-
-  const cancelEditing = () => {
-    setEditingCell(null);
-    setEditValue('');
-  };
-
-  const saveEdit = async () => {
-    if (!editingCell || !isAdmin) return;
-
-    const { productId, field } = editingCell;
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-
-    const updateData: { p_product_id: string; p_name?: string; p_description?: string | null; p_cost_price?: number; p_base_price?: number } = { p_product_id: productId };
-    
-    switch (field) {
-      case 'name':
-        if (editValue.trim() === product.name) {
-          cancelEditing();
-          return;
-        }
-        updateData.p_name = editValue.trim().toUpperCase();
-        break;
-      case 'description':
-        if (editValue === (product.description || '')) {
-          cancelEditing();
-          return;
-        }
-        updateData.p_description = editValue || null;
-        break;
-      case 'cost_price':
-        const costPrice = parseFloat(editValue) || 0;
-        if (costPrice === product.cost_price) {
-          cancelEditing();
-          return;
-        }
-        updateData.p_cost_price = costPrice;
-        break;
-      case 'base_price':
-        const basePrice = parseFloat(editValue) || 0;
-        if (basePrice === product.base_price) {
-          cancelEditing();
-          return;
-        }
-        updateData.p_base_price = basePrice;
-        break;
-    }
-
-    try {
-      const { error } = await supabase.rpc('update_product', updateData);
-      if (error) throw error;
-      await loadProducts();
-    } catch (error) {
-      console.error('Error updating product:', error);
-      toast.error('Error al actualizar');
-    }
-
-    cancelEditing();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      saveEdit();
-    } else if (e.key === 'Escape') {
-      cancelEditing();
-    }
-  };
-
-  const handleTaxChange = async (productId: string, taxRate: string) => {
-    if (!isAdmin) {
-      toast.error('Solo los administradores pueden modificar productos');
-      return;
-    }
-
-    try {
-      const { error } = await supabase.rpc('update_product', {
-        p_product_id: productId,
-        p_tax_rate: parseFloat(taxRate)
-      });
-      if (error) throw error;
-      await loadProducts();
-    } catch (error) {
-      console.error('Error updating tax:', error);
-      toast.error('Error al actualizar impuesto');
-    }
-  };
 
   const exportToExcel = () => {
     const headers = ['Nº Producto', 'Categoría', 'Subcategoría', 'Nombre', 'Descripción', 'Coste', 'Precio Base', 'Impuesto %', 'Precio con IVA'];
@@ -495,29 +389,9 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
   const formSubcategories = subcategories.filter(s => s.category_id === formData.categoryId);
 
-  const renderEditableCell = (product: Product, field: string, value: string | number | null, isNumeric = false) => {
-    const isEditing = editingCell?.productId === product.id && editingCell?.field === field;
-
-    if (isEditing && isAdmin) {
-      return (
-        <Input
-          ref={inputRef}
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          onBlur={saveEdit}
-          onKeyDown={handleKeyDown}
-          type={isNumeric ? 'number' : 'text'}
-          step={isNumeric ? '0.01' : undefined}
-          className="h-7 bg-white/10 border-orange-500 text-white text-xs"
-        />
-      );
-    }
-
+  const renderCell = (value: string | number | null, isNumeric = false) => {
     return (
-      <div
-        onClick={() => isAdmin && startEditing(product.id, field, value ?? '')}
-        className={`px-2 py-1 rounded min-h-[28px] flex items-center ${isAdmin ? 'cursor-pointer hover:bg-white/10' : 'cursor-default'}`}
-      >
+      <div className="px-2 py-1 min-h-[28px] flex items-center">
         {isNumeric && value !== null ? Number(value).toFixed(2) + ' €' : (value || '-')}
       </div>
     );
@@ -818,7 +692,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                   <TableCell className="text-orange-400 font-mono text-xs">{product.product_number}</TableCell>
                   <TableCell className="text-white/60 text-xs">{product.category_code}</TableCell>
                   <TableCell className="text-white text-sm">
-                    {renderEditableCell(product, 'name', product.name)}
+                    {renderCell(product.name)}
                   </TableCell>
                   {isProductTab && (
                     <TableCell className="text-right text-white/60 text-xs">
@@ -826,31 +700,13 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                     </TableCell>
                   )}
                   <TableCell className="text-right text-xs">
-                    {renderEditableCell(product, 'cost_price', product.cost_price, true)}
+                    {renderCell(product.cost_price, true)}
                   </TableCell>
                   <TableCell className="text-right text-xs">
-                    {renderEditableCell(product, 'base_price', product.base_price, true)}
+                    {renderCell(product.base_price, true)}
                   </TableCell>
-                  <TableCell>
-                    {isAdmin ? (
-                      <Select
-                        value={String(product.tax_rate)}
-                        onValueChange={(v) => handleTaxChange(product.id, v)}
-                      >
-                        <SelectTrigger className="h-7 bg-white/5 border-white/10 text-white text-xs w-24">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-900 border-white/10">
-                          {TAX_OPTIONS.map(opt => (
-                            <SelectItem key={opt.value} value={opt.value} className="text-white text-xs">
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <span className="text-white/60 text-xs">{product.tax_rate}%</span>
-                    )}
+                  <TableCell className="text-white/60 text-xs">
+                    {product.tax_rate}%
                   </TableCell>
                   <TableCell className="text-right text-green-400 font-medium text-sm">
                     {product.price_with_tax.toFixed(2)} €
@@ -908,9 +764,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       </div>
 
       <p className="text-white/40 text-xs">
-        {isAdmin 
-          ? 'Haz clic en cualquier celda para editarla • Pulsa Enter para guardar o Escape para cancelar'
-          : 'Modo lectura • Solo los administradores pueden modificar el catálogo'}
+        Haz clic en "Ver detalles" para editar un {isProductTab ? 'producto' : 'servicio'}
       </p>
     </div>
   );

@@ -20,6 +20,7 @@ import NexoProjectsPage from "./pages/nexo_av/ProjectsPage";
 import NexoProjectDetailPage from "./pages/nexo_av/ProjectDetailPage";
 import NexoSettingsPage from "./pages/nexo_av/SettingsPage";
 import NexoCatalogPage from "./pages/nexo_av/CatalogPage";
+import NexoProductDetailPage from "./pages/nexo_av/ProductDetailPage";
 import NexoNotFound from "./pages/nexo_av/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/nexo-av/:userId/projects/:projectId" element={<NexoProjectDetailPage />} />
             <Route path="/nexo-av/:userId/settings" element={<NexoSettingsPage />} />
             <Route path="/nexo-av/:userId/catalog" element={<NexoCatalogPage />} />
+            <Route path="/nexo-av/:userId/catalog/:productId" element={<NexoProductDetailPage />} />
             <Route path="/nexo-av/:userId/*" element={<NexoNotFound />} />
             {/* Legacy route - redirects to login */}
             <Route path="/nexo-av/dashboard" element={<NexoLogin />} />
