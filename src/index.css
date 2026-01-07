@@ -55,6 +55,9 @@
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 0 0% 15%;
     --sidebar-ring: 0 0% 100%;
+
+    /* Glow effects */
+    --glow-primary: 24 95% 60%;
   }
 }
 
