@@ -4,10 +4,20 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Lock, Mail, Loader2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, Loader2, AlertCircle, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import NexoLoadingScreen from "./components/NexoLoadingScreen";
+
+// Rate limiting configuration
+const SUPABASE_URL = "https://takvthfatlcjsqgssnta.supabase.co";
+
+interface RateLimitResponse {
+  allowed: boolean;
+  remaining_attempts: number;
+  retry_after_seconds: number;
+  message: string | null;
+}
 
 const NexoLogo = () => (
   <svg
@@ -36,9 +46,63 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isRateLimited, setIsRateLimited] = useState(false);
+  const [retryAfter, setRetryAfter] = useState(0);
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
   
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Countdown timer for rate limiting
+  useEffect(() => {
+    if (retryAfter <= 0) return;
+    
+    const timer = setInterval(() => {
+      setRetryAfter(prev => {
+        if (prev <= 1) {
+          setIsRateLimited(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [retryAfter]);
+
+  // Check rate limit before submitting
+  const checkRateLimit = async (emailToCheck: string): Promise<RateLimitResponse | null> => {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/rate-limit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'check', email: emailToCheck }),
+      });
+      
+      if (!response.ok) {
+        console.error('Rate limit check failed');
+        return null;
+      }
+      
+      return await response.json();
+    } catch (err) {
+      console.error('Rate limit check error:', err);
+      return null;
+    }
+  };
+
+  // Record login attempt
+  const recordAttempt = async (emailToRecord: string, success: boolean) => {
+    try {
+      await fetch(`${SUPABASE_URL}/functions/v1/rate-limit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'record', email: emailToRecord, success }),
+      });
+    } catch (err) {
+      console.error('Record attempt error:', err);
+    }
+  };
 
   // Check if user is already logged in
   useEffect(() => {
@@ -97,6 +161,21 @@ const Login = () => {
         return;
       }
 
+      // Check rate limit BEFORE attempting login
+      const rateLimitCheck = await checkRateLimit(email);
+      if (rateLimitCheck && !rateLimitCheck.allowed) {
+        setIsRateLimited(true);
+        setRetryAfter(rateLimitCheck.retry_after_seconds);
+        setError(rateLimitCheck.message || 'Demasiados intentos. Por favor espera unos minutos.');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Update remaining attempts
+      if (rateLimitCheck) {
+        setRemainingAttempts(rateLimitCheck.remaining_attempts);
+      }
+
       // Attempt to sign in FIRST - don't check authorization before login
       // This prevents user enumeration attacks
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -105,6 +184,22 @@ const Login = () => {
       });
 
       if (signInError) {
+        // Record failed attempt
+        await recordAttempt(email, false);
+        
+        // Update remaining attempts
+        const newCheck = await checkRateLimit(email);
+        if (newCheck) {
+          setRemainingAttempts(newCheck.remaining_attempts);
+          if (!newCheck.allowed) {
+            setIsRateLimited(true);
+            setRetryAfter(newCheck.retry_after_seconds);
+            setError(newCheck.message || 'Demasiados intentos. Por favor espera unos minutos.');
+            setIsSubmitting(false);
+            return;
+          }
+        }
+        
         // Always show generic error to prevent enumeration
         setError(GENERIC_AUTH_ERROR);
         setIsSubmitting(false);
@@ -118,11 +213,16 @@ const Login = () => {
         if (userInfoError || !userInfo || userInfo.length === 0) {
           // User authenticated but not authorized - sign them out
           await supabase.auth.signOut();
+          // Record as failed (unauthorized)
+          await recordAttempt(email, false);
           setError(GENERIC_AUTH_ERROR);
           setIsSubmitting(false);
           return;
         }
 
+        // Record successful login
+        await recordAttempt(email, true);
+        
         toast({
           title: "Bienvenido",
           description: "Has iniciado sesión correctamente.",
@@ -176,15 +276,39 @@ const Login = () => {
           </motion.p>
         </div>
 
+        {/* Rate limit warning */}
+        {isRateLimited && retryAfter > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg flex items-start gap-3"
+          >
+            <Clock className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-orange-400 text-sm font-medium">Cuenta bloqueada temporalmente</p>
+              <p className="text-orange-400/70 text-sm">
+                Podrás intentarlo de nuevo en {Math.floor(retryAfter / 60)}:{(retryAfter % 60).toString().padStart(2, '0')} minutos
+              </p>
+            </div>
+          </motion.div>
+        )}
+
         {/* Error message */}
-        {error && (
+        {error && !isRateLimited && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3"
           >
             <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <p className="text-red-400 text-sm">{error}</p>
+            <div>
+              <p className="text-red-400 text-sm">{error}</p>
+              {remainingAttempts !== null && remainingAttempts > 0 && remainingAttempts <= 3 && (
+                <p className="text-red-400/70 text-xs mt-1">
+                  {remainingAttempts} intento{remainingAttempts !== 1 ? 's' : ''} restante{remainingAttempts !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
           </motion.div>
         )}
 
@@ -249,13 +373,18 @@ const Login = () => {
 
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isRateLimited}
             className="w-full h-12 bg-white text-black font-medium hover:bg-white/90 transition-all disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Iniciando sesión...
+              </>
+            ) : isRateLimited ? (
+              <>
+                <Clock className="mr-2 h-4 w-4" />
+                Bloqueado temporalmente
               </>
             ) : (
               'Iniciar sesión'
