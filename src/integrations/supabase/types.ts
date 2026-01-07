@@ -85,6 +85,22 @@ export type Database = {
         }
         Returns: string
       }
+      create_project: {
+        Args: {
+          p_client_id: string
+          p_client_order_number?: string
+          p_local_name?: string
+          p_notes?: string
+          p_project_address?: string
+          p_project_city?: string
+          p_status?: string
+        }
+        Returns: {
+          project_id: string
+          project_name: string
+          project_number: string
+        }[]
+      }
       create_quote: {
         Args: {
           p_client_id: string
@@ -159,6 +175,27 @@ export type Database = {
           phone: string
           roles: string[]
           user_id: string
+        }[]
+      }
+      get_project: {
+        Args: { p_project_id: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          client_order_number: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          id: string
+          local_name: string
+          notes: string
+          project_address: string
+          project_city: string
+          project_name: string
+          project_number: string
+          quote_id: string
+          status: string
+          updated_at: string
         }[]
       }
       get_quote: {
@@ -273,6 +310,24 @@ export type Database = {
           urgency: string
         }[]
       }
+      list_projects: {
+        Args: { p_search?: string; p_status?: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          client_order_number: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          id: string
+          local_name: string
+          project_address: string
+          project_city: string
+          project_name: string
+          project_number: string
+          status: string
+        }[]
+      }
       list_quotes: {
         Args: { p_search?: string; p_status?: string }
         Returns: {
@@ -347,6 +402,18 @@ export type Database = {
           p_job_position?: string
           p_phone?: string
           p_user_id: string
+        }
+        Returns: boolean
+      }
+      update_project: {
+        Args: {
+          p_client_order_number?: string
+          p_local_name?: string
+          p_notes?: string
+          p_project_address?: string
+          p_project_city?: string
+          p_project_id: string
+          p_status?: string
         }
         Returns: boolean
       }
