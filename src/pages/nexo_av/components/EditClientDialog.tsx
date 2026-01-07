@@ -290,23 +290,22 @@ const EditClientDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-black border-white/10 text-white sm:max-w-2xl max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="bg-black border-white/10 text-white sm:max-w-2xl max-h-[90vh] p-4 sm:p-6">
+        <DialogHeader className="pb-2">
           <DialogTitle className="text-white">Editar Cliente</DialogTitle>
           <DialogDescription className="text-white/60">
             Modifica la información del cliente.
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[60vh] pr-4">
+        <ScrollArea className="max-h-[60vh] pr-3">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-4">
-              {/* Company Info */}
-              <div className="space-y-4">
-                <h3 className="text-white font-medium text-sm border-b border-white/10 pb-2">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-2">
+              <div className="space-y-3">
+                <h3 className="text-white font-medium text-sm border-b border-white/10 pb-1">
                   Información de la Empresa
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <FormField
                     control={form.control}
                     name="company_name"
@@ -382,12 +381,11 @@ const EditClientDialog = ({
                 </div>
               </div>
 
-              {/* Contact Info */}
-              <div className="space-y-4">
-                <h3 className="text-white font-medium text-sm border-b border-white/10 pb-2">
+              <div className="space-y-3">
+                <h3 className="text-white font-medium text-sm border-b border-white/10 pb-1">
                   Información de Contacto
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <FormField
                     control={form.control}
                     name="contact_email"
@@ -459,12 +457,11 @@ const EditClientDialog = ({
                 </div>
               </div>
 
-              {/* Billing Address */}
-              <div className="space-y-4">
-                <h3 className="text-white font-medium text-sm border-b border-white/10 pb-2">
+              <div className="space-y-3">
+                <h3 className="text-white font-medium text-sm border-b border-white/10 pb-1">
                   Dirección de Facturación
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <FormField
                     control={form.control}
                     name="billing_address"
@@ -558,12 +555,11 @@ const EditClientDialog = ({
                 </div>
               </div>
 
-              {/* CRM Info */}
-              <div className="space-y-4">
-                <h3 className="text-white font-medium text-sm border-b border-white/10 pb-2">
+              <div className="space-y-3">
+                <h3 className="text-white font-medium text-sm border-b border-white/10 pb-1">
                   Información CRM
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <FormField
                     control={form.control}
                     name="lead_stage"
@@ -718,7 +714,6 @@ const EditClientDialog = ({
                 </div>
               </div>
 
-              {/* Notes */}
               <FormField
                 control={form.control}
                 name="notes"
@@ -728,7 +723,7 @@ const EditClientDialog = ({
                     <FormControl>
                       <Textarea
                         {...field}
-                        rows={3}
+                        rows={2}
                         className="bg-white/5 border-white/10 text-white resize-none"
                       />
                     </FormControl>
@@ -737,7 +732,7 @@ const EditClientDialog = ({
                 )}
               />
 
-              <div className="flex gap-3 pt-4 border-t border-white/10">
+              <div className="flex gap-3 pt-3 border-t border-white/10">
                 <Button
                   type="button"
                   variant="outline"
