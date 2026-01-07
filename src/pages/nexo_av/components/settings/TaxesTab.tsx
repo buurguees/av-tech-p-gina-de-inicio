@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { motion } from 'motion/react';
+
 
 interface Tax {
   id: string;
@@ -185,17 +185,14 @@ export function TaxesTab() {
       </TableHeader>
       <TableBody>
         {taxList.map((tax, index) => (
-          <motion.tr
+          <TableRow
             key={tax.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
             className="border-white/10 hover:bg-white/5"
           >
             <TableCell>
-              <Badge variant="outline" className="border-white/20 text-white/60">
+              <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold border-white/20 text-white/60">
                 {tax.code}
-              </Badge>
+              </span>
             </TableCell>
             <TableCell className={tax.is_active ? 'text-white font-medium' : 'text-white/40'}>
               {tax.name}
@@ -238,7 +235,7 @@ export function TaxesTab() {
                 Ver detalles
               </Button>
             </TableCell>
-          </motion.tr>
+          </TableRow>
         ))}
       </TableBody>
     </Table>

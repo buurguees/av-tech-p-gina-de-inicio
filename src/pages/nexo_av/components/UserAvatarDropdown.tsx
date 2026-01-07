@@ -91,8 +91,11 @@ const UserAvatarDropdown = ({
         throw new Error("No session found");
       }
 
-      // Use Supabase URL directly - no fallback for security
-      const supabaseUrl = 'https://takvthfatlcjsqgssnta.supabase.co';
+      // Use environment variable - never hardcode URLs
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        throw new Error("Supabase URL not configured");
+      }
       const response = await fetch(
         `${supabaseUrl}/functions/v1/admin-users`,
         {
