@@ -131,7 +131,7 @@ const AuditPage = () => {
   const fetchStats = async () => {
     try {
       // Use raw SQL query via RPC for stats
-      const { data, error } = await supabase.rpc('get_stats' as any, { p_days: 7 });
+      const { data, error } = await supabase.rpc('audit_get_stats' as any, { p_days: 7 });
       if (error) throw error;
       if (data && Array.isArray(data) && data.length > 0) {
         setStats(data[0] as AuditStats);
@@ -154,7 +154,7 @@ const AuditPage = () => {
       if (filterSeverity !== "all") params.p_severity = filterSeverity;
       if (filterType !== "all") params.p_event_type = filterType;
 
-      const { data, error } = await supabase.rpc('list_events' as any, params);
+      const { data, error } = await supabase.rpc('audit_list_events' as any, params);
       
       if (error) throw error;
       

@@ -60,6 +60,44 @@ export type Database = {
         Args: { p_assigned_by: string; p_role_name: string; p_user_id: string }
         Returns: boolean
       }
+      audit_get_stats: {
+        Args: { p_days?: number }
+        Returns: {
+          error_events: number
+          events_by_category: Json
+          events_by_type: Json
+          security_events: number
+          total_events: number
+          warning_events: number
+        }[]
+      }
+      audit_list_events: {
+        Args: {
+          p_event_category?: string
+          p_event_type?: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_severity?: string
+        }
+        Returns: {
+          created_at: string
+          details: Json
+          event_category: string
+          event_type: string
+          id: string
+          ip_address: unknown
+          resource_id: string
+          resource_type: string
+          session_id: string
+          severity: string
+          total_count: number
+          user_agent: string
+          user_email: string
+          user_id: string
+          user_name: string
+        }[]
+      }
       check_email_exists: { Args: { p_email: string }; Returns: boolean }
       clear_user_roles: { Args: { p_user_id: string }; Returns: undefined }
       create_authorized_user: {
