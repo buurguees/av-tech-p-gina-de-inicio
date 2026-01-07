@@ -61,7 +61,7 @@ const formSchema = z.object({
   lead_stage: z.string(),
   lead_source: z.string().optional().or(z.literal("")),
   urgency: z.string().optional().or(z.literal("")),
-  approximate_budget: z.string().optional().or(z.literal("")),
+  
   assigned_to: z.string().optional().or(z.literal("")),
   notes: z.string().max(1000).optional().or(z.literal("")),
   created_at: z.date().optional(),
@@ -185,7 +185,6 @@ const EditClientDialog = ({
       lead_stage: client.lead_stage || "NEW",
       lead_source: client.lead_source || "",
       urgency: client.urgency || "",
-      approximate_budget: client.approximate_budget?.toString() || "",
       assigned_to: client.assigned_to || "",
       notes: client.notes || "",
       created_at: client.created_at ? new Date(client.created_at) : undefined,
@@ -213,7 +212,7 @@ const EditClientDialog = ({
         lead_stage: client.lead_stage || "NEW",
         lead_source: client.lead_source || "",
         urgency: client.urgency || "",
-        approximate_budget: client.approximate_budget?.toString() || "",
+        
         assigned_to: client.assigned_to || "",
         notes: client.notes || "",
         created_at: client.created_at ? new Date(client.created_at) : undefined,
@@ -637,23 +636,7 @@ const EditClientDialog = ({
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="approximate_budget"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-white/80">Presupuesto Aprox. (€)</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            className="bg-white/5 border-white/10 text-white"
-                          />
-                        </FormControl>
-                        <FormMessage className="text-red-400" />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Presupuesto Medio - Solo lectura, calculado automáticamente */}
                   
                   {/* Only admin can see and change assigned_to */}
                   {isAdmin && (
