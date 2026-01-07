@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, FileText, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
+import { useDebounce } from "@/hooks/useDebounce";
 import NexoHeader from "./components/NexoHeader";
 
 interface Quote {
@@ -51,19 +52,20 @@ const QuotesPage = () => {
   const { userId } = useParams<{ userId: string }>();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearchQuery = useDebounce(searchInput, 500);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   useEffect(() => {
     fetchQuotes();
-  }, [statusFilter, searchQuery]);
+  }, [statusFilter, debouncedSearchQuery]);
 
   const fetchQuotes = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase.rpc("list_quotes", {
         p_status: statusFilter,
-        p_search: searchQuery || null,
+        p_search: debouncedSearchQuery || null,
       });
 
       if (error) throw error;
@@ -122,8 +124,8 @@ const QuotesPage = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
               <Input
                 placeholder="Buscar por número, cliente o proyecto..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40"
               />
             </div>
@@ -167,11 +169,11 @@ const QuotesPage = () => {
                 <FileText className="h-16 w-16 text-white/20 mb-4" />
                 <h3 className="text-xl font-medium text-white mb-2">No hay presupuestos</h3>
                 <p className="text-white/60 mb-6">
-                  {searchQuery || statusFilter
+                  {searchInput || statusFilter
                     ? "No se encontraron presupuestos con los filtros aplicados"
                     : "Crea tu primer presupuesto para comenzar"}
                 </p>
-                {!searchQuery && !statusFilter && (
+                {!searchInput && !statusFilter && (
                   <Button
                     onClick={handleNewQuote}
                     className="bg-avtech-orange hover:bg-avtech-orange/90 text-white"

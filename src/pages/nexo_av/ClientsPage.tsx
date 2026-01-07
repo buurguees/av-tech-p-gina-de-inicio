@@ -36,6 +36,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useDebounce } from "@/hooks/useDebounce";
 import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import CreateClientDialog from "./components/CreateClientDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -80,7 +81,8 @@ const ClientsPage = () => {
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearchTerm = useDebounce(searchInput, 500);
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [showOnlyMine, setShowOnlyMine] = useState<boolean | null>(null); // Will be set based on role
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -93,7 +95,7 @@ const ClientsPage = () => {
     try {
       const { data, error } = await supabase.rpc('list_clients', {
         p_lead_stage: stageFilter === 'all' ? null : stageFilter,
-        p_search: searchTerm || null,
+        p_search: debouncedSearchTerm || null,
       });
 
       if (error) throw error;
@@ -162,7 +164,7 @@ const ClientsPage = () => {
     if (!loading && !accessDenied) {
       fetchClients();
     }
-  }, [loading, accessDenied, stageFilter, searchTerm]);
+  }, [loading, accessDenied, stageFilter, debouncedSearchTerm]);
 
   if (accessDenied) {
     return (
@@ -217,8 +219,8 @@ const ClientsPage = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
               <Input
                 placeholder="Buscar..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-9 md:h-10 text-sm"
               />
             </div>

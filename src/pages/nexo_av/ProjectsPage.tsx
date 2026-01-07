@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, FolderKanban, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
+import { useDebounce } from "@/hooks/useDebounce";
 import NexoHeader from "./components/NexoHeader";
 import CreateProjectDialog from "./components/CreateProjectDialog";
 
@@ -50,14 +51,15 @@ const ProjectsPage = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearchTerm = useDebounce(searchInput, 500);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const fetchProjects = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase.rpc('list_projects', {
-        p_search: searchTerm || null
+        p_search: debouncedSearchTerm || null
       });
 
       if (error) throw error;
@@ -71,7 +73,7 @@ const ProjectsPage = () => {
 
   useEffect(() => {
     fetchProjects();
-  }, [searchTerm]);
+  }, [debouncedSearchTerm]);
 
   const handleProjectClick = (projectId: string) => {
     navigate(`/nexo-av/${userId}/projects/${projectId}`);
@@ -112,8 +114,8 @@ const ProjectsPage = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
             <Input
               placeholder="Buscar proyectos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40"
             />
           </div>
