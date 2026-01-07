@@ -3,9 +3,31 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Loader2, Building2, MapPin, FileText, Calendar } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { 
+  FolderKanban, 
+  Loader2, 
+  LayoutDashboard, 
+  FileText, 
+  Receipt, 
+  Wallet,
+  ChevronDown,
+  Edit
+} from "lucide-react";
 import { motion } from "motion/react";
-import NexoHeader from "./components/NexoHeader";
+import { toast } from "sonner";
+import NexoHeader, { NexoLogo } from "./components/NexoHeader";
+import ProjectDashboardTab from "./components/ProjectDashboardTab";
+import ProjectQuotesTab from "./components/ProjectQuotesTab";
+import ProjectExpensesTab from "./components/ProjectExpensesTab";
+import ProjectInvoicesTab from "./components/ProjectInvoicesTab";
 
 interface ProjectDetail {
   id: string;
@@ -43,35 +65,63 @@ const ProjectDetailPage = () => {
   const navigate = useNavigate();
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  const fetchProject = async () => {
+    if (!projectId) return;
+    
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.rpc('get_project', {
+        p_project_id: projectId
+      });
+
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setProject(data[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching project:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProject = async () => {
-      if (!projectId) return;
-      
-      try {
-        setLoading(true);
-        const { data, error } = await supabase.rpc('get_project', {
-          p_project_id: projectId
-        });
-
-        if (error) throw error;
-        if (data && data.length > 0) {
-          setProject(data[0]);
-        }
-      } catch (error) {
-        console.error('Error fetching project:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProject();
   }, [projectId]);
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!project) return;
+    
+    setUpdatingStatus(true);
+    try {
+      const { error } = await supabase.rpc('update_project', {
+        p_project_id: project.id,
+        p_status: newStatus,
+      });
+
+      if (error) throw error;
+
+      setProject({ ...project, status: newStatus });
+      
+      const statusLabel = PROJECT_STATUSES.find(s => s.value === newStatus)?.label || newStatus;
+      toast.success(`Estado actualizado a "${statusLabel}"`);
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error("Error al actualizar el estado");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-white" />
+        <div className="animate-pulse">
+          <NexoLogo />
+        </div>
       </div>
     );
   }
@@ -100,94 +150,148 @@ const ProjectDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-black">
-      <NexoHeader userId={userId || ""} title="Proyecto" />
+      <NexoHeader 
+        userId={userId || ""} 
+        title={project.project_name}
+        subtitle="Ficha de Proyecto"
+        backTo={`/nexo-av/${userId}/projects`}
+      />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Project Header Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
+          className="mb-6"
         >
-          {/* Back button */}
-          <Button
-            variant="ghost"
-            className="text-white/60 hover:text-white hover:bg-white/10"
-            onClick={() => navigate(`/nexo-av/${userId}/projects`)}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a proyectos
-          </Button>
-
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="font-mono text-white/60">#{project.project_number}</span>
-                <Badge variant="outline" className={`${statusInfo.color} border`}>
-                  {statusInfo.label}
-                </Badge>
+          <Card className="bg-white/5 border-white/10">
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-white/10">
+                    <FolderKanban className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
+                      <span className="font-mono text-white/60">#{project.project_number}</span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild disabled={updatingStatus}>
+                          <button 
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border transition-colors hover:opacity-80 ${statusInfo.color} cursor-pointer`}
+                          >
+                            {updatingStatus ? "Actualizando..." : statusInfo.label}
+                            <ChevronDown className="h-3 w-3" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent 
+                          align="start" 
+                          className="bg-zinc-900 border-white/10 min-w-[180px]"
+                        >
+                          {PROJECT_STATUSES.map((status) => (
+                            <DropdownMenuItem
+                              key={status.value}
+                              onClick={() => handleStatusChange(status.value)}
+                              className={`cursor-pointer ${status.value === project.status ? 'bg-white/10' : ''}`}
+                            >
+                              <span className={`inline-block w-2 h-2 rounded-full mr-2 ${status.color.split(' ')[0]}`} />
+                              <span className="text-white">{status.label}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-1">{project.project_name}</h2>
+                    <div className="flex flex-wrap gap-4 mt-2 text-sm">
+                      {project.client_name && (
+                        <span className="text-white/60">
+                          Cliente: <span className="text-white">{project.client_name}</span>
+                        </span>
+                      )}
+                      {project.project_city && (
+                        <span className="text-white/60">
+                          Ciudad: <span className="text-white">{project.project_city}</span>
+                        </span>
+                      )}
+                      {project.local_name && (
+                        <span className="text-white/60">
+                          Local: <span className="text-white">{project.local_name}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {activeTab === "dashboard" && (
+                  <Button 
+                    variant="outline" 
+                    className="border-white/20 text-white hover:bg-white/10"
+                    onClick={() => {
+                      // TODO: Open edit project dialog
+                      toast.info("Funcionalidad de edición próximamente");
+                    }}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar Proyecto
+                  </Button>
+                )}
               </div>
-              <h1 className="text-2xl font-bold text-white">{project.project_name}</h1>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          {/* Info Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Cliente */}
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <div className="flex items-center gap-2 text-white/60 mb-2">
-                <Building2 className="h-4 w-4" />
-                <span className="text-sm">Cliente</span>
-              </div>
-              <p className="text-white font-medium">{project.client_name || '-'}</p>
-            </div>
+        {/* Tabs Navigation */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="bg-white/5 border border-white/10 p-1 h-auto flex-wrap">
+              <TabsTrigger 
+                value="dashboard" 
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+              >
+                <LayoutDashboard className="h-4 w-4 mr-2" />
+                Dashboard
+              </TabsTrigger>
+              <TabsTrigger 
+                value="quotes"
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Presupuestos
+              </TabsTrigger>
+              <TabsTrigger 
+                value="expenses"
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+              >
+                <Wallet className="h-4 w-4 mr-2" />
+                Gastos
+              </TabsTrigger>
+              <TabsTrigger 
+                value="invoices"
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+              >
+                <Receipt className="h-4 w-4 mr-2" />
+                Facturas
+              </TabsTrigger>
+            </TabsList>
 
-            {/* Ubicación */}
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <div className="flex items-center gap-2 text-white/60 mb-2">
-                <MapPin className="h-4 w-4" />
-                <span className="text-sm">Ubicación</span>
-              </div>
-              <p className="text-white font-medium">
-                {project.local_name || project.project_city || '-'}
-              </p>
-              {project.project_address && (
-                <p className="text-white/60 text-sm mt-1">{project.project_address}</p>
-              )}
-            </div>
+            <TabsContent value="dashboard" className="mt-6">
+              <ProjectDashboardTab project={project} />
+            </TabsContent>
 
-            {/* Nº Pedido */}
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <div className="flex items-center gap-2 text-white/60 mb-2">
-                <FileText className="h-4 w-4" />
-                <span className="text-sm">Nº Pedido Cliente</span>
-              </div>
-              <p className="text-white font-medium">{project.client_order_number || '-'}</p>
-            </div>
+            <TabsContent value="quotes" className="mt-6">
+              <ProjectQuotesTab projectId={project.id} />
+            </TabsContent>
 
-            {/* Fecha creación */}
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <div className="flex items-center gap-2 text-white/60 mb-2">
-                <Calendar className="h-4 w-4" />
-                <span className="text-sm">Fecha de creación</span>
-              </div>
-              <p className="text-white font-medium">
-                {new Date(project.created_at).toLocaleDateString('es-ES', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric'
-                })}
-              </p>
-            </div>
-          </div>
+            <TabsContent value="expenses" className="mt-6">
+              <ProjectExpensesTab projectId={project.id} />
+            </TabsContent>
 
-          {/* Notes */}
-          {project.notes && (
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <h3 className="text-white font-medium mb-2">Notas</h3>
-              <p className="text-white/60">{project.notes}</p>
-            </div>
-          )}
+            <TabsContent value="invoices" className="mt-6">
+              <ProjectInvoicesTab projectId={project.id} />
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </main>
     </div>
