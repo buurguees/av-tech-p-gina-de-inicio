@@ -73,6 +73,14 @@ export type Database = {
         }
         Returns: string
       }
+      create_quote: {
+        Args: {
+          p_client_id: string
+          p_created_by?: string
+          p_project_name?: string
+        }
+        Returns: string
+      }
       delete_authorized_user: { Args: { p_user_id: string }; Returns: string }
       delete_client: { Args: { p_client_id: string }; Returns: boolean }
       get_authorized_user_by_auth_id: {
@@ -127,6 +135,28 @@ export type Database = {
           phone: string
           roles: string[]
           user_id: string
+        }[]
+      }
+      get_quote: {
+        Args: { p_quote_id: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          id: string
+          notes: string
+          order_number: string
+          project_name: string
+          quote_number: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          updated_at: string
+          valid_until: string
         }[]
       }
       get_user_auth_id: { Args: { p_user_id: string }; Returns: string }
@@ -201,6 +231,25 @@ export type Database = {
           notes: string
           tax_id: string
           urgency: string
+        }[]
+      }
+      list_quotes: {
+        Args: { p_search?: string; p_status?: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          id: string
+          order_number: string
+          project_name: string
+          quote_number: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          total: number
+          valid_until: string
         }[]
       }
       list_roles: {
