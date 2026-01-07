@@ -40,6 +40,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
 
 const formSchema = z.object({
   company_name: z.string().min(2, "Mínimo 2 caracteres").max(100),
@@ -472,8 +473,17 @@ const EditClientDialog = ({
                       <FormItem className="md:col-span-2">
                         <FormLabel className="text-white/80">Dirección</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
+                          <AddressAutocomplete
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            onAddressSelect={(addr) => {
+                              form.setValue("billing_address", addr.street);
+                              form.setValue("billing_city", addr.city);
+                              form.setValue("billing_province", addr.province);
+                              form.setValue("billing_postal_code", addr.postalCode);
+                              form.setValue("billing_country", addr.country);
+                            }}
+                            placeholder="Escribe la dirección..."
                             className="bg-white/5 border-white/10 text-white"
                           />
                         </FormControl>
