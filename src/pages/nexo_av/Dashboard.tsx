@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import UserManagement from "./components/UserManagement";
 import UserAvatarDropdown from "./components/UserAvatarDropdown";
 import QuickQuoteDialog from "./components/QuickQuoteDialog";
+import CreateClientDialog from "./components/CreateClientDialog";
 
 interface UserInfo {
   user_id: string;
@@ -56,6 +57,7 @@ const Dashboard = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [showCreateClientDialog, setShowCreateClientDialog] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -288,8 +290,22 @@ const Dashboard = () => {
           isTech={isTech}
           userId={userId}
           navigate={navigate}
+          onNewLead={() => setShowCreateClientDialog(true)}
         />
       </main>
+
+      <CreateClientDialog
+        open={showCreateClientDialog}
+        onOpenChange={setShowCreateClientDialog}
+        onSuccess={() => {
+          toast({
+            title: "Cliente creado",
+            description: "El cliente se ha creado correctamente.",
+          });
+        }}
+        currentUserId={userInfo?.user_id || null}
+        isAdmin={isAdmin || false}
+      />
     </div>
   );
 };
@@ -304,6 +320,7 @@ const DashboardContent = ({
   isTech,
   userId,
   navigate,
+  onNewLead,
 }: {
   userInfo: UserInfo | null;
   modules: any[];
@@ -313,6 +330,7 @@ const DashboardContent = ({
   isTech: boolean | undefined;
   userId: string | undefined;
   navigate: NavigateFunction;
+  onNewLead: () => void;
 }) => {
   return (
     <>
@@ -338,7 +356,10 @@ const DashboardContent = ({
         className="flex flex-wrap gap-2 md:gap-3 mb-6 md:mb-8"
       >
         {(isAdmin || isManager || isSales) && (
-          <Button className="bg-white text-black hover:bg-white/90 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4 min-w-[110px] md:min-w-[140px]">
+          <Button 
+            onClick={onNewLead}
+            className="bg-white text-black hover:bg-white/90 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4 min-w-[110px] md:min-w-[140px]"
+          >
             <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
             Nuevo Lead
           </Button>
