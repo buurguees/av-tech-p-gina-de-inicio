@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, Boxes, Loader2 } from 'lucide-react';
+import { Package, Boxes, Loader2, Wrench } from 'lucide-react';
 import NexoHeader from './components/NexoHeader';
 import ProductsTab from './components/catalog/ProductsTab';
 import PacksTab from './components/catalog/PacksTab';
@@ -89,6 +89,13 @@ export default function CatalogPage() {
               Productos
             </TabsTrigger>
             <TabsTrigger 
+              value="services"
+              className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/60"
+            >
+              <Wrench className="w-4 h-4 mr-2" />
+              Servicios
+            </TabsTrigger>
+            <TabsTrigger 
               value="packs"
               className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/60"
             >
@@ -98,7 +105,11 @@ export default function CatalogPage() {
           </TabsList>
 
           <TabsContent value="products">
-            <ProductsTab isAdmin={isAdmin} />
+            <ProductsTab isAdmin={isAdmin} filterType="product" />
+          </TabsContent>
+
+          <TabsContent value="services">
+            <ProductsTab isAdmin={isAdmin} filterType="service" />
           </TabsContent>
 
           <TabsContent value="packs">
