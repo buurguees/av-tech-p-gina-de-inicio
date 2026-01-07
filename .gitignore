@@ -13,9 +13,102 @@ dist-ssr
 build
 *.local
 
+# ===================================
+# VARIABLES DE ENTORNO Y CREDENCIALES
+# ===================================
+# Variables de entorno (CRÍTICO - No subir nunca)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.staging
+.env.staging.local
+
+# Archivos de configuración con credenciales
+config/credentials.json
+config/secrets.json
+config/keys.json
+secrets.json
+credentials.json
+
+# Claves de API y tokens
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+api-keys.json
+auth-keys.json
+
+# ===================================
+# SEGURIDAD Y AUDITORÍA
+# ===================================
+# Reportes de seguridad
+security-report.html
+security-report.json
+vulnerability-report.json
+audit-report.json
+
+# Análisis de dependencias
+npm-audit.json
+yarn-audit.json
+.snyk
+
+# ===================================
+# BASE DE DATOS Y BACKUPS
+# ===================================
+# Dumps de base de datos
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+backup-*.sql
+dump-*.sql
+
+# Archivos de migración sensibles
+*migration-backup*
+*.bak
+*.backup
+
+# ===================================
+# FIREBASE
+# ===================================
+.firebase/
+.firebaserc.local
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*-firebase-adminsdk-*.json
+firebase-export-*.json
+.firebase-config.json
+
+# Service Account Keys (CRÍTICO)
+service-account-*.json
+serviceAccountKey.json
+firebase-adminsdk-*.json
+
+# ===================================
+# SUPABASE
+# ===================================
+# Configuración de Supabase con credenciales
+supabase/.env
+supabase/.env.local
+.supabase/
+
+# ===================================
+# EDITOR Y HERRAMIENTAS
+# ===================================
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -23,13 +116,89 @@ build
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+*~
 
-# Firebase
-.firebase/
-.firebaserc.local
-firebase-debug.log
-firestore-debug.log
-ui-debug.log
-*-firebase-adminsdk-*.json
-.firebase/
-firebase-export-*.json
+# Cursor AI
+.cursor/
+
+# ===================================
+# ARCHIVOS TEMPORALES Y CACHÉ
+# ===================================
+# Archivos temporales
+*.tmp
+*.temp
+.cache
+.temp/
+tmp/
+temp/
+
+# Thumbnails
+Thumbs.db
+ehthumbs.db
+
+# ===================================
+# CERTIFICADOS SSL/TLS
+# ===================================
+# Certificados y claves SSL
+*.crt
+*.cert
+*.ca-bundle
+ssl/
+certs/
+certificates/
+
+# ===================================
+# DOCKER Y CONTENEDORES
+# ===================================
+# Docker
+.dockerignore
+docker-compose.override.yml
+.docker/
+
+# ===================================
+# DATOS SENSIBLES Y TESTS
+# ===================================
+# Datos de prueba con información sensible
+test-data-production.json
+production-data.json
+customer-data.json
+user-data.json
+
+# Archivos de configuración local
+config.local.js
+config.local.ts
+config.local.json
+
+# ===================================
+# COMPILACIÓN Y BUILD
+# ===================================
+# Archivos de compilación
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+
+# Coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# ===================================
+# OTROS ARCHIVOS SENSIBLES
+# ===================================
+# Archivos con información personal o sensible
+*-PRIVATE*
+*-SECRET*
+*-CONFIDENTIAL*
+private/
+confidential/
+
+# Notas y documentación interna sensible
+NOTES-INTERNAL.md
+TODO-PRIVATE.md
+PASSWORDS.txt
+SECRETS.txt
+
+# Archivos de Cursor con historial
+.cursor-tutor/
