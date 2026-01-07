@@ -12,6 +12,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+type ProductType = 'product' | 'service';
+
 interface Product {
   id: string;
   product_number: string;
@@ -28,6 +30,8 @@ interface Product {
   price_with_tax: number;
   tax_rate: number;
   is_active: boolean;
+  type: ProductType;
+  stock: number | null;
 }
 
 interface Category {
@@ -55,12 +59,19 @@ interface ProductsTabProps {
 interface NewProductForm {
   categoryId: string;
   subcategoryId: string;
+  type: ProductType;
   name: string;
   description: string;
   costPrice: string;
   basePrice: string;
   taxRate: string;
+  stock: string;
 }
+
+const TYPE_OPTIONS = [
+  { value: 'product', label: 'Producto', description: 'Tiene stock y coste fijo' },
+  { value: 'service', label: 'Servicio', description: 'Sin stock, coste variable' },
+];
 
 const TAX_OPTIONS = [
   { value: '21', label: 'IVA 21%' },
@@ -72,11 +83,13 @@ const TAX_OPTIONS = [
 const initialFormState: NewProductForm = {
   categoryId: '',
   subcategoryId: '',
+  type: 'product',
   name: '',
   description: '',
   costPrice: '0',
   basePrice: '0',
   taxRate: '21',
+  stock: '0',
 };
 
 export default function ProductsTab({ isAdmin }: ProductsTabProps) {
@@ -180,7 +193,9 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
         p_description: formData.description.trim() || null,
         p_cost_price: parseFloat(formData.costPrice) || 0,
         p_base_price: parseFloat(formData.basePrice) || 0,
-        p_tax_rate: parseFloat(formData.taxRate) || 21
+        p_tax_rate: parseFloat(formData.taxRate) || 21,
+        p_type: formData.type,
+        p_stock: formData.type === 'product' ? parseInt(formData.stock) || 0 : null
       });
 
       if (error) throw error;
@@ -563,14 +578,38 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-white/70">Nombre del producto *</Label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value.toUpperCase() })}
-                placeholder="Ej: JORNADA TÉCNICO INSTALACIÓN"
-                className="bg-white/5 border-white/10 text-white uppercase"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-white/70">Tipo *</Label>
+                <Select 
+                  value={formData.type} 
+                  onValueChange={(v: ProductType) => setFormData({ ...formData, type: v, stock: v === 'service' ? '0' : formData.stock })}
+                >
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10">
+                    {TYPE_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value} className="text-white">
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-white/40">
+                  {formData.type === 'product' ? 'Tiene stock y coste fijo' : 'Sin stock, coste variable'}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-white/70">Nombre *</Label>
+                <Input
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value.toUpperCase() })}
+                  placeholder="Ej: PANTALLA LED 6MM"
+                  className="bg-white/5 border-white/10 text-white uppercase"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -578,15 +617,17 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Descripción opcional del producto..."
+                placeholder="Descripción opcional..."
                 rows={2}
                 className="bg-white/5 border-white/10 text-white resize-none"
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label className="text-white/70">Precio coste (€)</Label>
+                <Label className="text-white/70">
+                  {formData.type === 'product' ? 'Precio coste (€)' : 'Coste ref. (€)'}
+                </Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -627,6 +668,19 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
                   </SelectContent>
                 </Select>
               </div>
+
+              {formData.type === 'product' && (
+                <div className="space-y-2">
+                  <Label className="text-white/70">Stock</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={formData.stock}
+                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                    className="bg-white/5 border-white/10 text-white"
+                  />
+                </div>
+              )}
             </div>
 
             {formData.categoryId && formData.basePrice && (
@@ -749,15 +803,15 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
           <TableHeader>
             <TableRow className="border-white/10 hover:bg-transparent">
               <TableHead className="text-white/60 w-32">Nº Producto</TableHead>
-              <TableHead className="text-white/60 w-24">Categoría</TableHead>
-              <TableHead className="text-white/60 w-24">Subcat.</TableHead>
+              <TableHead className="text-white/60 w-20">Tipo</TableHead>
+              <TableHead className="text-white/60 w-20">Cat.</TableHead>
               <TableHead className="text-white/60">Nombre</TableHead>
-              <TableHead className="text-white/60 w-28 text-right">Coste</TableHead>
-              <TableHead className="text-white/60 w-28 text-right">P. Base</TableHead>
-              <TableHead className="text-white/60 w-28">Impuesto</TableHead>
-              <TableHead className="text-white/60 w-28 text-right">P. con IVA</TableHead>
+              <TableHead className="text-white/60 w-24 text-right">Coste</TableHead>
+              <TableHead className="text-white/60 w-24 text-right">P. Base</TableHead>
+              <TableHead className="text-white/60 w-24">IVA</TableHead>
+              <TableHead className="text-white/60 w-24 text-right">PVP</TableHead>
               <TableHead className="text-white/60 w-16">Estado</TableHead>
-              <TableHead className="text-white/60 w-12"></TableHead>
+              <TableHead className="text-white/60 w-10"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -780,8 +834,12 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
                   className={`border-white/10 hover:bg-white/5 ${!product.is_active ? 'opacity-50' : ''}`}
                 >
                   <TableCell className="text-orange-400 font-mono text-xs">{product.product_number}</TableCell>
+                  <TableCell>
+                    <span className={`text-xs px-2 py-0.5 rounded ${product.type === 'product' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>
+                      {product.type === 'product' ? 'Prod' : 'Serv'}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-white/60 text-xs">{product.category_code}</TableCell>
-                  <TableCell className="text-white/60 text-xs">{product.subcategory_code || '-'}</TableCell>
                   <TableCell className="text-white text-sm">
                     {renderEditableCell(product, 'name', product.name)}
                   </TableCell>
