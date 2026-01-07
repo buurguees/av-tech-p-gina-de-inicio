@@ -13,11 +13,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { 
   FolderKanban, 
-  Loader2, 
   LayoutDashboard, 
   FileText, 
   Receipt, 
   Wallet,
+  Users,
   ChevronDown,
   Edit
 } from "lucide-react";
@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import ProjectDashboardTab from "./components/ProjectDashboardTab";
 import ProjectQuotesTab from "./components/ProjectQuotesTab";
+import ProjectTechniciansTab from "./components/ProjectTechniciansTab";
 import ProjectExpensesTab from "./components/ProjectExpensesTab";
 import ProjectInvoicesTab from "./components/ProjectInvoicesTab";
 
@@ -261,6 +262,13 @@ const ProjectDetailPage = () => {
                 Presupuestos
               </TabsTrigger>
               <TabsTrigger 
+                value="technicians"
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Técnicos
+              </TabsTrigger>
+              <TabsTrigger 
                 value="expenses"
                 className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
               >
@@ -282,6 +290,10 @@ const ProjectDetailPage = () => {
 
             <TabsContent value="quotes" className="mt-6">
               <ProjectQuotesTab projectId={project.id} />
+            </TabsContent>
+
+            <TabsContent value="technicians" className="mt-6">
+              <ProjectTechniciansTab projectId={project.id} />
             </TabsContent>
 
             <TabsContent value="expenses" className="mt-6">
