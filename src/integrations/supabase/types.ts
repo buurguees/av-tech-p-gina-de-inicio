@@ -106,15 +106,26 @@ export type Database = {
           product_number: string
         }[]
       }
-      create_product_category: {
-        Args: {
-          p_code: string
-          p_description?: string
-          p_display_order?: number
-          p_name: string
-        }
-        Returns: string
-      }
+      create_product_category:
+        | {
+            Args: {
+              p_code: string
+              p_description?: string
+              p_display_order?: number
+              p_name: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_code: string
+              p_description?: string
+              p_display_order?: number
+              p_name: string
+              p_type?: string
+            }
+            Returns: string
+          }
       create_product_pack: {
         Args: {
           p_description?: string
@@ -185,6 +196,17 @@ export type Database = {
               quote_number: string
             }[]
           }
+      create_tax: {
+        Args: {
+          p_code: string
+          p_description?: string
+          p_is_default?: boolean
+          p_name: string
+          p_rate: number
+          p_tax_type: string
+        }
+        Returns: string
+      }
       delete_authorized_user: { Args: { p_user_id: string }; Returns: string }
       delete_client: { Args: { p_client_id: string }; Returns: boolean }
       delete_product: { Args: { p_product_id: string }; Returns: boolean }
@@ -198,6 +220,7 @@ export type Database = {
         Returns: boolean
       }
       delete_quote_line: { Args: { p_line_id: string }; Returns: boolean }
+      delete_tax: { Args: { p_tax_id: string }; Returns: boolean }
       get_authorized_user_by_auth_id: {
         Args: { p_auth_user_id: string }
         Returns: {
@@ -409,6 +432,7 @@ export type Database = {
           name: string
           product_count: number
           subcategory_count: number
+          type: string
           updated_at: string
         }[]
       }
@@ -543,6 +567,22 @@ export type Database = {
           name: string
         }[]
       }
+      list_taxes: {
+        Args: { p_tax_type?: string }
+        Returns: {
+          code: string
+          created_at: string
+          description: string
+          display_order: number
+          id: string
+          is_active: boolean
+          is_default: boolean
+          name: string
+          rate: number
+          tax_type: string
+          updated_at: string
+        }[]
+      }
       remove_pack_item: { Args: { p_item_id: string }; Returns: boolean }
       toggle_user_status: {
         Args: { p_is_active: boolean; p_user_id: string }
@@ -624,17 +664,30 @@ export type Database = {
             }
             Returns: boolean
           }
-      update_product_category: {
-        Args: {
-          p_category_id: string
-          p_code?: string
-          p_description?: string
-          p_display_order?: number
-          p_is_active?: boolean
-          p_name?: string
-        }
-        Returns: boolean
-      }
+      update_product_category:
+        | {
+            Args: {
+              p_category_id: string
+              p_code?: string
+              p_description?: string
+              p_display_order?: number
+              p_is_active?: boolean
+              p_name?: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_category_id: string
+              p_code?: string
+              p_description?: string
+              p_display_order?: number
+              p_is_active?: boolean
+              p_name?: string
+              p_type?: string
+            }
+            Returns: boolean
+          }
       update_product_pack: {
         Args: {
           p_description?: string
@@ -689,6 +742,19 @@ export type Database = {
           p_quantity?: number
           p_tax_rate?: number
           p_unit_price?: number
+        }
+        Returns: boolean
+      }
+      update_tax: {
+        Args: {
+          p_code?: string
+          p_description?: string
+          p_display_order?: number
+          p_is_active?: boolean
+          p_is_default?: boolean
+          p_name?: string
+          p_rate?: number
+          p_tax_id: string
         }
         Returns: boolean
       }
