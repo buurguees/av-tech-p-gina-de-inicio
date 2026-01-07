@@ -175,6 +175,7 @@ const ClientProjectsTab = ({ clientId }: ClientProjectsTabProps) => {
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         onSuccess={handleProjectCreated}
+        preselectedClientId={clientId}
       />
     </div>
   );

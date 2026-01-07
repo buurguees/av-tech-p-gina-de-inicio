@@ -37,6 +37,7 @@ interface CreateProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  preselectedClientId?: string;
 }
 
 interface Client {
@@ -52,19 +53,26 @@ const PROJECT_STATUSES = [
   { value: 'CANCELLED', label: 'Cancelado' },
 ];
 
-const CreateProjectDialog = ({ open, onOpenChange, onSuccess }: CreateProjectDialogProps) => {
+const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientId }: CreateProjectDialogProps) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [loadingClients, setLoadingClients] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [clientOpen, setClientOpen] = useState(false);
   
   // Form state
-  const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [selectedClientId, setSelectedClientId] = useState<string>(preselectedClientId || "");
   const [status, setStatus] = useState<string>("PLANNED");
   const [projectAddress, setProjectAddress] = useState("");
   const [projectCity, setProjectCity] = useState("");
   const [clientOrderNumber, setClientOrderNumber] = useState("");
   const [localName, setLocalName] = useState("");
+
+  // Update selectedClientId when preselectedClientId changes
+  useEffect(() => {
+    if (preselectedClientId) {
+      setSelectedClientId(preselectedClientId);
+    }
+  }, [preselectedClientId, open]);
 
   // Fetch clients
   useEffect(() => {
@@ -87,7 +95,7 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess }: CreateProjectDia
   }, [open]);
 
   const resetForm = () => {
-    setSelectedClientId("");
+    setSelectedClientId(preselectedClientId || "");
     setStatus("PLANNED");
     setProjectAddress("");
     setProjectCity("");
