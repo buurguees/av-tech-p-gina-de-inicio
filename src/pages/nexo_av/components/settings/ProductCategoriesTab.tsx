@@ -48,13 +48,10 @@ import {
   Loader2, 
   FolderTree,
   Package,
-  RefreshCw,
-  Wrench
+  RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
-
-type CategoryType = 'product' | 'service';
 
 interface Category {
   id: string;
@@ -63,7 +60,6 @@ interface Category {
   description: string | null;
   display_order: number;
   is_active: boolean;
-  type: string;
   subcategory_count: number;
   product_count: number;
   created_at: string;
@@ -90,7 +86,6 @@ interface CategoryFormData {
   code: string;
   description: string;
   display_order: number;
-  type: string;
 }
 
 interface SubcategoryFormData {
@@ -116,7 +111,6 @@ export function ProductCategoriesTab() {
     code: '',
     description: '',
     display_order: 0,
-    type: 'product',
   });
 
   // Subcategory dialogs
@@ -159,7 +153,7 @@ export function ProductCategoriesTab() {
   // Category handlers
   const openCreateCategory = () => {
     setEditingCategory(null);
-    setCategoryFormData({ name: '', code: '', description: '', display_order: categories.length, type: 'product' });
+    setCategoryFormData({ name: '', code: '', description: '', display_order: categories.length });
     setShowCategoryDialog(true);
   };
 
@@ -170,7 +164,6 @@ export function ProductCategoriesTab() {
       code: category.code,
       description: category.description || '',
       display_order: category.display_order,
-      type: category.type || 'product',
     });
     setShowCategoryDialog(true);
   };
@@ -190,7 +183,6 @@ export function ProductCategoriesTab() {
           p_code: categoryFormData.code,
           p_description: categoryFormData.description || null,
           p_display_order: categoryFormData.display_order,
-          p_type: categoryFormData.type,
         });
         if (error) throw error;
         toast.success('Categoría actualizada');
@@ -200,7 +192,6 @@ export function ProductCategoriesTab() {
           p_code: categoryFormData.code,
           p_description: categoryFormData.description || null,
           p_display_order: categoryFormData.display_order,
-          p_type: categoryFormData.type,
         });
         if (error) throw error;
         toast.success('Categoría creada');
@@ -603,42 +594,15 @@ export function ProductCategoriesTab() {
                 rows={3}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-white/80">Tipo *</Label>
-                <Select
-                  value={categoryFormData.type}
-                  onValueChange={(v) => setCategoryFormData(prev => ({ ...prev, type: v }))}
-                >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10">
-                    <SelectItem value="product" className="text-white">
-                      <div className="flex items-center gap-2">
-                        <Package className="w-4 h-4" />
-                        Productos
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="service" className="text-white">
-                      <div className="flex items-center gap-2">
-                        <Wrench className="w-4 h-4" />
-                        Servicios
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-white/80">Orden de visualización</Label>
-                <Input
-                  type="number"
-                  value={categoryFormData.display_order}
-                  onChange={e => setCategoryFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
-                  className="bg-white/5 border-white/10 text-white"
-                  min={0}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label className="text-white/80">Orden de visualización</Label>
+              <Input
+                type="number"
+                value={categoryFormData.display_order}
+                onChange={e => setCategoryFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
+                className="bg-white/5 border-white/10 text-white"
+                min={0}
+              />
             </div>
           </div>
           <DialogFooter>
