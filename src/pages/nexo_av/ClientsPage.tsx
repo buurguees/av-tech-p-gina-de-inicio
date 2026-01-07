@@ -302,7 +302,7 @@ const ClientsPage = () => {
                       <div className="p-1.5 rounded-lg bg-white/5 shrink-0">
                         <Building2 className="h-3.5 w-3.5 text-white/60" />
                       </div>
-                      <p className="text-white font-medium text-sm truncate">{client.company_name}</p>
+                      <p className="text-white font-medium text-sm truncate uppercase">{client.company_name}</p>
                     </div>
                     <Badge 
                       variant="outline" 
