@@ -39,6 +39,8 @@ const App = () => (
             <Route path="/nexo-av/:userId/clients" element={<NexoClientsPage />} />
             <Route path="/nexo-av/:userId/clients/:clientId" element={<NexoClientDetailPage />} />
             <Route path="/nexo-av/:userId/quotes" element={<NexoQuotesPage />} />
+            <Route path="/nexo-av/:userId/quotes/new" element={<NexoNewQuotePage />} />
+            <Route path="/nexo-av/:userId/clients/:clientId/quotes/new" element={<NexoNewQuotePage />} />
             <Route path="/nexo-av/:userId/*" element={<NexoNotFound />} />
             {/* Legacy route - redirects to login */}
             <Route path="/nexo-av/dashboard" element={<NexoLogin />} />
