@@ -48,7 +48,7 @@ const NotFound = () => {
           La página que buscas no existe o ha sido movida.
         </p>
         <a
-          href="/"
+          href="/#inicio"
           className="inline-block border border-foreground/20 px-8 py-3 text-sm uppercase tracking-wider text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
         >
           Volver al inicio
