@@ -37,8 +37,10 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/useDebounce";
+import { usePagination } from "@/hooks/usePagination";
 import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import CreateClientDialog from "./components/CreateClientDialog";
+import PaginationControls from "./components/PaginationControls";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Client {
@@ -199,6 +201,21 @@ const ClientsPage = () => {
     ? clients.filter(c => c.assigned_to === currentUserId || c.assigned_to === null)
     : clients;
 
+  // Pagination (50 records per page)
+  const {
+    currentPage,
+    totalPages,
+    paginatedData: paginatedClients,
+    goToPage,
+    nextPage,
+    prevPage,
+    canGoNext,
+    canGoPrev,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination(filteredClients, { pageSize: 50 });
+
   return (
     <div className="min-h-screen bg-black">
       <NexoHeader 
@@ -281,7 +298,7 @@ const ClientsPage = () => {
           transition={{ delay: 0.1 }}
           className="md:hidden space-y-2"
         >
-          {filteredClients.length === 0 ? (
+          {paginatedClients.length === 0 ? (
             <div className="text-center py-12 rounded-xl border border-white/10 bg-white/5">
               <Building2 className="h-10 w-10 text-white/20 mx-auto mb-3" />
               <p className="text-white/40 text-sm">No hay clientes</p>
@@ -294,31 +311,45 @@ const ClientsPage = () => {
               </Button>
             </div>
           ) : (
-            filteredClients.map((client) => {
-              const stageInfo = getStageInfo(client.lead_stage);
-              return (
-                <button
-                  key={client.id}
-                  onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
-                  className="w-full p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-left"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <div className="p-1.5 rounded-lg bg-white/5 shrink-0">
-                        <Building2 className="h-3.5 w-3.5 text-white/60" />
+            <>
+              {paginatedClients.map((client) => {
+                const stageInfo = getStageInfo(client.lead_stage);
+                return (
+                  <button
+                    key={client.id}
+                    onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
+                    className="w-full p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-left"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div className="p-1.5 rounded-lg bg-white/5 shrink-0">
+                          <Building2 className="h-3.5 w-3.5 text-white/60" />
+                        </div>
+                        <p className="text-white font-medium text-sm truncate uppercase">{client.company_name}</p>
                       </div>
-                      <p className="text-white font-medium text-sm truncate uppercase">{client.company_name}</p>
+                      <Badge 
+                        variant="outline" 
+                        className={`${stageInfo.color} border text-[10px] px-1.5 py-0 shrink-0`}
+                      >
+                        {stageInfo.label}
+                      </Badge>
                     </div>
-                    <Badge 
-                      variant="outline" 
-                      className={`${stageInfo.color} border text-[10px] px-1.5 py-0 shrink-0`}
-                    >
-                      {stageInfo.label}
-                    </Badge>
-                  </div>
-                </button>
-              );
-            })
+                  </button>
+                );
+              })}
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                startIndex={startIndex}
+                endIndex={endIndex}
+                totalItems={totalItems}
+                canGoPrev={canGoPrev}
+                canGoNext={canGoNext}
+                onPrevPage={prevPage}
+                onNextPage={nextPage}
+                onGoToPage={goToPage}
+              />
+            </>
           )}
         </motion.div>
 
@@ -355,7 +386,7 @@ const ClientsPage = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredClients.map((client) => {
+                paginatedClients.map((client) => {
                   const stageInfo = getStageInfo(client.lead_stage);
                   return (
                     <TableRow 
@@ -424,6 +455,20 @@ const ClientsPage = () => {
               )}
             </TableBody>
           </Table>
+          {paginatedClients.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              totalItems={totalItems}
+              canGoPrev={canGoPrev}
+              canGoNext={canGoNext}
+              onPrevPage={prevPage}
+              onNextPage={nextPage}
+              onGoToPage={goToPage}
+            />
+          )}
         </motion.div>
       </main>
 

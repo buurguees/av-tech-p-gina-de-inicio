@@ -15,7 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Search, FileText, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { usePagination } from "@/hooks/usePagination";
 import NexoHeader from "./components/NexoHeader";
+import PaginationControls from "./components/PaginationControls";
 
 interface Quote {
   id: string;
@@ -91,6 +93,21 @@ const QuotesPage = () => {
   const handleQuoteClick = (quoteId: string) => {
     navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
   };
+
+  // Pagination (50 records per page)
+  const {
+    currentPage,
+    totalPages,
+    paginatedData: paginatedQuotes,
+    goToPage,
+    nextPage,
+    prevPage,
+    canGoNext,
+    canGoPrev,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination(quotes, { pageSize: 50 });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black">
@@ -184,55 +201,71 @@ const QuotesPage = () => {
                 )}
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="text-white/70">Num.</TableHead>
-                    <TableHead className="text-white/70">Cliente</TableHead>
-                    <TableHead className="text-white/70">Proyecto</TableHead>
-                    <TableHead className="text-white/70">Pedido</TableHead>
-                    <TableHead className="text-white/70">Estado</TableHead>
-                    <TableHead className="text-white/70 text-right">Subtotal</TableHead>
-                    <TableHead className="text-white/70 text-right">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {quotes.map((quote) => {
-                    const statusInfo = getStatusInfo(quote.status);
-                    return (
-                      <TableRow
-                        key={quote.id}
-                        className="border-white/10 hover:bg-white/5 cursor-pointer transition-colors"
-                        onClick={() => handleQuoteClick(quote.id)}
-                      >
-                        <TableCell className="font-mono text-avtech-orange font-medium">
-                          {quote.quote_number}
-                        </TableCell>
-                        <TableCell className="text-white uppercase">
-                          {quote.client_name || "-"}
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          {quote.project_name || "-"}
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          {quote.order_number || "-"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={statusInfo.className}>
-                            {statusInfo.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-white/80 text-right">
-                          {formatCurrency(quote.subtotal)}
-                        </TableCell>
-                        <TableCell className="text-white font-medium text-right">
-                          {formatCurrency(quote.total)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-white/10 hover:bg-transparent">
+                      <TableHead className="text-white/70">Num.</TableHead>
+                      <TableHead className="text-white/70">Cliente</TableHead>
+                      <TableHead className="text-white/70">Proyecto</TableHead>
+                      <TableHead className="text-white/70">Pedido</TableHead>
+                      <TableHead className="text-white/70">Estado</TableHead>
+                      <TableHead className="text-white/70 text-right">Subtotal</TableHead>
+                      <TableHead className="text-white/70 text-right">Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedQuotes.map((quote) => {
+                      const statusInfo = getStatusInfo(quote.status);
+                      return (
+                        <TableRow
+                          key={quote.id}
+                          className="border-white/10 hover:bg-white/5 cursor-pointer transition-colors"
+                          onClick={() => handleQuoteClick(quote.id)}
+                        >
+                          <TableCell className="font-mono text-avtech-orange font-medium">
+                            {quote.quote_number}
+                          </TableCell>
+                          <TableCell className="text-white uppercase">
+                            {quote.client_name || "-"}
+                          </TableCell>
+                          <TableCell className="text-white/80">
+                            {quote.project_name || "-"}
+                          </TableCell>
+                          <TableCell className="text-white/80">
+                            {quote.order_number || "-"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={statusInfo.className}>
+                              {statusInfo.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-white/80 text-right">
+                            {formatCurrency(quote.subtotal)}
+                          </TableCell>
+                          <TableCell className="text-white font-medium text-right">
+                            {formatCurrency(quote.total)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+                {paginatedQuotes.length > 0 && (
+                  <PaginationControls
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    startIndex={startIndex}
+                    endIndex={endIndex}
+                    totalItems={totalItems}
+                    canGoPrev={canGoPrev}
+                    canGoNext={canGoNext}
+                    onPrevPage={prevPage}
+                    onNextPage={nextPage}
+                    onGoToPage={goToPage}
+                  />
+                )}
+              </>
             )}
           </motion.div>
         </motion.div>
