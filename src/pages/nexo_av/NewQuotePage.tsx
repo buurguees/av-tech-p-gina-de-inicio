@@ -54,6 +54,8 @@ const TAX_OPTIONS = [
   { value: 10, label: "IVA 10%" },
   { value: 4, label: "IVA 4%" },
   { value: 0, label: "Sin IVA" },
+  { value: -15, label: "IRPF -15%" },
+  { value: -7, label: "IRPF -7%" },
 ];
 
 const NewQuotePage = () => {
@@ -413,11 +415,11 @@ const NewQuotePage = () => {
                 <TableRow className="border-white/10 hover:bg-transparent">
                   <TableHead className="text-white/70 w-8"></TableHead>
                   <TableHead className="text-white/70">Concepto</TableHead>
-                  <TableHead className="text-white/70">Descripción</TableHead>
-                  <TableHead className="text-white/70 text-center w-24">Cantidad</TableHead>
-                  <TableHead className="text-white/70 text-right w-28">Precio</TableHead>
-                  <TableHead className="text-white/70 w-32">Impuestos</TableHead>
-                  <TableHead className="text-white/70 text-right w-24">Total</TableHead>
+                  <TableHead className="text-white/70 w-32">Descripción</TableHead>
+                  <TableHead className="text-white/70 text-center w-20">Cantidad</TableHead>
+                  <TableHead className="text-white/70 text-right w-24">Precio</TableHead>
+                  <TableHead className="text-white/70 w-36">Impuestos</TableHead>
+                  <TableHead className="text-white/70 text-right w-28">Total</TableHead>
                   <TableHead className="text-white/70 w-12"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -468,7 +470,7 @@ const NewQuotePage = () => {
                         value={line.tax_rate.toString()}
                         onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
                       >
-                        <SelectTrigger className="bg-white/10 border-white/10 text-white h-8">
+                        <SelectTrigger className="bg-white/10 border-white/10 text-white h-8 w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-zinc-900 border-white/10">
