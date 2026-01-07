@@ -366,7 +366,7 @@ const CreateClientDialog = ({
                   <FormItem>
                     <FormLabel>Asignar a {!isAdmin && "(auto)"}</FormLabel>
                     <Select 
-                      onValueChange={(value) => field.onChange(value === "_none_" ? undefined : value)} 
+                      onValueChange={(value) => field.onChange(value === "_none_" ? "" : value)} 
                       value={field.value || "_none_"}
                       disabled={!isAdmin}
                     >
