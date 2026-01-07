@@ -86,51 +86,43 @@ const Login = () => {
     setError(null);
     setIsSubmitting(true);
 
+    // Generic error message to prevent user enumeration
+    const GENERIC_AUTH_ERROR = 'Credenciales incorrectas o usuario no autorizado.';
+
     try {
-      // Validate email domain
+      // Validate email domain first (this is public knowledge, not enumeration)
       if (!email.endsWith('@avtechesdeveniments.com')) {
         setError('Solo se permite el acceso con emails corporativos (@avtechesdeveniments.com)');
         setIsSubmitting(false);
         return;
       }
 
-      // Check if email is in authorized list
-      const { data: authorized, error: authCheckError } = await supabase.rpc('is_email_authorized', {
-        p_email: email
-      });
-
-      if (authCheckError) {
-        console.error('Auth check error:', authCheckError);
-        setError('Error al verificar autorización. Inténtalo de nuevo.');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!authorized) {
-        setError('Tu email no está autorizado para acceder a esta plataforma. Contacta con el administrador.');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Attempt to sign in
+      // Attempt to sign in FIRST - don't check authorization before login
+      // This prevents user enumeration attacks
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) {
-        if (signInError.message.includes('Invalid login credentials')) {
-          setError('Email o contraseña incorrectos.');
-        } else if (signInError.message.includes('Email not confirmed')) {
-          setError('Por favor, confirma tu email antes de iniciar sesión.');
-        } else {
-          setError(signInError.message);
-        }
+        // Always show generic error to prevent enumeration
+        setError(GENERIC_AUTH_ERROR);
         setIsSubmitting(false);
         return;
       }
 
+      // AFTER successful auth, verify the user is authorized
       if (data.session) {
+        const { data: userInfo, error: userInfoError } = await supabase.rpc('get_current_user_info');
+        
+        if (userInfoError || !userInfo || userInfo.length === 0) {
+          // User authenticated but not authorized - sign them out
+          await supabase.auth.signOut();
+          setError(GENERIC_AUTH_ERROR);
+          setIsSubmitting(false);
+          return;
+        }
+
         toast({
           title: "Bienvenido",
           description: "Has iniciado sesión correctamente.",
@@ -138,8 +130,8 @@ const Login = () => {
         // Navigation will be handled by onAuthStateChange
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setError('Ha ocurrido un error inesperado. Inténtalo de nuevo.');
+      // Don't log error details in production
+      setError(GENERIC_AUTH_ERROR);
     } finally {
       setIsSubmitting(false);
     }

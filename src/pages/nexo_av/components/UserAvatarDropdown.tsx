@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { User, LogOut, Key, Eye, EyeOff } from "lucide-react";
+import { validatePassword } from "@/hooks/usePasswordValidation";
+import PasswordStrengthIndicator from "./PasswordStrengthIndicator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,8 +91,10 @@ const UserAvatarDropdown = ({
         throw new Error("No session found");
       }
 
+      // Use Supabase URL directly - no fallback for security
+      const supabaseUrl = 'https://takvthfatlcjsqgssnta.supabase.co';
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL || 'https://takvthfatlcjsqgssnta.supabase.co'}/functions/v1/admin-users`,
+        `${supabaseUrl}/functions/v1/admin-users`,
         {
           method: 'POST',
           headers: {
@@ -142,10 +146,12 @@ const UserAvatarDropdown = ({
       return;
     }
 
-    if (passwordForm.newPassword.length < 8) {
+    // Validate password strength
+    const passwordValidation = validatePassword(passwordForm.newPassword);
+    if (!passwordValidation.isValid) {
       toast({
-        title: "Error",
-        description: "La contraseña debe tener al menos 8 caracteres.",
+        title: "Contraseña no válida",
+        description: passwordValidation.errors.join(', '),
         variant: "destructive",
       });
       return;
@@ -361,7 +367,12 @@ const UserAvatarDropdown = ({
                     {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-white/40">Mínimo 8 caracteres.</p>
+                {/* Password strength indicator */}
+                {passwordForm.newPassword && (
+                  <PasswordStrengthIndicator 
+                    validation={validatePassword(passwordForm.newPassword)} 
+                  />
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-white/80">Confirmar nueva contraseña</Label>
