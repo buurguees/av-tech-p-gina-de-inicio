@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Download, Search, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Download, Search, Trash2, Loader2, Upload, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Product {
@@ -43,6 +43,10 @@ interface EditingCell {
   field: string;
 }
 
+interface ProductsTabProps {
+  isAdmin: boolean;
+}
+
 const TAX_OPTIONS = [
   { value: '21', label: 'IVA 21%' },
   { value: '10', label: 'IVA 10%' },
@@ -50,7 +54,7 @@ const TAX_OPTIONS = [
   { value: '0', label: 'Exento' },
 ];
 
-export default function ProductsTab() {
+export default function ProductsTab({ isAdmin }: ProductsTabProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
@@ -60,7 +64,9 @@ export default function ProductsTab() {
   const [filterSubcategory, setFilterSubcategory] = useState<string>('all');
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [importing, setImporting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadData();
@@ -116,6 +122,11 @@ export default function ProductsTab() {
   };
 
   const handleAddProduct = async () => {
+    if (!isAdmin) {
+      toast.error('Solo los administradores pueden añadir productos');
+      return;
+    }
+
     if (filterCategory === 'all') {
       toast.error('Selecciona una categoría para añadir un producto');
       return;
@@ -139,6 +150,11 @@ export default function ProductsTab() {
   };
 
   const handleDeleteProduct = async (productId: string) => {
+    if (!isAdmin) {
+      toast.error('Solo los administradores pueden eliminar productos');
+      return;
+    }
+
     try {
       const { error } = await supabase.rpc('delete_product', { p_product_id: productId });
       if (error) throw error;
@@ -151,6 +167,7 @@ export default function ProductsTab() {
   };
 
   const startEditing = (productId: string, field: string, currentValue: string | number) => {
+    if (!isAdmin) return;
     setEditingCell({ productId, field });
     setEditValue(String(currentValue ?? ''));
   };
@@ -161,7 +178,7 @@ export default function ProductsTab() {
   };
 
   const saveEdit = async () => {
-    if (!editingCell) return;
+    if (!editingCell || !isAdmin) return;
 
     const { productId, field } = editingCell;
     const product = products.find(p => p.id === productId);
@@ -223,6 +240,11 @@ export default function ProductsTab() {
   };
 
   const handleTaxChange = async (productId: string, taxRate: string) => {
+    if (!isAdmin) {
+      toast.error('Solo los administradores pueden modificar productos');
+      return;
+    }
+
     try {
       const { error } = await supabase.rpc('update_product', {
         p_product_id: productId,
@@ -265,6 +287,131 @@ export default function ProductsTab() {
     toast.success('Catálogo exportado');
   };
 
+  const downloadTemplate = () => {
+    // Build template with categories and subcategories info
+    const categoryInfo = categories.map(c => {
+      const subs = subcategories.filter(s => s.category_id === c.id);
+      const subInfo = subs.length > 0 
+        ? subs.map(s => `${s.code} = ${s.name}`).join(', ')
+        : 'Sin subcategorías';
+      return `${c.code} = ${c.name} (Subcats: ${subInfo})`;
+    }).join('\n');
+
+    const headers = ['Código Categoría', 'Código Subcategoría', 'Nombre', 'Descripción', 'Precio Coste', 'Precio Base', 'Impuesto %'];
+    const exampleRow = ['SP', '01', 'NOMBRE DEL PRODUCTO', 'Descripción opcional', '50.00', '100.00', '21'];
+    
+    const content = [
+      '# PLANTILLA DE IMPORTACIÓN DE PRODUCTOS',
+      '# =====================================',
+      '# Instrucciones:',
+      '# - Rellena las filas debajo de las cabeceras',
+      '# - El código de categoría debe coincidir con los existentes',
+      '# - El código de subcategoría es opcional (dejar vacío si no aplica)',
+      '# - Los precios usan punto como separador decimal',
+      '# - Impuesto: 21 (IVA 21%), 10 (IVA 10%), 4 (IVA 4%), 0 (Exento)',
+      '#',
+      '# CATEGORÍAS DISPONIBLES:',
+      ...categoryInfo.split('\n').map(line => `# ${line}`),
+      '#',
+      headers.join('\t'),
+      exampleRow.join('\t')
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + content], { type: 'text/tab-separated-values;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'plantilla_importacion_productos.xls';
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success('Plantilla descargada');
+  };
+
+  const handleImportClick = () => {
+    if (!isAdmin) {
+      toast.error('Solo los administradores pueden importar productos');
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => !line.startsWith('#') && line.trim());
+      
+      if (lines.length < 2) {
+        toast.error('El archivo no contiene datos para importar');
+        return;
+      }
+
+      // Skip header row
+      const dataLines = lines.slice(1);
+      let imported = 0;
+      let errors = 0;
+
+      for (const line of dataLines) {
+        const cols = line.split('\t');
+        if (cols.length < 6) continue;
+
+        const [catCode, subCode, name, description, costPrice, basePrice, taxRate] = cols;
+        
+        // Find category
+        const category = categories.find(c => c.code === catCode.trim());
+        if (!category) {
+          console.error(`Categoría no encontrada: ${catCode}`);
+          errors++;
+          continue;
+        }
+
+        // Find subcategory (optional)
+        let subcategoryId = null;
+        if (subCode?.trim()) {
+          const subcategory = subcategories.find(
+            s => s.category_id === category.id && s.code === subCode.trim()
+          );
+          if (subcategory) {
+            subcategoryId = subcategory.id;
+          }
+        }
+
+        try {
+          const { error } = await supabase.rpc('create_product', {
+            p_category_id: category.id,
+            p_subcategory_id: subcategoryId,
+            p_name: name?.trim() || 'PRODUCTO IMPORTADO',
+            p_description: description?.trim() || null,
+            p_cost_price: parseFloat(costPrice) || 0,
+            p_base_price: parseFloat(basePrice) || 0,
+            p_tax_rate: parseFloat(taxRate) || 21
+          });
+
+          if (error) throw error;
+          imported++;
+        } catch (err) {
+          console.error('Error importing product:', err);
+          errors++;
+        }
+      }
+
+      toast.success(`Importación completada: ${imported} productos creados${errors > 0 ? `, ${errors} errores` : ''}`);
+      await loadProducts();
+    } catch (error) {
+      console.error('Error reading file:', error);
+      toast.error('Error al leer el archivo');
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   const filteredSubcategories = subcategories.filter(s => 
     filterCategory === 'all' || s.category_id === filterCategory
   );
@@ -272,7 +419,7 @@ export default function ProductsTab() {
   const renderEditableCell = (product: Product, field: string, value: string | number | null, isNumeric = false) => {
     const isEditing = editingCell?.productId === product.id && editingCell?.field === field;
 
-    if (isEditing) {
+    if (isEditing && isAdmin) {
       return (
         <Input
           ref={inputRef}
@@ -289,8 +436,8 @@ export default function ProductsTab() {
 
     return (
       <div
-        onClick={() => startEditing(product.id, field, value ?? '')}
-        className="cursor-pointer hover:bg-white/10 px-2 py-1 rounded min-h-[28px] flex items-center"
+        onClick={() => isAdmin && startEditing(product.id, field, value ?? '')}
+        className={`px-2 py-1 rounded min-h-[28px] flex items-center ${isAdmin ? 'cursor-pointer hover:bg-white/10' : 'cursor-default'}`}
       >
         {isNumeric && value !== null ? Number(value).toFixed(2) + ' €' : (value || '-')}
       </div>
@@ -299,6 +446,15 @@ export default function ProductsTab() {
 
   return (
     <div className="space-y-4">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xls,.xlsx,.csv,.tsv,.txt"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+
       {/* Toolbar */}
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="flex flex-wrap gap-3 items-center">
@@ -338,14 +494,39 @@ export default function ProductsTab() {
         </div>
 
         <div className="flex gap-2">
-          <Button
-            onClick={handleAddProduct}
-            disabled={filterCategory === 'all'}
-            className="bg-orange-500 hover:bg-orange-600 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Añadir Producto
-          </Button>
+          {isAdmin && (
+            <>
+              <Button
+                onClick={handleAddProduct}
+                disabled={filterCategory === 'all'}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Añadir Producto
+              </Button>
+              <Button
+                onClick={handleImportClick}
+                disabled={importing}
+                variant="outline"
+                className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10"
+              >
+                {importing ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4 mr-2" />
+                )}
+                Importar
+              </Button>
+              <Button
+                onClick={downloadTemplate}
+                variant="outline"
+                className="border-white/20 text-white hover:bg-white/10"
+              >
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Plantilla
+              </Button>
+            </>
+          )}
           <Button
             onClick={exportToExcel}
             variant="outline"
@@ -371,21 +552,21 @@ export default function ProductsTab() {
               <TableHead className="text-white/60 w-24 text-right">P. Base</TableHead>
               <TableHead className="text-white/60 w-28">Impuesto</TableHead>
               <TableHead className="text-white/60 w-24 text-right">P. con IVA</TableHead>
-              <TableHead className="text-white/60 w-12"></TableHead>
+              {isAdmin && <TableHead className="text-white/60 w-12"></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow className="border-white/10">
-                <TableCell colSpan={10} className="text-center py-8">
+                <TableCell colSpan={isAdmin ? 10 : 9} className="text-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin mx-auto text-white/40" />
                 </TableCell>
               </TableRow>
             ) : products.length === 0 ? (
               <TableRow className="border-white/10">
-                <TableCell colSpan={10} className="text-center py-8 text-white/40">
+                <TableCell colSpan={isAdmin ? 10 : 9} className="text-center py-8 text-white/40">
                   {filterCategory === 'all' 
-                    ? 'Selecciona una categoría para ver o añadir productos'
+                    ? 'Selecciona una categoría para ver productos'
                     : 'No hay productos en esta categoría'}
                 </TableCell>
               </TableRow>
@@ -408,35 +589,41 @@ export default function ProductsTab() {
                     {renderEditableCell(product, 'base_price', product.base_price, true)}
                   </TableCell>
                   <TableCell>
-                    <Select
-                      value={String(product.tax_rate)}
-                      onValueChange={(v) => handleTaxChange(product.id, v)}
-                    >
-                      <SelectTrigger className="h-7 bg-white/5 border-white/10 text-white text-xs w-24">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-white/10">
-                        {TAX_OPTIONS.map(opt => (
-                          <SelectItem key={opt.value} value={opt.value} className="text-white text-xs">
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {isAdmin ? (
+                      <Select
+                        value={String(product.tax_rate)}
+                        onValueChange={(v) => handleTaxChange(product.id, v)}
+                      >
+                        <SelectTrigger className="h-7 bg-white/5 border-white/10 text-white text-xs w-24">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-900 border-white/10">
+                          {TAX_OPTIONS.map(opt => (
+                            <SelectItem key={opt.value} value={opt.value} className="text-white text-xs">
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <span className="text-white/60 text-xs">{product.tax_rate}%</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right text-green-400 font-medium text-sm">
                     {product.price_with_tax.toFixed(2)} €
                   </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
+                  {isAdmin && (
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteProduct(product.id)}
+                        className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}
@@ -445,7 +632,9 @@ export default function ProductsTab() {
       </div>
 
       <p className="text-white/40 text-xs">
-        Haz clic en cualquier celda para editarla • Pulsa Enter para guardar o Escape para cancelar
+        {isAdmin 
+          ? 'Haz clic en cualquier celda para editarla • Pulsa Enter para guardar o Escape para cancelar'
+          : 'Modo lectura • Solo los administradores pueden modificar el catálogo'}
       </p>
     </div>
   );
