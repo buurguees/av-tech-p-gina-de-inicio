@@ -528,15 +528,15 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
               <div className="space-y-2">
                 <Label className="text-white/70">Subcategoría</Label>
                 <Select 
-                  value={formData.subcategoryId} 
-                  onValueChange={(v) => setFormData({ ...formData, subcategoryId: v })}
+                  value={formData.subcategoryId || 'none'} 
+                  onValueChange={(v) => setFormData({ ...formData, subcategoryId: v === 'none' ? '' : v })}
                   disabled={!formData.categoryId}
                 >
                   <SelectTrigger className="bg-white/5 border-white/10 text-white">
                     <SelectValue placeholder="Opcional..." />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10">
-                    <SelectItem value="" className="text-white/60">Sin subcategoría</SelectItem>
+                    <SelectItem value="none" className="text-white/60">Sin subcategoría</SelectItem>
                     {formSubcategories.map(s => (
                       <SelectItem key={s.id} value={s.id} className="text-white">
                         {s.code} - {s.name}
