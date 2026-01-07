@@ -393,7 +393,7 @@ const NewQuotePage = () => {
                 <SelectContent className="bg-zinc-900 border-white/10">
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id} className="text-white">
-                      {project.project_number} - {project.project_name}
+                      {project.project_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
