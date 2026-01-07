@@ -278,7 +278,7 @@ const Dashboard = () => {
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
         <DashboardContent 
           userInfo={userInfo} 
           modules={modules}
@@ -316,11 +316,11 @@ const DashboardContent = ({
 }) => {
   return (
     <>
-      {/* Welcome section */}
+      {/* Welcome section - hidden on mobile */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        className="mb-6 md:mb-8 hidden md:block"
       >
         <h2 className="text-2xl font-bold text-white mb-2">
           Bienvenido, {userInfo?.full_name?.split(' ')[0]}
@@ -335,11 +335,11 @@ const DashboardContent = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="flex flex-wrap gap-3 mb-8"
+        className="flex flex-wrap gap-2 md:gap-3 mb-6 md:mb-8"
       >
         {(isAdmin || isManager || isSales) && (
-          <Button className="bg-white text-black hover:bg-white/90">
-            <Plus className="h-4 w-4 mr-2" />
+          <Button className="bg-white text-black hover:bg-white/90 text-xs md:text-sm h-8 md:h-10 px-3 md:px-4">
+            <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
             Nuevo Lead
           </Button>
         )}
@@ -347,15 +347,15 @@ const DashboardContent = ({
           <QuickQuoteDialog />
         )}
         {(isAdmin || isManager || isTech) && (
-          <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-            <Plus className="h-4 w-4 mr-2" />
+          <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 text-xs md:text-sm h-8 md:h-10 px-3 md:px-4">
+            <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
             Nuevo Proyecto
           </Button>
         )}
       </motion.div>
 
       {/* Modules grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {modules.filter(m => m.available).map((module, index) => (
           <motion.div
             key={module.id}
@@ -365,12 +365,12 @@ const DashboardContent = ({
           >
             <button
               onClick={() => navigate(module.path)}
-              className={`w-full h-40 p-6 rounded-xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 transition-all group text-left flex flex-col justify-between`}
+              className={`w-full h-28 md:h-40 p-4 md:p-6 rounded-xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 transition-all group text-left flex flex-col justify-between`}
             >
-              <div className="p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors w-fit">
-                <module.icon className="h-6 w-6 text-white" />
+              <div className="p-2 md:p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors w-fit">
+                <module.icon className="h-4 w-4 md:h-6 md:w-6 text-white" />
               </div>
-              <h3 className="text-white font-semibold">{module.title}</h3>
+              <h3 className="text-white font-semibold text-xs md:text-base">{module.title}</h3>
             </button>
           </motion.div>
         ))}
