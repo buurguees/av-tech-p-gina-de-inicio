@@ -302,7 +302,7 @@ const ProjectDetailPage = () => {
             </TabsContent>
 
             <TabsContent value="quotes" className="mt-6">
-              <ProjectQuotesTab projectId={project.id} />
+              <ProjectQuotesTab projectId={project.id} clientId={project.client_id || undefined} />
             </TabsContent>
 
             <TabsContent value="technicians" className="mt-6">

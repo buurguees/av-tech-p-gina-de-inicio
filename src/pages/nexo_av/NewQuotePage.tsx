@@ -67,7 +67,7 @@ const NewQuotePage = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
-  const [selectedClientId, setSelectedClientId] = useState<string>(clientId || "");
+  const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [quoteNumber, setQuoteNumber] = useState("Generando...");
   const [validUntil, setValidUntil] = useState(() => {
@@ -77,22 +77,32 @@ const NewQuotePage = () => {
   });
   const [lines, setLines] = useState<QuoteLine[]>([]);
 
+  // Initialize from URL params
   useEffect(() => {
     fetchClients();
-    if (clientId) {
-      setSelectedClientId(clientId);
+    
+    // Pre-select client from URL params
+    const urlClientId = searchParams.get('clientId') || clientId;
+    if (urlClientId) {
+      setSelectedClientId(urlClientId);
     }
-  }, [clientId]);
+  }, [clientId, searchParams]);
 
-  // Fetch projects when client changes
+  // Fetch projects when client changes and pre-select project from URL
   useEffect(() => {
     if (selectedClientId) {
-      fetchClientProjects(selectedClientId);
+      fetchClientProjects(selectedClientId).then(() => {
+        // Pre-select project from URL params after projects are loaded
+        const urlProjectId = searchParams.get('projectId');
+        if (urlProjectId) {
+          setSelectedProjectId(urlProjectId);
+        }
+      });
     } else {
       setProjects([]);
       setSelectedProjectId("");
     }
-  }, [selectedClientId]);
+  }, [selectedClientId, searchParams]);
 
   const fetchClients = async () => {
     try {
@@ -118,9 +128,11 @@ const NewQuotePage = () => {
         project_number: p.project_number,
         project_name: p.project_name,
       })));
+      return clientProjects;
     } catch (error) {
       console.error("Error fetching projects:", error);
       setProjects([]);
+      return [];
     } finally {
       setLoadingProjects(false);
     }
