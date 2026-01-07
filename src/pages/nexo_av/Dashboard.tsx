@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 import UserManagement from "./components/UserManagement";
 import UserAvatarDropdown from "./components/UserAvatarDropdown";
 import QuickQuoteDialog from "./components/QuickQuoteDialog";
@@ -131,6 +132,13 @@ const Dashboard = () => {
   const isManager = userInfo?.roles?.includes('manager');
   const isSales = userInfo?.roles?.includes('sales');
   const isTech = userInfo?.roles?.includes('tech');
+
+  // Inactivity logout hook - 30 minutes timeout with 5 minute warning
+  useInactivityLogout({
+    timeoutMinutes: 30,
+    warningMinutes: 5,
+    enabled: !loading && !accessDenied && !!userInfo,
+  });
 
   // Access denied screen
   if (accessDenied) {

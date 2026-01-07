@@ -4,10 +4,35 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// CORS configuration - restrict to allowed origins
+const ALLOWED_ORIGINS = [
+  'https://avtechesdeveniments.com',
+  'https://www.avtechesdeveniments.com',
+  'https://avtech-305e7.web.app',
+  'https://avtech-305e7.firebaseapp.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+// Pattern for Lovable preview URLs
+const LOVABLE_PATTERN = /^https:\/\/[a-z0-9-]+\.(lovable\.app|lovableproject\.com)$/;
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  let allowedOrigin = ALLOWED_ORIGINS[0];
+  
+  if (origin) {
+    if (ALLOWED_ORIGINS.includes(origin) || LOVABLE_PATTERN.test(origin)) {
+      allowedOrigin = origin;
+    }
+  }
+  
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
+  };
+}
 
 interface ContactFormRequest {
   nombre: string;
@@ -49,6 +74,9 @@ function formatTipoEspacio(tipo?: string): string {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
