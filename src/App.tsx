@@ -15,6 +15,7 @@ import NexoUsersPage from "./pages/nexo_av/UsersPage";
 import NexoClientsPage from "./pages/nexo_av/ClientsPage";
 import NexoClientDetailPage from "./pages/nexo_av/ClientDetailPage";
 import NexoQuotesPage from "./pages/nexo_av/QuotesPage";
+import NexoNewQuotePage from "./pages/nexo_av/NewQuotePage";
 import NexoNotFound from "./pages/nexo_av/NotFound";
 
 const queryClient = new QueryClient();
