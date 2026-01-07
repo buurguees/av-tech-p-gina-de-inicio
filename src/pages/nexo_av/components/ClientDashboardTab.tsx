@@ -154,7 +154,7 @@ const ClientDashboardTab = ({ client }: ClientDashboardTabProps) => {
                   <p className="text-white">{client.tax_id || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-white/40 text-sm">Presupuesto Aprox.</p>
+                  <p className="text-white/40 text-sm">Presupuesto Medio</p>
                   <p className="text-white">
                     {client.approximate_budget 
                       ? `${client.approximate_budget.toLocaleString('es-ES')}€`
