@@ -135,7 +135,6 @@ export function TaxesTab() {
       setIsSubmitting(false);
     }
   };
-  };
 
   const handleToggleTaxStatus = async (tax: Tax) => {
     try {
