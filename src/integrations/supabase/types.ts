@@ -40,6 +40,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_quote_line: {
+        Args: {
+          p_concept: string
+          p_description?: string
+          p_discount_percent?: number
+          p_quantity?: number
+          p_quote_id: string
+          p_tax_rate?: number
+          p_unit_price?: number
+        }
+        Returns: string
+      }
       assign_user_role: {
         Args: { p_assigned_by: string; p_role_name: string; p_user_id: string }
         Returns: boolean
@@ -81,8 +93,20 @@ export type Database = {
         }
         Returns: string
       }
+      create_quote_with_number: {
+        Args: {
+          p_client_id: string
+          p_project_name?: string
+          p_valid_until?: string
+        }
+        Returns: {
+          quote_id: string
+          quote_number: string
+        }[]
+      }
       delete_authorized_user: { Args: { p_user_id: string }; Returns: string }
       delete_client: { Args: { p_client_id: string }; Returns: boolean }
+      delete_quote_line: { Args: { p_line_id: string }; Returns: boolean }
       get_authorized_user_by_auth_id: {
         Args: { p_auth_user_id: string }
         Returns: {
@@ -157,6 +181,22 @@ export type Database = {
           total: number
           updated_at: string
           valid_until: string
+        }[]
+      }
+      get_quote_lines: {
+        Args: { p_quote_id: string }
+        Returns: {
+          concept: string
+          description: string
+          discount_percent: number
+          id: string
+          line_order: number
+          quantity: number
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          unit_price: number
         }[]
       }
       get_user_auth_id: { Args: { p_user_id: string }; Returns: string }
@@ -307,6 +347,29 @@ export type Database = {
           p_job_position?: string
           p_phone?: string
           p_user_id: string
+        }
+        Returns: boolean
+      }
+      update_quote: {
+        Args: {
+          p_client_id?: string
+          p_notes?: string
+          p_project_name?: string
+          p_quote_id: string
+          p_status?: string
+          p_valid_until?: string
+        }
+        Returns: boolean
+      }
+      update_quote_line: {
+        Args: {
+          p_concept?: string
+          p_description?: string
+          p_discount_percent?: number
+          p_line_id: string
+          p_quantity?: number
+          p_tax_rate?: number
+          p_unit_price?: number
         }
         Returns: boolean
       }
