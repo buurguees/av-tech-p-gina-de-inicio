@@ -23,6 +23,8 @@ export default function CatalogPage() {
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
+  const isAdmin = userInfo?.roles?.includes('admin') || false;
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -96,11 +98,11 @@ export default function CatalogPage() {
           </TabsList>
 
           <TabsContent value="products">
-            <ProductsTab />
+            <ProductsTab isAdmin={isAdmin} />
           </TabsContent>
 
           <TabsContent value="packs">
-            <PacksTab />
+            <PacksTab isAdmin={isAdmin} />
           </TabsContent>
         </Tabs>
       </main>

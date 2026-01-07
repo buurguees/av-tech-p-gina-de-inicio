@@ -44,6 +44,10 @@ interface EditingCell {
   field: string;
 }
 
+interface PacksTabProps {
+  isAdmin: boolean;
+}
+
 const TAX_OPTIONS = [
   { value: '21', label: 'IVA 21%' },
   { value: '10', label: 'IVA 10%' },
@@ -51,7 +55,7 @@ const TAX_OPTIONS = [
   { value: '0', label: 'Exento' },
 ];
 
-export default function PacksTab() {
+export default function PacksTab({ isAdmin }: PacksTabProps) {
   const [packs, setPacks] = useState<Pack[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -124,6 +128,11 @@ export default function PacksTab() {
   };
 
   const handleAddPack = async () => {
+    if (!isAdmin) {
+      toast.error('Solo los administradores pueden crear packs');
+      return;
+    }
+
     try {
       const { data, error } = await supabase.rpc('create_product_pack', {
         p_name: 'NUEVO PACK'
@@ -140,6 +149,11 @@ export default function PacksTab() {
   };
 
   const handleDeletePack = async (packId: string) => {
+    if (!isAdmin) {
+      toast.error('Solo los administradores pueden eliminar packs');
+      return;
+    }
+
     try {
       const { error } = await supabase.rpc('delete_product_pack', { p_pack_id: packId });
       if (error) throw error;
@@ -163,6 +177,11 @@ export default function PacksTab() {
   };
 
   const handleAddProductToPack = async () => {
+    if (!isAdmin) {
+      toast.error('Solo los administradores pueden modificar packs');
+      return;
+    }
+
     if (!selectedPack || !selectedProductId) return;
 
     try {
@@ -184,6 +203,11 @@ export default function PacksTab() {
   };
 
   const handleRemovePackItem = async (itemId: string) => {
+    if (!isAdmin) {
+      toast.error('Solo los administradores pueden modificar packs');
+      return;
+    }
+
     if (!selectedPack) return;
 
     try {
@@ -199,6 +223,11 @@ export default function PacksTab() {
   };
 
   const handleUpdateItemQuantity = async (itemId: string, quantity: number) => {
+    if (!isAdmin) {
+      toast.error('Solo los administradores pueden modificar packs');
+      return;
+    }
+
     if (!selectedPack || quantity < 1) return;
 
     try {
@@ -216,6 +245,7 @@ export default function PacksTab() {
   };
 
   const startEditing = (packId: string, field: string, currentValue: string | number) => {
+    if (!isAdmin) return;
     setEditingCell({ packId, field });
     setEditValue(String(currentValue ?? ''));
   };
@@ -226,7 +256,7 @@ export default function PacksTab() {
   };
 
   const saveEdit = async () => {
-    if (!editingCell) return;
+    if (!editingCell || !isAdmin) return;
 
     const { packId, field } = editingCell;
     const pack = packs.find(p => p.id === packId);
@@ -280,6 +310,11 @@ export default function PacksTab() {
   };
 
   const handleTaxChange = async (packId: string, taxRate: string) => {
+    if (!isAdmin) {
+      toast.error('Solo los administradores pueden modificar packs');
+      return;
+    }
+
     try {
       const { error } = await supabase.rpc('update_product_pack', {
         p_pack_id: packId,
@@ -325,7 +360,7 @@ export default function PacksTab() {
   const renderEditableCell = (pack: Pack, field: string, value: string | number | null, isNumeric = false, suffix = '') => {
     const isEditing = editingCell?.packId === pack.id && editingCell?.field === field;
 
-    if (isEditing) {
+    if (isEditing && isAdmin) {
       return (
         <Input
           ref={inputRef}
@@ -342,8 +377,8 @@ export default function PacksTab() {
 
     return (
       <div
-        onClick={() => startEditing(pack.id, field, value ?? '')}
-        className="cursor-pointer hover:bg-white/10 px-2 py-1 rounded min-h-[28px] flex items-center"
+        onClick={() => isAdmin && startEditing(pack.id, field, value ?? '')}
+        className={`px-2 py-1 rounded min-h-[28px] flex items-center ${isAdmin ? 'cursor-pointer hover:bg-white/10' : 'cursor-default'}`}
       >
         {isNumeric && value !== null ? Number(value).toFixed(2) + suffix : (value || '-')}
       </div>
@@ -365,13 +400,15 @@ export default function PacksTab() {
         </div>
 
         <div className="flex gap-2">
-          <Button
-            onClick={handleAddPack}
-            className="bg-orange-500 hover:bg-orange-600 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Añadir Pack
-          </Button>
+          {isAdmin && (
+            <Button
+              onClick={handleAddPack}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Añadir Pack
+            </Button>
+          )}
           <Button
             onClick={exportToExcel}
             variant="outline"
@@ -397,20 +434,20 @@ export default function PacksTab() {
               <TableHead className="text-white/60 w-28">Impuesto</TableHead>
               <TableHead className="text-white/60 w-24 text-right">P. con IVA</TableHead>
               <TableHead className="text-white/60 w-20 text-center">Prods.</TableHead>
-              <TableHead className="text-white/60 w-20"></TableHead>
+              {isAdmin && <TableHead className="text-white/60 w-20"></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow className="border-white/10">
-                <TableCell colSpan={10} className="text-center py-8">
+                <TableCell colSpan={isAdmin ? 10 : 9} className="text-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin mx-auto text-white/40" />
                 </TableCell>
               </TableRow>
             ) : packs.length === 0 ? (
               <TableRow className="border-white/10">
-                <TableCell colSpan={10} className="text-center py-8 text-white/40">
-                  No hay packs creados. Añade tu primer pack.
+                <TableCell colSpan={isAdmin ? 10 : 9} className="text-center py-8 text-white/40">
+                  No hay packs creados.
                 </TableCell>
               </TableRow>
             ) : (
@@ -433,21 +470,25 @@ export default function PacksTab() {
                     {pack.final_price.toFixed(2)} €
                   </TableCell>
                   <TableCell>
-                    <Select
-                      value={String(pack.tax_rate)}
-                      onValueChange={(v) => handleTaxChange(pack.id, v)}
-                    >
-                      <SelectTrigger className="h-7 bg-white/5 border-white/10 text-white text-xs w-24">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-white/10">
-                        {TAX_OPTIONS.map(opt => (
-                          <SelectItem key={opt.value} value={opt.value} className="text-white text-xs">
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {isAdmin ? (
+                      <Select
+                        value={String(pack.tax_rate)}
+                        onValueChange={(v) => handleTaxChange(pack.id, v)}
+                      >
+                        <SelectTrigger className="h-7 bg-white/5 border-white/10 text-white text-xs w-24">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-900 border-white/10">
+                          {TAX_OPTIONS.map(opt => (
+                            <SelectItem key={opt.value} value={opt.value} className="text-white text-xs">
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <span className="text-white/60 text-xs">{pack.tax_rate}%</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right text-green-400 font-medium text-sm">
                     {pack.price_with_tax.toFixed(2)} €
@@ -464,16 +505,18 @@ export default function PacksTab() {
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeletePack(pack.id)}
-                      className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
+                  {isAdmin && (
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeletePack(pack.id)}
+                        className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}
@@ -482,7 +525,9 @@ export default function PacksTab() {
       </div>
 
       <p className="text-white/40 text-xs">
-        Haz clic en cualquier celda para editarla • Pulsa Enter para guardar o Escape para cancelar
+        {isAdmin 
+          ? 'Haz clic en cualquier celda para editarla • Pulsa Enter para guardar o Escape para cancelar'
+          : 'Modo lectura • Solo los administradores pueden modificar el catálogo'}
       </p>
 
       {/* Pack Detail Dialog */}
@@ -496,29 +541,31 @@ export default function PacksTab() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Add product to pack */}
-            <div className="flex gap-2">
-              <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-                <SelectTrigger className="flex-1 bg-white/5 border-white/10 text-white">
-                  <SelectValue placeholder="Seleccionar producto para añadir..." />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10 max-h-60">
-                  {products.map(p => (
-                    <SelectItem key={p.id} value={p.id} className="text-white">
-                      {p.product_number} - {p.name} ({p.base_price.toFixed(2)} €)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                onClick={handleAddProductToPack}
-                disabled={!selectedProductId}
-                className="bg-orange-500 hover:bg-orange-600"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Añadir
-              </Button>
-            </div>
+            {/* Add product to pack - only for admins */}
+            {isAdmin && (
+              <div className="flex gap-2">
+                <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+                  <SelectTrigger className="flex-1 bg-white/5 border-white/10 text-white">
+                    <SelectValue placeholder="Seleccionar producto para añadir..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10 max-h-60">
+                    {products.map(p => (
+                      <SelectItem key={p.id} value={p.id} className="text-white">
+                        {p.product_number} - {p.name} ({p.base_price.toFixed(2)} €)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={handleAddProductToPack}
+                  disabled={!selectedProductId}
+                  className="bg-orange-500 hover:bg-orange-600"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Añadir
+                </Button>
+              </div>
+            )}
 
             {/* Pack items table */}
             <div className="border border-white/10 rounded-lg overflow-hidden">
@@ -530,20 +577,20 @@ export default function PacksTab() {
                     <TableHead className="text-white/60 w-24 text-center">Cantidad</TableHead>
                     <TableHead className="text-white/60 w-24 text-right">P. Unidad</TableHead>
                     <TableHead className="text-white/60 w-24 text-right">Subtotal</TableHead>
-                    <TableHead className="text-white/60 w-12"></TableHead>
+                    {isAdmin && <TableHead className="text-white/60 w-12"></TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loadingItems ? (
                     <TableRow className="border-white/10">
-                      <TableCell colSpan={6} className="text-center py-4">
+                      <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-4">
                         <Loader2 className="w-5 h-5 animate-spin mx-auto text-white/40" />
                       </TableCell>
                     </TableRow>
                   ) : packItems.length === 0 ? (
                     <TableRow className="border-white/10">
-                      <TableCell colSpan={6} className="text-center py-4 text-white/40">
-                        Este pack no tiene productos. Añade productos arriba.
+                      <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-4 text-white/40">
+                        Este pack no tiene productos.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -552,13 +599,17 @@ export default function PacksTab() {
                         <TableCell className="text-orange-400 font-mono text-xs">{item.product_number}</TableCell>
                         <TableCell className="text-white text-sm">{item.product_name}</TableCell>
                         <TableCell className="text-center">
-                          <Input
-                            type="number"
-                            min={1}
-                            value={item.quantity}
-                            onChange={(e) => handleUpdateItemQuantity(item.id, parseInt(e.target.value) || 1)}
-                            className="h-7 w-16 mx-auto bg-white/5 border-white/10 text-white text-center text-xs"
-                          />
+                          {isAdmin ? (
+                            <Input
+                              type="number"
+                              min={1}
+                              value={item.quantity}
+                              onChange={(e) => handleUpdateItemQuantity(item.id, parseInt(e.target.value) || 1)}
+                              className="h-7 w-16 mx-auto bg-white/5 border-white/10 text-white text-center text-xs"
+                            />
+                          ) : (
+                            <span className="text-white">{item.quantity}</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-right text-white/60 text-sm">
                           {item.unit_price.toFixed(2)} €
@@ -566,16 +617,18 @@ export default function PacksTab() {
                         <TableCell className="text-right text-white font-medium text-sm">
                           {item.subtotal.toFixed(2)} €
                         </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleRemovePackItem(item.id)}
-                            className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
+                        {isAdmin && (
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleRemovePackItem(item.id)}
+                              className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))
                   )}
