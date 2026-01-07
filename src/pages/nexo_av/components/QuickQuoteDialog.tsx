@@ -67,6 +67,20 @@ const QuickQuoteDialog = ({ trigger }: QuickQuoteDialogProps) => {
         return;
       }
 
+      // Get the authorized_user id for the current auth user
+      const { data: userInfo, error: userError } = await supabase.rpc('get_current_user_info');
+      
+      if (userError || !userInfo || userInfo.length === 0) {
+        toast({
+          title: "Error",
+          description: "No se pudo obtener información del usuario",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const authorizedUserId = userInfo[0].user_id;
+
       // Create client with "NEW" lead stage
       const { data: result, error } = await supabase.rpc('create_client', {
         p_company_name: data.name,
@@ -74,7 +88,7 @@ const QuickQuoteDialog = ({ trigger }: QuickQuoteDialogProps) => {
         p_contact_phone: data.phone,
         p_lead_stage: 'NEW',
         p_lead_source: 'OTHER',
-        p_assigned_to: session.session.user.id,
+        p_assigned_to: authorizedUserId,
       });
 
       if (error) {
