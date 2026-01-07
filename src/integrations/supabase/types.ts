@@ -109,17 +109,30 @@ export type Database = {
         }
         Returns: string
       }
-      create_quote_with_number: {
-        Args: {
-          p_client_id: string
-          p_project_name?: string
-          p_valid_until?: string
-        }
-        Returns: {
-          quote_id: string
-          quote_number: string
-        }[]
-      }
+      create_quote_with_number:
+        | {
+            Args: {
+              p_client_id: string
+              p_project_name?: string
+              p_valid_until?: string
+            }
+            Returns: {
+              quote_id: string
+              quote_number: string
+            }[]
+          }
+        | {
+            Args: {
+              p_client_id: string
+              p_project_id?: string
+              p_project_name?: string
+              p_valid_until?: string
+            }
+            Returns: {
+              quote_id: string
+              quote_number: string
+            }[]
+          }
       delete_authorized_user: { Args: { p_user_id: string }; Returns: string }
       delete_client: { Args: { p_client_id: string }; Returns: boolean }
       delete_quote_line: { Args: { p_line_id: string }; Returns: boolean }
@@ -328,25 +341,47 @@ export type Database = {
           status: string
         }[]
       }
-      list_quotes: {
-        Args: { p_search?: string; p_status?: string }
-        Returns: {
-          client_id: string
-          client_name: string
-          created_at: string
-          created_by: string
-          created_by_name: string
-          id: string
-          order_number: string
-          project_name: string
-          quote_number: string
-          status: string
-          subtotal: number
-          tax_amount: number
-          total: number
-          valid_until: string
-        }[]
-      }
+      list_quotes:
+        | {
+            Args: { p_search?: string }
+            Returns: {
+              client_id: string
+              client_name: string
+              created_at: string
+              created_by: string
+              created_by_name: string
+              id: string
+              order_number: string
+              project_id: string
+              project_name: string
+              project_number: string
+              quote_number: string
+              status: string
+              subtotal: number
+              tax_amount: number
+              total: number
+              valid_until: string
+            }[]
+          }
+        | {
+            Args: { p_search?: string; p_status?: string }
+            Returns: {
+              client_id: string
+              client_name: string
+              created_at: string
+              created_by: string
+              created_by_name: string
+              id: string
+              order_number: string
+              project_name: string
+              quote_number: string
+              status: string
+              subtotal: number
+              tax_amount: number
+              total: number
+              valid_until: string
+            }[]
+          }
       list_roles: {
         Args: never
         Returns: {
