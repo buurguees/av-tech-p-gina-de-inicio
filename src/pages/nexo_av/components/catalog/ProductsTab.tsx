@@ -802,28 +802,29 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
         <Table>
           <TableHeader>
             <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="text-white/60 w-32">Nº Producto</TableHead>
-              <TableHead className="text-white/60 w-20">Tipo</TableHead>
-              <TableHead className="text-white/60 w-20">Cat.</TableHead>
+              <TableHead className="text-white/60 w-28">Nº Producto</TableHead>
+              <TableHead className="text-white/60 w-16">Tipo</TableHead>
+              <TableHead className="text-white/60 w-16">Cat.</TableHead>
               <TableHead className="text-white/60">Nombre</TableHead>
-              <TableHead className="text-white/60 w-24 text-right">Coste</TableHead>
-              <TableHead className="text-white/60 w-24 text-right">P. Base</TableHead>
-              <TableHead className="text-white/60 w-24">IVA</TableHead>
-              <TableHead className="text-white/60 w-24 text-right">PVP</TableHead>
+              <TableHead className="text-white/60 w-16 text-right">Stock</TableHead>
+              <TableHead className="text-white/60 w-20 text-right">Coste</TableHead>
+              <TableHead className="text-white/60 w-20 text-right">P.Base</TableHead>
+              <TableHead className="text-white/60 w-20">IVA</TableHead>
+              <TableHead className="text-white/60 w-20 text-right">PVP</TableHead>
               <TableHead className="text-white/60 w-16">Estado</TableHead>
-              <TableHead className="text-white/60 w-10"></TableHead>
+              <TableHead className="text-white/60 w-8"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow className="border-white/10">
-                <TableCell colSpan={10} className="text-center py-8">
+                <TableCell colSpan={11} className="text-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin mx-auto text-white/40" />
                 </TableCell>
               </TableRow>
             ) : products.length === 0 ? (
               <TableRow className="border-white/10">
-                <TableCell colSpan={10} className="text-center py-8 text-white/40">
+                <TableCell colSpan={11} className="text-center py-8 text-white/40">
                   No hay productos. {isAdmin && 'Haz clic en "Añadir Producto" para crear uno.'}
                 </TableCell>
               </TableRow>
@@ -843,10 +844,13 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
                   <TableCell className="text-white text-sm">
                     {renderEditableCell(product, 'name', product.name)}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right text-white/60 text-xs">
+                    {product.type === 'product' ? (product.stock ?? 0) : '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs">
                     {renderEditableCell(product, 'cost_price', product.cost_price, true)}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right text-xs">
                     {renderEditableCell(product, 'base_price', product.base_price, true)}
                   </TableCell>
                   <TableCell>
