@@ -15,8 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Search, FolderKanban, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { usePagination } from "@/hooks/usePagination";
 import NexoHeader from "./components/NexoHeader";
 import CreateProjectDialog from "./components/CreateProjectDialog";
+import PaginationControls from "./components/PaginationControls";
 
 interface Project {
   id: string;
@@ -83,6 +85,21 @@ const ProjectsPage = () => {
     setIsCreateDialogOpen(false);
     fetchProjects();
   };
+
+  // Pagination (50 records per page)
+  const {
+    currentPage,
+    totalPages,
+    paginatedData: paginatedProjects,
+    goToPage,
+    nextPage,
+    prevPage,
+    canGoNext,
+    canGoPrev,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination(projects, { pageSize: 50 });
 
   return (
     <div className="min-h-screen bg-black">
@@ -156,7 +173,7 @@ const ProjectsPage = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  projects.map((project) => {
+                  paginatedProjects.map((project) => {
                     const statusInfo = getStatusInfo(project.status);
                     return (
                       <TableRow 
@@ -193,6 +210,20 @@ const ProjectsPage = () => {
                 )}
               </TableBody>
             </Table>
+            {paginatedProjects.length > 0 && (
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                startIndex={startIndex}
+                endIndex={endIndex}
+                totalItems={totalItems}
+                canGoPrev={canGoPrev}
+                canGoNext={canGoNext}
+                onPrevPage={prevPage}
+                onNextPage={nextPage}
+                onGoToPage={goToPage}
+              />
+            )}
           </div>
         </motion.div>
       </main>
