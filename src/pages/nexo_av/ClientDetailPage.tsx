@@ -12,12 +12,19 @@ import {
   Phone,
   MapPin,
   Globe,
-  Edit
+  Edit,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader, { NexoLogo } from "./components/NexoHeader";
@@ -83,6 +90,7 @@ const ClientDetailPage = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isAdmin, setIsAdmin] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -113,6 +121,46 @@ const ClientDetailPage = () => {
         description: "No se pudo cargar el cliente",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!client) return;
+    
+    setUpdatingStatus(true);
+    try {
+      const { error } = await supabase.rpc('update_client', {
+        p_client_id: client.id,
+        p_lead_stage: newStatus,
+      });
+
+      if (error) {
+        console.error('Error updating status:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo actualizar el estado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update local state
+      setClient({ ...client, lead_stage: newStatus });
+      
+      const stageLabel = LEAD_STAGES.find(s => s.value === newStatus)?.label || newStatus;
+      toast({
+        title: "Estado actualizado",
+        description: `El cliente ahora está en "${stageLabel}"`,
+      });
+    } catch (err) {
+      console.error('Error:', err);
+      toast({
+        title: "Error",
+        description: "Ha ocurrido un error inesperado",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -219,11 +267,33 @@ const ClientDetailPage = () => {
                     <Building2 className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-3 mb-1">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
                       <h2 className="text-2xl font-bold text-white">{client.company_name}</h2>
-                      <Badge variant="outline" className={`${stageInfo.color} border`}>
-                        {stageInfo.label}
-                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild disabled={updatingStatus}>
+                          <button 
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border transition-colors hover:opacity-80 ${stageInfo.color} cursor-pointer`}
+                          >
+                            {updatingStatus ? "Actualizando..." : stageInfo.label}
+                            <ChevronDown className="h-3 w-3" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent 
+                          align="start" 
+                          className="bg-zinc-900 border-white/10 min-w-[180px]"
+                        >
+                          {LEAD_STAGES.map((stage) => (
+                            <DropdownMenuItem
+                              key={stage.value}
+                              onClick={() => handleStatusChange(stage.value)}
+                              className={`cursor-pointer ${stage.value === client.lead_stage ? 'bg-white/10' : ''}`}
+                            >
+                              <span className={`inline-block w-2 h-2 rounded-full mr-2 ${stage.color.split(' ')[0]}`} />
+                              <span className="text-white">{stage.label}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     {client.legal_name && (
                       <p className="text-white/40 text-sm">{client.legal_name}</p>
