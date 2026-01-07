@@ -432,7 +432,6 @@ export type Database = {
           name: string
           product_count: number
           subcategory_count: number
-          type: string
           updated_at: string
         }[]
       }
