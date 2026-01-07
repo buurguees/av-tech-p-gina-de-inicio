@@ -16,16 +16,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
   Table,
   TableBody,
   TableCell,
@@ -36,15 +26,15 @@ import {
 import { 
   Receipt, 
   Plus, 
-  Pencil, 
-  Trash2, 
   Loader2, 
   RefreshCw,
   ShoppingCart,
   CreditCard,
   Star,
-  TrendingUp
+  TrendingUp,
+  Eye
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
 
@@ -72,14 +62,13 @@ interface TaxFormData {
 }
 
 export function TaxesTab() {
+  const navigate = useNavigate();
   const [taxes, setTaxes] = useState<Tax[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'sales' | 'purchase' | 'profit'>('sales');
 
   const [showTaxDialog, setShowTaxDialog] = useState(false);
-  const [editingTax, setEditingTax] = useState<Tax | null>(null);
-  const [deletingTax, setDeletingTax] = useState<Tax | null>(null);
   const [formData, setFormData] = useState<TaxFormData>({
     name: '',
     code: '',
@@ -108,7 +97,6 @@ export function TaxesTab() {
   };
 
   const openCreateTax = (taxType: 'sales' | 'purchase' | 'profit') => {
-    setEditingTax(null);
     setFormData({
       name: '',
       code: '',
@@ -116,19 +104,6 @@ export function TaxesTab() {
       tax_type: taxType,
       description: '',
       is_default: false,
-    });
-    setShowTaxDialog(true);
-  };
-
-  const openEditTax = (tax: Tax) => {
-    setEditingTax(tax);
-    setFormData({
-      name: tax.name,
-      code: tax.code,
-      rate: tax.rate.toString(),
-      tax_type: tax.tax_type,
-      description: tax.description || '',
-      is_default: tax.is_default,
     });
     setShowTaxDialog(true);
   };
@@ -141,29 +116,16 @@ export function TaxesTab() {
 
     setIsSubmitting(true);
     try {
-      if (editingTax) {
-        const { error } = await supabase.rpc('update_tax', {
-          p_tax_id: editingTax.id,
-          p_name: formData.name,
-          p_code: formData.code,
-          p_rate: parseFloat(formData.rate),
-          p_description: formData.description || null,
-          p_is_default: formData.is_default,
-        });
-        if (error) throw error;
-        toast.success('Impuesto actualizado');
-      } else {
-        const { error } = await supabase.rpc('create_tax', {
-          p_name: formData.name,
-          p_code: formData.code,
-          p_rate: parseFloat(formData.rate),
-          p_tax_type: formData.tax_type,
-          p_description: formData.description || null,
-          p_is_default: formData.is_default,
-        });
-        if (error) throw error;
-        toast.success('Impuesto creado');
-      }
+      const { error } = await supabase.rpc('create_tax', {
+        p_name: formData.name,
+        p_code: formData.code,
+        p_rate: parseFloat(formData.rate),
+        p_tax_type: formData.tax_type,
+        p_description: formData.description || null,
+        p_is_default: formData.is_default,
+      });
+      if (error) throw error;
+      toast.success('Impuesto creado');
       setShowTaxDialog(false);
       fetchTaxes();
     } catch (error: any) {
@@ -173,25 +135,6 @@ export function TaxesTab() {
       setIsSubmitting(false);
     }
   };
-
-  const handleDeleteTax = async () => {
-    if (!deletingTax) return;
-
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.rpc('delete_tax', {
-        p_tax_id: deletingTax.id,
-      });
-      if (error) throw error;
-      toast.success('Impuesto eliminado');
-      setDeletingTax(null);
-      fetchTaxes();
-    } catch (error: any) {
-      console.error('Error deleting tax:', error);
-      toast.error(error.message || 'Error al eliminar el impuesto');
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleToggleTaxStatus = async (tax: Tax) => {
@@ -286,24 +229,15 @@ export function TaxesTab() {
               />
             </TableCell>
             <TableCell className="text-right">
-              <div className="flex items-center justify-end gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => openEditTax(tax)}
-                  className="text-white/60 hover:text-white hover:bg-white/10"
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setDeletingTax(tax)}
-                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(`/nexo-av/${window.location.pathname.split('/')[2]}/settings/taxes/${tax.id}`)}
+                className="text-white/60 hover:text-white hover:bg-white/10"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Ver detalles
+              </Button>
             </TableCell>
           </motion.tr>
         ))}
@@ -418,13 +352,9 @@ export function TaxesTab() {
       <Dialog open={showTaxDialog} onOpenChange={setShowTaxDialog}>
         <DialogContent className="bg-zinc-900 border-white/10 text-white">
           <DialogHeader>
-            <DialogTitle>
-              {editingTax ? 'Editar Impuesto' : 'Nuevo Impuesto'}
-            </DialogTitle>
+            <DialogTitle>Nuevo Impuesto</DialogTitle>
             <DialogDescription className="text-white/60">
-              {editingTax 
-                ? 'Modifica los datos del impuesto.' 
-                : `Crea un nuevo impuesto para ${formData.tax_type === 'sales' ? 'ventas' : 'compras'}.`}
+              {`Crea un nuevo impuesto para ${formData.tax_type === 'sales' ? 'ventas' : formData.tax_type === 'purchase' ? 'compras' : 'beneficios'}.`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -498,37 +428,11 @@ export function TaxesTab() {
               className="bg-orange-600 hover:bg-orange-700"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editingTax ? 'Guardar' : 'Crear'}
+              Crear
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Delete Alert */}
-      <AlertDialog open={!!deletingTax} onOpenChange={() => setDeletingTax(null)}>
-        <AlertDialogContent className="bg-zinc-900 border-white/10 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar impuesto?</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
-              Esta acción eliminará el impuesto "{deletingTax?.name}".
-              Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="border-white/20 text-white hover:bg-white/10">
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteTax}
-              disabled={isSubmitting}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
