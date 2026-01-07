@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import UserManagement from "./components/UserManagement";
 import UserAvatarDropdown from "./components/UserAvatarDropdown";
+import QuickQuoteDialog from "./components/QuickQuoteDialog";
 
 interface UserInfo {
   user_id: string;
@@ -343,10 +344,7 @@ const DashboardContent = ({
           </Button>
         )}
         {(isAdmin || isManager || isSales) && (
-          <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Presupuesto
-          </Button>
+          <QuickQuoteDialog />
         )}
         {(isAdmin || isManager || isTech) && (
           <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
