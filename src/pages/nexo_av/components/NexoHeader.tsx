@@ -28,10 +28,31 @@ interface NexoHeaderProps {
   userId: string;
   showBack?: boolean;
   showHome?: boolean;
+  backTo?: string; // Custom back destination
 }
 
-const NexoHeader = ({ title, subtitle = "NEXO AV", userId, showBack = true, showHome = false }: NexoHeaderProps) => {
+const NexoHeader = ({ 
+  title, 
+  subtitle = "NEXO AV", 
+  userId, 
+  showBack = true, 
+  showHome = false,
+  backTo 
+}: NexoHeaderProps) => {
   const navigate = useNavigate();
+
+  // Default back navigation goes to dashboard
+  const handleBack = () => {
+    if (backTo) {
+      navigate(backTo);
+    } else {
+      navigate(`/nexo-av/${userId}/dashboard`);
+    }
+  };
+
+  const handleHome = () => {
+    navigate(`/nexo-av/${userId}/dashboard`);
+  };
 
   return (
     <header className="border-b border-white/10 bg-black/80 backdrop-blur-sm sticky top-0 z-50">
@@ -42,7 +63,7 @@ const NexoHeader = ({ title, subtitle = "NEXO AV", userId, showBack = true, show
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
+                onClick={handleBack}
                 className="text-white hover:bg-white/10"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -52,7 +73,7 @@ const NexoHeader = ({ title, subtitle = "NEXO AV", userId, showBack = true, show
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
+                onClick={handleHome}
                 className="text-white hover:bg-white/10"
               >
                 <Home className="h-5 w-5" />
