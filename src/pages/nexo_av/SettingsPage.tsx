@@ -1,0 +1,116 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Building2, Tags } from 'lucide-react';
+import NexoHeader from './components/NexoHeader';
+import { CompanyDataTab } from './components/settings/CompanyDataTab';
+import { ProductCategoriesTab } from './components/settings/ProductCategoriesTab';
+import { Loader2 } from 'lucide-react';
+
+interface UserInfo {
+  user_id: string;
+  email: string;
+  full_name: string;
+  phone: string;
+  job_position: string;
+  department: string;
+  roles: string[];
+}
+
+export default function SettingsPage() {
+  const { userId } = useParams<{ userId: string }>();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        navigate('/nexo-av');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.rpc('get_current_user_info');
+        
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          const user = data[0];
+          
+          if (user.user_id !== userId) {
+            navigate('/nexo-av');
+            return;
+          }
+
+          // Check if user is admin
+          if (!user.roles?.includes('admin')) {
+            navigate(`/nexo-av/${userId}/dashboard`);
+            return;
+          }
+          
+          setUserInfo(user);
+        } else {
+          navigate('/nexo-av');
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+        navigate('/nexo-av');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [navigate, userId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-black">
+      <NexoHeader
+        title="Configuración"
+        userId={userId || ''}
+        showBack
+      />
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Tabs defaultValue="company" className="space-y-6">
+          <TabsList className="bg-white/5 border border-white/10">
+            <TabsTrigger 
+              value="company" 
+              className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
+            >
+              <Building2 className="w-4 h-4 mr-2" />
+              Datos de la Empresa
+            </TabsTrigger>
+            <TabsTrigger 
+              value="categories" 
+              className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
+            >
+              <Tags className="w-4 h-4 mr-2" />
+              Categorías de Producto
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="company">
+            <CompanyDataTab />
+          </TabsContent>
+
+          <TabsContent value="categories">
+            <ProductCategoriesTab />
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  );
+}

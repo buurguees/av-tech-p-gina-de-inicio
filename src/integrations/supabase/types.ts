@@ -85,6 +85,25 @@ export type Database = {
         }
         Returns: string
       }
+      create_product_category: {
+        Args: {
+          p_code: string
+          p_description?: string
+          p_display_order?: number
+          p_name: string
+        }
+        Returns: string
+      }
+      create_product_subcategory: {
+        Args: {
+          p_category_id: string
+          p_code: string
+          p_description?: string
+          p_display_order?: number
+          p_name: string
+        }
+        Returns: string
+      }
       create_project: {
         Args: {
           p_client_id: string
@@ -135,6 +154,14 @@ export type Database = {
           }
       delete_authorized_user: { Args: { p_user_id: string }; Returns: string }
       delete_client: { Args: { p_client_id: string }; Returns: boolean }
+      delete_product_category: {
+        Args: { p_category_id: string }
+        Returns: boolean
+      }
+      delete_product_subcategory: {
+        Args: { p_subcategory_id: string }
+        Returns: boolean
+      }
       delete_quote_line: { Args: { p_line_id: string }; Returns: boolean }
       get_authorized_user_by_auth_id: {
         Args: { p_auth_user_id: string }
@@ -323,6 +350,38 @@ export type Database = {
           urgency: string
         }[]
       }
+      list_product_categories: {
+        Args: never
+        Returns: {
+          code: string
+          created_at: string
+          description: string
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          product_count: number
+          subcategory_count: number
+          updated_at: string
+        }[]
+      }
+      list_product_subcategories: {
+        Args: { p_category_id?: string }
+        Returns: {
+          category_code: string
+          category_id: string
+          category_name: string
+          code: string
+          created_at: string
+          description: string
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          product_count: number
+          updated_at: string
+        }[]
+      }
       list_projects: {
         Args: { p_search?: string; p_status?: string }
         Returns: {
@@ -437,6 +496,28 @@ export type Database = {
           p_job_position?: string
           p_phone?: string
           p_user_id: string
+        }
+        Returns: boolean
+      }
+      update_product_category: {
+        Args: {
+          p_category_id: string
+          p_code?: string
+          p_description?: string
+          p_display_order?: number
+          p_is_active?: boolean
+          p_name?: string
+        }
+        Returns: boolean
+      }
+      update_product_subcategory: {
+        Args: {
+          p_code?: string
+          p_description?: string
+          p_display_order?: number
+          p_is_active?: boolean
+          p_name?: string
+          p_subcategory_id: string
         }
         Returns: boolean
       }
