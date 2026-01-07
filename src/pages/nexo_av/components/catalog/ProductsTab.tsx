@@ -54,6 +54,7 @@ interface EditingCell {
 
 interface ProductsTabProps {
   isAdmin: boolean;
+  filterType: ProductType;
 }
 
 interface NewProductForm {
@@ -80,19 +81,19 @@ const TAX_OPTIONS = [
   { value: '0', label: 'Exento' },
 ];
 
-const initialFormState: NewProductForm = {
+const getInitialFormState = (type: ProductType): NewProductForm => ({
   categoryId: '',
   subcategoryId: '',
-  type: 'product',
+  type,
   name: '',
   description: '',
   costPrice: '0',
   basePrice: '0',
   taxRate: '21',
   stock: '0',
-};
+});
 
-export default function ProductsTab({ isAdmin }: ProductsTabProps) {
+export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -109,8 +110,11 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
 
   // Dialog state
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [formData, setFormData] = useState<NewProductForm>(initialFormState);
+  const [formData, setFormData] = useState<NewProductForm>(getInitialFormState(filterType));
   const [saving, setSaving] = useState(false);
+
+  const isProductTab = filterType === 'product';
+  const itemLabel = isProductTab ? 'Producto' : 'Servicio';
 
   useEffect(() => {
     loadData();
@@ -156,10 +160,12 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
       });
 
       if (error) throw error;
-      setProducts(data || []);
+      // Filter by type
+      const filtered = (data || []).filter((p: Product) => p.type === filterType);
+      setProducts(filtered);
     } catch (error) {
       console.error('Error loading products:', error);
-      toast.error('Error al cargar productos');
+      toast.error(`Error al cargar ${isProductTab ? 'productos' : 'servicios'}`);
     } finally {
       setLoading(false);
     }
@@ -170,7 +176,7 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
       toast.error('Solo los administradores pueden añadir productos');
       return;
     }
-    setFormData(initialFormState);
+    setFormData(getInitialFormState(filterType));
     setShowAddDialog(true);
   };
 
@@ -532,7 +538,7 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Nuevo Producto</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">Nuevo {itemLabel}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
@@ -578,38 +584,14 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-white/70">Tipo *</Label>
-                <Select 
-                  value={formData.type} 
-                  onValueChange={(v: ProductType) => setFormData({ ...formData, type: v, stock: v === 'service' ? '0' : formData.stock })}
-                >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10">
-                    {TYPE_OPTIONS.map(opt => (
-                      <SelectItem key={opt.value} value={opt.value} className="text-white">
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-white/40">
-                  {formData.type === 'product' ? 'Tiene stock y coste fijo' : 'Sin stock, coste variable'}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-white/70">Nombre *</Label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value.toUpperCase() })}
-                  placeholder="Ej: PANTALLA LED 6MM"
-                  className="bg-white/5 border-white/10 text-white uppercase"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label className="text-white/70">Nombre *</Label>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value.toUpperCase() })}
+                placeholder={isProductTab ? "Ej: PANTALLA LED 6MM" : "Ej: INSTALACIÓN TÉCNICA"}
+                className="bg-white/5 border-white/10 text-white uppercase"
+              />
             </div>
 
             <div className="space-y-2">
@@ -626,7 +608,7 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
             <div className="grid grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label className="text-white/70">
-                  {formData.type === 'product' ? 'Precio coste (€)' : 'Coste ref. (€)'}
+                  {isProductTab ? 'Precio coste (€)' : 'Coste ref. (€)'}
                 </Label>
                 <Input
                   type="number"
@@ -669,7 +651,7 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
                 </Select>
               </div>
 
-              {formData.type === 'product' && (
+              {isProductTab && (
                 <div className="space-y-2">
                   <Label className="text-white/70">Stock</Label>
                   <Input
@@ -709,7 +691,7 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
               className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Guardar Producto
+              Guardar {itemLabel}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -721,7 +703,7 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
             <Input
-              placeholder="Buscar productos..."
+              placeholder={isProductTab ? "Buscar productos..." : "Buscar servicios..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 w-64 bg-white/5 border-white/10 text-white"
@@ -761,7 +743,7 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
                 className="bg-orange-500 hover:bg-orange-600 text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Añadir Producto
+                Añadir {itemLabel}
               </Button>
               <Button
                 onClick={handleImportClick}
@@ -802,12 +784,11 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
         <Table>
           <TableHeader>
             <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="text-white/60 w-28">Nº Producto</TableHead>
-              <TableHead className="text-white/60 w-16">Tipo</TableHead>
+              <TableHead className="text-white/60 w-28">Nº {itemLabel}</TableHead>
               <TableHead className="text-white/60 w-16">Cat.</TableHead>
               <TableHead className="text-white/60">Nombre</TableHead>
-              <TableHead className="text-white/60 w-16 text-right">Stock</TableHead>
-              <TableHead className="text-white/60 w-20 text-right">Coste</TableHead>
+              {isProductTab && <TableHead className="text-white/60 w-16 text-right">Stock</TableHead>}
+              <TableHead className="text-white/60 w-20 text-right">{isProductTab ? 'Coste' : 'Coste Ref.'}</TableHead>
               <TableHead className="text-white/60 w-20 text-right">P.Base</TableHead>
               <TableHead className="text-white/60 w-20">IVA</TableHead>
               <TableHead className="text-white/60 w-20 text-right">PVP</TableHead>
@@ -818,14 +799,14 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
           <TableBody>
             {loading ? (
               <TableRow className="border-white/10">
-                <TableCell colSpan={11} className="text-center py-8">
+                <TableCell colSpan={isProductTab ? 10 : 9} className="text-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin mx-auto text-white/40" />
                 </TableCell>
               </TableRow>
             ) : products.length === 0 ? (
               <TableRow className="border-white/10">
-                <TableCell colSpan={11} className="text-center py-8 text-white/40">
-                  No hay productos. {isAdmin && 'Haz clic en "Añadir Producto" para crear uno.'}
+                <TableCell colSpan={isProductTab ? 10 : 9} className="text-center py-8 text-white/40">
+                  No hay {isProductTab ? 'productos' : 'servicios'}. {isAdmin && `Haz clic en "Añadir ${itemLabel}" para crear uno.`}
                 </TableCell>
               </TableRow>
             ) : (
@@ -835,18 +816,15 @@ export default function ProductsTab({ isAdmin }: ProductsTabProps) {
                   className={`border-white/10 hover:bg-white/5 ${!product.is_active ? 'opacity-50' : ''}`}
                 >
                   <TableCell className="text-orange-400 font-mono text-xs">{product.product_number}</TableCell>
-                  <TableCell>
-                    <span className={`text-xs px-2 py-0.5 rounded ${product.type === 'product' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}`}>
-                      {product.type === 'product' ? 'Prod' : 'Serv'}
-                    </span>
-                  </TableCell>
                   <TableCell className="text-white/60 text-xs">{product.category_code}</TableCell>
                   <TableCell className="text-white text-sm">
                     {renderEditableCell(product, 'name', product.name)}
                   </TableCell>
-                  <TableCell className="text-right text-white/60 text-xs">
-                    {product.type === 'product' ? (product.stock ?? 0) : '-'}
-                  </TableCell>
+                  {isProductTab && (
+                    <TableCell className="text-right text-white/60 text-xs">
+                      {product.stock ?? 0}
+                    </TableCell>
+                  )}
                   <TableCell className="text-right text-xs">
                     {renderEditableCell(product, 'cost_price', product.cost_price, true)}
                   </TableCell>
