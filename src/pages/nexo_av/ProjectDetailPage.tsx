@@ -27,10 +27,11 @@ interface ProjectDetail {
 }
 
 const PROJECT_STATUSES = [
-  { value: 'QUOTE', label: 'Presupuesto', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'PENDING_CONFIRM', label: 'Pendiente Confirmar', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  { value: 'ACCEPTED', label: 'Aceptado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'COMPLETED', label: 'Finalizado', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
+  { value: 'PLANNED', label: 'Planificado', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  { value: 'IN_PROGRESS', label: 'En Progreso', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
+  { value: 'PAUSED', label: 'Pausado', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+  { value: 'COMPLETED', label: 'Completado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  { value: 'CANCELLED', label: 'Cancelado', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
 ];
 
 const getStatusInfo = (status: string) => {

@@ -45,10 +45,11 @@ interface Client {
 }
 
 const PROJECT_STATUSES = [
-  { value: 'QUOTE', label: 'Presupuesto' },
-  { value: 'PENDING_CONFIRM', label: 'Pendiente Confirmar' },
-  { value: 'ACCEPTED', label: 'Aceptado' },
-  { value: 'COMPLETED', label: 'Finalizado' },
+  { value: 'PLANNED', label: 'Planificado' },
+  { value: 'IN_PROGRESS', label: 'En Progreso' },
+  { value: 'PAUSED', label: 'Pausado' },
+  { value: 'COMPLETED', label: 'Completado' },
+  { value: 'CANCELLED', label: 'Cancelado' },
 ];
 
 const CreateProjectDialog = ({ open, onOpenChange, onSuccess }: CreateProjectDialogProps) => {
@@ -59,7 +60,7 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess }: CreateProjectDia
   
   // Form state
   const [selectedClientId, setSelectedClientId] = useState<string>("");
-  const [status, setStatus] = useState<string>("QUOTE");
+  const [status, setStatus] = useState<string>("PLANNED");
   const [projectAddress, setProjectAddress] = useState("");
   const [projectCity, setProjectCity] = useState("");
   const [clientOrderNumber, setClientOrderNumber] = useState("");
@@ -87,7 +88,7 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess }: CreateProjectDia
 
   const resetForm = () => {
     setSelectedClientId("");
-    setStatus("QUOTE");
+    setStatus("PLANNED");
     setProjectAddress("");
     setProjectCity("");
     setClientOrderNumber("");
