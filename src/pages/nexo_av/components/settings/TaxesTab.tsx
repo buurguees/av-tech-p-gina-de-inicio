@@ -42,7 +42,8 @@ import {
   RefreshCw,
   ShoppingCart,
   CreditCard,
-  Star
+  Star,
+  TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
@@ -74,7 +75,7 @@ export function TaxesTab() {
   const [taxes, setTaxes] = useState<Tax[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'sales' | 'purchase'>('sales');
+  const [activeTab, setActiveTab] = useState<'sales' | 'purchase' | 'profit'>('sales');
 
   const [showTaxDialog, setShowTaxDialog] = useState(false);
   const [editingTax, setEditingTax] = useState<Tax | null>(null);
@@ -106,12 +107,12 @@ export function TaxesTab() {
     }
   };
 
-  const openCreateTax = (taxType: 'sales' | 'purchase') => {
+  const openCreateTax = (taxType: 'sales' | 'purchase' | 'profit') => {
     setEditingTax(null);
     setFormData({
       name: '',
       code: '',
-      rate: taxType === 'sales' ? '21' : '21',
+      rate: taxType === 'profit' ? '25' : '21',
       tax_type: taxType,
       description: '',
       is_default: false,
@@ -225,8 +226,9 @@ export function TaxesTab() {
 
   const salesTaxes = taxes.filter(t => t.tax_type === 'sales');
   const purchaseTaxes = taxes.filter(t => t.tax_type === 'purchase');
+  const profitTaxes = taxes.filter(t => t.tax_type === 'profit');
 
-  const renderTaxTable = (taxList: Tax[], taxType: 'sales' | 'purchase') => (
+  const renderTaxTable = (taxList: Tax[], taxType: 'sales' | 'purchase' | 'profit') => (
     <Table>
       <TableHeader>
         <TableRow className="border-white/10 hover:bg-transparent">
@@ -342,7 +344,7 @@ export function TaxesTab() {
           </Button>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'sales' | 'purchase')}>
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'sales' | 'purchase' | 'profit')}>
             <div className="flex items-center justify-between mb-4">
               <TabsList className="bg-white/5 border border-white/10">
                 <TabsTrigger 
@@ -358,6 +360,13 @@ export function TaxesTab() {
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
                   Compras
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="profit"
+                  className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/60"
+                >
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Beneficios
                 </TabsTrigger>
               </TabsList>
               <Button
@@ -388,6 +397,17 @@ export function TaxesTab() {
                 </div>
               ) : (
                 renderTaxTable(purchaseTaxes, 'purchase')
+              )}
+            </TabsContent>
+
+            <TabsContent value="profit" className="mt-0">
+              {profitTaxes.length === 0 ? (
+                <div className="text-white/40 text-center py-12">
+                  <TrendingUp className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No hay impuestos sobre beneficios configurados</p>
+                </div>
+              ) : (
+                renderTaxTable(profitTaxes, 'profit')
               )}
             </TabsContent>
           </Tabs>
