@@ -64,6 +64,9 @@ export default {
         glow: {
           primary: "hsl(var(--glow-primary))",
         },
+        avtech: {
+          orange: "#FF6B35",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
