@@ -193,13 +193,13 @@ const Footer = () => {
             >
               Términos
             </Link>
-            <a
-              href="#"
+            <Link
+              to="/nexo-av"
               className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm px-3 py-3 min-h-[44px] min-w-[44px] flex items-center justify-center font-medium"
               aria-label="NEXO AV - Enlace corporativo"
             >
               NEXO AV
-            </a>
+            </Link>
           </div>
         </div>
       </div>
