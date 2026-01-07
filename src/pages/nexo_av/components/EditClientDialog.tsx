@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,6 +31,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -53,6 +63,7 @@ const formSchema = z.object({
   approximate_budget: z.string().optional().or(z.literal("")),
   assigned_to: z.string().optional().or(z.literal("")),
   notes: z.string().max(1000).optional().or(z.literal("")),
+  created_at: z.date().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -87,6 +98,7 @@ interface ClientDetail {
   lead_source: string | null;
   assigned_to: string | null;
   notes: string | null;
+  created_at: string;
 }
 
 interface EditClientDialogProps {
@@ -175,6 +187,7 @@ const EditClientDialog = ({
       approximate_budget: client.approximate_budget?.toString() || "",
       assigned_to: client.assigned_to || "",
       notes: client.notes || "",
+      created_at: client.created_at ? new Date(client.created_at) : undefined,
     },
   });
 
@@ -202,6 +215,7 @@ const EditClientDialog = ({
         approximate_budget: client.approximate_budget?.toString() || "",
         assigned_to: client.assigned_to || "",
         notes: client.notes || "",
+        created_at: client.created_at ? new Date(client.created_at) : undefined,
       });
     }
   }, [open, client]);
@@ -241,6 +255,8 @@ const EditClientDialog = ({
         p_notes: data.notes || undefined,
         // Only admin can change assigned_to
         p_assigned_to: isAdmin && data.assigned_to ? data.assigned_to : undefined,
+        // Only admin can change created_at
+        p_created_at: isAdmin && data.created_at ? data.created_at.toISOString() : undefined,
       });
 
       if (error) {
@@ -635,7 +651,7 @@ const EditClientDialog = ({
                       control={form.control}
                       name="assigned_to"
                       render={({ field }) => (
-                        <FormItem className="md:col-span-2">
+                        <FormItem>
                           <FormLabel className="text-white/80">Asignado a</FormLabel>
                           <Select 
                             onValueChange={(value) => field.onChange(value === "_unassigned" ? "" : value)} 
@@ -657,6 +673,50 @@ const EditClientDialog = ({
                               ))}
                             </SelectContent>
                           </Select>
+                          <FormMessage className="text-red-400" />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                  
+                  {/* Only admin can see and change created_at */}
+                  {isAdmin && (
+                    <FormField
+                      control={form.control}
+                      name="created_at"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white/80">Fecha de Alta</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal bg-white/5 border-white/10 text-white hover:bg-white/10",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP", { locale: es })
+                                  ) : (
+                                    <span>Seleccionar fecha</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 bg-black border-white/10" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date > new Date()}
+                                initialFocus
+                                className={cn("p-3 pointer-events-auto")}
+                              />
+                            </PopoverContent>
+                          </Popover>
                           <FormMessage className="text-red-400" />
                         </FormItem>
                       )}

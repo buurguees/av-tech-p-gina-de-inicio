@@ -227,30 +227,56 @@ export type Database = {
         }
         Returns: boolean
       }
-      update_client: {
-        Args: {
-          p_assigned_to?: string
-          p_billing_address?: string
-          p_billing_city?: string
-          p_billing_country?: string
-          p_billing_postal_code?: string
-          p_billing_province?: string
-          p_client_id: string
-          p_company_name?: string
-          p_contact_email?: string
-          p_contact_phone?: string
-          p_industry_sector?: string
-          p_lead_source?: string
-          p_lead_stage?: string
-          p_legal_name?: string
-          p_next_follow_up_date?: string
-          p_notes?: string
-          p_tax_id?: string
-          p_urgency?: string
-          p_website?: string
-        }
-        Returns: boolean
-      }
+      update_client:
+        | {
+            Args: {
+              p_assigned_to?: string
+              p_billing_address?: string
+              p_billing_city?: string
+              p_billing_country?: string
+              p_billing_postal_code?: string
+              p_billing_province?: string
+              p_client_id: string
+              p_company_name?: string
+              p_contact_email?: string
+              p_contact_phone?: string
+              p_industry_sector?: string
+              p_lead_source?: string
+              p_lead_stage?: string
+              p_legal_name?: string
+              p_next_follow_up_date?: string
+              p_notes?: string
+              p_tax_id?: string
+              p_urgency?: string
+              p_website?: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_assigned_to?: string
+              p_billing_address?: string
+              p_billing_city?: string
+              p_billing_country?: string
+              p_billing_postal_code?: string
+              p_billing_province?: string
+              p_client_id: string
+              p_company_name?: string
+              p_contact_email?: string
+              p_contact_phone?: string
+              p_created_at?: string
+              p_industry_sector?: string
+              p_lead_source?: string
+              p_lead_stage?: string
+              p_legal_name?: string
+              p_next_follow_up_date?: string
+              p_notes?: string
+              p_tax_id?: string
+              p_urgency?: string
+              p_website?: string
+            }
+            Returns: boolean
+          }
       update_own_user_info: {
         Args: {
           p_full_name?: string
