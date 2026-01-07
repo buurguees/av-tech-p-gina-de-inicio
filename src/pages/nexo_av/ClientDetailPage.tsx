@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader, { NexoLogo } from "./components/NexoHeader";
@@ -25,6 +25,7 @@ import ClientDashboardTab from "./components/ClientDashboardTab";
 import ClientProjectsTab from "./components/ClientProjectsTab";
 import ClientQuotesTab from "./components/ClientQuotesTab";
 import ClientInvoicesTab from "./components/ClientInvoicesTab";
+import EditClientDialog from "./components/EditClientDialog";
 
 interface ClientDetail {
   id: string;
@@ -80,6 +81,8 @@ const ClientDetailPage = () => {
   const [accessDenied, setAccessDenied] = useState(false);
   const [client, setClient] = useState<ClientDetail | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -141,6 +144,9 @@ const ClientDetailPage = () => {
         const hasAccess = currentUserInfo.roles?.some((r: string) => 
           ['admin', 'manager', 'sales'].includes(r)
         );
+
+        const userIsAdmin = currentUserInfo.roles?.includes('admin');
+        setIsAdmin(userIsAdmin);
 
         if (!hasAccess) {
           setAccessDenied(true);
@@ -254,6 +260,7 @@ const ClientDetailPage = () => {
                 <Button 
                   variant="outline" 
                   className="border-white/20 text-white hover:bg-white/10"
+                  onClick={() => setEditDialogOpen(true)}
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Editar Cliente
@@ -262,6 +269,15 @@ const ClientDetailPage = () => {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Edit Client Dialog */}
+        <EditClientDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          client={client}
+          isAdmin={isAdmin}
+          onSuccess={fetchClient}
+        />
 
         {/* Tabs Navigation */}
         <motion.div
