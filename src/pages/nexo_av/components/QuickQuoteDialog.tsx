@@ -67,13 +67,13 @@ const QuickQuoteDialog = ({ trigger }: QuickQuoteDialogProps) => {
         return;
       }
 
-      // Create client with "Nuevo Lead" status
+      // Create client with "NEW" lead stage
       const { data: result, error } = await supabase.rpc('create_client', {
         p_company_name: data.name,
         p_contact_email: data.email,
         p_contact_phone: data.phone,
-        p_lead_stage: 'NUEVO',
-        p_lead_source: 'QUICK_QUOTE',
+        p_lead_stage: 'NEW',
+        p_lead_source: 'OTHER',
         p_assigned_to: session.session.user.id,
       });
 
