@@ -427,9 +427,39 @@ const QuoteDetailPage = () => {
                     <h2 className="text-white font-mono font-bold text-lg">{displayNumber}</h2>
                     {isLocked && <Lock className="h-4 w-4 text-white/40" />}
                   </div>
-                  <Badge className={`${statusInfo.className} text-xs mt-1`}>
-                    {statusInfo.label}
-                  </Badge>
+                  {/* Status selector or badge */}
+                  {canChangeStatus ? (
+                    <Select 
+                      value={quote.status} 
+                      onValueChange={handleStatusChange}
+                      disabled={updatingStatus}
+                    >
+                      <SelectTrigger className={`${statusInfo.className} border h-7 px-2 mt-1 w-auto min-w-[90px] text-xs font-medium rounded-md`}>
+                        <SelectValue>
+                          <span>{statusInfo.label}</span>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-white/10 z-50">
+                        {availableTransitions.map((status) => {
+                          const info = getStatusInfo(status);
+                          return (
+                            <SelectItem key={status} value={status} className="text-white text-sm">
+                              <span className={`${info.className} px-2 py-0.5 rounded text-xs`}>{info.label}</span>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Badge className={`${statusInfo.className} text-xs mt-1`}>
+                      {statusInfo.label}
+                    </Badge>
+                  )}
+                  {quote.status === "DRAFT" && canChangeStatus && (
+                    <p className="text-blue-400/70 text-[10px] mt-1">
+                      Al enviar se asignará el número definitivo
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-1">
                   {!isLocked && (
@@ -455,38 +485,6 @@ const QuoteDetailPage = () => {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {/* Status change (if allowed) */}
-                {canChangeStatus && (
-                  <div className="bg-white/5 rounded-lg p-3">
-                    <span className="text-white/50 text-xs uppercase tracking-wide mb-2 block">Cambiar estado</span>
-                    <Select 
-                      value={quote.status} 
-                      onValueChange={handleStatusChange}
-                      disabled={updatingStatus}
-                    >
-                      <SelectTrigger className="bg-white/5 border-white/10 text-white h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-white/10">
-                        {availableTransitions.map((status) => {
-                          const info = getStatusInfo(status);
-                          return (
-                            <SelectItem key={status} value={status} className="text-white text-sm">
-                              <div className="flex items-center gap-2">
-                                <Badge className={`${info.className} text-[10px]`}>{info.label}</Badge>
-                              </div>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                    {quote.status === "DRAFT" && (
-                      <p className="text-blue-400/70 text-xs mt-2">
-                        Al enviar se asignará el número definitivo
-                      </p>
-                    )}
-                  </div>
-                )}
 
                 {/* Locked message */}
                 {isLocked && (
@@ -660,47 +658,43 @@ const QuoteDetailPage = () => {
               </div>
             </div>
 
-            {/* Status change for mobile */}
-            {canChangeStatus && (
-              <div className="bg-white/5 rounded-lg border border-white/10 p-3">
-                <span className="text-white/50 text-xs uppercase tracking-wide mb-2 block">Estado</span>
-                <Select 
-                  value={quote.status} 
-                  onValueChange={handleStatusChange}
-                  disabled={updatingStatus}
-                >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10">
-                    {availableTransitions.map((status) => {
-                      const info = getStatusInfo(status);
-                      return (
-                        <SelectItem key={status} value={status} className="text-white text-sm">
-                          <div className="flex items-center gap-2">
-                            <Badge className={`${info.className} text-[10px]`}>{info.label}</Badge>
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+            {/* Status selector for mobile - compact */}
+            <div className="flex items-center justify-between bg-white/5 rounded-lg border border-white/10 p-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-white/50 text-[10px] uppercase tracking-wide">Estado:</span>
+                {canChangeStatus ? (
+                  <Select 
+                    value={quote.status} 
+                    onValueChange={handleStatusChange}
+                    disabled={updatingStatus}
+                  >
+                    <SelectTrigger className={`${statusInfo.className} border h-6 px-2 w-auto min-w-[80px] text-[10px] font-medium rounded`}>
+                      <SelectValue>
+                        <span>{statusInfo.label}</span>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-zinc-900 border-white/10 z-50">
+                      {availableTransitions.map((status) => {
+                        const info = getStatusInfo(status);
+                        return (
+                          <SelectItem key={status} value={status} className="text-white text-xs">
+                            <span className={`${info.className} px-2 py-0.5 rounded text-[10px]`}>{info.label}</span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Badge className={`${statusInfo.className} text-[10px]`}>
+                    {statusInfo.label}
+                  </Badge>
+                )}
               </div>
-            )}
+              {isLocked && <Lock className="h-3 w-3 text-white/40" />}
+            </div>
 
-            {/* Locked message for mobile */}
-            {isLocked && (
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-center gap-2">
-                <Lock className="h-4 w-4 text-yellow-500 shrink-0" />
-                <p className="text-yellow-300/80 text-xs">
-                  {quote.status === "REJECTED" 
-                    ? "Presupuesto rechazado"
-                    : quote.status === "EXPIRED"
-                    ? "Presupuesto expirado"
-                    : "Bloqueado para edición"}
-                </p>
-              </div>
-            )}
+
+
 
             {/* Actions bar for mobile */}
             <div className="flex gap-2">
