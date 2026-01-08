@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      company_settings: {
+        Row: {
+          billing_email: string | null
+          billing_phone: string | null
+          commercial_name: string | null
+          company_type: string | null
+          country: string | null
+          created_at: string
+          fiscal_address: string
+          fiscal_city: string
+          fiscal_postal_code: string
+          fiscal_province: string
+          id: string
+          legal_name: string
+          logo_url: string | null
+          tax_id: string
+          updated_at: string
+          vat_number: string | null
+          website: string | null
+        }
+        Insert: {
+          billing_email?: string | null
+          billing_phone?: string | null
+          commercial_name?: string | null
+          company_type?: string | null
+          country?: string | null
+          created_at?: string
+          fiscal_address: string
+          fiscal_city: string
+          fiscal_postal_code: string
+          fiscal_province: string
+          id?: string
+          legal_name: string
+          logo_url?: string | null
+          tax_id: string
+          updated_at?: string
+          vat_number?: string | null
+          website?: string | null
+        }
+        Update: {
+          billing_email?: string | null
+          billing_phone?: string | null
+          commercial_name?: string | null
+          company_type?: string | null
+          country?: string | null
+          created_at?: string
+          fiscal_address?: string
+          fiscal_city?: string
+          fiscal_postal_code?: string
+          fiscal_province?: string
+          id?: string
+          legal_name?: string
+          logo_url?: string | null
+          tax_id?: string
+          updated_at?: string
+          vat_number?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -315,6 +375,28 @@ export type Database = {
           tiktok_handle: string
           updated_at: string
           urgency: string
+          website: string
+        }[]
+      }
+      get_company_settings: {
+        Args: never
+        Returns: {
+          billing_email: string
+          billing_phone: string
+          commercial_name: string
+          company_type: string
+          country: string
+          created_at: string
+          fiscal_address: string
+          fiscal_city: string
+          fiscal_postal_code: string
+          fiscal_province: string
+          id: string
+          legal_name: string
+          logo_url: string
+          tax_id: string
+          updated_at: string
+          vat_number: string
           website: string
         }[]
       }
@@ -825,6 +907,25 @@ export type Database = {
           p_tax_id: string
         }
         Returns: boolean
+      }
+      upsert_company_settings: {
+        Args: {
+          p_billing_email?: string
+          p_billing_phone?: string
+          p_commercial_name?: string
+          p_company_type?: string
+          p_country?: string
+          p_fiscal_address?: string
+          p_fiscal_city?: string
+          p_fiscal_postal_code?: string
+          p_fiscal_province?: string
+          p_legal_name: string
+          p_logo_url?: string
+          p_tax_id: string
+          p_vat_number?: string
+          p_website?: string
+        }
+        Returns: string
       }
       verify_otp: {
         Args: { p_code: string; p_email: string }
