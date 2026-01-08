@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ShieldAlert, Search, Filter, RefreshCw, Loader2, AlertTriangle, Info, AlertCircle, Shield, Clock, User, Database, Key } from "lucide-react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { ShieldAlert, Search, Filter, RefreshCw, Loader2, AlertTriangle, Info, AlertCircle, Shield, Clock, User, Database, Key, Globe, Monitor, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -53,8 +54,19 @@ const CATEGORY_ICONS: Record<string, typeof Shield> = {
   auth: Key,
 };
 
+// Parse user agent for display
+const parseUserAgentShort = (ua: string | null): string => {
+  if (!ua) return "—";
+  if (ua.includes("Firefox")) return "Firefox";
+  if (ua.includes("Edg")) return "Edge";
+  if (ua.includes("Chrome")) return "Chrome";
+  if (ua.includes("Safari")) return "Safari";
+  return "Otro";
+};
+
 const AuditPage = () => {
   const { userId } = useParams<{ userId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);
@@ -66,9 +78,13 @@ const AuditPage = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [loadingEvents, setLoadingEvents] = useState(false);
   
-  const [searchInput, setSearchInput] = useState("");
+  // Initialize filters from URL params
+  const initialSearch = searchParams.get('search') || "";
+  const initialSeverity = searchParams.get('severity') || "all";
+  
+  const [searchInput, setSearchInput] = useState(initialSearch);
   const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [filterSeverity, setFilterSeverity] = useState<string>("all");
+  const [filterSeverity, setFilterSeverity] = useState<string>(initialSeverity);
   const [filterType, setFilterType] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   
@@ -394,10 +410,21 @@ const AuditPage = () => {
                         <TableHead className="text-white/60">Fecha</TableHead>
                         <TableHead className="text-white/60">Severidad</TableHead>
                         <TableHead className="text-white/60">Tipo</TableHead>
-                        <TableHead className="text-white/60">Acción</TableHead>
                         <TableHead className="text-white/60">Usuario</TableHead>
+                        <TableHead className="text-white/60">
+                          <div className="flex items-center gap-1">
+                            <Globe className="w-3 h-3" />
+                            IP
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-white/60">
+                          <div className="flex items-center gap-1">
+                            <Monitor className="w-3 h-3" />
+                            Navegador
+                          </div>
+                        </TableHead>
                         <TableHead className="text-white/60">Recurso</TableHead>
-                        <TableHead className="text-white/60">Detalles</TableHead>
+                        <TableHead className="text-white/60 text-right">Acción</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -407,7 +434,11 @@ const AuditPage = () => {
                         const CategoryIcon = getCategoryIcon(event.event_category);
                         
                         return (
-                          <TableRow key={event.id} className="border-white/10 hover:bg-white/5">
+                          <TableRow 
+                            key={event.id} 
+                            className="border-white/10 hover:bg-white/5 cursor-pointer transition-colors"
+                            onClick={() => navigate(`/nexo-av/${userId}/audit/${event.id}`)}
+                          >
                             <TableCell className="text-white/60 text-sm whitespace-nowrap">
                               {format(new Date(event.created_at), "dd MMM HH:mm", { locale: es })}
                             </TableCell>
@@ -423,24 +454,56 @@ const AuditPage = () => {
                                 <span className="text-white text-sm">{event.event_type}</span>
                               </div>
                             </TableCell>
-                            <TableCell className="text-white font-medium">{event.action}</TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
-                                <User className="w-4 h-4 text-white/40" />
-                                <span className="text-white/80 text-sm">
-                                  {event.user_email || 'Sistema'}
-                                </span>
-                              </div>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center gap-2 max-w-[150px]">
+                                    <User className="w-4 h-4 text-white/40 flex-shrink-0" />
+                                    <span className="text-white/80 text-sm truncate">
+                                      {event.user_email || 'Sistema'}
+                                    </span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{event.user_email || 'Sistema'}</p>
+                                  {event.user_name && <p className="text-white/60">{event.user_name}</p>}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <code className="text-white/60 text-xs font-mono bg-white/5 px-1.5 py-0.5 rounded">
+                                    {event.ip_address || '—'}
+                                  </code>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Dirección IP: {event.ip_address || 'No disponible'}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-white/60 text-sm">
+                                {parseUserAgentShort(event.user_agent)}
+                              </span>
                             </TableCell>
                             <TableCell className="text-white/60 text-sm">
                               {event.resource_type ? (
                                 <span>{event.resource_type}/{event.resource_id?.slice(0, 8)}...</span>
-                              ) : '-'}
+                              ) : '—'}
                             </TableCell>
-                            <TableCell className="max-w-xs">
-                              <pre className="text-xs text-white/40 overflow-hidden text-ellipsis">
-                                {JSON.stringify(event.details, null, 0).slice(0, 50)}...
-                              </pre>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-white/40 hover:text-white hover:bg-white/10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/nexo-av/${userId}/audit/${event.id}`);
+                                }}
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </Button>
                             </TableCell>
                           </TableRow>
                         );
