@@ -86,7 +86,7 @@ serve(async (req) => {
 
     // Send email with Resend
     const emailResponse = await resend.emails.send({
-      from: "NexoAV Security <onboarding@resend.dev>",
+      from: "NexoAV Security <noreply@avtechesdeveniments.com>",
       to: [email],
       subject: "Tu código de verificación - NexoAV",
       html: `
