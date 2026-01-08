@@ -29,6 +29,7 @@ interface NexoHeaderProps {
   showBack?: boolean;
   showHome?: boolean;
   backTo?: string; // Custom back destination
+  customTitle?: React.ReactNode; // Custom title element (overrides title)
 }
 
 const NexoHeader = ({ 
@@ -37,7 +38,8 @@ const NexoHeader = ({
   userId, 
   showBack = true, 
   showHome = false,
-  backTo 
+  backTo,
+  customTitle,
 }: NexoHeaderProps) => {
   const navigate = useNavigate();
 
@@ -81,7 +83,11 @@ const NexoHeader = ({
             )}
             <NexoLogo />
             <div>
-              <h1 className="text-white font-semibold tracking-wide">{title}</h1>
+              {customTitle ? (
+                <h1 className="text-white font-semibold tracking-wide">{customTitle}</h1>
+              ) : (
+                <h1 className="text-white font-semibold tracking-wide">{title}</h1>
+              )}
               <p className="text-white/40 text-xs">{subtitle}</p>
             </div>
           </div>
