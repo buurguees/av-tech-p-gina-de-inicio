@@ -103,7 +103,7 @@ const ProjectsPage = () => {
 
   return (
     <div className="min-h-screen bg-black">
-      <NexoHeader userId={userId || ""} title="Proyectos" />
+      <NexoHeader userId={userId || ""} title="Proyectos" showBack={false} showHome={true} />
       
       <main className="container mx-auto px-4 py-8">
         <motion.div
