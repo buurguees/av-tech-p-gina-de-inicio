@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, FileText, Package } from 'lucide-react';
+import { Home, Users, FileText, Package, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MobileBottomNavProps {
@@ -38,6 +38,13 @@ const MobileBottomNav = ({ userId }: MobileBottomNavProps) => {
       icon: Package,
       path: `/nexo-av/${userId}/catalog`,
       matchPaths: ['/catalog'],
+    },
+    {
+      id: 'calculator',
+      label: 'Calculadora',
+      icon: Calculator,
+      path: `/nexo-av/${userId}/calculator`,
+      matchPaths: ['/calculator'],
     },
   ];
 
