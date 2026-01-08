@@ -160,7 +160,7 @@ serve(async (req) => {
         const transformedUsers = users?.map((user: any) => ({
           ...user,
           position: user.job_position,
-          job_position: undefined,
+          setup_completed: user.setup_completed ?? true,
         }));
 
         console.log('Returning users:', transformedUsers?.length);
