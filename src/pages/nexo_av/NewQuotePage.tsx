@@ -161,14 +161,14 @@ const NewQuotePage = () => {
 
   const fetchSaleTaxes = async () => {
     try {
-      const { data, error } = await supabase.rpc("list_taxes", { p_tax_type: "Venta" });
+      const { data, error } = await supabase.rpc("list_taxes", { p_tax_type: "sales" });
       if (error) throw error;
       
       const options: TaxOption[] = (data || [])
         .filter((t: any) => t.is_active)
         .map((t: any) => ({
           value: t.rate,
-          label: `${t.name} ${t.rate}%`,
+          label: t.name,
         }));
       
       setTaxOptions(options);
