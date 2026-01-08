@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Lock, Mail, Loader2, AlertCircle, Clock } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, Loader2, AlertCircle, Clock, ShieldCheck, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import NexoLoadingScreen from "./components/NexoLoadingScreen";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
-// Rate limiting configuration
+// Configuration
 const SUPABASE_URL = "https://takvthfatlcjsqgssnta.supabase.co";
 
 interface RateLimitResponse {
@@ -18,6 +19,8 @@ interface RateLimitResponse {
   retry_after_seconds: number;
   message: string | null;
 }
+
+type LoginStep = 'credentials' | 'otp';
 
 const NexoLogo = () => (
   <svg
@@ -50,6 +53,19 @@ const Login = () => {
   const [retryAfter, setRetryAfter] = useState(0);
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
   
+  // 2FA OTP state
+  const [loginStep, setLoginStep] = useState<LoginStep>('credentials');
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [otpRemainingAttempts, setOtpRemainingAttempts] = useState<number | null>(null);
+  const [canResendOtp, setCanResendOtp] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
+  
+  // Store session temporarily until OTP is verified
+  const [pendingSession, setPendingSession] = useState<any>(null);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -69,6 +85,20 @@ const Login = () => {
 
     return () => clearInterval(timer);
   }, [retryAfter]);
+
+  // Countdown timer for OTP resend
+  useEffect(() => {
+    if (resendCountdown <= 0) {
+      setCanResendOtp(true);
+      return;
+    }
+    
+    const timer = setInterval(() => {
+      setResendCountdown(prev => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [resendCountdown]);
 
   // Check rate limit before submitting
   const checkRateLimit = async (emailToCheck: string): Promise<RateLimitResponse | null> => {
@@ -104,64 +134,105 @@ const Login = () => {
     }
   };
 
+  // Send OTP code
+  const sendOtpCode = async (emailToSend: string): Promise<boolean> => {
+    setOtpSending(true);
+    setOtpError(null);
+    
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailToSend }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al enviar el código');
+      }
+      
+      // Start resend countdown (60 seconds)
+      setResendCountdown(60);
+      setCanResendOtp(false);
+      
+      return true;
+    } catch (err: any) {
+      setOtpError(err.message || 'Error al enviar el código de verificación');
+      return false;
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  // Verify OTP code
+  const verifyOtpCode = async (emailToVerify: string, code: string): Promise<boolean> => {
+    setOtpVerifying(true);
+    setOtpError(null);
+    
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailToVerify, code }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al verificar el código');
+      }
+      
+      if (data.valid) {
+        return true;
+      } else {
+        setOtpError(data.message || 'Código incorrecto');
+        setOtpRemainingAttempts(data.remaining_attempts);
+        return false;
+      }
+    } catch (err: any) {
+      setOtpError(err.message || 'Error al verificar el código');
+      return false;
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
   // Check if user is already logged in
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // Get user info to get the user_id for the URL
         const { data: userInfo } = await supabase.rpc('get_current_user_info');
         
         if (userInfo && userInfo.length > 0) {
           navigate(`/nexo-av/${userInfo[0].user_id}/dashboard`, { replace: true });
         } else {
-          // User is logged in but not in authorized_users
           await supabase.auth.signOut();
         }
       }
     };
     
     checkSession();
-    
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          // Defer Supabase call to prevent deadlock
-          setTimeout(async () => {
-            const { data: userInfo } = await supabase.rpc('get_current_user_info');
-            
-            if (userInfo && userInfo.length > 0) {
-              navigate(`/nexo-av/${userInfo[0].user_id}/dashboard`, { replace: true });
-            } else {
-              await supabase.auth.signOut();
-              setError('Tu email no está autorizado para acceder a esta plataforma.');
-            }
-          }, 0);
-        }
-      }
-    );
-    
-    return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Handle credentials submission
+  const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
-    // Generic error message to prevent user enumeration
     const GENERIC_AUTH_ERROR = 'Credenciales incorrectas o usuario no autorizado.';
 
     try {
-      // Validate email domain first (this is public knowledge, not enumeration)
+      // Validate email domain
       if (!email.endsWith('@avtechesdeveniments.com')) {
         setError('Solo se permite el acceso con emails corporativos (@avtechesdeveniments.com)');
         setIsSubmitting(false);
         return;
       }
 
-      // Check rate limit BEFORE attempting login
+      // Check rate limit
       const rateLimitCheck = await checkRateLimit(email);
       if (rateLimitCheck && !rateLimitCheck.allowed) {
         setIsRateLimited(true);
@@ -171,23 +242,19 @@ const Login = () => {
         return;
       }
       
-      // Update remaining attempts
       if (rateLimitCheck) {
         setRemainingAttempts(rateLimitCheck.remaining_attempts);
       }
 
-      // Attempt to sign in FIRST - don't check authorization before login
-      // This prevents user enumeration attacks
+      // Attempt sign in
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) {
-        // Record failed attempt
         await recordAttempt(email, false);
         
-        // Update remaining attempts
         const newCheck = await checkRateLimit(email);
         if (newCheck) {
           setRemainingAttempts(newCheck.remaining_attempts);
@@ -200,41 +267,118 @@ const Login = () => {
           }
         }
         
-        // Always show generic error to prevent enumeration
         setError(GENERIC_AUTH_ERROR);
         setIsSubmitting(false);
         return;
       }
 
-      // AFTER successful auth, verify the user is authorized
+      // Verify user is authorized
       if (data.session) {
         const { data: userInfo, error: userInfoError } = await supabase.rpc('get_current_user_info');
         
         if (userInfoError || !userInfo || userInfo.length === 0) {
-          // User authenticated but not authorized - sign them out
           await supabase.auth.signOut();
-          // Record as failed (unauthorized)
           await recordAttempt(email, false);
           setError(GENERIC_AUTH_ERROR);
           setIsSubmitting(false);
           return;
         }
 
-        // Record successful login
-        await recordAttempt(email, true);
+        // Sign out temporarily - we'll complete login after OTP verification
+        await supabase.auth.signOut();
         
-        toast({
-          title: "Bienvenido",
-          description: "Has iniciado sesión correctamente.",
-        });
-        // Navigation will be handled by onAuthStateChange
+        // Store credentials for after OTP
+        setPendingSession({ email, password });
+        
+        // Send OTP code
+        const otpSent = await sendOtpCode(email);
+        
+        if (otpSent) {
+          setLoginStep('otp');
+          toast({
+            title: "Código enviado",
+            description: `Hemos enviado un código de verificación a ${email}`,
+          });
+        }
       }
     } catch (err) {
-      // Don't log error details in production
       setError(GENERIC_AUTH_ERROR);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Handle OTP verification
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (otpCode.length !== 6) {
+      setOtpError('Introduce el código de 6 dígitos');
+      return;
+    }
+    
+    const isValid = await verifyOtpCode(email, otpCode);
+    
+    if (isValid && pendingSession) {
+      // Re-authenticate with stored credentials
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: pendingSession.email,
+        password: pendingSession.password,
+      });
+      
+      if (signInError) {
+        setOtpError('Error al completar el inicio de sesión. Inténtalo de nuevo.');
+        setLoginStep('credentials');
+        setPendingSession(null);
+        return;
+      }
+      
+      // Record successful login
+      await recordAttempt(email, true);
+      
+      // Get user info for navigation
+      const { data: userInfo } = await supabase.rpc('get_current_user_info');
+      
+      if (userInfo && userInfo.length > 0) {
+        toast({
+          title: "Bienvenido",
+          description: "Has iniciado sesión correctamente.",
+        });
+        navigate(`/nexo-av/${userInfo[0].user_id}/dashboard`, { replace: true });
+      }
+      
+      // Clear pending session
+      setPendingSession(null);
+    }
+  };
+
+  // Handle OTP code change - auto-submit when 6 digits
+  const handleOtpChange = (value: string) => {
+    setOtpCode(value);
+    setOtpError(null);
+  };
+
+  // Resend OTP
+  const handleResendOtp = async () => {
+    if (!canResendOtp) return;
+    
+    const sent = await sendOtpCode(email);
+    if (sent) {
+      setOtpCode("");
+      toast({
+        title: "Código reenviado",
+        description: `Nuevo código enviado a ${email}`,
+      });
+    }
+  };
+
+  // Go back to credentials step
+  const handleBackToCredentials = async () => {
+    setLoginStep('credentials');
+    setOtpCode("");
+    setOtpError(null);
+    setOtpRemainingAttempts(null);
+    setPendingSession(null);
   };
 
   if (isLoading) {
@@ -272,132 +416,247 @@ const Login = () => {
             transition={{ delay: 0.4 }}
             className="text-white/50 text-sm mt-2"
           >
-            Plataforma de gestión interna
+            {loginStep === 'credentials' ? 'Plataforma de gestión interna' : 'Verificación en dos pasos'}
           </motion.p>
         </div>
 
-        {/* Rate limit warning */}
-        {isRateLimited && retryAfter > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg flex items-start gap-3"
-          >
-            <Clock className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-orange-400 text-sm font-medium">Cuenta bloqueada temporalmente</p>
-              <p className="text-orange-400/70 text-sm">
-                Podrás intentarlo de nuevo en {Math.floor(retryAfter / 60)}:{(retryAfter % 60).toString().padStart(2, '0')} minutos
-              </p>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Error message */}
-        {error && !isRateLimited && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3"
-          >
-            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-red-400 text-sm">{error}</p>
-              {remainingAttempts !== null && remainingAttempts > 0 && remainingAttempts <= 3 && (
-                <p className="text-red-400/70 text-xs mt-1">
-                  {remainingAttempts} intento{remainingAttempts !== 1 ? 's' : ''} restante{remainingAttempts !== 1 ? 's' : ''}
-                </p>
+        <AnimatePresence mode="wait">
+          {loginStep === 'credentials' ? (
+            <motion.div
+              key="credentials"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Rate limit warning */}
+              {isRateLimited && retryAfter > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg flex items-start gap-3"
+                >
+                  <Clock className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-orange-400 text-sm font-medium">Cuenta bloqueada temporalmente</p>
+                    <p className="text-orange-400/70 text-sm">
+                      Podrás intentarlo de nuevo en {Math.floor(retryAfter / 60)}:{(retryAfter % 60).toString().padStart(2, '0')} minutos
+                    </p>
+                  </div>
+                </motion.div>
               )}
-            </div>
-          </motion.div>
-        )}
 
-        {/* Formulario */}
-        <motion.form
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          onSubmit={handleSubmit}
-          className="space-y-6"
-        >
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-white/70 text-sm">
-              Correo electrónico
-            </Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
-              <Input
-                id="email"
-                type="email"
-                placeholder="example@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isSubmitting}
-                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/10 h-12 disabled:opacity-50"
-                required
-              />
-            </div>
-          </div>
+              {/* Error message */}
+              {error && !isRateLimited && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3"
+                >
+                  <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-red-400 text-sm">{error}</p>
+                    {remainingAttempts !== null && remainingAttempts > 0 && remainingAttempts <= 3 && (
+                      <p className="text-red-400/70 text-xs mt-1">
+                        {remainingAttempts} intento{remainingAttempts !== 1 ? 's' : ''} restante{remainingAttempts !== 1 ? 's' : ''}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
 
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-white/70 text-sm">
-              Contraseña
-            </Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isSubmitting}
-                className="pl-10 pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/10 h-12 disabled:opacity-50"
-                required
-                minLength={8}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/50 transition-colors"
-                disabled={isSubmitting}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
-              </button>
-            </div>
-          </div>
+              {/* Credentials Form */}
+              <form onSubmit={handleCredentialsSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-white/70 text-sm">
+                    Correo electrónico
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="example@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isSubmitting}
+                      className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/10 h-12 disabled:opacity-50"
+                      required
+                    />
+                  </div>
+                </div>
 
-          <Button
-            type="submit"
-            disabled={isSubmitting || isRateLimited}
-            className="w-full h-12 bg-white text-black font-medium hover:bg-white/90 transition-all disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Iniciando sesión...
-              </>
-            ) : isRateLimited ? (
-              <>
-                <Clock className="mr-2 h-4 w-4" />
-                Bloqueado temporalmente
-              </>
-            ) : (
-              'Iniciar sesión'
-            )}
-          </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-white/70 text-sm">
+                    Contraseña
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isSubmitting}
+                      className="pl-10 pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/10 h-12 disabled:opacity-50"
+                      required
+                      minLength={8}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/50 transition-colors"
+                      disabled={isSubmitting}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
 
-          <p className="text-center text-white/30 text-xs mt-8">
-            ¿Problemas para acceder? Contacta con el administrador
-          </p>
-        </motion.form>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || isRateLimited}
+                  className="w-full h-12 bg-white text-black font-medium hover:bg-white/90 transition-all disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {otpSending ? 'Enviando código...' : 'Verificando...'}
+                    </>
+                  ) : isRateLimited ? (
+                    <>
+                      <Clock className="mr-2 h-4 w-4" />
+                      Bloqueado temporalmente
+                    </>
+                  ) : (
+                    'Continuar'
+                  )}
+                </Button>
+
+                <p className="text-center text-white/30 text-xs mt-8">
+                  ¿Problemas para acceder? Contacta con el administrador
+                </p>
+              </form>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="otp"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* OTP Info */}
+              <div className="mb-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-lg flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-cyan-400 text-sm font-medium">Verificación de seguridad</p>
+                  <p className="text-cyan-400/70 text-sm">
+                    Hemos enviado un código de 6 dígitos a <strong>{email}</strong>
+                  </p>
+                </div>
+              </div>
+
+              {/* OTP Error */}
+              {otpError && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3"
+                >
+                  <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-red-400 text-sm">{otpError}</p>
+                    {otpRemainingAttempts !== null && otpRemainingAttempts >= 0 && (
+                      <p className="text-red-400/70 text-xs mt-1">
+                        {otpRemainingAttempts} intento{otpRemainingAttempts !== 1 ? 's' : ''} restante{otpRemainingAttempts !== 1 ? 's' : ''}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* OTP Form */}
+              <form onSubmit={handleOtpSubmit} className="space-y-6">
+                <div className="space-y-4">
+                  <Label className="text-white/70 text-sm text-center block">
+                    Introduce el código de verificación
+                  </Label>
+                  <div className="flex justify-center">
+                    <InputOTP
+                      maxLength={6}
+                      value={otpCode}
+                      onChange={handleOtpChange}
+                      disabled={otpVerifying}
+                    >
+                      <InputOTPGroup className="gap-2">
+                        {[0, 1, 2, 3, 4, 5].map((index) => (
+                          <InputOTPSlot
+                            key={index}
+                            index={index}
+                            className="w-12 h-14 text-xl bg-white/5 border-white/20 text-white rounded-lg"
+                          />
+                        ))}
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={otpVerifying || otpCode.length !== 6}
+                  className="w-full h-12 bg-white text-black font-medium hover:bg-white/90 transition-all disabled:opacity-50"
+                >
+                  {otpVerifying ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verificando...
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="mr-2 h-4 w-4" />
+                      Verificar código
+                    </>
+                  )}
+                </Button>
+
+                <div className="flex flex-col gap-3">
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={!canResendOtp || otpSending}
+                    className="text-center text-white/50 text-sm hover:text-white/70 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    {otpSending ? (
+                      'Enviando...'
+                    ) : canResendOtp ? (
+                      '¿No recibiste el código? Reenviar'
+                    ) : (
+                      `Reenviar código en ${resendCountdown}s`
+                    )}
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={handleBackToCredentials}
+                    className="flex items-center justify-center gap-2 text-white/30 text-sm hover:text-white/50 transition-colors"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Volver al inicio de sesión
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
-      {/* Decoración de fondo */}
+      {/* Background decoration */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl" />
