@@ -345,6 +345,9 @@ const EditQuotePage = () => {
     }
 
     setSaving(true);
+    const wasProvisional = quote?.quote_number.startsWith("BORR-");
+    const isApproving = currentStatus === "APPROVED" && quote?.status !== "APPROVED";
+    
     try {
       // Update quote
       const selectedProject = projects.find(p => p.id === selectedProjectId);
@@ -390,10 +393,22 @@ const EditQuotePage = () => {
         }
       }
 
-      toast({
-        title: "Cambios guardados",
-        description: "El presupuesto se ha actualizado correctamente",
-      });
+      // Show appropriate message based on what happened
+      if (isApproving && wasProvisional) {
+        // Fetch the updated quote to get the new number
+        const { data: updatedQuote } = await supabase.rpc("get_quote", { p_quote_id: quoteId });
+        const newNumber = updatedQuote?.[0]?.quote_number || "asignado";
+        
+        toast({
+          title: "¡Presupuesto aprobado!",
+          description: `Se ha asignado el número definitivo: ${newNumber}`,
+        });
+      } else {
+        toast({
+          title: "Cambios guardados",
+          description: "El presupuesto se ha actualizado correctamente",
+        });
+      }
 
       navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
     } catch (error: any) {
@@ -442,7 +457,8 @@ const EditQuotePage = () => {
     );
   }
 
-  const hasFinalNumber = ["APPROVED", "INVOICED"].includes(quote.status);
+  const isProvisionalNumber = quote.quote_number.startsWith("BORR-");
+  const hasFinalNumber = !isProvisionalNumber && quote.quote_number.startsWith("P-");
   const displayNumber = hasFinalNumber ? quote.quote_number : `(${quote.quote_number})`;
 
   return (

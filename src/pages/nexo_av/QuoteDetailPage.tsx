@@ -203,8 +203,9 @@ const QuoteDetailPage = () => {
 
   // Check if quote can be deleted (only drafts can be deleted)
   const canDelete = quote?.status === "DRAFT";
-  // Check if quote has a final number (only approved+ statuses)
-  const hasFinalNumber = quote?.status && ["APPROVED", "INVOICED"].includes(quote.status);
+  // Check if quote has a final number (P- format, not BORR-)
+  const isProvisionalNumber = quote?.quote_number?.startsWith("BORR-");
+  const hasFinalNumber = !isProvisionalNumber && quote?.quote_number?.startsWith("P-");
 
   if (loading) {
     return (
