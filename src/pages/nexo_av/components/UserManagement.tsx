@@ -40,6 +40,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Search,
   Edit2,
   Trash2,
@@ -55,9 +61,12 @@ import {
   RefreshCw,
   Mail,
   Send,
+  Clock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface AuthorizedUser {
   id: string;
@@ -71,6 +80,9 @@ interface AuthorizedUser {
   last_login_at: string | null;
   setup_completed: boolean;
   roles: string[];
+  invitation_sent_at: string | null;
+  invitation_expires_at: string | null;
+  invitation_days_remaining: number | null;
 }
 
 interface Role {
@@ -538,13 +550,56 @@ const UserManagement = () => {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {!user.setup_completed ? (
-                        <Badge
-                          variant="outline"
-                          className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs"
-                        >
-                          <Mail className="h-3 w-3 mr-1" />
-                          Invitado
-                        </Badge>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="outline"
+                                className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs cursor-help"
+                              >
+                                <Mail className="h-3 w-3 mr-1" />
+                                Invitado
+                                {user.invitation_days_remaining !== null && (
+                                  <span className="ml-1 flex items-center">
+                                    <Clock className="h-2.5 w-2.5 mr-0.5" />
+                                    {user.invitation_days_remaining}d
+                                  </span>
+                                )}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent 
+                              side="top" 
+                              className="bg-zinc-900 border-white/20 text-white p-3 max-w-xs"
+                            >
+                              <div className="space-y-1.5 text-xs">
+                                {user.invitation_sent_at && (
+                                  <p className="text-white/70">
+                                    <span className="text-white/50">Enviada:</span>{' '}
+                                    {format(new Date(user.invitation_sent_at), "d 'de' MMMM 'a las' HH:mm", { locale: es })}
+                                  </p>
+                                )}
+                                {user.invitation_expires_at && (
+                                  <p className="text-white/70">
+                                    <span className="text-white/50">Expira:</span>{' '}
+                                    {format(new Date(user.invitation_expires_at), "d 'de' MMMM 'a las' HH:mm", { locale: es })}
+                                  </p>
+                                )}
+                                {user.invitation_days_remaining !== null && (
+                                  <p className={`font-medium ${user.invitation_days_remaining <= 1 ? 'text-red-400' : user.invitation_days_remaining <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
+                                    {user.invitation_days_remaining === 0 
+                                      ? '⚠️ Expira hoy' 
+                                      : user.invitation_days_remaining === 1 
+                                        ? '⚠️ Expira mañana'
+                                        : `${user.invitation_days_remaining} días restantes`}
+                                  </p>
+                                )}
+                                {!user.invitation_sent_at && (
+                                  <p className="text-white/50 italic">Sin información de invitación</p>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       ) : (
                         user.roles?.map((role) => (
                           <Badge
