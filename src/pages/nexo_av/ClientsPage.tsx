@@ -41,6 +41,7 @@ import { usePagination } from "@/hooks/usePagination";
 import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import CreateClientDialog from "./components/CreateClientDialog";
 import PaginationControls from "./components/PaginationControls";
+import MobileBottomNav from "./components/MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Client {
@@ -217,10 +218,11 @@ const ClientsPage = () => {
   } = usePagination(filteredClients, { pageSize: 50 });
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black pb-mobile-nav">
       <NexoHeader 
-        title="Clientes / Leads" 
+        title="Clientes" 
         userId={userId || ''} 
+        showBack={false}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
@@ -471,6 +473,9 @@ const ClientsPage = () => {
           )}
         </motion.div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav userId={userId || ''} />
 
       <CreateClientDialog
         open={showCreateDialog}

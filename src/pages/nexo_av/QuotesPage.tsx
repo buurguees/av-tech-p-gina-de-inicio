@@ -18,6 +18,8 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
 import NexoHeader from "./components/NexoHeader";
 import PaginationControls from "./components/PaginationControls";
+import MobileBottomNav from "./components/MobileBottomNav";
+import { cn } from "@/lib/utils";
 
 interface Quote {
   id: string;
@@ -110,49 +112,55 @@ const QuotesPage = () => {
   } = usePagination(quotes, { pageSize: 50 });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black">
-      <NexoHeader title="Presupuestos" userId={userId || ""} />
+    <div className="min-h-screen bg-black pb-mobile-nav">
+      <NexoHeader title="Presupuestos" userId={userId || ""} showBack={false} />
       
-      <main className="container mx-auto px-4 pt-24 pb-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.3 }}
         >
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Presupuestos</h1>
-              <p className="text-white/60">Gestiona todos los presupuestos</p>
+          {/* Header - simplified for mobile */}
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <div className="hidden md:block">
+              <h1 className="text-2xl font-bold text-white">Presupuestos</h1>
+              <p className="text-white/60 text-sm">Gestiona todos los presupuestos</p>
             </div>
             
             <Button
               onClick={handleNewQuote}
-              className="bg-avtech-orange hover:bg-avtech-orange/90 text-white"
+              className="bg-white text-black hover:bg-white/90 h-9 md:h-10 text-sm ml-auto"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Presupuesto
+              <Plus className="h-4 w-4 mr-1.5" />
+              <span className="hidden sm:inline">Nuevo Presupuesto</span>
+              <span className="sm:hidden">Nuevo</span>
             </Button>
           </div>
 
           {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
+          <div className="flex flex-col gap-2 mb-4">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
               <Input
-                placeholder="Buscar por número, cliente o proyecto..."
+                placeholder="Buscar..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-9 text-sm"
               />
             </div>
             
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-1.5 flex-wrap">
               <Button
                 variant={statusFilter === null ? "secondary" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter(null)}
-                className={statusFilter === null ? "bg-white/20 text-white" : "border-white/20 text-white/70 hover:bg-white/10"}
+                className={cn(
+                  "h-7 px-2 text-xs",
+                  statusFilter === null 
+                    ? "bg-white/20 text-white" 
+                    : "border-white/20 text-white/70 hover:bg-white/10"
+                )}
               >
                 Todos
               </Button>
@@ -162,7 +170,12 @@ const QuotesPage = () => {
                   variant={statusFilter === status.value ? "secondary" : "outline"}
                   size="sm"
                   onClick={() => setStatusFilter(status.value)}
-                  className={statusFilter === status.value ? "bg-white/20 text-white" : "border-white/20 text-white/70 hover:bg-white/10"}
+                  className={cn(
+                    "h-7 px-2 text-xs",
+                    statusFilter === status.value 
+                      ? "bg-white/20 text-white" 
+                      : "border-white/20 text-white/70 hover:bg-white/10"
+                  )}
                 >
                   {status.label}
                 </Button>
@@ -170,16 +183,85 @@ const QuotesPage = () => {
             </div>
           </div>
 
-          {/* Table */}
+          {/* Mobile card view */}
+          <div className="md:hidden space-y-2">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-white/40" />
+              </div>
+            ) : quotes.length === 0 ? (
+              <div className="text-center py-12 rounded-xl border border-white/10 bg-white/5">
+                <FileText className="h-10 w-10 text-white/20 mx-auto mb-3" />
+                <p className="text-white/40 text-sm">No hay presupuestos</p>
+                <Button
+                  variant="link"
+                  onClick={handleNewQuote}
+                  className="text-white/60 hover:text-white text-sm mt-2"
+                >
+                  Crear el primero
+                </Button>
+              </div>
+            ) : (
+              <>
+                {paginatedQuotes.map((quote) => {
+                  const statusInfo = getStatusInfo(quote.status);
+                  return (
+                    <button
+                      key={quote.id}
+                      onClick={() => handleQuoteClick(quote.id)}
+                      className="w-full p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-left"
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="font-mono text-orange-500 text-sm font-medium">
+                          {quote.quote_number}
+                        </span>
+                        <Badge 
+                          variant="outline" 
+                          className={`${statusInfo.className} text-[10px] px-1.5 py-0`}
+                        >
+                          {statusInfo.label}
+                        </Badge>
+                      </div>
+                      <p className="text-white text-sm font-medium uppercase truncate">
+                        {quote.client_name || 'Sin cliente'}
+                      </p>
+                      <div className="flex items-center justify-between mt-1.5">
+                        <span className="text-white/50 text-xs truncate max-w-[60%]">
+                          {quote.project_name || 'Sin proyecto'}
+                        </span>
+                        <span className="text-white font-medium text-sm">
+                          {formatCurrency(quote.total)}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  startIndex={startIndex}
+                  endIndex={endIndex}
+                  totalItems={totalItems}
+                  canGoPrev={canGoPrev}
+                  canGoNext={canGoNext}
+                  onPrevPage={prevPage}
+                  onNextPage={nextPage}
+                  onGoToPage={goToPage}
+                />
+              </>
+            )}
+          </div>
+
+          {/* Desktop table view */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden"
+            transition={{ delay: 0.1 }}
+            className="hidden md:block bg-white/5 rounded-xl border border-white/10 overflow-hidden"
           >
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-avtech-orange" />
+                <Loader2 className="h-8 w-8 animate-spin text-white/40" />
               </div>
             ) : quotes.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -193,7 +275,7 @@ const QuotesPage = () => {
                 {!searchInput && !statusFilter && (
                   <Button
                     onClick={handleNewQuote}
-                    className="bg-avtech-orange hover:bg-avtech-orange/90 text-white"
+                    className="bg-white text-black hover:bg-white/90"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Nuevo Presupuesto
@@ -208,9 +290,7 @@ const QuotesPage = () => {
                       <TableHead className="text-white/70">Num.</TableHead>
                       <TableHead className="text-white/70">Cliente</TableHead>
                       <TableHead className="text-white/70">Proyecto</TableHead>
-                      <TableHead className="text-white/70">Pedido</TableHead>
                       <TableHead className="text-white/70">Estado</TableHead>
-                      <TableHead className="text-white/70 text-right">Subtotal</TableHead>
                       <TableHead className="text-white/70 text-right">Total</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -223,7 +303,7 @@ const QuotesPage = () => {
                           className="border-white/10 hover:bg-white/5 cursor-pointer transition-colors"
                           onClick={() => handleQuoteClick(quote.id)}
                         >
-                          <TableCell className="font-mono text-avtech-orange font-medium">
+                          <TableCell className="font-mono text-orange-500 font-medium">
                             {quote.quote_number}
                           </TableCell>
                           <TableCell className="text-white uppercase">
@@ -232,16 +312,10 @@ const QuotesPage = () => {
                           <TableCell className="text-white/80">
                             {quote.project_name || "-"}
                           </TableCell>
-                          <TableCell className="text-white/80">
-                            {quote.order_number || "-"}
-                          </TableCell>
                           <TableCell>
                             <Badge className={statusInfo.className}>
                               {statusInfo.label}
                             </Badge>
-                          </TableCell>
-                          <TableCell className="text-white/80 text-right">
-                            {formatCurrency(quote.subtotal)}
                           </TableCell>
                           <TableCell className="text-white font-medium text-right">
                             {formatCurrency(quote.total)}
@@ -270,6 +344,9 @@ const QuotesPage = () => {
           </motion.div>
         </motion.div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav userId={userId || ''} />
     </div>
   );
 };
