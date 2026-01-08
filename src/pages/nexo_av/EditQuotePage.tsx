@@ -201,14 +201,14 @@ const EditQuotePage = () => {
 
   const fetchSaleTaxes = async () => {
     try {
-      const { data, error } = await supabase.rpc("list_taxes", { p_tax_type: "Venta" });
+      const { data, error } = await supabase.rpc("list_taxes", { p_tax_type: "sales" });
       if (error) throw error;
       
       const options: TaxOption[] = (data || [])
         .filter((t: any) => t.is_active)
         .map((t: any) => ({
           value: t.rate,
-          label: `${t.name} ${t.rate}%`,
+          label: t.name,
         }));
       
       setTaxOptions(options);
@@ -655,7 +655,7 @@ const EditQuotePage = () => {
                         <SelectContent className="bg-zinc-900 border-white/10 z-50">
                           {taxOptions.map((tax) => (
                             <SelectItem key={tax.value} value={tax.value.toString()} className="text-white text-xs">
-                              {tax.value}%
+                              {tax.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -760,7 +760,7 @@ const EditQuotePage = () => {
                           <SelectContent className="bg-zinc-900 border-white/10">
                             {taxOptions.map((tax) => (
                               <SelectItem key={tax.value} value={String(tax.value)} className="text-white text-sm">
-                                {tax.value}%
+                                {tax.label}
                               </SelectItem>
                             ))}
                           </SelectContent>
