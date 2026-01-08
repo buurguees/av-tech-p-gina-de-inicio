@@ -19,10 +19,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, GripVertical } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, GripVertical, FileText } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader from "./components/NexoHeader";
+import ProductSearchInput from "./components/ProductSearchInput";
 
 interface Client {
   id: string;
@@ -186,6 +187,17 @@ const NewQuotePage = () => {
     setLines(updatedLines);
   };
 
+  const handleProductSelect = (index: number, item: { name: string; price: number; tax_rate: number }) => {
+    const updatedLines = [...lines];
+    updatedLines[index] = calculateLineValues({
+      ...updatedLines[index],
+      concept: item.name,
+      unit_price: item.price,
+      tax_rate: item.tax_rate,
+    });
+    setLines(updatedLines);
+  };
+
   const removeLine = (index: number) => {
     setLines(lines.filter((_, i) => i !== index));
   };
@@ -327,8 +339,14 @@ const NewQuotePage = () => {
             </div>
           </div>
 
-          {/* Quote header info */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-lg md:rounded-xl border border-white/10 p-3 md:p-6 mb-4 md:mb-6">
+          {/* Quote header info - Client Data */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-lg md:rounded-xl border border-white/10 p-3 md:p-6 mb-3 md:mb-4">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/10">
+              <div className="p-1.5 rounded bg-white/5">
+                <FileText className="h-3 w-3 md:h-4 md:w-4 text-orange-500" />
+              </div>
+              <span className="text-white/60 text-[10px] md:text-xs font-medium uppercase tracking-wide">Datos del documento</span>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                 <Label className="text-white/70 text-[10px] md:text-sm">Contacto</Label>
@@ -397,11 +415,17 @@ const NewQuotePage = () => {
           </div>
 
           {/* Mobile Lines - Vertical Cards */}
-          <div className="md:hidden space-y-2 mb-4">
+          <div className="md:hidden space-y-2 mb-3">
+            {/* Lines Header */}
+            <div className="flex items-center justify-between">
+              <span className="text-white/60 text-[10px] font-medium uppercase tracking-wide">Líneas del presupuesto</span>
+              <span className="text-white/40 text-[9px]">Usa @nombre para buscar</span>
+            </div>
+
             {lines.map((line, index) => (
-              <div key={line.tempId || line.id} className="bg-white/5 rounded-lg border border-white/10 p-3 space-y-2">
+              <div key={line.tempId || line.id} className="bg-zinc-900/50 rounded-lg border border-orange-500/20 p-3 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-white/40 text-[10px]">Línea {index + 1}</span>
+                  <span className="text-orange-500/70 text-[10px] font-mono">Línea {index + 1}</span>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -412,11 +436,11 @@ const NewQuotePage = () => {
                   </Button>
                 </div>
                 
-                <Input
+                <ProductSearchInput
                   value={line.concept}
-                  onChange={(e) => updateLine(index, "concept", e.target.value)}
-                  placeholder="Concepto"
-                  className="bg-white/5 border-white/10 text-white h-8 text-xs"
+                  onChange={(value) => updateLine(index, "concept", value)}
+                  onSelectItem={(item) => handleProductSelect(index, item)}
+                  placeholder="Concepto o @buscar"
                 />
                 
                 <Input
@@ -485,12 +509,16 @@ const NewQuotePage = () => {
           </div>
 
           {/* Desktop Lines table */}
-          <div className="hidden md:block bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden mb-6">
+          <div className="hidden md:block bg-zinc-900/50 backdrop-blur-sm rounded-xl border border-orange-500/20 overflow-hidden mb-6">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+              <span className="text-white/60 text-xs font-medium uppercase tracking-wide">Líneas del presupuesto</span>
+              <span className="text-white/40 text-xs">Escribe @nombre para buscar en el catálogo</span>
+            </div>
             <Table>
               <TableHeader>
                 <TableRow className="border-white/10 hover:bg-transparent">
                   <TableHead className="text-white/70 w-8"></TableHead>
-                  <TableHead className="text-white/70">Concepto</TableHead>
+                  <TableHead className="text-white/70">Concepto (usa @buscar)</TableHead>
                   <TableHead className="text-white/70 w-32">Descripción</TableHead>
                   <TableHead className="text-white/70 text-center w-20">Cantidad</TableHead>
                   <TableHead className="text-white/70 text-right w-24">Precio</TableHead>
@@ -506,11 +534,12 @@ const NewQuotePage = () => {
                       <GripVertical className="h-4 w-4" />
                     </TableCell>
                     <TableCell>
-                      <Input
+                      <ProductSearchInput
                         value={line.concept}
-                        onChange={(e) => updateLine(index, "concept", e.target.value)}
-                        placeholder="Escribe el concepto"
-                        className="bg-transparent border-0 text-white placeholder:text-white/30 p-0 h-auto focus-visible:ring-0"
+                        onChange={(value) => updateLine(index, "concept", value)}
+                        onSelectItem={(item) => handleProductSelect(index, item)}
+                        placeholder="Concepto o @buscar"
+                        className="bg-transparent border-0 p-0 h-auto"
                       />
                     </TableCell>
                     <TableCell>
