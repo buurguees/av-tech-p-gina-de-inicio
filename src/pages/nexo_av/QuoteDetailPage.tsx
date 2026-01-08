@@ -15,6 +15,7 @@ interface Quote {
   client_id: string;
   client_name: string;
   project_name: string | null;
+  project_id?: string | null;
   order_number: string | null;
   status: string;
   subtotal: number;
@@ -27,6 +28,14 @@ interface Quote {
   created_by_name: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface Project {
+  project_number: string;
+  project_name: string;
+  project_address: string | null;
+  project_city: string | null;
+  local_name: string | null;
 }
 
 interface QuoteLine {
@@ -98,6 +107,7 @@ const QuoteDetailPage = () => {
   const [lines, setLines] = useState<QuoteLine[]>([]);
   const [client, setClient] = useState<Client | null>(null);
   const [company, setCompany] = useState<CompanySettings | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
 
   useEffect(() => {
     if (quoteId) {
@@ -119,6 +129,12 @@ const QuoteDetailPage = () => {
       const quoteInfo = quoteData[0];
       setQuote(quoteInfo);
 
+      // Get project_id from list_quotes (get_quote doesn't return it)
+      const { data: quotesListData } = await supabase.rpc("list_quotes", {
+        p_search: quoteInfo.quote_number,
+      });
+      const projectId = (quotesListData?.find((q: any) => q.id === quoteId) as any)?.project_id as string | undefined;
+
       // Fetch quote lines
       const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", {
         p_quote_id: quoteId,
@@ -133,6 +149,22 @@ const QuoteDetailPage = () => {
         });
         if (!clientError && clientData && clientData.length > 0) {
           setClient(clientData[0]);
+        }
+      }
+
+      // Fetch project details if project exists
+      if (projectId) {
+        const { data: projectData, error: projectError } = await supabase.rpc("get_project", {
+          p_project_id: projectId,
+        });
+        if (!projectError && projectData && projectData.length > 0) {
+          setProject({
+            project_number: projectData[0].project_number,
+            project_name: projectData[0].project_name,
+            project_address: projectData[0].project_address,
+            project_city: projectData[0].project_city,
+            local_name: projectData[0].local_name,
+          });
         }
       }
 
@@ -246,6 +278,7 @@ const QuoteDetailPage = () => {
                   lines={lines}
                   client={client}
                   company={company}
+                  project={project}
                   fileName={pdfFileName}
                 />
               </div>
@@ -446,6 +479,7 @@ const QuoteDetailPage = () => {
                 lines={lines}
                 client={client}
                 company={company}
+                project={project}
                 fileName={pdfFileName}
               />
             </div>

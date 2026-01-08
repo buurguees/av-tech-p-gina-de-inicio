@@ -48,6 +48,14 @@ interface Quote {
   created_at: string;
 }
 
+interface Project {
+  project_number: string;
+  project_name: string;
+  project_address: string | null;
+  project_city: string | null;
+  local_name: string | null;
+}
+
 interface Client {
   company_name: string;
   legal_name: string | null;
@@ -81,6 +89,7 @@ interface QuotePDFViewerProps {
   lines: QuoteLine[];
   client: Client | null;
   company: CompanySettings | null;
+  project: Project | null;
   fileName: string;
 }
 
@@ -138,19 +147,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#888",
   },
-  partiesContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 30,
-    gap: 20,
-  },
-  partyBox: {
-    flex: 1,
-    padding: 12,
-    backgroundColor: "#f9f9f9",
+  clientBox: {
+    marginBottom: 25,
+    padding: 14,
+    backgroundColor: "#e8e8e8",
     borderRadius: 4,
   },
-  partyTitle: {
+  clientTitle: {
     fontSize: 8,
     fontWeight: "bold",
     color: "#666",
@@ -158,13 +161,38 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     letterSpacing: 1,
   },
-  partyName: {
+  clientName: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 4,
+  },
+  clientDetail: {
+    fontSize: 9,
+    color: "#555",
+    marginBottom: 2,
+  },
+  projectBox: {
+    marginBottom: 25,
+    padding: 14,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 4,
+  },
+  projectTitle: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#666",
+    textTransform: "uppercase",
+    marginBottom: 8,
+    letterSpacing: 1,
+  },
+  projectName: {
     fontSize: 11,
     fontWeight: "bold",
     color: "#333",
     marginBottom: 4,
   },
-  partyDetail: {
+  projectDetail: {
     fontSize: 9,
     color: "#555",
     marginBottom: 2,
@@ -249,9 +277,10 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   validityNote: {
-    marginTop: 30,
-    fontSize: 8,
-    color: "#888",
+    fontSize: 9,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 10,
   },
   footer: {
     position: "absolute",
@@ -324,7 +353,7 @@ const groupTaxesByRate = (lines: QuoteLine[]) => {
 };
 
 // PDF Document Component
-const QuotePDFDocument = ({ quote, lines, client, company }: Omit<QuotePDFViewerProps, 'fileName'>) => {
+const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<QuotePDFViewerProps, 'fileName'>) => {
   const taxes = groupTaxesByRate(lines);
   const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
   const total = lines.reduce((acc, line) => acc + line.total, 0);
@@ -353,63 +382,44 @@ const QuotePDFDocument = ({ quote, lines, client, company }: Omit<QuotePDFViewer
           </View>
         </View>
 
-        {/* Company and Client Info */}
-        <View style={styles.partiesContainer}>
-          <View style={styles.partyBox}>
-            <Text style={styles.partyTitle}>De</Text>
-            <Text style={styles.partyName}>{company?.legal_name || "Empresa"}</Text>
-            <Text style={styles.partyDetail}>{company?.tax_id}</Text>
-            {company?.fiscal_address && (
-              <Text style={styles.partyDetail}>{company.fiscal_address}</Text>
-            )}
-            {company?.fiscal_postal_code && company?.fiscal_city && (
-              <Text style={styles.partyDetail}>
-                {company.fiscal_postal_code} {company.fiscal_city} ({company.fiscal_province})
-              </Text>
-            )}
-            {company?.billing_email && (
-              <Text style={styles.partyDetail}>{company.billing_email}</Text>
-            )}
-            {company?.billing_phone && (
-              <Text style={styles.partyDetail}>{company.billing_phone}</Text>
-            )}
-            {company?.website && (
-              <Text style={styles.partyDetail}>{company.website}</Text>
-            )}
-          </View>
-
-          <View style={styles.partyBox}>
-            <Text style={styles.partyTitle}>Para</Text>
-            <Text style={styles.partyName}>
-              {client?.legal_name || client?.company_name || quote.client_name}
+        {/* Client Info - Darker gray box */}
+        <View style={styles.clientBox}>
+          <Text style={styles.clientTitle}>Cliente</Text>
+          <Text style={styles.clientName}>
+            {client?.legal_name || client?.company_name || quote.client_name}
+          </Text>
+          {client?.tax_id && <Text style={styles.clientDetail}>{client.tax_id}</Text>}
+          {client?.billing_address && (
+            <Text style={styles.clientDetail}>{client.billing_address}</Text>
+          )}
+          {client?.billing_postal_code && client?.billing_city && (
+            <Text style={styles.clientDetail}>
+              {client.billing_postal_code} {client.billing_city} ({client.billing_province})
             </Text>
-            {client?.tax_id && <Text style={styles.partyDetail}>{client.tax_id}</Text>}
-            {client?.billing_address && (
-              <Text style={styles.partyDetail}>{client.billing_address}</Text>
-            )}
-            {client?.billing_postal_code && client?.billing_city && (
-              <Text style={styles.partyDetail}>
-                {client.billing_postal_code} {client.billing_city} ({client.billing_province})
-              </Text>
-            )}
-            {client?.contact_email && (
-              <Text style={styles.partyDetail}>{client.contact_email}</Text>
-            )}
-            {client?.contact_phone && (
-              <Text style={styles.partyDetail}>{client.contact_phone}</Text>
-            )}
-            {client?.website && (
-              <Text style={styles.partyDetail}>{client.website}</Text>
-            )}
-          </View>
+          )}
+          {client?.contact_email && (
+            <Text style={styles.clientDetail}>{client.contact_email}</Text>
+          )}
+          {client?.contact_phone && (
+            <Text style={styles.clientDetail}>{client.contact_phone}</Text>
+          )}
         </View>
 
-        {/* Project Reference */}
-        {quote.project_name && (
-          <View style={styles.referenceBox}>
-            <Text style={styles.referenceText}>
-              Proyecto: {quote.project_name}
-            </Text>
+        {/* Project Info - Only if project exists */}
+        {project && (
+          <View style={styles.projectBox}>
+            <Text style={styles.projectTitle}>Proyecto</Text>
+            <Text style={styles.projectName}>{project.project_name}</Text>
+            <Text style={styles.projectDetail}>Nº {project.project_number}</Text>
+            {project.local_name && (
+              <Text style={styles.projectDetail}>Local: {project.local_name}</Text>
+            )}
+            {project.project_address && (
+              <Text style={styles.projectDetail}>{project.project_address}</Text>
+            )}
+            {project.project_city && (
+              <Text style={styles.projectDetail}>{project.project_city}</Text>
+            )}
           </View>
         )}
 
@@ -453,9 +463,7 @@ const QuotePDFDocument = ({ quote, lines, client, company }: Omit<QuotePDFViewer
           </View>
           {taxes.map((tax) => (
             <View key={tax.rate} style={styles.totalRow}>
-              <Text style={styles.totalLabel}>
-                IVA {tax.rate}% ({formatCurrency(subtotal * (tax.rate / 100) / (tax.amount / (subtotal * (tax.rate / 100))) || subtotal)})
-              </Text>
+              <Text style={styles.totalLabel}>IVA {tax.rate}%</Text>
               <Text style={styles.totalValue}>{formatCurrency(tax.amount)}</Text>
             </View>
           ))}
@@ -465,12 +473,14 @@ const QuotePDFDocument = ({ quote, lines, client, company }: Omit<QuotePDFViewer
           </View>
         </View>
 
-        {/* Validity Note */}
-        {quote.valid_until && (
-          <Text style={styles.validityNote}>
-            Este presupuesto es válido hasta el {formatDate(quote.valid_until)}.
-          </Text>
-        )}
+        {/* Footer with validity note centered */}
+        <View style={styles.footer}>
+          {quote.valid_until && (
+            <Text style={styles.validityNote}>
+              Este presupuesto es válido hasta el {formatDate(quote.valid_until)}.
+            </Text>
+          )}
+        </View>
 
         {/* Page Number */}
         <Text
@@ -485,13 +495,13 @@ const QuotePDFDocument = ({ quote, lines, client, company }: Omit<QuotePDFViewer
   );
 };
 
-const QuotePDFViewer = ({ quote, lines, client, company, fileName }: QuotePDFViewerProps) => {
+const QuotePDFViewer = ({ quote, lines, client, company, project, fileName }: QuotePDFViewerProps) => {
   const [showPreview, setShowPreview] = useState(true);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       {/* Actions */}
-      <div className="flex items-center gap-2 p-3 border-b border-white/10">
+      <div className="flex items-center gap-2 p-3 border-b border-white/10 shrink-0">
         <Button
           variant="outline"
           size="sm"
@@ -518,6 +528,7 @@ const QuotePDFViewer = ({ quote, lines, client, company, fileName }: QuotePDFVie
               lines={lines}
               client={client}
               company={company}
+              project={project}
             />
           }
           fileName={fileName}
@@ -542,10 +553,10 @@ const QuotePDFViewer = ({ quote, lines, client, company, fileName }: QuotePDFVie
 
       {/* Preview */}
       {showPreview && (
-        <div className="bg-gray-800 p-4 min-h-[600px] md:min-h-[800px]">
+        <div className="bg-gray-800 p-4 flex-1 min-h-0">
           <PDFViewer
             width="100%"
-            height={600}
+            height="100%"
             className="rounded-lg"
             showToolbar={false}
           >
@@ -554,6 +565,7 @@ const QuotePDFViewer = ({ quote, lines, client, company, fileName }: QuotePDFVie
               lines={lines}
               client={client}
               company={company}
+              project={project}
             />
           </PDFViewer>
         </div>

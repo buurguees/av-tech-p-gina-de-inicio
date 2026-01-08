@@ -16,6 +16,7 @@ import NexoClientsPage from "./pages/nexo_av/ClientsPage";
 import NexoClientDetailPage from "./pages/nexo_av/ClientDetailPage";
 import NexoQuotesPage from "./pages/nexo_av/QuotesPage";
 import NexoQuoteDetailPage from "./pages/nexo_av/QuoteDetailPage";
+import NexoEditQuotePage from "./pages/nexo_av/EditQuotePage";
 import NexoNewQuotePage from "./pages/nexo_av/NewQuotePage";
 import NexoProjectsPage from "./pages/nexo_av/ProjectsPage";
 import NexoProjectDetailPage from "./pages/nexo_av/ProjectDetailPage";
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/nexo-av/:userId/quotes" element={<NexoQuotesPage />} />
             <Route path="/nexo-av/:userId/quotes/new" element={<NexoNewQuotePage />} />
             <Route path="/nexo-av/:userId/quotes/:quoteId" element={<NexoQuoteDetailPage />} />
+            <Route path="/nexo-av/:userId/quotes/:quoteId/edit" element={<NexoEditQuotePage />} />
             <Route path="/nexo-av/:userId/clients/:clientId/quotes/new" element={<NexoNewQuotePage />} />
             <Route path="/nexo-av/:userId/projects" element={<NexoProjectsPage />} />
             <Route path="/nexo-av/:userId/projects/:projectId" element={<NexoProjectDetailPage />} />
