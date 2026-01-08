@@ -540,6 +540,7 @@ export type Database = {
           last_login_at: string
           phone: string
           roles: string[]
+          setup_completed: boolean
         }[]
       }
       list_clients: {

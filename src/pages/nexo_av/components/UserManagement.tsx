@@ -68,6 +68,7 @@ interface AuthorizedUser {
   is_active: boolean;
   created_at: string;
   last_login_at: string | null;
+  setup_completed: boolean;
   roles: string[];
 }
 
@@ -392,6 +393,7 @@ const UserManagement = () => {
       case 'sales': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
       case 'tech': return 'bg-green-500/20 text-green-400 border-green-500/30';
       case 'viewer': return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+      case 'invited': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
       default: return 'bg-white/10 text-white/60 border-white/20';
     }
   };
@@ -500,15 +502,25 @@ const UserManagement = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {user.roles?.map((role) => (
+                      {!user.setup_completed ? (
                         <Badge
-                          key={role}
                           variant="outline"
-                          className={`${getRoleBadgeColor(role)} text-xs`}
+                          className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs"
                         >
-                          {role}
+                          <Mail className="h-3 w-3 mr-1" />
+                          Invitado
                         </Badge>
-                      ))}
+                      ) : (
+                        user.roles?.map((role) => (
+                          <Badge
+                            key={role}
+                            variant="outline"
+                            className={`${getRoleBadgeColor(role)} text-xs`}
+                          >
+                            {role}
+                          </Badge>
+                        ))
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
