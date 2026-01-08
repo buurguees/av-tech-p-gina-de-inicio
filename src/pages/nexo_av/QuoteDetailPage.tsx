@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Loader2, Edit, Send, Check, X, FileText, Building2, User, FolderOpen } from "lucide-react";
+import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Clock } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader from "./components/NexoHeader";
@@ -75,15 +75,6 @@ interface CompanySettings {
   logo_url: string | null;
 }
 
-interface Project {
-  id: string;
-  project_number: string;
-  project_name: string;
-  project_address: string | null;
-  project_city: string | null;
-  local_name: string | null;
-}
-
 const QUOTE_STATUSES = [
   { value: "DRAFT", label: "Borrador", className: "bg-gray-500/20 text-gray-300 border-gray-500/30" },
   { value: "SENT", label: "Enviado", className: "bg-blue-500/20 text-blue-300 border-blue-500/30" },
@@ -107,7 +98,6 @@ const QuoteDetailPage = () => {
   const [lines, setLines] = useState<QuoteLine[]>([]);
   const [client, setClient] = useState<Client | null>(null);
   const [company, setCompany] = useState<CompanySettings | null>(null);
-  const [project, setProject] = useState<Project | null>(null);
 
   useEffect(() => {
     if (quoteId) {
@@ -151,9 +141,6 @@ const QuoteDetailPage = () => {
       if (!companyError && companyData && companyData.length > 0) {
         setCompany(companyData[0]);
       }
-
-      // Fetch project if linked
-      // For now we'll use the project_name from quote, but could add project lookup later
       
     } catch (error: any) {
       console.error("Error fetching quote:", error);
@@ -181,6 +168,11 @@ const QuoteDetailPage = () => {
       year: "numeric",
     });
   };
+
+  // Check if quote can be deleted (only drafts can be deleted)
+  const canDelete = quote?.status === "DRAFT";
+  // Check if quote has a final number (only approved+ statuses)
+  const hasFinalNumber = quote?.status && ["APPROVED", "INVOICED"].includes(quote.status);
 
   if (loading) {
     return (
@@ -213,11 +205,26 @@ const QuoteDetailPage = () => {
   }
 
   const statusInfo = getStatusInfo(quote.status);
+  const displayNumber = hasFinalNumber ? quote.quote_number : `(${quote.quote_number})`;
   const pdfFileName = `${quote.quote_number}${quote.project_name ? ` - ${quote.project_name}` : ''}.pdf`;
+
+  // Custom header with status badge for mobile
+  const headerTitle = (
+    <div className="flex items-center gap-2">
+      <span>{displayNumber}</span>
+      <Badge className={`${statusInfo.className} text-[9px] md:text-xs px-1.5 py-0`}>
+        {statusInfo.label}
+      </Badge>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-black pb-mobile-nav">
-      <NexoHeader title={quote.quote_number} userId={userId || ""} />
+      <NexoHeader 
+        title={displayNumber} 
+        userId={userId || ""} 
+        customTitle={headerTitle}
+      />
 
       <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
         <motion.div
@@ -225,110 +232,231 @@ const QuoteDetailPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between gap-2 mb-4 md:mb-6">
-            <div className="flex items-center gap-2 md:gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate(`/nexo-av/${userId}/quotes`)}
-                className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8 md:h-10 md:w-10"
-              >
-                <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
-              </Button>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-base md:text-2xl font-bold text-white font-mono">
-                    {quote.quote_number}
-                  </h1>
-                  <Badge className={`${statusInfo.className} text-[10px] md:text-xs`}>
+          {/* Desktop Layout: Side by side */}
+          <div className="hidden md:grid md:grid-cols-3 gap-6 h-[calc(100vh-140px)]">
+            {/* PDF Preview - Left (2/3) */}
+            <div className="md:col-span-2 bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
+                <span className="text-white/60 text-sm font-medium">Vista previa</span>
+                <span className="text-white/40 text-xs">{pdfFileName}</span>
+              </div>
+              <div className="flex-1 min-h-0">
+                <QuotePDFViewer
+                  quote={quote}
+                  lines={lines}
+                  client={client}
+                  company={company}
+                  fileName={pdfFileName}
+                />
+              </div>
+            </div>
+
+            {/* Info Panel - Right (1/3) */}
+            <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
+                <div>
+                  <h2 className="text-white font-mono font-bold text-lg">{displayNumber}</h2>
+                  <Badge className={`${statusInfo.className} text-xs mt-1`}>
                     {statusInfo.label}
                   </Badge>
                 </div>
-                <p className="text-white/60 text-[10px] md:text-sm">
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
+                    className="text-white/60 hover:text-white hover:bg-white/10 h-8 w-8"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  {canDelete && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-white/60 hover:text-red-400 hover:bg-red-500/10 h-8 w-8"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {/* Client */}
+                <div className="bg-white/5 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Building2 className="h-4 w-4 text-orange-500" />
+                    <span className="text-white/50 text-xs uppercase tracking-wide">Cliente</span>
+                  </div>
+                  <p className="text-white font-medium">{quote.client_name}</p>
+                  {client?.tax_id && (
+                    <p className="text-white/60 text-sm">{client.tax_id}</p>
+                  )}
+                </div>
+
+                {/* Project */}
+                <div className="bg-white/5 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FolderOpen className="h-4 w-4 text-blue-500" />
+                    <span className="text-white/50 text-xs uppercase tracking-wide">Proyecto</span>
+                  </div>
+                  <p className="text-white font-medium">
+                    {quote.project_name || "Sin proyecto asignado"}
+                  </p>
+                </div>
+
+                {/* Created by */}
+                <div className="bg-white/5 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="h-4 w-4 text-purple-500" />
+                    <span className="text-white/50 text-xs uppercase tracking-wide">Creado por</span>
+                  </div>
+                  <p className="text-white font-medium">
+                    {quote.created_by_name || "Usuario"}
+                  </p>
+                </div>
+
+                {/* Dates */}
+                <div className="bg-white/5 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="h-4 w-4 text-green-500" />
+                    <span className="text-white/50 text-xs uppercase tracking-wide">Fechas</span>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Creado</span>
+                      <span className="text-white">{formatDate(quote.created_at)}</span>
+                    </div>
+                    {quote.valid_until && (
+                      <div className="flex justify-between">
+                        <span className="text-white/60">Válido hasta</span>
+                        <span className="text-white">{formatDate(quote.valid_until)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="h-4 w-4 text-orange-500" />
+                    <span className="text-orange-400 text-xs uppercase tracking-wide">Total</span>
+                  </div>
+                  <p className="text-white text-2xl font-bold">
+                    {formatCurrency(quote.total)}
+                  </p>
+                  <div className="flex justify-between text-sm mt-2 text-white/60">
+                    <span>Base</span>
+                    <span>{formatCurrency(quote.subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-white/60">
+                    <span>Impuestos</span>
+                    <span>{formatCurrency(quote.tax_amount)}</span>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {quote.notes && (
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <span className="text-white/50 text-xs uppercase tracking-wide">Notas</span>
+                    <p className="text-white/80 text-sm mt-2">{quote.notes}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Layout: Stacked */}
+          <div className="md:hidden space-y-3">
+            {/* Compact summary cards - 2x2 grid */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-white/5 rounded-lg border border-white/10 p-2.5">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <Building2 className="h-3 w-3 text-orange-500" />
+                  <span className="text-white/40 text-[9px]">Cliente</span>
+                </div>
+                <p className="text-white text-[11px] font-medium truncate">
                   {quote.client_name}
-                  {quote.project_name && ` · ${quote.project_name}`}
+                </p>
+              </div>
+
+              <div className="bg-white/5 rounded-lg border border-white/10 p-2.5">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <FolderOpen className="h-3 w-3 text-blue-500" />
+                  <span className="text-white/40 text-[9px]">Proyecto</span>
+                </div>
+                <p className="text-white text-[11px] font-medium truncate">
+                  {quote.project_name || "Sin proyecto"}
+                </p>
+              </div>
+
+              <div className="bg-white/5 rounded-lg border border-white/10 p-2.5">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <User className="h-3 w-3 text-purple-500" />
+                  <span className="text-white/40 text-[9px]">Creado por</span>
+                </div>
+                <p className="text-white text-[11px] font-medium truncate">
+                  {quote.created_by_name || "Usuario"}
+                </p>
+              </div>
+
+              <div className="bg-orange-500/10 rounded-lg border border-orange-500/30 p-2.5">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <FileText className="h-3 w-3 text-orange-500" />
+                  <span className="text-orange-400/70 text-[9px]">Total</span>
+                </div>
+                <p className="text-white text-sm font-bold">
+                  {formatCurrency(quote.total)}
                 </p>
               </div>
             </div>
 
+            {/* Actions bar for mobile */}
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                size="icon"
+                size="sm"
                 onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
-                className="border-white/20 text-white hover:bg-white/10 h-8 w-8 md:h-10 md:w-10"
+                className="flex-1 border-white/20 text-white hover:bg-white/10 h-8 text-xs"
               >
-                <Edit className="h-4 w-4" />
+                <Edit className="h-3 w-3 mr-1.5" />
+                Editar
               </Button>
+              {canDelete && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-red-500/30 text-red-400 hover:bg-red-500/10 h-8 text-xs"
+                >
+                  <Trash2 className="h-3 w-3 mr-1.5" />
+                  Eliminar
+                </Button>
+              )}
             </div>
-          </div>
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-6">
-            <div className="bg-white/5 rounded-lg border border-white/10 p-3 md:p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <Building2 className="h-3 w-3 md:h-4 md:w-4 text-orange-500" />
-                <span className="text-white/50 text-[10px] md:text-xs">Cliente</span>
+            {/* PDF Preview */}
+            <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-white/10">
+                <span className="text-white/60 text-xs font-medium">Vista previa</span>
+                <span className="text-white/40 text-[10px] truncate max-w-[140px]">{pdfFileName}</span>
               </div>
-              <p className="text-white text-xs md:text-sm font-medium truncate">
-                {quote.client_name}
-              </p>
+              
+              <QuotePDFViewer
+                quote={quote}
+                lines={lines}
+                client={client}
+                company={company}
+                fileName={pdfFileName}
+              />
             </div>
 
-            <div className="bg-white/5 rounded-lg border border-white/10 p-3 md:p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <FolderOpen className="h-3 w-3 md:h-4 md:w-4 text-blue-500" />
-                <span className="text-white/50 text-[10px] md:text-xs">Proyecto</span>
-              </div>
-              <p className="text-white text-xs md:text-sm font-medium truncate">
-                {quote.project_name || "Sin proyecto"}
-              </p>
+            {/* Dates footer */}
+            <div className="flex items-center justify-between text-white/40 text-[10px]">
+              <span>Creado: {formatDate(quote.created_at)}</span>
+              {quote.valid_until && (
+                <span>Válido: {formatDate(quote.valid_until)}</span>
+              )}
             </div>
-
-            <div className="bg-white/5 rounded-lg border border-white/10 p-3 md:p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <User className="h-3 w-3 md:h-4 md:w-4 text-purple-500" />
-                <span className="text-white/50 text-[10px] md:text-xs">Creado por</span>
-              </div>
-              <p className="text-white text-xs md:text-sm font-medium truncate">
-                {quote.created_by_name || "Usuario"}
-              </p>
-            </div>
-
-            <div className="bg-white/5 rounded-lg border border-white/10 p-3 md:p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <FileText className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
-                <span className="text-white/50 text-[10px] md:text-xs">Total</span>
-              </div>
-              <p className="text-white text-sm md:text-lg font-bold">
-                {formatCurrency(quote.total)}
-              </p>
-            </div>
-          </div>
-
-          {/* PDF Preview */}
-          <div className="bg-white/5 rounded-lg md:rounded-xl border border-white/10 overflow-hidden">
-            <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-3 border-b border-white/10">
-              <span className="text-white/60 text-xs md:text-sm font-medium">Vista previa del documento</span>
-              <span className="text-white/40 text-[10px] md:text-xs">{pdfFileName}</span>
-            </div>
-            
-            <QuotePDFViewer
-              quote={quote}
-              lines={lines}
-              client={client}
-              company={company}
-              fileName={pdfFileName}
-            />
-          </div>
-
-          {/* Dates info */}
-          <div className="flex items-center justify-between mt-4 text-white/40 text-[10px] md:text-xs">
-            <span>Creado: {formatDate(quote.created_at)}</span>
-            {quote.valid_until && (
-              <span>Válido hasta: {formatDate(quote.valid_until)}</span>
-            )}
           </div>
         </motion.div>
       </main>
