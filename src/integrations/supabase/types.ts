@@ -99,6 +99,19 @@ export type Database = {
         }[]
       }
       check_email_exists: { Args: { p_email: string }; Returns: boolean }
+      check_rate_limit: {
+        Args: {
+          p_identifier: string
+          p_identifier_type: string
+          p_max_attempts: number
+          p_window_minutes: number
+        }
+        Returns: {
+          allowed: boolean
+          remaining_attempts: number
+          retry_after_seconds: number
+        }[]
+      }
       clear_user_roles: { Args: { p_user_id: string }; Returns: undefined }
       create_authorized_user: {
         Args: {
@@ -620,7 +633,21 @@ export type Database = {
           updated_at: string
         }[]
       }
+      record_login_attempt: {
+        Args: {
+          p_identifier: string
+          p_identifier_type: string
+          p_ip_address?: unknown
+          p_success: boolean
+          p_user_agent?: string
+        }
+        Returns: undefined
+      }
       remove_pack_item: { Args: { p_item_id: string }; Returns: boolean }
+      reset_rate_limit: {
+        Args: { p_identifier: string; p_identifier_type: string }
+        Returns: undefined
+      }
       toggle_user_status: {
         Args: { p_is_active: boolean; p_user_id: string }
         Returns: boolean
