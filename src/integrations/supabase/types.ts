@@ -200,6 +200,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_invitation_token: {
+        Args: { p_expires_at: string; p_token: string; p_user_id: string }
+        Returns: undefined
+      }
       create_product: {
         Args: {
           p_base_price?: number
@@ -484,6 +488,7 @@ export type Database = {
         }[]
       }
       get_user_auth_id: { Args: { p_user_id: string }; Returns: string }
+      get_user_auth_id_by_email: { Args: { p_email: string }; Returns: string }
       get_user_roles_by_user_id: {
         Args: { p_user_id: string }
         Returns: {
@@ -719,6 +724,10 @@ export type Database = {
           updated_at: string
         }[]
       }
+      mark_invitation_token_used: {
+        Args: { p_token: string }
+        Returns: undefined
+      }
       record_login_attempt: {
         Args: {
           p_identifier: string
@@ -926,6 +935,14 @@ export type Database = {
           p_website?: string
         }
         Returns: string
+      }
+      validate_invitation_token: {
+        Args: { p_email: string; p_token: string }
+        Returns: {
+          error_message: string
+          is_valid: boolean
+          user_id: string
+        }[]
       }
       verify_otp: {
         Args: { p_code: string; p_email: string }

@@ -149,10 +149,10 @@ const UserManagement = () => {
   };
 
   const handleCreateUser = async () => {
-    if (!formData.email || !formData.full_name || !formData.password) {
+    if (!formData.email || formData.selectedRoles.length === 0) {
       toast({
         title: "Campos requeridos",
-        description: "Por favor, completa todos los campos obligatorios.",
+        description: "Por favor, introduce el email y selecciona al menos un rol.",
         variant: "destructive",
       });
       return;
@@ -167,39 +167,26 @@ const UserManagement = () => {
       return;
     }
 
-    // Validate password strength
-    const passwordValidation = validatePassword(formData.password);
-    if (!passwordValidation.isValid) {
-      toast({
-        title: "Contraseña no válida",
-        description: passwordValidation.errors.join(', '),
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-users', {
+      // Get current user info for invitation name
+      const { data: currentUserInfo } = await supabase.rpc('get_current_user_info');
+      const invitedByName = currentUserInfo?.[0]?.full_name || 'Administrador';
+
+      // Send invitation via edge function
+      const { data, error } = await supabase.functions.invoke('send-user-invitation', {
         body: {
-          action: 'create',
-          userData: {
-            email: formData.email,
-            password: formData.password,
-            full_name: formData.full_name,
-            phone: formData.phone || null,
-            department: formData.department,
-            position: formData.position || null,
-            roles: formData.selectedRoles,
-          }
+          email: formData.email,
+          role: formData.selectedRoles[0], // Primary role
+          invitedByName: invitedByName
         }
       });
 
       if (error) throw error;
 
       toast({
-        title: "Usuario creado",
-        description: `El usuario ${formData.email} ha sido creado correctamente.`,
+        title: "Invitación enviada",
+        description: `Se ha enviado un email de invitación a ${formData.email}`,
       });
 
       setIsCreateDialogOpen(false);
@@ -209,7 +196,7 @@ const UserManagement = () => {
       console.error('Error creating user:', error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo crear el usuario.",
+        description: error.message || "No se pudo enviar la invitación.",
         variant: "destructive",
       });
     } finally {
@@ -590,16 +577,16 @@ const UserManagement = () => {
         </Table>
       </div>
 
-      {/* Create User Dialog */}
+      {/* Create User Dialog - Simplified */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserPlus className="h-5 w-5" />
-              Crear Nuevo Usuario
+              Invitar Nuevo Usuario
             </DialogTitle>
             <DialogDescription className="text-white/50">
-              Añade un nuevo usuario autorizado al sistema
+              Se enviará un email de invitación para que el usuario configure su cuenta
             </DialogDescription>
           </DialogHeader>
 
@@ -616,88 +603,70 @@ const UserManagement = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white/70">Nombre completo *</Label>
-              <Input
-                placeholder="Nombre y apellidos"
-                value={formData.full_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
-              />
+              <Label className="text-white/70">Rol *</Label>
+              <Select
+                value={formData.selectedRoles[0] || ''}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, selectedRoles: [value] }))}
+              >
+                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectValue placeholder="Selecciona un rol" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10">
+                  {roles.map((role) => (
+                    <SelectItem key={role.id} value={role.name} className="text-white">
+                      <div className="flex items-center gap-2">
+                        {role.name === 'admin' && <ShieldCheck className="h-4 w-4 text-red-400" />}
+                        {role.name === 'manager' && <Shield className="h-4 w-4 text-purple-400" />}
+                        {role.name === 'sales' && <UserCog className="h-4 w-4 text-blue-400" />}
+                        {role.name === 'tech' && <UserCog className="h-4 w-4 text-green-400" />}
+                        {role.name === 'viewer' && <UserCog className="h-4 w-4 text-gray-400" />}
+                        <span className="capitalize">{role.display_name || role.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-white/70">Contraseña *</Label>
-              <Input
-                type="password"
-                placeholder="Mínimo 12 caracteres con mayúsculas, números y símbolos"
-                value={formData.password}
-                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
-              />
-              {formData.password && (
-                <PasswordStrengthIndicator 
-                  validation={validatePassword(formData.password)} 
-                />
+            <div className="bg-white/5 rounded-lg p-4 space-y-2">
+              <p className="text-white/70 text-sm font-medium">¿Qué sucederá?</p>
+              <ul className="text-white/50 text-xs space-y-1">
+                <li>• Se enviará un email de invitación al usuario</li>
+                <li>• El usuario configurará su propia contraseña</li>
+                <li>• Deberá completar su perfil antes de acceder</li>
+                <li>• El enlace expira en 7 días</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCreateDialogOpen(false)}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreateUser}
+              disabled={isSubmitting || !formData.email || formData.selectedRoles.length === 0}
+              className="bg-white text-black hover:bg-white/90"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Enviar Invitación
+                </>
               )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-white/70">Teléfono</Label>
-                <Input
-                  placeholder="+34 600 000 000"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-white/70">Departamento</Label>
-                <Select
-                  value={formData.department}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, department: value }))}
-                >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10">
-                    {DEPARTMENTS.map((dept) => (
-                      <SelectItem key={dept.value} value={dept.value} className="text-white">
-                        {dept.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white/70">Cargo</Label>
-              <Input
-                placeholder="Director, Técnico, etc."
-                value={formData.position}
-                onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white/70">Roles</Label>
-              <div className="flex flex-wrap gap-2">
-                {roles.map((role) => (
-                  <button
-                    key={role.id}
-                    type="button"
-                    onClick={() => {
-                      setFormData(prev => ({
-                        ...prev,
-                        selectedRoles: prev.selectedRoles.includes(role.name)
-                          ? prev.selectedRoles.filter(r => r !== role.name)
-                          : [...prev.selectedRoles, role.name]
-                      }));
-                    }}
-                    className={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
                       formData.selectedRoles.includes(role.name)
                         ? getRoleBadgeColor(role.name)
                         : 'border-white/10 text-white/40 hover:border-white/30'
