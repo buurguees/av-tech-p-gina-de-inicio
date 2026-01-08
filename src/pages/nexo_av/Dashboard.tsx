@@ -23,6 +23,7 @@ import UserManagement from "./components/UserManagement";
 import UserAvatarDropdown from "./components/UserAvatarDropdown";
 import QuickQuoteDialog from "./components/QuickQuoteDialog";
 import CreateClientDialog from "./components/CreateClientDialog";
+import MobileBottomNav from "./components/MobileBottomNav";
 
 interface UserInfo {
   user_id: string;
@@ -264,20 +265,20 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black pb-mobile-nav">
       {/* Header */}
       <header className="border-b border-white/10 bg-black/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between h-14 md:h-16">
+            <div className="flex items-center gap-2 md:gap-3">
               <NexoLogo />
               <div>
-                <h1 className="text-white font-semibold tracking-wide">NEXO AV</h1>
-                <p className="text-white/40 text-xs">Plataforma de Gestión</p>
+                <h1 className="text-white font-semibold tracking-wide text-sm md:text-base">NEXO AV</h1>
+                <p className="text-white/40 text-[10px] md:text-xs hidden md:block">Plataforma de Gestión</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               <div className="text-right hidden sm:block">
                 <p className="text-white text-sm font-medium">{userInfo?.full_name}</p>
                 <p className="text-white/40 text-xs capitalize">
@@ -298,7 +299,7 @@ const Dashboard = () => {
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
         <DashboardContent 
           userInfo={userInfo} 
           modules={modules}
@@ -311,6 +312,9 @@ const Dashboard = () => {
           onNewLead={() => setShowCreateClientDialog(true)}
         />
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav userId={userId || ''} />
 
       <CreateClientDialog
         open={showCreateClientDialog}
