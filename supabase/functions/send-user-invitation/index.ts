@@ -149,11 +149,12 @@ serve(async (req) => {
       // Generate a temporary password (user will set their own later)
       const tempPassword = crypto.randomUUID() + 'Aa1!';
 
-      // Create the auth user with email confirmation required
+      // Create the auth user WITHOUT automatic email confirmation
+      // We'll send our own custom invitation email instead
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: email,
         password: tempPassword,
-        email_confirm: true,
+        email_confirm: false, // ⚠️ Desactivado para evitar email automático de Supabase
         user_metadata: {
           pending_setup: true,
           invited_role: role,

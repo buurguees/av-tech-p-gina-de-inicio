@@ -449,10 +449,13 @@ serve(async (req) => {
           );
         }
         
-        // Update password
+        // Update password AND confirm email
         const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(
           authUserId,
-          { password: newPassword }
+          { 
+            password: newPassword,
+            email_confirm: true  // ✅ Confirmar email manualmente
+          }
         );
         
         if (passwordError) throw passwordError;
