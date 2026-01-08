@@ -101,7 +101,7 @@ serve(async (req) => {
       );
     }
 
-    const { email, role, invitedByName } = await req.json();
+    const { email, role, invitedByName, resend } = await req.json();
 
     if (!email || !role) {
       return new Response(
@@ -118,60 +118,79 @@ serve(async (req) => {
       );
     }
 
-    // Check if user already exists
-    const { data: emailExists } = await supabaseAdmin
-      .rpc('check_email_exists', { p_email: email });
+    let newUserId: string;
 
-    if (emailExists) {
-      return new Response(
-        JSON.stringify({ error: 'User with this email already exists' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Generate a temporary password (user will set their own later)
-    const tempPassword = crypto.randomUUID() + 'Aa1!';
-
-    // Create the auth user with email confirmation required
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: email,
-      password: tempPassword,
-      email_confirm: true, // Auto-confirm since we're sending our own email
-      user_metadata: {
-        pending_setup: true,
-        invited_role: role,
+    if (resend) {
+      // For resend, get existing user id
+      const { data: existingUser, error: userError } = await supabaseAdmin
+        .rpc('get_user_id_by_email', { p_email: email });
+      
+      if (userError || !existingUser) {
+        return new Response(
+          JSON.stringify({ error: 'User not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
-    });
+      
+      newUserId = existingUser;
+      console.log('Resending invitation to existing user:', newUserId);
+    } else {
+      // Check if user already exists
+      const { data: emailExists } = await supabaseAdmin
+        .rpc('check_email_exists', { p_email: email });
 
-    if (authError) {
-      console.error('Auth creation error:', authError);
-      throw authError;
-    }
+      if (emailExists) {
+        return new Response(
+          JSON.stringify({ error: 'User with this email already exists' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
-    // Create the authorized user record with pending status
-    const { data: newUserId, error: insertError } = await supabaseAdmin
-      .rpc('create_authorized_user', {
-        p_email: email,
-        p_full_name: 'Pendiente de configurar',
-        p_phone: null,
-        p_department: 'COMMERCIAL',
-        p_job_position: null,
-        p_auth_user_id: authData.user?.id
+      // Generate a temporary password (user will set their own later)
+      const tempPassword = crypto.randomUUID() + 'Aa1!';
+
+      // Create the auth user with email confirmation required
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
+          pending_setup: true,
+          invited_role: role,
+        }
       });
 
-    if (insertError) {
-      // Rollback: delete the auth user
-      await supabaseAdmin.auth.admin.deleteUser(authData.user!.id);
-      console.error('Insert error:', insertError);
-      throw insertError;
-    }
+      if (authError) {
+        console.error('Auth creation error:', authError);
+        throw authError;
+      }
 
-    // Assign the role
-    await supabaseAdmin.rpc('assign_user_role', {
-      p_user_id: newUserId,
-      p_role_name: role,
-      p_assigned_by: authorizedUser.id
-    });
+      // Create the authorized user record with pending status
+      const { data: userId, error: insertError } = await supabaseAdmin
+        .rpc('create_authorized_user', {
+          p_email: email,
+          p_full_name: 'Pendiente de configurar',
+          p_phone: null,
+          p_department: 'COMMERCIAL',
+          p_job_position: null,
+          p_auth_user_id: authData.user?.id
+        });
+
+      if (insertError) {
+        await supabaseAdmin.auth.admin.deleteUser(authData.user!.id);
+        console.error('Insert error:', insertError);
+        throw insertError;
+      }
+
+      newUserId = userId;
+
+      // Assign the role
+      await supabaseAdmin.rpc('assign_user_role', {
+        p_user_id: newUserId,
+        p_role_name: role,
+        p_assigned_by: authorizedUser.id
+      });
+    }
 
     // Generate invitation token
     const invitationToken = crypto.randomUUID();

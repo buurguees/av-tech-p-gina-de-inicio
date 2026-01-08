@@ -54,6 +54,7 @@ import {
   Check,
   RefreshCw,
   Mail,
+  Send,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -198,6 +199,40 @@ const UserManagement = () => {
       toast({
         title: "Error",
         description: error.message || "No se pudo enviar la invitación.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResendInvitation = async (user: AuthorizedUser) => {
+    setIsSubmitting(true);
+    try {
+      const { data: currentUserInfo } = await supabase.rpc('get_current_user_info');
+      const invitedByName = currentUserInfo?.[0]?.full_name || 'Administrador';
+      const userRole = user.roles?.[0] || 'viewer';
+
+      const { data, error } = await supabase.functions.invoke('send-user-invitation', {
+        body: {
+          email: user.email,
+          role: userRole,
+          invitedByName: invitedByName,
+          resend: true
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Invitación reenviada",
+        description: `Se ha reenviado el email de invitación a ${user.email}`,
+      });
+    } catch (error: any) {
+      console.error('Error resending invitation:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo reenviar la invitación.",
         variant: "destructive",
       });
     } finally {
@@ -543,6 +578,19 @@ const UserManagement = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {/* Resend invitation button - only for pending users */}
+                      {!user.setup_completed && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleResendInvitation(user)}
+                          disabled={isSubmitting}
+                          className="h-8 w-8 text-white/50 hover:text-amber-400 hover:bg-amber-500/10"
+                          title="Reenviar invitación"
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
