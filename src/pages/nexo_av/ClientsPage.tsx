@@ -320,18 +320,13 @@ const ClientsPage = () => {
                   <button
                     key={client.id}
                     onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
-                    className="w-full p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-left"
+                    className="w-full p-2.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-left"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <div className="p-1.5 rounded-lg bg-white/5 shrink-0">
-                          <Building2 className="h-3.5 w-3.5 text-white/60" />
-                        </div>
-                        <p className="text-white font-medium text-sm truncate uppercase">{client.company_name}</p>
-                      </div>
+                      <p className="text-white font-medium text-xs truncate uppercase flex-1">{client.company_name}</p>
                       <Badge 
                         variant="outline" 
-                        className={`${stageInfo.color} border text-[10px] px-1.5 py-0 shrink-0`}
+                        className={`${stageInfo.color} border text-[9px] px-1.5 py-0 shrink-0`}
                       >
                         {stageInfo.label}
                       </Badge>

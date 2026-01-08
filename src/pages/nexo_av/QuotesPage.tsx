@@ -209,27 +209,27 @@ const QuotesPage = () => {
                     <button
                       key={quote.id}
                       onClick={() => handleQuoteClick(quote.id)}
-                      className="w-full p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-left"
+                      className="w-full p-2.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-left"
                     >
-                      <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <span className="font-mono text-orange-500 text-sm font-medium">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="font-mono text-orange-500 text-xs font-medium">
                           {quote.quote_number}
                         </span>
                         <Badge 
                           variant="outline" 
-                          className={`${statusInfo.className} text-[10px] px-1.5 py-0`}
+                          className={`${statusInfo.className} text-[9px] px-1.5 py-0`}
                         >
                           {statusInfo.label}
                         </Badge>
                       </div>
-                      <p className="text-white text-sm font-medium uppercase truncate">
+                      <p className="text-white text-xs font-medium uppercase truncate">
                         {quote.client_name || 'Sin cliente'}
                       </p>
-                      <div className="flex items-center justify-between mt-1.5">
-                        <span className="text-white/50 text-xs truncate max-w-[60%]">
-                          {quote.project_name || 'Sin proyecto'}
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-white/40 text-[10px] truncate max-w-[50%]">
+                          {quote.created_by_name || 'Usuario'}
                         </span>
-                        <span className="text-white font-medium text-sm">
+                        <span className="text-white font-medium text-xs">
                           {formatCurrency(quote.total)}
                         </span>
                       </div>
