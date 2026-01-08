@@ -87,12 +87,32 @@ const ClientsPage = () => {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchTerm = useDebounce(searchInput, 500);
   const [stageFilter, setStageFilter] = useState<string>("all");
-  const [showOnlyMine, setShowOnlyMine] = useState<boolean | null>(null); // Will be set based on role
+  const [showOnlyMine, setShowOnlyMine] = useState<boolean | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Filter clients based on showOnlyMine toggle - moved here for hook consistency
+  const filteredClients = showOnlyMine === true
+    ? clients.filter(c => c.assigned_to === currentUserId || c.assigned_to === null)
+    : clients;
+
+  // Pagination hook must be called unconditionally at the top level
+  const {
+    currentPage,
+    totalPages,
+    paginatedData: paginatedClients,
+    goToPage,
+    nextPage,
+    prevPage,
+    canGoNext,
+    canGoPrev,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination(filteredClients, { pageSize: 50 });
 
   const fetchClients = async () => {
     try {
@@ -197,25 +217,6 @@ const ClientsPage = () => {
     );
   }
 
-  // Filter clients based on showOnlyMine toggle
-  const filteredClients = showOnlyMine === true
-    ? clients.filter(c => c.assigned_to === currentUserId || c.assigned_to === null)
-    : clients;
-
-  // Pagination (50 records per page)
-  const {
-    currentPage,
-    totalPages,
-    paginatedData: paginatedClients,
-    goToPage,
-    nextPage,
-    prevPage,
-    canGoNext,
-    canGoPrev,
-    startIndex,
-    endIndex,
-    totalItems,
-  } = usePagination(filteredClients, { pageSize: 50 });
 
   return (
     <div className="min-h-screen bg-black pb-mobile-nav">
