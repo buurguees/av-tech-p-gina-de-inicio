@@ -536,6 +536,9 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          invitation_days_remaining: number
+          invitation_expires_at: string
+          invitation_sent_at: string
           is_active: boolean
           job_position: string
           last_login_at: string

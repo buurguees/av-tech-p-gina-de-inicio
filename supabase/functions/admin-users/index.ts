@@ -161,6 +161,9 @@ serve(async (req) => {
           ...user,
           position: user.job_position,
           setup_completed: user.setup_completed ?? true,
+          invitation_sent_at: user.invitation_sent_at || null,
+          invitation_expires_at: user.invitation_expires_at || null,
+          invitation_days_remaining: user.invitation_days_remaining ?? null,
         }));
 
         console.log('Returning users:', transformedUsers?.length);
