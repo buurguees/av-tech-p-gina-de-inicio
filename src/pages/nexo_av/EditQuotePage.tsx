@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, CheckCircle } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader from "./components/NexoHeader";
@@ -425,7 +425,6 @@ const EditQuotePage = () => {
 
   const totals = getTotals();
   const statusInfo = getStatusInfo(currentStatus);
-  const canChangeToApproved = currentStatus !== "APPROVED" && currentStatus !== "INVOICED";
 
   if (loading) {
     return (
@@ -465,129 +464,67 @@ const EditQuotePage = () => {
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black pb-mobile-nav">
       <NexoHeader title={`Editar ${displayNumber}`} userId={userId || ""} />
 
-      <main className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 pt-20 md:pt-24 pb-6 md:pb-10">
+      <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="space-y-4 md:space-y-6"
         >
           {/* Top bar */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 md:gap-4">
+          <div className="flex items-center justify-between gap-2 mb-4 md:mb-8">
+            <div className="flex items-center gap-2 md:gap-4">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}`)}
-                className="text-white/70 hover:text-white hover:bg-white/10 h-9 w-9 md:h-10 md:w-10"
+                className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8 md:h-10 md:w-10"
               >
                 <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
               </Button>
               <div>
-                <div className="flex items-center gap-2 md:gap-3">
-                  <h1 className="text-lg md:text-2xl font-bold text-white font-mono">{displayNumber}</h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-base md:text-2xl font-bold text-white font-mono">{displayNumber}</h1>
                   <Badge className={`${statusInfo.className} text-[10px] md:text-xs`}>
                     {statusInfo.label}
                   </Badge>
                 </div>
-                <p className="text-white/50 text-xs md:text-sm">Editando presupuesto</p>
+                <p className="text-white/60 text-[10px] md:text-sm hidden md:block">Editando presupuesto</p>
               </div>
             </div>
 
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="bg-orange-500 hover:bg-orange-600 text-white h-9 md:h-10 px-4 md:px-5 gap-2"
+              size="icon"
+              className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 md:h-10 md:w-auto md:px-4"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              <span className="hidden sm:inline">Guardar</span>
+              <span className="hidden md:inline ml-2">Guardar</span>
             </Button>
           </div>
 
-          {/* Status and Dates - Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Status selector */}
-            <div className="bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/10 p-4 md:p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-1.5 rounded-lg bg-green-500/10">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                </div>
-                <span className="text-white/70 text-xs font-semibold uppercase tracking-wider">Estado</span>
+          {/* Quote header info - Client Data (same as NewQuotePage) */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-lg md:rounded-xl border border-white/10 p-3 md:p-6 mb-3 md:mb-4">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/10">
+              <div className="p-1.5 rounded bg-white/5">
+                <FileText className="h-3 w-3 md:h-4 md:w-4 text-orange-500" />
               </div>
-              <Select value={currentStatus} onValueChange={setCurrentStatus}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white h-10 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10">
-                  {QUOTE_STATUSES.map((status) => (
-                    <SelectItem 
-                      key={status.value} 
-                      value={status.value} 
-                      className="text-white text-sm"
-                      disabled={!canChangeToApproved && (status.value === "APPROVED" || status.value === "INVOICED")}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Badge className={`${status.className} text-[10px]`}>{status.label}</Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {currentStatus === "APPROVED" && quote.status === "DRAFT" && (
-                <p className="text-green-400/80 text-xs mt-3 flex items-center gap-1.5">
-                  <CheckCircle className="h-3 w-3" />
-                  Al aprobar se asignará el número definitivo
-                </p>
-              )}
+              <span className="text-white/60 text-[10px] md:text-xs font-medium uppercase tracking-wide">Datos del documento</span>
             </div>
-
-            {/* Dates */}
-            <div className="bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/10 p-4 md:p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-1.5 rounded-lg bg-orange-500/10">
-                  <FileText className="h-4 w-4 text-orange-500" />
-                </div>
-                <span className="text-white/70 text-xs font-semibold uppercase tracking-wider">Validez</span>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-white/50 text-xs">Creado</Label>
-                  <Input
-                    type="date"
-                    value={quote.created_at.split('T')[0]}
-                    disabled
-                    className="bg-white/5 border-white/10 text-white/50 h-10 text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white/50 text-xs">Vence</Label>
-                  <Input
-                    type="date"
-                    value={validUntil}
-                    onChange={(e) => setValidUntil(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white h-10 text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Client and Project */}
-          <div className="bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/10 p-4 md:p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-white/70 text-xs font-medium">Cliente</Label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+              <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
+                <Label className="text-white/70 text-[10px] md:text-sm">Contacto</Label>
                 <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-10 text-sm">
-                    <SelectValue placeholder="Seleccionar cliente" />
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm">
+                    <SelectValue placeholder="Seleccionar" />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10">
                     {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id} className="text-white text-sm">
+                      <SelectItem key={client.id} value={client.id} className="text-white text-xs md:text-sm">
                         {client.company_name}
                       </SelectItem>
                     ))}
@@ -595,35 +532,156 @@ const EditQuotePage = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-white/70 text-xs font-medium">Proyecto</Label>
+              <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
+                <Label className="text-white/70 text-[10px] md:text-sm">Proyecto</Label>
                 <Select 
                   value={selectedProjectId} 
                   onValueChange={setSelectedProjectId}
                   disabled={!selectedClientId || loadingProjects}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-10 text-sm">
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm">
                     <SelectValue placeholder={
                       !selectedClientId 
-                        ? "Selecciona un cliente primero" 
+                        ? "Cliente primero" 
                         : loadingProjects 
-                          ? "Cargando proyectos..." 
-                          : "Seleccionar proyecto"
+                          ? "Cargando..." 
+                          : projects.length === 0 
+                            ? "Sin proyectos"
+                            : "Seleccionar"
                     } />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10">
                     {projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id} className="text-white text-sm">
+                      <SelectItem key={project.id} value={project.id} className="text-white text-xs md:text-sm">
                         {project.project_name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="space-y-1 md:space-y-2">
+                <Label className="text-white/70 text-[10px] md:text-sm">Fecha</Label>
+                <Input
+                  type="date"
+                  value={quote.created_at.split('T')[0]}
+                  disabled
+                  className="bg-white/5 border-white/10 text-white/50 h-8 md:h-10 text-xs md:text-sm"
+                />
+              </div>
+
+              <div className="space-y-1 md:space-y-2">
+                <Label className="text-white/70 text-[10px] md:text-sm">Vence</Label>
+                <Input
+                  type="date"
+                  value={validUntil}
+                  onChange={(e) => setValidUntil(e.target.value)}
+                  className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Lines Table - Desktop */}
+          {/* Mobile Lines - Vertical Cards (same as NewQuotePage) */}
+          <div className="md:hidden space-y-2 mb-3">
+            {/* Lines Header */}
+            <div className="flex items-center justify-between">
+              <span className="text-white/60 text-[10px] font-medium uppercase tracking-wide">Líneas del presupuesto</span>
+              <span className="text-white/40 text-[9px]">Usa @nombre para buscar</span>
+            </div>
+
+            {lines.filter(l => !l.isDeleted).map((line) => {
+              const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
+              return (
+                <div key={line.tempId || line.id} className="bg-zinc-900/50 rounded-lg border border-orange-500/20 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-orange-500/70 text-[10px] font-mono">Línea {actualIndex + 1}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeLine(actualIndex)}
+                      className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-6 w-6"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  
+                  <ProductSearchInput
+                    value={line.concept}
+                    onChange={(value) => updateLine(actualIndex, "concept", value)}
+                    onSelectItem={(item) => handleProductSelect(actualIndex, item)}
+                    placeholder="Concepto o @buscar"
+                  />
+                  
+                  <Input
+                    value={line.description}
+                    onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
+                    placeholder="Descripción (opcional)"
+                    className="bg-white/5 border-white/10 text-white/80 h-8 text-xs"
+                  />
+                  
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-white/50 text-[9px]">Cant.</Label>
+                      <Input
+                        type="number"
+                        value={line.quantity}
+                        onChange={(e) => updateLine(actualIndex, "quantity", parseFloat(e.target.value) || 0)}
+                        className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
+                        min="0"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-white/50 text-[9px]">Precio</Label>
+                      <Input
+                        type="number"
+                        value={line.unit_price}
+                        onChange={(e) => updateLine(actualIndex, "unit_price", parseFloat(e.target.value) || 0)}
+                        className="bg-white/5 border-white/10 text-white h-8 text-xs"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-white/50 text-[9px]">IVA</Label>
+                      <Select
+                        value={line.tax_rate.toString()}
+                        onValueChange={(v) => updateLine(actualIndex, "tax_rate", parseFloat(v))}
+                      >
+                        <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-900 border-white/10 z-50">
+                          {taxOptions.map((tax) => (
+                            <SelectItem key={tax.value} value={tax.value.toString()} className="text-white text-xs">
+                              {tax.value}%
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-2 border-t border-white/10">
+                    <span className="text-white/50 text-[9px]">Subtotal</span>
+                    <span className="text-white font-medium text-sm">{formatCurrency(line.subtotal)}</span>
+                  </div>
+                </div>
+              );
+            })}
+            
+            {/* Add line button mobile */}
+            <Button
+              variant="outline"
+              onClick={addLine}
+              className="w-full border-dashed border-white/20 text-white/60 hover:bg-white/5 hover:text-white h-10 text-xs"
+            >
+              <Plus className="h-3 w-3 mr-1.5" />
+              Añadir línea
+            </Button>
+          </div>
+
+          {/* Desktop Lines Table (same structure as NewQuotePage) */}
           <div className="hidden md:block bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
               <span className="text-white/80 text-sm font-medium">Líneas del presupuesto</span>
@@ -741,101 +799,6 @@ const EditQuotePage = () => {
             </Table>
           </div>
 
-          {/* Mobile Lines */}
-          <div className="md:hidden space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-white/70 text-sm font-medium">Líneas</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={addLine}
-                className="text-orange-400 hover:bg-orange-500/10 h-8 px-3 gap-1.5"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Añadir
-              </Button>
-            </div>
-
-            {lines.filter(l => !l.isDeleted).map((line, _) => {
-              const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
-              return (
-                <div key={line.id || line.tempId} className="bg-zinc-900/50 rounded-xl border border-white/10 p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/40 text-[10px] font-mono">
-                      {line.isNew ? "Nueva" : `#${actualIndex + 1}`}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeLine(actualIndex)}
-                      className="text-white/40 hover:text-red-400 h-6 w-6"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  
-                  <ProductSearchInput
-                    value={line.concept}
-                    onChange={(value) => updateLine(actualIndex, "concept", value)}
-                    onSelectItem={(item) => handleProductSelect(actualIndex, item)}
-                    placeholder="Concepto o @buscar"
-                  />
-                  
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <Label className="text-white/40 text-[9px]">Cant.</Label>
-                      <Input
-                        type="number"
-                        value={line.quantity}
-                        onChange={(e) => updateLine(actualIndex, "quantity", parseInt(e.target.value) || 0)}
-                        className="bg-white/5 border-white/10 text-white h-7 text-xs"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-white/40 text-[9px]">Precio</Label>
-                      <Input
-                        type="number"
-                        value={line.unit_price}
-                        onChange={(e) => updateLine(actualIndex, "unit_price", parseFloat(e.target.value) || 0)}
-                        className="bg-white/5 border-white/10 text-white h-7 text-xs"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-white/40 text-[9px]">IVA</Label>
-                      <Select 
-                        value={String(line.tax_rate)} 
-                        onValueChange={(v) => updateLine(actualIndex, "tax_rate", parseFloat(v))}
-                      >
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white h-7 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-900 border-white/10">
-                          {taxOptions.map((tax) => (
-                            <SelectItem key={tax.value} value={String(tax.value)} className="text-white text-xs">
-                              {tax.value}%
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <span className="text-white font-medium text-sm">{formatCurrency(line.subtotal)}</span>
-                  </div>
-                </div>
-              );
-            })}
-
-            {lines.filter(l => !l.isDeleted).length === 0 && (
-              <div className="text-center py-6">
-                <p className="text-white/40 text-xs">Sin líneas</p>
-                <Button variant="link" onClick={addLine} className="text-orange-500 text-xs mt-1">
-                  Añadir primera línea
-                </Button>
-              </div>
-            )}
-          </div>
 
           {/* Totals */}
           <div className="bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/10 p-5 md:p-6">
