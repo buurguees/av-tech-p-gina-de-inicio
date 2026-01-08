@@ -31,7 +31,7 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const resend = new Resend(Deno.env.get("RESEND_OTP_API_KEY"));
 
 serve(async (req) => {
   const origin = req.headers.get('origin');
