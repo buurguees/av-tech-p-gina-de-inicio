@@ -255,57 +255,36 @@ const QuoteDetailPage = () => {
   const handleCreateNewVersion = async () => {
     if (!quote) return;
     
-    setCreatingVersion(true);
-    try {
-      // Call duplicate_quote function directly since it's not in the types yet
-      const { data, error } = await supabase
-        .from("quotes" as any)
-        .select("*")
-        .limit(0);
-        
-      // Actually call the RPC with raw call
-      const response = await fetch(
-        `https://takvthfatlcjsqgssnta.supabase.co/rest/v1/rpc/duplicate_quote`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRha3Z0aGZhdGxjanNxZ3NzbnRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwNTIzMzQsImV4cCI6MjA4MjYyODMzNH0.LGVh8FlYYZHy_dQtdRpU2qU4sylpNO86qRdpH8uF5U0',
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          },
-          body: JSON.stringify({ p_quote_id: quoteId }),
-        }
-      );
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error duplicating quote');
-      }
-      
-      const result = await response.json();
-      
-      if (result && result.length > 0) {
-        const newQuote = result[0];
-        toast({
-          title: "Nueva versión creada",
-          description: quote.status === "DRAFT" 
-            ? `Se ha creado ${newQuote.new_quote_number} y el original se ha bloqueado como "Enviado"`
-            : `Se ha creado la versión ${newQuote.new_quote_number}`,
+    // If quote is in DRAFT, first change it to SENT
+    if (quote.status === "DRAFT") {
+      setCreatingVersion(true);
+      try {
+        const { error } = await supabase.rpc("update_quote", {
+          p_quote_id: quoteId!,
+          p_status: "SENT",
         });
         
-        // Navigate to the new quote
-        navigate(`/nexo-av/${userId}/quotes/${newQuote.new_quote_id}`);
+        if (error) throw error;
+        
+        toast({
+          title: "Presupuesto enviado",
+          description: "El presupuesto original se ha bloqueado como 'Enviado'",
+        });
+      } catch (error: any) {
+        console.error("Error updating quote status:", error);
+        toast({
+          title: "Error",
+          description: error.message || "No se pudo actualizar el estado",
+          variant: "destructive",
+        });
+        setCreatingVersion(false);
+        return;
       }
-    } catch (error: any) {
-      console.error("Error creating new version:", error);
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo crear la nueva versión",
-        variant: "destructive",
-      });
-    } finally {
       setCreatingVersion(false);
     }
+    
+    // Navigate to new quote page with source quote id to copy data from
+    navigate(`/nexo-av/${userId}/quotes/new?sourceQuoteId=${quoteId}`);
   };
 
   const handleInvoice = () => {

@@ -77,6 +77,7 @@ const NewQuotePage = () => {
   const [lines, setLines] = useState<QuoteLine[]>([]);
   const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
   const [defaultTaxRate, setDefaultTaxRate] = useState(21);
+  const [sourceQuoteNumber, setSourceQuoteNumber] = useState<string | null>(null);
 
   // Initialize from URL params and fetch taxes
   useEffect(() => {
@@ -88,7 +89,75 @@ const NewQuotePage = () => {
     if (urlClientId) {
       setSelectedClientId(urlClientId);
     }
+    
+    // Check if we're creating a new version from an existing quote
+    const sourceQuoteId = searchParams.get('sourceQuoteId');
+    if (sourceQuoteId) {
+      loadSourceQuoteData(sourceQuoteId);
+    }
   }, [clientId, searchParams]);
+
+  // Load data from source quote for "Nueva versión" functionality
+  const loadSourceQuoteData = async (sourceQuoteId: string) => {
+    setLoading(true);
+    try {
+      // Fetch quote details
+      const { data: quoteData, error: quoteError } = await supabase.rpc("get_quote", {
+        p_quote_id: sourceQuoteId,
+      });
+      if (quoteError) throw quoteError;
+      if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
+      
+      const quoteInfo = quoteData[0];
+      setSourceQuoteNumber(quoteInfo.quote_number);
+      setSelectedClientId(quoteInfo.client_id);
+
+      // Get project_id from list_quotes (get_quote doesn't return it)
+      const { data: quotesListData } = await supabase.rpc("list_quotes", {
+        p_search: quoteInfo.quote_number,
+      });
+      const projectId = (quotesListData?.find((q: any) => q.id === sourceQuoteId) as any)?.project_id as string | undefined;
+      if (projectId) {
+        setSelectedProjectId(projectId);
+      }
+
+      // Fetch quote lines
+      const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", {
+        p_quote_id: sourceQuoteId,
+      });
+      if (linesError) throw linesError;
+      
+      // Convert lines to our format with new tempIds
+      const importedLines: QuoteLine[] = (linesData || []).map((line: any) => ({
+        tempId: crypto.randomUUID(),
+        concept: line.concept,
+        description: line.description || "",
+        quantity: line.quantity,
+        unit_price: line.unit_price,
+        tax_rate: line.tax_rate,
+        discount_percent: line.discount_percent,
+        subtotal: line.subtotal,
+        tax_amount: line.tax_amount,
+        total: line.total,
+      }));
+      
+      setLines(importedLines);
+      
+      toast({
+        title: "Datos importados",
+        description: `Se han cargado los datos del presupuesto ${quoteInfo.quote_number}`,
+      });
+    } catch (error: any) {
+      console.error("Error loading source quote:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudieron cargar los datos del presupuesto",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchSaleTaxes = async () => {
     try {
@@ -332,9 +401,20 @@ const NewQuotePage = () => {
 
   const totals = getTotals();
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black">
+        <NexoHeader title="Nuevo Presupuesto" userId={userId || ""} />
+        <div className="flex items-center justify-center pt-32">
+          <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black pb-mobile-nav">
-      <NexoHeader title="Nuevo Presupuesto" userId={userId || ""} />
+      <NexoHeader title={sourceQuoteNumber ? "Nueva Versión" : "Nuevo Presupuesto"} userId={userId || ""} />
 
       <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
         <motion.div
@@ -354,8 +434,14 @@ const NewQuotePage = () => {
                 <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
               </Button>
               <div>
-                <h1 className="text-base md:text-2xl font-bold text-white">Nuevo presupuesto</h1>
-                <p className="text-white/60 text-[10px] md:text-sm hidden md:block">El número se asignará automáticamente al guardar</p>
+                <h1 className="text-base md:text-2xl font-bold text-white">
+                  {sourceQuoteNumber ? "Nueva versión" : "Nuevo presupuesto"}
+                </h1>
+                <p className="text-white/60 text-[10px] md:text-sm hidden md:block">
+                  {sourceQuoteNumber 
+                    ? `Basado en ${sourceQuoteNumber}` 
+                    : "El número se asignará automáticamente al guardar"}
+                </p>
               </div>
             </div>
 
