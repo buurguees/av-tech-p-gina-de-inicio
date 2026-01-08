@@ -23,6 +23,7 @@ import NexoCatalogPage from "./pages/nexo_av/CatalogPage";
 import NexoProductDetailPage from "./pages/nexo_av/ProductDetailPage";
 import NexoTaxDetailPage from "./pages/nexo_av/TaxDetailPage";
 import NexoAuditPage from "./pages/nexo_av/AuditPage";
+import NexoAuditEventDetailPage from "./pages/nexo_av/AuditEventDetailPage";
 import NexoNotFound from "./pages/nexo_av/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/nexo-av/:userId/settings" element={<NexoSettingsPage />} />
             <Route path="/nexo-av/:userId/settings/taxes/:taxId" element={<NexoTaxDetailPage />} />
             <Route path="/nexo-av/:userId/audit" element={<NexoAuditPage />} />
+            <Route path="/nexo-av/:userId/audit/:eventId" element={<NexoAuditEventDetailPage />} />
             <Route path="/nexo-av/:userId/catalog" element={<NexoCatalogPage />} />
             <Route path="/nexo-av/:userId/catalog/:productId" element={<NexoProductDetailPage />} />
             <Route path="/nexo-av/:userId/*" element={<NexoNotFound />} />
