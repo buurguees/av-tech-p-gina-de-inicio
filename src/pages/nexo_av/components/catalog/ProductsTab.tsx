@@ -767,9 +767,11 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         </Table>
       </div>
 
-      <p className="text-white/40 text-xs">
-        Haz clic en "Ver detalles" para editar un {isProductTab ? 'producto' : 'servicio'}
-      </p>
+      {isAdmin && (
+        <p className="text-white/40 text-xs">
+          Haz clic en "Ver detalles" para editar un {isProductTab ? 'producto' : 'servicio'}
+        </p>
+      )}
     </div>
   );
 }
