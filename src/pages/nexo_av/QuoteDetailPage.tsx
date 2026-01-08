@@ -3,7 +3,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Clock } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader from "./components/NexoHeader";
@@ -97,6 +104,29 @@ const getStatusInfo = (status: string) => {
   return QUOTE_STATUSES.find(s => s.value === status) || QUOTE_STATUSES[0];
 };
 
+// States that block editing
+const LOCKED_STATES = ["SENT", "APPROVED", "REJECTED", "EXPIRED", "INVOICED"];
+
+// States that allow status changes
+const getAvailableStatusTransitions = (currentStatus: string) => {
+  switch (currentStatus) {
+    case "DRAFT":
+      return ["DRAFT", "SENT"];
+    case "SENT":
+      return ["SENT", "APPROVED", "REJECTED"];
+    case "APPROVED":
+      return ["APPROVED"]; // Can only be changed to INVOICED via the button
+    case "REJECTED":
+      return ["REJECTED"]; // Cannot be changed
+    case "EXPIRED":
+      return ["EXPIRED"]; // Cannot be changed
+    case "INVOICED":
+      return ["INVOICED"]; // Cannot be changed
+    default:
+      return [currentStatus];
+  }
+};
+
 const QuoteDetailPage = () => {
   const navigate = useNavigate();
   const { userId, quoteId } = useParams<{ userId: string; quoteId: string }>();
@@ -108,6 +138,8 @@ const QuoteDetailPage = () => {
   const [client, setClient] = useState<Client | null>(null);
   const [company, setCompany] = useState<CompanySettings | null>(null);
   const [project, setProject] = useState<Project | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [creatingVersion, setCreatingVersion] = useState(false);
 
   useEffect(() => {
     if (quoteId) {
@@ -186,6 +218,104 @@ const QuoteDetailPage = () => {
     }
   };
 
+  const handleStatusChange = async (newStatus: string) => {
+    if (!quote || newStatus === quote.status) return;
+    
+    setUpdatingStatus(true);
+    try {
+      const { error } = await supabase.rpc("update_quote", {
+        p_quote_id: quoteId!,
+        p_status: newStatus,
+      });
+      
+      if (error) throw error;
+      
+      // Refetch quote to get updated number if changed to SENT
+      await fetchQuoteData();
+      
+      const statusLabel = getStatusInfo(newStatus).label;
+      toast({
+        title: "Estado actualizado",
+        description: newStatus === "SENT" 
+          ? "El presupuesto se ha bloqueado y se ha asignado el número definitivo"
+          : `El presupuesto ahora está "${statusLabel}"`,
+      });
+    } catch (error: any) {
+      console.error("Error updating status:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo actualizar el estado",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleCreateNewVersion = async () => {
+    if (!quote) return;
+    
+    setCreatingVersion(true);
+    try {
+      // Call duplicate_quote function directly since it's not in the types yet
+      const { data, error } = await supabase
+        .from("quotes" as any)
+        .select("*")
+        .limit(0);
+        
+      // Actually call the RPC with raw call
+      const response = await fetch(
+        `https://takvthfatlcjsqgssnta.supabase.co/rest/v1/rpc/duplicate_quote`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRha3Z0aGZhdGxjanNxZ3NzbnRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwNTIzMzQsImV4cCI6MjA4MjYyODMzNH0.LGVh8FlYYZHy_dQtdRpU2qU4sylpNO86qRdpH8uF5U0',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({ p_quote_id: quoteId }),
+        }
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error duplicating quote');
+      }
+      
+      const result = await response.json();
+      
+      if (result && result.length > 0) {
+        const newQuote = result[0];
+        toast({
+          title: "Nueva versión creada",
+          description: quote.status === "DRAFT" 
+            ? `Se ha creado ${newQuote.new_quote_number} y el original se ha bloqueado como "Enviado"`
+            : `Se ha creado la versión ${newQuote.new_quote_number}`,
+        });
+        
+        // Navigate to the new quote
+        navigate(`/nexo-av/${userId}/quotes/${newQuote.new_quote_id}`);
+      }
+    } catch (error: any) {
+      console.error("Error creating new version:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo crear la nueva versión",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingVersion(false);
+    }
+  };
+
+  const handleInvoice = () => {
+    // TODO: Implement invoice creation
+    toast({
+      title: "Funcionalidad próximamente",
+      description: "La creación de facturas se implementará próximamente",
+    });
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-ES", {
       style: "currency",
@@ -201,11 +331,14 @@ const QuoteDetailPage = () => {
     });
   };
 
-  // Check if quote can be deleted (only drafts can be deleted)
+  // Check if quote is locked
+  const isLocked = quote ? LOCKED_STATES.includes(quote.status) : false;
   const canDelete = quote?.status === "DRAFT";
-  // Check if quote has a final number (P- format, not BORR-)
   const isProvisionalNumber = quote?.quote_number?.startsWith("BORR-");
   const hasFinalNumber = !isProvisionalNumber && quote?.quote_number?.startsWith("P-");
+  const availableTransitions = quote ? getAvailableStatusTransitions(quote.status) : [];
+  const canChangeStatus = availableTransitions.length > 1;
+  const showInvoiceButton = quote?.status === "APPROVED";
 
   if (loading) {
     return (
@@ -248,6 +381,7 @@ const QuoteDetailPage = () => {
       <Badge className={`${statusInfo.className} text-[9px] md:text-xs px-1.5 py-0`}>
         {statusInfo.label}
       </Badge>
+      {isLocked && <Lock className="h-3 w-3 text-white/40" />}
     </div>
   );
 
@@ -289,20 +423,25 @@ const QuoteDetailPage = () => {
             <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
                 <div>
-                  <h2 className="text-white font-mono font-bold text-lg">{displayNumber}</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-white font-mono font-bold text-lg">{displayNumber}</h2>
+                    {isLocked && <Lock className="h-4 w-4 text-white/40" />}
+                  </div>
                   <Badge className={`${statusInfo.className} text-xs mt-1`}>
                     {statusInfo.label}
                   </Badge>
                 </div>
                 <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
-                    className="text-white/60 hover:text-white hover:bg-white/10 h-8 w-8"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  {!isLocked && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
+                      className="text-white/60 hover:text-white hover:bg-white/10 h-8 w-8"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
                   {canDelete && (
                     <Button
                       variant="ghost"
@@ -316,6 +455,82 @@ const QuoteDetailPage = () => {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {/* Status change (if allowed) */}
+                {canChangeStatus && (
+                  <div className="bg-white/5 rounded-lg p-3">
+                    <span className="text-white/50 text-xs uppercase tracking-wide mb-2 block">Cambiar estado</span>
+                    <Select 
+                      value={quote.status} 
+                      onValueChange={handleStatusChange}
+                      disabled={updatingStatus}
+                    >
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-white/10">
+                        {availableTransitions.map((status) => {
+                          const info = getStatusInfo(status);
+                          return (
+                            <SelectItem key={status} value={status} className="text-white text-sm">
+                              <div className="flex items-center gap-2">
+                                <Badge className={`${info.className} text-[10px]`}>{info.label}</Badge>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    {quote.status === "DRAFT" && (
+                      <p className="text-blue-400/70 text-xs mt-2">
+                        Al enviar se asignará el número definitivo
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Locked message */}
+                {isLocked && (
+                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-yellow-500 shrink-0" />
+                    <p className="text-yellow-300/80 text-xs">
+                      {quote.status === "REJECTED" 
+                        ? "Este presupuesto ha sido rechazado"
+                        : quote.status === "EXPIRED"
+                        ? "Este presupuesto ha expirado"
+                        : "Este presupuesto está bloqueado para edición"}
+                    </p>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="space-y-2">
+                  {/* Invoice button for approved quotes */}
+                  {showInvoiceButton && (
+                    <Button
+                      onClick={handleInvoice}
+                      className="w-full bg-purple-500 hover:bg-purple-600 text-white gap-2"
+                    >
+                      <Receipt className="h-4 w-4" />
+                      Facturar
+                    </Button>
+                  )}
+                  
+                  {/* New version button */}
+                  <Button
+                    variant="outline"
+                    onClick={handleCreateNewVersion}
+                    disabled={creatingVersion}
+                    className="w-full border-white/20 text-white hover:bg-white/10 gap-2"
+                  >
+                    {creatingVersion ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                    Nueva versión
+                  </Button>
+                </div>
+
                 {/* Client */}
                 <div className="bg-white/5 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-2">
@@ -445,17 +660,85 @@ const QuoteDetailPage = () => {
               </div>
             </div>
 
+            {/* Status change for mobile */}
+            {canChangeStatus && (
+              <div className="bg-white/5 rounded-lg border border-white/10 p-3">
+                <span className="text-white/50 text-xs uppercase tracking-wide mb-2 block">Estado</span>
+                <Select 
+                  value={quote.status} 
+                  onValueChange={handleStatusChange}
+                  disabled={updatingStatus}
+                >
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10">
+                    {availableTransitions.map((status) => {
+                      const info = getStatusInfo(status);
+                      return (
+                        <SelectItem key={status} value={status} className="text-white text-sm">
+                          <div className="flex items-center gap-2">
+                            <Badge className={`${info.className} text-[10px]`}>{info.label}</Badge>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Locked message for mobile */}
+            {isLocked && (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-center gap-2">
+                <Lock className="h-4 w-4 text-yellow-500 shrink-0" />
+                <p className="text-yellow-300/80 text-xs">
+                  {quote.status === "REJECTED" 
+                    ? "Presupuesto rechazado"
+                    : quote.status === "EXPIRED"
+                    ? "Presupuesto expirado"
+                    : "Bloqueado para edición"}
+                </p>
+              </div>
+            )}
+
             {/* Actions bar for mobile */}
             <div className="flex gap-2">
+              {showInvoiceButton && (
+                <Button
+                  size="sm"
+                  onClick={handleInvoice}
+                  className="flex-1 bg-purple-500 hover:bg-purple-600 text-white h-8 text-xs"
+                >
+                  <Receipt className="h-3 w-3 mr-1.5" />
+                  Facturar
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
+                onClick={handleCreateNewVersion}
+                disabled={creatingVersion}
                 className="flex-1 border-white/20 text-white hover:bg-white/10 h-8 text-xs"
               >
-                <Edit className="h-3 w-3 mr-1.5" />
-                Editar
+                {creatingVersion ? (
+                  <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
+                ) : (
+                  <Copy className="h-3 w-3 mr-1.5" />
+                )}
+                Nueva versión
               </Button>
+              {!isLocked && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
+                  className="flex-1 border-white/20 text-white hover:bg-white/10 h-8 text-xs"
+                >
+                  <Edit className="h-3 w-3 mr-1.5" />
+                  Editar
+                </Button>
+              )}
               {canDelete && (
                 <Button
                   variant="outline"
