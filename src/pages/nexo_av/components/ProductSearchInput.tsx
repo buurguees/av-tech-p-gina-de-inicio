@@ -174,11 +174,11 @@ export default function ProductSearchInput({
         </span>
       )}
 
-      {/* Search Results Dropdown */}
+      {/* Search Results Dropdown - positioned above */}
       {showResults && (
         <div
           ref={resultsRef}
-          className="absolute z-50 top-full left-0 right-0 mt-1 bg-zinc-900 border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto"
+          className="absolute z-[100] bottom-full left-0 right-0 mb-1 bg-zinc-900 border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto"
         >
           {loading ? (
             <div className="flex items-center justify-center p-3">
