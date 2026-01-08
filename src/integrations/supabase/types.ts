@@ -272,6 +272,10 @@ export type Database = {
       }
       delete_quote_line: { Args: { p_line_id: string }; Returns: boolean }
       delete_tax: { Args: { p_tax_id: string }; Returns: boolean }
+      generate_otp: {
+        Args: { p_email: string; p_ip_address?: unknown; p_user_agent?: string }
+        Returns: string
+      }
       get_authorized_user_by_auth_id: {
         Args: { p_auth_user_id: string }
         Returns: {
@@ -821,6 +825,14 @@ export type Database = {
           p_tax_id: string
         }
         Returns: boolean
+      }
+      verify_otp: {
+        Args: { p_code: string; p_email: string }
+        Returns: {
+          message: string
+          remaining_attempts: number
+          valid: boolean
+        }[]
       }
     }
     Enums: {
