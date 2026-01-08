@@ -11,9 +11,6 @@ import {
 
 // Import project images
 import project1 from '@/assets/projects/project-1.png';
-import project2 from '@/assets/projects/project-2.jpg';
-import project3 from '@/assets/projects/project-3.png';
-import project4 from '@/assets/projects/project-4.jpg';
 import project5 from '@/assets/projects/project-5.png';
 import project6 from '@/assets/projects/project-6.png';
 import project7 from '@/assets/projects/project-7.jpg';
@@ -25,9 +22,6 @@ import pantallaLedInterior from '@/assets/catalog/pantalla-led-interior.png';
 
 const projects = [
   { id: 1, image: project1, title: 'Metro Barcelona ARS Gràcia', category: 'Transporte' },
-  { id: 2, image: project2, title: 'Bershka Milan', category: 'Retail LED' },
-  { id: 3, image: project3, title: 'Oxford Street Flagship Window', category: 'Escaparate a Medida' },
-  { id: 4, image: project4, title: 'Lefties Parque Sur', category: 'LED Transparente' },
   { id: 5, image: project5, title: 'Digital Signage Jack & Jones', category: 'Señalización' },
   { id: 6, image: project6, title: 'Pantalla Circular', category: 'Displays Especiales' },
   { id: 7, image: project7, title: 'Interior Retail', category: 'Experiencia Visual' },
