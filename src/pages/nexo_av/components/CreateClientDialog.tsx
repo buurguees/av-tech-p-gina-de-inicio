@@ -177,7 +177,7 @@ const CreateClientDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+      <DialogContent className="bg-zinc-900/95 backdrop-blur-2xl border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-3xl shadow-2xl">
         <DialogHeader className="pb-2">
           <DialogTitle>Nuevo Cliente / Lead</DialogTitle>
         </DialogHeader>

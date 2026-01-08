@@ -322,13 +322,13 @@ const ClientsPage = () => {
                   <button
                     key={client.id}
                     onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
-                    className="w-full p-2.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-left"
+                    className="w-full p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200 text-left backdrop-blur-sm active:scale-[0.98] shadow-sm"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-white font-medium text-xs truncate uppercase flex-1">{client.company_name}</p>
                       <Badge 
                         variant="outline" 
-                        className={`${stageInfo.color} border text-[9px] px-1.5 py-0 shrink-0`}
+                        className={`${stageInfo.color} border text-[9px] px-2 py-0.5 shrink-0`}
                       >
                         {stageInfo.label}
                       </Badge>
@@ -357,7 +357,7 @@ const ClientsPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="hidden md:block rounded-xl border border-white/10 overflow-hidden"
+          className="hidden md:block rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm bg-white/[0.02] shadow-lg"
         >
           <Table>
             <TableHeader>
@@ -390,12 +390,12 @@ const ClientsPage = () => {
                   return (
                     <TableRow 
                       key={client.id} 
-                      className="border-white/10 hover:bg-white/5 cursor-pointer"
+                      className="border-white/10 hover:bg-white/[0.06] cursor-pointer transition-colors duration-200"
                       onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
                     >
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-white/5">
+                          <div className="p-2 rounded-xl bg-white/5 shadow-sm">
                             <Building2 className="h-4 w-4 text-white/60" />
                           </div>
                           <div>

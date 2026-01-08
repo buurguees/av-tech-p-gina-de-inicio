@@ -378,7 +378,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     return (
       <div
         onClick={() => isAdmin && startEditing(pack.id, field, value ?? '')}
-        className={`px-2 py-1 rounded min-h-[28px] flex items-center ${isAdmin ? 'cursor-pointer hover:bg-white/10' : 'cursor-default'}`}
+        className={`px-2 py-1 rounded-lg min-h-[28px] flex items-center transition-colors ${isAdmin ? 'cursor-pointer hover:bg-white/10' : 'cursor-default'}`}
       >
         {isNumeric && value !== null ? Number(value).toFixed(2) + suffix : (value || '-')}
       </div>
@@ -421,7 +421,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
       </div>
 
       {/* Packs Table */}
-      <div className="border border-white/10 rounded-lg overflow-hidden">
+      <div className="border border-white/10 rounded-2xl overflow-hidden bg-white/[0.02] backdrop-blur-sm shadow-lg">
         <Table>
           <TableHeader>
             <TableRow className="border-white/10 hover:bg-transparent">
@@ -452,7 +452,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
               </TableRow>
             ) : (
               packs.map(pack => (
-                <TableRow key={pack.id} className="border-white/10 hover:bg-white/5">
+                <TableRow key={pack.id} className="border-white/10 hover:bg-white/[0.06] transition-colors duration-200">
                   <TableCell className="text-orange-400 font-mono text-xs">{pack.pack_number}</TableCell>
                   <TableCell className="text-white text-sm">
                     {renderEditableCell(pack, 'name', pack.name)}
@@ -532,7 +532,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
 
       {/* Pack Detail Dialog */}
       <Dialog open={!!selectedPack} onOpenChange={() => closePackDetail()}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-3xl">
+        <DialogContent className="bg-zinc-900/95 backdrop-blur-2xl border-white/10 text-white max-w-3xl rounded-3xl shadow-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package className="w-5 h-5 text-orange-400" />

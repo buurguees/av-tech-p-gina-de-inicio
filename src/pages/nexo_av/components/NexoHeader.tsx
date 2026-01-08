@@ -57,7 +57,7 @@ const NexoHeader = ({
   };
 
   return (
-    <header className="border-b border-white/10 bg-black/80 backdrop-blur-sm sticky top-0 z-50">
+    <header className="border-b border-white/10 bg-black/60 backdrop-blur-xl sticky top-0 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
@@ -66,7 +66,7 @@ const NexoHeader = ({
                 variant="ghost"
                 size="icon"
                 onClick={handleBack}
-                className="text-white hover:bg-white/10"
+                className="text-white hover:bg-white/10 rounded-xl"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
@@ -76,7 +76,7 @@ const NexoHeader = ({
                 variant="ghost"
                 size="icon"
                 onClick={handleHome}
-                className="text-white hover:bg-white/10"
+                className="text-white hover:bg-white/10 rounded-xl"
               >
                 <Home className="h-5 w-5" />
               </Button>

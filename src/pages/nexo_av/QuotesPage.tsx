@@ -190,7 +190,7 @@ const QuotesPage = () => {
                 <Loader2 className="h-6 w-6 animate-spin text-white/40" />
               </div>
             ) : quotes.length === 0 ? (
-              <div className="text-center py-12 rounded-xl border border-white/10 bg-white/5">
+              <div className="text-center py-12 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm shadow-sm">
                 <FileText className="h-10 w-10 text-white/20 mx-auto mb-3" />
                 <p className="text-white/40 text-sm">No hay presupuestos</p>
                 <Button
@@ -209,7 +209,7 @@ const QuotesPage = () => {
                     <button
                       key={quote.id}
                       onClick={() => handleQuoteClick(quote.id)}
-                      className="w-full p-2.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-left"
+                      className="w-full p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200 text-left backdrop-blur-sm active:scale-[0.98] shadow-sm"
                     >
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <span className="font-mono text-orange-500 text-xs font-medium">
@@ -257,7 +257,7 @@ const QuotesPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="hidden md:block bg-white/5 rounded-xl border border-white/10 overflow-hidden"
+            className="hidden md:block bg-white/[0.02] rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm shadow-lg"
           >
             {loading ? (
               <div className="flex items-center justify-center py-12">
@@ -300,7 +300,7 @@ const QuotesPage = () => {
                       return (
                         <TableRow
                           key={quote.id}
-                          className="border-white/10 hover:bg-white/5 cursor-pointer transition-colors"
+                          className="border-white/10 hover:bg-white/[0.06] cursor-pointer transition-colors duration-200"
                           onClick={() => handleQuoteClick(quote.id)}
                         >
                           <TableCell className="font-mono text-orange-500 font-medium">

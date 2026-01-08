@@ -414,7 +414,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
       {/* Add Product Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-lg">
+        <DialogContent className="bg-zinc-900/95 backdrop-blur-2xl border-white/10 text-white max-w-lg rounded-3xl shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">Nuevo {itemLabel}</DialogTitle>
           </DialogHeader>
@@ -544,7 +544,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
             </div>
 
             {formData.categoryId && formData.basePrice && (
-              <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+              <div className="p-3 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-white/60">Precio con IVA:</span>
                   <span className="text-green-400 font-semibold">
@@ -622,7 +622,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
             <Loader2 className="w-6 h-6 animate-spin text-white/40" />
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center py-12 rounded-lg border border-white/10 bg-white/5">
+          <div className="text-center py-12 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm shadow-sm">
             <p className="text-white/40 text-xs">No hay {isProductTab ? 'productos' : 'servicios'}</p>
           </div>
         ) : (
@@ -631,7 +631,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
               <button
                 key={product.id}
                 onClick={() => handleViewDetails(product.id)}
-                className={`w-full p-2.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-left ${!product.is_active ? 'opacity-50' : ''}`}
+                className={`w-full p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200 text-left backdrop-blur-sm active:scale-[0.98] shadow-sm ${!product.is_active ? 'opacity-50' : ''}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -731,7 +731,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       </div>
 
       {/* Desktop Products Table */}
-      <div className="hidden md:block border border-white/10 rounded-lg overflow-hidden">
+      <div className="hidden md:block border border-white/10 rounded-2xl overflow-hidden bg-white/[0.02] backdrop-blur-sm shadow-lg">
         <Table>
           <TableHeader>
             <TableRow className="border-white/10 hover:bg-transparent">
@@ -764,7 +764,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
               products.map(product => (
                 <TableRow 
                   key={product.id} 
-                  className={`border-white/10 hover:bg-white/5 ${!product.is_active ? 'opacity-50' : ''}`}
+                  className={`border-white/10 hover:bg-white/[0.06] transition-colors duration-200 ${!product.is_active ? 'opacity-50' : ''}`}
                 >
                   <TableCell className="text-orange-400 font-mono text-xs">{product.product_number}</TableCell>
                   <TableCell className="text-white/60 text-xs">{product.category_code}</TableCell>
@@ -789,7 +789,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                     {product.price_with_tax.toFixed(2)} €
                   </TableCell>
                   <TableCell>
-                    <span className={`text-xs px-2 py-1 rounded ${product.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                    <span className={`text-xs px-2 py-1 rounded-full ${product.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                       {product.is_active ? 'Activo' : 'Inactivo'}
                     </span>
                   </TableCell>

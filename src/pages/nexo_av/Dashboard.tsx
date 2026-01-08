@@ -266,8 +266,8 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-black pb-mobile-nav">
-      {/* Header */}
-      <header className="border-b border-white/10 bg-black/80 backdrop-blur-sm sticky top-0 z-50">
+      {/* Header with glass effect */}
+      <header className="border-b border-white/10 bg-black/60 backdrop-blur-xl sticky top-0 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 md:h-16">
             <div className="flex items-center gap-2 md:gap-3">
@@ -415,9 +415,9 @@ const DashboardContent = ({
           >
             <button
               onClick={() => navigate(module.path)}
-              className={`w-full h-28 md:h-40 p-4 md:p-6 rounded-xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 transition-all group text-left flex flex-col justify-between`}
+              className={`w-full h-28 md:h-40 p-4 md:p-6 rounded-2xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 group text-left flex flex-col justify-between backdrop-blur-sm shadow-lg`}
             >
-              <div className="p-2 md:p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors w-fit">
+              <div className="p-2 md:p-3 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors w-fit shadow-sm">
                 <module.icon className="h-4 w-4 md:h-6 md:w-6 text-white" />
               </div>
               <h3 className="text-white font-semibold text-xs md:text-base">{module.title}</h3>

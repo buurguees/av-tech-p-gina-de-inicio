@@ -35,7 +35,7 @@
     --input: 0 0% 12%;
     --ring: 0 0% 100%;
 
-    --radius: 0.25rem;
+    --radius: 0.75rem; /* iOS-style rounded corners - 12px */
 
     /* Text colors */
     --text-primary: 0 0% 100%;

@@ -138,7 +138,7 @@ const ProjectsPage = () => {
           </div>
 
           {/* Table */}
-          <div className="rounded-xl border border-white/10 overflow-hidden">
+          <div className="rounded-2xl border border-white/10 overflow-hidden bg-white/[0.02] backdrop-blur-sm shadow-lg">
             <Table>
               <TableHeader>
                 <TableRow className="border-white/10 hover:bg-transparent">
@@ -178,7 +178,7 @@ const ProjectsPage = () => {
                     return (
                       <TableRow 
                         key={project.id} 
-                        className="border-white/10 hover:bg-white/5 cursor-pointer"
+                        className="border-white/10 hover:bg-white/[0.06] cursor-pointer transition-colors duration-200"
                         onClick={() => handleProjectClick(project.id)}
                       >
                         <TableCell className="font-mono text-white">

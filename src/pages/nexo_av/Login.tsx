@@ -434,7 +434,7 @@ const Login = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg flex items-start gap-3"
+                  className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-start gap-3 backdrop-blur-sm shadow-lg"
                 >
                   <Clock className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
                   <div>
@@ -451,7 +451,7 @@ const Login = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3"
+                  className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3 backdrop-blur-sm shadow-lg"
                 >
                   <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
                   <div>
@@ -552,7 +552,7 @@ const Login = () => {
               transition={{ duration: 0.3 }}
             >
               {/* OTP Info */}
-              <div className="mb-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-lg flex items-start gap-3">
+              <div className="mb-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl flex items-start gap-3 backdrop-blur-sm shadow-lg">
                 <ShieldCheck className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-cyan-400 text-sm font-medium">Verificación de seguridad</p>
@@ -567,7 +567,7 @@ const Login = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3"
+                  className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3 backdrop-blur-sm shadow-lg"
                 >
                   <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
                   <div>
