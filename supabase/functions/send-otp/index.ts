@@ -98,34 +98,65 @@ serve(async (req) => {
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #0a0a0a; margin: 0; padding: 40px 20px;">
           <div style="max-width: 480px; margin: 0 auto; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 16px; padding: 40px; border: 1px solid #333;">
+            
+            <!-- Logo Header -->
             <div style="text-align: center; margin-bottom: 32px;">
-              <h1 style="color: #fff; font-size: 24px; margin: 0;">NexoAV</h1>
-              <p style="color: #888; font-size: 14px; margin-top: 8px;">Sistema de Gestión</p>
+              <div style="background: linear-gradient(135deg, #000000 0%, #1a1a2e 100%); border-radius: 16px; padding: 20px; display: inline-block; margin-bottom: 16px;">
+                <img 
+                  src="https://avtechesdeveniments.com/assets/logo-avtech-white-CopDVYZs.png" 
+                  alt="NexoAV Logo" 
+                  width="160" 
+                  height="auto" 
+                  style="display: block; max-width: 160px; height: auto;"
+                />
+              </div>
+              <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <div style="width: 8px; height: 8px; background: #00d4ff; border-radius: 50%;"></div>
+                <p style="color: #00d4ff; font-size: 12px; margin: 0; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">
+                  SECURITY
+                </p>
+                <div style="width: 8px; height: 8px; background: #00d4ff; border-radius: 50%;"></div>
+              </div>
             </div>
             
+            <!-- OTP Code Section -->
             <div style="text-align: center; margin-bottom: 32px;">
               <p style="color: #ccc; font-size: 16px; margin-bottom: 24px;">
                 Tu código de verificación es:
               </p>
-              <div style="background: #0f0f1a; border-radius: 12px; padding: 24px; display: inline-block;">
+              <div style="background: #0f0f1a; border-radius: 12px; padding: 24px; display: inline-block; border: 1px solid #00d4ff33;">
                 <span style="font-family: 'SF Mono', 'Courier New', monospace; font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #00d4ff;">
                   ${otpCode}
                 </span>
               </div>
             </div>
             
+            <!-- Expiration Info -->
             <div style="text-align: center; color: #888; font-size: 13px;">
-              <p style="margin-bottom: 8px;">
-                Este código expira en <strong style="color: #fff;">10 minutos</strong>.
-              </p>
+              <div style="background: #ffffff08; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                <p style="margin: 0; color: #fff;">
+                  ⏱️ Este código expira en <strong style="color: #00d4ff;">10 minutos</strong>
+                </p>
+              </div>
               <p style="margin-bottom: 0;">
                 Si no solicitaste este código, puedes ignorar este mensaje.
               </p>
             </div>
             
+            <!-- Security Notice -->
+            <div style="background: #ff444410; border: 1px solid #ff444430; border-radius: 8px; padding: 12px; margin-top: 24px; text-align: center;">
+              <p style="color: #ff8888; font-size: 11px; margin: 0;">
+                🔒 Nunca compartas este código. El equipo de NexoAV nunca te lo pedirá.
+              </p>
+            </div>
+            
+            <!-- Footer -->
             <div style="border-top: 1px solid #333; margin-top: 32px; padding-top: 24px; text-align: center;">
               <p style="color: #666; font-size: 12px; margin: 0;">
                 © ${new Date().getFullYear()} AVTECH Esdeveniments. Todos los derechos reservados.
+              </p>
+              <p style="color: #444; font-size: 10px; margin-top: 8px;">
+                Sistema de Gestión NexoAV
               </p>
             </div>
           </div>
