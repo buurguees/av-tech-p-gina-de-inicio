@@ -103,8 +103,8 @@ export type Database = {
         Args: {
           p_identifier: string
           p_identifier_type: string
-          p_max_attempts: number
-          p_window_minutes: number
+          p_max_attempts?: number
+          p_window_minutes?: number
         }
         Returns: {
           allowed: boolean
