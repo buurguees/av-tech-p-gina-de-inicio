@@ -101,7 +101,7 @@ serve(async (req) => {
       );
     }
 
-    const { email, role, invitedByName, resend } = await req.json();
+    const { email, role, invitedByName, resend: isResend } = await req.json();
 
     if (!email || !role) {
       return new Response(
@@ -120,7 +120,7 @@ serve(async (req) => {
 
     let newUserId: string;
 
-    if (resend) {
+    if (isResend) {
       // For resend, get existing user id
       const { data: existingUser, error: userError } = await supabaseAdmin
         .rpc('get_user_id_by_email', { p_email: email });
