@@ -274,69 +274,71 @@ const NewQuotePage = () => {
   const totals = getTotals();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black pb-mobile-nav">
       <NexoHeader title="Nuevo Presupuesto" userId={userId || ""} />
 
-      <main className="container mx-auto px-4 pt-24 pb-8">
+      <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           {/* Top bar */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-2 mb-4 md:mb-8">
+            <div className="flex items-center gap-2 md:gap-4">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(`/nexo-av/${userId}/quotes`)}
-                className="text-white/70 hover:text-white hover:bg-white/10"
+                className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8 md:h-10 md:w-10"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-white">Nuevo presupuesto</h1>
-                <p className="text-white/60 text-sm">El número se asignará automáticamente al guardar</p>
+                <h1 className="text-base md:text-2xl font-bold text-white">Nuevo presupuesto</h1>
+                <p className="text-white/60 text-[10px] md:text-sm hidden md:block">El número se asignará automáticamente al guardar</p>
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <Button
                 variant="outline"
                 onClick={() => handleSave(true)}
                 disabled={saving}
-                className="border-white/20 text-white hover:bg-white/10"
+                size="icon"
+                className="border-white/20 text-white hover:bg-white/10 h-8 w-8 md:h-10 md:w-auto md:px-4"
               >
-                <Save className="h-4 w-4 mr-2" />
-                Guardar como borrador
+                <Save className="h-4 w-4" />
+                <span className="hidden md:inline ml-2">Borrador</span>
               </Button>
               <Button
                 onClick={() => handleSave(false)}
                 disabled={saving}
-                className="bg-avtech-orange hover:bg-avtech-orange/90 text-white"
+                size="icon"
+                className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 md:h-10 md:w-auto md:px-4"
               >
                 {saving ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="h-4 w-4" />
                 )}
-                Guardar
+                <span className="hidden md:inline ml-2">Guardar</span>
               </Button>
             </div>
           </div>
 
           {/* Quote header info */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="space-y-2">
-                <Label className="text-white/70">Contacto</Label>
+          <div className="bg-white/5 backdrop-blur-sm rounded-lg md:rounded-xl border border-white/10 p-3 md:p-6 mb-4 md:mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+              <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
+                <Label className="text-white/70 text-[10px] md:text-sm">Contacto</Label>
                 <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                    <SelectValue placeholder="Seleccionar contacto" />
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm">
+                    <SelectValue placeholder="Seleccionar" />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10">
                     {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id} className="text-white">
+                      <SelectItem key={client.id} value={client.id} className="text-white text-xs md:text-sm">
                         {client.company_name}
                       </SelectItem>
                     ))}
@@ -344,72 +346,146 @@ const NewQuotePage = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-white/70">Número de documento</Label>
-                <Input
-                  value={quoteNumber}
-                  disabled
-                  className="bg-white/5 border-white/10 text-white/60"
-                />
+              <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
+                <Label className="text-white/70 text-[10px] md:text-sm">Proyecto</Label>
+                <Select 
+                  value={selectedProjectId} 
+                  onValueChange={setSelectedProjectId}
+                  disabled={!selectedClientId || loadingProjects}
+                >
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm">
+                    <SelectValue placeholder={
+                      !selectedClientId 
+                        ? "Cliente primero" 
+                        : loadingProjects 
+                          ? "Cargando..." 
+                          : projects.length === 0 
+                            ? "Sin proyectos"
+                            : "Seleccionar"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10">
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id} className="text-white text-xs md:text-sm">
+                        {project.project_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-white/70">Fecha</Label>
+              <div className="space-y-1 md:space-y-2">
+                <Label className="text-white/70 text-[10px] md:text-sm">Fecha</Label>
                 <Input
                   type="date"
                   value={new Date().toISOString().split("T")[0]}
                   disabled
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-white/70">Vencimiento</Label>
+              <div className="space-y-1 md:space-y-2">
+                <Label className="text-white/70 text-[10px] md:text-sm">Vence</Label>
                 <Input
                   type="date"
                   value={validUntil}
                   onChange={(e) => setValidUntil(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm"
                 />
               </div>
             </div>
-
-            <div className="mt-4">
-              <Label className="text-white/70">Proyecto del cliente</Label>
-              <Select 
-                value={selectedProjectId} 
-                onValueChange={setSelectedProjectId}
-                disabled={!selectedClientId || loadingProjects}
-              >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white mt-2">
-                  <SelectValue placeholder={
-                    !selectedClientId 
-                      ? "Selecciona un cliente primero" 
-                      : loadingProjects 
-                        ? "Cargando proyectos..." 
-                        : projects.length === 0 
-                          ? "No hay proyectos para este cliente"
-                          : "Seleccionar proyecto"
-                  } />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10">
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id} className="text-white">
-                      {project.project_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedClientId && projects.length === 0 && !loadingProjects && (
-                <p className="text-white/40 text-xs mt-2">
-                  Este cliente no tiene proyectos. Crea uno primero desde la sección de Proyectos.
-                </p>
-              )}
-            </div>
           </div>
 
-          {/* Lines table */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden mb-6">
+          {/* Mobile Lines - Vertical Cards */}
+          <div className="md:hidden space-y-2 mb-4">
+            {lines.map((line, index) => (
+              <div key={line.tempId || line.id} className="bg-white/5 rounded-lg border border-white/10 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-white/40 text-[10px]">Línea {index + 1}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeLine(index)}
+                    className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-6 w-6"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+                
+                <Input
+                  value={line.concept}
+                  onChange={(e) => updateLine(index, "concept", e.target.value)}
+                  placeholder="Concepto"
+                  className="bg-white/5 border-white/10 text-white h-8 text-xs"
+                />
+                
+                <Input
+                  value={line.description}
+                  onChange={(e) => updateLine(index, "description", e.target.value)}
+                  placeholder="Descripción (opcional)"
+                  className="bg-white/5 border-white/10 text-white/80 h-8 text-xs"
+                />
+                
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-white/50 text-[9px]">Cant.</Label>
+                    <Input
+                      type="number"
+                      value={line.quantity}
+                      onChange={(e) => updateLine(index, "quantity", parseFloat(e.target.value) || 0)}
+                      className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
+                      min="0"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-white/50 text-[9px]">Precio</Label>
+                    <Input
+                      type="number"
+                      value={line.unit_price}
+                      onChange={(e) => updateLine(index, "unit_price", parseFloat(e.target.value) || 0)}
+                      className="bg-white/5 border-white/10 text-white h-8 text-xs"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-white/50 text-[9px]">IVA</Label>
+                    <Select
+                      value={line.tax_rate.toString()}
+                      onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
+                    >
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-white/10">
+                        {TAX_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value.toString()} className="text-white text-xs">
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end pt-1 border-t border-white/10">
+                  <span className="text-white font-medium text-xs">{formatCurrency(line.total)}</span>
+                </div>
+              </div>
+            ))}
+            
+            <Button
+              variant="outline"
+              onClick={addLine}
+              className="w-full border-white/20 text-white hover:bg-white/10 h-9 text-xs"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Añadir línea
+            </Button>
+          </div>
+
+          {/* Desktop Lines table */}
+          <div className="hidden md:block bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden mb-6">
             <Table>
               <TableHeader>
                 <TableRow className="border-white/10 hover:bg-transparent">
@@ -514,17 +590,17 @@ const NewQuotePage = () => {
 
           {/* Totals */}
           <div className="flex justify-end">
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-6 w-full md:w-80">
-              <div className="space-y-3">
-                <div className="flex justify-between text-white/70">
+            <div className="bg-white/5 backdrop-blur-sm rounded-lg md:rounded-xl border border-white/10 p-3 md:p-6 w-full md:w-80">
+              <div className="space-y-2 md:space-y-3">
+                <div className="flex justify-between text-white/70 text-xs md:text-sm">
                   <span>Subtotal</span>
                   <span>{formatCurrency(totals.subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-white/70">
+                <div className="flex justify-between text-white/70 text-xs md:text-sm">
                   <span>IVA</span>
                   <span>{formatCurrency(totals.tax)}</span>
                 </div>
-                <div className="flex justify-between text-white text-lg font-bold pt-3 border-t border-white/10">
+                <div className="flex justify-between text-white text-sm md:text-lg font-bold pt-2 md:pt-3 border-t border-white/10">
                   <span>Total</span>
                   <span>{formatCurrency(totals.total)}</span>
                 </div>
