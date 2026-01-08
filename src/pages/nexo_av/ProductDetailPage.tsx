@@ -7,9 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, Loader2, Package, Wrench } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Package, Wrench, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
-import NexoHeader from './components/NexoHeader';
+import NexoHeader, { NexoLogo } from './components/NexoHeader';
 
 type ProductType = 'product' | 'service';
 
@@ -56,6 +56,7 @@ export default function ProductDetailPage() {
   const [saving, setSaving] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [accessDenied, setAccessDenied] = useState(false);
   
   // Form state
   const [name, setName] = useState('');
@@ -89,6 +90,13 @@ export default function ProductDetailPage() {
           
           if (user.user_id !== userId) {
             navigate('/nexo-av');
+            return;
+          }
+
+          // Only admins can access product detail/edit page
+          if (!user.roles?.includes('admin')) {
+            setAccessDenied(true);
+            setLoading(false);
             return;
           }
           
@@ -182,6 +190,24 @@ export default function ProductDetailPage() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <ShieldAlert className="h-16 w-16 text-red-500 mx-auto" />
+          <h1 className="text-2xl font-bold text-white">Acceso Denegado</h1>
+          <p className="text-white/60">Solo los administradores pueden editar productos y servicios.</p>
+          <Button 
+            onClick={() => navigate(`/nexo-av/${userId}/catalog`)}
+            className="bg-white text-black hover:bg-white/90"
+          >
+            Volver al catálogo
+          </Button>
+        </div>
       </div>
     );
   }
