@@ -334,46 +334,6 @@ export function CompanyDataTab() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Company Type Toggle */}
-          <div className="flex items-center gap-4">
-            <div className="flex bg-white/5 rounded-lg p-1">
-              <button
-                onClick={() => updateField('company_type', 'freelance')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  settings.company_type === 'freelance'
-                    ? 'bg-white text-black'
-                    : 'text-white/60 hover:text-white'
-                }`}
-              >
-                Autónomo
-              </button>
-              <button
-                onClick={() => updateField('company_type', 'company')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  settings.company_type === 'company'
-                    ? 'bg-white text-black'
-                    : 'text-white/60 hover:text-white'
-                }`}
-              >
-                Empresa
-              </button>
-            </div>
-            
-            <div className="flex-1">
-              <Select value={settings.country} onValueChange={(v) => updateField('country', v)}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                  <SelectValue placeholder="País" />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10">
-                  <SelectItem value="España">🇪🇸 España</SelectItem>
-                  <SelectItem value="Portugal">🇵🇹 Portugal</SelectItem>
-                  <SelectItem value="Francia">🇫🇷 Francia</SelectItem>
-                  <SelectItem value="Andorra">🇦🇩 Andorra</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-white/80">
@@ -418,6 +378,22 @@ export function CompanyDataTab() {
                 placeholder="AV TECH"
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-white/80">
+                País
+              </Label>
+              <Select value={settings.country} onValueChange={(v) => updateField('country', v)}>
+                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectValue placeholder="País" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10">
+                  <SelectItem value="España">🇪🇸 España</SelectItem>
+                  <SelectItem value="Portugal">🇵🇹 Portugal</SelectItem>
+                  <SelectItem value="Francia">🇫🇷 Francia</SelectItem>
+                  <SelectItem value="Andorra">🇦🇩 Andorra</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>
