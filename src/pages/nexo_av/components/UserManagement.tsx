@@ -40,7 +40,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  Plus,
   Search,
   Edit2,
   Trash2,
@@ -54,6 +53,7 @@ import {
   X,
   Check,
   RefreshCw,
+  Mail,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -177,7 +177,7 @@ const UserManagement = () => {
       const { data, error } = await supabase.functions.invoke('send-user-invitation', {
         body: {
           email: formData.email,
-          role: formData.selectedRoles[0], // Primary role
+          role: formData.selectedRoles[0],
           invitedByName: invitedByName
         }
       });
@@ -283,7 +283,6 @@ const UserManagement = () => {
   const handleResetPassword = async () => {
     if (!selectedUser || !formData.password) return;
 
-    // Validate password strength
     const passwordValidation = validatePassword(formData.password);
     if (!passwordValidation.isValid) {
       toast({
@@ -294,6 +293,7 @@ const UserManagement = () => {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke('admin-users', {
         body: {
@@ -577,12 +577,12 @@ const UserManagement = () => {
         </Table>
       </div>
 
-      {/* Create User Dialog - Simplified */}
+      {/* Create User Dialog - Simplified for invitations */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
+              <Mail className="h-5 w-5" />
               Invitar Nuevo Usuario
             </DialogTitle>
             <DialogDescription className="text-white/50">
@@ -659,46 +659,9 @@ const UserManagement = () => {
                 </>
               ) : (
                 <>
-                  <UserPlus className="h-4 w-4 mr-2" />
+                  <Mail className="h-4 w-4 mr-2" />
                   Enviar Invitación
                 </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-                      formData.selectedRoles.includes(role.name)
-                        ? getRoleBadgeColor(role.name)
-                        : 'border-white/10 text-white/40 hover:border-white/30'
-                    }`}
-                  >
-                    {role.display_name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsCreateDialogOpen(false)}
-              className="border-white/20 text-white hover:bg-white/10"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleCreateUser}
-              disabled={isSubmitting}
-              className="bg-white text-black hover:bg-white/90"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creando...
-                </>
-              ) : (
-                'Crear Usuario'
               )}
             </Button>
           </DialogFooter>
