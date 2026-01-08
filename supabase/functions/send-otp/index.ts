@@ -101,21 +101,20 @@ serve(async (req) => {
             
             <!-- Logo Header -->
             <div style="text-align: center; margin-bottom: 32px;">
-              <div style="background: linear-gradient(135deg, #000000 0%, #1a1a2e 100%); border-radius: 16px; padding: 20px; display: inline-block; margin-bottom: 16px;">
+              <div style="background: #000000; border-radius: 16px; padding: 24px; display: inline-block; margin-bottom: 16px; border: 1px solid #333;">
                 <img 
-                  src="https://avtechesdeveniments.com/assets/logo-avtech-white-CopDVYZs.png" 
+                  src="https://avtechesdeveniments.com/images/nexoav-logo.png" 
                   alt="NexoAV Logo" 
-                  width="160" 
-                  height="auto" 
-                  style="display: block; max-width: 160px; height: auto;"
+                  width="80" 
+                  height="80" 
+                  style="display: block; width: 80px; height: 80px;"
                 />
               </div>
-              <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <div style="width: 8px; height: 8px; background: #00d4ff; border-radius: 50%;"></div>
-                <p style="color: #00d4ff; font-size: 12px; margin: 0; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">
+              <h1 style="color: #fff; font-size: 20px; margin: 0 0 8px 0; font-weight: 600;">NexoAV</h1>
+              <div style="display: inline-block;">
+                <span style="color: #00d4ff; font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; background: #00d4ff15; padding: 4px 12px; border-radius: 4px; border: 1px solid #00d4ff30;">
                   SECURITY
-                </p>
-                <div style="width: 8px; height: 8px; background: #00d4ff; border-radius: 50%;"></div>
+                </span>
               </div>
             </div>
             
