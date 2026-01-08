@@ -11,6 +11,7 @@ interface CatalogItem {
   code: string;
   price: number;
   tax_rate: number;
+  description?: string;
 }
 
 interface ProductSearchInputProps {
@@ -95,6 +96,7 @@ export default function ProductSearchInput({
             code: p.product_number,
             price: p.base_price,
             tax_rate: p.tax_rate,
+            description: p.description || '',
           });
         });
       }
@@ -109,6 +111,7 @@ export default function ProductSearchInput({
             code: p.pack_number,
             price: p.final_price,
             tax_rate: p.tax_rate,
+            description: p.description || '',
           });
         });
       }

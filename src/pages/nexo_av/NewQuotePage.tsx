@@ -50,14 +50,10 @@ interface QuoteLine {
   total: number;
 }
 
-const TAX_OPTIONS = [
-  { value: 21, label: "IVA 21%" },
-  { value: 10, label: "IVA 10%" },
-  { value: 4, label: "IVA 4%" },
-  { value: 0, label: "Sin IVA" },
-  { value: -15, label: "IRPF -15%" },
-  { value: -7, label: "IRPF -7%" },
-];
+interface TaxOption {
+  value: number;
+  label: string;
+}
 
 const NewQuotePage = () => {
   const navigate = useNavigate();
@@ -79,10 +75,13 @@ const NewQuotePage = () => {
     return date.toISOString().split("T")[0];
   });
   const [lines, setLines] = useState<QuoteLine[]>([]);
+  const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
+  const [defaultTaxRate, setDefaultTaxRate] = useState(21);
 
-  // Initialize from URL params
+  // Initialize from URL params and fetch taxes
   useEffect(() => {
     fetchClients();
+    fetchSaleTaxes();
     
     // Pre-select client from URL params
     const urlClientId = searchParams.get('clientId') || clientId;
@@ -90,6 +89,34 @@ const NewQuotePage = () => {
       setSelectedClientId(urlClientId);
     }
   }, [clientId, searchParams]);
+
+  const fetchSaleTaxes = async () => {
+    try {
+      const { data, error } = await supabase.rpc("list_taxes", { p_tax_type: "Venta" });
+      if (error) throw error;
+      
+      const options: TaxOption[] = (data || [])
+        .filter((t: any) => t.is_active)
+        .map((t: any) => ({
+          value: t.rate,
+          label: `${t.name} ${t.rate}%`,
+        }));
+      
+      setTaxOptions(options);
+      
+      // Set default tax rate
+      const defaultTax = (data || []).find((t: any) => t.is_default && t.is_active);
+      if (defaultTax) {
+        setDefaultTaxRate(defaultTax.rate);
+      } else if (options.length > 0) {
+        setDefaultTaxRate(options[0].value);
+      }
+    } catch (error) {
+      console.error("Error fetching taxes:", error);
+      // Fallback options
+      setTaxOptions([{ value: 21, label: "IVA 21%" }]);
+    }
+  };
 
   // Fetch projects when client changes and pre-select project from URL
   useEffect(() => {
@@ -172,7 +199,7 @@ const NewQuotePage = () => {
       description: "",
       quantity: 1,
       unit_price: 0,
-      tax_rate: 21,
+      tax_rate: defaultTaxRate,
       discount_percent: 0,
     });
     setLines([...lines, newLine]);
@@ -187,13 +214,17 @@ const NewQuotePage = () => {
     setLines(updatedLines);
   };
 
-  const handleProductSelect = (index: number, item: { name: string; price: number; tax_rate: number }) => {
+  const handleProductSelect = (index: number, item: { name: string; price: number; tax_rate: number; description?: string }) => {
     const updatedLines = [...lines];
+    // Keep existing quantity, update everything else
+    const currentQuantity = updatedLines[index].quantity;
     updatedLines[index] = calculateLineValues({
       ...updatedLines[index],
       concept: item.name,
+      description: item.description || "",
       unit_price: item.price,
       tax_rate: item.tax_rate,
+      quantity: currentQuantity,
     });
     setLines(updatedLines);
   };
@@ -203,14 +234,30 @@ const NewQuotePage = () => {
   };
 
   const getTotals = () => {
-    return lines.reduce(
-      (acc, line) => ({
-        subtotal: acc.subtotal + line.subtotal,
-        tax: acc.tax + line.tax_amount,
-        total: acc.total + line.total,
-      }),
-      { subtotal: 0, tax: 0, total: 0 }
-    );
+    const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
+    const total = lines.reduce((acc, line) => acc + line.total, 0);
+    
+    // Group taxes by rate
+    const taxesByRate: Record<number, { rate: number; amount: number; label: string }> = {};
+    lines.forEach((line) => {
+      if (line.tax_amount !== 0) {
+        if (!taxesByRate[line.tax_rate]) {
+          const taxOption = taxOptions.find(t => t.value === line.tax_rate);
+          taxesByRate[line.tax_rate] = {
+            rate: line.tax_rate,
+            amount: 0,
+            label: taxOption?.label || `${line.tax_rate}%`,
+          };
+        }
+        taxesByRate[line.tax_rate].amount += line.tax_amount;
+      }
+    });
+    
+    return {
+      subtotal,
+      taxes: Object.values(taxesByRate).sort((a, b) => b.rate - a.rate),
+      total,
+    };
   };
 
   const formatCurrency = (amount: number) => {
@@ -312,31 +359,19 @@ const NewQuotePage = () => {
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => handleSave(true)}
-                disabled={saving}
-                size="icon"
-                className="border-white/20 text-white hover:bg-white/10 h-8 w-8 md:h-10 md:w-auto md:px-4"
-              >
+            <Button
+              onClick={() => handleSave(false)}
+              disabled={saving}
+              size="icon"
+              className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 md:h-10 md:w-auto md:px-4"
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
                 <Save className="h-4 w-4" />
-                <span className="hidden md:inline ml-2">Borrador</span>
-              </Button>
-              <Button
-                onClick={() => handleSave(false)}
-                disabled={saving}
-                size="icon"
-                className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 md:h-10 md:w-auto md:px-4"
-              >
-                {saving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                <span className="hidden md:inline ml-2">Guardar</span>
-              </Button>
-            </div>
+              )}
+              <span className="hidden md:inline ml-2">Guardar</span>
+            </Button>
           </div>
 
           {/* Quote header info - Client Data */}
@@ -482,7 +517,7 @@ const NewQuotePage = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-white/10">
-                        {TAX_OPTIONS.map((opt) => (
+                        {taxOptions.map((opt) => (
                           <SelectItem key={opt.value} value={opt.value.toString()} className="text-white text-xs">
                             {opt.label}
                           </SelectItem>
@@ -579,7 +614,7 @@ const NewQuotePage = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-zinc-900 border-white/10">
-                          {TAX_OPTIONS.map((opt) => (
+                          {taxOptions.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value.toString()} className="text-white">
                               {opt.label}
                             </SelectItem>
@@ -625,10 +660,12 @@ const NewQuotePage = () => {
                   <span>Subtotal</span>
                   <span>{formatCurrency(totals.subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-white/70 text-xs md:text-sm">
-                  <span>IVA</span>
-                  <span>{formatCurrency(totals.tax)}</span>
-                </div>
+                {totals.taxes.map((tax) => (
+                  <div key={tax.rate} className="flex justify-between text-white/70 text-xs md:text-sm">
+                    <span>{tax.label}</span>
+                    <span>{formatCurrency(tax.amount)}</span>
+                  </div>
+                ))}
                 <div className="flex justify-between text-white text-sm md:text-lg font-bold pt-2 md:pt-3 border-t border-white/10">
                   <span>Total</span>
                   <span>{formatCurrency(totals.total)}</span>
