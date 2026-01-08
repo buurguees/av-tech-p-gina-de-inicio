@@ -465,59 +465,61 @@ const EditQuotePage = () => {
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black pb-mobile-nav">
       <NexoHeader title={`Editar ${displayNumber}`} userId={userId || ""} />
 
-      <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
+      <main className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 pt-20 md:pt-24 pb-6 md:pb-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="space-y-4 md:space-y-6"
         >
           {/* Top bar */}
-          <div className="flex items-center justify-between gap-2 mb-4 md:mb-6">
-            <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 md:gap-4">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}`)}
-                className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8 md:h-10 md:w-10"
+                className="text-white/70 hover:text-white hover:bg-white/10 h-9 w-9 md:h-10 md:w-10"
               >
                 <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
               </Button>
               <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-base md:text-xl font-bold text-white font-mono">{displayNumber}</h1>
+                <div className="flex items-center gap-2 md:gap-3">
+                  <h1 className="text-lg md:text-2xl font-bold text-white font-mono">{displayNumber}</h1>
                   <Badge className={`${statusInfo.className} text-[10px] md:text-xs`}>
                     {statusInfo.label}
                   </Badge>
                 </div>
-                <p className="text-white/60 text-[10px] md:text-sm hidden md:block">Editando presupuesto</p>
+                <p className="text-white/50 text-xs md:text-sm">Editando presupuesto</p>
               </div>
             </div>
 
             <Button
               onClick={handleSave}
               disabled={saving}
-              size="sm"
-              className="bg-orange-500 hover:bg-orange-600 text-white h-8 md:h-10 px-3 md:px-4"
+              className="bg-orange-500 hover:bg-orange-600 text-white h-9 md:h-10 px-4 md:px-5 gap-2"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              <span className="hidden md:inline ml-2">Guardar</span>
+              <span className="hidden sm:inline">Guardar</span>
             </Button>
           </div>
 
-          {/* Status and Document Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4">
+          {/* Status and Dates - Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Status selector */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 p-3 md:p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span className="text-white/60 text-xs font-medium uppercase tracking-wide">Estado</span>
+            <div className="bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/10 p-4 md:p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-1.5 rounded-lg bg-green-500/10">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                </div>
+                <span className="text-white/70 text-xs font-semibold uppercase tracking-wider">Estado</span>
               </div>
               <Select value={currentStatus} onValueChange={setCurrentStatus}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white h-9 md:h-10 text-sm">
+                <SelectTrigger className="bg-white/5 border-white/10 text-white h-10 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10">
@@ -536,35 +538,38 @@ const EditQuotePage = () => {
                 </SelectContent>
               </Select>
               {currentStatus === "APPROVED" && quote.status === "DRAFT" && (
-                <p className="text-green-400/70 text-[10px] mt-2">
+                <p className="text-green-400/80 text-xs mt-3 flex items-center gap-1.5">
+                  <CheckCircle className="h-3 w-3" />
                   Al aprobar se asignará el número definitivo
                 </p>
               )}
             </div>
 
             {/* Dates */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 p-3 md:p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <FileText className="h-4 w-4 text-orange-500" />
-                <span className="text-white/60 text-xs font-medium uppercase tracking-wide">Validez</span>
+            <div className="bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/10 p-4 md:p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-1.5 rounded-lg bg-orange-500/10">
+                  <FileText className="h-4 w-4 text-orange-500" />
+                </div>
+                <span className="text-white/70 text-xs font-semibold uppercase tracking-wider">Validez</span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-white/50 text-[10px]">Creado</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white/50 text-xs">Creado</Label>
                   <Input
                     type="date"
                     value={quote.created_at.split('T')[0]}
                     disabled
-                    className="bg-white/5 border-white/10 text-white/60 h-9 text-xs"
+                    className="bg-white/5 border-white/10 text-white/50 h-10 text-sm"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-white/50 text-[10px]">Vence</Label>
+                <div className="space-y-2">
+                  <Label className="text-white/50 text-xs">Vence</Label>
                   <Input
                     type="date"
                     value={validUntil}
                     onChange={(e) => setValidUntil(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white h-9 text-xs"
+                    className="bg-white/5 border-white/10 text-white h-10 text-sm"
                   />
                 </div>
               </div>
@@ -572,13 +577,13 @@ const EditQuotePage = () => {
           </div>
 
           {/* Client and Project */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 p-3 md:p-4 mb-4">
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
-              <div className="space-y-1">
-                <Label className="text-white/70 text-xs">Cliente</Label>
+          <div className="bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/10 p-4 md:p-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-white/70 text-xs font-medium">Cliente</Label>
                 <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-9 text-sm">
-                    <SelectValue placeholder="Seleccionar" />
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-10 text-sm">
+                    <SelectValue placeholder="Seleccionar cliente" />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10">
                     {clients.map((client) => (
@@ -590,20 +595,20 @@ const EditQuotePage = () => {
                 </Select>
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-white/70 text-xs">Proyecto</Label>
+              <div className="space-y-2">
+                <Label className="text-white/70 text-xs font-medium">Proyecto</Label>
                 <Select 
                   value={selectedProjectId} 
                   onValueChange={setSelectedProjectId}
                   disabled={!selectedClientId || loadingProjects}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-9 text-sm">
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-10 text-sm">
                     <SelectValue placeholder={
                       !selectedClientId 
-                        ? "Cliente primero" 
+                        ? "Selecciona un cliente primero" 
                         : loadingProjects 
-                          ? "Cargando..." 
-                          : "Seleccionar"
+                          ? "Cargando proyectos..." 
+                          : "Seleccionar proyecto"
                     } />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10">
@@ -619,16 +624,16 @@ const EditQuotePage = () => {
           </div>
 
           {/* Lines Table - Desktop */}
-          <div className="hidden md:block bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden mb-4">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-              <span className="text-white/60 text-sm font-medium">Líneas del presupuesto</span>
+          <div className="hidden md:block bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+              <span className="text-white/80 text-sm font-medium">Líneas del presupuesto</span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={addLine}
-                className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10 h-8"
+                className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10 h-9 px-4 gap-2"
               >
-                <Plus className="h-4 w-4 mr-1.5" />
+                <Plus className="h-4 w-4" />
                 Añadir línea
               </Button>
             </div>
@@ -636,21 +641,21 @@ const EditQuotePage = () => {
             <Table>
               <TableHeader>
                 <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="text-white/60 text-xs w-[35%]">Concepto</TableHead>
-                  <TableHead className="text-white/60 text-xs w-[20%]">Descripción</TableHead>
-                  <TableHead className="text-white/60 text-xs text-center w-[8%]">Cant.</TableHead>
-                  <TableHead className="text-white/60 text-xs text-right w-[12%]">Precio</TableHead>
-                  <TableHead className="text-white/60 text-xs text-center w-[8%]">IVA</TableHead>
-                  <TableHead className="text-white/60 text-xs text-right w-[12%]">Subtotal</TableHead>
-                  <TableHead className="text-white/60 text-xs w-[5%]"></TableHead>
+                  <TableHead className="text-white/60 text-xs font-medium w-[30%] pl-5">Concepto</TableHead>
+                  <TableHead className="text-white/60 text-xs font-medium w-[22%]">Descripción</TableHead>
+                  <TableHead className="text-white/60 text-xs font-medium text-center w-[10%]">Cant.</TableHead>
+                  <TableHead className="text-white/60 text-xs font-medium text-right w-[12%]">Precio</TableHead>
+                  <TableHead className="text-white/60 text-xs font-medium text-center w-[10%]">IVA</TableHead>
+                  <TableHead className="text-white/60 text-xs font-medium text-right w-[12%]">Subtotal</TableHead>
+                  <TableHead className="text-white/60 text-xs w-[4%] pr-5"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {lines.filter(l => !l.isDeleted).map((line, index) => {
                   const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
                   return (
-                    <TableRow key={line.id || line.tempId} className="border-white/10 hover:bg-white/5">
-                      <TableCell className="p-1">
+                    <TableRow key={line.id || line.tempId} className="border-white/10 hover:bg-white/[0.02]">
+                      <TableCell className="py-2 pl-5 pr-2">
                         <ProductSearchInput
                           value={line.concept}
                           onChange={(value) => updateLine(actualIndex, "concept", value)}
@@ -658,61 +663,61 @@ const EditQuotePage = () => {
                           placeholder="@buscar producto"
                         />
                       </TableCell>
-                      <TableCell className="p-1">
+                      <TableCell className="py-2 px-2">
                         <Input
                           value={line.description}
                           onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
-                          className="bg-white/5 border-white/10 text-white h-8 text-xs"
+                          className="bg-white/5 border-white/10 text-white h-9 text-sm"
                           placeholder="Descripción"
                         />
                       </TableCell>
-                      <TableCell className="p-1">
+                      <TableCell className="py-2 px-2">
                         <Input
                           type="number"
                           min="1"
                           value={line.quantity}
                           onChange={(e) => updateLine(actualIndex, "quantity", parseInt(e.target.value) || 0)}
-                          className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
+                          className="bg-white/5 border-white/10 text-white h-9 text-sm text-center"
                         />
                       </TableCell>
-                      <TableCell className="p-1">
+                      <TableCell className="py-2 px-2">
                         <Input
                           type="number"
                           min="0"
                           step="0.01"
                           value={line.unit_price}
                           onChange={(e) => updateLine(actualIndex, "unit_price", parseFloat(e.target.value) || 0)}
-                          className="bg-white/5 border-white/10 text-white h-8 text-xs text-right"
+                          className="bg-white/5 border-white/10 text-white h-9 text-sm text-right"
                         />
                       </TableCell>
-                      <TableCell className="p-1">
+                      <TableCell className="py-2 px-2">
                         <Select 
                           value={String(line.tax_rate)} 
                           onValueChange={(v) => updateLine(actualIndex, "tax_rate", parseFloat(v))}
                         >
-                          <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 text-xs">
+                          <SelectTrigger className="bg-white/5 border-white/10 text-white h-9 text-sm">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-zinc-900 border-white/10">
                             {taxOptions.map((tax) => (
-                              <SelectItem key={tax.value} value={String(tax.value)} className="text-white text-xs">
+                              <SelectItem key={tax.value} value={String(tax.value)} className="text-white text-sm">
                                 {tax.value}%
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </TableCell>
-                      <TableCell className="text-white font-medium text-right text-sm">
+                      <TableCell className="text-white font-medium text-right text-sm py-2 px-2">
                         {formatCurrency(line.subtotal)}
                       </TableCell>
-                      <TableCell className="p-1">
+                      <TableCell className="py-2 pl-2 pr-5">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => removeLine(actualIndex)}
-                          className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-7 w-7"
+                          className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-8 w-8"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -720,12 +725,12 @@ const EditQuotePage = () => {
                 })}
                 {lines.filter(l => !l.isDeleted).length === 0 && (
                   <TableRow className="border-white/10">
-                    <TableCell colSpan={7} className="text-center py-8">
-                      <p className="text-white/40 text-sm">No hay líneas</p>
+                    <TableCell colSpan={7} className="text-center py-12">
+                      <p className="text-white/40 text-sm mb-2">No hay líneas en este presupuesto</p>
                       <Button
                         variant="link"
                         onClick={addLine}
-                        className="text-orange-500 text-sm mt-2"
+                        className="text-orange-500 text-sm"
                       >
                         Añadir primera línea
                       </Button>
@@ -737,16 +742,16 @@ const EditQuotePage = () => {
           </div>
 
           {/* Mobile Lines */}
-          <div className="md:hidden space-y-2 mb-4">
+          <div className="md:hidden space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-white/60 text-xs font-medium">Líneas</span>
+              <span className="text-white/70 text-sm font-medium">Líneas</span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={addLine}
-                className="text-orange-400 hover:bg-orange-500/10 h-7 px-2 text-xs"
+                className="text-orange-400 hover:bg-orange-500/10 h-8 px-3 gap-1.5"
               >
-                <Plus className="h-3 w-3 mr-1" />
+                <Plus className="h-3.5 w-3.5" />
                 Añadir
               </Button>
             </div>
@@ -754,7 +759,7 @@ const EditQuotePage = () => {
             {lines.filter(l => !l.isDeleted).map((line, _) => {
               const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
               return (
-                <div key={line.id || line.tempId} className="bg-zinc-900/50 rounded-lg border border-white/10 p-3 space-y-2">
+                <div key={line.id || line.tempId} className="bg-zinc-900/50 rounded-xl border border-white/10 p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-white/40 text-[10px] font-mono">
                       {line.isNew ? "Nueva" : `#${actualIndex + 1}`}
@@ -833,21 +838,21 @@ const EditQuotePage = () => {
           </div>
 
           {/* Totals */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 p-3 md:p-4">
-            <div className="max-w-xs ml-auto space-y-2">
+          <div className="bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/10 p-5 md:p-6">
+            <div className="max-w-sm ml-auto space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-white/60">Base imponible</span>
-                <span className="text-white">{formatCurrency(totals.subtotal)}</span>
+                <span className="text-white font-medium">{formatCurrency(totals.subtotal)}</span>
               </div>
               {totals.taxes.map((tax) => (
                 <div key={tax.rate} className="flex justify-between text-sm">
                   <span className="text-white/60">{tax.label}</span>
-                  <span className="text-white">{formatCurrency(tax.amount)}</span>
+                  <span className="text-white font-medium">{formatCurrency(tax.amount)}</span>
                 </div>
               ))}
-              <div className="flex justify-between pt-2 border-t border-white/20">
-                <span className="text-white font-semibold">Total</span>
-                <span className="text-white text-lg font-bold">{formatCurrency(totals.total)}</span>
+              <div className="flex justify-between pt-3 border-t border-white/20">
+                <span className="text-white font-semibold text-lg">Total</span>
+                <span className="text-white text-xl font-bold">{formatCurrency(totals.total)}</span>
               </div>
             </div>
           </div>
