@@ -593,13 +593,14 @@ const Login = () => {
                       value={otpCode}
                       onChange={handleOtpChange}
                       disabled={otpVerifying}
+                      containerClassName="gap-3"
                     >
-                      <InputOTPGroup className="gap-2">
+                      <InputOTPGroup className="gap-3">
                         {[0, 1, 2, 3, 4, 5].map((index) => (
                           <InputOTPSlot
                             key={index}
                             index={index}
-                            className="w-12 h-14 text-xl bg-white/5 border-white/20 text-white rounded-lg"
+                            className="!w-11 !h-14 text-xl bg-white/5 !border !border-white/20 text-white !rounded-lg first:!rounded-lg last:!rounded-lg"
                           />
                         ))}
                       </InputOTPGroup>
