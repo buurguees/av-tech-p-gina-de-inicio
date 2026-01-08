@@ -214,7 +214,7 @@ const NewQuotePage = () => {
     setLines(updatedLines);
   };
 
-  const handleProductSelect = (index: number, item: { name: string; price: number; tax_rate: number; description?: string }) => {
+  const handleProductSelect = (index: number, item: { id: string; type: string; name: string; code: string; price: number; tax_rate: number; description?: string }) => {
     const updatedLines = [...lines];
     // Keep existing quantity, update everything else
     const currentQuantity = updatedLines[index].quantity;
