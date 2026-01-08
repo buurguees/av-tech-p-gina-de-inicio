@@ -25,6 +25,7 @@ import NexoTaxDetailPage from "./pages/nexo_av/TaxDetailPage";
 import NexoAuditPage from "./pages/nexo_av/AuditPage";
 import NexoAuditEventDetailPage from "./pages/nexo_av/AuditEventDetailPage";
 import NexoNotFound from "./pages/nexo_av/NotFound";
+import NexoAccountSetup from "./pages/nexo_av/AccountSetup";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/terminos" element={<TermsAndConditions />} />
             {/* NEXO AV Routes */}
             <Route path="/nexo-av" element={<NexoLogin />} />
+            <Route path="/nexo-av/setup-account" element={<NexoAccountSetup />} />
             <Route path="/nexo-av/:userId/dashboard" element={<NexoDashboard />} />
             <Route path="/nexo-av/:userId/users" element={<NexoUsersPage />} />
             <Route path="/nexo-av/:userId/clients" element={<NexoClientsPage />} />

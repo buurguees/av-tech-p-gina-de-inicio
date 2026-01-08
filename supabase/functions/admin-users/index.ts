@@ -400,6 +400,69 @@ serve(async (req) => {
         );
       }
 
+      case 'validate-invitation': {
+        const { token, email } = body;
+        
+        const { data: tokenData, error: tokenError } = await supabaseAdmin
+          .rpc('validate_invitation_token', { p_token: token, p_email: email });
+        
+        if (tokenError) {
+          return new Response(
+            JSON.stringify({ is_valid: false, error_message: 'Error validating token' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        const result = tokenData?.[0] || { is_valid: false, error_message: 'Token not found' };
+        return new Response(
+          JSON.stringify(result),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      case 'setup-password': {
+        const { email, token, newPassword } = body;
+        
+        // Validate token
+        const { data: tokenData } = await supabaseAdmin
+          .rpc('validate_invitation_token', { p_token: token, p_email: email });
+        
+        const tokenResult = tokenData?.[0];
+        if (!tokenResult?.is_valid) {
+          return new Response(
+            JSON.stringify({ error: tokenResult?.error_message || 'Invalid token' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        // Get auth user id
+        const { data: authUserId } = await supabaseAdmin
+          .rpc('get_user_auth_id_by_email', { p_email: email });
+        
+        if (!authUserId) {
+          return new Response(
+            JSON.stringify({ error: 'User not found' }),
+            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        // Update password
+        const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(
+          authUserId,
+          { password: newPassword }
+        );
+        
+        if (passwordError) throw passwordError;
+        
+        // Mark token as used
+        await supabaseAdmin.rpc('mark_invitation_token_used', { p_token: token });
+        
+        return new Response(
+          JSON.stringify({ success: true }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: 'Invalid action' }),
