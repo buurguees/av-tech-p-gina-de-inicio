@@ -368,7 +368,7 @@ const QuoteTemplatePreview = ({ company }: { company: CompanySettings | null }) 
           <View style={{flex: 1}}>
             <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>EMPRESA</Text>
             <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>
-              {company?.commercial_name || company?.legal_name || "Tu Empresa S.L."}
+              {company?.legal_name || company?.commercial_name || "Tu Empresa S.L."}
             </Text>
             <Text style={{fontSize: 8, color: "#666"}}>NIF: {company?.tax_id || "B87654321"}</Text>
           </View>
@@ -521,7 +521,7 @@ const InvoiceTemplatePreview = ({ company }: { company: CompanySettings | null }
           <View style={{flex: 1}}>
             <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>EMPRESA</Text>
             <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>
-              {company?.commercial_name || company?.legal_name || "Tu Empresa S.L."}
+              {company?.legal_name || company?.commercial_name || "Tu Empresa S.L."}
             </Text>
             <Text style={{fontSize: 8, color: "#666"}}>NIF: {company?.tax_id || "B87654321"}</Text>
           </View>

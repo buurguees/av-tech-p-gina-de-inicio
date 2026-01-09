@@ -525,7 +525,7 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
             <View style={styles.footerColumn}>
               <Text style={styles.footerTitle}>EMPRESA</Text>
               <Text style={styles.footerText}>
-                {company?.commercial_name || company?.legal_name}
+                {company?.legal_name || company?.commercial_name}
               </Text>
               <Text style={styles.footerText}>NIF: {company?.tax_id}</Text>
             </View>
