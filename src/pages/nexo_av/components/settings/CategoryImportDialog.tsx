@@ -367,9 +367,9 @@ export function CategoryImportDialog({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex-1 overflow-hidden flex flex-col"
+              className="flex-1 overflow-hidden flex flex-col min-h-0"
             >
-              <div className="flex items-center gap-4 mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
+              <div className="flex items-center gap-4 mb-4 p-3 bg-white/5 rounded-lg border border-white/10 flex-shrink-0">
                 <FileSpreadsheet className="w-8 h-8 text-green-500" />
                 <div className="flex-1">
                   <p className="text-white font-medium">{fileName}</p>
@@ -387,9 +387,9 @@ export function CategoryImportDialog({
                 </div>
               </div>
 
-              <ScrollArea className="flex-1 border border-white/10 rounded-lg">
+              <ScrollArea className="h-[350px] border border-white/10 rounded-lg">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0 bg-[#1a1a2e] z-10">
                     <TableRow className="border-white/10 hover:bg-transparent">
                       <TableHead className="text-white/60 w-24">Código Cat.</TableHead>
                       <TableHead className="text-white/60">Categoría</TableHead>
