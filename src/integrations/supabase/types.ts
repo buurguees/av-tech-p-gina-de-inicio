@@ -719,64 +719,35 @@ export type Database = {
           updated_at: string
         }[]
       }
-      list_products:
-        | {
-            Args: {
-              p_category_id?: string
-              p_search?: string
-              p_subcategory_id?: string
-            }
-            Returns: {
-              base_price: number
-              category_code: string
-              category_id: string
-              category_name: string
-              cost_price: number
-              created_at: string
-              description: string
-              id: string
-              is_active: boolean
-              name: string
-              price_with_tax: number
-              product_number: string
-              stock: number
-              subcategory_code: string
-              subcategory_id: string
-              subcategory_name: string
-              tax_rate: number
-              type: Database["public"]["Enums"]["product_type"]
-              updated_at: string
-            }[]
-          }
-        | {
-            Args: {
-              p_category_id?: string
-              p_search?: string
-              p_subcategory_id?: string
-            }
-            Returns: {
-              base_price: number
-              category_code: string
-              category_id: string
-              category_name: string
-              cost_price: number
-              created_at: string
-              default_tax_id: string
-              description: string
-              id: string
-              is_active: boolean
-              name: string
-              price_with_tax: number
-              product_number: string
-              stock: number
-              subcategory_code: string
-              subcategory_id: string
-              subcategory_name: string
-              tax_rate: number
-              type: Database["public"]["Enums"]["product_type"]
-              updated_at: string
-            }[]
-          }
+      list_products: {
+        Args: {
+          p_category_id?: string
+          p_search?: string
+          p_subcategory_id?: string
+        }
+        Returns: {
+          base_price: number
+          category_code: string
+          category_id: string
+          category_name: string
+          cost_price: number
+          created_at: string
+          default_tax_id: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          price_with_tax: number
+          product_number: string
+          stock: number
+          subcategory_code: string
+          subcategory_id: string
+          subcategory_name: string
+          tax_rate: number
+          type: Database["public"]["Enums"]["product_type"]
+          updated_at: string
+        }[]
+      }
       list_projects: {
         Args: { p_search?: string; p_status?: string }
         Returns: {
