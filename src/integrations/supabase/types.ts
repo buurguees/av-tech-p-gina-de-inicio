@@ -255,6 +255,24 @@ export type Database = {
               p_type?: Database["public"]["Enums"]["product_type"]
             }
             Returns: {
+              out_product_id: string
+              out_product_number: string
+            }[]
+          }
+        | {
+            Args: {
+              p_base_price?: number
+              p_category_id: string
+              p_cost_price?: number
+              p_default_tax_id?: string
+              p_description?: string
+              p_name?: string
+              p_stock?: number
+              p_subcategory_id?: string
+              p_tax_rate?: number
+              p_type?: Database["public"]["Enums"]["product_type"]
+            }
+            Returns: {
               product_id: string
               product_number: string
             }[]
