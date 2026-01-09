@@ -54,6 +54,15 @@ interface ProductsTabProps {
   filterType: ProductType;
 }
 
+interface Tax {
+  id: string;
+  code: string;
+  name: string;
+  rate: number;
+  is_active: boolean;
+  is_default: boolean;
+}
+
 interface NewProductForm {
   categoryId: string;
   subcategoryId: string;
@@ -62,6 +71,7 @@ interface NewProductForm {
   description: string;
   costPrice: string;
   basePrice: string;
+  taxId: string;
   taxRate: string;
   stock: string;
 }
@@ -71,14 +81,7 @@ const TYPE_OPTIONS = [
   { value: 'service', label: 'Servicio', description: 'Sin stock, coste variable' },
 ];
 
-const TAX_OPTIONS = [
-  { value: '21', label: 'IVA 21%' },
-  { value: '10', label: 'IVA 10%' },
-  { value: '4', label: 'IVA 4%' },
-  { value: '0', label: 'Exento' },
-];
-
-const getInitialFormState = (type: ProductType): NewProductForm => ({
+const getInitialFormState = (type: ProductType, defaultTaxId?: string, defaultTaxRate?: number): NewProductForm => ({
   categoryId: '',
   subcategoryId: '',
   type,
@@ -86,7 +89,8 @@ const getInitialFormState = (type: ProductType): NewProductForm => ({
   description: '',
   costPrice: '0',
   basePrice: '0',
-  taxRate: '21',
+  taxId: defaultTaxId || '',
+  taxRate: String(defaultTaxRate ?? 21),
   stock: '0',
 });
 
@@ -95,6 +99,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [salesTaxes, setSalesTaxes] = useState<Tax[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
@@ -120,16 +125,22 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
   const loadData = async () => {
     try {
-      const [categoriesRes, subcategoriesRes] = await Promise.all([
+      const [categoriesRes, subcategoriesRes, taxesRes] = await Promise.all([
         supabase.rpc('list_product_categories'),
-        supabase.rpc('list_product_subcategories')
+        supabase.rpc('list_product_subcategories'),
+        supabase.rpc('list_taxes', { p_tax_type: 'sales' })
       ]);
 
       if (categoriesRes.error) throw categoriesRes.error;
       if (subcategoriesRes.error) throw subcategoriesRes.error;
+      if (taxesRes.error) throw taxesRes.error;
 
       setCategories(categoriesRes.data || []);
       setSubcategories(subcategoriesRes.data || []);
+      
+      const taxes = (taxesRes.data || []).filter((t: Tax) => t.is_active);
+      setSalesTaxes(taxes);
+      
       await loadProducts();
     } catch (error) {
       console.error('Error loading data:', error);
@@ -163,7 +174,9 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       toast.error('Solo los administradores pueden añadir productos');
       return;
     }
-    setFormData(getInitialFormState(filterType));
+    // Find default tax
+    const defaultTax = salesTaxes.find(t => t.is_default) || salesTaxes[0];
+    setFormData(getInitialFormState(filterType, defaultTax?.id, defaultTax?.rate));
     setShowAddDialog(true);
   };
 
@@ -188,7 +201,8 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         p_base_price: parseFloat(formData.basePrice) || 0,
         p_tax_rate: parseFloat(formData.taxRate) || 21,
         p_type: formData.type,
-        p_stock: formData.type === 'product' ? parseInt(formData.stock) || 0 : null
+        p_stock: formData.type === 'product' ? parseInt(formData.stock) || 0 : null,
+        p_default_tax_id: formData.taxId || null
       });
 
       if (error) throw error;
@@ -513,16 +527,23 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
               <div className="space-y-2">
                 <Label className="text-white/70">Impuesto</Label>
                 <Select 
-                  value={formData.taxRate} 
-                  onValueChange={(v) => setFormData({ ...formData, taxRate: v })}
+                  value={formData.taxId} 
+                  onValueChange={(v) => {
+                    const selectedTax = salesTaxes.find(t => t.id === v);
+                    setFormData({ 
+                      ...formData, 
+                      taxId: v,
+                      taxRate: String(selectedTax?.rate ?? 21)
+                    });
+                  }}
                 >
                   <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                    <SelectValue />
+                    <SelectValue placeholder="Seleccionar impuesto..." />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10">
-                    {TAX_OPTIONS.map(opt => (
-                      <SelectItem key={opt.value} value={opt.value} className="text-white">
-                        {opt.label}
+                    {salesTaxes.map(tax => (
+                      <SelectItem key={tax.id} value={tax.id} className="text-white">
+                        {tax.name} ({tax.rate}%)
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -42,12 +42,14 @@ interface UserInfo {
   roles: string[];
 }
 
-const TAX_OPTIONS = [
-  { value: '21', label: 'IVA 21%' },
-  { value: '10', label: 'IVA 10%' },
-  { value: '4', label: 'IVA 4%' },
-  { value: '0', label: 'Exento' },
-];
+interface Tax {
+  id: string;
+  code: string;
+  name: string;
+  rate: number;
+  is_active: boolean;
+  is_default: boolean;
+}
 
 export default function ProductDetailPage() {
   const { userId, productId } = useParams<{ userId: string; productId: string }>();
@@ -57,12 +59,14 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [salesTaxes, setSalesTaxes] = useState<Tax[]>([]);
   
   // Form state
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [costPrice, setCostPrice] = useState('');
   const [basePrice, setBasePrice] = useState('');
+  const [taxId, setTaxId] = useState('');
   const [taxRate, setTaxRate] = useState('21');
   const [stock, setStock] = useState('');
   const [isActive, setIsActive] = useState(true);
@@ -101,6 +105,7 @@ export default function ProductDetailPage() {
           }
           
           setUserInfo(user);
+          await loadTaxes();
           await loadProduct();
         } else {
           navigate('/nexo-av');
@@ -114,6 +119,17 @@ export default function ProductDetailPage() {
     checkAuth();
   }, [navigate, userId, productId]);
 
+  const loadTaxes = async () => {
+    try {
+      const { data, error } = await supabase.rpc('list_taxes', { p_tax_type: 'sales' });
+      if (error) throw error;
+      const taxes = (data || []).filter((t: Tax) => t.is_active);
+      setSalesTaxes(taxes);
+    } catch (error) {
+      console.error('Error loading taxes:', error);
+    }
+  };
+
   const loadProduct = async () => {
     if (!productId) return;
     
@@ -125,7 +141,7 @@ export default function ProductDetailPage() {
 
       if (error) throw error;
 
-      const found = (data || []).find((p: Product) => p.id === productId);
+      const found = (data || []).find((p: any) => p.id === productId);
       
       if (found) {
         setProduct(found);
@@ -133,6 +149,7 @@ export default function ProductDetailPage() {
         setDescription(found.description || '');
         setCostPrice(String(found.cost_price));
         setBasePrice(String(found.base_price));
+        setTaxId(found.default_tax_id || '');
         setTaxRate(String(found.tax_rate));
         setStock(String(found.stock ?? 0));
         setIsActive(found.is_active);
@@ -169,7 +186,8 @@ export default function ProductDetailPage() {
         p_base_price: parseFloat(basePrice) || 0,
         p_tax_rate: parseFloat(taxRate),
         p_is_active: isActive,
-        p_stock: isProductType ? parseInt(stock) || 0 : null
+        p_stock: isProductType ? parseInt(stock) || 0 : null,
+        p_default_tax_id: taxId || null
       });
 
       if (error) throw error;
@@ -346,17 +364,21 @@ export default function ProductDetailPage() {
                 <div className="space-y-2">
                   <Label className="text-white/70">Impuesto</Label>
                   <Select 
-                    value={taxRate} 
-                    onValueChange={setTaxRate}
+                    value={taxId} 
+                    onValueChange={(v) => {
+                      const selectedTax = salesTaxes.find(t => t.id === v);
+                      setTaxId(v);
+                      setTaxRate(String(selectedTax?.rate ?? 21));
+                    }}
                     disabled={!isAdmin}
                   >
                     <SelectTrigger className="bg-white/5 border-white/10 text-white disabled:opacity-50">
-                      <SelectValue />
+                      <SelectValue placeholder="Seleccionar impuesto..." />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10">
-                      {TAX_OPTIONS.map(opt => (
-                        <SelectItem key={opt.value} value={opt.value} className="text-white">
-                          {opt.label}
+                      {salesTaxes.map(tax => (
+                        <SelectItem key={tax.id} value={tax.id} className="text-white">
+                          {tax.name} ({tax.rate}%)
                         </SelectItem>
                       ))}
                     </SelectContent>
