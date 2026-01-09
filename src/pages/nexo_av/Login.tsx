@@ -12,6 +12,8 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 
 // Configuration
 const SUPABASE_URL = "https://takvthfatlcjsqgssnta.supabase.co";
+const OTP_SKIP_DURATION_MS = 60 * 60 * 1000; // 1 hour in milliseconds
+const LAST_LOGIN_KEY = 'nexo_av_last_login';
 
 interface RateLimitResponse {
   allowed: boolean;
@@ -21,6 +23,45 @@ interface RateLimitResponse {
 }
 
 type LoginStep = 'credentials' | 'otp';
+
+// Check if OTP can be skipped based on last login time
+const canSkipOtp = (email: string): boolean => {
+  try {
+    const stored = localStorage.getItem(LAST_LOGIN_KEY);
+    if (!stored) return false;
+    
+    const { email: storedEmail, timestamp } = JSON.parse(stored);
+    
+    // Must be the same user and within the time window
+    if (storedEmail !== email.toLowerCase()) return false;
+    
+    const elapsed = Date.now() - timestamp;
+    return elapsed < OTP_SKIP_DURATION_MS;
+  } catch {
+    return false;
+  }
+};
+
+// Save last successful login timestamp
+const saveLastLogin = (email: string): void => {
+  try {
+    localStorage.setItem(LAST_LOGIN_KEY, JSON.stringify({
+      email: email.toLowerCase(),
+      timestamp: Date.now()
+    }));
+  } catch {
+    // Ignore localStorage errors
+  }
+};
+
+// Clear last login on explicit logout or failed attempts
+const clearLastLogin = (): void => {
+  try {
+    localStorage.removeItem(LAST_LOGIN_KEY);
+  } catch {
+    // Ignore localStorage errors
+  }
+};
 
 const NexoLogo = () => (
   <svg
@@ -284,6 +325,20 @@ const Login = () => {
           return;
         }
 
+        // Check if we can skip OTP (last login was less than 1 hour ago)
+        if (canSkipOtp(email)) {
+          // Skip OTP - direct login
+          await recordAttempt(email, true);
+          saveLastLogin(email);
+          
+          toast({
+            title: "Bienvenido",
+            description: "Has iniciado sesión correctamente.",
+          });
+          navigate(`/nexo-av/${userInfo[0].user_id}/dashboard`, { replace: true });
+          return;
+        }
+
         // Sign out temporarily - we'll complete login after OTP verification
         await supabase.auth.signOut();
         
@@ -333,8 +388,9 @@ const Login = () => {
         return;
       }
       
-      // Record successful login
+      // Record successful login and save timestamp for OTP skip
       await recordAttempt(email, true);
+      saveLastLogin(email);
       
       // Get user info for navigation
       const { data: userInfo } = await supabase.rpc('get_current_user_info');
