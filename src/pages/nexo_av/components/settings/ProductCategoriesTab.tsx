@@ -210,13 +210,18 @@ export function ProductCategoriesTab() {
   };
 
   const handleDeleteCategory = async () => {
-    if (!deletingCategory) return;
+    if (!deletingCategory) {
+      console.log('No deletingCategory set');
+      return;
+    }
 
+    console.log('Attempting to delete category:', deletingCategory.id, deletingCategory.name);
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.rpc('delete_product_category', {
+      const { data, error } = await supabase.rpc('delete_product_category', {
         p_category_id: deletingCategory.id,
       });
+      console.log('Delete result:', { data, error });
       if (error) throw error;
       toast.success('Categoría eliminada');
       setDeletingCategory(null);
