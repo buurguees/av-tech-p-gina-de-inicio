@@ -44,6 +44,7 @@ interface ParsedSubcategory {
   code: string;
   name: string;
   type: 'product' | 'service';
+  display_order: number;
 }
 
 interface ImportResult {
@@ -142,10 +143,15 @@ export function CategoryImportDialog({
           const category = categoriesMap.get(categoryCode)!;
           // Evitar duplicados de subcategorías
           if (!category.subcategories.some(s => s.code === subcategoryCode)) {
+            // Extraer el número de subcategoría del código (ej: GR-01 -> 1, GR-02 -> 2)
+            const numberMatch = subcategoryCode.match(/-(\d+)$/);
+            const displayOrder = numberMatch ? parseInt(numberMatch[1], 10) : category.subcategories.length + 1;
+            
             category.subcategories.push({
               code: subcategoryCode,
               name: subcategoryName,
               type,
+              display_order: displayOrder,
             });
             // Actualizar el tipo de categoría si todas las subcategorías son del mismo tipo
             // O usar el tipo más común
@@ -263,7 +269,12 @@ export function CategoryImportDialog({
         continue;
       }
 
-      for (const subcategory of category.subcategories) {
+      // Ordenar subcategorías por display_order antes de crearlas
+      const sortedSubcategories = [...category.subcategories].sort(
+        (a, b) => a.display_order - b.display_order
+      );
+
+      for (const subcategory of sortedSubcategories) {
         if (isSubcategoryExisting(subcategory.code)) {
           result.subcategoriesSkipped++;
           continue;
@@ -275,7 +286,7 @@ export function CategoryImportDialog({
             p_code: subcategory.code,
             p_name: subcategory.name,
             p_description: null,
-            p_display_order: 0,
+            p_display_order: subcategory.display_order,
           });
 
           if (error) {
@@ -414,29 +425,35 @@ export function CategoryImportDialog({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {parsedData.map((category) => (
-                      <>
-                        {category.subcategories.length === 0 ? (
-                          <TableRow key={category.code} className="border-white/10 hover:bg-white/5">
-                            <TableCell className="font-mono text-orange-400">{category.code}</TableCell>
-                            <TableCell className="text-white">{category.name}</TableCell>
-                            <TableCell className="text-white/40">-</TableCell>
-                            <TableCell className="text-white/40">-</TableCell>
-                            <TableCell>-</TableCell>
-                            <TableCell>
-                              {isCategoryExisting(category.code) ? (
-                                <Badge variant="outline" className="border-yellow-500/50 text-yellow-400 text-xs">
-                                  Existe
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="border-green-500/50 text-green-400 text-xs">
-                                  Nueva
-                                </Badge>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          category.subcategories.map((sub, subIndex) => (
+                    {parsedData.map((category) => {
+                      // Ordenar subcategorías por display_order para el preview
+                      const sortedSubcategories = [...category.subcategories].sort(
+                        (a, b) => a.display_order - b.display_order
+                      );
+                      
+                      return (
+                        <>
+                          {sortedSubcategories.length === 0 ? (
+                            <TableRow key={category.code} className="border-white/10 hover:bg-white/5">
+                              <TableCell className="font-mono text-orange-400">{category.code}</TableCell>
+                              <TableCell className="text-white">{category.name}</TableCell>
+                              <TableCell className="text-white/40">-</TableCell>
+                              <TableCell className="text-white/40">-</TableCell>
+                              <TableCell>-</TableCell>
+                              <TableCell>
+                                {isCategoryExisting(category.code) ? (
+                                  <Badge variant="outline" className="border-yellow-500/50 text-yellow-400 text-xs">
+                                    Existe
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="border-green-500/50 text-green-400 text-xs">
+                                    Nueva
+                                  </Badge>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            sortedSubcategories.map((sub, subIndex) => (
                             <TableRow 
                               key={`${category.code}-${sub.code}`} 
                               className="border-white/10 hover:bg-white/5"
@@ -473,9 +490,10 @@ export function CategoryImportDialog({
                               </TableCell>
                             </TableRow>
                           ))
-                        )}
-                      </>
-                    ))}
+                          )}
+                        </>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </ScrollArea>

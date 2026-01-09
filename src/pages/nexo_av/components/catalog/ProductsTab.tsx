@@ -398,14 +398,27 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
     }
   };
 
-  const filteredSubcategories = subcategories.filter(s => 
-    filterCategory === 'all' || s.category_id === filterCategory
-  );
+  const filteredSubcategories = subcategories
+    .filter(s => filterCategory === 'all' || s.category_id === filterCategory)
+    .sort((a, b) => {
+      // Primero ordenar por categoría, luego por display_order
+      if (a.category_id !== b.category_id) {
+        const categoryA = categories.find(c => c.id === a.category_id);
+        const categoryB = categories.find(c => c.id === b.category_id);
+        if (categoryA && categoryB) {
+          return categoryA.display_order - categoryB.display_order;
+        }
+        return 0;
+      }
+      return a.display_order - b.display_order;
+    });
 
   // Filter categories by type for the form
   const formCategories = categories.filter(c => c.type === filterType);
 
-  const formSubcategories = subcategories.filter(s => s.category_id === formData.categoryId);
+  const formSubcategories = subcategories
+    .filter(s => s.category_id === formData.categoryId)
+    .sort((a, b) => a.display_order - b.display_order);
 
   return (
     <div className="space-y-4">

@@ -350,7 +350,9 @@ export function ProductCategoriesTab() {
   };
 
   const getSubcategoriesForCategory = (categoryId: string) => {
-    return subcategories.filter(s => s.category_id === categoryId);
+    return subcategories
+      .filter(s => s.category_id === categoryId)
+      .sort((a, b) => a.display_order - b.display_order);
   };
 
   if (loading) {
