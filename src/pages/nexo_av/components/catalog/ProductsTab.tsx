@@ -254,33 +254,80 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   };
 
 
-  const exportToExcel = () => {
-    const headers = ['Nº Producto', 'Categoría', 'Subcategoría', 'Nombre', 'Descripción', 'Coste', 'Precio Base', 'Impuesto %', 'Precio con IVA'];
-    const rows = products.map(p => [
-      p.product_number,
-      p.category_name,
-      p.subcategory_name || '',
-      p.name,
-      p.description || '',
-      p.cost_price,
-      p.base_price,
-      p.tax_rate,
-      p.price_with_tax
-    ]);
+  const exportToExcel = async () => {
+    // Import XLSX dynamically
+    const XLSX = (await import('xlsx')).default || await import('xlsx');
+    
+    // Headers matching the master format + Stock column (R)
+    const headers = [
+      'Codigo',              // A: product_number
+      'Categoria',           // B: category_code
+      'Nombre Categoria',    // C: category_name
+      'Subcategoria',        // D: subcategory_code (full: CAT-XX format)
+      'Subcategoria (ES)',   // E: subcategory_name
+      'Nombre',              // F: name
+      'Descripcion',         // G: description
+      'Tipo',                // H: type (product/service)
+      'Unidad Medida',       // I: unit (empty for now)
+      'Estado',              // J: status
+      'Coste',               // K: cost_price
+      'Proveedor',           // L: provider (empty for now)
+      'Margen Aplicado',     // M: margin (calculated)
+      'Precio Venta (sin IVA)', // N: base_price
+      'IVA %',               // O: tax_rate
+      'Precio Final (con IVA)', // P: price_with_tax
+      'Impuesto',            // Q: tax_code (e.g. IVA21)
+      'Stock',               // R: stock
+    ];
 
-    const csvContent = [
-      headers.join('\t'),
-      ...rows.map(row => row.join('\t'))
-    ].join('\n');
+    const rows = products.map(p => {
+      // Calculate margin percentage
+      const margin = p.cost_price > 0 
+        ? (((p.base_price - p.cost_price) / p.cost_price) * 100).toFixed(2) + '%'
+        : '';
+      
+      // Build subcategory code in CAT-XX format
+      const subcategoryCode = p.category_code && p.subcategory_code 
+        ? `${p.category_code}-${p.subcategory_code}` 
+        : '';
+      
+      // Tax code like IVA21, IVA10, etc.
+      const taxCode = `IVA${Math.round(p.tax_rate)}`;
+      
+      return [
+        p.product_number,                    // A
+        p.category_code,                     // B
+        p.category_name,                     // C
+        subcategoryCode,                     // D
+        p.subcategory_name || '',            // E
+        p.name,                              // F
+        p.description || '',                 // G
+        p.type === 'service' ? 'Service' : 'product', // H
+        '',                                  // I: Unidad Medida
+        p.is_active ? 'Activo' : 'Inactivo', // J
+        p.cost_price > 0 ? `€ ${p.cost_price.toFixed(2)}` : '', // K
+        '',                                  // L: Proveedor
+        margin,                              // M
+        `€ ${p.base_price.toFixed(2)}`,      // N
+        `${p.tax_rate}%`,                    // O
+        `€ ${p.price_with_tax.toFixed(2)}`,  // P
+        taxCode,                             // Q
+        p.stock ?? 0,                        // R: Stock
+      ];
+    });
 
-    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/tab-separated-values;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `catalogo_productos_${new Date().toISOString().split('T')[0]}.xls`;
-    link.click();
-    URL.revokeObjectURL(url);
-    toast.success('Catálogo exportado');
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    
+    // Add worksheet with name "Catalogo Master"
+    XLSX.utils.book_append_sheet(wb, ws, 'Catalogo Master');
+
+    // Generate and download
+    const filename = `Catalogo_${isProductTab ? 'Productos' : 'Servicios'}_Master_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    
+    toast.success('Catálogo exportado correctamente');
   };
 
   const downloadTemplate = () => {
