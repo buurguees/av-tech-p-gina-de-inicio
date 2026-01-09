@@ -276,15 +276,17 @@ const EditQuotePage = () => {
   const handleProductSelect = (index: number, item: { id: string; type: string; name: string; code: string; price: number; tax_rate: number; description?: string }) => {
     const updatedLines = [...lines];
     const currentQuantity = updatedLines[index].quantity;
+    
     updatedLines[index] = calculateLineValues({
       ...updatedLines[index],
       concept: item.name,
       description: item.description || "",
       unit_price: item.price,
-      tax_rate: item.tax_rate,
+      tax_rate: item.tax_rate || defaultTaxRate, // Fallback to default if undefined
       quantity: currentQuantity,
       isModified: !updatedLines[index].isNew,
     });
+    
     setLines(updatedLines);
   };
 
@@ -306,15 +308,18 @@ const EditQuotePage = () => {
     const subtotal = activeLines.reduce((acc, line) => acc + line.subtotal, 0);
     const total = activeLines.reduce((acc, line) => acc + line.total, 0);
     
+    // Group taxes by rate - this ensures each tax rate is shown separately
     const taxesByRate: Record<number, { rate: number; amount: number; label: string }> = {};
     activeLines.forEach((line) => {
+      // Only include taxes with non-zero amounts
       if (line.tax_amount !== 0) {
         if (!taxesByRate[line.tax_rate]) {
+          // Find the label from taxOptions, or use rate percentage as fallback
           const taxOption = taxOptions.find(t => t.value === line.tax_rate);
           taxesByRate[line.tax_rate] = {
             rate: line.tax_rate,
             amount: 0,
-            label: taxOption?.label || `${line.tax_rate}%`,
+            label: taxOption?.label || `IVA ${line.tax_rate}%`,
           };
         }
         taxesByRate[line.tax_rate].amount += line.tax_amount;
@@ -323,7 +328,7 @@ const EditQuotePage = () => {
     
     return {
       subtotal,
-      taxes: Object.values(taxesByRate).sort((a, b) => b.rate - a.rate),
+      taxes: Object.values(taxesByRate).sort((a, b) => b.rate - a.rate), // Sort by rate descending
       total,
     };
   };

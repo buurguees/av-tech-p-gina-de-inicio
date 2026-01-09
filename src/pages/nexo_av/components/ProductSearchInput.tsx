@@ -51,7 +51,7 @@ export default function ProductSearchInput({
     }
   }, [value, searchMode, searchQuery]);
 
-  // Close results when clicking outside
+  // Close results when clicking outside or pressing Escape
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -64,9 +64,19 @@ export default function ProductSearchInput({
       }
     };
 
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showResults) {
+        setShowResults(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [showResults]);
 
   const searchCatalog = async (query: string) => {
     setLoading(true);
@@ -126,7 +136,18 @@ export default function ProductSearchInput({
   };
 
   const handleSelectItem = (item: CatalogItem) => {
-    onSelectItem(item);
+    // Ensure all data is passed correctly with fallbacks
+    const itemToPass: CatalogItem = {
+      id: item.id,
+      type: item.type,
+      name: item.name || '',
+      code: item.code || '',
+      price: item.price || 0,
+      tax_rate: item.tax_rate || 21, // Default to 21% if not specified
+      description: item.description || '',
+    };
+    
+    onSelectItem(itemToPass);
     onChange(item.name); // Replace the search with the item name
     setShowResults(false);
   };
@@ -178,7 +199,7 @@ export default function ProductSearchInput({
       {showResults && (
         <div
           ref={resultsRef}
-          className="absolute z-[100] bottom-full left-0 right-0 mb-1 bg-zinc-900 border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto"
+          className="absolute z-[9999] bottom-full left-0 right-0 mb-1 bg-zinc-900 border border-white/10 rounded-lg shadow-2xl max-h-48 overflow-y-auto"
         >
           {loading ? (
             <div className="flex items-center justify-center p-3">
