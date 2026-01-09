@@ -407,14 +407,6 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
   const formSubcategories = subcategories.filter(s => s.category_id === formData.categoryId);
 
-  const renderCell = (value: string | number | null, isNumeric = false) => {
-    return (
-      <div className="px-2 py-1 min-h-[28px] flex items-center">
-        {isNumeric && value !== null ? Number(value).toFixed(2) + ' €' : (value || '-')}
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-4">
       {/* Hidden file input */}
@@ -597,7 +589,18 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       </Dialog>
 
       {/* Mobile Card View */}
-      <div className="md:hidden space-y-2">
+      <div className="md:hidden space-y-3">
+        {/* Mobile Add Button */}
+        {isAdmin && (
+          <Button
+            onClick={handleOpenAddDialog}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white h-10"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Añadir {itemLabel}
+          </Button>
+        )}
+        
         {/* Mobile Search and Filters */}
         <div className="flex flex-col gap-2">
           <div className="relative">
@@ -647,21 +650,48 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
             <p className="text-white/40 text-xs">No hay {isProductTab ? 'productos' : 'servicios'}</p>
           </div>
         ) : (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {products.map(product => (
               <button
                 key={product.id}
                 onClick={() => handleViewDetails(product.id)}
-                className={`w-full p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200 text-left backdrop-blur-sm active:scale-[0.98] shadow-sm ${!product.is_active ? 'opacity-50' : ''}`}
+                className={`w-full p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-200 text-left backdrop-blur-sm active:scale-[0.98] shadow-sm ${!product.is_active ? 'opacity-50' : ''}`}
               >
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-xs font-medium truncate">{product.name}</p>
-                    <p className="text-white/40 text-[10px] font-mono">{product.product_number}</p>
+                    <p className="text-white text-sm font-semibold mb-1">{product.name}</p>
+                    <p className="text-white/40 text-[10px] font-mono mb-1">{product.product_number}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-white/50 text-[10px] bg-white/5 px-2 py-0.5 rounded">
+                        {product.category_code}
+                      </span>
+                      {product.subcategory_code && (
+                        <span className="text-white/40 text-[10px]">→ {product.subcategory_code}</span>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-green-400 font-medium text-xs shrink-0">
-                    {product.base_price.toFixed(2)} €
-                  </span>
+                  <div className="text-right shrink-0">
+                    <span className="text-green-400 font-bold text-sm block mb-1">
+                      {product.price_with_tax.toFixed(2)} €
+                    </span>
+                    <span className="text-white/40 text-[10px] block">
+                      Base: {product.base_price.toFixed(2)} €
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/5">
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${product.is_active ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'}`}>
+                      {product.is_active ? 'Activo' : 'Inactivo'}
+                    </span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-medium">
+                      IVA {product.tax_rate}%
+                    </span>
+                  </div>
+                  {isProductTab && (
+                    <span className="text-white/50 text-[10px]">Stock: {product.stock ?? 0}</span>
+                  )}
                 </div>
               </button>
             ))}
@@ -756,16 +786,16 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         <Table>
           <TableHeader>
             <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="text-white/60 w-28">Nº {itemLabel}</TableHead>
-              <TableHead className="text-white/60 w-16">Cat.</TableHead>
+              <TableHead className="text-white/60 w-[140px]">Nº {itemLabel}</TableHead>
+              <TableHead className="text-white/60 w-[100px]">Categoría</TableHead>
               <TableHead className="text-white/60">Nombre</TableHead>
-              {isProductTab && <TableHead className="text-white/60 w-16 text-right">Stock</TableHead>}
-              <TableHead className="text-white/60 w-20 text-right">{isProductTab ? 'Coste' : 'Coste Ref.'}</TableHead>
-              <TableHead className="text-white/60 w-20 text-right">P.Base</TableHead>
-              <TableHead className="text-white/60 w-20">IVA</TableHead>
-              <TableHead className="text-white/60 w-20 text-right">PVP</TableHead>
-              <TableHead className="text-white/60 w-16">Estado</TableHead>
-              <TableHead className="text-white/60 w-8"></TableHead>
+              {isProductTab && <TableHead className="text-white/60 w-[80px] text-center">Stock</TableHead>}
+              <TableHead className="text-white/60 w-[110px] text-right">{isProductTab ? 'Coste' : 'Coste Ref.'}</TableHead>
+              <TableHead className="text-white/60 w-[110px] text-right">Precio Base</TableHead>
+              <TableHead className="text-white/60 w-[90px] text-center">IVA</TableHead>
+              <TableHead className="text-white/60 w-[120px] text-right">PVP (con IVA)</TableHead>
+              <TableHead className="text-white/60 w-[100px] text-center">Estado</TableHead>
+              <TableHead className="text-white/60 w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -785,42 +815,53 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
               products.map(product => (
                 <TableRow 
                   key={product.id} 
-                  className={`border-white/10 hover:bg-white/[0.06] transition-colors duration-200 ${!product.is_active ? 'opacity-50' : ''}`}
+                  className={`border-white/10 hover:bg-white/[0.06] transition-colors duration-200 cursor-pointer ${!product.is_active ? 'opacity-50' : ''}`}
+                  onClick={() => handleViewDetails(product.id)}
                 >
-                  <TableCell className="text-orange-400 font-mono text-xs">{product.product_number}</TableCell>
-                  <TableCell className="text-white/60 text-xs">{product.category_code}</TableCell>
-                  <TableCell className="text-white text-sm">
-                    {renderCell(product.name)}
+                  <TableCell className="text-orange-400 font-mono text-sm py-4">{product.product_number}</TableCell>
+                  <TableCell className="text-white/70 text-sm py-4">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium">{product.category_code}</span>
+                      <span className="text-white/40 text-xs">{product.category_name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-white text-sm py-4 font-medium">
+                    {product.name}
+                    {product.description && (
+                      <div className="text-white/40 text-xs mt-0.5 line-clamp-1">{product.description}</div>
+                    )}
                   </TableCell>
                   {isProductTab && (
-                    <TableCell className="text-right text-white/60 text-xs">
+                    <TableCell className="text-center text-white/60 text-sm py-4 font-medium">
                       {product.stock ?? 0}
                     </TableCell>
                   )}
-                  <TableCell className="text-right text-xs">
-                    {renderCell(product.cost_price, true)}
+                  <TableCell className="text-right text-white/60 text-sm py-4 tabular-nums">
+                    {product.cost_price.toFixed(2)} €
                   </TableCell>
-                  <TableCell className="text-right text-xs">
-                    {renderCell(product.base_price, true)}
+                  <TableCell className="text-right text-white text-sm py-4 tabular-nums font-medium">
+                    {product.base_price.toFixed(2)} €
                   </TableCell>
-                  <TableCell className="text-white/60 text-xs">
-                    {product.tax_rate}%
+                  <TableCell className="text-center py-4">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-medium">
+                      {product.tax_rate}%
+                    </span>
                   </TableCell>
-                  <TableCell className="text-right text-green-400 font-medium text-sm">
+                  <TableCell className="text-right text-green-400 font-semibold text-sm py-4 tabular-nums">
                     {product.price_with_tax.toFixed(2)} €
                   </TableCell>
-                  <TableCell>
-                    <span className={`text-xs px-2 py-1 rounded-full ${product.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                  <TableCell className="text-center py-4">
+                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${product.is_active ? 'bg-green-500/15 text-green-400 border border-green-500/30' : 'bg-red-500/15 text-red-400 border border-red-500/30'}`}>
                       {product.is_active ? 'Activo' : 'Inactivo'}
                     </span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-white/60 hover:text-white hover:bg-white/10"
+                          className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10"
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
