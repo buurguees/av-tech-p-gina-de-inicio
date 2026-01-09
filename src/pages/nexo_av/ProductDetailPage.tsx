@@ -135,9 +135,8 @@ export default function ProductDetailPage() {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('list_products', {
-        p_search: productId
-      });
+      // First, try to get all products and find by ID
+      const { data, error } = await supabase.rpc('list_products', {});
 
       if (error) throw error;
 
@@ -154,6 +153,7 @@ export default function ProductDetailPage() {
         setStock(String(found.stock ?? 0));
         setIsActive(found.is_active);
       } else {
+        console.error('Product not found with ID:', productId);
         toast.error('Producto no encontrado');
         navigate(`/nexo-av/${userId}/catalog`);
       }
