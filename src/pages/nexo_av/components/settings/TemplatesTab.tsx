@@ -219,24 +219,39 @@ const QuoteTemplatePreview = () => (
         <View style={styles.headerRight}>
           <Text style={styles.documentTitle}>Presupuesto</Text>
           <Text style={styles.documentNumber}>P-26-000001</Text>
-          <Text style={styles.documentDate}>01/01/2026</Text>
+          <Text style={styles.documentDate}>Fecha: 09/01/2026</Text>
         </View>
       </View>
 
-      <View style={styles.clientBox}>
-        <Text style={styles.boxTitle}>Cliente</Text>
-        <Text style={styles.boxName}>Nombre del Cliente S.L.</Text>
-        <Text style={styles.boxDetail}>NIF: B12345678</Text>
-        <Text style={styles.boxDetail}>Calle Ejemplo, 123</Text>
-        <Text style={styles.boxDetail}>28001 Madrid</Text>
-        <Text style={styles.boxDetail}>cliente@ejemplo.com</Text>
+      <View style={styles.infoRow}>
+        <View style={styles.companyBox}>
+          <Text style={styles.boxTitle}>Emisor</Text>
+          <Text style={styles.boxName}>TU EMPRESA S.L.</Text>
+          <Text style={styles.boxDetail}>NIF: B87654321</Text>
+          <Text style={styles.boxDetail}>C/ Tu Dirección, 123</Text>
+          <Text style={styles.boxDetail}>28002 Madrid</Text>
+          <Text style={styles.boxDetail}>Madrid</Text>
+          <Text style={styles.boxDetail}>📧 info@tuempresa.com</Text>
+          <Text style={styles.boxDetail}>📞 +34 600 000 000</Text>
+        </View>
+        <View style={styles.clientBox}>
+          <Text style={styles.boxTitle}>Cliente</Text>
+          <Text style={styles.boxName}>Nombre del Cliente S.L.</Text>
+          <Text style={styles.boxDetail}>NIF: B12345678</Text>
+          <Text style={styles.boxDetail}>Calle Ejemplo, 123</Text>
+          <Text style={styles.boxDetail}>28001 Madrid</Text>
+          <Text style={styles.boxDetail}>Madrid</Text>
+          <Text style={styles.boxDetail}>📧 cliente@ejemplo.com</Text>
+          <Text style={styles.boxDetail}>📞 +34 600 111 222</Text>
+        </View>
       </View>
 
       <View style={styles.projectBox}>
-        <Text style={styles.boxTitle}>Proyecto</Text>
+        <Text style={styles.boxTitle}>Datos del Proyecto</Text>
         <Text style={styles.boxName}>Nombre del Proyecto</Text>
-        <Text style={styles.boxDetail}>Nº PR-26-000001</Text>
+        <Text style={styles.boxDetail}>Nº Proyecto: PR-26-000001</Text>
         <Text style={styles.boxDetail}>Local: Planta Baja</Text>
+        <Text style={styles.boxDetail}>📍 Av. Proyecto, 456, Barcelona</Text>
       </View>
 
       <View style={styles.table}>
@@ -289,6 +304,23 @@ const QuoteTemplatePreview = () => (
         <Text style={styles.footerNote}>
           Este presupuesto es válido hasta el 31/01/2026.
         </Text>
+        <View style={{flexDirection: "row", justifyContent: "space-between", marginTop: 8}}>
+          <View style={{flex: 1}}>
+            <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>EMPRESA</Text>
+            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>Tu Empresa S.L.</Text>
+            <Text style={{fontSize: 8, color: "#666"}}>NIF: B87654321</Text>
+          </View>
+          <View style={{flex: 1}}>
+            <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>CONTACTO</Text>
+            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>info@tuempresa.com</Text>
+            <Text style={{fontSize: 8, color: "#666"}}>+34 600 000 000</Text>
+          </View>
+          <View style={{flex: 1}}>
+            <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>DIRECCIÓN FISCAL</Text>
+            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>C/ Tu Dirección, 123</Text>
+            <Text style={{fontSize: 8, color: "#666"}}>28002 Madrid</Text>
+          </View>
+        </View>
       </View>
 
       <Text style={styles.pageNumber}>Página 1 de 1</Text>
@@ -307,18 +339,20 @@ const InvoiceTemplatePreview = () => (
         <View style={styles.headerRight}>
           <Text style={styles.documentTitle}>Factura</Text>
           <Text style={styles.documentNumber}>F-26-000001</Text>
-          <Text style={styles.documentDate}>Fecha: 01/01/2026</Text>
+          <Text style={styles.documentDate}>Fecha: 09/01/2026</Text>
         </View>
       </View>
 
       <View style={styles.infoRow}>
         <View style={styles.companyBox}>
           <Text style={styles.boxTitle}>Emisor</Text>
-          <Text style={styles.boxName}>Tu Empresa S.L.</Text>
+          <Text style={styles.boxName}>TU EMPRESA S.L.</Text>
           <Text style={styles.boxDetail}>NIF: B87654321</Text>
-          <Text style={styles.boxDetail}>Av. Principal, 45</Text>
+          <Text style={styles.boxDetail}>C/ Tu Dirección, 123</Text>
           <Text style={styles.boxDetail}>28002 Madrid</Text>
-          <Text style={styles.boxDetail}>facturacion@tuempresa.com</Text>
+          <Text style={styles.boxDetail}>Madrid</Text>
+          <Text style={styles.boxDetail}>📧 facturacion@tuempresa.com</Text>
+          <Text style={styles.boxDetail}>📞 +34 600 000 000</Text>
         </View>
         <View style={styles.clientBox}>
           <Text style={styles.boxTitle}>Cliente</Text>
@@ -326,13 +360,18 @@ const InvoiceTemplatePreview = () => (
           <Text style={styles.boxDetail}>NIF: B12345678</Text>
           <Text style={styles.boxDetail}>Calle Ejemplo, 123</Text>
           <Text style={styles.boxDetail}>28001 Madrid</Text>
+          <Text style={styles.boxDetail}>Madrid</Text>
+          <Text style={styles.boxDetail}>📧 cliente@ejemplo.com</Text>
+          <Text style={styles.boxDetail}>📞 +34 600 111 222</Text>
         </View>
       </View>
 
       <View style={styles.projectBox}>
-        <Text style={styles.boxTitle}>Proyecto</Text>
+        <Text style={styles.boxTitle}>Datos del Proyecto</Text>
         <Text style={styles.boxName}>Nombre del Proyecto</Text>
-        <Text style={styles.boxDetail}>Nº PR-26-000001</Text>
+        <Text style={styles.boxDetail}>Nº Proyecto: PR-26-000001</Text>
+        <Text style={styles.boxDetail}>Local: Oficina Central</Text>
+        <Text style={styles.boxDetail}>📍 Av. Proyecto, 456, Barcelona</Text>
       </View>
 
       <View style={styles.table}>
@@ -375,6 +414,23 @@ const InvoiceTemplatePreview = () => (
         <Text style={styles.footerNote}>
           Fecha de vencimiento: 31/01/2026
         </Text>
+        <View style={{flexDirection: "row", justifyContent: "space-between", marginTop: 8}}>
+          <View style={{flex: 1}}>
+            <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>EMPRESA</Text>
+            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>Tu Empresa S.L.</Text>
+            <Text style={{fontSize: 8, color: "#666"}}>NIF: B87654321</Text>
+          </View>
+          <View style={{flex: 1}}>
+            <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>CONTACTO</Text>
+            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>facturacion@tuempresa.com</Text>
+            <Text style={{fontSize: 8, color: "#666"}}>+34 600 000 000</Text>
+          </View>
+          <View style={{flex: 1}}>
+            <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>DIRECCIÓN FISCAL</Text>
+            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>C/ Tu Dirección, 123</Text>
+            <Text style={{fontSize: 8, color: "#666"}}>28002 Madrid</Text>
+          </View>
+        </View>
       </View>
 
       <Text style={styles.pageNumber}>Página 1 de 1</Text>

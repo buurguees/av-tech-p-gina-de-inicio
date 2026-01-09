@@ -147,13 +147,25 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#888",
   },
-  clientBox: {
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 12,
+    gap: 12,
+  },
+  companyBox: {
+    flex: 1,
+    padding: 12,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 4,
+  },
+  clientBox: {
+    flex: 1,
     padding: 12,
     backgroundColor: "#e8e8e8",
     borderRadius: 4,
   },
-  clientTitle: {
+  boxTitle: {
     fontSize: 8,
     fontWeight: "bold",
     color: "#666",
@@ -161,13 +173,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     letterSpacing: 1,
   },
-  clientName: {
+  boxName: {
     fontSize: 12,
     fontWeight: "bold",
     color: "#333",
     marginBottom: 4,
   },
-  clientDetail: {
+  boxDetail: {
     fontSize: 9,
     color: "#555",
     marginBottom: 2,
@@ -175,27 +187,8 @@ const styles = StyleSheet.create({
   projectBox: {
     marginBottom: 12,
     padding: 12,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#fafafa",
     borderRadius: 4,
-  },
-  projectTitle: {
-    fontSize: 8,
-    fontWeight: "bold",
-    color: "#666",
-    textTransform: "uppercase",
-    marginBottom: 8,
-    letterSpacing: 1,
-  },
-  projectName: {
-    fontSize: 11,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 4,
-  },
-  projectDetail: {
-    fontSize: 9,
-    color: "#555",
-    marginBottom: 2,
   },
   referenceBox: {
     marginBottom: 25,
@@ -378,47 +371,83 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
           <View style={styles.headerRight}>
             <Text style={styles.documentTitle}>Presupuesto</Text>
             <Text style={styles.documentNumber}>{quote.quote_number}</Text>
-            <Text style={styles.documentDate}>{formatDate(quote.created_at)}</Text>
+            <Text style={styles.documentDate}>Fecha: {formatDate(quote.created_at)}</Text>
           </View>
         </View>
 
-        {/* Client Info - Darker gray box */}
-        <View style={styles.clientBox}>
-          <Text style={styles.clientTitle}>Cliente</Text>
-          <Text style={styles.clientName}>
-            {client?.legal_name || client?.company_name || quote.client_name}
-          </Text>
-          {client?.tax_id && <Text style={styles.clientDetail}>{client.tax_id}</Text>}
-          {client?.billing_address && (
-            <Text style={styles.clientDetail}>{client.billing_address}</Text>
-          )}
-          {client?.billing_postal_code && client?.billing_city && (
-            <Text style={styles.clientDetail}>
-              {client.billing_postal_code} {client.billing_city} ({client.billing_province})
+        {/* Company and Client Info Row */}
+        <View style={styles.infoRow}>
+          {/* Company Info - Emisor */}
+          <View style={styles.companyBox}>
+            <Text style={styles.boxTitle}>Emisor</Text>
+            <Text style={styles.boxName}>
+              {company?.commercial_name || company?.legal_name || "TU EMPRESA"}
             </Text>
-          )}
-          {client?.contact_email && (
-            <Text style={styles.clientDetail}>{client.contact_email}</Text>
-          )}
-          {client?.contact_phone && (
-            <Text style={styles.clientDetail}>{client.contact_phone}</Text>
-          )}
+            {company?.tax_id && (
+              <Text style={styles.boxDetail}>NIF: {company.tax_id}</Text>
+            )}
+            {company?.fiscal_address && (
+              <Text style={styles.boxDetail}>{company.fiscal_address}</Text>
+            )}
+            {company?.fiscal_postal_code && company?.fiscal_city && (
+              <Text style={styles.boxDetail}>
+                {company.fiscal_postal_code} {company.fiscal_city}
+              </Text>
+            )}
+            {company?.fiscal_province && (
+              <Text style={styles.boxDetail}>{company.fiscal_province}</Text>
+            )}
+            {company?.billing_email && (
+              <Text style={styles.boxDetail}>📧 {company.billing_email}</Text>
+            )}
+            {company?.billing_phone && (
+              <Text style={styles.boxDetail}>📞 {company.billing_phone}</Text>
+            )}
+          </View>
+
+          {/* Client Info */}
+          <View style={styles.clientBox}>
+            <Text style={styles.boxTitle}>Cliente</Text>
+            <Text style={styles.boxName}>
+              {client?.legal_name || client?.company_name || quote.client_name}
+            </Text>
+            {client?.tax_id && (
+              <Text style={styles.boxDetail}>NIF: {client.tax_id}</Text>
+            )}
+            {client?.billing_address && (
+              <Text style={styles.boxDetail}>{client.billing_address}</Text>
+            )}
+            {client?.billing_postal_code && client?.billing_city && (
+              <Text style={styles.boxDetail}>
+                {client.billing_postal_code} {client.billing_city}
+              </Text>
+            )}
+            {client?.billing_province && (
+              <Text style={styles.boxDetail}>{client.billing_province}</Text>
+            )}
+            {client?.contact_email && (
+              <Text style={styles.boxDetail}>📧 {client.contact_email}</Text>
+            )}
+            {client?.contact_phone && (
+              <Text style={styles.boxDetail}>📞 {client.contact_phone}</Text>
+            )}
+          </View>
         </View>
 
         {/* Project Info - Only if project exists */}
         {project && (
           <View style={styles.projectBox}>
-            <Text style={styles.projectTitle}>Proyecto</Text>
-            <Text style={styles.projectName}>{project.project_name}</Text>
-            <Text style={styles.projectDetail}>Nº {project.project_number}</Text>
+            <Text style={styles.boxTitle}>Datos del Proyecto</Text>
+            <Text style={styles.boxName}>{project.project_name}</Text>
+            <Text style={styles.boxDetail}>Nº Proyecto: {project.project_number}</Text>
             {project.local_name && (
-              <Text style={styles.projectDetail}>Local: {project.local_name}</Text>
+              <Text style={styles.boxDetail}>Local: {project.local_name}</Text>
             )}
             {project.project_address && (
-              <Text style={styles.projectDetail}>{project.project_address}</Text>
+              <Text style={styles.boxDetail}>📍 {project.project_address}</Text>
             )}
             {project.project_city && (
-              <Text style={styles.projectDetail}>{project.project_city}</Text>
+              <Text style={styles.boxDetail}>{project.project_city}</Text>
             )}
           </View>
         )}
@@ -473,13 +502,45 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
           </View>
         </View>
 
-        {/* Footer with validity note centered */}
+        {/* Footer with validity note and company info */}
         <View style={styles.footer}>
           {quote.valid_until && (
             <Text style={styles.validityNote}>
               Este presupuesto es válido hasta el {formatDate(quote.valid_until)}.
             </Text>
           )}
+          <View style={styles.footerColumns}>
+            <View style={styles.footerColumn}>
+              <Text style={styles.footerTitle}>EMPRESA</Text>
+              <Text style={styles.footerText}>
+                {company?.commercial_name || company?.legal_name}
+              </Text>
+              <Text style={styles.footerText}>NIF: {company?.tax_id}</Text>
+            </View>
+            <View style={styles.footerColumn}>
+              <Text style={styles.footerTitle}>CONTACTO</Text>
+              {company?.billing_email && (
+                <Text style={styles.footerText}>{company.billing_email}</Text>
+              )}
+              {company?.billing_phone && (
+                <Text style={styles.footerText}>{company.billing_phone}</Text>
+              )}
+              {company?.website && (
+                <Text style={styles.footerText}>{company.website}</Text>
+              )}
+            </View>
+            <View style={styles.footerColumn}>
+              <Text style={styles.footerTitle}>DIRECCIÓN FISCAL</Text>
+              {company?.fiscal_address && (
+                <Text style={styles.footerText}>{company.fiscal_address}</Text>
+              )}
+              {company?.fiscal_postal_code && company?.fiscal_city && (
+                <Text style={styles.footerText}>
+                  {company.fiscal_postal_code} {company.fiscal_city}
+                </Text>
+              )}
+            </View>
+          </View>
         </View>
 
         {/* Page Number */}
