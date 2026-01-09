@@ -49,12 +49,14 @@ interface ParsedProduct {
   taxRate: number;             // Columna O: % IVA
   priceWithTax: number;        // Columna P: Precio final
   taxCode: string;             // Columna Q: Código de impuesto
+  stock: number;               // Columna R: Stock
 }
 
 interface ImportResult {
   productsCreated: number;
   productsSkipped: number;
   productsUpdated: number;
+  stockUpdated: number;
   errors: string[];
 }
 
@@ -174,6 +176,7 @@ export function ProductImportDialog({
         const taxRate = parsePercentage(row[14]);
         const priceWithTax = parseNumber(row[15]);
         const taxCode = String(row[16] || '').trim();
+        const stock = Math.floor(parseNumber(row[17])); // Columna R: Stock
 
         // Validar que tenga código de producto y nombre
         if (!productNumber || !name) continue;
@@ -194,6 +197,7 @@ export function ProductImportDialog({
           taxRate,
           priceWithTax,
           taxCode,
+          stock,
         });
       }
 
@@ -280,12 +284,34 @@ export function ProductImportDialog({
       productsCreated: 0,
       productsSkipped: 0,
       productsUpdated: 0,
+      stockUpdated: 0,
       errors: [],
     };
 
     for (const product of parsedData) {
-      // Skip if product already exists
-      if (isProductExisting(product.productNumber)) {
+      // Check if product already exists
+      const existingProduct = existingProducts.find(
+        p => p.product_number.toLowerCase() === product.productNumber.toLowerCase()
+      );
+      
+      if (existingProduct) {
+        // Product exists - update stock if it's a product type
+        if (product.type === 'product') {
+          try {
+            const { error } = await supabase.rpc('update_product', {
+              p_product_id: existingProduct.id,
+              p_stock: product.stock,
+            });
+            
+            if (error) {
+              result.errors.push(`Producto ${product.productNumber}: Error actualizando stock - ${error.message}`);
+            } else {
+              result.stockUpdated++;
+            }
+          } catch (error: any) {
+            result.errors.push(`Producto ${product.productNumber}: ${error.message}`);
+          }
+        }
         result.productsSkipped++;
         continue;
       }
@@ -327,7 +353,7 @@ export function ProductImportDialog({
           p_base_price: product.basePrice,
           p_tax_rate: product.taxRate,
           p_type: product.type,
-          p_stock: product.type === 'product' ? 0 : null,
+          p_stock: product.type === 'product' ? product.stock : null,
           p_default_tax_id: taxId,
         });
 
@@ -353,7 +379,7 @@ export function ProductImportDialog({
     setImportResult(result);
     setStep('complete');
     
-    if (result.productsCreated > 0) {
+    if (result.productsCreated > 0 || result.stockUpdated > 0) {
       onImportComplete();
     }
   };
@@ -445,7 +471,11 @@ export function ProductImportDialog({
                   <div>• Columna N: Precio de venta (sin IVA)</div>
                   <div>• Columna O: % IVA</div>
                   <div>• Columna Q: Código de impuesto</div>
+                  <div>• Columna R: Stock disponible</div>
                 </div>
+                <p className="text-white/50 text-xs mt-3 italic">
+                  💡 Si el producto ya existe, solo se actualizará el stock con el valor de la columna R.
+                </p>
               </div>
             </motion.div>
           )}
@@ -644,12 +674,18 @@ export function ProductImportDialog({
                 )}
               </div>
 
-              <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-4 gap-4 mb-6">
                 <div className="bg-white/5 rounded-lg p-4 text-center border border-white/10">
                   <div className="text-3xl font-bold text-green-400">
                     {importResult.productsCreated}
                   </div>
                   <div className="text-white/60 text-sm">Productos creados</div>
+                </div>
+                <div className="bg-white/5 rounded-lg p-4 text-center border border-white/10">
+                  <div className="text-3xl font-bold text-blue-400">
+                    {importResult.stockUpdated}
+                  </div>
+                  <div className="text-white/60 text-sm">Stock actualizado</div>
                 </div>
                 <div className="bg-white/5 rounded-lg p-4 text-center border border-white/10">
                   <div className="text-3xl font-bold text-yellow-400">
