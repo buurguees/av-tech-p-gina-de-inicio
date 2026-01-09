@@ -39,6 +39,13 @@ export function useInactivityLogout(options: UseInactivityLogoutOptions = {}) {
 
   const performLogout = useCallback(async () => {
     try {
+      // Clear the OTP skip timestamp since this is an inactivity logout
+      try {
+        localStorage.removeItem('nexo_av_last_login');
+      } catch {
+        // Ignore localStorage errors
+      }
+      
       await supabase.auth.signOut();
       toast({
         title: "Sesión cerrada",

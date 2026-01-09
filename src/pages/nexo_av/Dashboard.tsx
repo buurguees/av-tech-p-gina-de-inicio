@@ -128,6 +128,13 @@ const Dashboard = () => {
   }, [navigate, userId]);
 
   const handleLogout = async () => {
+    // Clear the OTP skip timestamp to require verification next time
+    try {
+      localStorage.removeItem('nexo_av_last_login');
+    } catch {
+      // Ignore localStorage errors
+    }
+    
     await supabase.auth.signOut();
     toast({
       title: "Sesión cerrada",
