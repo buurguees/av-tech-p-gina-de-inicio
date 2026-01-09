@@ -36,6 +36,7 @@ import { motion, AnimatePresence } from 'motion/react';
 interface ParsedCategory {
   code: string;
   name: string;
+  type: 'product' | 'service';
   subcategories: ParsedSubcategory[];
 }
 
@@ -131,6 +132,7 @@ export function CategoryImportDialog({
           categoriesMap.set(categoryCode, {
             code: categoryCode,
             name: categoryName,
+            type: type, // Usar el tipo de la primera subcategoría encontrada
             subcategories: [],
           });
         }
@@ -145,7 +147,18 @@ export function CategoryImportDialog({
               name: subcategoryName,
               type,
             });
+            // Actualizar el tipo de categoría si todas las subcategorías son del mismo tipo
+            // O usar el tipo más común
+            const subcategoryTypes = category.subcategories.map(s => s.type);
+            const serviceCount = subcategoryTypes.filter(t => t === 'service').length;
+            const productCount = subcategoryTypes.filter(t => t === 'product').length;
+            // Si hay más servicios, la categoría es de tipo service, sino product
+            category.type = serviceCount > productCount ? 'service' : 'product';
           }
+        } else {
+          // Si no hay subcategoría, usar el tipo de la fila actual para la categoría
+          const category = categoriesMap.get(categoryCode)!;
+          category.type = type;
         }
       }
 
@@ -223,10 +236,11 @@ export function CategoryImportDialog({
 
       try {
         const { data, error } = await supabase.rpc('create_product_category', {
-          p_code: category.code,
           p_name: category.name,
+          p_code: category.code,
           p_description: null,
           p_display_order: 0,
+          p_type: category.type,
         });
 
         if (error) {

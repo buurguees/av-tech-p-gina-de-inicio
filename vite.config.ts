@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
     global: 'globalThis',
   },
   optimizeDeps: {
-    include: ['buffer'],
+    include: ['buffer', 'xlsx'],
   },
   build: {
     outDir: "build",
