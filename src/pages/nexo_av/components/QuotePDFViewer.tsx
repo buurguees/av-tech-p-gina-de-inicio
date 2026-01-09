@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 30,
+    marginBottom: 15,
   },
   logo: {
     width: 120,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   documentNumber: {
     fontSize: 11,
@@ -148,8 +148,8 @@ const styles = StyleSheet.create({
     color: "#888",
   },
   clientBox: {
-    marginBottom: 25,
-    padding: 14,
+    marginBottom: 12,
+    padding: 12,
     backgroundColor: "#e8e8e8",
     borderRadius: 4,
   },
@@ -173,8 +173,8 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   projectBox: {
-    marginBottom: 25,
-    padding: 14,
+    marginBottom: 12,
+    padding: 12,
     backgroundColor: "#f5f5f5",
     borderRadius: 4,
   },

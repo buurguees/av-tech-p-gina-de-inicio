@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Tags, Receipt } from 'lucide-react';
+import { Building2, Tags, Receipt, FileText, Loader2 } from 'lucide-react';
 import NexoHeader from './components/NexoHeader';
 import { CompanyDataTab } from './components/settings/CompanyDataTab';
 import { ProductCategoriesTab } from './components/settings/ProductCategoriesTab';
 import { TaxesTab } from './components/settings/TaxesTab';
-import { Loader2 } from 'lucide-react';
+import { TemplatesTab } from './components/settings/TemplatesTab';
 
 interface UserInfo {
   user_id: string;
@@ -108,6 +108,13 @@ export default function SettingsPage() {
               <Receipt className="w-4 h-4 mr-2" />
               Impuestos
             </TabsTrigger>
+            <TabsTrigger 
+              value="templates" 
+              className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Plantillas
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="company">
@@ -120,6 +127,10 @@ export default function SettingsPage() {
 
           <TabsContent value="taxes">
             <TaxesTab />
+          </TabsContent>
+
+          <TabsContent value="templates">
+            <TemplatesTab />
           </TabsContent>
         </Tabs>
       </main>
