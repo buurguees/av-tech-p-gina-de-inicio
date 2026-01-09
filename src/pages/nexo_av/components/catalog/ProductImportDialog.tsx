@@ -474,96 +474,98 @@ export function ProductImportDialog({
               </div>
 
               <ScrollArea className="h-[350px] border border-white/10 rounded-lg">
-                <Table>
-                  <TableHeader className="sticky top-0 bg-[#1a1a2e] z-10">
-                    <TableRow className="border-white/10 hover:bg-transparent">
-                      <TableHead className="text-white/60 w-28">Código</TableHead>
-                      <TableHead className="text-white/60">Nombre</TableHead>
-                      <TableHead className="text-white/60 w-24">Categoría</TableHead>
-                      <TableHead className="text-white/60 w-24">Subcat.</TableHead>
-                      <TableHead className="text-white/60 w-16">Tipo</TableHead>
-                      <TableHead className="text-white/60 w-20 text-right">Coste</TableHead>
-                      <TableHead className="text-white/60 w-20 text-right">Precio</TableHead>
-                      <TableHead className="text-white/60 w-16 text-right">IVA</TableHead>
-                      <TableHead className="text-white/60 w-24">Estado</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {parsedData.slice(0, 100).map((product, index) => {
-                      const categoryExists = !!findCategoryId(product.categoryCode);
-                      const categoryId = findCategoryId(product.categoryCode);
-                      const subcategoryExists = categoryId ? !!findSubcategoryId(product.subcategoryCode, categoryId) : false;
-                      const productExists = isProductExisting(product.productNumber);
+                <div className="min-w-[800px]">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-[#1a1a2e] z-10">
+                      <TableRow className="border-white/10 hover:bg-transparent">
+                        <TableHead className="text-white/60 w-28">Código</TableHead>
+                        <TableHead className="text-white/60 min-w-[200px]">Nombre</TableHead>
+                        <TableHead className="text-white/60 w-24">Categoría</TableHead>
+                        <TableHead className="text-white/60 w-24">Subcat.</TableHead>
+                        <TableHead className="text-white/60 w-16">Tipo</TableHead>
+                        <TableHead className="text-white/60 w-20 text-right">Coste</TableHead>
+                        <TableHead className="text-white/60 w-20 text-right">Precio</TableHead>
+                        <TableHead className="text-white/60 w-16 text-right">IVA</TableHead>
+                        <TableHead className="text-white/60 w-24">Estado</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {parsedData.slice(0, 100).map((product, index) => {
+                        const categoryExists = !!findCategoryId(product.categoryCode);
+                        const categoryId = findCategoryId(product.categoryCode);
+                        const subcategoryExists = categoryId ? !!findSubcategoryId(product.subcategoryCode, categoryId) : false;
+                        const productExists = isProductExisting(product.productNumber);
 
-                      return (
-                        <TableRow 
-                          key={`${product.productNumber}-${index}`}
-                          className="border-white/10 hover:bg-white/5"
-                        >
-                          <TableCell className="font-mono text-orange-400 text-xs">
-                            {product.productNumber}
-                          </TableCell>
-                          <TableCell className="text-white text-sm truncate max-w-[200px]" title={product.name}>
-                            {product.name}
-                          </TableCell>
-                          <TableCell>
-                            <span className={`text-xs ${categoryExists ? 'text-green-400' : 'text-red-400'}`}>
-                              {product.categoryCode}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <span className={`text-xs ${subcategoryExists ? 'text-green-400' : categoryId ? 'text-orange-400' : 'text-white/40'}`}>
-                              {product.subcategoryCode || '-'}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            {product.type === 'service' ? (
-                              <Wrench className="w-4 h-4 text-blue-400" />
-                            ) : (
-                              <Package className="w-4 h-4 text-emerald-400" />
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right text-white/70 text-sm">
-                            {product.costPrice.toFixed(2)}€
-                          </TableCell>
-                          <TableCell className="text-right text-white/70 text-sm">
-                            {product.basePrice.toFixed(2)}€
-                          </TableCell>
-                          <TableCell className="text-right text-white/70 text-sm">
-                            {product.taxRate}%
-                          </TableCell>
-                          <TableCell>
-                            {productExists ? (
-                              <Badge variant="outline" className="border-yellow-500/50 text-yellow-400 text-xs">
-                                Existe
-                              </Badge>
-                            ) : !categoryExists ? (
-                              <Badge variant="outline" className="border-red-500/50 text-red-400 text-xs">
-                                Sin cat.
-                              </Badge>
-                            ) : !subcategoryExists ? (
-                              <Badge variant="outline" className="border-orange-500/50 text-orange-400 text-xs">
-                                Sin sub.
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="border-green-500/50 text-green-400 text-xs">
-                                Nuevo
-                              </Badge>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-                {parsedData.length > 100 && (
-                  <div className="p-3 text-center text-white/40 text-sm border-t border-white/10">
-                    Mostrando 100 de {parsedData.length} productos
-                  </div>
-                )}
+                        return (
+                          <TableRow 
+                            key={`${product.productNumber}-${index}`}
+                            className="border-white/10 hover:bg-white/5"
+                          >
+                            <TableCell className="font-mono text-orange-400 text-xs">
+                              {product.productNumber}
+                            </TableCell>
+                            <TableCell className="text-white text-sm truncate max-w-[200px]" title={product.name}>
+                              {product.name}
+                            </TableCell>
+                            <TableCell>
+                              <span className={`text-xs ${categoryExists ? 'text-green-400' : 'text-red-400'}`}>
+                                {product.categoryCode}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className={`text-xs ${subcategoryExists ? 'text-green-400' : categoryId ? 'text-orange-400' : 'text-white/40'}`}>
+                                {product.subcategoryCode || '-'}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              {product.type === 'service' ? (
+                                <Wrench className="w-4 h-4 text-blue-400" />
+                              ) : (
+                                <Package className="w-4 h-4 text-emerald-400" />
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-white/70 text-sm">
+                              {product.costPrice.toFixed(2)}€
+                            </TableCell>
+                            <TableCell className="text-right text-white/70 text-sm">
+                              {product.basePrice.toFixed(2)}€
+                            </TableCell>
+                            <TableCell className="text-right text-white/70 text-sm">
+                              {product.taxRate}%
+                            </TableCell>
+                            <TableCell>
+                              {productExists ? (
+                                <Badge variant="outline" className="border-yellow-500/50 text-yellow-400 text-xs">
+                                  Existe
+                                </Badge>
+                              ) : !categoryExists ? (
+                                <Badge variant="outline" className="border-red-500/50 text-red-400 text-xs">
+                                  Sin cat.
+                                </Badge>
+                              ) : !subcategoryExists ? (
+                                <Badge variant="outline" className="border-orange-500/50 text-orange-400 text-xs">
+                                  Sin sub.
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-green-500/50 text-green-400 text-xs">
+                                  Nuevo
+                                </Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                  {parsedData.length > 100 && (
+                    <div className="p-3 text-center text-white/40 text-sm border-t border-white/10">
+                      Mostrando 100 de {parsedData.length} productos
+                    </div>
+                  )}
+                </div>
               </ScrollArea>
 
-              <DialogFooter className="flex-shrink-0 pt-4">
+              <div className="flex justify-end gap-2 flex-shrink-0 pt-4">
                 <Button 
                   variant="outline" 
                   onClick={() => setStep('upload')}
@@ -578,7 +580,7 @@ export function ProductImportDialog({
                 >
                   Importar {getNewProductsCount()} productos
                 </Button>
-              </DialogFooter>
+              </div>
             </motion.div>
           )}
 
