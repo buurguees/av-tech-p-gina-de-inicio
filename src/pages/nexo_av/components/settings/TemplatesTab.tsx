@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { FileText, Receipt, Eye, Download, Loader2 } from "lucide-react";
 import {
   Document,
@@ -241,7 +243,7 @@ const styles = StyleSheet.create({
 });
 
 // Quote Template Preview
-const QuoteTemplatePreview = ({ company }: { company: CompanySettings | null }) => (
+const QuoteTemplatePreview = ({ company, showProject }: { company: CompanySettings | null; showProject: boolean }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       {/* Watermark with two lines */}
@@ -306,13 +308,16 @@ const QuoteTemplatePreview = ({ company }: { company: CompanySettings | null }) 
         </View>
       </View>
 
-      <View style={styles.projectBox}>
-        <Text style={styles.boxTitle}>Datos del Proyecto</Text>
-        <Text style={styles.boxName}>Nombre del Proyecto</Text>
-        <Text style={styles.boxDetail}>Nº Proyecto: PR-26-000001</Text>
-        <Text style={styles.boxDetail}>Local: Planta Baja</Text>
-        <Text style={styles.boxDetail}>📍 Av. Proyecto, 456, Barcelona</Text>
-      </View>
+      {/* Project Info - Toggle with showProject */}
+      {showProject && (
+        <View style={styles.projectBox}>
+          <Text style={styles.boxTitle}>Datos del Proyecto</Text>
+          <Text style={styles.boxName}>Nombre del Proyecto</Text>
+          <Text style={styles.boxDetail}>Nº Proyecto: PR-26-000001</Text>
+          <Text style={styles.boxDetail}>Local: Planta Baja</Text>
+          <Text style={styles.boxDetail}>📍 Av. Proyecto, 456, Barcelona</Text>
+        </View>
+      )}
 
       <View style={styles.table}>
         <View style={styles.tableHeader}>
@@ -404,7 +409,7 @@ const QuoteTemplatePreview = ({ company }: { company: CompanySettings | null }) 
 );
 
 // Invoice Template Preview
-const InvoiceTemplatePreview = ({ company }: { company: CompanySettings | null }) => (
+const InvoiceTemplatePreview = ({ company, showProject }: { company: CompanySettings | null; showProject: boolean }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       {/* Watermark with two lines */}
@@ -469,13 +474,16 @@ const InvoiceTemplatePreview = ({ company }: { company: CompanySettings | null }
         </View>
       </View>
 
-      <View style={styles.projectBox}>
-        <Text style={styles.boxTitle}>Datos del Proyecto</Text>
-        <Text style={styles.boxName}>Nombre del Proyecto</Text>
-        <Text style={styles.boxDetail}>Nº Proyecto: PR-26-000001</Text>
-        <Text style={styles.boxDetail}>Local: Oficina Central</Text>
-        <Text style={styles.boxDetail}>📍 Av. Proyecto, 456, Barcelona</Text>
-      </View>
+      {/* Project Info - Toggle with showProject */}
+      {showProject && (
+        <View style={styles.projectBox}>
+          <Text style={styles.boxTitle}>Datos del Proyecto</Text>
+          <Text style={styles.boxName}>Nombre del Proyecto</Text>
+          <Text style={styles.boxDetail}>Nº Proyecto: PR-26-000001</Text>
+          <Text style={styles.boxDetail}>Local: Oficina Central</Text>
+          <Text style={styles.boxDetail}>📍 Av. Proyecto, 456, Barcelona</Text>
+        </View>
+      )}
 
       <View style={styles.table}>
         <View style={styles.tableHeader}>
@@ -560,6 +568,7 @@ export function TemplatesTab() {
   const [selectedTemplate, setSelectedTemplate] = useState<"quote" | "invoice">("quote");
   const [company, setCompany] = useState<CompanySettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showProject, setShowProject] = useState(true);
 
   useEffect(() => {
     fetchCompanySettings();
@@ -644,10 +653,21 @@ export function TemplatesTab() {
                   <Eye className="h-4 w-4 text-white/60" />
                   <span className="text-white/60 text-sm">Vista previa - Plantilla de Presupuesto</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="show-project"
+                    checked={showProject}
+                    onCheckedChange={setShowProject}
+                    className="data-[state=checked]:bg-orange-500"
+                  />
+                  <Label htmlFor="show-project" className="text-white/70 text-sm cursor-pointer">
+                    Mostrar Proyecto
+                  </Label>
+                </div>
               </div>
               <div className="h-[600px] bg-zinc-800">
                 <PDFViewer width="100%" height="100%" showToolbar={false}>
-                  <QuoteTemplatePreview company={company} />
+                  <QuoteTemplatePreview company={company} showProject={showProject} />
                 </PDFViewer>
               </div>
             </div>
@@ -660,10 +680,21 @@ export function TemplatesTab() {
                   <Eye className="h-4 w-4 text-white/60" />
                   <span className="text-white/60 text-sm">Vista previa - Plantilla de Factura</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="show-project-invoice"
+                    checked={showProject}
+                    onCheckedChange={setShowProject}
+                    className="data-[state=checked]:bg-orange-500"
+                  />
+                  <Label htmlFor="show-project-invoice" className="text-white/70 text-sm cursor-pointer">
+                    Mostrar Proyecto
+                  </Label>
+                </div>
               </div>
               <div className="h-[600px] bg-zinc-800">
                 <PDFViewer width="100%" height="100%" showToolbar={false}>
-                  <InvoiceTemplatePreview company={company} />
+                  <InvoiceTemplatePreview company={company} showProject={showProject} />
                 </PDFViewer>
               </div>
             </div>
