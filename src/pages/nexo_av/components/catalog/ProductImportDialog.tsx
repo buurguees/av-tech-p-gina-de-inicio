@@ -242,10 +242,24 @@ export function ProductImportDialog({
     return category?.id || null;
   };
 
-  const findSubcategoryId = (code: string, categoryId: string): string | null => {
-    const subcategory = subcategories.find(
-      s => s.code.toLowerCase() === code.toLowerCase() && s.category_id === categoryId
+  const findSubcategoryId = (subcategoryCode: string, categoryId: string): string | null => {
+    // El Excel tiene códigos como "SP-01" pero la BD tiene solo "01"
+    // Extraemos el número de subcategoría del código compuesto
+    const subcodeMatch = subcategoryCode.match(/-(\d+)$/);
+    const normalizedCode = subcodeMatch ? subcodeMatch[1] : subcategoryCode;
+    
+    // Buscar por código normalizado (solo el número, ej: "01")
+    let subcategory = subcategories.find(
+      s => s.code.toLowerCase() === normalizedCode.toLowerCase() && s.category_id === categoryId
     );
+    
+    // Si no encuentra, intentar con el código completo
+    if (!subcategory) {
+      subcategory = subcategories.find(
+        s => s.code.toLowerCase() === subcategoryCode.toLowerCase() && s.category_id === categoryId
+      );
+    }
+    
     return subcategory?.id || null;
   };
 
@@ -473,97 +487,108 @@ export function ProductImportDialog({
                 </div>
               </div>
 
-              <ScrollArea className="h-[350px] border border-white/10 rounded-lg">
-                <div className="min-w-[800px]">
-                  <Table>
-                    <TableHeader className="sticky top-0 bg-[#1a1a2e] z-10">
-                      <TableRow className="border-white/10 hover:bg-transparent">
-                        <TableHead className="text-white/60 w-28">Código</TableHead>
-                        <TableHead className="text-white/60 min-w-[200px]">Nombre</TableHead>
-                        <TableHead className="text-white/60 w-24">Categoría</TableHead>
-                        <TableHead className="text-white/60 w-24">Subcat.</TableHead>
-                        <TableHead className="text-white/60 w-16">Tipo</TableHead>
-                        <TableHead className="text-white/60 w-20 text-right">Coste</TableHead>
-                        <TableHead className="text-white/60 w-20 text-right">Precio</TableHead>
-                        <TableHead className="text-white/60 w-16 text-right">IVA</TableHead>
-                        <TableHead className="text-white/60 w-24">Estado</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {parsedData.slice(0, 100).map((product, index) => {
-                        const categoryExists = !!findCategoryId(product.categoryCode);
-                        const categoryId = findCategoryId(product.categoryCode);
-                        const subcategoryExists = categoryId ? !!findSubcategoryId(product.subcategoryCode, categoryId) : false;
-                        const productExists = isProductExisting(product.productNumber);
-
-                        return (
-                          <TableRow 
-                            key={`${product.productNumber}-${index}`}
-                            className="border-white/10 hover:bg-white/5"
-                          >
-                            <TableCell className="font-mono text-orange-400 text-xs">
-                              {product.productNumber}
-                            </TableCell>
-                            <TableCell className="text-white text-sm truncate max-w-[200px]" title={product.name}>
-                              {product.name}
-                            </TableCell>
-                            <TableCell>
-                              <span className={`text-xs ${categoryExists ? 'text-green-400' : 'text-red-400'}`}>
-                                {product.categoryCode}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <span className={`text-xs ${subcategoryExists ? 'text-green-400' : categoryId ? 'text-orange-400' : 'text-white/40'}`}>
-                                {product.subcategoryCode || '-'}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              {product.type === 'service' ? (
-                                <Wrench className="w-4 h-4 text-blue-400" />
-                              ) : (
-                                <Package className="w-4 h-4 text-emerald-400" />
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right text-white/70 text-sm">
-                              {product.costPrice.toFixed(2)}€
-                            </TableCell>
-                            <TableCell className="text-right text-white/70 text-sm">
-                              {product.basePrice.toFixed(2)}€
-                            </TableCell>
-                            <TableCell className="text-right text-white/70 text-sm">
-                              {product.taxRate}%
-                            </TableCell>
-                            <TableCell>
-                              {productExists ? (
-                                <Badge variant="outline" className="border-yellow-500/50 text-yellow-400 text-xs">
-                                  Existe
-                                </Badge>
-                              ) : !categoryExists ? (
-                                <Badge variant="outline" className="border-red-500/50 text-red-400 text-xs">
-                                  Sin cat.
-                                </Badge>
-                              ) : !subcategoryExists ? (
-                                <Badge variant="outline" className="border-orange-500/50 text-orange-400 text-xs">
-                                  Sin sub.
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="border-green-500/50 text-green-400 text-xs">
-                                  Nuevo
-                                </Badge>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                  {parsedData.length > 100 && (
-                    <div className="p-3 text-center text-white/40 text-sm border-t border-white/10">
-                      Mostrando 100 de {parsedData.length} productos
-                    </div>
-                  )}
+              <div className="border border-white/10 rounded-lg overflow-hidden">
+                {/* Fixed Header */}
+                <div className="overflow-x-auto">
+                  <div className="min-w-[900px]">
+                    <Table>
+                      <TableHeader className="bg-[#1a1a2e]">
+                        <TableRow className="border-white/10 hover:bg-transparent">
+                          <TableHead className="text-white/60 w-28">Código</TableHead>
+                          <TableHead className="text-white/60 min-w-[200px]">Nombre</TableHead>
+                          <TableHead className="text-white/60 w-24">Categoría</TableHead>
+                          <TableHead className="text-white/60 w-24">Subcat.</TableHead>
+                          <TableHead className="text-white/60 w-16">Tipo</TableHead>
+                          <TableHead className="text-white/60 w-20 text-right">Coste</TableHead>
+                          <TableHead className="text-white/60 w-24 text-right">Precio</TableHead>
+                          <TableHead className="text-white/60 w-16 text-right">IVA</TableHead>
+                          <TableHead className="text-white/60 w-24">Estado</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                    </Table>
+                  </div>
                 </div>
-              </ScrollArea>
+                
+                {/* Scrollable Body */}
+                <ScrollArea className="h-[300px]">
+                  <div className="min-w-[900px]">
+                    <Table>
+                      <TableBody>
+                        {parsedData.slice(0, 100).map((product, index) => {
+                          const categoryExists = !!findCategoryId(product.categoryCode);
+                          const categoryId = findCategoryId(product.categoryCode);
+                          const subcategoryExists = categoryId ? !!findSubcategoryId(product.subcategoryCode, categoryId) : false;
+                          const productExists = isProductExisting(product.productNumber);
+
+                          return (
+                            <TableRow 
+                              key={`${product.productNumber}-${index}`}
+                              className="border-white/10 hover:bg-white/5"
+                            >
+                              <TableCell className="font-mono text-orange-400 text-xs w-28">
+                                {product.productNumber}
+                              </TableCell>
+                              <TableCell className="text-white text-sm truncate min-w-[200px] max-w-[200px]" title={product.name}>
+                                {product.name}
+                              </TableCell>
+                              <TableCell className="w-24">
+                                <span className={`text-xs ${categoryExists ? 'text-green-400' : 'text-red-400'}`}>
+                                  {product.categoryCode}
+                                </span>
+                              </TableCell>
+                              <TableCell className="w-24">
+                                <span className={`text-xs ${subcategoryExists ? 'text-green-400' : categoryId ? 'text-orange-400' : 'text-white/40'}`}>
+                                  {product.subcategoryCode || '-'}
+                                </span>
+                              </TableCell>
+                              <TableCell className="w-16">
+                                {product.type === 'service' ? (
+                                  <Wrench className="w-4 h-4 text-blue-400" />
+                                ) : (
+                                  <Package className="w-4 h-4 text-emerald-400" />
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right text-white/70 text-sm w-20">
+                                {product.costPrice.toFixed(2)}€
+                              </TableCell>
+                              <TableCell className="text-right text-white/70 text-sm w-24">
+                                {product.basePrice.toFixed(2)}€
+                              </TableCell>
+                              <TableCell className="text-right text-white/70 text-sm w-16">
+                                {product.taxRate}%
+                              </TableCell>
+                              <TableCell className="w-24">
+                                {productExists ? (
+                                  <Badge variant="outline" className="border-yellow-500/50 text-yellow-400 text-xs">
+                                    Existe
+                                  </Badge>
+                                ) : !categoryExists ? (
+                                  <Badge variant="outline" className="border-red-500/50 text-red-400 text-xs">
+                                    Sin cat.
+                                  </Badge>
+                                ) : !subcategoryExists ? (
+                                  <Badge variant="outline" className="border-orange-500/50 text-orange-400 text-xs">
+                                    Sin sub.
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="border-green-500/50 text-green-400 text-xs">
+                                    Nuevo
+                                  </Badge>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                    {parsedData.length > 100 && (
+                      <div className="p-3 text-center text-white/40 text-sm border-t border-white/10">
+                        Mostrando 100 de {parsedData.length} productos
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
 
               <div className="flex justify-end gap-2 flex-shrink-0 pt-4">
                 <Button 
