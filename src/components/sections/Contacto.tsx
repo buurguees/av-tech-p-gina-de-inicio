@@ -140,7 +140,7 @@ const Contacto = () => {
                 </div>
                 <div>
                   <p className="text-caption mb-1">Teléfono</p>
-                  <a href="tel:+34616579640" className="text-body hover:text-foreground transition-colors">+34 616 579 640</a>
+                  <a href="tel:+34699566601" className="text-body hover:text-foreground transition-colors">+34 699 566 601</a>
                 </div>
               </motion.div>
 

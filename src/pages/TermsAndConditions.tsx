@@ -8,7 +8,7 @@ const COMPANY = {
   name: 'AV TECH ESDEVENIMENTS S.L.',
   nif: 'B75835728',
   email: 'info@avtechesdeveniments.com',
-  phone: '+34 616 579 640',
+  phone: '+34 699 566 601',
   address: 'C/ Francesc Hombravella Maristany, 13, 08320, El Masnou, Barcelona, España',
 };
 
