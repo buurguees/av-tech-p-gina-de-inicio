@@ -287,12 +287,34 @@ const QuoteDetailPage = () => {
     navigate(`/nexo-av/${userId}/quotes/new?sourceQuoteId=${quoteId}`);
   };
 
-  const handleInvoice = () => {
-    // TODO: Implement invoice creation
-    toast({
-      title: "Funcionalidad próximamente",
-      description: "La creación de facturas se implementará próximamente",
-    });
+  const handleInvoice = async () => {
+    if (!quote) return;
+    
+    try {
+      const { data, error } = await supabase.rpc("create_invoice_from_quote", {
+        p_quote_id: quoteId!,
+      });
+      
+      if (error) throw error;
+      if (!data || data.length === 0) throw new Error("No se pudo crear la factura");
+      
+      const invoiceId = data[0].invoice_id;
+      const invoiceNumber = data[0].invoice_number;
+      
+      toast({
+        title: "Factura creada",
+        description: `Se ha generado la factura ${invoiceNumber}`,
+      });
+      
+      navigate(`/nexo-av/${userId}/invoices/${invoiceId}`);
+    } catch (error: any) {
+      console.error("Error creating invoice:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo crear la factura",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatCurrency = (amount: number) => {

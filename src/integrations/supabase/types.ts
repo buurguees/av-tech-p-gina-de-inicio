@@ -100,6 +100,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_invoice_line: {
+        Args: {
+          p_concept: string
+          p_description?: string
+          p_discount_percent?: number
+          p_invoice_id: string
+          p_quantity?: number
+          p_tax_rate?: number
+          p_unit_price?: number
+        }
+        Returns: string
+      }
       add_pack_item: {
         Args: { p_pack_id: string; p_product_id: string; p_quantity?: number }
         Returns: string
@@ -203,6 +215,13 @@ export type Database = {
       create_invitation_token: {
         Args: { p_expires_at: string; p_token: string; p_user_id: string }
         Returns: undefined
+      }
+      create_invoice_from_quote: {
+        Args: { p_quote_id: string }
+        Returns: {
+          invoice_id: string
+          invoice_number: string
+        }[]
       }
       create_product: {
         Args: {
@@ -324,6 +343,7 @@ export type Database = {
       }
       delete_authorized_user: { Args: { p_user_id: string }; Returns: string }
       delete_client: { Args: { p_client_id: string }; Returns: boolean }
+      delete_invoice_line: { Args: { p_line_id: string }; Returns: boolean }
       delete_product: { Args: { p_product_id: string }; Returns: boolean }
       delete_product_category: {
         Args: { p_category_id: string }
@@ -416,6 +436,47 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          due_date: string
+          id: string
+          invoice_number: string
+          issue_date: string
+          notes: string
+          project_id: string
+          project_name: string
+          source_quote_id: string
+          source_quote_number: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          total: number
+          updated_at: string
+        }[]
+      }
+      get_invoice_lines: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          concept: string
+          description: string
+          discount_percent: number
+          id: string
+          line_order: number
+          quantity: number
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          unit_price: number
+        }[]
+      }
+      get_next_invoice_number: { Args: never; Returns: string }
       get_pack_items: {
         Args: { p_pack_id: string }
         Returns: {
@@ -565,6 +626,28 @@ export type Database = {
           notes: string
           tax_id: string
           urgency: string
+        }[]
+      }
+      list_invoices: {
+        Args: { p_search?: string; p_status?: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          due_date: string
+          id: string
+          invoice_number: string
+          issue_date: string
+          project_id: string
+          project_name: string
+          source_quote_id: string
+          source_quote_number: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          total: number
         }[]
       }
       list_product_categories: {
@@ -785,6 +868,28 @@ export type Database = {
           p_tax_id?: string
           p_urgency?: string
           p_website?: string
+        }
+        Returns: boolean
+      }
+      update_invoice: {
+        Args: {
+          p_due_date?: string
+          p_invoice_id: string
+          p_issue_date?: string
+          p_notes?: string
+          p_status?: string
+        }
+        Returns: boolean
+      }
+      update_invoice_line: {
+        Args: {
+          p_concept?: string
+          p_description?: string
+          p_discount_percent?: number
+          p_line_id: string
+          p_quantity?: number
+          p_tax_rate?: number
+          p_unit_price?: number
         }
         Returns: boolean
       }
