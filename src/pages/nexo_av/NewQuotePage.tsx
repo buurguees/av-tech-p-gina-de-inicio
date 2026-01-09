@@ -465,7 +465,7 @@ const NewQuotePage = () => {
               onClick={() => handleSave(false)}
               disabled={saving}
               size="icon"
-              className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 md:h-10 md:w-auto md:px-4"
+              className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 md:h-10 md:w-auto md:px-4 rounded-2xl shadow-lg shadow-orange-500/30 transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/40"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -477,21 +477,21 @@ const NewQuotePage = () => {
           </div>
 
           {/* Quote header info - Client Data */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-lg md:rounded-xl border border-white/10 p-3 md:p-6 mb-3 md:mb-4">
-            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/10">
-              <div className="p-1.5 rounded bg-white/5">
+          <div className="bg-white/10 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/20 p-3 md:p-6 mb-3 md:mb-4 shadow-2xl shadow-black/30">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/20">
+              <div className="p-1.5 rounded-xl bg-white/10 backdrop-blur-sm">
                 <FileText className="h-3 w-3 md:h-4 md:w-4 text-orange-500" />
               </div>
-              <span className="text-white/60 text-[10px] md:text-xs font-medium uppercase tracking-wide">Datos del documento</span>
+              <span className="text-white/70 text-[10px] md:text-xs font-medium uppercase tracking-wide">Datos del documento</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                 <Label className="text-white/70 text-[10px] md:text-sm">Contacto</Label>
                 <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm">
+                  <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 md:h-10 text-xs md:text-sm rounded-xl transition-all hover:bg-white/15">
                     <SelectValue placeholder="Seleccionar" />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10">
+                  <SelectContent className="bg-white/10 backdrop-blur-2xl border-white/20 rounded-2xl shadow-2xl">
                     {clients.map((client) => (
                       <SelectItem key={client.id} value={client.id} className="text-white text-xs md:text-sm">
                         {client.company_name}
@@ -508,7 +508,7 @@ const NewQuotePage = () => {
                   onValueChange={setSelectedProjectId}
                   disabled={!selectedClientId || loadingProjects}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm">
+                  <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 md:h-10 text-xs md:text-sm rounded-xl transition-all hover:bg-white/15">
                     <SelectValue placeholder={
                       !selectedClientId 
                         ? "Cliente primero" 
@@ -519,7 +519,7 @@ const NewQuotePage = () => {
                             : "Seleccionar"
                     } />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10">
+                  <SelectContent className="bg-white/10 backdrop-blur-2xl border-white/20 rounded-2xl shadow-2xl">
                     {projects.map((project) => (
                       <SelectItem key={project.id} value={project.id} className="text-white text-xs md:text-sm">
                         {project.project_name}
@@ -535,7 +535,7 @@ const NewQuotePage = () => {
                   type="date"
                   value={new Date().toISOString().split("T")[0]}
                   disabled
-                  className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm"
+                  className="bg-white/10 backdrop-blur-sm border-white/20 text-white/50 h-8 md:h-10 text-xs md:text-sm rounded-xl"
                 />
               </div>
 
@@ -545,7 +545,7 @@ const NewQuotePage = () => {
                   type="date"
                   value={validUntil}
                   onChange={(e) => setValidUntil(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm"
+                  className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 md:h-10 text-xs md:text-sm rounded-xl transition-all hover:bg-white/15"
                 />
               </div>
             </div>
@@ -560,7 +560,7 @@ const NewQuotePage = () => {
             </div>
 
             {lines.map((line, index) => (
-              <div key={line.tempId || line.id} className="bg-zinc-900/50 rounded-lg border border-orange-500/20 p-3 space-y-2">
+              <div key={line.tempId || line.id} className="bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 p-3 space-y-2 shadow-xl shadow-black/20">
                 <div className="flex items-center justify-between">
                   <span className="text-orange-500/70 text-[10px] font-mono">Línea {index + 1}</span>
                   <Button
@@ -580,12 +580,12 @@ const NewQuotePage = () => {
                   placeholder="Concepto o @buscar"
                 />
                 
-                <Input
-                  value={line.description}
-                  onChange={(e) => updateLine(index, "description", e.target.value)}
-                  placeholder="Descripción (opcional)"
-                  className="bg-white/5 border-white/10 text-white/80 h-8 text-xs"
-                />
+                  <Input
+                    value={line.description}
+                    onChange={(e) => updateLine(index, "description", e.target.value)}
+                    placeholder="Descripción (opcional)"
+                    className="bg-white/10 backdrop-blur-sm border-white/20 text-white/80 h-8 text-xs rounded-xl transition-all hover:bg-white/15"
+                  />
                 
                 <div className="grid grid-cols-3 gap-2">
                   <div className="space-y-1">
@@ -615,10 +615,10 @@ const NewQuotePage = () => {
                       value={line.tax_rate.toString()}
                       onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
                     >
-                      <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 text-xs">
+                      <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 text-xs rounded-xl transition-all hover:bg-white/15">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-white/10">
+                      <SelectContent className="bg-white/10 backdrop-blur-2xl border-white/20 rounded-2xl shadow-2xl">
                         {taxOptions.map((opt) => (
                           <SelectItem key={opt.value} value={opt.value.toString()} className="text-white text-xs">
                             {opt.label}
@@ -638,7 +638,7 @@ const NewQuotePage = () => {
             <Button
               variant="outline"
               onClick={addLine}
-              className="w-full border-white/20 text-white hover:bg-white/10 h-9 text-xs"
+              className="w-full border-white/30 text-white hover:bg-white/15 backdrop-blur-sm rounded-2xl h-9 text-xs transition-all duration-200"
             >
               <Plus className="h-3 w-3 mr-1" />
               Añadir línea
@@ -646,10 +646,10 @@ const NewQuotePage = () => {
           </div>
 
           {/* Desktop Lines table */}
-          <div className="hidden md:block bg-zinc-900/50 backdrop-blur-sm rounded-xl border border-orange-500/20 overflow-hidden mb-6">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-              <span className="text-white/60 text-xs font-medium uppercase tracking-wide">Líneas del presupuesto</span>
-              <span className="text-white/40 text-xs">Escribe @nombre para buscar en el catálogo</span>
+          <div className="hidden md:block bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 overflow-hidden mb-6 shadow-2xl shadow-black/30">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/20 bg-white/5">
+              <span className="text-white/70 text-xs font-medium uppercase tracking-wide">Líneas del presupuesto</span>
+              <span className="text-white/50 text-xs">Escribe @nombre para buscar en el catálogo</span>
             </div>
             <Table>
               <TableHeader>
@@ -742,11 +742,11 @@ const NewQuotePage = () => {
               </TableBody>
             </Table>
 
-            <div className="p-4 border-t border-white/10">
+            <div className="p-4 border-t border-white/20 bg-white/5">
               <Button
                 variant="outline"
                 onClick={addLine}
-                className="border-white/20 text-white hover:bg-white/10"
+                className="border-white/30 text-white hover:bg-white/15 backdrop-blur-sm rounded-2xl transition-all duration-200"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Añadir línea
@@ -756,7 +756,7 @@ const NewQuotePage = () => {
 
           {/* Totals */}
           <div className="flex justify-end">
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg md:rounded-xl border border-white/10 p-3 md:p-6 w-full md:w-80">
+            <div className="bg-white/10 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/20 p-3 md:p-6 w-full md:w-80 shadow-2xl shadow-black/30">
               <div className="space-y-2 md:space-y-3">
                 <div className="flex justify-between text-white/70 text-xs md:text-sm">
                   <span>Subtotal</span>

@@ -515,7 +515,7 @@ const EditQuotePage = () => {
               onClick={handleSave}
               disabled={saving}
               size="icon"
-              className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 md:h-10 md:w-auto md:px-4"
+              className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 md:h-10 md:w-auto md:px-4 rounded-2xl shadow-lg shadow-orange-500/30 transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/40"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -527,12 +527,12 @@ const EditQuotePage = () => {
           </div>
 
           {/* Quote header info - Client Data (same as NewQuotePage) */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-lg md:rounded-xl border border-white/10 p-3 md:p-6 mb-3 md:mb-4">
-            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/10">
-              <div className="p-1.5 rounded bg-white/5">
+          <div className="bg-white/10 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/20 p-3 md:p-6 mb-3 md:mb-4 shadow-2xl shadow-black/30">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/20">
+              <div className="p-1.5 rounded-xl bg-white/10 backdrop-blur-sm">
                 <FileText className="h-3 w-3 md:h-4 md:w-4 text-orange-500" />
               </div>
-              <span className="text-white/60 text-[10px] md:text-xs font-medium uppercase tracking-wide">Datos del documento</span>
+              <span className="text-white/70 text-[10px] md:text-xs font-medium uppercase tracking-wide">Datos del documento</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
@@ -612,7 +612,7 @@ const EditQuotePage = () => {
             {lines.filter(l => !l.isDeleted).map((line) => {
               const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
               return (
-                <div key={line.tempId || line.id} className="bg-zinc-900/50 rounded-lg border border-orange-500/20 p-3 space-y-2">
+                <div key={line.tempId || line.id} className="bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 p-3 space-y-2 shadow-xl shadow-black/20">
                   <div className="flex items-center justify-between">
                     <span className="text-orange-500/70 text-[10px] font-mono">Línea {actualIndex + 1}</span>
                     <Button
@@ -693,7 +693,7 @@ const EditQuotePage = () => {
             <Button
               variant="outline"
               onClick={addLine}
-              className="w-full border-dashed border-white/20 text-white/60 hover:bg-white/5 hover:text-white h-10 text-xs"
+              className="w-full border-dashed border-white/30 text-white/60 hover:bg-white/15 backdrop-blur-sm rounded-2xl h-10 text-xs transition-all duration-200"
             >
               <Plus className="h-3 w-3 mr-1.5" />
               Añadir línea
@@ -820,7 +820,7 @@ const EditQuotePage = () => {
 
 
           {/* Totals */}
-          <div className="bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/10 p-5 md:p-6">
+          <div className="bg-white/10 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/20 p-5 md:p-6 shadow-2xl shadow-black/30">
             <div className="max-w-sm ml-auto space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-white/60">Base imponible</span>

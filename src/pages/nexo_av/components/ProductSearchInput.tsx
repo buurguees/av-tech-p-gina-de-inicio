@@ -259,8 +259,8 @@ export default function ProductSearchInput({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className={cn(
-            "bg-white/5 border-white/10 text-white h-8 text-xs w-full",
-            searchMode && "border-orange-500/50 bg-orange-500/5",
+            "bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 text-xs w-full rounded-xl transition-all hover:bg-white/15",
+            searchMode && "border-orange-500/50 bg-orange-500/10 shadow-lg shadow-orange-500/20",
             className
           )}
           onFocus={() => {
@@ -290,7 +290,7 @@ export default function ProductSearchInput({
       {showResults && dropdownPosition && searchResults.length > 0 && isFocused && createPortal(
         <div
           ref={resultsRef}
-          className="fixed z-[99999] bg-zinc-900 border border-orange-500/30 rounded-lg shadow-2xl overflow-hidden"
+          className="fixed z-[99999] bg-white/10 backdrop-blur-2xl border border-orange-500/40 rounded-2xl shadow-2xl shadow-black/40 overflow-hidden"
           style={{
             top: `${dropdownPosition.top}px`,
             left: `${dropdownPosition.left}px`,

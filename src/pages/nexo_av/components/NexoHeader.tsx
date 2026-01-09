@@ -52,9 +52,9 @@ const NexoHeader = ({
   if (isMobile) {
     return (
       <Suspense fallback={
-        <header className="border-b border-white/10 bg-black/60 backdrop-blur-xl sticky top-0 z-50 shadow-lg safe-area-top">
+        <header className="border-b border-white/20 bg-white/5 backdrop-blur-2xl sticky top-0 z-50 shadow-2xl shadow-black/20 safe-area-top">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center">
-            <div className="animate-pulse w-32 h-4 bg-white/10 rounded"></div>
+            <div className="animate-pulse w-32 h-4 bg-white/10 rounded-2xl"></div>
           </div>
         </header>
       }>
@@ -87,7 +87,7 @@ const NexoHeader = ({
   };
 
   return (
-    <header className="border-b border-white/10 bg-black/60 backdrop-blur-xl sticky top-0 z-50 shadow-lg">
+    <header className="border-b border-white/20 bg-white/5 backdrop-blur-2xl sticky top-0 z-50 shadow-2xl shadow-black/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
@@ -96,7 +96,7 @@ const NexoHeader = ({
                 variant="ghost"
                 size="icon"
                 onClick={handleBack}
-                className="text-white hover:bg-white/10 rounded-xl"
+                className="text-white hover:bg-white/15 rounded-2xl transition-all duration-200 backdrop-blur-sm"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
@@ -106,7 +106,7 @@ const NexoHeader = ({
                 variant="ghost"
                 size="icon"
                 onClick={handleHome}
-                className="text-white hover:bg-white/10 rounded-xl"
+                className="text-white hover:bg-white/15 rounded-2xl transition-all duration-200 backdrop-blur-sm"
               >
                 <Home className="h-5 w-5" />
               </Button>
@@ -118,7 +118,7 @@ const NexoHeader = ({
               ) : (
                 <h1 className="text-white font-semibold tracking-wide">{title}</h1>
               )}
-              <p className="text-white/40 text-xs">{subtitle}</p>
+              <p className="text-white/50 text-xs">{subtitle}</p>
             </div>
           </div>
         </div>
