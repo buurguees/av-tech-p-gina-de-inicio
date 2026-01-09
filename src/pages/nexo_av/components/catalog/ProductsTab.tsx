@@ -254,7 +254,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
   const exportToExcel = async () => {
     // Import XLSX dynamically
-    const XLSX = await import('xlsx');
+    const XLSX = (await import('xlsx')).default || await import('xlsx');
     
     // Headers matching the master format + Stock column (R)
     const headers = [
