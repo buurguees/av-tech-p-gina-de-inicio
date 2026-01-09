@@ -48,10 +48,12 @@ import {
   Loader2, 
   FolderTree,
   Package,
-  RefreshCw
+  RefreshCw,
+  Upload
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
+import { CategoryImportDialog } from './CategoryImportDialog';
 
 interface Category {
   id: string;
@@ -101,6 +103,7 @@ export function ProductCategoriesTab() {
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
 
   // Category dialogs
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
@@ -376,6 +379,14 @@ export function ProductCategoriesTab() {
               className="border-white/20 text-white hover:bg-white/10"
             >
               <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowImportDialog(true)}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Importar Excel
             </Button>
             <Button
               onClick={openCreateCategory}
@@ -753,6 +764,15 @@ export function ProductCategoriesTab() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Import Dialog */}
+      <CategoryImportDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        onImportComplete={fetchData}
+        existingCategories={categories.map(c => ({ code: c.code, id: c.id }))}
+        existingSubcategories={subcategories.map(s => ({ code: s.code, id: s.id, category_id: s.category_id }))}
+      />
     </>
   );
 }
