@@ -274,18 +274,31 @@ const EditQuotePage = () => {
   };
 
   const handleProductSelect = (index: number, item: { id: string; type: string; name: string; code: string; price: number; tax_rate: number; description?: string }) => {
+    console.log('=== HANDLE PRODUCT SELECT (EditQuotePage) ===');
+    console.log('Index:', index);
+    console.log('Item received:', item);
+    console.log('Item price:', item.price, typeof item.price);
+    console.log('Item tax_rate:', item.tax_rate, typeof item.tax_rate);
+    console.log('Item description:', item.description);
+    
     const updatedLines = [...lines];
     const currentQuantity = updatedLines[index].quantity;
     
-    updatedLines[index] = calculateLineValues({
+    const lineData = {
       ...updatedLines[index],
       concept: item.name,
       description: item.description || "",
       unit_price: item.price,
-      tax_rate: item.tax_rate || defaultTaxRate, // Fallback to default if undefined
+      tax_rate: item.tax_rate || defaultTaxRate,
       quantity: currentQuantity,
       isModified: !updatedLines[index].isNew,
-    });
+    };
+    
+    console.log('Line data before calculate:', lineData);
+    
+    updatedLines[index] = calculateLineValues(lineData);
+    
+    console.log('Line after calculate:', updatedLines[index]);
     
     setLines(updatedLines);
   };
