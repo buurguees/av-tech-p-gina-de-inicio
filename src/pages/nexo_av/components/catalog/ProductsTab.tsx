@@ -11,6 +11,7 @@ import { Plus, Download, Search, Loader2, Upload, FileSpreadsheet, MoreHorizonta
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { ProductImportDialog } from './ProductImportDialog';
 
 type ProductType = 'product' | 'service';
 
@@ -39,6 +40,7 @@ interface Category {
   code: string;
   name: string;
   type?: string;
+  display_order?: number;
 }
 
 interface Subcategory {
@@ -46,6 +48,7 @@ interface Subcategory {
   category_id: string;
   code: string;
   name: string;
+  display_order?: number;
 }
 
 
@@ -109,6 +112,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
   // Dialog state
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
   const [formData, setFormData] = useState<NewProductForm>(getInitialFormState(filterType));
   const [saving, setSaving] = useState(false);
 
@@ -321,7 +325,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       toast.error('Solo los administradores pueden importar productos');
       return;
     }
-    fileInputRef.current?.click();
+    setShowImportDialog(true);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -920,6 +924,17 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
           Haz clic en "Ver detalles" para editar un {isProductTab ? 'producto' : 'servicio'}
         </p>
       )}
+
+      {/* Product Import Dialog */}
+      <ProductImportDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        onImportComplete={loadProducts}
+        existingProducts={products.map(p => ({ product_number: p.product_number, id: p.id }))}
+        categories={categories.map(c => ({ code: c.code, id: c.id, name: c.name }))}
+        subcategories={subcategories.map(s => ({ code: s.code, id: s.id, category_id: s.category_id, name: s.name }))}
+        taxes={salesTaxes.map(t => ({ id: t.id, code: t.code, rate: t.rate }))}
+      />
     </div>
   );
 }
