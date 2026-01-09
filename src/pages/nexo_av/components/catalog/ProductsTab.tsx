@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Download, Search, Loader2, Upload, FileSpreadsheet, MoreHorizontal, Eye, Power, Archive } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ProductImportDialog } from './ProductImportDialog';
 
@@ -99,6 +99,7 @@ const getInitialFormState = (type: ProductType, defaultTaxId?: string, defaultTa
 
 export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const navigate = useNavigate();
+  const { userId } = useParams<{ userId: string }>();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
@@ -248,7 +249,8 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   };
 
   const handleViewDetails = (productId: string) => {
-    navigate(`/nexo-av/${window.location.pathname.split('/')[2]}/catalog/${productId}`);
+    if (!userId) return;
+    navigate(`/nexo-av/${userId}/catalog/${productId}`);
   };
 
 
