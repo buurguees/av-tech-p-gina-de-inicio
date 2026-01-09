@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { FileText, Receipt, Eye, Download } from "lucide-react";
+import { FileText, Receipt, Eye, Download, Loader2 } from "lucide-react";
 import {
   Document,
   Page,
@@ -11,7 +11,9 @@ import {
   StyleSheet,
   PDFViewer,
   Font,
+  Image,
 } from "@react-pdf/renderer";
+import { supabase } from "@/integrations/supabase/client";
 
 // Register font
 Font.register({
@@ -20,6 +22,22 @@ Font.register({
     { src: "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5Q.ttf" },
   ],
 });
+
+// Company Settings Interface
+interface CompanySettings {
+  legal_name: string;
+  commercial_name: string | null;
+  tax_id: string;
+  vat_number: string | null;
+  fiscal_address: string;
+  fiscal_city: string;
+  fiscal_postal_code: string;
+  fiscal_province: string;
+  billing_email: string | null;
+  billing_phone: string | null;
+  website: string | null;
+  logo_url: string | null;
+}
 
 // Styles for PDF
 const styles = StyleSheet.create({
@@ -35,11 +53,25 @@ const styles = StyleSheet.create({
     top: "40%",
     left: "10%",
     transform: "rotate(-45deg)",
-    fontSize: 80,
-    color: "#f0f0f0",
     opacity: 0.3,
+  },
+  watermarkText: {
+    fontSize: 70,
+    color: "#f0f0f0",
     fontWeight: "bold",
-    letterSpacing: 20,
+    letterSpacing: 15,
+    marginBottom: 5,
+  },
+  watermarkNumber: {
+    fontSize: 32,
+    color: "#f0f0f0",
+    fontWeight: "bold",
+    letterSpacing: 8,
+  },
+  logo: {
+    width: 120,
+    height: 40,
+    objectFit: "contain",
   },
   header: {
     flexDirection: "row",
@@ -209,13 +241,25 @@ const styles = StyleSheet.create({
 });
 
 // Quote Template Preview
-const QuoteTemplatePreview = () => (
+const QuoteTemplatePreview = ({ company }: { company: CompanySettings | null }) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      <Text style={styles.watermark}>PRESUPUESTO</Text>
+      {/* Watermark with two lines */}
+      <View style={styles.watermark}>
+        <Text style={styles.watermarkText}>PRESUPUESTO</Text>
+        <Text style={styles.watermarkNumber}>P-26-000001</Text>
+      </View>
       
       <View style={styles.header}>
-        <Text style={styles.logoPlaceholder}>LOGO EMPRESA</Text>
+        <View>
+          {company?.logo_url ? (
+            <Image src={company.logo_url} style={styles.logo} />
+          ) : (
+            <Text style={styles.logoPlaceholder}>
+              {company?.commercial_name || company?.legal_name || "LOGO EMPRESA"}
+            </Text>
+          )}
+        </View>
         <View style={styles.headerRight}>
           <Text style={styles.documentTitle}>Presupuesto</Text>
           <Text style={styles.documentNumber}>P-26-000001</Text>
@@ -226,13 +270,29 @@ const QuoteTemplatePreview = () => (
       <View style={styles.infoRow}>
         <View style={styles.companyBox}>
           <Text style={styles.boxTitle}>Emisor</Text>
-          <Text style={styles.boxName}>TU EMPRESA S.L.</Text>
-          <Text style={styles.boxDetail}>NIF: B87654321</Text>
-          <Text style={styles.boxDetail}>C/ Tu Dirección, 123</Text>
-          <Text style={styles.boxDetail}>28002 Madrid</Text>
-          <Text style={styles.boxDetail}>Madrid</Text>
-          <Text style={styles.boxDetail}>📧 info@tuempresa.com</Text>
-          <Text style={styles.boxDetail}>📞 +34 600 000 000</Text>
+          <Text style={styles.boxName}>
+            {company?.commercial_name || company?.legal_name || "TU EMPRESA S.L."}
+          </Text>
+          {company?.tax_id && (
+            <Text style={styles.boxDetail}>NIF: {company.tax_id}</Text>
+          )}
+          {company?.fiscal_address && (
+            <Text style={styles.boxDetail}>{company.fiscal_address}</Text>
+          )}
+          {company?.fiscal_postal_code && company?.fiscal_city && (
+            <Text style={styles.boxDetail}>
+              {company.fiscal_postal_code} {company.fiscal_city}
+            </Text>
+          )}
+          {company?.fiscal_province && (
+            <Text style={styles.boxDetail}>{company.fiscal_province}</Text>
+          )}
+          {company?.billing_email && (
+            <Text style={styles.boxDetail}>📧 {company.billing_email}</Text>
+          )}
+          {company?.billing_phone && (
+            <Text style={styles.boxDetail}>📞 {company.billing_phone}</Text>
+          )}
         </View>
         <View style={styles.clientBox}>
           <Text style={styles.boxTitle}>Cliente</Text>
@@ -307,18 +367,33 @@ const QuoteTemplatePreview = () => (
         <View style={{flexDirection: "row", justifyContent: "space-between", marginTop: 8}}>
           <View style={{flex: 1}}>
             <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>EMPRESA</Text>
-            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>Tu Empresa S.L.</Text>
-            <Text style={{fontSize: 8, color: "#666"}}>NIF: B87654321</Text>
+            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>
+              {company?.commercial_name || company?.legal_name || "Tu Empresa S.L."}
+            </Text>
+            <Text style={{fontSize: 8, color: "#666"}}>NIF: {company?.tax_id || "B87654321"}</Text>
           </View>
           <View style={{flex: 1}}>
             <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>CONTACTO</Text>
-            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>info@tuempresa.com</Text>
-            <Text style={{fontSize: 8, color: "#666"}}>+34 600 000 000</Text>
+            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>
+              {company?.billing_email || "info@tuempresa.com"}
+            </Text>
+            <Text style={{fontSize: 8, color: "#666"}}>
+              {company?.billing_phone || "+34 600 000 000"}
+            </Text>
+            {company?.website && (
+              <Text style={{fontSize: 8, color: "#666"}}>{company.website}</Text>
+            )}
           </View>
           <View style={{flex: 1}}>
             <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>DIRECCIÓN FISCAL</Text>
-            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>C/ Tu Dirección, 123</Text>
-            <Text style={{fontSize: 8, color: "#666"}}>28002 Madrid</Text>
+            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>
+              {company?.fiscal_address || "C/ Tu Dirección, 123"}
+            </Text>
+            <Text style={{fontSize: 8, color: "#666"}}>
+              {company?.fiscal_postal_code && company?.fiscal_city 
+                ? `${company.fiscal_postal_code} ${company.fiscal_city}`
+                : "28002 Madrid"}
+            </Text>
           </View>
         </View>
       </View>
@@ -329,13 +404,25 @@ const QuoteTemplatePreview = () => (
 );
 
 // Invoice Template Preview
-const InvoiceTemplatePreview = () => (
+const InvoiceTemplatePreview = ({ company }: { company: CompanySettings | null }) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      <Text style={styles.watermark}>FACTURA</Text>
+      {/* Watermark with two lines */}
+      <View style={styles.watermark}>
+        <Text style={styles.watermarkText}>FACTURA</Text>
+        <Text style={styles.watermarkNumber}>F-26-000001</Text>
+      </View>
       
       <View style={styles.header}>
-        <Text style={styles.logoPlaceholder}>LOGO EMPRESA</Text>
+        <View>
+          {company?.logo_url ? (
+            <Image src={company.logo_url} style={styles.logo} />
+          ) : (
+            <Text style={styles.logoPlaceholder}>
+              {company?.commercial_name || company?.legal_name || "LOGO EMPRESA"}
+            </Text>
+          )}
+        </View>
         <View style={styles.headerRight}>
           <Text style={styles.documentTitle}>Factura</Text>
           <Text style={styles.documentNumber}>F-26-000001</Text>
@@ -346,13 +433,29 @@ const InvoiceTemplatePreview = () => (
       <View style={styles.infoRow}>
         <View style={styles.companyBox}>
           <Text style={styles.boxTitle}>Emisor</Text>
-          <Text style={styles.boxName}>TU EMPRESA S.L.</Text>
-          <Text style={styles.boxDetail}>NIF: B87654321</Text>
-          <Text style={styles.boxDetail}>C/ Tu Dirección, 123</Text>
-          <Text style={styles.boxDetail}>28002 Madrid</Text>
-          <Text style={styles.boxDetail}>Madrid</Text>
-          <Text style={styles.boxDetail}>📧 facturacion@tuempresa.com</Text>
-          <Text style={styles.boxDetail}>📞 +34 600 000 000</Text>
+          <Text style={styles.boxName}>
+            {company?.commercial_name || company?.legal_name || "TU EMPRESA S.L."}
+          </Text>
+          {company?.tax_id && (
+            <Text style={styles.boxDetail}>NIF: {company.tax_id}</Text>
+          )}
+          {company?.fiscal_address && (
+            <Text style={styles.boxDetail}>{company.fiscal_address}</Text>
+          )}
+          {company?.fiscal_postal_code && company?.fiscal_city && (
+            <Text style={styles.boxDetail}>
+              {company.fiscal_postal_code} {company.fiscal_city}
+            </Text>
+          )}
+          {company?.fiscal_province && (
+            <Text style={styles.boxDetail}>{company.fiscal_province}</Text>
+          )}
+          {company?.billing_email && (
+            <Text style={styles.boxDetail}>📧 {company.billing_email}</Text>
+          )}
+          {company?.billing_phone && (
+            <Text style={styles.boxDetail}>📞 {company.billing_phone}</Text>
+          )}
         </View>
         <View style={styles.clientBox}>
           <Text style={styles.boxTitle}>Cliente</Text>
@@ -417,18 +520,33 @@ const InvoiceTemplatePreview = () => (
         <View style={{flexDirection: "row", justifyContent: "space-between", marginTop: 8}}>
           <View style={{flex: 1}}>
             <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>EMPRESA</Text>
-            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>Tu Empresa S.L.</Text>
-            <Text style={{fontSize: 8, color: "#666"}}>NIF: B87654321</Text>
+            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>
+              {company?.commercial_name || company?.legal_name || "Tu Empresa S.L."}
+            </Text>
+            <Text style={{fontSize: 8, color: "#666"}}>NIF: {company?.tax_id || "B87654321"}</Text>
           </View>
           <View style={{flex: 1}}>
             <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>CONTACTO</Text>
-            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>facturacion@tuempresa.com</Text>
-            <Text style={{fontSize: 8, color: "#666"}}>+34 600 000 000</Text>
+            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>
+              {company?.billing_email || "facturacion@tuempresa.com"}
+            </Text>
+            <Text style={{fontSize: 8, color: "#666"}}>
+              {company?.billing_phone || "+34 600 000 000"}
+            </Text>
+            {company?.website && (
+              <Text style={{fontSize: 8, color: "#666"}}>{company.website}</Text>
+            )}
           </View>
           <View style={{flex: 1}}>
             <Text style={{fontSize: 7, fontWeight: "bold", color: "#888", textTransform: "uppercase", marginBottom: 4}}>DIRECCIÓN FISCAL</Text>
-            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>C/ Tu Dirección, 123</Text>
-            <Text style={{fontSize: 8, color: "#666"}}>28002 Madrid</Text>
+            <Text style={{fontSize: 8, color: "#666", marginBottom: 2}}>
+              {company?.fiscal_address || "C/ Tu Dirección, 123"}
+            </Text>
+            <Text style={{fontSize: 8, color: "#666"}}>
+              {company?.fiscal_postal_code && company?.fiscal_city 
+                ? `${company.fiscal_postal_code} ${company.fiscal_city}`
+                : "28002 Madrid"}
+            </Text>
           </View>
         </View>
       </View>
@@ -440,6 +558,54 @@ const InvoiceTemplatePreview = () => (
 
 export function TemplatesTab() {
   const [selectedTemplate, setSelectedTemplate] = useState<"quote" | "invoice">("quote");
+  const [company, setCompany] = useState<CompanySettings | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCompanySettings();
+  }, []);
+
+  const fetchCompanySettings = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_company_settings' as any);
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        setCompany({
+          legal_name: data[0].legal_name || '',
+          commercial_name: data[0].commercial_name || null,
+          tax_id: data[0].tax_id || '',
+          vat_number: data[0].vat_number || null,
+          fiscal_address: data[0].fiscal_address || '',
+          fiscal_city: data[0].fiscal_city || '',
+          fiscal_postal_code: data[0].fiscal_postal_code || '',
+          fiscal_province: data[0].fiscal_province || '',
+          billing_email: data[0].billing_email || null,
+          billing_phone: data[0].billing_phone || null,
+          website: data[0].website || null,
+          logo_url: data[0].logo_url || null,
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching company settings:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card className="bg-white/5 border-white/10">
+        <CardContent className="py-12">
+          <div className="flex flex-col items-center justify-center gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+            <p className="text-white/60 text-sm">Cargando plantillas...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="bg-white/5 border-white/10">
@@ -481,7 +647,7 @@ export function TemplatesTab() {
               </div>
               <div className="h-[600px] bg-zinc-800">
                 <PDFViewer width="100%" height="100%" showToolbar={false}>
-                  <QuoteTemplatePreview />
+                  <QuoteTemplatePreview company={company} />
                 </PDFViewer>
               </div>
             </div>
@@ -497,7 +663,7 @@ export function TemplatesTab() {
               </div>
               <div className="h-[600px] bg-zinc-800">
                 <PDFViewer width="100%" height="100%" showToolbar={false}>
-                  <InvoiceTemplatePreview />
+                  <InvoiceTemplatePreview company={company} />
                 </PDFViewer>
               </div>
             </div>

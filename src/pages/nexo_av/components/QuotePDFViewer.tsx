@@ -107,11 +107,20 @@ const styles = StyleSheet.create({
     top: "40%",
     left: "10%",
     transform: "rotate(-45deg)",
-    fontSize: 80,
-    color: "#f0f0f0",
     opacity: 0.3,
+  },
+  watermarkText: {
+    fontSize: 70,
+    color: "#f0f0f0",
     fontWeight: "bold",
-    letterSpacing: 20,
+    letterSpacing: 15,
+    marginBottom: 5,
+  },
+  watermarkNumber: {
+    fontSize: 32,
+    color: "#f0f0f0",
+    fontWeight: "bold",
+    letterSpacing: 8,
   },
   header: {
     flexDirection: "row",
@@ -354,8 +363,11 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Watermark */}
-        <Text style={styles.watermark}>PRESUPUESTO</Text>
+        {/* Watermark with two lines */}
+        <View style={styles.watermark}>
+          <Text style={styles.watermarkText}>PRESUPUESTO</Text>
+          <Text style={styles.watermarkNumber}>{quote.quote_number}</Text>
+        </View>
 
         {/* Header */}
         <View style={styles.header}>
