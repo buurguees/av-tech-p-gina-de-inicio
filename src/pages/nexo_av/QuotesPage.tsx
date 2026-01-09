@@ -20,6 +20,11 @@ import NexoHeader from "./components/NexoHeader";
 import PaginationControls from "./components/PaginationControls";
 import MobileBottomNav from "./components/MobileBottomNav";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { lazy, Suspense } from "react";
+
+// Lazy load mobile components
+const QuotesListMobile = lazy(() => import("./components/mobile/QuotesListMobile"));
 
 interface Quote {
   id: string;
@@ -54,6 +59,7 @@ const getStatusInfo = (status: string) => {
 const QuotesPage = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
+  const isMobile = useIsMobile();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
@@ -184,59 +190,20 @@ const QuotesPage = () => {
           </div>
 
           {/* Mobile card view */}
-          <div className="md:hidden space-y-2">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-white/40" />
+          {isMobile ? (
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-12 md:hidden">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
               </div>
-            ) : quotes.length === 0 ? (
-              <div className="text-center py-12 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm shadow-sm">
-                <FileText className="h-10 w-10 text-white/20 mx-auto mb-3" />
-                <p className="text-white/40 text-sm">No hay presupuestos</p>
-                <Button
-                  variant="link"
-                  onClick={handleNewQuote}
-                  className="text-white/60 hover:text-white text-sm mt-2"
-                >
-                  Crear el primero
-                </Button>
-              </div>
-            ) : (
-              <>
-                {paginatedQuotes.map((quote) => {
-                  const statusInfo = getStatusInfo(quote.status);
-                  return (
-                    <button
-                      key={quote.id}
-                      onClick={() => handleQuoteClick(quote.id)}
-                      className="w-full p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200 text-left backdrop-blur-sm active:scale-[0.98] shadow-sm"
-                    >
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="font-mono text-orange-500 text-xs font-medium">
-                          {quote.quote_number}
-                        </span>
-                        <Badge 
-                          variant="outline" 
-                          className={`${statusInfo.className} text-[9px] px-1.5 py-0`}
-                        >
-                          {statusInfo.label}
-                        </Badge>
-                      </div>
-                      <p className="text-white text-xs font-medium uppercase truncate">
-                        {quote.client_name || 'Sin cliente'}
-                      </p>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-white/40 text-[10px] truncate max-w-[50%]">
-                          {quote.created_by_name || 'Usuario'}
-                        </span>
-                        <span className="text-white font-medium text-xs">
-                          {formatCurrency(quote.total)}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-                <PaginationControls
+            }>
+              <div className="md:hidden">
+                <QuotesListMobile
+                  quotes={paginatedQuotes}
+                  getStatusInfo={getStatusInfo}
+                  formatCurrency={formatCurrency}
+                  onQuoteClick={handleQuoteClick}
+                  onCreateClick={handleNewQuote}
+                  loading={loading}
                   currentPage={currentPage}
                   totalPages={totalPages}
                   startIndex={startIndex}
@@ -248,9 +215,9 @@ const QuotesPage = () => {
                   onNextPage={nextPage}
                   onGoToPage={goToPage}
                 />
-              </>
-            )}
-          </div>
+              </div>
+            </Suspense>
+          ) : null}
 
           {/* Desktop table view */}
           <motion.div

@@ -19,6 +19,11 @@ import { usePagination } from "@/hooks/usePagination";
 import NexoHeader from "./components/NexoHeader";
 import CreateProjectDialog from "./components/CreateProjectDialog";
 import PaginationControls from "./components/PaginationControls";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { lazy, Suspense } from "react";
+
+// Lazy load mobile components
+const ProjectsListMobile = lazy(() => import("./components/mobile/ProjectsListMobile"));
 
 interface Project {
   id: string;
@@ -51,6 +56,7 @@ const getStatusInfo = (status: string) => {
 const ProjectsPage = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
@@ -137,8 +143,37 @@ const ProjectsPage = () => {
             />
           </div>
 
-          {/* Table */}
-          <div className="rounded-2xl border border-white/10 overflow-hidden bg-white/[0.02] backdrop-blur-sm shadow-lg">
+          {/* Mobile card view */}
+          {isMobile ? (
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-12 md:hidden">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+              </div>
+            }>
+              <div className="md:hidden">
+                <ProjectsListMobile
+                  projects={paginatedProjects}
+                  getStatusInfo={getStatusInfo}
+                  onProjectClick={handleProjectClick}
+                  onCreateClick={() => setIsCreateDialogOpen(true)}
+                  loading={loading}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  startIndex={startIndex}
+                  endIndex={endIndex}
+                  totalItems={totalItems}
+                  canGoPrev={canGoPrev}
+                  canGoNext={canGoNext}
+                  onPrevPage={prevPage}
+                  onNextPage={nextPage}
+                  onGoToPage={goToPage}
+                />
+              </div>
+            </Suspense>
+          ) : null}
+
+          {/* Desktop Table */}
+          <div className="hidden md:block rounded-2xl border border-white/10 overflow-hidden bg-white/[0.02] backdrop-blur-sm shadow-lg">
             <Table>
               <TableHeader>
                 <TableRow className="border-white/10 hover:bg-transparent">

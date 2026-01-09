@@ -33,6 +33,11 @@ import ClientProjectsTab from "./components/ClientProjectsTab";
 import ClientQuotesTab from "./components/ClientQuotesTab";
 import ClientInvoicesTab from "./components/ClientInvoicesTab";
 import EditClientDialog from "./components/EditClientDialog";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { lazy, Suspense } from "react";
+
+// Lazy load mobile tabs
+const DetailTabsMobile = lazy(() => import("./components/mobile/DetailTabsMobile"));
 
 interface ClientDetail {
   id: string;
@@ -84,6 +89,7 @@ const getStageInfo = (stage: string) => {
 
 const ClientDetailPage = () => {
   const { userId, clientId } = useParams<{ userId: string; clientId: string }>();
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [client, setClient] = useState<ClientDetail | null>(null);
@@ -357,54 +363,89 @@ const ClientDetailPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-white/5 border border-white/10 p-1 h-auto flex-wrap">
-              <TabsTrigger 
-                value="dashboard" 
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+          {isMobile ? (
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-white/20 border-t-white"></div>
+              </div>
+            }>
+              <DetailTabsMobile
+                value={activeTab}
+                onValueChange={setActiveTab}
+                tabs={[
+                  { value: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+                  { value: "projects", label: "Proyectos", icon: FolderKanban },
+                  { value: "quotes", label: "Presupuestos", icon: FileText },
+                  { value: "invoices", label: "Facturas", icon: Receipt },
+                ]}
               >
-                <LayoutDashboard className="h-4 w-4 mr-2" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger 
-                value="projects"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-              >
-                <FolderKanban className="h-4 w-4 mr-2" />
-                Proyectos
-              </TabsTrigger>
-              <TabsTrigger 
-                value="quotes"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Presupuestos
-              </TabsTrigger>
-              <TabsTrigger 
-                value="invoices"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-              >
-                <Receipt className="h-4 w-4 mr-2" />
-                Facturas
-              </TabsTrigger>
-            </TabsList>
+              <TabsContent value="dashboard" className="mt-6">
+                <ClientDashboardTab client={client} />
+              </TabsContent>
 
-            <TabsContent value="dashboard" className="mt-6">
-              <ClientDashboardTab client={client} />
-            </TabsContent>
+              <TabsContent value="projects" className="mt-6">
+                <ClientProjectsTab clientId={client.id} />
+              </TabsContent>
 
-            <TabsContent value="projects" className="mt-6">
-              <ClientProjectsTab clientId={client.id} />
-            </TabsContent>
+              <TabsContent value="quotes" className="mt-6">
+                <ClientQuotesTab clientId={client.id} />
+              </TabsContent>
 
-            <TabsContent value="quotes" className="mt-6">
-              <ClientQuotesTab clientId={client.id} />
-            </TabsContent>
+              <TabsContent value="invoices" className="mt-6">
+                <ClientInvoicesTab clientId={client.id} />
+              </TabsContent>
+              </DetailTabsMobile>
+            </Suspense>
+          ) : (
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="bg-white/5 border border-white/10 p-1 h-auto flex-wrap">
+                <TabsTrigger 
+                  value="dashboard" 
+                  className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                >
+                  <LayoutDashboard className="h-4 w-4 mr-2" />
+                  Dashboard
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="projects"
+                  className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                >
+                  <FolderKanban className="h-4 w-4 mr-2" />
+                  Proyectos
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="quotes"
+                  className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Presupuestos
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="invoices"
+                  className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                >
+                  <Receipt className="h-4 w-4 mr-2" />
+                  Facturas
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="invoices" className="mt-6">
-              <ClientInvoicesTab clientId={client.id} />
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="dashboard" className="mt-6">
+                <ClientDashboardTab client={client} />
+              </TabsContent>
+
+              <TabsContent value="projects" className="mt-6">
+                <ClientProjectsTab clientId={client.id} />
+              </TabsContent>
+
+              <TabsContent value="quotes" className="mt-6">
+                <ClientQuotesTab clientId={client.id} />
+              </TabsContent>
+
+              <TabsContent value="invoices" className="mt-6">
+                <ClientInvoicesTab clientId={client.id} />
+              </TabsContent>
+            </Tabs>
+          )}
         </motion.div>
       </main>
     </div>

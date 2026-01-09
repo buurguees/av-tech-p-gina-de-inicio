@@ -28,6 +28,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   company_name: z.string().min(1, "El nombre de la empresa es requerido"),
@@ -95,13 +97,14 @@ const LEAD_STAGES = [
   { value: 'PAUSED', label: 'Pausado' },
 ];
 
-const CreateClientDialog = ({ 
-  open, 
-  onOpenChange, 
+const CreateClientDialog = ({
+  open,
+  onOpenChange,
   onSuccess,
   currentUserId,
   isAdmin
 }: CreateClientDialogProps) => {
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
 
@@ -177,13 +180,19 @@ const CreateClientDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-zinc-900/95 backdrop-blur-2xl border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-3xl shadow-2xl">
-        <DialogHeader className="pb-2">
-          <DialogTitle>Nuevo Cliente / Lead</DialogTitle>
+      <DialogContent className={cn(
+        "bg-zinc-900/95 backdrop-blur-2xl border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-3xl shadow-2xl",
+        isMobile && "max-w-[95vw] p-4 nexo-form-mobile"
+      )}>
+        <DialogHeader className={cn("pb-2", isMobile && "mb-4")}>
+          <DialogTitle className={cn(isMobile && "text-lg")}>Nuevo Cliente / Lead</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className={cn(
+            "space-y-4",
+            isMobile && "space-y-5"
+          )}>
             {/* Basic info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <FormField
@@ -195,7 +204,10 @@ const CreateClientDialog = ({
                     <FormControl>
                       <Input 
                         {...field} 
-                        className="bg-white/5 border-white/10 text-white"
+                        className={cn(
+                          "bg-white/5 border-white/10 text-white",
+                          isMobile && "min-h-[44px] text-base"
+                        )}
                         placeholder="Nombre comercial"
                       />
                     </FormControl>
@@ -213,7 +225,10 @@ const CreateClientDialog = ({
                     <FormControl>
                       <Input 
                         {...field} 
-                        className="bg-white/5 border-white/10 text-white"
+                        className={cn(
+                          "bg-white/5 border-white/10 text-white",
+                          isMobile && "min-h-[44px] text-base"
+                        )}
                         placeholder="Razón social legal"
                       />
                     </FormControl>
@@ -234,7 +249,10 @@ const CreateClientDialog = ({
                       <Input 
                         {...field} 
                         type="email"
-                        className="bg-white/5 border-white/10 text-white"
+                        className={cn(
+                          "bg-white/5 border-white/10 text-white",
+                          isMobile && "min-h-[44px] text-base"
+                        )}
                         placeholder="email@empresa.com"
                       />
                     </FormControl>
@@ -252,7 +270,11 @@ const CreateClientDialog = ({
                     <FormControl>
                       <Input 
                         {...field} 
-                        className="bg-white/5 border-white/10 text-white"
+                        type="tel"
+                        className={cn(
+                          "bg-white/5 border-white/10 text-white",
+                          isMobile && "min-h-[44px] text-base"
+                        )}
                         placeholder="+34 600 000 000"
                       />
                     </FormControl>
@@ -289,7 +311,10 @@ const CreateClientDialog = ({
                     <FormLabel>Sector</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                        <SelectTrigger className={cn(
+                          "bg-white/5 border-white/10 text-white",
+                          isMobile && "min-h-[44px] text-base"
+                        )}>
                           <SelectValue placeholder="Seleccionar sector" />
                         </SelectTrigger>
                       </FormControl>
@@ -403,7 +428,10 @@ const CreateClientDialog = ({
                   <FormControl>
                     <Textarea 
                       {...field} 
-                      className="bg-white/5 border-white/10 text-white min-h-[100px]"
+                      className={cn(
+                        "bg-white/5 border-white/10 text-white min-h-[100px]",
+                        isMobile && "min-h-[120px] text-base"
+                      )}
                       placeholder="Información adicional sobre el cliente o lead..."
                     />
                   </FormControl>
@@ -412,19 +440,28 @@ const CreateClientDialog = ({
               )}
             />
 
-            <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
+            <div className={cn(
+              "flex justify-end gap-3 pt-3 border-t border-white/10",
+              isMobile && "flex-col-reverse gap-2 sticky bottom-0 bg-background pb-2"
+            )}>
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => onOpenChange(false)}
-                className="text-white/60 hover:text-white hover:bg-white/10"
+                className={cn(
+                  "text-white/60 hover:text-white hover:bg-white/10",
+                  isMobile && "w-full touch-target"
+                )}
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-white text-black hover:bg-white/90"
+                className={cn(
+                  "bg-white text-black hover:bg-white/90",
+                  isMobile && "w-full touch-target"
+                )}
               >
                 {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Crear Cliente

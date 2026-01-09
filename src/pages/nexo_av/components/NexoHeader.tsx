@@ -1,6 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { lazy, Suspense } from "react";
+
+// Lazy load mobile header
+const NexoHeaderMobile = lazy(() => import("./mobile/NexoHeaderMobile"));
 
 const NexoLogo = () => (
   <svg
@@ -41,6 +46,31 @@ const NexoHeader = ({
   backTo,
   customTitle,
 }: NexoHeaderProps) => {
+  const isMobile = useIsMobile();
+
+  // Use mobile version on mobile devices
+  if (isMobile) {
+    return (
+      <Suspense fallback={
+        <header className="border-b border-white/10 bg-black/60 backdrop-blur-xl sticky top-0 z-50 shadow-lg safe-area-top">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center">
+            <div className="animate-pulse w-32 h-4 bg-white/10 rounded"></div>
+          </div>
+        </header>
+      }>
+        <NexoHeaderMobile
+          title={title}
+          subtitle={subtitle}
+          userId={userId}
+          showBack={showBack}
+          showHome={showHome}
+          backTo={backTo}
+          customTitle={customTitle}
+        />
+      </Suspense>
+    );
+  }
+
   const navigate = useNavigate();
 
   // Default back navigation goes to dashboard

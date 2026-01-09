@@ -24,6 +24,11 @@ import UserAvatarDropdown from "./components/UserAvatarDropdown";
 import QuickQuoteDialog from "./components/QuickQuoteDialog";
 import CreateClientDialog from "./components/CreateClientDialog";
 import MobileBottomNav from "./components/MobileBottomNav";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { lazy, Suspense } from "react";
+
+// Lazy load mobile components for better performance
+const DashboardMobile = lazy(() => import("./components/mobile/DashboardMobile"));
 
 interface UserInfo {
   user_id: string;
@@ -63,6 +68,7 @@ const Dashboard = () => {
   const [showCreateClientDialog, setShowCreateClientDialog] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -300,17 +306,37 @@ const Dashboard = () => {
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
-        <DashboardContent 
-          userInfo={userInfo} 
-          modules={modules}
-          isAdmin={isAdmin}
-          isManager={isManager}
-          isSales={isSales}
-          isTech={isTech}
-          userId={userId}
-          navigate={navigate}
-          onNewLead={() => setShowCreateClientDialog(true)}
-        />
+        {isMobile ? (
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+              </div>
+            }>
+              <DashboardMobile
+                userInfo={userInfo}
+                modules={modules}
+                isAdmin={isAdmin}
+                isManager={isManager}
+                isSales={isSales}
+                isTech={isTech}
+                userId={userId}
+                navigate={navigate}
+                onNewLead={() => setShowCreateClientDialog(true)}
+              />
+            </Suspense>
+          ) : (
+            <DashboardContent 
+              userInfo={userInfo} 
+              modules={modules}
+              isAdmin={isAdmin}
+              isManager={isManager}
+              isSales={isSales}
+              isTech={isTech}
+              userId={userId}
+              navigate={navigate}
+              onNewLead={() => setShowCreateClientDialog(true)}
+            />
+          )}
       </main>
 
       {/* Mobile Bottom Navigation */}

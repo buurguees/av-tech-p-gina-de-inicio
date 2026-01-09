@@ -40,6 +40,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 
 const formSchema = z.object({
@@ -153,13 +154,14 @@ const URGENCY_LEVELS = [
   { value: 'URGENT', label: 'Urgente' },
 ];
 
-const EditClientDialog = ({ 
-  open, 
-  onOpenChange, 
+const EditClientDialog = ({
+  open,
+  onOpenChange,
   client,
   isAdmin,
   onSuccess,
 }: EditClientDialogProps) => {
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
   const { toast } = useToast();
@@ -290,7 +292,10 @@ const EditClientDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-black border-white/10 text-white sm:max-w-2xl max-h-[90vh] p-4 sm:p-6">
+      <DialogContent className={cn(
+        "bg-black border-white/10 text-white sm:max-w-2xl max-h-[90vh] p-4 sm:p-6",
+        isMobile && "max-w-[95vw] p-4 nexo-form-mobile"
+      )}>
         <DialogHeader className="pb-2">
           <DialogTitle className="text-white">Editar Cliente</DialogTitle>
           <DialogDescription className="text-white/60">

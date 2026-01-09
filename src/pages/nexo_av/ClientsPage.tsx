@@ -43,6 +43,10 @@ import CreateClientDialog from "./components/CreateClientDialog";
 import PaginationControls from "./components/PaginationControls";
 import MobileBottomNav from "./components/MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { lazy, Suspense } from "react";
+
+// Lazy load mobile components
+const ClientsListMobile = lazy(() => import("./components/mobile/ClientsListMobile"));
 
 interface Client {
   id: string;
@@ -296,47 +300,23 @@ const ClientsPage = () => {
         </motion.div>
 
         {/* Mobile card view */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="md:hidden space-y-2"
-        >
-          {paginatedClients.length === 0 ? (
-            <div className="text-center py-12 rounded-xl border border-white/10 bg-white/5">
-              <Building2 className="h-10 w-10 text-white/20 mx-auto mb-3" />
-              <p className="text-white/40 text-sm">No hay clientes</p>
-              <Button
-                variant="link"
-                onClick={() => setShowCreateDialog(true)}
-                className="text-white/60 hover:text-white text-sm mt-2"
-              >
-                Crear el primero
-              </Button>
+        {isMobile ? (
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-12 md:hidden">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
             </div>
-          ) : (
-            <>
-              {paginatedClients.map((client) => {
-                const stageInfo = getStageInfo(client.lead_stage);
-                return (
-                  <button
-                    key={client.id}
-                    onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
-                    className="w-full p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200 text-left backdrop-blur-sm active:scale-[0.98] shadow-sm"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-white font-medium text-xs truncate uppercase flex-1">{client.company_name}</p>
-                      <Badge 
-                        variant="outline" 
-                        className={`${stageInfo.color} border text-[9px] px-2 py-0.5 shrink-0`}
-                      >
-                        {stageInfo.label}
-                      </Badge>
-                    </div>
-                  </button>
-                );
-              })}
-              <PaginationControls
+          }>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="md:hidden"
+            >
+              <ClientsListMobile
+                clients={paginatedClients}
+                getStageInfo={getStageInfo}
+                onClientClick={(clientId) => navigate(`/nexo-av/${userId}/clients/${clientId}`)}
+                onCreateClick={() => setShowCreateDialog(true)}
                 currentPage={currentPage}
                 totalPages={totalPages}
                 startIndex={startIndex}
@@ -348,9 +328,9 @@ const ClientsPage = () => {
                 onNextPage={nextPage}
                 onGoToPage={goToPage}
               />
-            </>
-          )}
-        </motion.div>
+            </motion.div>
+          </Suspense>
+        ) : null}
 
         {/* Desktop table view */}
         <motion.div
