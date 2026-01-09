@@ -211,7 +211,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
       if (error) throw error;
 
-      toast.success(`Producto ${data?.[0]?.product_number} creado`);
+      toast.success(`Producto ${(data?.[0] as any)?.out_product_number} creado`);
       setShowAddDialog(false);
       await loadProducts();
     } catch (error) {

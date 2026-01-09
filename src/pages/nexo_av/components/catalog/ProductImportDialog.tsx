@@ -337,9 +337,10 @@ export function ProductImportDialog({
           result.productsCreated++;
           
           // If product was created but should be inactive, update it
-          if (!product.status && data?.[0]?.product_id) {
+          const productId = (data?.[0] as any)?.out_product_id;
+          if (!product.status && productId) {
             await supabase.rpc('update_product', {
-              p_product_id: data[0].product_id,
+              p_product_id: productId,
               p_is_active: false,
             });
           }
