@@ -259,26 +259,16 @@ export type Database = {
               product_number: string
             }[]
           }
-      create_product_category:
-        | {
-            Args: {
-              p_code: string
-              p_description?: string
-              p_display_order?: number
-              p_name: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_code: string
-              p_description?: string
-              p_display_order?: number
-              p_name: string
-              p_type?: string
-            }
-            Returns: string
-          }
+      create_product_category: {
+        Args: {
+          p_code: string
+          p_description?: string
+          p_display_order?: number
+          p_name: string
+          p_type?: string
+        }
+        Returns: string
+      }
       create_product_pack: {
         Args: {
           p_description?: string
