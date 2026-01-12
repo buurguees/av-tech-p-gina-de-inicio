@@ -456,6 +456,7 @@ export type Database = {
           id: string
           notes: string
           order_number: string
+          project_id: string
           project_name: string
           quote_number: string
           status: string

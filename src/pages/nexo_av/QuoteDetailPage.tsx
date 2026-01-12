@@ -161,12 +161,6 @@ const QuoteDetailPage = () => {
       const quoteInfo = quoteData[0];
       setQuote(quoteInfo);
 
-      // Get project_id from list_quotes (get_quote doesn't return it)
-      const { data: quotesListData } = await supabase.rpc("list_quotes", {
-        p_search: quoteInfo.quote_number,
-      });
-      const projectId = (quotesListData?.find((q: any) => q.id === quoteId) as any)?.project_id as string | undefined;
-
       // Fetch quote lines
       const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", {
         p_quote_id: quoteId,
@@ -184,10 +178,10 @@ const QuoteDetailPage = () => {
         }
       }
 
-      // Fetch project details if project exists
-      if (projectId) {
+      // Fetch project details if project exists (project_id now comes from get_quote)
+      if (quoteInfo.project_id) {
         const { data: projectData, error: projectError } = await supabase.rpc("get_project", {
-          p_project_id: projectId,
+          p_project_id: quoteInfo.project_id,
         });
         if (!projectError && projectData && projectData.length > 0) {
           setProject({
