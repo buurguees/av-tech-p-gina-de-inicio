@@ -303,6 +303,192 @@ export type Database = {
       }
       delete_quote_line: { Args: { p_line_id: string }; Returns: boolean }
       delete_tax: { Args: { p_tax_id: string }; Returns: boolean }
+      finance_add_invoice_line: {
+        Args: {
+          p_concept: string
+          p_description?: string
+          p_discount_percent?: number
+          p_invoice_id: string
+          p_product_id?: string
+          p_quantity?: number
+          p_tax_id?: string
+          p_tax_rate?: number
+          p_unit_price?: number
+        }
+        Returns: string
+      }
+      finance_cancel_invoice: {
+        Args: { p_invoice_id: string; p_reason?: string }
+        Returns: boolean
+      }
+      finance_create_invoice: {
+        Args: {
+          p_client_id: string
+          p_due_date?: string
+          p_project_id?: string
+          p_project_name?: string
+          p_source_quote_id?: string
+        }
+        Returns: {
+          invoice_id: string
+          preliminary_number: string
+        }[]
+      }
+      finance_delete_invoice_line: {
+        Args: { p_line_id: string }
+        Returns: boolean
+      }
+      finance_delete_payment: {
+        Args: { p_payment_id: string }
+        Returns: boolean
+      }
+      finance_get_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          discount_amount: number
+          due_date: string
+          id: string
+          internal_notes: string
+          invoice_number: string
+          is_locked: boolean
+          issue_date: string
+          notes: string
+          paid_amount: number
+          payment_terms: string
+          pending_amount: number
+          preliminary_number: string
+          project_id: string
+          project_name: string
+          project_number: string
+          source_quote_id: string
+          source_quote_number: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          total: number
+          updated_at: string
+        }[]
+      }
+      finance_get_invoice_lines: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          concept: string
+          description: string
+          discount_percent: number
+          id: string
+          line_order: number
+          product_id: string
+          quantity: number
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          unit: string
+          unit_price: number
+        }[]
+      }
+      finance_get_invoice_payments: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          amount: number
+          bank_reference: string
+          created_at: string
+          id: string
+          is_confirmed: boolean
+          notes: string
+          payment_date: string
+          payment_method: string
+          registered_by: string
+          registered_by_name: string
+        }[]
+      }
+      finance_get_tax_summary: {
+        Args: { p_fiscal_quarter?: number; p_fiscal_year?: number }
+        Returns: {
+          fiscal_period: string
+          tax_code: string
+          tax_rate: number
+          tax_type: string
+          total_base: number
+          total_tax: number
+          transaction_count: number
+        }[]
+      }
+      finance_issue_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          invoice_number: string
+          issue_date: string
+        }[]
+      }
+      finance_list_invoices: {
+        Args: { p_search?: string; p_status?: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          due_date: string
+          id: string
+          invoice_number: string
+          is_locked: boolean
+          issue_date: string
+          paid_amount: number
+          pending_amount: number
+          preliminary_number: string
+          project_id: string
+          project_name: string
+          source_quote_id: string
+          source_quote_number: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          total: number
+        }[]
+      }
+      finance_register_payment: {
+        Args: {
+          p_amount: number
+          p_bank_reference?: string
+          p_invoice_id: string
+          p_notes?: string
+          p_payment_date: string
+          p_payment_method: string
+        }
+        Returns: string
+      }
+      finance_update_invoice: {
+        Args: {
+          p_client_id?: string
+          p_due_date?: string
+          p_internal_notes?: string
+          p_invoice_id: string
+          p_notes?: string
+          p_payment_terms?: string
+          p_project_id?: string
+          p_project_name?: string
+          p_status?: string
+        }
+        Returns: boolean
+      }
+      finance_update_invoice_line: {
+        Args: {
+          p_concept?: string
+          p_description?: string
+          p_discount_percent?: number
+          p_line_id: string
+          p_quantity?: number
+          p_tax_rate?: number
+          p_unit_price?: number
+        }
+        Returns: boolean
+      }
       generate_otp: {
         Args: { p_email: string; p_ip_address?: unknown; p_user_agent?: string }
         Returns: string
