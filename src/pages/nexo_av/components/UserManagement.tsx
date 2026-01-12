@@ -124,6 +124,35 @@ const UserManagement = () => {
 
   const { toast } = useToast();
 
+  // Helper function to call admin-users edge function with proper auth
+  const callAdminUsersFunction = async (action: string, body: any = {}) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw new Error("No session found");
+    }
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://takvthfatlcjsqgssnta.supabase.co";
+    const response = await fetch(
+      `${supabaseUrl}/functions/v1/admin-users`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ action, ...body }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `Error with action: ${action}`);
+    }
+
+    return await response.json();
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchRoles();
@@ -131,17 +160,13 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-users', {
-        body: { action: 'list' }
-      });
-
-      if (error) throw error;
-      setUsers(data.users || []);
-    } catch (error) {
+      const result = await callAdminUsersFunction('list');
+      setUsers(result.users || []);
+    } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({
         title: "Error",
-        description: "No se pudieron cargar los usuarios.",
+        description: error.message || "No se pudieron cargar los usuarios.",
         variant: "destructive",
       });
     } finally {
@@ -151,14 +176,11 @@ const UserManagement = () => {
 
   const fetchRoles = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-users', {
-        body: { action: 'list-roles' }
-      });
-
-      if (error) throw error;
-      setRoles(data.roles || []);
-    } catch (error) {
+      const result = await callAdminUsersFunction('list-roles');
+      setRoles(result.roles || []);
+    } catch (error: any) {
       console.error('Error fetching roles:', error);
+      // No mostrar toast para roles, solo loguear el error
     }
   };
 
@@ -257,22 +279,17 @@ const UserManagement = () => {
 
     setIsSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-users', {
-        body: {
-          action: 'update',
-          userId: selectedUser.id,
-          userData: {
-            full_name: formData.full_name,
-            phone: formData.phone || null,
-            department: formData.department,
-            position: formData.position || null,
-            is_active: selectedUser.is_active,
-            roles: formData.selectedRoles,
-          }
+      await callAdminUsersFunction('update', {
+        userId: selectedUser.id,
+        userData: {
+          full_name: formData.full_name,
+          phone: formData.phone || null,
+          department: formData.department,
+          position: formData.position || null,
+          is_active: selectedUser.is_active,
+          roles: formData.selectedRoles,
         }
       });
-
-      if (error) throw error;
 
       toast({
         title: "Usuario actualizado",
@@ -299,14 +316,9 @@ const UserManagement = () => {
 
     setIsSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-users', {
-        body: {
-          action: 'delete',
-          userId: selectedUser.id,
-        }
+      await callAdminUsersFunction('delete', {
+        userId: selectedUser.id,
       });
-
-      if (error) throw error;
 
       toast({
         title: "Usuario eliminado",
@@ -343,15 +355,10 @@ const UserManagement = () => {
 
     setIsSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-users', {
-        body: {
-          action: 'reset-password',
-          userId: selectedUser.id,
-          newPassword: formData.password,
-        }
+      await callAdminUsersFunction('reset-password', {
+        userId: selectedUser.id,
+        newPassword: formData.password,
       });
-
-      if (error) throw error;
 
       toast({
         title: "Contraseña restablecida",
@@ -375,15 +382,10 @@ const UserManagement = () => {
 
   const handleToggleUserStatus = async (user: AuthorizedUser) => {
     try {
-      const { data, error } = await supabase.functions.invoke('admin-users', {
-        body: {
-          action: 'toggle-status',
-          userId: user.id,
-          isActive: !user.is_active,
-        }
+      await callAdminUsersFunction('toggle-status', {
+        userId: user.id,
+        isActive: !user.is_active,
       });
-
-      if (error) throw error;
 
       toast({
         title: user.is_active ? "Usuario desactivado" : "Usuario activado",
