@@ -146,12 +146,14 @@ const Dashboard = () => {
 
   const isAdmin = userInfo?.roles?.includes('admin');
   const isManager = userInfo?.roles?.includes('manager');
-  const isComercial = userInfo?.roles?.includes('comercial');
-  const isTech = userInfo?.roles?.includes('tecnico');
+  // Support both 'comercial' and 'sales' role names (internal schema uses 'sales')
+  const isComercial = userInfo?.roles?.includes('comercial') || userInfo?.roles?.includes('sales');
+  // Support both 'tecnico' and 'tech' role names
+  const isTech = userInfo?.roles?.includes('tecnico') || userInfo?.roles?.includes('tech');
   
-  // Legacy role support
-  const hasSalesAccess = isComercial || userInfo?.roles?.includes('sales');
-  const hasTechAccess = isTech || userInfo?.roles?.includes('tech');
+  // Unified access flags
+  const hasSalesAccess = isComercial;
+  const hasTechAccess = isTech;
 
   // Inactivity logout hook - 30 minutes timeout with 5 minute warning
   useInactivityLogout({
