@@ -557,35 +557,49 @@ const CreateClientDialog = ({
               <FormField
                 control={form.control}
                 name="assigned_to"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Asignar a {!isAdmin && "(auto)"}</FormLabel>
-                    <Select 
-                      onValueChange={(value) => field.onChange(value === "_none_" ? "" : value)} 
-                      value={field.value || "_none_"}
-                      disabled={!isAdmin}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white disabled:opacity-70">
-                          <SelectValue placeholder="Sin asignar" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-zinc-900 border-white/10">
-                        {isAdmin && (
-                          <SelectItem value="_none_" className="text-white/60">
-                            Sin asignar
-                          </SelectItem>
-                        )}
-                        {assignableUsers.map((user) => (
-                          <SelectItem key={user.id} value={user.id} className="text-white">
-                            {user.full_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  // Find current user's name for display when disabled
+                  const currentUserName = assignableUsers.find(u => u.id === field.value)?.full_name;
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>Asignar a {!isAdmin && "(automático)"}</FormLabel>
+                      {!isAdmin ? (
+                        // For non-admins: show a read-only input with their name
+                        <FormControl>
+                          <Input
+                            value={currentUserName || "Tú"}
+                            disabled
+                            className="bg-white/5 border-white/10 text-white disabled:opacity-80 disabled:cursor-not-allowed"
+                          />
+                        </FormControl>
+                      ) : (
+                        // For admins: show the select dropdown
+                        <Select 
+                          onValueChange={(value) => field.onChange(value === "_none_" ? "" : value)} 
+                          value={field.value || "_none_"}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                              <SelectValue placeholder="Sin asignar" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-zinc-900 border-white/10">
+                            <SelectItem value="_none_" className="text-white/60">
+                              Sin asignar
+                            </SelectItem>
+                            {assignableUsers.map((user) => (
+                              <SelectItem key={user.id} value={user.id} className="text-white">
+                                {user.full_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
 
