@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,6 +21,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -37,12 +44,24 @@ interface QuickQuoteDialogProps {
   trigger?: React.ReactNode;
 }
 
+interface AssignableUser {
+  id: string;
+  full_name: string;
+  email: string;
+}
+
 const QuickQuoteDialog = ({ trigger }: QuickQuoteDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
+
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserName, setCurrentUserName] = useState<string>("Tú");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -53,42 +72,75 @@ const QuickQuoteDialog = ({ trigger }: QuickQuoteDialogProps) => {
     },
   });
 
+  // Fetch current user info and assignable users
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Get current user info
+        const { data: userInfo, error: userError } = await supabase.rpc('get_current_user_info');
+        if (userError) throw userError;
+        
+        if (userInfo && userInfo.length > 0) {
+          const user = userInfo[0];
+          setCurrentUserId(user.user_id);
+          setCurrentUserName(user.full_name || "Tú");
+          setIsAdmin(user.roles?.includes('admin') || false);
+        }
+
+        // Fetch assignable users (for admins)
+        const { data: usersData, error: usersError } = await supabase.rpc('list_assignable_users');
+        if (usersError) throw usersError;
+        setAssignableUsers(usersData || []);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    if (open) {
+      fetchUserData();
+    }
+  }, [open]);
+
   const onSubmit = async (data: FormData) => {
+    if (!currentUserId) {
+      toast({
+        title: "Error",
+        description: "No se pudo obtener información del usuario",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Get current user session
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session?.user) {
-        toast({
-          title: "Error",
-          description: "Sesión no válida",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Get the authorized_user id for the current auth user
-      const { data: userInfo, error: userError } = await supabase.rpc('get_current_user_info');
-      
-      if (userError || !userInfo || userInfo.length === 0) {
-        toast({
-          title: "Error",
-          description: "No se pudo obtener información del usuario",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const authorizedUserId = userInfo[0].user_id;
-
       // Create client with "NEW" lead stage
+      // Non-admins are always assigned to themselves
+      const assignedTo = currentUserId;
+
       const { data: result, error } = await supabase.rpc('create_client', {
         p_company_name: data.name.toUpperCase(),
         p_contact_email: data.email,
         p_contact_phone: data.phone,
         p_lead_stage: 'NEW',
         p_lead_source: 'OTHER',
-        p_assigned_to: authorizedUserId,
+        p_assigned_to: assignedTo,
+      });
+
+      if (error) {
+        console.error('Error creating client:', error);
+        toast({
+          title: "Error",
+          description: error.message || "No se pudo crear el cliente",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Lead creado",
+        description: "Se ha creado el lead correctamente",
       });
 
       if (error) {
@@ -201,6 +253,25 @@ const QuickQuoteDialog = ({ trigger }: QuickQuoteDialogProps) => {
                 </FormItem>
               )}
             />
+
+            {/* Assigned to field - read-only showing current user's name */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white/80">
+                Asignar a {!isAdmin && "(automático)"}
+              </label>
+              {loadingUser ? (
+                <div className="flex items-center gap-2 h-10 px-3 bg-white/5 border border-white/10 rounded-md">
+                  <Loader2 className="h-4 w-4 animate-spin text-white/40" />
+                  <span className="text-white/40 text-sm">Cargando...</span>
+                </div>
+              ) : (
+                <Input
+                  value={currentUserName}
+                  disabled
+                  className="bg-white/5 border-white/10 text-white disabled:opacity-80 disabled:cursor-not-allowed"
+                />
+              )}
+            </div>
 
             <div className="flex gap-3 pt-4">
               <Button
