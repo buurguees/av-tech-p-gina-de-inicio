@@ -81,9 +81,10 @@ export default function ProductSearchInput({
       // Add products/services
       if (productsData) {
         productsData.forEach((p: any) => {
-          const item = {
+          const itemType: 'product' | 'service' = p.type === 'service' ? 'service' : 'product';
+          const item: CatalogItem = {
             id: p.id,
-            type: p.type === 'service' ? 'service' : 'product',
+            type: itemType,
             name: p.name,
             code: p.product_number,
             price: Number(p.base_price) || 0,
