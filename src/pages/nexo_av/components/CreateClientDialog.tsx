@@ -165,8 +165,8 @@ const CreateClientDialog = ({
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      // First create the client
-      const { data: clientId, error: createError } = await supabase.rpc('create_client', {
+      // First create the client (now returns table with client_id and client_number)
+      const { data: clientResult, error: createError } = await supabase.rpc('create_client', {
         p_company_name: data.company_name.toUpperCase(),
         p_contact_phone: data.contact_phone,
         p_contact_email: data.contact_email,
@@ -181,6 +181,9 @@ const CreateClientDialog = ({
       });
 
       if (createError) throw createError;
+      
+      // Extract client_id from the result array
+      const clientId = clientResult?.[0]?.client_id;
 
       // Then update with billing address and website if provided
       const hasBillingData = data.billing_address || data.billing_city || data.billing_postal_code || data.billing_province || data.billing_country || data.website;
