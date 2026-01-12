@@ -31,6 +31,12 @@ export const INVOICE_STATUSES = [
   },
 ];
 
+/**
+ * Invoice states that prevent editing
+ * Once an invoice reaches these states, it cannot be modified
+ */
+export const LOCKED_INVOICE_STATES = ["PAID", "CANCELLED"];
+
 export const getStatusInfo = (status: string) => {
   return INVOICE_STATUSES.find(s => s.value === status) || INVOICE_STATUSES[0];
 };
