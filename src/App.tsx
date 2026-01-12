@@ -29,6 +29,7 @@ import NexoAuditEventDetailPage from "./pages/nexo_av/AuditEventDetailPage";
 import NexoCalculatorPage from "./pages/nexo_av/CalculatorPage";
 import NexoInvoicesPage from "./pages/nexo_av/InvoicesPage";
 import NexoInvoiceDetailPage from "./pages/nexo_av/InvoiceDetailPage";
+import NexoNewInvoicePage from "./pages/nexo_av/NewInvoicePage";
 import NexoNotFound from "./pages/nexo_av/NotFound";
 import NexoAccountSetup from "./pages/nexo_av/AccountSetup";
 
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="/nexo-av/:userId/catalog/:productId" element={<NexoProductDetailPage />} />
             <Route path="/nexo-av/:userId/calculator" element={<NexoCalculatorPage />} />
             <Route path="/nexo-av/:userId/invoices" element={<NexoInvoicesPage />} />
+            <Route path="/nexo-av/:userId/invoices/new" element={<NexoNewInvoicePage />} />
             <Route path="/nexo-av/:userId/invoices/:invoiceId" element={<NexoInvoiceDetailPage />} />
             <Route path="/nexo-av/:userId/*" element={<NexoNotFound />} />
             {/* Legacy route - redirects to login */}
