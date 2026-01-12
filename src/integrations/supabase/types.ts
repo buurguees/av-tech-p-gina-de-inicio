@@ -166,6 +166,19 @@ export type Database = {
           invoice_number: string
         }[]
       }
+      create_invoice_with_number: {
+        Args: {
+          p_client_id: string
+          p_due_date?: string
+          p_issue_date?: string
+          p_project_id?: string
+          p_project_name?: string
+        }
+        Returns: {
+          invoice_id: string
+          invoice_number: string
+        }[]
+      }
       create_product: {
         Args: {
           p_base_price?: number
@@ -381,13 +394,14 @@ export type Database = {
           created_by_name: string
           due_date: string
           id: string
+          invoice_hash: string
           invoice_number: string
           issue_date: string
           notes: string
           project_id: string
           project_name: string
+          project_number: string
           source_quote_id: string
-          source_quote_number: string
           status: string
           subtotal: number
           tax_amount: number
@@ -565,28 +579,50 @@ export type Database = {
           urgency: string
         }[]
       }
-      list_invoices: {
-        Args: { p_search?: string; p_status?: string }
-        Returns: {
-          client_id: string
-          client_name: string
-          created_at: string
-          created_by: string
-          created_by_name: string
-          due_date: string
-          id: string
-          invoice_number: string
-          issue_date: string
-          project_id: string
-          project_name: string
-          source_quote_id: string
-          source_quote_number: string
-          status: string
-          subtotal: number
-          tax_amount: number
-          total: number
-        }[]
-      }
+      list_invoices:
+        | {
+            Args: { p_search?: string }
+            Returns: {
+              client_id: string
+              client_name: string
+              created_at: string
+              created_by: string
+              created_by_name: string
+              due_date: string
+              id: string
+              invoice_number: string
+              issue_date: string
+              project_id: string
+              project_name: string
+              project_number: string
+              status: string
+              subtotal: number
+              tax_amount: number
+              total: number
+            }[]
+          }
+        | {
+            Args: { p_search?: string; p_status?: string }
+            Returns: {
+              client_id: string
+              client_name: string
+              created_at: string
+              created_by: string
+              created_by_name: string
+              due_date: string
+              id: string
+              invoice_number: string
+              issue_date: string
+              project_id: string
+              project_name: string
+              source_quote_id: string
+              source_quote_number: string
+              status: string
+              subtotal: number
+              tax_amount: number
+              total: number
+            }[]
+          }
       list_product_categories: {
         Args: never
         Returns: {
@@ -809,16 +845,30 @@ export type Database = {
         }
         Returns: boolean
       }
-      update_invoice: {
-        Args: {
-          p_due_date?: string
-          p_invoice_id: string
-          p_issue_date?: string
-          p_notes?: string
-          p_status?: string
-        }
-        Returns: boolean
-      }
+      update_invoice:
+        | {
+            Args: {
+              p_client_id?: string
+              p_due_date?: string
+              p_invoice_id: string
+              p_issue_date?: string
+              p_notes?: string
+              p_project_id?: string
+              p_project_name?: string
+              p_status?: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_due_date?: string
+              p_invoice_id: string
+              p_issue_date?: string
+              p_notes?: string
+              p_status?: string
+            }
+            Returns: boolean
+          }
       update_invoice_line: {
         Args: {
           p_concept?: string

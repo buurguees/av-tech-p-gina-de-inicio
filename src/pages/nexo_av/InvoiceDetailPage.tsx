@@ -20,11 +20,11 @@ interface Invoice {
   id: string;
   invoice_number: string;
   source_quote_id: string | null;
-  source_quote_number: string | null;
   client_id: string;
   client_name: string;
   project_id: string | null;
   project_name: string | null;
+  project_number?: string | null;
   status: string;
   issue_date: string;
   due_date: string | null;
@@ -32,6 +32,7 @@ interface Invoice {
   tax_amount: number;
   total: number;
   notes: string | null;
+  invoice_hash?: string | null;
   created_by: string | null;
   created_by_name: string | null;
   created_at: string;
@@ -396,10 +397,10 @@ const InvoiceDetailPage = () => {
                 )}
 
                 {/* Source Quote Link */}
-                {invoice.source_quote_number && (
+                {invoice.source_quote_id && (
                   <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
                     <p className="text-purple-300/80 text-xs">
-                      Generada desde presupuesto: <span className="font-mono font-bold">{invoice.source_quote_number}</span>
+                      Generada desde presupuesto
                     </p>
                   </div>
                 )}
