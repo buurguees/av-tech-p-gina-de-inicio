@@ -13,6 +13,43 @@ import {
 import logoAvtech from '@/assets/logos/Logto_AVETCH_Simple_Fondo_Negro_Logo_Blanco.png';
 import { EASING_CURVES, TRANSITION_PRESETS } from '@/constants/easingCurves';
 
+// Importar imágenes de assets
+import project1 from '@/assets/projects/project-1.png';
+import project5 from '@/assets/projects/project-5.png';
+import project7 from '@/assets/projects/project-7.jpg';
+import project8 from '@/assets/projects/project-8.jpg';
+import heroLedScreen from '@/assets/hero-led-screen.jpg';
+import pantallaLedInterior from '@/assets/catalog/pantalla-led-interior.png';
+import mupysLed from '@/assets/catalog/mupys-led.png';
+import lcdTecho from '@/assets/catalog/lcd-techo.png';
+import comoTrabajamosVisual from '@/assets/como-trabajamos-visual.png';
+import howItWorksVisual from '@/assets/how-it-works-visual.png';
+import visionVisual from '@/assets/vision-visual.png';
+
+// Arrays de imágenes para usar en la presentación
+const EVENT_IMAGES = [
+  project1,
+  project5,
+  project7,
+  project8,
+  heroLedScreen,
+  pantallaLedInterior,
+];
+
+// Galería de renders - Usando proyectos reales más impactantes
+const RENDER_IMAGES = [
+  project5,
+  project7,
+  project8,
+  heroLedScreen,
+];
+
+const ENERGY_IMAGES = {
+  start: visionVisual,
+  peak: heroLedScreen,
+  final: project1,
+};
+
 // ============================================
 // CONFIGURACIÓN DEL CLIENTE
 // ============================================
@@ -760,25 +797,27 @@ const SharkEventsPresentation = () => {
             </motion.div>
           </div>
 
-          {/* Media Placeholders - Grid optimizado mobile */}
+          {/* Media Gallery - Grid optimizado mobile */}
           <div className="mt-10 sm:mt-16 grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+            {EVENT_IMAGES.map((image, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, type: 'spring', stiffness: 200 }}
-                onClick={() => setLightboxImage(`placeholder-${i}`)}
+                onClick={() => setLightboxImage(image)}
                 whileTap={{ scale: 0.95 }}
-                className="aspect-video bg-gradient-to-br from-white/10 to-white/5 rounded-xl border border-white/10 cursor-pointer transition-all overflow-hidden relative touch-manipulation"
+                whileHover={{ scale: 1.02 }}
+                className="aspect-video rounded-xl border border-white/10 cursor-pointer transition-all overflow-hidden relative touch-manipulation group"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-400/0 to-orange-400/20" />
-                <div className="w-full h-full flex items-center justify-center relative z-10">
-                  <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
-                    <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white/60 border-b-[6px] border-b-transparent ml-1" />
-                  </div>
-                </div>
+                <img 
+                  src={image} 
+                  alt={`Evento SHARK ${i + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-orange-400/0 group-hover:bg-orange-400/10 transition-colors" />
               </motion.div>
             ))}
           </div>
@@ -830,21 +869,24 @@ const SharkEventsPresentation = () => {
 
           {/* Galería de renders - Grid optimizado */}
           <div className="mt-10 sm:mt-16 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            {[1, 2, 3, 4].map((i) => (
+            {RENDER_IMAGES.map((image, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, type: 'spring', stiffness: 200 }}
-                onClick={() => setLightboxImage(`render-${i}`)}
+                onClick={() => setLightboxImage(image)}
                 whileTap={{ scale: 0.95 }}
-                className="aspect-square bg-gradient-to-br from-white/10 to-white/5 rounded-xl border border-white/10 cursor-pointer transition-all overflow-hidden relative touch-manipulation"
+                whileHover={{ scale: 1.05 }}
+                className="aspect-square rounded-xl border border-white/10 cursor-pointer transition-all overflow-hidden relative touch-manipulation group"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-400/0 to-orange-400/20" />
-                <div className="w-full h-full flex items-center justify-center relative z-10">
-                  <span className="text-white/30 text-xs font-mono">R{i}</span>
-                </div>
+                <img 
+                  src={image} 
+                  alt={`Render ${i + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-400/0 group-hover:from-orange-400/20 transition-all" />
               </motion.div>
             ))}
           </div>
@@ -900,16 +942,15 @@ const SharkEventsPresentation = () => {
               className="grid md:grid-cols-2 gap-6 sm:gap-8"
             >
                 <motion.div 
-                  className="aspect-video bg-gradient-to-br from-white/10 to-white/5 rounded-2xl border border-white/10 overflow-hidden relative"
+                  className="aspect-video rounded-2xl border border-white/10 overflow-hidden relative group"
                 >
+                  <img 
+                    src={ENERGY_IMAGES[activeEnergyTab]} 
+                    alt={`Energy ${activeEnergyTab}`}
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-br from-orange-400/10 to-transparent" />
-                  <div className="w-full h-full flex items-center justify-center relative z-10">
-                    <span className="text-white/30 text-sm font-mono px-4 text-center">
-                      {activeEnergyTab === 'start' && 'START: Build-up'}
-                      {activeEnergyTab === 'peak' && 'PEAK: Explosión'}
-                      {activeEnergyTab === 'final' && 'FINAL: Cierre'}
-                    </span>
-                  </div>
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
                 </motion.div>
                 <div className="space-y-4 sm:space-y-6">
                   {activeEnergyTab === 'start' && (
@@ -1274,12 +1315,22 @@ const SharkEventsPresentation = () => {
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="max-w-6xl w-full aspect-video bg-gradient-to-br from-white/10 to-white/5 rounded-2xl border border-white/10 flex items-center justify-center relative overflow-hidden"
+              className="max-w-6xl w-full aspect-video rounded-2xl border border-white/10 relative overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-400/10 to-transparent" />
-              <span className="text-white/30 text-sm font-mono relative z-10 px-4 text-center">
-                Imagen: {lightboxImage}
-              </span>
+              {typeof lightboxImage === 'string' && lightboxImage.startsWith('/') || lightboxImage.includes('.') ? (
+                <img 
+                  src={lightboxImage} 
+                  alt="Lightbox"
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/10 to-white/5">
+                  <span className="text-white/30 text-sm font-mono px-4 text-center">
+                    {lightboxImage}
+                  </span>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-400/10 to-transparent pointer-events-none" />
             </motion.div>
           </motion.div>
         )}

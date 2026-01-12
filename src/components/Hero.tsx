@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Import project images
 import project1 from '@/assets/projects/project-1.png';
 import project5 from '@/assets/projects/project-5.png';
-import project6 from '@/assets/projects/project-6.png';
 import project7 from '@/assets/projects/project-7.jpg';
 import project8 from '@/assets/projects/project-8.jpg';
 
@@ -14,7 +13,7 @@ import catalogImage2 from '@/assets/catalog/mupys-led.png';
 import catalogImage4 from '@/assets/catalog/lcd-techo.png';
 
 const projectImages = [
-  project1, project5, project6, project7, project8,
+  project1, project5, project7, project8,
   catalogImage1, catalogImage2, catalogImage4
 ];
 

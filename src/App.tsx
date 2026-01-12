@@ -33,6 +33,7 @@ import NexoNewInvoicePage from "./pages/nexo_av/NewInvoicePage";
 import NexoEditInvoicePage from "./pages/nexo_av/EditInvoicePage";
 import NexoNotFound from "./pages/nexo_av/NotFound";
 import NexoAccountSetup from "./pages/nexo_av/AccountSetup";
+import SharkEventsPresentation from "./pages/presentations/SharkEventsPresentation";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,8 @@ const App = () => (
             
             <Route path="/privacidad" element={<PrivacyPolicy />} />
             <Route path="/terminos" element={<TermsAndConditions />} />
+            {/* Custom Presentation Routes */}
+            <Route path="/sharkevents" element={<SharkEventsPresentation />} />
             {/* NEXO AV Routes */}
             <Route path="/nexo-av" element={<NexoLogin />} />
             <Route path="/nexo-av/setup-account" element={<NexoAccountSetup />} />

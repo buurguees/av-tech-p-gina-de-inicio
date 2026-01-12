@@ -12,7 +12,6 @@ import {
 // Import project images
 import project1 from '@/assets/projects/project-1.png';
 import project5 from '@/assets/projects/project-5.png';
-import project6 from '@/assets/projects/project-6.png';
 import project7 from '@/assets/projects/project-7.jpg';
 import project8 from '@/assets/projects/project-8.jpg';
 
@@ -23,7 +22,6 @@ import pantallaLedInterior from '@/assets/catalog/pantalla-led-interior.png';
 const projects = [
   { id: 1, image: project1, title: 'Metro Barcelona ARS Gràcia', category: 'Transporte' },
   { id: 5, image: project5, title: 'Digital Signage Jack & Jones', category: 'Señalización' },
-  { id: 6, image: project6, title: 'Pantalla Circular', category: 'Displays Especiales' },
   { id: 7, image: project7, title: 'Interior Retail', category: 'Experiencia Visual' },
   { id: 8, image: project8, title: 'Corporate Lobby Experience', category: 'Espacios Corporativos' },
   { id: 9, image: mupysLed, title: 'Mupis LED Gimnasio', category: 'Digital Signage' },
