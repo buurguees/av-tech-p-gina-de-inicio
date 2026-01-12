@@ -2,7 +2,6 @@ import { useState, useEffect, lazy } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -232,7 +231,6 @@ const ProjectDetailPageDesktop = () => {
                     variant="outline" 
                     className="border-white/20 text-white hover:bg-white/10"
                     onClick={() => {
-                      // TODO: Open edit project dialog
                       toast.info("Funcionalidad de edición próximamente");
                     }}
                   >
@@ -245,127 +243,82 @@ const ProjectDetailPageDesktop = () => {
           </Card>
         </motion.div>
 
-        {/* Tabs Navigation */}
+        {/* Tabs Navigation - Desktop only */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          {isMobile ? (
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-white/20 border-t-white"></div>
-              </div>
-            }>
-              <DetailTabsMobile
-                value={activeTab}
-                onValueChange={setActiveTab}
-                tabs={[
-                  { value: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-                  { value: "planning", label: "Planificación", icon: CalendarDays },
-                  { value: "quotes", label: "Presupuestos", icon: FileText },
-                  { value: "technicians", label: "Técnicos", icon: Users },
-                  { value: "expenses", label: "Gastos", icon: Wallet },
-                  { value: "invoices", label: "Facturas", icon: Receipt },
-                ]}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="bg-white/5 border border-white/10 p-1 h-auto flex-wrap">
+              <TabsTrigger 
+                value="dashboard" 
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
               >
-              <TabsContent value="dashboard" className="mt-6">
-                <ProjectDashboardTab project={project} />
-              </TabsContent>
+                <LayoutDashboard className="h-4 w-4 mr-2" />
+                Dashboard
+              </TabsTrigger>
+              <TabsTrigger 
+                value="planning"
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+              >
+                <CalendarDays className="h-4 w-4 mr-2" />
+                Planificación
+              </TabsTrigger>
+              <TabsTrigger 
+                value="quotes"
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Presupuestos
+              </TabsTrigger>
+              <TabsTrigger 
+                value="technicians"
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Técnicos
+              </TabsTrigger>
+              <TabsTrigger 
+                value="expenses"
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+              >
+                <Wallet className="h-4 w-4 mr-2" />
+                Gastos
+              </TabsTrigger>
+              <TabsTrigger 
+                value="invoices"
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+              >
+                <Receipt className="h-4 w-4 mr-2" />
+                Facturas
+              </TabsTrigger>
+            </TabsList>
 
-              <TabsContent value="planning" className="mt-6">
-                <ProjectPlanningTab projectId={project.id} />
-              </TabsContent>
+            <TabsContent value="dashboard" className="mt-6">
+              <ProjectDashboardTab project={project} />
+            </TabsContent>
 
-              <TabsContent value="quotes" className="mt-6">
-                <ProjectQuotesTab projectId={project.id} clientId={project.client_id || undefined} />
-              </TabsContent>
+            <TabsContent value="planning" className="mt-6">
+              <ProjectPlanningTab projectId={project.id} />
+            </TabsContent>
 
-              <TabsContent value="technicians" className="mt-6">
-                <ProjectTechniciansTab projectId={project.id} />
-              </TabsContent>
+            <TabsContent value="quotes" className="mt-6">
+              <ProjectQuotesTab projectId={project.id} clientId={project.client_id || undefined} />
+            </TabsContent>
 
-              <TabsContent value="expenses" className="mt-6">
-                <ProjectExpensesTab projectId={project.id} />
-              </TabsContent>
+            <TabsContent value="technicians" className="mt-6">
+              <ProjectTechniciansTab projectId={project.id} />
+            </TabsContent>
 
-              <TabsContent value="invoices" className="mt-6">
-                <ProjectInvoicesTab projectId={project.id} />
-              </TabsContent>
-              </DetailTabsMobile>
-            </Suspense>
-          ) : (
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="bg-white/5 border border-white/10 p-1 h-auto flex-wrap">
-                <TabsTrigger 
-                  value="dashboard" 
-                  className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-                >
-                  <LayoutDashboard className="h-4 w-4 mr-2" />
-                  Dashboard
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="planning"
-                  className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-                >
-                  <CalendarDays className="h-4 w-4 mr-2" />
-                  Planificación
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="quotes"
-                  className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Presupuestos
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="technicians"
-                  className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-                >
-                  <Users className="h-4 w-4 mr-2" />
-                  Técnicos
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="expenses"
-                  className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-                >
-                  <Wallet className="h-4 w-4 mr-2" />
-                  Gastos
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="invoices"
-                  className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-                >
-                  <Receipt className="h-4 w-4 mr-2" />
-                  Facturas
-                </TabsTrigger>
-              </TabsList>
+            <TabsContent value="expenses" className="mt-6">
+              <ProjectExpensesTab projectId={project.id} />
+            </TabsContent>
 
-              <TabsContent value="dashboard" className="mt-6">
-                <ProjectDashboardTab project={project} />
-              </TabsContent>
-
-              <TabsContent value="planning" className="mt-6">
-                <ProjectPlanningTab projectId={project.id} />
-              </TabsContent>
-
-              <TabsContent value="quotes" className="mt-6">
-                <ProjectQuotesTab projectId={project.id} clientId={project.client_id || undefined} />
-              </TabsContent>
-
-              <TabsContent value="technicians" className="mt-6">
-                <ProjectTechniciansTab projectId={project.id} />
-              </TabsContent>
-
-              <TabsContent value="expenses" className="mt-6">
-                <ProjectExpensesTab projectId={project.id} />
-              </TabsContent>
-
-              <TabsContent value="invoices" className="mt-6">
-                <ProjectInvoicesTab projectId={project.id} />
-              </TabsContent>
-            </Tabs>
-          )}
+            <TabsContent value="invoices" className="mt-6">
+              <ProjectInvoicesTab projectId={project.id} />
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </main>
     </div>

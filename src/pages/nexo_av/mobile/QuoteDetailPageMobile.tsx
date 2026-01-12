@@ -148,9 +148,9 @@ const QuoteDetailPageMobile = () => {
     try {
       setUpdatingStatus(true);
       
-      const { error } = await supabase.rpc("update_quote_status", {
-        p_quote_id: quoteId,
-        p_new_status: newStatus,
+      const { error } = await supabase.rpc("update_quote", {
+        p_quote_id: quoteId!,
+        p_status: newStatus,
       });
 
       if (error) throw error;
@@ -308,15 +308,17 @@ const QuoteDetailPageMobile = () => {
           </div>
         </motion.div>
 
-        {/* PDF Viewer - Full Width cuando está visible */}
+        {/* PDF Viewer - Temporarily disabled, requires full data fetch */}
         {showPDF && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="rounded-xl overflow-hidden border border-white/10"
+            className="rounded-xl overflow-hidden border border-white/10 p-4 bg-white/5"
           >
-            <QuotePDFViewer quoteId={quote.id} />
+            <p className="text-white/60 text-sm text-center">
+              Vista previa no disponible en móvil. Usa la versión de escritorio para ver el PDF completo.
+            </p>
           </motion.div>
         )}
 

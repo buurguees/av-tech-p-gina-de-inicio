@@ -103,11 +103,11 @@ export default function CatalogPageMobile() {
           ]}
         >
           <TabsContent value="products" className="mt-3">
-            <ProductsTab isAdmin={isAdmin} userId={userId || ''} />
+            <ProductsTab isAdmin={isAdmin} filterType="product" />
           </TabsContent>
 
           <TabsContent value="packs" className="mt-3">
-            <PacksTab isAdmin={isAdmin} userId={userId || ''} />
+            <PacksTab isAdmin={isAdmin} />
           </TabsContent>
         </DetailTabsMobile>
       </main>

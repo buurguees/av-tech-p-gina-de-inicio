@@ -141,37 +141,8 @@ const ProjectsPageDesktop = () => {
             />
           </div>
 
-          {/* Mobile card view */}
-          {isMobile ? (
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-12 md:hidden">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
-              </div>
-            }>
-              <div className="md:hidden">
-                <ProjectsListMobile
-                  projects={paginatedProjects}
-                  getStatusInfo={getStatusInfo}
-                  onProjectClick={handleProjectClick}
-                  onCreateClick={() => setIsCreateDialogOpen(true)}
-                  loading={loading}
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  startIndex={startIndex}
-                  endIndex={endIndex}
-                  totalItems={totalItems}
-                  canGoPrev={canGoPrev}
-                  canGoNext={canGoNext}
-                  onPrevPage={prevPage}
-                  onNextPage={nextPage}
-                  onGoToPage={goToPage}
-                />
-              </div>
-            </Suspense>
-          ) : null}
-
           {/* Desktop Table */}
-          <div className="hidden md:block rounded-2xl border border-white/10 overflow-hidden bg-white/[0.02] backdrop-blur-sm shadow-lg">
+          <div className="rounded-2xl border border-white/10 overflow-hidden bg-white/[0.02] backdrop-blur-sm shadow-lg">
             <Table>
               <TableHeader>
                 <TableRow className="border-white/10 hover:bg-transparent">
