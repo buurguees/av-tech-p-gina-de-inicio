@@ -21,6 +21,7 @@ interface ClientQuotesTabProps {
 interface Quote {
   id: string;
   quote_number: string;
+  client_id: string;
   project_name: string | null;
   status: string;
   subtotal: number;
@@ -54,7 +55,8 @@ const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
       try {
         setLoading(true);
         const { data, error } = await supabase.rpc('list_quotes', {
-          p_search: null
+          p_search: null,
+          p_status: null
         });
 
         if (error) throw error;

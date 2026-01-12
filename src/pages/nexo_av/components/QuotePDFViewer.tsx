@@ -376,7 +376,7 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
               <Image src={company.logo_url} style={styles.logo} />
             ) : (
               <Text style={styles.logoPlaceholder}>
-                {company?.commercial_name || company?.legal_name || "EMPRESA"}
+                {company?.legal_name || company?.commercial_name || "EMPRESA"}
               </Text>
             )}
           </View>
@@ -393,7 +393,7 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
           <View style={styles.companyBox}>
             <Text style={styles.boxTitle}>Emisor</Text>
             <Text style={styles.boxName}>
-              {company?.commercial_name || company?.legal_name || "TU EMPRESA"}
+              {company?.legal_name || company?.commercial_name || "TU EMPRESA"}
             </Text>
             {company?.tax_id && (
               <Text style={styles.boxDetail}>NIF: {company.tax_id}</Text>
@@ -410,10 +410,10 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
               <Text style={styles.boxDetail}>{company.fiscal_province}</Text>
             )}
             {company?.billing_email && (
-              <Text style={styles.boxDetail}>📧 {company.billing_email}</Text>
+              <Text style={styles.boxDetail}>Email: {company.billing_email}</Text>
             )}
             {company?.billing_phone && (
-              <Text style={styles.boxDetail}>📞 {company.billing_phone}</Text>
+              <Text style={styles.boxDetail}>Teléfono: {company.billing_phone}</Text>
             )}
           </View>
 
@@ -438,10 +438,10 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
               <Text style={styles.boxDetail}>{client.billing_province}</Text>
             )}
             {client?.contact_email && (
-              <Text style={styles.boxDetail}>📧 {client.contact_email}</Text>
+              <Text style={styles.boxDetail}>Email: {client.contact_email}</Text>
             )}
             {client?.contact_phone && (
-              <Text style={styles.boxDetail}>📞 {client.contact_phone}</Text>
+              <Text style={styles.boxDetail}>Teléfono: {client.contact_phone}</Text>
             )}
           </View>
         </View>
