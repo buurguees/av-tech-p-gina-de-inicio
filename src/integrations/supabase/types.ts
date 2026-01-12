@@ -1012,15 +1012,6 @@ export type Database = {
           }
         | {
             Args: {
-              p_notes?: string
-              p_quote_id: string
-              p_status?: string
-              p_valid_until?: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
               p_client_id?: string
               p_notes?: string
               p_project_name?: string
