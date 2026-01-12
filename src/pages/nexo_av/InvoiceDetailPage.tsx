@@ -192,7 +192,7 @@ const InvoiceDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-nexo-bg">
-      <NexoHeader title={`Factura ${displayNumber}`} />
+      <NexoHeader title={`Factura ${displayNumber}`} userId={userId || ""} />
 
       <main className="p-6 max-w-7xl mx-auto">
         {/* Back button */}
@@ -265,6 +265,8 @@ const InvoiceDetailPage = () => {
                   lines={lines}
                   client={client}
                   company={company}
+                  project={project}
+                  fileName={`Factura-${displayNumber}`}
                 />
               </CardContent>
             </Card>

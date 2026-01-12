@@ -59,6 +59,90 @@ serve(async (req) => {
       }
     });
 
+    const body = await req.json();
+    const { action } = body;
+
+    console.log('Action requested:', action);
+
+    // ============================================
+    // PUBLIC ACTIONS (no auth required)
+    // These actions are allowed without authentication
+    // ============================================
+    
+    if (action === 'validate-invitation') {
+      const { token, email } = body;
+      
+      const { data: tokenData, error: tokenError } = await supabaseAdmin
+        .rpc('validate_invitation_token', { p_token: token, p_email: email });
+      
+      if (tokenError) {
+        console.error('Token validation error:', tokenError);
+        return new Response(
+          JSON.stringify({ is_valid: false, error_message: 'Error validating token' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      const result = tokenData?.[0] || { is_valid: false, error_message: 'Token not found' };
+      return new Response(
+        JSON.stringify(result),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'setup-password') {
+      const { email, token, newPassword } = body;
+      
+      // Validate token
+      const { data: tokenData } = await supabaseAdmin
+        .rpc('validate_invitation_token', { p_token: token, p_email: email });
+      
+      const tokenResult = tokenData?.[0];
+      if (!tokenResult?.is_valid) {
+        return new Response(
+          JSON.stringify({ error: tokenResult?.error_message || 'Invalid token' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // Get auth user id
+      const { data: authUserId } = await supabaseAdmin
+        .rpc('get_user_auth_id_by_email', { p_email: email });
+      
+      if (!authUserId) {
+        return new Response(
+          JSON.stringify({ error: 'User not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // Update password AND confirm email
+      const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(
+        authUserId,
+        { 
+          password: newPassword,
+          email_confirm: true  // Confirm email to allow login
+        }
+      );
+      
+      if (passwordError) {
+        console.error('Password update error:', passwordError);
+        throw passwordError;
+      }
+      
+      // Mark token as used
+      await supabaseAdmin.rpc('mark_invitation_token_used', { p_token: token });
+      
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ============================================
+    // AUTHENTICATED ACTIONS (require auth header)
+    // ============================================
+
     // Create regular client to verify the requesting user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -99,11 +183,6 @@ serve(async (req) => {
     }
 
     const authorizedUser = authorizedUserData[0];
-
-    const body = await req.json();
-    const { action } = body;
-
-    console.log('Action requested:', action);
 
     // Handle update_own_info action - doesn't require admin
     if (action === 'update_own_info') {
@@ -408,72 +487,7 @@ serve(async (req) => {
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-
-      case 'validate-invitation': {
-        const { token, email } = body;
-        
-        const { data: tokenData, error: tokenError } = await supabaseAdmin
-          .rpc('validate_invitation_token', { p_token: token, p_email: email });
-        
-        if (tokenError) {
-          return new Response(
-            JSON.stringify({ is_valid: false, error_message: 'Error validating token' }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
-        const result = tokenData?.[0] || { is_valid: false, error_message: 'Token not found' };
-        return new Response(
-          JSON.stringify(result),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      case 'setup-password': {
-        const { email, token, newPassword } = body;
-        
-        // Validate token
-        const { data: tokenData } = await supabaseAdmin
-          .rpc('validate_invitation_token', { p_token: token, p_email: email });
-        
-        const tokenResult = tokenData?.[0];
-        if (!tokenResult?.is_valid) {
-          return new Response(
-            JSON.stringify({ error: tokenResult?.error_message || 'Invalid token' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
-        // Get auth user id
-        const { data: authUserId } = await supabaseAdmin
-          .rpc('get_user_auth_id_by_email', { p_email: email });
-        
-        if (!authUserId) {
-          return new Response(
-            JSON.stringify({ error: 'User not found' }),
-            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
-        // Update password AND confirm email
-        const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(
-          authUserId,
-          { 
-            password: newPassword,
-            email_confirm: true  // ✅ Confirmar email manualmente
-          }
-        );
-        
-        if (passwordError) throw passwordError;
-        
-        // Mark token as used
-        await supabaseAdmin.rpc('mark_invitation_token_used', { p_token: token });
-        
-        return new Response(
-          JSON.stringify({ success: true }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+      // validate-invitation and setup-password are now handled above as public actions
 
       default:
         return new Response(

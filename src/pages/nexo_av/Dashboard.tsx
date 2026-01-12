@@ -146,8 +146,12 @@ const Dashboard = () => {
 
   const isAdmin = userInfo?.roles?.includes('admin');
   const isManager = userInfo?.roles?.includes('manager');
-  const isSales = userInfo?.roles?.includes('sales');
-  const isTech = userInfo?.roles?.includes('tech');
+  const isComercial = userInfo?.roles?.includes('comercial');
+  const isTech = userInfo?.roles?.includes('tecnico');
+  
+  // Legacy role support
+  const hasSalesAccess = isComercial || userInfo?.roles?.includes('sales');
+  const hasTechAccess = isTech || userInfo?.roles?.includes('tech');
 
   // Inactivity logout hook - 30 minutes timeout with 5 minute warning
   useInactivityLogout({
@@ -201,7 +205,7 @@ const Dashboard = () => {
       icon: Users,
       color: 'from-blue-500/20 to-blue-600/10',
       borderColor: 'border-blue-500/30',
-      available: isAdmin || isManager || isSales,
+      available: isAdmin || isManager || hasSalesAccess,
       path: `/nexo-av/${userId}/clients`,
     },
     {
@@ -210,7 +214,7 @@ const Dashboard = () => {
       icon: FileText,
       color: 'from-green-500/20 to-green-600/10',
       borderColor: 'border-green-500/30',
-      available: isAdmin || isManager || isSales,
+      available: isAdmin || isManager || hasSalesAccess,
       path: `/nexo-av/${userId}/quotes`,
     },
     {
@@ -219,7 +223,7 @@ const Dashboard = () => {
       icon: Receipt,
       color: 'from-emerald-500/20 to-emerald-600/10',
       borderColor: 'border-emerald-500/30',
-      available: isAdmin || isManager || isSales,
+      available: isAdmin || isManager || hasSalesAccess,
       path: `/nexo-av/${userId}/invoices`,
     },
     {
@@ -228,7 +232,7 @@ const Dashboard = () => {
       icon: FolderKanban,
       color: 'from-purple-500/20 to-purple-600/10',
       borderColor: 'border-purple-500/30',
-      available: isAdmin || isManager || isTech,
+      available: isAdmin || isManager || hasSalesAccess || hasTechAccess,
       path: `/nexo-av/${userId}/projects`,
     },
     {
@@ -237,7 +241,7 @@ const Dashboard = () => {
       icon: Package,
       color: 'from-orange-500/20 to-orange-600/10',
       borderColor: 'border-orange-500/30',
-      available: true,
+      available: true, // Everyone can view catalog
       path: `/nexo-av/${userId}/catalog`,
     },
     {
@@ -246,7 +250,7 @@ const Dashboard = () => {
       icon: Calculator,
       color: 'from-pink-500/20 to-pink-600/10',
       borderColor: 'border-pink-500/30',
-      available: true,
+      available: true, // Everyone can use calculator
       path: `/nexo-av/${userId}/calculator`,
     },
     {
@@ -264,7 +268,7 @@ const Dashboard = () => {
       icon: UserCog,
       color: 'from-rose-500/20 to-rose-600/10',
       borderColor: 'border-rose-500/30',
-      available: isAdmin,
+      available: isAdmin, // Only admin
       path: `/nexo-av/${userId}/users`,
     },
     {
@@ -273,7 +277,7 @@ const Dashboard = () => {
       icon: Settings,
       color: 'from-gray-500/20 to-gray-600/10',
       borderColor: 'border-gray-500/30',
-      available: isAdmin,
+      available: isAdmin, // Only admin
       path: `/nexo-av/${userId}/settings`,
     },
     {
@@ -282,7 +286,7 @@ const Dashboard = () => {
       icon: Shield,
       color: 'from-red-500/20 to-red-600/10',
       borderColor: 'border-red-500/30',
-      available: isAdmin,
+      available: isAdmin, // Only admin
       path: `/nexo-av/${userId}/audit`,
     },
   ];
@@ -334,8 +338,8 @@ const Dashboard = () => {
                 modules={modules}
                 isAdmin={isAdmin}
                 isManager={isManager}
-                isSales={isSales}
-                isTech={isTech}
+                isSales={hasSalesAccess}
+                isTech={hasTechAccess}
                 userId={userId}
                 navigate={navigate}
                 onNewLead={() => setShowCreateClientDialog(true)}
@@ -347,8 +351,8 @@ const Dashboard = () => {
               modules={modules}
               isAdmin={isAdmin}
               isManager={isManager}
-              isSales={isSales}
-              isTech={isTech}
+              isSales={hasSalesAccess}
+              isTech={hasTechAccess}
               userId={userId}
               navigate={navigate}
               onNewLead={() => setShowCreateClientDialog(true)}
