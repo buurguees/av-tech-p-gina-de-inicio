@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader from "./components/NexoHeader";
 import QuotePDFViewer from "./components/QuotePDFViewer";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
+import { createMobilePage } from "./MobilePageWrapper";
+
+// Lazy load mobile version
+const QuoteDetailPageMobile = lazy(() => import("./mobile/QuoteDetailPageMobile"));
 
 interface Quote {
   id: string;
@@ -44,6 +48,7 @@ interface Project {
   project_address: string | null;
   project_city: string | null;
   local_name: string | null;
+  client_order_number: string | null;
 }
 
 interface QuoteLine {
@@ -115,7 +120,7 @@ const getAvailableStatusTransitions = (currentStatus: string) => {
   }
 };
 
-const QuoteDetailPage = () => {
+const QuoteDetailPageDesktop = () => {
   const navigate = useNavigate();
   const { userId, quoteId } = useParams<{ userId: string; quoteId: string }>();
   const { toast } = useToast();
@@ -178,6 +183,7 @@ const QuoteDetailPage = () => {
             project_address: projectData[0].project_address,
             project_city: projectData[0].project_city,
             local_name: projectData[0].local_name,
+            client_order_number: projectData[0].client_order_number,
           });
         }
       }
@@ -758,5 +764,11 @@ const QuoteDetailPage = () => {
     </div>
   );
 };
+
+// Export version with mobile routing
+const QuoteDetailPage = createMobilePage({
+  DesktopComponent: QuoteDetailPageDesktop,
+  MobileComponent: QuoteDetailPageMobile,
+});
 
 export default QuoteDetailPage;

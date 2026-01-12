@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,17 +13,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, FolderKanban, Loader2 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
 import NexoHeader from "./components/NexoHeader";
 import CreateProjectDialog from "./components/CreateProjectDialog";
 import PaginationControls from "./components/PaginationControls";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { lazy, Suspense } from "react";
+import { createMobilePage } from "./MobilePageWrapper";
 
-// Lazy load mobile components
-const ProjectsListMobile = lazy(() => import("./components/mobile/ProjectsListMobile"));
+// Lazy load mobile version
+const ProjectsPageMobile = lazy(() => import("./mobile/ProjectsPageMobile"));
 
 interface Project {
   id: string;
@@ -53,10 +52,9 @@ const getStatusInfo = (status: string) => {
   return PROJECT_STATUSES.find(s => s.value === status) || PROJECT_STATUSES[0];
 };
 
-const ProjectsPage = () => {
+const ProjectsPageDesktop = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
@@ -271,5 +269,11 @@ const ProjectsPage = () => {
     </div>
   );
 };
+
+// Export version with mobile routing
+const ProjectsPage = createMobilePage({
+  DesktopComponent: ProjectsPageDesktop,
+  MobileComponent: ProjectsPageMobile,
+});
 
 export default ProjectsPage;

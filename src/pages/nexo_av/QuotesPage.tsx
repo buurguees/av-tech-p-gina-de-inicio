@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -13,19 +13,18 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, FileText, Loader2 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
 import NexoHeader from "./components/NexoHeader";
 import PaginationControls from "./components/PaginationControls";
 import MobileBottomNav from "./components/MobileBottomNav";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { lazy, Suspense } from "react";
+import { createMobilePage } from "./MobilePageWrapper";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 
-// Lazy load mobile components
-const QuotesListMobile = lazy(() => import("./components/mobile/QuotesListMobile"));
+// Lazy load mobile version
+const QuotesPageMobile = lazy(() => import("./mobile/QuotesPageMobile"));
 
 interface Quote {
   id: string;
@@ -44,10 +43,9 @@ interface Quote {
   created_at: string;
 }
 
-const QuotesPage = () => {
+const QuotesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
-  const isMobile = useIsMobile();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
@@ -212,7 +210,7 @@ const QuotesPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="hidden md:block bg-white/[0.02] rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm shadow-lg"
+            className="bg-white/[0.02] rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm shadow-lg"
           >
             {loading ? (
               <div className="flex items-center justify-center py-12">
@@ -300,10 +298,14 @@ const QuotesPage = () => {
         </motion.div>
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav userId={userId || ''} />
     </div>
   );
 };
+
+// Export version with mobile routing
+const QuotesPage = createMobilePage({
+  DesktopComponent: QuotesPageDesktop,
+  MobileComponent: QuotesPageMobile,
+});
 
 export default QuotesPage;

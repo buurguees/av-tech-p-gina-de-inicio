@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import {
   ChevronDown,
   Edit
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import ProjectDashboardTab from "./components/ProjectDashboardTab";
@@ -31,11 +31,10 @@ import ProjectQuotesTab from "./components/ProjectQuotesTab";
 import ProjectTechniciansTab from "./components/ProjectTechniciansTab";
 import ProjectExpensesTab from "./components/ProjectExpensesTab";
 import ProjectInvoicesTab from "./components/ProjectInvoicesTab";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { lazy, Suspense } from "react";
+import { createMobilePage } from "./MobilePageWrapper";
 
-// Lazy load mobile tabs
-const DetailTabsMobile = lazy(() => import("./components/mobile/DetailTabsMobile"));
+// Lazy load mobile version
+const ProjectDetailPageMobile = lazy(() => import("./mobile/ProjectDetailPageMobile"));
 
 interface ProjectDetail {
   id: string;
@@ -68,10 +67,9 @@ const getStatusInfo = (status: string) => {
   return PROJECT_STATUSES.find(s => s.value === status) || PROJECT_STATUSES[0];
 };
 
-const ProjectDetailPage = () => {
+const ProjectDetailPageDesktop = () => {
   const { userId, projectId } = useParams();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -373,5 +371,11 @@ const ProjectDetailPage = () => {
     </div>
   );
 };
+
+// Export version with mobile routing
+const ProjectDetailPage = createMobilePage({
+  DesktopComponent: ProjectDetailPageDesktop,
+  MobileComponent: ProjectDetailPageMobile,
+});
 
 export default ProjectDetailPage;

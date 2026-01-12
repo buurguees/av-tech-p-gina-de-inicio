@@ -1,3 +1,10 @@
+/**
+ * ClientDetailPageMobile
+ * 
+ * Versión optimizada para móviles (especialmente iPhone) de la página de detalle de cliente.
+ * Diseñada para comerciales en campo con información esencial y acciones rápidas.
+ */
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -13,10 +20,11 @@ import {
   MapPin,
   Globe,
   Edit,
-  ChevronDown
+  ChevronDown,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -27,17 +35,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import NexoHeader, { NexoLogo } from "./components/NexoHeader";
-import ClientDashboardTab from "./components/ClientDashboardTab";
-import ClientProjectsTab from "./components/ClientProjectsTab";
-import ClientQuotesTab from "./components/ClientQuotesTab";
-import ClientInvoicesTab from "./components/ClientInvoicesTab";
-import EditClientDialog from "./components/EditClientDialog";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { lazy, Suspense } from "react";
-
-// Lazy load mobile tabs
-const DetailTabsMobile = lazy(() => import("./components/mobile/DetailTabsMobile"));
+import { NexoLogo } from "../components/NexoHeader";
+import NexoHeaderMobile from "../components/mobile/NexoHeaderMobile";
+import DetailTabsMobile from "../components/mobile/DetailTabsMobile";
+import ClientDashboardTab from "../components/ClientDashboardTab";
+import ClientProjectsTab from "../components/ClientProjectsTab";
+import ClientQuotesTab from "../components/ClientQuotesTab";
+import ClientInvoicesTab from "../components/ClientInvoicesTab";
+import EditClientDialog from "../components/EditClientDialog";
+import MobileBottomNav from "../components/MobileBottomNav";
 
 interface ClientDetail {
   id: string;
@@ -87,7 +93,7 @@ const getStageInfo = (stage: string) => {
   return LEAD_STAGES.find(s => s.value === stage) || LEAD_STAGES[0];
 };
 
-const ClientDetailPageDesktop = () => {
+const ClientDetailPageMobile = () => {
   const { userId, clientId } = useParams<{ userId: string; clientId: string }>();
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -149,7 +155,6 @@ const ClientDetailPageDesktop = () => {
         return;
       }
 
-      // Update local state
       setClient({ ...client, lead_stage: newStatus });
       
       const stageLabel = LEAD_STAGES.find(s => s.value === newStatus)?.label || newStatus;
@@ -220,11 +225,11 @@ const ClientDetailPageDesktop = () => {
 
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="text-center space-y-4">
-          <ShieldAlert className="h-16 w-16 text-red-500 mx-auto" />
-          <h1 className="text-2xl font-bold text-white">Acceso Denegado</h1>
-          <p className="text-white/60">No tienes permiso para acceder a este recurso.</p>
+          <ShieldAlert className="h-12 w-12 text-red-500 mx-auto" />
+          <h1 className="text-xl font-bold text-white">Acceso Denegado</h1>
+          <p className="text-white/60 text-sm">No tienes permiso para acceder a este recurso.</p>
           <Button 
             onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
             className="bg-white text-black hover:bg-white/90"
@@ -249,100 +254,123 @@ const ClientDetailPageDesktop = () => {
   const stageInfo = getStageInfo(client.lead_stage);
 
   return (
-    <div className="min-h-screen bg-black">
-      <NexoHeader 
+    <div className="min-h-screen bg-black pb-mobile-nav">
+      <NexoHeaderMobile 
         title={client.company_name}
-        subtitle="Ficha de Cliente"
+        subtitle="Cliente"
         userId={userId || ''} 
         backTo={`/nexo-av/${userId}/clients`}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Client Header Card */}
+      <main className="px-3 py-3 space-y-3">
+        {/* Compact Client Header - Optimizado para móvil */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
         >
           <Card className="bg-white/5 border-white/10">
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-white/10">
-                    <Building2 className="h-8 w-8 text-white" />
+            <CardContent className="pt-4 pb-4 space-y-3">
+              {/* Empresa y Estado */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="p-2.5 rounded-xl bg-white/10 shrink-0">
+                    <Building2 className="h-5 w-5 text-white" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-3 mb-1 flex-wrap">
-                      <h2 className="text-2xl font-bold text-white">{client.company_name}</h2>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild disabled={updatingStatus}>
-                          <button 
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border transition-colors hover:opacity-80 ${stageInfo.color} cursor-pointer`}
-                          >
-                            {updatingStatus ? "Actualizando..." : stageInfo.label}
-                            <ChevronDown className="h-3 w-3" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent 
-                          align="start" 
-                          className="bg-zinc-900 border-white/10 min-w-[180px]"
-                        >
-                          {LEAD_STAGES.map((stage) => (
-                            <DropdownMenuItem
-                              key={stage.value}
-                              onClick={() => handleStatusChange(stage.value)}
-                              className={`cursor-pointer ${stage.value === client.lead_stage ? 'bg-white/10' : ''}`}
-                            >
-                              <span className={`inline-block w-2 h-2 rounded-full mr-2 ${stage.color.split(' ')[0]}`} />
-                              <span className="text-white">{stage.label}</span>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-lg font-bold text-white truncate">{client.company_name}</h2>
                     {client.legal_name && (
-                      <p className="text-white/40 text-sm">{client.legal_name}</p>
+                      <p className="text-white/40 text-xs truncate">{client.legal_name}</p>
                     )}
-                    <div className="flex flex-wrap gap-4 mt-3 text-sm">
-                      <span className="flex items-center gap-2 text-white/60">
-                        <Mail className="h-4 w-4" />
-                        {client.contact_email}
-                      </span>
-                      <span className="flex items-center gap-2 text-white/60">
-                        <Phone className="h-4 w-4" />
-                        {client.contact_phone}
-                      </span>
-                      {client.website && (
-                        <a 
-                          href={client.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-white/60 hover:text-white"
-                        >
-                          <Globe className="h-4 w-4" />
-                          {client.website}
-                        </a>
-                      )}
-                      {client.billing_city && (
-                        <span className="flex items-center gap-2 text-white/60">
-                          <MapPin className="h-4 w-4" />
-                          {client.billing_city}, {client.billing_province}
-                        </span>
-                      )}
-                    </div>
                   </div>
                 </div>
-                {activeTab === "dashboard" && (
-                  <Button 
-                    variant="outline" 
-                    className="border-white/20 text-white hover:bg-white/10"
-                    onClick={() => setEditDialogOpen(true)}
+              </div>
+
+              {/* Estado del Lead - Clickable dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild disabled={updatingStatus}>
+                  <button 
+                    className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm font-medium border transition-colors active:scale-[0.98] ${stageInfo.color}`}
                   >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar Cliente
-                  </Button>
+                    <span>{updatingStatus ? "Actualizando..." : stageInfo.label}</span>
+                    <ChevronDown className="h-4 w-4 shrink-0" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="center" 
+                  className="bg-zinc-900 border-white/10 w-[calc(100vw-24px)] max-w-sm"
+                >
+                  {LEAD_STAGES.map((stage) => (
+                    <DropdownMenuItem
+                      key={stage.value}
+                      onClick={() => handleStatusChange(stage.value)}
+                      className={`cursor-pointer py-3 ${stage.value === client.lead_stage ? 'bg-white/10' : ''}`}
+                    >
+                      <span className={`inline-block w-2.5 h-2.5 rounded-full mr-3 ${stage.color.split(' ')[0]}`} />
+                      <span className="text-white font-medium">{stage.label}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Acciones Rápidas - Optimizado para touch */}
+              <div className="grid grid-cols-2 gap-2">
+                <a 
+                  href={`tel:${client.contact_phone}`}
+                  className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 font-medium text-sm active:scale-[0.97] transition-transform"
+                >
+                  <Phone className="h-4 w-4" />
+                  Llamar
+                </a>
+                <a 
+                  href={`mailto:${client.contact_email}`}
+                  className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 font-medium text-sm active:scale-[0.97] transition-transform"
+                >
+                  <Mail className="h-4 w-4" />
+                  Email
+                </a>
+              </div>
+
+              {/* Información de Contacto - Compacta */}
+              <div className="space-y-2 text-sm pt-2 border-t border-white/10">
+                <div className="flex items-center gap-2 text-white/60">
+                  <Phone className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{client.contact_phone}</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/60">
+                  <Mail className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{client.contact_email}</span>
+                </div>
+                {client.website && (
+                  <a 
+                    href={client.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-white/60 active:text-white"
+                  >
+                    <Globe className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate flex-1">{client.website}</span>
+                    <ExternalLink className="h-3 w-3 shrink-0" />
+                  </a>
+                )}
+                {client.billing_city && (
+                  <div className="flex items-center gap-2 text-white/60">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{client.billing_city}, {client.billing_province}</span>
+                  </div>
                 )}
               </div>
+
+              {/* Botón Editar */}
+              {activeTab === "dashboard" && (
+                <Button 
+                  variant="outline" 
+                  className="w-full border-white/20 text-white hover:bg-white/10 h-11"
+                  onClick={() => setEditDialogOpen(true)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar Cliente
+                </Button>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -356,70 +384,45 @@ const ClientDetailPageDesktop = () => {
           onSuccess={fetchClient}
         />
 
-        {/* Tabs Navigation - Desktop */}
+        {/* Tabs Navigation - Optimizado para móvil */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.05 }}
         >
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-white/5 border border-white/10 p-1 h-auto flex-wrap">
-              <TabsTrigger 
-                value="dashboard" 
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-              >
-                <LayoutDashboard className="h-4 w-4 mr-2" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger 
-                value="projects"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-              >
-                <FolderKanban className="h-4 w-4 mr-2" />
-                Proyectos
-              </TabsTrigger>
-              <TabsTrigger 
-                value="quotes"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Presupuestos
-              </TabsTrigger>
-              <TabsTrigger 
-                value="invoices"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
-              >
-                <Receipt className="h-4 w-4" />
-                Facturas
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="dashboard" className="mt-6">
+          <DetailTabsMobile
+            value={activeTab}
+            onValueChange={setActiveTab}
+            tabs={[
+              { value: "dashboard", label: "Info", icon: LayoutDashboard },
+              { value: "projects", label: "Proyectos", icon: FolderKanban },
+              { value: "quotes", label: "Presup.", icon: FileText },
+              { value: "invoices", label: "Facturas", icon: Receipt },
+            ]}
+          >
+            <TabsContent value="dashboard" className="mt-3">
               <ClientDashboardTab client={client} />
             </TabsContent>
 
-            <TabsContent value="projects" className="mt-6">
+            <TabsContent value="projects" className="mt-3">
               <ClientProjectsTab clientId={client.id} />
             </TabsContent>
 
-            <TabsContent value="quotes" className="mt-6">
+            <TabsContent value="quotes" className="mt-3">
               <ClientQuotesTab clientId={client.id} />
             </TabsContent>
 
-            <TabsContent value="invoices" className="mt-6">
+            <TabsContent value="invoices" className="mt-3">
               <ClientInvoicesTab clientId={client.id} />
             </TabsContent>
-          </Tabs>
+          </DetailTabsMobile>
         </motion.div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav userId={userId || ''} />
     </div>
   );
 };
 
-// Export version with mobile routing
-const ClientDetailPage = createMobilePage({
-  DesktopComponent: ClientDetailPageDesktop,
-  MobileComponent: ClientDetailPageMobile,
-});
-
-export default ClientDetailPage;
+export default ClientDetailPageMobile;

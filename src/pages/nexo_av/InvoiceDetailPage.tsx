@@ -44,6 +44,7 @@ interface Project {
   project_address: string | null;
   project_city: string | null;
   local_name: string | null;
+  client_order_number: string | null;
 }
 
 interface InvoiceLine {
@@ -187,6 +188,7 @@ const InvoiceDetailPage = () => {
             project_address: projectData[0].project_address,
             project_city: projectData[0].project_city,
             local_name: projectData[0].local_name,
+            client_order_number: projectData[0].client_order_number,
           });
         }
       }

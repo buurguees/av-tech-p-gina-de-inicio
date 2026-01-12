@@ -1,17 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, Boxes, Loader2, Wrench } from 'lucide-react';
+import { Package, Boxes, Loader2 } from 'lucide-react';
 import NexoHeader from './components/NexoHeader';
 import ProductsTab from './components/catalog/ProductsTab';
 import PacksTab from './components/catalog/PacksTab';
-import MobileBottomNav from './components/MobileBottomNav';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { lazy, Suspense } from 'react';
+import { createMobilePage } from './MobilePageWrapper';
 
-// Lazy load mobile tabs
-const DetailTabsMobile = lazy(() => import('./components/mobile/DetailTabsMobile'));
+// Lazy load mobile version
+const CatalogPageMobile = lazy(() => import('./mobile/CatalogPageMobile'));
 
 interface UserInfo {
   user_id: string;
@@ -23,10 +21,9 @@ interface UserInfo {
   roles: string[];
 }
 
-export default function CatalogPage() {
+function CatalogPageDesktop() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [activeTab, setActiveTab] = useState("products");
@@ -159,8 +156,14 @@ export default function CatalogPage() {
         )}
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav userId={userId || ''} />
     </div>
   );
 }
+
+// Export version with mobile routing
+const CatalogPage = createMobilePage({
+  DesktopComponent: CatalogPageDesktop,
+  MobileComponent: CatalogPageMobile,
+});
+
+export default CatalogPage;

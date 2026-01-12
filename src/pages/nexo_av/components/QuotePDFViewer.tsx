@@ -54,6 +54,7 @@ interface Project {
   project_address: string | null;
   project_city: string | null;
   local_name: string | null;
+  client_order_number: string | null;
 }
 
 interface Client {
@@ -455,7 +456,9 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
           <View style={styles.projectBox}>
             <Text style={styles.boxTitle}>Datos del Proyecto</Text>
             <Text style={styles.boxName}>{project.project_name}</Text>
-            <Text style={styles.boxDetail}>Nº Proyecto: {project.project_number}</Text>
+            {project.client_order_number && (
+              <Text style={styles.boxDetail}>Nº Pedido Cliente: {project.client_order_number}</Text>
+            )}
             {project.local_name && (
               <Text style={styles.boxDetail}>Local: {project.local_name}</Text>
             )}
