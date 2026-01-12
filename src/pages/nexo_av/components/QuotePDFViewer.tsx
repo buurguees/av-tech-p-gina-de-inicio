@@ -96,7 +96,9 @@ interface QuotePDFViewerProps {
 // Styles for PDF
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    paddingTop: 40,
+    paddingHorizontal: 40,
+    paddingBottom: 130, // Espacio reservado para el footer
     fontSize: 10,
     fontFamily: "Helvetica",
     backgroundColor: "#ffffff",
@@ -125,7 +127,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 15,
+    marginBottom: 20,
   },
   logo: {
     width: 120,
@@ -159,7 +161,7 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 15,
     gap: 12,
   },
   companyBox: {
@@ -194,7 +196,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   projectBox: {
-    marginBottom: 12,
+    marginBottom: 15,
     padding: 12,
     backgroundColor: "#fafafa",
     borderRadius: 4,
@@ -207,7 +209,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   table: {
-    marginBottom: 20,
+    marginBottom: 25,
   },
   tableHeader: {
     flexDirection: "row",
@@ -246,6 +248,7 @@ const styles = StyleSheet.create({
     marginLeft: "auto",
     width: 220,
     marginTop: 20,
+    marginBottom: 30,
   },
   totalRow: {
     flexDirection: "row",
@@ -282,20 +285,21 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: "#666",
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   footer: {
     position: "absolute",
-    bottom: 30,
+    bottom: 35,
     left: 40,
     right: 40,
     borderTopWidth: 1,
-    borderTopColor: "#eee",
-    paddingTop: 15,
+    borderTopColor: "#ddd",
+    paddingTop: 12,
   },
   footerColumns: {
     flexDirection: "row",
     justifyContent: "space-between",
+    gap: 15,
   },
   footerColumn: {
     flex: 1,
@@ -314,7 +318,7 @@ const styles = StyleSheet.create({
   },
   pageNumber: {
     position: "absolute",
-    bottom: 20,
+    bottom: 18,
     right: 40,
     fontSize: 8,
     color: "#888",
@@ -456,7 +460,7 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
               <Text style={styles.boxDetail}>Local: {project.local_name}</Text>
             )}
             {project.project_address && (
-              <Text style={styles.boxDetail}>📍 {project.project_address}</Text>
+              <Text style={styles.boxDetail}>Dirección: {project.project_address}</Text>
             )}
             {project.project_city && (
               <Text style={styles.boxDetail}>{project.project_city}</Text>
