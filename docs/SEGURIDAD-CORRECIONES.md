@@ -49,46 +49,30 @@ Resuelto con la migración del punto 1.
 
 ---
 
-### 4. ⚠️ Vulnerabilidad en dependencia xlsx
+### 4. ✅ Vulnerabilidad en dependencia xlsx - RESUELTA
 
 **Problema:** 
-El paquete `xlsx` (v0.18.5) tiene vulnerabilidades conocidas:
+El paquete `xlsx` (v0.18.5) tenía vulnerabilidades conocidas:
 - **Prototype Pollution** (GHSA-4r6h-8v6p-xvw6)
 - **Regular Expression Denial of Service (ReDoS)** (GHSA-5pgg-2g8v-p4x9)
 
-**Estado:** 
-❌ No hay fix disponible para la versión actual de xlsx.
+**Solución Implementada:**
+- ✅ Desinstalado paquete `xlsx` vulnerable
+- ✅ Instalado paquete `exceljs` como reemplazo seguro
+- ✅ Actualizado `ProductImportDialog.tsx` para usar ExcelJS
+- ✅ Actualizado `CategoryImportDialog.tsx` para usar ExcelJS
+- ✅ Actualizado `ProductsTab.tsx` (función exportToExcel) para usar ExcelJS
 
-**Opciones de Solución:**
-
-#### Opción A (Recomendada): Migrar a ExcelJS
-```bash
-npm uninstall xlsx
-npm install exceljs
-```
-
-**Pros:**
-- ✅ Sin vulnerabilidades conocidas
-- ✅ Más mantenido y actualizado
-- ✅ API más moderna
-
-**Contras:**
-- ⚠️ Requiere refactorizar código existente
-- ⚠️ API diferente
-
-**Archivos a actualizar:**
-- `src/pages/nexo_av/components/catalog/ProductsTab.tsx`
+**Archivos modificados:**
 - `src/pages/nexo_av/components/catalog/ProductImportDialog.tsx`
+- `src/pages/nexo_av/components/catalog/ProductsTab.tsx`
 - `src/pages/nexo_av/components/settings/CategoryImportDialog.tsx`
 
-#### Opción B (Temporal): Aceptar el riesgo
-Si decides mantener xlsx temporalmente:
-- ⚠️ El riesgo es bajo si:
-  - Solo usuarios autenticados pueden subir archivos Excel
-  - Los archivos se procesan en el cliente, no en el servidor
-  - No se ejecuta código JavaScript de los archivos Excel
-- 📝 Documentar el riesgo aceptado
-- 📅 Planificar migración a ExcelJS en siguiente sprint
+**Beneficios de ExcelJS:**
+- ✅ Sin vulnerabilidades conocidas
+- ✅ Más mantenido y actualizado
+- ✅ API más moderna con soporte TypeScript nativo
+- ✅ Mejor manejo de estilos y formatos
 
 ---
 

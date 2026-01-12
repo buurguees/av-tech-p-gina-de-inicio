@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -93,40 +93,47 @@ export function CategoryImportDialog({
     onOpenChange(false);
   };
 
+  const getCellValue = (row: ExcelJS.Row, colIndex: number): any => {
+    const cell = row.getCell(colIndex);
+    if (cell.value === null || cell.value === undefined) return '';
+    // Handle rich text
+    if (typeof cell.value === 'object' && 'richText' in cell.value) {
+      return (cell.value as any).richText.map((r: any) => r.text).join('');
+    }
+    return cell.value;
+  };
+
   const parseExcelFile = async (file: File) => {
     try {
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data, { type: 'array' });
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(arrayBuffer);
       
       // Buscar la hoja "Control Categorías" o "Control Categorias"
-      const sheetName = workbook.SheetNames.find(
-        name => name.toLowerCase().includes('control categ')
+      const worksheet = workbook.worksheets.find(
+        ws => ws.name.toLowerCase().includes('control categ')
       );
       
-      if (!sheetName) {
+      if (!worksheet) {
         toast.error('No se encontró la hoja "Control Categorías" en el archivo');
         return;
       }
 
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
-
       // Procesar los datos (saltando la primera fila de encabezados)
       const categoriesMap = new Map<string, ParsedCategory>();
 
-      for (let i = 1; i < jsonData.length; i++) {
-        const row = jsonData[i];
-        if (!row || row.length < 4) continue;
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return; // Skip header row
 
-        const categoryCode = String(row[0] || '').trim();
-        const categoryName = String(row[1] || '').trim();
-        const subcategoryCode = String(row[2] || '').trim();
-        const subcategoryName = String(row[3] || '').trim();
-        // Columna F (índice 5) contiene el tipo
-        const typeRaw = String(row[5] || 'product').trim().toLowerCase();
+        const categoryCode = String(getCellValue(row, 1) || '').trim();
+        const categoryName = String(getCellValue(row, 2) || '').trim();
+        const subcategoryCode = String(getCellValue(row, 3) || '').trim();
+        const subcategoryName = String(getCellValue(row, 4) || '').trim();
+        // Columna F (índice 6) contiene el tipo
+        const typeRaw = String(getCellValue(row, 6) || 'product').trim().toLowerCase();
         const type: 'product' | 'service' = typeRaw.includes('service') ? 'service' : 'product';
 
-        if (!categoryCode || !categoryName) continue;
+        if (!categoryCode || !categoryName) return;
 
         // Añadir o actualizar categoría
         if (!categoriesMap.has(categoryCode)) {
@@ -166,7 +173,7 @@ export function CategoryImportDialog({
           const category = categoriesMap.get(categoryCode)!;
           category.type = type;
         }
-      }
+      });
 
       const categories = Array.from(categoriesMap.values());
       

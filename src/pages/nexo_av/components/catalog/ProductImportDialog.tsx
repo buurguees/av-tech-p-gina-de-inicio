@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -133,53 +133,60 @@ export function ProductImportDialog({
     return str === 'activo' || str === 'active' || str === '1' || str === 'true' || str === 'sí' || str === 'si';
   };
 
+  const getCellValue = (row: ExcelJS.Row, colIndex: number): any => {
+    const cell = row.getCell(colIndex);
+    if (cell.value === null || cell.value === undefined) return '';
+    // Handle rich text
+    if (typeof cell.value === 'object' && 'richText' in cell.value) {
+      return (cell.value as any).richText.map((r: any) => r.text).join('');
+    }
+    return cell.value;
+  };
+
   const parseExcelFile = async (file: File) => {
     try {
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data, { type: 'array' });
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(arrayBuffer);
       
       // Buscar la hoja "Catalogo Master" o similar
-      const sheetName = workbook.SheetNames.find(
-        name => name.toLowerCase().includes('catalogo master') || 
-                name.toLowerCase().includes('catálogo master')
+      const worksheet = workbook.worksheets.find(
+        ws => ws.name.toLowerCase().includes('catalogo master') || 
+              ws.name.toLowerCase().includes('catálogo master')
       );
       
-      if (!sheetName) {
+      if (!worksheet) {
         toast.error('No se encontró la hoja "Catalogo Master" en el archivo');
         return;
       }
 
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
-
       const products: ParsedProduct[] = [];
 
       // Procesar los datos (saltando la primera fila de encabezados)
-      for (let i = 1; i < jsonData.length; i++) {
-        const row = jsonData[i];
-        if (!row || row.length < 6) continue;
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return; // Skip header row
 
-        const productNumber = String(row[0] || '').trim();
-        const categoryCode = String(row[1] || '').trim();
-        const categoryName = String(row[2] || '').trim();
-        const subcategoryCode = String(row[3] || '').trim();
-        const subcategoryName = String(row[4] || '').trim();
-        const name = String(row[5] || '').trim();
-        const description = String(row[6] || '').trim();
-        const type = parseType(row[7]);
-        // Columna I (índice 8) es unidad de medida - la omitimos
-        const status = parseStatus(row[9]);
-        const costPrice = parseNumber(row[10]);
-        // Columna L (índice 11) es proveedor - lo omitimos por ahora
-        const margin = parsePercentage(row[12]);
-        const basePrice = parseNumber(row[13]);
-        const taxRate = parsePercentage(row[14]);
-        const priceWithTax = parseNumber(row[15]);
-        const taxCode = String(row[16] || '').trim();
-        const stock = Math.floor(parseNumber(row[17])); // Columna R: Stock
+        const productNumber = String(getCellValue(row, 1) || '').trim();
+        const categoryCode = String(getCellValue(row, 2) || '').trim();
+        const categoryName = String(getCellValue(row, 3) || '').trim();
+        const subcategoryCode = String(getCellValue(row, 4) || '').trim();
+        const subcategoryName = String(getCellValue(row, 5) || '').trim();
+        const name = String(getCellValue(row, 6) || '').trim();
+        const description = String(getCellValue(row, 7) || '').trim();
+        const type = parseType(getCellValue(row, 8));
+        // Columna I (9) es unidad de medida - la omitimos
+        const status = parseStatus(getCellValue(row, 10));
+        const costPrice = parseNumber(getCellValue(row, 11));
+        // Columna L (12) es proveedor - lo omitimos por ahora
+        const margin = parsePercentage(getCellValue(row, 13));
+        const basePrice = parseNumber(getCellValue(row, 14));
+        const taxRate = parsePercentage(getCellValue(row, 15));
+        const priceWithTax = parseNumber(getCellValue(row, 16));
+        const taxCode = String(getCellValue(row, 17) || '').trim();
+        const stock = Math.floor(parseNumber(getCellValue(row, 18))); // Columna R: Stock
 
         // Validar que tenga código de producto y nombre
-        if (!productNumber || !name) continue;
+        if (!productNumber || !name) return;
 
         products.push({
           productNumber,
@@ -199,7 +206,7 @@ export function ProductImportDialog({
           taxCode,
           stock,
         });
-      }
+      });
 
       if (products.length === 0) {
         toast.error('No se encontraron productos válidos en el archivo');
