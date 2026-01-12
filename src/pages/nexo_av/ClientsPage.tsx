@@ -50,6 +50,7 @@ const ClientsListMobile = lazy(() => import("./components/mobile/ClientsListMobi
 
 interface Client {
   id: string;
+  client_number: string | null;
   company_name: string;
   contact_phone: string;
   contact_email: string;
@@ -342,6 +343,7 @@ const ClientsPage = () => {
           <Table>
             <TableHeader>
               <TableRow className="border-white/10 hover:bg-transparent">
+                <TableHead className="text-white/60 w-16">Nº</TableHead>
                 <TableHead className="text-white/60">Empresa</TableHead>
                 <TableHead className="text-white/60">Contacto</TableHead>
                 <TableHead className="text-white/60">Estado</TableHead>
@@ -352,7 +354,7 @@ const ClientsPage = () => {
             <TableBody>
               {filteredClients.length === 0 ? (
                 <TableRow className="border-white/10">
-                  <TableCell colSpan={5} className="text-center py-12">
+                  <TableCell colSpan={6} className="text-center py-12">
                     <Building2 className="h-12 w-12 text-white/20 mx-auto mb-3" />
                     <p className="text-white/40">No hay clientes que mostrar</p>
                     <Button
@@ -373,6 +375,9 @@ const ClientsPage = () => {
                       className="border-white/10 hover:bg-white/[0.06] cursor-pointer transition-colors duration-200"
                       onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
                     >
+                      <TableCell className="font-mono text-white/50 text-sm">
+                        {client.client_number ? `#${client.client_number}` : '-'}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-xl bg-white/5 shadow-sm">

@@ -369,6 +369,7 @@ export type Database = {
           billing_country: string
           billing_postal_code: string
           billing_province: string
+          client_number: string
           company_name: string
           contact_email: string
           contact_phone: string
@@ -604,6 +605,7 @@ export type Database = {
         Returns: {
           assigned_to: string
           assigned_to_name: string
+          client_number: string
           company_name: string
           contact_email: string
           contact_phone: string

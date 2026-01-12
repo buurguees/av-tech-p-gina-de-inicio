@@ -6,6 +6,7 @@ import PaginationControls from "../PaginationControls";
 
 interface Client {
   id: string;
+  client_number: string | null;
   company_name: string;
   contact_phone: string;
   contact_email: string;
@@ -87,9 +88,16 @@ const ClientsListMobile = ({
           >
             <div className="flex items-start justify-between gap-3 mb-2">
               <div className="flex-1 min-w-0">
-                <h3 className="text-white font-semibold text-sm mb-1 truncate">
-                  {client.company_name}
-                </h3>
+                <div className="flex items-center gap-2 mb-1">
+                  {client.client_number && (
+                    <span className="text-white/40 text-xs font-mono">
+                      #{client.client_number}
+                    </span>
+                  )}
+                  <h3 className="text-white font-semibold text-sm truncate">
+                    {client.company_name}
+                  </h3>
+                </div>
                 {client.assigned_to_name && (
                   <p className="text-white/40 text-xs truncate">
                     {client.assigned_to_name}
