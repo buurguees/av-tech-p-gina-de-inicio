@@ -14,66 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      company_settings: {
-        Row: {
-          billing_email: string | null
-          billing_phone: string | null
-          commercial_name: string | null
-          company_type: string | null
-          country: string | null
-          created_at: string
-          fiscal_address: string
-          fiscal_city: string
-          fiscal_postal_code: string
-          fiscal_province: string
-          id: string
-          legal_name: string
-          logo_url: string | null
-          tax_id: string
-          updated_at: string
-          vat_number: string | null
-          website: string | null
-        }
-        Insert: {
-          billing_email?: string | null
-          billing_phone?: string | null
-          commercial_name?: string | null
-          company_type?: string | null
-          country?: string | null
-          created_at?: string
-          fiscal_address: string
-          fiscal_city: string
-          fiscal_postal_code: string
-          fiscal_province: string
-          id?: string
-          legal_name: string
-          logo_url?: string | null
-          tax_id: string
-          updated_at?: string
-          vat_number?: string | null
-          website?: string | null
-        }
-        Update: {
-          billing_email?: string | null
-          billing_phone?: string | null
-          commercial_name?: string | null
-          company_type?: string | null
-          country?: string | null
-          created_at?: string
-          fiscal_address?: string
-          fiscal_city?: string
-          fiscal_postal_code?: string
-          fiscal_province?: string
-          id?: string
-          legal_name?: string
-          logo_url?: string | null
-          tax_id?: string
-          updated_at?: string
-          vat_number?: string | null
-          website?: string | null
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
           created_at: string
