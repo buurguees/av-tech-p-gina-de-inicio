@@ -11,13 +11,13 @@
  * });
  */
 
-import { lazy, Suspense, ComponentType } from "react";
+import { lazy, Suspense, ComponentType, LazyExoticComponent } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { NexoLogo } from "./components/NexoHeader";
 
 interface MobilePageConfig<T = any> {
   DesktopComponent: ComponentType<T>;
-  MobileComponent: ComponentType<T>;
+  MobileComponent: ComponentType<T> | LazyExoticComponent<ComponentType<T>>;
   fallback?: React.ReactNode;
 }
 
@@ -41,6 +41,12 @@ export function createMobilePage<T = any>(config: MobilePageConfig<T>) {
 
   return function MobileAwarePage(props: T) {
     const isMobile = useIsMobile();
+
+    // Esperar a que se determine el tipo de dispositivo antes de renderizar
+    // Esto evita el flash de contenido incorrecto
+    if (isMobile === undefined) {
+      return <DefaultLoadingFallback />;
+    }
 
     // En móvil, usar la versión móvil con Suspense para lazy loading
     if (isMobile) {
