@@ -19,13 +19,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Loader2, FileText, Building2, Calendar } from "lucide-react";
+import { Search, Loader2, FileText, Plus } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
 import NexoHeader from "./components/NexoHeader";
 import MobileBottomNav from "./components/MobileBottomNav";
+import PaginationControls from "./components/PaginationControls";
 import { createMobilePage } from "./MobilePageWrapper";
 import { INVOICE_STATUSES, getStatusInfo } from "@/constants/invoiceStatuses";
 
@@ -140,6 +141,13 @@ const InvoicesPageDesktop = () => {
               <h1 className="text-xl md:text-2xl font-bold text-white">Facturas</h1>
               <p className="text-white/60 text-sm">Gestiona todas las facturas</p>
             </div>
+            <Button
+              onClick={() => navigate(`/nexo-av/${userId}/invoices/new`)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Nueva Factura
+            </Button>
           </div>
 
           {/* Filters */}
@@ -234,6 +242,22 @@ const InvoicesPageDesktop = () => {
                   </TableBody>
                 </Table>
               </div>
+
+              {/* Paginación */}
+              {totalPages > 1 && (
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  startIndex={startIndex}
+                  endIndex={endIndex}
+                  totalItems={totalItems}
+                  canGoPrev={canGoPrev}
+                  canGoNext={canGoNext}
+                  onPrevPage={prevPage}
+                  onNextPage={nextPage}
+                  onGoToPage={goToPage}
+                />
+              )}
             </>
           )}
         </motion.div>

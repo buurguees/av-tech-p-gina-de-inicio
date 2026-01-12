@@ -172,15 +172,14 @@ const InvoicesListMobile = ({
           <PaginationControls
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={onGoToPage}
             canGoPrev={canGoPrev}
             canGoNext={canGoNext}
             onPrevPage={onPrevPage}
             onNextPage={onNextPage}
+            onGoToPage={onGoToPage}
             startIndex={startIndex}
             endIndex={endIndex}
             totalItems={totalItems}
-            itemLabel="facturas"
           />
         </div>
       )}
