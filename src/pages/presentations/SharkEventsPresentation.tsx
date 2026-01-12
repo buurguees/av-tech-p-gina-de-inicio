@@ -11,6 +11,7 @@ import {
   Menu
 } from 'lucide-react';
 import logoAvtech from '@/assets/logos/Logto_AVETCH_Simple_Fondo_Negro_Logo_Blanco.png';
+import { EASING_CURVES, TRANSITION_PRESETS } from '@/constants/easingCurves';
 
 // ============================================
 // CONFIGURACIÓN DEL CLIENTE
@@ -263,6 +264,7 @@ const MagneticButton = ({ children, onClick, className = '', variant = 'primary'
       className={`px-6 py-4 rounded-xl font-mono text-sm uppercase tracking-wider transition-all shadow-lg backdrop-blur-sm relative overflow-hidden group touch-manipulation ${baseClass} ${className}`}
       style={{ x, y }}
       whileTap={{ scale: 0.95 }}
+      transition={{ ease: EASING_CURVES.outBezier, duration: 0.3 }}
     >
       <span className="absolute inset-0 bg-gradient-to-r from-orange-400/0 via-orange-400/20 to-orange-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
       <span className="relative z-10">
@@ -533,7 +535,7 @@ const SharkEventsPresentation = () => {
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.6, 0.05, 0.01, 0.9] }}
+            transition={{ duration: 1, ease: EASING_CURVES.outBezier }}
           >
             <motion.h1 
               className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 sm:mb-8 font-display tracking-tight leading-[1.1]"
@@ -542,7 +544,7 @@ const SharkEventsPresentation = () => {
                 opacity: 1, 
                 scale: 1,
               }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: EASING_CURVES.outBezier }}
             >
               <motion.span
                 className="inline-block"
@@ -570,7 +572,7 @@ const SharkEventsPresentation = () => {
               className="text-lg sm:text-xl md:text-2xl text-white/80 mb-8 sm:mb-10 font-mono max-w-2xl mx-auto leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
+              transition={{ delay: 0.5, duration: 0.8, ease: EASING_CURVES.outBezier }}
             >
               Donde la música se convierte en espectáculo visual inolvidable.
             </motion.p>
@@ -613,7 +615,7 @@ const SharkEventsPresentation = () => {
               className="flex flex-col sm:flex-row gap-4 justify-center"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.3, duration: 0.8 }}
+              transition={{ delay: 1.3, duration: 0.8, ease: EASING_CURVES.outBezier }}
             >
               <MagneticButton onClick={() => scrollToSection('solucion')} variant="primary">
                 Ver propuesta
@@ -661,7 +663,7 @@ const SharkEventsPresentation = () => {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.8, ease: EASING_CURVES.outBezier }}
               className="text-lg sm:text-xl text-white/80 font-mono leading-relaxed max-w-3xl"
             >
               No se trata solo de pantallas. Se trata de{' '}
@@ -692,7 +694,7 @@ const SharkEventsPresentation = () => {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.8 }}
+              transition={{ delay: 0.2, duration: 0.8, ease: EASING_CURVES.outBezier }}
               className="text-base sm:text-lg text-white/60 font-mono leading-relaxed max-w-3xl"
             >
               Trabajamos con marcas ambiciosas que buscan diferenciación real. Eventos donde el visual no acompaña la música:{' '}
@@ -732,7 +734,7 @@ const SharkEventsPresentation = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.8, ease: EASING_CURVES.outBezier }}
               className="bg-gradient-to-br from-white/10 to-white/5 rounded-2xl p-6 sm:p-8 border border-white/10 backdrop-blur-sm relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-orange-400/0 to-orange-400/10 opacity-50" />
@@ -889,14 +891,14 @@ const SharkEventsPresentation = () => {
 
             {/* Content */}
             <AnimatePresence mode="wait">
-              <motion.div
-                key={activeEnergyTab}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-                className="grid md:grid-cols-2 gap-6 sm:gap-8"
-              >
+            <motion.div
+              key={activeEnergyTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5, ease: EASING_CURVES.outBezier }}
+              className="grid md:grid-cols-2 gap-6 sm:gap-8"
+            >
                 <motion.div 
                   className="aspect-video bg-gradient-to-br from-white/10 to-white/5 rounded-2xl border border-white/10 overflow-hidden relative"
                 >
@@ -1093,7 +1095,7 @@ const SharkEventsPresentation = () => {
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 1 }}
+            transition={{ duration: 1, ease: EASING_CURVES.outBezier }}
             className="space-y-10 sm:space-y-12"
           >
             {/* Título */}
@@ -1316,7 +1318,7 @@ const SectionHeader = ({ tag, title, subtitle }: SectionHeaderProps) => {
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.8 }}
+      transition={{ duration: 0.8, ease: EASING_CURVES.outBezier }}
     >
       <div className="flex items-center gap-3 mb-4 sm:mb-6">
         <motion.div 
@@ -1337,7 +1339,7 @@ const SectionHeader = ({ tag, title, subtitle }: SectionHeaderProps) => {
         initial={{ opacity: 0, x: -20 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
-        transition={{ delay: 0.2, duration: 0.8 }}
+        transition={{ delay: 0.2, duration: 0.8, ease: EASING_CURVES.outBezier }}
       >
         {title}
       </motion.h2>
@@ -1347,7 +1349,7 @@ const SectionHeader = ({ tag, title, subtitle }: SectionHeaderProps) => {
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.4, duration: 0.8 }}
+          transition={{ delay: 0.4, duration: 0.8, ease: EASING_CURVES.outBezier }}
         >
           {subtitle}
         </motion.p>
