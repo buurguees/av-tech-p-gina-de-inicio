@@ -115,10 +115,8 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
         console.error('Error fetching projects:', projectsError);
       }
 
-      // Obtener clientes
-      const { data: clientsData, error: clientsError } = await supabase
-        .from('clients')
-        .select('id');
+      // Obtener clientes - usar RPC en vez de acceso directo a tabla
+      const { data: clientsData, error: clientsError } = await supabase.rpc('list_clients', {});
 
       if (clientsError) {
         console.error('Error fetching clients:', clientsError);
