@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, FileText, Loader2 } from "lucide-react";
+import { Plus, Search, FileText, Loader2, Edit } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
@@ -84,8 +84,18 @@ const QuotesPageDesktop = () => {
     navigate(`/nexo-av/${userId}/quotes/new`);
   };
 
-  const handleQuoteClick = (quoteId: string) => {
-    navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
+  const handleQuoteClick = (quoteId: string, status?: string) => {
+    // Si es DRAFT, ir directamente a editar
+    if (status === "DRAFT") {
+      navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`);
+    } else {
+      navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
+    }
+  };
+
+  const handleEditClick = (e: React.MouseEvent, quoteId: string) => {
+    e.stopPropagation(); // Evitar que se active el onClick de la fila
+    navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`);
   };
 
   // Pagination (50 records per page)
@@ -214,16 +224,18 @@ const QuotesPageDesktop = () => {
                       <TableHead className="text-white/70">Proyecto</TableHead>
                       <TableHead className="text-white/70">Estado</TableHead>
                       <TableHead className="text-white/70 text-right">Total</TableHead>
+                      <TableHead className="text-white/70 w-16"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {paginatedQuotes.map((quote) => {
                       const statusInfo = getStatusInfo(quote.status);
+                      const isDraft = quote.status === "DRAFT";
                       return (
                         <TableRow
                           key={quote.id}
                           className="border-white/10 hover:bg-white/[0.06] cursor-pointer transition-colors duration-200"
-                          onClick={() => handleQuoteClick(quote.id)}
+                          onClick={() => handleQuoteClick(quote.id, quote.status)}
                         >
                           <TableCell className="font-mono text-orange-500 font-medium">
                             {quote.quote_number}
@@ -241,6 +253,19 @@ const QuotesPageDesktop = () => {
                           </TableCell>
                           <TableCell className="text-white font-medium text-right">
                             {formatCurrency(quote.total)}
+                          </TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            {isDraft && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => handleEditClick(e, quote.id)}
+                                className="h-8 w-8 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10"
+                                title="Editar presupuesto"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       );

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { FileText, Calendar, User } from "lucide-react";
+import { FileText, Calendar, User, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PaginationControls from "../PaginationControls";
@@ -25,7 +25,8 @@ interface QuotesListMobileProps {
   quotes: Quote[];
   getStatusInfo: (status: string) => StatusInfo;
   formatCurrency: (amount: number) => string;
-  onQuoteClick: (quoteId: string) => void;
+  onQuoteClick: (quoteId: string, status?: string) => void;
+  onEditClick?: (quoteId: string) => void;
   onCreateClick: () => void;
   loading?: boolean;
   // Pagination props
@@ -46,6 +47,7 @@ const QuotesListMobile = ({
   getStatusInfo,
   formatCurrency,
   onQuoteClick,
+  onEditClick,
   onCreateClick,
   loading = false,
   currentPage,
@@ -97,57 +99,77 @@ const QuotesListMobile = ({
           month: 'short' 
         });
 
+        const isDraft = quote.status === "DRAFT";
+
         return (
-          <motion.button
+          <motion.div
             key={quote.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.02 }}
-            onClick={() => onQuoteClick(quote.id)}
-            className="w-full p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200 text-left backdrop-blur-sm active:scale-[0.98] shadow-sm nexo-card-mobile"
+            className="w-full p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200 backdrop-blur-sm shadow-sm nexo-card-mobile"
           >
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-mono text-orange-500 text-sm font-semibold">
-                    {quote.quote_number}
-                  </span>
-                  <Badge 
-                    variant="outline" 
-                    className={`${statusInfo.className} text-xs px-2 py-0.5`}
-                  >
-                    {statusInfo.label}
-                  </Badge>
-                </div>
-                <h3 className="text-white font-semibold text-sm mb-1 truncate">
-                  {quote.client_name || 'Sin cliente'}
-                </h3>
-                {quote.project_name && (
-                  <p className="text-white/50 text-xs truncate">
-                    {quote.project_name}
-                  </p>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
-              <div className="flex items-center gap-3 text-white/50 text-xs">
-                {quote.created_by_name && (
-                  <div className="flex items-center gap-1.5">
-                    <User className="h-3.5 w-3.5" />
-                    <span className="truncate max-w-[100px]">{quote.created_by_name}</span>
+            <button
+              onClick={() => onQuoteClick(quote.id, quote.status)}
+              className="w-full text-left"
+            >
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-mono text-orange-500 text-sm font-semibold">
+                      {quote.quote_number}
+                    </span>
+                    <Badge 
+                      variant="outline" 
+                      className={`${statusInfo.className} text-xs px-2 py-0.5`}
+                    >
+                      {statusInfo.label}
+                    </Badge>
                   </div>
-                )}
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5" />
-                  <span>{formattedDate}</span>
+                  <h3 className="text-white font-semibold text-sm mb-1 truncate">
+                    {quote.client_name || 'Sin cliente'}
+                  </h3>
+                  {quote.project_name && (
+                    <p className="text-white/50 text-xs truncate">
+                      {quote.project_name}
+                    </p>
+                  )}
                 </div>
+                {isDraft && onEditClick && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditClick(quote.id);
+                    }}
+                    className="h-8 w-8 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 shrink-0"
+                    title="Editar presupuesto"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
-              <span className="text-white font-semibold text-base">
-                {formatCurrency(quote.total)}
-              </span>
-            </div>
-          </motion.button>
+              
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+                <div className="flex items-center gap-3 text-white/50 text-xs">
+                  {quote.created_by_name && (
+                    <div className="flex items-center gap-1.5">
+                      <User className="h-3.5 w-3.5" />
+                      <span className="truncate max-w-[100px]">{quote.created_by_name}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5" />
+                    <span>{formattedDate}</span>
+                  </div>
+                </div>
+                <span className="text-white font-semibold text-base">
+                  {formatCurrency(quote.total)}
+                </span>
+              </div>
+            </button>
+          </motion.div>
         );
       })}
       

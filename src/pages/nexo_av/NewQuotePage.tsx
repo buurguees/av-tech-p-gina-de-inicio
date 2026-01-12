@@ -647,106 +647,108 @@ const NewQuotePage = () => {
 
           {/* Desktop Lines table */}
           <div className="hidden md:block bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 overflow-hidden mb-6 shadow-2xl shadow-black/30">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/20 bg-white/5">
-              <span className="text-white/70 text-xs font-medium uppercase tracking-wide">Líneas del presupuesto</span>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/20 bg-white/5">
+              <span className="text-white/70 text-sm font-medium uppercase tracking-wide">Líneas del presupuesto</span>
               <span className="text-white/50 text-xs">Escribe @nombre para buscar en el catálogo</span>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="text-white/70 w-8"></TableHead>
-                  <TableHead className="text-white/70">Concepto (usa @buscar)</TableHead>
-                  <TableHead className="text-white/70 w-32">Descripción</TableHead>
-                  <TableHead className="text-white/70 text-center w-20">Cantidad</TableHead>
-                  <TableHead className="text-white/70 text-right w-24">Precio</TableHead>
-                  <TableHead className="text-white/70 w-36">Impuestos</TableHead>
-                  <TableHead className="text-white/70 text-right w-28">Total</TableHead>
-                  <TableHead className="text-white/70 w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {lines.map((line, index) => (
-                  <TableRow key={line.tempId || line.id} className="border-white/10 hover:bg-white/5">
-                    <TableCell className="text-white/30">
-                      <GripVertical className="h-4 w-4" />
-                    </TableCell>
-                    <TableCell>
-                      <ProductSearchInput
-                        value={line.concept}
-                        onChange={(value) => updateLine(index, "concept", value)}
-                        onSelectItem={(item) => handleProductSelect(index, item)}
-                        placeholder="Concepto o @buscar"
-                        className="bg-transparent border-0 p-0 h-auto"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={line.description}
-                        onChange={(e) => updateLine(index, "description", e.target.value)}
-                        placeholder="Desc"
-                        className="bg-transparent border-0 text-white/80 placeholder:text-white/30 p-0 h-auto focus-visible:ring-0"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={line.quantity}
-                        onChange={(e) => updateLine(index, "quantity", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent border-0 text-white text-center p-0 h-auto focus-visible:ring-0 w-16 mx-auto"
-                        min="0"
-                        step="1"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={line.unit_price}
-                        onChange={(e) => updateLine(index, "unit_price", parseFloat(e.target.value) || 0)}
-                        className="bg-transparent border-0 text-white text-right p-0 h-auto focus-visible:ring-0"
-                        min="0"
-                        step="0.01"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={line.tax_rate.toString()}
-                        onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
-                      >
-                        <SelectTrigger className="bg-white/10 border-white/10 text-white h-8 w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-900 border-white/10">
-                          {taxOptions.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value.toString()} className="text-white">
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-white text-right font-medium">
-                      {formatCurrency(line.total)}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeLine(index)}
-                        className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-8 w-8"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-white/10 hover:bg-transparent">
+                    <TableHead className="text-white/70 w-10 px-4"></TableHead>
+                    <TableHead className="text-white/70 min-w-[280px] px-4">Concepto (usa @buscar)</TableHead>
+                    <TableHead className="text-white/70 min-w-[200px] px-4">Descripción</TableHead>
+                    <TableHead className="text-white/70 text-center w-24 px-4">Cantidad</TableHead>
+                    <TableHead className="text-white/70 text-right w-32 px-4">Precio</TableHead>
+                    <TableHead className="text-white/70 w-36 px-4">Impuestos</TableHead>
+                    <TableHead className="text-white/70 text-right w-32 px-4">Total</TableHead>
+                    <TableHead className="text-white/70 w-14 px-4"></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {lines.map((line, index) => (
+                    <TableRow key={line.tempId || line.id} className="border-white/10 hover:bg-white/5">
+                      <TableCell className="text-white/30 px-4 py-3">
+                        <GripVertical className="h-4 w-4" />
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <ProductSearchInput
+                          value={line.concept}
+                          onChange={(value) => updateLine(index, "concept", value)}
+                          onSelectItem={(item) => handleProductSelect(index, item)}
+                          placeholder="Concepto o @buscar"
+                          className="bg-white/5 border-white/10 text-white h-9 text-sm px-3 rounded-lg hover:bg-white/10 focus:bg-white/10"
+                        />
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <Input
+                          value={line.description}
+                          onChange={(e) => updateLine(index, "description", e.target.value)}
+                          placeholder="Descripción opcional"
+                          className="bg-white/5 border-white/10 text-white/90 placeholder:text-white/40 h-9 text-sm px-3 rounded-lg hover:bg-white/10 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                        />
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <Input
+                          type="number"
+                          value={line.quantity}
+                          onChange={(e) => updateLine(index, "quantity", parseFloat(e.target.value) || 0)}
+                          className="bg-white/5 border-white/10 text-white h-9 text-sm text-center px-3 rounded-lg hover:bg-white/10 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                          min="0"
+                          step="1"
+                        />
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <Input
+                          type="number"
+                          value={line.unit_price}
+                          onChange={(e) => updateLine(index, "unit_price", parseFloat(e.target.value) || 0)}
+                          className="bg-white/5 border-white/10 text-white h-9 text-sm text-right px-3 rounded-lg hover:bg-white/10 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                          min="0"
+                          step="0.01"
+                        />
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <Select
+                          value={line.tax_rate.toString()}
+                          onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
+                        >
+                          <SelectTrigger className="bg-white/5 border-white/10 text-white h-9 text-sm hover:bg-white/10">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-900 border-white/10">
+                            {taxOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value.toString()} className="text-white">
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="text-white text-right font-medium px-4 py-3">
+                        {formatCurrency(line.total)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeLine(index)}
+                          className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-8 w-8"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
 
-            <div className="p-4 border-t border-white/20 bg-white/5">
+            <div className="p-5 border-t border-white/20 bg-white/5">
               <Button
                 variant="outline"
                 onClick={addLine}
-                className="border-white/30 text-white hover:bg-white/15 backdrop-blur-sm rounded-2xl transition-all duration-200"
+                className="border-white/30 text-white hover:bg-white/15 backdrop-blur-sm rounded-xl transition-all duration-200 h-10 px-4"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Añadir línea

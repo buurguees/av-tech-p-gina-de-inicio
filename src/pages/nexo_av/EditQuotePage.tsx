@@ -689,121 +689,123 @@ const EditQuotePage = () => {
           </div>
 
           {/* Desktop Lines Table (same structure as NewQuotePage) */}
-          <div className="hidden md:block bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-              <span className="text-white/80 text-sm font-medium">Líneas del presupuesto</span>
+          <div className="hidden md:block bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 overflow-hidden mb-6 shadow-2xl shadow-black/30">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/20 bg-white/5">
+              <span className="text-white/70 text-sm font-medium uppercase tracking-wide">Líneas del presupuesto</span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={addLine}
-                className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10 h-9 px-4 gap-2"
+                className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10 h-10 px-4 gap-2 rounded-xl"
               >
                 <Plus className="h-4 w-4" />
                 Añadir línea
               </Button>
             </div>
-            
-            <Table>
-              <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="text-white/60 text-xs font-medium w-[30%] pl-5">Concepto</TableHead>
-                  <TableHead className="text-white/60 text-xs font-medium w-[22%]">Descripción</TableHead>
-                  <TableHead className="text-white/60 text-xs font-medium text-center w-[10%]">Cant.</TableHead>
-                  <TableHead className="text-white/60 text-xs font-medium text-right w-[12%]">Precio</TableHead>
-                  <TableHead className="text-white/60 text-xs font-medium text-center w-[10%]">IVA</TableHead>
-                  <TableHead className="text-white/60 text-xs font-medium text-right w-[12%]">Subtotal</TableHead>
-                  <TableHead className="text-white/60 text-xs w-[4%] pr-5"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {lines.filter(l => !l.isDeleted).map((line, index) => {
-                  const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
-                  return (
-                    <TableRow key={line.id || line.tempId} className="border-white/10 hover:bg-white/[0.02]">
-                      <TableCell className="py-2 pl-5 pr-2">
-                        <ProductSearchInput
-                          value={line.concept}
-                          onChange={(value) => updateLine(actualIndex, "concept", value)}
-                          onSelectItem={(item) => handleProductSelect(actualIndex, item)}
-                          placeholder="@buscar producto"
-                        />
-                      </TableCell>
-                      <TableCell className="py-2 px-2">
-                        <Input
-                          value={line.description}
-                          onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
-                          className="bg-white/5 border-white/10 text-white h-9 text-sm"
-                          placeholder="Descripción"
-                        />
-                      </TableCell>
-                      <TableCell className="py-2 px-2">
-                        <Input
-                          type="number"
-                          min="1"
-                          value={line.quantity}
-                          onChange={(e) => updateLine(actualIndex, "quantity", parseInt(e.target.value) || 0)}
-                          className="bg-white/5 border-white/10 text-white h-9 text-sm text-center"
-                        />
-                      </TableCell>
-                      <TableCell className="py-2 px-2">
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={line.unit_price}
-                          onChange={(e) => updateLine(actualIndex, "unit_price", parseFloat(e.target.value) || 0)}
-                          className="bg-white/5 border-white/10 text-white h-9 text-sm text-right"
-                        />
-                      </TableCell>
-                      <TableCell className="py-2 px-2">
-                        <Select 
-                          value={String(line.tax_rate)} 
-                          onValueChange={(v) => updateLine(actualIndex, "tax_rate", parseFloat(v))}
-                        >
-                          <SelectTrigger className="bg-white/5 border-white/10 text-white h-9 text-sm">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-zinc-900 border-white/10">
-                            {taxOptions.map((tax) => (
-                              <SelectItem key={tax.value} value={String(tax.value)} className="text-white text-sm">
-                                {tax.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className="text-white font-medium text-right text-sm py-2 px-2">
-                        {formatCurrency(line.subtotal)}
-                      </TableCell>
-                      <TableCell className="py-2 pl-2 pr-5">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-white/10 hover:bg-transparent">
+                    <TableHead className="text-white/70 min-w-[280px] px-4">Concepto</TableHead>
+                    <TableHead className="text-white/70 min-w-[200px] px-4">Descripción</TableHead>
+                    <TableHead className="text-white/70 text-center w-24 px-4">Cant.</TableHead>
+                    <TableHead className="text-white/70 text-right w-32 px-4">Precio</TableHead>
+                    <TableHead className="text-white/70 w-36 px-4">IVA</TableHead>
+                    <TableHead className="text-white/70 text-right w-32 px-4">Subtotal</TableHead>
+                    <TableHead className="text-white/70 w-14 px-4"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {lines.filter(l => !l.isDeleted).map((line, index) => {
+                    const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
+                    return (
+                      <TableRow key={line.id || line.tempId} className="border-white/10 hover:bg-white/5">
+                        <TableCell className="px-4 py-3">
+                          <ProductSearchInput
+                            value={line.concept}
+                            onChange={(value) => updateLine(actualIndex, "concept", value)}
+                            onSelectItem={(item) => handleProductSelect(actualIndex, item)}
+                            placeholder="@buscar producto"
+                            className="bg-white/5 border-white/10 text-white h-9 text-sm px-3 rounded-lg hover:bg-white/10 focus:bg-white/10"
+                          />
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          <Input
+                            value={line.description}
+                            onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
+                            className="bg-white/5 border-white/10 text-white/90 placeholder:text-white/40 h-9 text-sm px-3 rounded-lg hover:bg-white/10 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                            placeholder="Descripción opcional"
+                          />
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          <Input
+                            type="number"
+                            min="1"
+                            value={line.quantity}
+                            onChange={(e) => updateLine(actualIndex, "quantity", parseInt(e.target.value) || 0)}
+                            className="bg-white/5 border-white/10 text-white h-9 text-sm text-center px-3 rounded-lg hover:bg-white/10 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                          />
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={line.unit_price}
+                            onChange={(e) => updateLine(actualIndex, "unit_price", parseFloat(e.target.value) || 0)}
+                            className="bg-white/5 border-white/10 text-white h-9 text-sm text-right px-3 rounded-lg hover:bg-white/10 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                          />
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          <Select 
+                            value={String(line.tax_rate)} 
+                            onValueChange={(v) => updateLine(actualIndex, "tax_rate", parseFloat(v))}
+                          >
+                            <SelectTrigger className="bg-white/5 border-white/10 text-white h-9 text-sm hover:bg-white/10">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-zinc-900 border-white/10">
+                              {taxOptions.map((tax) => (
+                                <SelectItem key={tax.value} value={String(tax.value)} className="text-white text-sm">
+                                  {tax.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-white font-medium text-right text-sm px-4 py-3">
+                          {formatCurrency(line.subtotal)}
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeLine(actualIndex)}
+                            className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-8 w-8"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {lines.filter(l => !l.isDeleted).length === 0 && (
+                    <TableRow className="border-white/10">
+                      <TableCell colSpan={7} className="text-center py-12">
+                        <p className="text-white/40 text-sm mb-2">No hay líneas en este presupuesto</p>
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeLine(actualIndex)}
-                          className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-8 w-8"
+                          variant="link"
+                          onClick={addLine}
+                          className="text-orange-500 text-sm"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          Añadir primera línea
                         </Button>
                       </TableCell>
                     </TableRow>
-                  );
-                })}
-                {lines.filter(l => !l.isDeleted).length === 0 && (
-                  <TableRow className="border-white/10">
-                    <TableCell colSpan={7} className="text-center py-12">
-                      <p className="text-white/40 text-sm mb-2">No hay líneas en este presupuesto</p>
-                      <Button
-                        variant="link"
-                        onClick={addLine}
-                        className="text-orange-500 text-sm"
-                      >
-                        Añadir primera línea
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
 
 

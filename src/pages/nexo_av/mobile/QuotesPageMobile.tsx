@@ -10,7 +10,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, FileText } from "lucide-react";
+import { Plus, Search, FileText, Edit } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
@@ -78,8 +78,17 @@ const QuotesPageMobile = () => {
     navigate(`/nexo-av/${userId}/quotes/new`);
   };
 
-  const handleQuoteClick = (quoteId: string) => {
-    navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
+  const handleQuoteClick = (quoteId: string, status?: string) => {
+    // Si es DRAFT, ir directamente a editar
+    if (status === "DRAFT") {
+      navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`);
+    } else {
+      navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
+    }
+  };
+
+  const handleEditClick = (quoteId: string) => {
+    navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`);
   };
 
   // Pagination (25 records per page en móvil para mejor performance)
@@ -199,6 +208,7 @@ const QuotesPageMobile = () => {
               getStatusInfo={getStatusInfo}
               formatCurrency={formatCurrency}
               onQuoteClick={handleQuoteClick}
+              onEditClick={handleEditClick}
               onCreateClick={handleNewQuote}
               loading={loading}
               currentPage={currentPage}
