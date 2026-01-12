@@ -1,8 +1,11 @@
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { lazy, Suspense } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import UserAvatarDropdown from "./UserAvatarDropdown";
 
 // Lazy load mobile header
 const NexoHeaderMobile = lazy(() => import("./mobile/NexoHeaderMobile"));
@@ -27,6 +30,14 @@ const NexoLogo = () => (
   </svg>
 );
 
+interface UserInfo {
+  user_id: string;
+  email: string;
+  full_name: string;
+  phone?: string;
+  job_position?: string;
+}
+
 interface NexoHeaderProps {
   title: string;
   subtitle?: string;
@@ -35,6 +46,7 @@ interface NexoHeaderProps {
   showHome?: boolean;
   backTo?: string; // Custom back destination
   customTitle?: React.ReactNode; // Custom title element (overrides title)
+  showUserMenu?: boolean; // Whether to show user avatar dropdown
 }
 
 const NexoHeader = ({ 
@@ -45,8 +57,44 @@ const NexoHeader = ({
   showHome = false,
   backTo,
   customTitle,
+  showUserMenu = true,
 }: NexoHeaderProps) => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_current_user_info');
+        if (!error && data && data.length > 0) {
+          setUserInfo(data[0] as UserInfo);
+        }
+      } catch (err) {
+        console.error('Error fetching user info:', err);
+      }
+    };
+
+    if (showUserMenu) {
+      fetchUserInfo();
+    }
+  }, [showUserMenu]);
+
+  const handleLogout = async () => {
+    try {
+      localStorage.removeItem('nexo_av_last_login');
+    } catch {
+      // Ignore localStorage errors
+    }
+    
+    await supabase.auth.signOut();
+    toast({
+      title: "Sesión cerrada",
+      description: "Has cerrado sesión correctamente.",
+    });
+    navigate('/nexo-av');
+  };
 
   // Use mobile version on mobile devices
   if (isMobile) {
@@ -70,8 +118,6 @@ const NexoHeader = ({
       </Suspense>
     );
   }
-
-  const navigate = useNavigate();
 
   // Default back navigation goes to dashboard
   const handleBack = () => {
@@ -121,6 +167,24 @@ const NexoHeader = ({
               <p className="text-white/50 text-xs">{subtitle}</p>
             </div>
           </div>
+
+          {/* User Menu */}
+          {showUserMenu && userInfo && (
+            <div className="flex items-center gap-4">
+              <div className="text-right hidden sm:block">
+                <p className="text-white text-sm font-medium">{userInfo.full_name}</p>
+                <p className="text-white/40 text-xs">{userInfo.email}</p>
+              </div>
+              <UserAvatarDropdown
+                fullName={userInfo.full_name || ''}
+                email={userInfo.email || ''}
+                userId={userInfo.user_id || ''}
+                phone={userInfo.phone || ''}
+                position={userInfo.job_position || ''}
+                onLogout={handleLogout}
+              />
+            </div>
+          )}
         </div>
       </div>
     </header>
