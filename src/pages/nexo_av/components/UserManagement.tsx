@@ -126,31 +126,81 @@ const UserManagement = () => {
 
   // Helper function to call admin-users edge function with proper auth
   const callAdminUsersFunction = async (action: string, body: any = {}) => {
-    const { data: { session } } = await supabase.auth.getSession();
+    // Obtener sesión actual
+    let { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
-    if (!session) {
-      throw new Error("No session found");
+    if (sessionError || !session) {
+      throw new Error("No session found. Please log in again.");
+    }
+
+    // Si el token está cerca de expirar, intentar refrescarlo
+    if (session.expires_at) {
+      const expiresAt = session.expires_at * 1000; // Convertir a milisegundos
+      const now = Date.now();
+      const timeUntilExpiry = expiresAt - now;
+      
+      // Si el token expira en menos de 5 minutos, refrescarlo
+      if (timeUntilExpiry < 5 * 60 * 1000 && session.refresh_token) {
+        try {
+          const { data: { session: refreshedSession }, error: refreshError } = 
+            await supabase.auth.refreshSession({ refresh_token: session.refresh_token });
+          
+          if (!refreshError && refreshedSession) {
+            session = refreshedSession;
+          }
+        } catch (refreshErr) {
+          console.warn('Error refreshing session, using current token:', refreshErr);
+        }
+      }
     }
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://takvthfatlcjsqgssnta.supabase.co";
-    const response = await fetch(
-      `${supabaseUrl}/functions/v1/admin-users`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ action, ...body }),
+    
+    try {
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/admin-users`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ action, ...body }),
+        }
+      );
+
+      if (!response.ok) {
+        // Intentar parsear el error como JSON
+        let errorMessage = `Error ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // Si no es JSON, intentar leer como texto
+          try {
+            const errorText = await response.text();
+            if (errorText) {
+              errorMessage = errorText;
+            }
+          } catch (textError) {
+            // Si falla todo, usar el mensaje por defecto
+            console.error('Error parsing error response:', textError);
+          }
+        }
+        
+        const error = new Error(errorMessage);
+        (error as any).status = response.status;
+        throw error;
       }
-    );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `Error with action: ${action}`);
+      return await response.json();
+    } catch (error: any) {
+      // Si es un error de red o de parseo, mejorarlo
+      if (error.message && !error.status) {
+        console.error(`Error calling admin-users function (action: ${action}):`, error);
+      }
+      throw error;
     }
-
-    return await response.json();
   };
 
   useEffect(() => {
@@ -164,9 +214,27 @@ const UserManagement = () => {
       setUsers(result.users || []);
     } catch (error: any) {
       console.error('Error fetching users:', error);
+      console.error('Error status:', error.status);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        stack: error.stack
+      });
+      
+      let errorMessage = error.message || "No se pudieron cargar los usuarios.";
+      
+      // Mensajes más específicos según el código de estado
+      if (error.status === 401) {
+        errorMessage = "No autorizado. Por favor, inicia sesión nuevamente.";
+      } else if (error.status === 403) {
+        errorMessage = "No tienes permisos para acceder a esta función. Se requiere rol de administrador.";
+      } else if (error.status === 500) {
+        errorMessage = "Error del servidor. Por favor, intenta más tarde.";
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "No se pudieron cargar los usuarios.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
