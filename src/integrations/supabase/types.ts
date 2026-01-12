@@ -210,7 +210,10 @@ export type Database = {
           p_notes?: string
           p_tax_id?: string
         }
-        Returns: string
+        Returns: {
+          client_id: string
+          client_number: string
+        }[]
       }
       create_invitation_token: {
         Args: { p_expires_at: string; p_token: string; p_user_id: string }
