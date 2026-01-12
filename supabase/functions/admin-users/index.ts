@@ -21,17 +21,26 @@ const ALLOWED_ORIGINS = [
 const LOVABLE_PATTERN = /^https:\/\/[a-z0-9-]+\.(lovable\.app|lovableproject\.com)$/;
 
 function getCorsHeaders(origin: string | null): Record<string, string> {
-  let allowedOrigin = ALLOWED_ORIGINS[0];
+  // Default to wildcard for more permissive handling when needed
+  let allowedOrigin = '*';
   
   if (origin) {
-    if (ALLOWED_ORIGINS.includes(origin) || LOVABLE_PATTERN.test(origin)) {
+    // Check exact matches first (case-insensitive for domain)
+    const normalizedOrigin = origin.toLowerCase();
+    const matchedOrigin = ALLOWED_ORIGINS.find(o => o.toLowerCase() === normalizedOrigin);
+    
+    if (matchedOrigin) {
+      allowedOrigin = origin; // Use the original origin to preserve case
+    } else if (LOVABLE_PATTERN.test(origin)) {
       allowedOrigin = origin;
     }
   }
   
+  console.log('CORS - Request origin:', origin, 'Allowed origin:', allowedOrigin);
+  
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-requested-with',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Credentials': 'true',
   };
