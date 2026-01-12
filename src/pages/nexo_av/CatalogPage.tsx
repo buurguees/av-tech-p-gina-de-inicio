@@ -2,7 +2,7 @@ import { useState, useEffect, lazy } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, Boxes, Loader2 } from 'lucide-react';
+import { Package, Boxes, Loader2, Wrench } from 'lucide-react';
 import NexoHeader from './components/NexoHeader';
 import ProductsTab from './components/catalog/ProductsTab';
 import PacksTab from './components/catalog/PacksTab';
@@ -85,77 +85,44 @@ function CatalogPageDesktop() {
       />
 
       <main className="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-6">
-        {isMobile ? (
-          <Suspense fallback={
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-2 border-white/20 border-t-white"></div>
-            </div>
-          }>
-            <DetailTabsMobile
-              value={activeTab}
-              onValueChange={setActiveTab}
-              tabs={[
-                { value: "products", label: "Productos", icon: Package },
-                { value: "services", label: "Servicios", icon: Wrench },
-                { value: "packs", label: "Packs", icon: Boxes },
-              ]}
+        <Tabs defaultValue="products" value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
+          <TabsList className="bg-white/5 border border-white/10 h-9 md:h-10 w-full grid grid-cols-3 rounded-xl backdrop-blur-sm shadow-sm">
+            <TabsTrigger 
+              value="products" 
+              className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/60 text-xs md:text-sm h-7 md:h-8 rounded-lg"
             >
-            <TabsContent value="products" className="mt-6">
-              <ProductsTab isAdmin={isAdmin} filterType="product" />
-            </TabsContent>
+              <Package className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+              Productos
+            </TabsTrigger>
+            <TabsTrigger 
+              value="services"
+              className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/60 text-xs md:text-sm h-7 md:h-8 rounded-lg"
+            >
+              <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+              Servicios
+            </TabsTrigger>
+            <TabsTrigger 
+              value="packs"
+              className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/60 text-xs md:text-sm h-7 md:h-8 rounded-lg"
+            >
+              <Boxes className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+              Packs
+            </TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="services" className="mt-6">
-              <ProductsTab isAdmin={isAdmin} filterType="service" />
-            </TabsContent>
+          <TabsContent value="products">
+            <ProductsTab isAdmin={isAdmin} filterType="product" />
+          </TabsContent>
 
-            <TabsContent value="packs" className="mt-6">
-              <PacksTab isAdmin={isAdmin} />
-            </TabsContent>
-            </DetailTabsMobile>
-          </Suspense>
-        ) : (
-          <Tabs defaultValue="products" value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
-            <TabsList className="bg-white/5 border border-white/10 h-9 md:h-10 w-full grid grid-cols-3 rounded-xl backdrop-blur-sm shadow-sm">
-              <TabsTrigger 
-                value="products" 
-                className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/60 text-xs md:text-sm h-7 md:h-8 rounded-lg"
-              >
-                <Package className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
-                <span className="hidden sm:inline">Productos</span>
-                <span className="sm:hidden">Prod.</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="services"
-                className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/60 text-xs md:text-sm h-7 md:h-8 rounded-lg"
-              >
-                <Wrench className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
-                <span className="hidden sm:inline">Servicios</span>
-                <span className="sm:hidden">Serv.</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="packs"
-                className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-white/60 text-xs md:text-sm h-7 md:h-8 rounded-lg"
-              >
-                <Boxes className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
-                Packs
-              </TabsTrigger>
-            </TabsList>
+          <TabsContent value="services">
+            <ProductsTab isAdmin={isAdmin} filterType="service" />
+          </TabsContent>
 
-            <TabsContent value="products">
-              <ProductsTab isAdmin={isAdmin} filterType="product" />
-            </TabsContent>
-
-            <TabsContent value="services">
-              <ProductsTab isAdmin={isAdmin} filterType="service" />
-            </TabsContent>
-
-            <TabsContent value="packs">
-              <PacksTab isAdmin={isAdmin} />
-            </TabsContent>
-          </Tabs>
-        )}
+          <TabsContent value="packs">
+            <PacksTab isAdmin={isAdmin} />
+          </TabsContent>
+        </Tabs>
       </main>
-
     </div>
   );
 }

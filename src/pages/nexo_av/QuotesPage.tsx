@@ -113,20 +113,19 @@ const QuotesPageDesktop = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          {/* Header - simplified for mobile */}
+          {/* Header */}
           <div className="flex items-center justify-between gap-2 mb-4">
-            <div className="hidden md:block">
+            <div>
               <h1 className="text-2xl font-bold text-white">Presupuestos</h1>
               <p className="text-white/60 text-sm">Gestiona todos los presupuestos</p>
             </div>
             
             <Button
               onClick={handleNewQuote}
-              className="bg-white text-black hover:bg-white/90 h-9 md:h-10 text-sm ml-auto"
+              className="bg-white text-black hover:bg-white/90 h-10 text-sm"
             >
               <Plus className="h-4 w-4 mr-1.5" />
-              <span className="hidden sm:inline">Nuevo Presupuesto</span>
-              <span className="sm:hidden">Nuevo</span>
+              Nuevo Presupuesto
             </Button>
           </div>
 
@@ -174,36 +173,6 @@ const QuotesPageDesktop = () => {
               ))}
             </div>
           </div>
-
-          {/* Mobile card view */}
-          {isMobile ? (
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-12 md:hidden">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
-              </div>
-            }>
-              <div className="md:hidden">
-                <QuotesListMobile
-                  quotes={paginatedQuotes}
-                  getStatusInfo={getStatusInfo}
-                  formatCurrency={formatCurrency}
-                  onQuoteClick={handleQuoteClick}
-                  onCreateClick={handleNewQuote}
-                  loading={loading}
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  startIndex={startIndex}
-                  endIndex={endIndex}
-                  totalItems={totalItems}
-                  canGoPrev={canGoPrev}
-                  canGoNext={canGoNext}
-                  onPrevPage={prevPage}
-                  onNextPage={nextPage}
-                  onGoToPage={goToPage}
-                />
-              </div>
-            </Suspense>
-          ) : null}
 
           {/* Desktop table view */}
           <motion.div
@@ -298,6 +267,8 @@ const QuotesPageDesktop = () => {
         </motion.div>
       </main>
 
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav userId={userId || ''} />
     </div>
   );
 };
