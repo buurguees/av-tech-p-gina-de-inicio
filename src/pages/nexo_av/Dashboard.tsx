@@ -15,6 +15,7 @@ import {
   ShieldAlert,
   Calculator,
   Shield,
+  Receipt,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -211,6 +212,15 @@ const Dashboard = () => {
       borderColor: 'border-green-500/30',
       available: isAdmin || isManager || isSales,
       path: `/nexo-av/${userId}/quotes`,
+    },
+    {
+      id: 'invoices',
+      title: 'Facturas',
+      icon: Receipt,
+      color: 'from-emerald-500/20 to-emerald-600/10',
+      borderColor: 'border-emerald-500/30',
+      available: isAdmin || isManager || isSales,
+      path: `/nexo-av/${userId}/invoices`,
     },
     {
       id: 'projects',
