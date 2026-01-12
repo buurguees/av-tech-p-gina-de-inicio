@@ -998,17 +998,27 @@ export type Database = {
         }
         Returns: boolean
       }
-      update_quote: {
-        Args: {
-          p_client_id?: string
-          p_notes?: string
-          p_project_name?: string
-          p_quote_id: string
-          p_status?: string
-          p_valid_until?: string
-        }
-        Returns: boolean
-      }
+      update_quote:
+        | {
+            Args: {
+              p_client_id?: string
+              p_notes?: string
+              p_project_name?: string
+              p_quote_id: string
+              p_status?: string
+              p_valid_until?: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_notes?: string
+              p_quote_id: string
+              p_status?: string
+              p_valid_until?: string
+            }
+            Returns: undefined
+          }
       update_quote_line: {
         Args: {
           p_concept?: string
