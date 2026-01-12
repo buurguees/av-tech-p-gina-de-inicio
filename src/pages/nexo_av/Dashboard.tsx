@@ -27,6 +27,8 @@ import CreateClientDialog from "./components/CreateClientDialog";
 import MobileBottomNav from "./components/MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { lazy, Suspense } from "react";
+import Sidebar from "./components/desktop/Sidebar";
+import DashboardView from "./components/desktop/DashboardView";
 
 // Lazy load mobile components for better performance
 const DashboardMobile = lazy(() => import("./components/mobile/DashboardMobile"));
@@ -193,15 +195,6 @@ const Dashboard = () => {
 
   const modules = [
     {
-      id: 'dashboard',
-      title: 'Dashboard',
-      icon: BarChart3,
-      color: 'from-indigo-500/20 to-indigo-600/10',
-      borderColor: 'border-indigo-500/30',
-      available: isAdmin || isManager,
-      path: `/nexo-av/${userId}/dashboard/analytics`,
-    },
-    {
       id: 'clients',
       title: 'Clientes / Leads',
       icon: Users,
@@ -328,28 +321,15 @@ const Dashboard = () => {
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
-        {isMobile ? (
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
-              </div>
-            }>
-              <DashboardMobile
-                userInfo={userInfo}
-                modules={modules}
-                isAdmin={isAdmin}
-                isManager={isManager}
-                isSales={hasSalesAccess}
-                isTech={hasTechAccess}
-                userId={userId}
-                navigate={navigate}
-                onNewLead={() => setShowCreateClientDialog(true)}
-              />
-            </Suspense>
-          ) : (
-            <DashboardContent 
-              userInfo={userInfo} 
+      {isMobile ? (
+        <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+            </div>
+          }>
+            <DashboardMobile
+              userInfo={userInfo}
               modules={modules}
               isAdmin={isAdmin}
               isManager={isManager}
@@ -359,8 +339,26 @@ const Dashboard = () => {
               navigate={navigate}
               onNewLead={() => setShowCreateClientDialog(true)}
             />
-          )}
-      </main>
+          </Suspense>
+        </main>
+      ) : (
+        <div className="flex">
+          {/* Sidebar para desktop */}
+          <Sidebar 
+            userId={userId}
+            modules={modules}
+          />
+          
+          {/* Contenido principal con dashboard financiero */}
+          <main className="flex-1 px-6 py-8">
+            <DashboardView 
+              userId={userId}
+              isAdmin={isAdmin}
+              isManager={isManager}
+            />
+          </main>
+        </div>
+      )}
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav userId={userId || ''} />
@@ -381,113 +379,5 @@ const Dashboard = () => {
   );
 };
 
-// Extracted dashboard content component
-const DashboardContent = ({ 
-  userInfo, 
-  modules, 
-  isAdmin, 
-  isManager, 
-  isSales, 
-  isTech,
-  userId,
-  navigate,
-  onNewLead,
-}: {
-  userInfo: UserInfo | null;
-  modules: any[];
-  isAdmin: boolean | undefined;
-  isManager: boolean | undefined;
-  isSales: boolean | undefined;
-  isTech: boolean | undefined;
-  userId: string | undefined;
-  navigate: NavigateFunction;
-  onNewLead: () => void;
-}) => {
-  return (
-    <>
-      {/* Welcome section - hidden on mobile */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6 md:mb-8 hidden md:block"
-      >
-        <h2 className="text-2xl font-bold text-white mb-2">
-          Bienvenido, {userInfo?.full_name?.split(' ')[0]}
-        </h2>
-        <p className="text-white/50">
-          ¿Qué quieres hacer hoy?
-        </p>
-      </motion.div>
-
-      {/* Quick actions */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="flex flex-wrap gap-2 md:gap-3 mb-6 md:mb-8"
-      >
-        {(isAdmin || isManager || isSales) && (
-          <Button 
-            onClick={onNewLead}
-            className="bg-white text-black hover:bg-white/90 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4 min-w-[110px] md:min-w-[140px]"
-          >
-            <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
-            Nuevo Lead
-          </Button>
-        )}
-        {(isAdmin || isManager || isSales) && (
-          <QuickQuoteDialog 
-            trigger={
-              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4 min-w-[110px] md:min-w-[140px]">
-                <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
-                Presupuesto
-              </Button>
-            }
-          />
-        )}
-        {(isAdmin || isManager || isTech) && (
-          <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4 min-w-[110px] md:min-w-[140px]">
-            <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
-            Proyecto
-          </Button>
-        )}
-      </motion.div>
-
-      {/* Modules grid */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-        {modules.filter(m => m.available).map((module, index) => (
-          <motion.div
-            key={module.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + index * 0.05 }}
-          >
-            <button
-              onClick={() => navigate(module.path)}
-              className={`w-full h-28 md:h-40 p-4 md:p-6 rounded-2xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 group text-left flex flex-col justify-between backdrop-blur-sm shadow-lg`}
-            >
-              <div className="p-2 md:p-3 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors w-fit shadow-sm">
-                <module.icon className="h-4 w-4 md:h-6 md:w-6 text-white" />
-              </div>
-              <h3 className="text-white font-semibold text-xs md:text-base">{module.title}</h3>
-            </button>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Coming soon notice */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="mt-12 text-center"
-      >
-        <p className="text-white/30 text-sm">
-          Los módulos están en desarrollo. Próximamente más funcionalidades.
-        </p>
-      </motion.div>
-    </>
-  );
-};
 
 export default Dashboard;
