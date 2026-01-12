@@ -42,6 +42,13 @@ const formSchema = z.object({
   legal_name: z.string().optional(),
   notes: z.string().optional(),
   assigned_to: z.string().optional(),
+  // Billing address fields
+  billing_address: z.string().optional(),
+  billing_postal_code: z.string().optional(),
+  billing_city: z.string().optional(),
+  billing_province: z.string().optional(),
+  billing_country: z.string().optional(),
+  website: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -121,6 +128,12 @@ const CreateClientDialog = ({
       legal_name: "",
       notes: "",
       assigned_to: isAdmin ? undefined : currentUserId || undefined,
+      billing_address: "",
+      billing_postal_code: "",
+      billing_city: "",
+      billing_province: "",
+      billing_country: "España",
+      website: "",
     },
   });
 
@@ -152,7 +165,8 @@ const CreateClientDialog = ({
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      const { error } = await supabase.rpc('create_client', {
+      // First create the client
+      const { data: clientId, error: createError } = await supabase.rpc('create_client', {
         p_company_name: data.company_name.toUpperCase(),
         p_contact_phone: data.contact_phone,
         p_contact_email: data.contact_email,
@@ -166,7 +180,26 @@ const CreateClientDialog = ({
         p_created_by: currentUserId,
       });
 
-      if (error) throw error;
+      if (createError) throw createError;
+
+      // Then update with billing address and website if provided
+      const hasBillingData = data.billing_address || data.billing_city || data.billing_postal_code || data.billing_province || data.billing_country || data.website;
+      
+      if (clientId && hasBillingData) {
+        const { error: updateError } = await supabase.rpc('update_client', {
+          p_client_id: clientId,
+          p_billing_address: data.billing_address || null,
+          p_billing_city: data.billing_city || null,
+          p_billing_postal_code: data.billing_postal_code || null,
+          p_billing_province: data.billing_province || null,
+          p_billing_country: data.billing_country || null,
+          p_website: data.website || null,
+        });
+        
+        if (updateError) {
+          console.warn('Could not update billing address:', updateError);
+        }
+      }
 
       form.reset();
       onOpenChange(false);
@@ -326,6 +359,140 @@ const CreateClientDialog = ({
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Billing Address - Collapsible section */}
+            <div className="border border-white/10 rounded-lg p-3 space-y-3">
+              <p className="text-sm font-medium text-white/70">Dirección Fiscal (opcional)</p>
+              
+              <FormField
+                control={form.control}
+                name="billing_address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Dirección</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        className={cn(
+                          "bg-white/5 border-white/10 text-white",
+                          isMobile && "min-h-[44px] text-base"
+                        )}
+                        placeholder="C/ Ejemplo, 123"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <FormField
+                  control={form.control}
+                  name="billing_postal_code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>C.P.</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          className={cn(
+                            "bg-white/5 border-white/10 text-white",
+                            isMobile && "min-h-[44px] text-base"
+                          )}
+                          placeholder="08001"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="billing_city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ciudad</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          className={cn(
+                            "bg-white/5 border-white/10 text-white",
+                            isMobile && "min-h-[44px] text-base"
+                          )}
+                          placeholder="Barcelona"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="billing_province"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Provincia</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          className={cn(
+                            "bg-white/5 border-white/10 text-white",
+                            isMobile && "min-h-[44px] text-base"
+                          )}
+                          placeholder="Barcelona"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="billing_country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>País</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          className={cn(
+                            "bg-white/5 border-white/10 text-white",
+                            isMobile && "min-h-[44px] text-base"
+                          )}
+                          placeholder="España"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Página Web</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="url"
+                        className={cn(
+                          "bg-white/5 border-white/10 text-white",
+                          isMobile && "min-h-[44px] text-base"
+                        )}
+                        placeholder="https://ejemplo.com"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
