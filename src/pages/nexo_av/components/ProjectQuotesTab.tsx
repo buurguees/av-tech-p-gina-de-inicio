@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, FileText, Loader2 } from "lucide-react";
+import { getStatusInfo } from "@/constants/quoteStatuses";
 
 interface Quote {
   id: string;
@@ -26,18 +27,6 @@ interface ProjectQuotesTabProps {
   projectId: string;
   clientId?: string;
 }
-
-const QUOTE_STATUSES = [
-  { value: 'DRAFT', label: 'Borrador', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
-  { value: 'SENT', label: 'Enviado', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'APPROVED', label: 'Aprobado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'REJECTED', label: 'Rechazado', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  { value: 'EXPIRED', label: 'Expirado', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-];
-
-const getStatusInfo = (status: string) => {
-  return QUOTE_STATUSES.find(s => s.value === status) || QUOTE_STATUSES[0];
-};
 
 const ProjectQuotesTab = ({ projectId, clientId }: ProjectQuotesTabProps) => {
   const { userId } = useParams();
@@ -136,7 +125,7 @@ const ProjectQuotesTab = ({ projectId, clientId }: ProjectQuotesTabProps) => {
                       {quote.project_name || '-'}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={`${statusInfo.color} border`}>
+                      <Badge variant="outline" className={`${statusInfo.className} border`}>
                         {statusInfo.label}
                       </Badge>
                     </TableCell>

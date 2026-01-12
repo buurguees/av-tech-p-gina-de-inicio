@@ -22,6 +22,7 @@ import MobileBottomNav from "./components/MobileBottomNav";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { lazy, Suspense } from "react";
+import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 
 // Lazy load mobile components
 const QuotesListMobile = lazy(() => import("./components/mobile/QuotesListMobile"));
@@ -42,19 +43,6 @@ interface Quote {
   created_by_name: string | null;
   created_at: string;
 }
-
-const QUOTE_STATUSES = [
-  { value: "DRAFT", label: "Borrador", className: "bg-gray-500/20 text-gray-300 border-gray-500/30" },
-  { value: "SENT", label: "Enviado", className: "bg-blue-500/20 text-blue-300 border-blue-500/30" },
-  { value: "APPROVED", label: "Aprobado", className: "bg-green-500/20 text-green-300 border-green-500/30" },
-  { value: "REJECTED", label: "Rechazado", className: "bg-red-500/20 text-red-300 border-red-500/30" },
-  { value: "EXPIRED", label: "Expirado", className: "bg-orange-500/20 text-orange-300 border-orange-500/30" },
-  { value: "INVOICED", label: "Facturado", className: "bg-purple-500/20 text-purple-300 border-purple-500/30" },
-];
-
-const getStatusInfo = (status: string) => {
-  return QUOTE_STATUSES.find(s => s.value === status) || QUOTE_STATUSES[0];
-};
 
 const QuotesPage = () => {
   const navigate = useNavigate();
