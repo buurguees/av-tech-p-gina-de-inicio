@@ -501,7 +501,7 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
         </View>
 
         {/* Totals */}
-        <View style={styles.totalsContainer}>
+        <View style={styles.totalsContainer} wrap={false}>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Base imponible</Text>
             <Text style={styles.totalValue}>{formatCurrency(subtotal)}</Text>
@@ -519,7 +519,7 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
         </View>
 
         {/* Footer with validity note and company info */}
-        <View style={styles.footer}>
+        <View style={styles.footer} fixed>
           {quote.valid_until && (
             <Text style={styles.validityNote}>
               Este presupuesto es válido hasta el {formatDate(quote.valid_until)}.
