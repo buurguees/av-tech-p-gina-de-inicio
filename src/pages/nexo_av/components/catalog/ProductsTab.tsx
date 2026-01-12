@@ -255,8 +255,12 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
 
   const exportToExcel = async () => {
-    // Import XLSX dynamically
-    const XLSX = (await import('xlsx')).default || await import('xlsx');
+    // Import ExcelJS dynamically
+    const ExcelJS = (await import('exceljs')).default;
+    
+    // Create workbook and worksheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Catalogo Master');
     
     // Headers matching the master format + Stock column (R)
     const headers = [
@@ -280,10 +284,24 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       'Stock',               // R: stock
     ];
 
-    const rows = products.map(p => {
+    // Add header row
+    worksheet.addRow(headers);
+    
+    // Style header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1a1a2e' }
+    };
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+    // Add data rows
+    products.forEach(p => {
       // Calculate margin percentage
       const margin = p.cost_price > 0 
-        ? (((p.base_price - p.cost_price) / p.cost_price) * 100).toFixed(2) + '%'
+        ? `${(((p.base_price - p.cost_price) / p.cost_price) * 100).toFixed(2)}%`
         : '';
       
       // Build subcategory code in CAT-XX format
@@ -294,7 +312,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       // Tax code like IVA21, IVA10, etc.
       const taxCode = `IVA${Math.round(p.tax_rate)}`;
       
-      return [
+      worksheet.addRow([
         p.product_number,                    // A
         p.category_code,                     // B
         p.category_name,                     // C
@@ -313,19 +331,24 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         `€ ${p.price_with_tax.toFixed(2)}`,  // P
         taxCode,                             // Q
         p.stock ?? 0,                        // R: Stock
-      ];
+      ]);
     });
 
-    // Create workbook and worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    
-    // Add worksheet with name "Catalogo Master"
-    XLSX.utils.book_append_sheet(wb, ws, 'Catalogo Master');
+    // Auto-fit columns
+    worksheet.columns.forEach(column => {
+      column.width = 15;
+    });
 
     // Generate and download
     const filename = `Catalogo_${isProductTab ? 'Productos' : 'Servicios'}_Master_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(wb, filename);
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
     
     toast.success('Catálogo exportado correctamente');
   };
