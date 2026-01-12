@@ -28,7 +28,7 @@ import NexoHeader from "./components/NexoHeader";
 import MobileBottomNav from "./components/MobileBottomNav";
 import PaginationControls from "./components/PaginationControls";
 import { createMobilePage } from "./MobilePageWrapper";
-import { INVOICE_STATUSES, getStatusInfo } from "@/constants/invoiceStatuses";
+import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo } from "@/constants/financeStatuses";
 
 // Lazy load mobile version
 const InvoicesPageMobile = lazy(() => import("./mobile/InvoicesPageMobile"));
@@ -36,6 +36,7 @@ const InvoicesPageMobile = lazy(() => import("./mobile/InvoicesPageMobile"));
 interface Invoice {
   id: string;
   invoice_number: string;
+  preliminary_number: string;
   source_quote_id: string | null;
   source_quote_number: string | null;
   client_id: string;
@@ -43,11 +44,14 @@ interface Invoice {
   project_id: string | null;
   project_name: string | null;
   status: string;
-  issue_date: string;
+  issue_date: string | null;
   due_date: string | null;
   subtotal: number;
   tax_amount: number;
   total: number;
+  paid_amount: number;
+  pending_amount: number;
+  is_locked: boolean;
   created_by: string | null;
   created_by_name: string | null;
   created_at: string;
@@ -56,7 +60,7 @@ interface Invoice {
 // Status options for the filter dropdown
 const INVOICE_STATUS_OPTIONS = [
   { value: "all", label: "Todos los estados" },
-  ...INVOICE_STATUSES,
+  ...FINANCE_INVOICE_STATUSES,
 ];
 
 const InvoicesPageDesktop = () => {
@@ -77,7 +81,7 @@ const InvoicesPageDesktop = () => {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc("list_invoices", {
+      const { data, error } = await supabase.rpc("finance_list_invoices", {
         p_search: debouncedSearchQuery || null,
         p_status: statusFilter === "all" ? null : statusFilter,
       });
@@ -206,7 +210,10 @@ const InvoicesPageDesktop = () => {
                   </TableHeader>
                   <TableBody>
                     {paginatedInvoices.map((invoice) => {
-                      const statusInfo = getStatusInfo(invoice.status);
+                      const statusInfo = getFinanceStatusInfo(invoice.status);
+                      const displayNumber = invoice.invoice_number || invoice.preliminary_number;
+                      const isOverdue = invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && 
+                        invoice.due_date && new Date(invoice.due_date) < new Date();
                       return (
                         <TableRow
                           key={invoice.id}
@@ -214,7 +221,9 @@ const InvoicesPageDesktop = () => {
                           onClick={() => navigate(`/nexo-av/${userId}/invoices/${invoice.id}`)}
                         >
                           <TableCell className="font-mono text-white font-medium">
-                            {invoice.invoice_number}
+                            <span className={invoice.status === 'DRAFT' ? 'text-white/60' : ''}>
+                              {displayNumber}
+                            </span>
                           </TableCell>
                           <TableCell className="text-white">
                             {invoice.client_name}
@@ -223,9 +232,9 @@ const InvoicesPageDesktop = () => {
                             {invoice.project_name || "-"}
                           </TableCell>
                           <TableCell className="text-white/60">
-                            {formatDate(invoice.issue_date)}
+                            {invoice.issue_date ? formatDate(invoice.issue_date) : "-"}
                           </TableCell>
-                          <TableCell className="text-white/60">
+                          <TableCell className={isOverdue ? "text-red-400" : "text-white/60"}>
                             {invoice.due_date ? formatDate(invoice.due_date) : "-"}
                           </TableCell>
                           <TableCell>
@@ -233,8 +242,13 @@ const InvoicesPageDesktop = () => {
                               {statusInfo.label}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right text-white font-medium">
-                            {formatCurrency(invoice.total)}
+                          <TableCell className="text-right">
+                            <div className="text-white font-medium">{formatCurrency(invoice.total)}</div>
+                            {invoice.pending_amount > 0 && invoice.status !== 'DRAFT' && (
+                              <div className="text-xs text-amber-400">
+                                Pend: {formatCurrency(invoice.pending_amount)}
+                              </div>
+                            )}
                           </TableCell>
                         </TableRow>
                       );
