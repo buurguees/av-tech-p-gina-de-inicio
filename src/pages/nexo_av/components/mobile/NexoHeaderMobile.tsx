@@ -1,7 +1,19 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NexoLogo } from "../NexoHeader";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import UserAvatarDropdown from "../UserAvatarDropdown";
+
+interface UserInfo {
+  user_id: string;
+  email: string;
+  full_name: string;
+  phone?: string;
+  job_position?: string;
+}
 
 interface NexoHeaderMobileProps {
   title: string;
@@ -11,6 +23,7 @@ interface NexoHeaderMobileProps {
   showHome?: boolean;
   backTo?: string;
   customTitle?: React.ReactNode;
+  showUserMenu?: boolean;
 }
 
 const NexoHeaderMobile = ({ 
@@ -21,8 +34,28 @@ const NexoHeaderMobile = ({
   showHome = false,
   backTo,
   customTitle,
+  showUserMenu = true,
 }: NexoHeaderMobileProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_current_user_info');
+        if (!error && data && data.length > 0) {
+          setUserInfo(data[0] as UserInfo);
+        }
+      } catch (err) {
+        console.error('Error fetching user info:', err);
+      }
+    };
+
+    if (showUserMenu) {
+      fetchUserInfo();
+    }
+  }, [showUserMenu]);
 
   const handleBack = () => {
     if (backTo) {
@@ -34,6 +67,21 @@ const NexoHeaderMobile = ({
 
   const handleHome = () => {
     navigate(`/nexo-av/${userId}/dashboard`);
+  };
+
+  const handleLogout = async () => {
+    try {
+      localStorage.removeItem('nexo_av_last_login');
+    } catch {
+      // Ignore localStorage errors
+    }
+    
+    await supabase.auth.signOut();
+    toast({
+      title: "Sesión cerrada",
+      description: "Has cerrado sesión correctamente.",
+    });
+    navigate('/nexo-av');
   };
 
   return (
@@ -79,6 +127,18 @@ const NexoHeaderMobile = ({
               <p className="text-white/40 text-xs truncate">{subtitle}</p>
             </div>
           </div>
+
+          {/* User Menu */}
+          {showUserMenu && userInfo && (
+            <UserAvatarDropdown
+              fullName={userInfo.full_name || ''}
+              email={userInfo.email || ''}
+              userId={userInfo.user_id || ''}
+              phone={userInfo.phone || ''}
+              position={userInfo.job_position || ''}
+              onLogout={handleLogout}
+            />
+          )}
         </div>
       </div>
     </header>
