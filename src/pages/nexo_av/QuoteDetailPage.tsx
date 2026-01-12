@@ -537,7 +537,7 @@ const QuoteDetailPageDesktop = () => {
                     <span className="text-white/50 text-xs uppercase tracking-wide">Proyecto</span>
                   </div>
                   <p className="text-white font-medium">
-                    {quote.project_name || "Sin proyecto asignado"}
+                    {project?.project_name || quote.project_name || "Sin proyecto asignado"}
                   </p>
                 </div>
 
