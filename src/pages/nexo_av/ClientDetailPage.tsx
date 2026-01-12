@@ -35,6 +35,10 @@ import ClientInvoicesTab from "./components/ClientInvoicesTab";
 import EditClientDialog from "./components/EditClientDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { lazy, Suspense } from "react";
+import { createMobilePage } from "./MobilePageWrapper";
+
+// Lazy load mobile version
+const ClientDetailPageMobile = lazy(() => import("./mobile/ClientDetailPageMobile"));
 
 // Lazy load mobile tabs
 const DetailTabsMobile = lazy(() => import("./components/mobile/DetailTabsMobile"));
