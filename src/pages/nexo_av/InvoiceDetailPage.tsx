@@ -12,7 +12,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Building2, Calendar, FileText, Edit, Lock, User, Send } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, FileText, Edit, Lock, User, Send, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import NexoHeader from "./components/NexoHeader";
 import InvoicePDFViewer from "./components/InvoicePDFViewer";
@@ -48,6 +59,7 @@ const InvoiceDetailPage = () => {
   const [project, setProject] = useState<any>(null);
   const [company, setCompany] = useState<any>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchInvoiceData = async () => {
     if (!invoiceId) return;
@@ -175,6 +187,35 @@ const InvoiceDetailPage = () => {
     fetchInvoiceData();
   };
 
+  const handleDeleteInvoice = async () => {
+    if (!invoice || invoice.status !== "DRAFT") return;
+
+    try {
+      setDeleting(true);
+      
+      // First delete all invoice lines
+      for (const line of lines) {
+        await supabase.rpc("finance_delete_invoice_line", { p_line_id: line.id });
+      }
+
+      // Then cancel/delete the invoice
+      const { error } = await supabase.rpc("finance_cancel_invoice" as any, {
+        p_invoice_id: invoice.id,
+        p_reason: "Borrador eliminado por el usuario",
+      });
+
+      if (error) throw error;
+
+      toast.success("Factura eliminada correctamente");
+      navigate(`/nexo-av/${userId}/invoices`);
+    } catch (error: any) {
+      console.error("Error deleting invoice:", error);
+      toast.error(error.message || "Error al eliminar la factura");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-ES", {
       style: "currency",
@@ -251,7 +292,7 @@ const InvoiceDetailPage = () => {
               <>
                 <Button
                   onClick={handleIssueInvoice}
-                  disabled={updatingStatus}
+                  disabled={updatingStatus || deleting}
                   className="bg-emerald-600 hover:bg-emerald-700"
                 >
                   <Send className="w-4 h-4 mr-2" />
@@ -260,10 +301,43 @@ const InvoiceDetailPage = () => {
                 <Button
                   variant="outline"
                   onClick={() => navigate(`/nexo-av/${userId}/invoices/${invoice.id}/edit`)}
+                  disabled={deleting}
                 >
                   <Edit className="w-4 h-4 mr-2" />
                   Editar
                 </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                      disabled={deleting}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Eliminar
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-zinc-900 border-white/10">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-white">¿Eliminar factura borrador?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-white/60">
+                        Esta acción eliminará permanentemente la factura {displayNumber} y todas sus líneas.
+                        Esta acción no se puede deshacer.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">
+                        Cancelar
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteInvoice}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        Eliminar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </>
             )}
 
