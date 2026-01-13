@@ -49,14 +49,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
-import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import CreateClientDialog from "./components/CreateClientDialog";
 import PaginationControls from "./components/PaginationControls";
-import MobileBottomNav from "./components/MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { lazy, Suspense } from "react";
 import { cn } from "@/lib/utils";
-import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 // Lazy load mobile components
 const ClientsListMobile = lazy(() => import("./components/mobile/ClientsListMobile"));
@@ -100,11 +97,7 @@ const ClientsPage = () => {
   const { userId } = useParams<{ userId: string }>();
   const isMobile = useIsMobile();
   
-  // Apply nexo-av theme
-  useNexoAvTheme();
-  
   const [loading, setLoading] = useState(true);
-  const [accessDenied, setAccessDenied] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchTerm = useDebounce(searchInput, 500);
@@ -222,40 +215,16 @@ const ClientsPage = () => {
   };
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchUserInfo = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          navigate('/nexo-av');
-          return;
-        }
-
         const { data, error } = await supabase.rpc('get_current_user_info');
         
         if (error || !data || data.length === 0) {
-          navigate('/nexo-av');
+          console.error('Error fetching user info:', error);
           return;
         }
 
         const currentUserInfo = data[0];
-
-        if (userId && userId !== currentUserInfo.user_id) {
-          setAccessDenied(true);
-          setLoading(false);
-          return;
-        }
-
-        const hasAccess = currentUserInfo.roles?.some((r: string) => 
-          ['admin', 'manager', 'sales'].includes(r)
-        );
-
-        if (!hasAccess) {
-          setAccessDenied(true);
-          setLoading(false);
-          return;
-        }
-
         setCurrentUserId(currentUserInfo.user_id);
         const userIsAdmin = currentUserInfo.roles?.includes('admin') || false;
         setIsAdmin(userIsAdmin);
@@ -263,58 +232,32 @@ const ClientsPage = () => {
         setShowOnlyMine(!userIsAdmin);
         setLoading(false);
       } catch (err) {
-        console.error('Auth check error:', err);
-        navigate('/nexo-av');
+        console.error('Error fetching user info:', err);
+        setLoading(false);
       }
     };
 
-    checkAuth();
-  }, [navigate, userId]);
+    fetchUserInfo();
+  }, []);
 
   useEffect(() => {
-    if (!loading && !accessDenied) {
+    if (!loading) {
       fetchClients();
     }
-  }, [loading, accessDenied, stageFilter, debouncedSearchTerm]);
+  }, [loading, stageFilter, debouncedSearchTerm]);
 
-  if (accessDenied) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <ShieldAlert className="h-16 w-16 text-destructive mx-auto" />
-          <h1 className="text-2xl font-bold text-foreground">Acceso Denegado</h1>
-          <p className="text-muted-foreground">No tienes permiso para acceder a este recurso.</p>
-          <Button 
-            onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
-          >
-            Volver al inicio
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-foreground">
-          <NexoLogo />
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
       </div>
     );
   }
 
-
   return (
-    <div className="min-h-screen bg-background pb-mobile-nav">
-      <NexoHeader 
-        title="Clientes" 
-        userId={userId || ''} 
-        showBack={false}
-        showHome={true}
-      />
-
-      <main className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -670,10 +613,7 @@ const ClientsPage = () => {
             </>
           )}
         </motion.div>
-      </main>
-
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav userId={userId || ''} />
+      </div>
 
       <CreateClientDialog
         open={showCreateDialog}

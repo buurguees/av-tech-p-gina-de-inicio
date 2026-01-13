@@ -23,9 +23,7 @@ import { Plus, Search, FileText, Loader2, Edit, MoreVertical, ChevronUp, Chevron
 import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
-import NexoHeader from "./components/NexoHeader";
 import PaginationControls from "./components/PaginationControls";
-import MobileBottomNav from "./components/MobileBottomNav";
 import { cn } from "@/lib/utils";
 import { createMobilePage } from "./MobilePageWrapper";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
@@ -40,7 +38,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 // Lazy load mobile version
 const QuotesPageMobile = lazy(() => import("./mobile/QuotesPageMobile"));
@@ -66,9 +63,6 @@ const QuotesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
-  
-  // Apply nexo-av theme
-  useNexoAvTheme();
   
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
@@ -274,10 +268,8 @@ const QuotesPageDesktop = () => {
   } = usePagination(sortedQuotes, { pageSize: 50 });
 
   return (
-    <div className="min-h-screen bg-background pb-mobile-nav">
-      <NexoHeader title="Presupuestos" userId={userId || ""} showBack={false} showHome={true} />
-      
-      <main className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -604,10 +596,7 @@ const QuotesPageDesktop = () => {
             )}
           </motion.div>
         </motion.div>
-      </main>
-
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav userId={userId || ''} />
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

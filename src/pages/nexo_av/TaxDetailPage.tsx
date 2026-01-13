@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import NexoHeader from './components/NexoHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -196,15 +195,8 @@ export default function TaxDetailPage() {
   const TypeIcon = taxTypeInfo.icon;
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      <NexoHeader 
-        title={tax.name} 
-        userId={userId || ''} 
-        showBack 
-        backTo={`/nexo-av/${userId}/settings`}
-      />
-      
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
         {/* Title */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -407,9 +399,9 @@ export default function TaxDetailPage() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
-        </div>
-      </main>
+            </motion.div>
+          </div>
+      </div>
     </div>
   );
 }

@@ -9,12 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
-import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import { useDebounce } from "@/hooks/useDebounce";
 import PaginationControls from "./components/PaginationControls";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 interface AuditEvent {
   id: string;
@@ -68,8 +66,6 @@ const parseUserAgentShort = (ua: string | null): string => {
 const AuditPage = () => {
   const { userId } = useParams<{ userId: string }>();
   
-  // Apply nexo-av theme
-  useNexoAvTheme();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
@@ -97,50 +93,37 @@ const AuditPage = () => {
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchUserInfo = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          navigate('/nexo-av');
-          return;
-        }
-
         const { data, error } = await supabase.rpc('get_current_user_info');
         
         if (error || !data || data.length === 0) {
-          navigate('/nexo-av');
+          console.error('Error fetching user info:', error);
+          setLoading(false);
           return;
         }
 
         const currentUserInfo = data[0];
-
-        if (userId && userId !== currentUserInfo.user_id) {
-          setAccessDenied(true);
-          setLoading(false);
-          return;
-        }
-
-        if (!currentUserInfo.roles?.includes('admin')) {
-          setAccessDenied(true);
-          setLoading(false);
-          return;
-        }
-
-        setIsAdmin(true);
+        const userIsAdmin = currentUserInfo.roles?.includes('admin') || false;
+        
+        setIsAdmin(userIsAdmin);
         setLoading(false);
         
-        // Fetch initial data
-        fetchStats();
-        fetchEvents();
+        if (userIsAdmin) {
+          // Fetch initial data only if admin
+          fetchStats();
+          fetchEvents();
+        } else {
+          setAccessDenied(true);
+        }
       } catch (err) {
-        console.error('Auth check error:', err);
-        navigate('/nexo-av');
+        console.error('Error fetching user info:', err);
+        setLoading(false);
       }
     };
 
-    checkAuth();
-  }, [navigate, userId]);
+    fetchUserInfo();
+  }, []);
 
   useEffect(() => {
     if (isAdmin) {
@@ -212,92 +195,85 @@ const AuditPage = () => {
   const startIndex = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endIndex = Math.min(currentPage * pageSize, totalCount);
 
-  if (accessDenied) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <ShieldAlert className="h-16 w-16 text-red-500 mx-auto" />
-          <h1 className="text-2xl font-bold text-white">Acceso Denegado</h1>
-          <p className="text-white/60">Solo los administradores pueden acceder al registro de auditoría.</p>
-          <Button 
-            onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
-            className="bg-white text-black hover:bg-white/90"
-          >
-            Volver al inicio
-          </Button>
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
       </div>
     );
   }
 
-  if (loading) {
+  if (accessDenied) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse">
-          <NexoLogo />
-        </div>
+      <div className="flex flex-col items-center justify-center gap-4 py-12">
+        <ShieldAlert className="h-16 w-16 text-destructive mx-auto" />
+        <h1 className="text-2xl font-bold text-foreground">Acceso Denegado</h1>
+        <p className="text-muted-foreground">Solo los administradores pueden acceder al registro de auditoría.</p>
+        <Button 
+          onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
+        >
+          Volver al inicio
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <NexoHeader title="Registro de Auditoría" userId={userId || ''} showBack={false} showHome={true} />
-
-      <main className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <Card className="bg-white/5 border-white/10">
+            <Card className="border border-border">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/60 text-sm">Eventos (7 días)</p>
-                    <p className="text-2xl font-bold text-white">{stats.total_events}</p>
+                    <p className="text-muted-foreground text-sm">Eventos (7 días)</p>
+                    <p className="text-2xl font-bold text-foreground">{stats.total_events}</p>
                   </div>
-                  <Clock className="h-8 w-8 text-white/20" />
+                  <Clock className="h-8 w-8 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="bg-white/5 border-white/10">
+            <Card className="border border-border">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/60 text-sm">Warnings</p>
-                    <p className="text-2xl font-bold text-yellow-400">
+                    <p className="text-muted-foreground text-sm">Warnings</p>
+                    <p className="text-2xl font-bold text-yellow-600">
                       {stats.events_by_severity?.warning || 0}
                     </p>
                   </div>
-                  <AlertTriangle className="h-8 w-8 text-yellow-400/40" />
+                  <AlertTriangle className="h-8 w-8 text-yellow-600/60" />
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="bg-white/5 border-white/10">
+            <Card className="border border-border">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/60 text-sm">Errores</p>
-                    <p className="text-2xl font-bold text-red-400">
+                    <p className="text-muted-foreground text-sm">Errores</p>
+                    <p className="text-2xl font-bold text-red-600">
                       {(stats.events_by_severity?.error || 0) + (stats.events_by_severity?.critical || 0)}
                     </p>
                   </div>
-                  <AlertCircle className="h-8 w-8 text-red-400/40" />
+                  <AlertCircle className="h-8 w-8 text-red-600/60" />
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="bg-white/5 border-white/10">
+            <Card className="border border-border">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/60 text-sm">Seguridad</p>
-                    <p className="text-2xl font-bold text-blue-400">
+                    <p className="text-muted-foreground text-sm">Seguridad</p>
+                    <p className="text-2xl font-bold text-blue-600">
                       {stats.events_by_category?.security || 0}
                     </p>
                   </div>
-                  <Shield className="h-8 w-8 text-blue-400/40" />
+                  <Shield className="h-8 w-8 text-blue-600/60" />
                 </div>
               </CardContent>
             </Card>
@@ -305,15 +281,15 @@ const AuditPage = () => {
         )}
 
         {/* Filters */}
-        <Card className="bg-white/5 border-white/10 mb-6">
+        <Card className="border border-border mb-6">
           <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className="text-foreground flex items-center gap-2">
                   <Filter className="w-5 h-5" />
                   Filtros
                 </CardTitle>
-                <CardDescription className="text-white/60">
+                <CardDescription className="text-muted-foreground">
                   Busca y filtra eventos de auditoría
                 </CardDescription>
               </div>
@@ -322,7 +298,6 @@ const AuditPage = () => {
                 size="sm"
                 onClick={handleRefresh}
                 disabled={loadingEvents}
-                className="border-white/20 text-white hover:bg-white/10"
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${loadingEvents ? 'animate-spin' : ''}`} />
                 Actualizar
@@ -332,20 +307,20 @@ const AuditPage = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                  className="pl-10"
                 />
               </div>
               
               <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectTrigger>
                   <SelectValue placeholder="Categoría" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10">
+                <SelectContent>
                   <SelectItem value="all">Todas las categorías</SelectItem>
                   <SelectItem value="security">Seguridad</SelectItem>
                   <SelectItem value="crm">CRM</SelectItem>
@@ -354,10 +329,10 @@ const AuditPage = () => {
               </Select>
               
               <Select value={filterSeverity} onValueChange={setFilterSeverity}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectTrigger>
                   <SelectValue placeholder="Severidad" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10">
+                <SelectContent>
                   <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="info">Info</SelectItem>
                   <SelectItem value="warning">Warning</SelectItem>
@@ -367,10 +342,10 @@ const AuditPage = () => {
               </Select>
               
               <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectTrigger>
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10">
+                <SelectContent>
                   <SelectItem value="all">Todos los tipos</SelectItem>
                   <SelectItem value="LOGIN">Login</SelectItem>
                   <SelectItem value="LOGOUT">Logout</SelectItem>
@@ -384,12 +359,12 @@ const AuditPage = () => {
         </Card>
 
         {/* Events Table */}
-        <Card className="bg-white/5 border-white/10">
+        <Card className="border border-border">
           <CardHeader>
-            <CardTitle className="text-white">
+            <CardTitle className="text-foreground">
               Eventos de Auditoría
               {totalCount > 0 && (
-                <span className="text-white/40 text-sm font-normal ml-2">
+                <span className="text-muted-foreground text-sm font-normal ml-2">
                   ({totalCount} registros)
                 </span>
               )}
@@ -398,122 +373,123 @@ const AuditPage = () => {
           <CardContent>
             {loadingEvents ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
               </div>
             ) : events.length === 0 ? (
               <div className="text-center py-12">
-                <Shield className="w-12 h-12 mx-auto text-white/20 mb-4" />
-                <p className="text-white/40">No se encontraron eventos de auditoría</p>
+                <Shield className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No se encontraron eventos de auditoría</p>
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-white/10 hover:bg-transparent">
-                        <TableHead className="text-white/60">Fecha</TableHead>
-                        <TableHead className="text-white/60">Severidad</TableHead>
-                        <TableHead className="text-white/60">Tipo</TableHead>
-                        <TableHead className="text-white/60">Usuario</TableHead>
-                        <TableHead className="text-white/60">
-                          <div className="flex items-center gap-1">
-                            <Globe className="w-3 h-3" />
-                            IP
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-white/60">
-                          <div className="flex items-center gap-1">
-                            <Monitor className="w-3 h-3" />
-                            Navegador
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-white/60">Recurso</TableHead>
-                        <TableHead className="text-white/60 text-right">Acción</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {events.map((event) => {
-                        const severityConfig = getSeverityConfig(event.severity);
-                        const SeverityIcon = severityConfig.icon;
-                        const CategoryIcon = getCategoryIcon(event.event_category);
-                        
-                        return (
-                          <TableRow 
-                            key={event.id} 
-                            className="border-white/10 hover:bg-white/5 cursor-pointer transition-colors"
-                            onClick={() => navigate(`/nexo-av/${userId}/audit/${event.id}`)}
-                          >
-                            <TableCell className="text-white/60 text-sm whitespace-nowrap">
-                              {format(new Date(event.created_at), "dd MMM HH:mm", { locale: es })}
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={`${severityConfig.bg} ${severityConfig.border} ${severityConfig.color} border`}>
-                                <SeverityIcon className="w-3 h-3 mr-1" />
-                                {event.severity}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <CategoryIcon className="w-4 h-4 text-white/40" />
-                                <span className="text-white text-sm">{event.event_type}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="flex items-center gap-2 max-w-[150px]">
-                                    <User className="w-4 h-4 text-white/40 flex-shrink-0" />
-                                    <span className="text-white/80 text-sm truncate">
-                                      {event.user_email || 'Sistema'}
-                                    </span>
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>{event.user_email || 'Sistema'}</p>
-                                  {event.user_name && <p className="text-white/60">{event.user_name}</p>}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TableCell>
-                            <TableCell>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <code className="text-white/60 text-xs font-mono bg-white/5 px-1.5 py-0.5 rounded">
-                                    {event.ip_address || '—'}
-                                  </code>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Dirección IP: {event.ip_address || 'No disponible'}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TableCell>
-                            <TableCell>
-                              <span className="text-white/60 text-sm">
-                                {parseUserAgentShort(event.user_agent)}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-white/60 text-sm">
-                              {event.resource_type ? (
-                                <span>{event.resource_type}/{event.resource_id?.slice(0, 8)}...</span>
-                              ) : '—'}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-white/40 hover:text-white hover:bg-white/10"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(`/nexo-av/${userId}/audit/${event.id}`);
-                                }}
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <div className="inline-block min-w-full align-middle px-4 sm:px-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-muted-foreground">Fecha</TableHead>
+                          <TableHead className="text-muted-foreground">Severidad</TableHead>
+                          <TableHead className="text-muted-foreground">Tipo</TableHead>
+                          <TableHead className="text-muted-foreground">Usuario</TableHead>
+                          <TableHead className="text-muted-foreground hidden md:table-cell">
+                            <div className="flex items-center gap-1">
+                              <Globe className="w-3 h-3" />
+                              IP
+                            </div>
+                          </TableHead>
+                          <TableHead className="text-muted-foreground hidden lg:table-cell">
+                            <div className="flex items-center gap-1">
+                              <Monitor className="w-3 h-3" />
+                              Navegador
+                            </div>
+                          </TableHead>
+                          <TableHead className="text-muted-foreground hidden lg:table-cell">Recurso</TableHead>
+                          <TableHead className="text-muted-foreground text-right">Acción</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {events.map((event) => {
+                          const severityConfig = getSeverityConfig(event.severity);
+                          const SeverityIcon = severityConfig.icon;
+                          const CategoryIcon = getCategoryIcon(event.event_category);
+                          
+                          return (
+                            <TableRow 
+                              key={event.id} 
+                              className="cursor-pointer transition-colors hover:bg-secondary/50"
+                              onClick={() => navigate(`/nexo-av/${userId}/audit/${event.id}`)}
+                            >
+                              <TableCell className="text-foreground text-sm whitespace-nowrap">
+                                {format(new Date(event.created_at), "dd MMM HH:mm", { locale: es })}
+                              </TableCell>
+                              <TableCell>
+                                <Badge className={`${severityConfig.bg} ${severityConfig.border} ${severityConfig.color} border`}>
+                                  <SeverityIcon className="w-3 h-3 mr-1" />
+                                  {event.severity}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <CategoryIcon className="w-4 h-4 text-muted-foreground" />
+                                  <span className="text-foreground text-sm">{event.event_type}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex items-center gap-2 max-w-[150px]">
+                                      <User className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                      <span className="text-foreground text-sm truncate">
+                                        {event.user_email || 'Sistema'}
+                                      </span>
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{event.user_email || 'Sistema'}</p>
+                                    {event.user_name && <p className="text-muted-foreground">{event.user_name}</p>}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <code className="text-muted-foreground text-xs font-mono bg-secondary px-1.5 py-0.5 rounded">
+                                      {event.ip_address || '—'}
+                                    </code>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Dirección IP: {event.ip_address || 'No disponible'}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TableCell>
+                              <TableCell className="hidden lg:table-cell">
+                                <span className="text-muted-foreground text-sm">
+                                  {parseUserAgentShort(event.user_agent)}
+                                </span>
+                              </TableCell>
+                              <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
+                                {event.resource_type ? (
+                                  <span>{event.resource_type}/{event.resource_id?.slice(0, 8)}...</span>
+                                ) : '—'}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/nexo-av/${userId}/audit/${event.id}`);
+                                  }}
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
                 
                 <div className="mt-4">
@@ -534,7 +510,7 @@ const AuditPage = () => {
             )}
           </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
   );
 };

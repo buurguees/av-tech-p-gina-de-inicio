@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Tags, Receipt, FileText, Loader2, Settings2 } from 'lucide-react';
-import NexoHeader from './components/NexoHeader';
 import { CompanyDataTab } from './components/settings/CompanyDataTab';
 import { ProductCategoriesTab } from './components/settings/ProductCategoriesTab';
 import { TaxesTab } from './components/settings/TaxesTab';
@@ -11,7 +10,6 @@ import { TemplatesTab } from './components/settings/TemplatesTab';
 import { PreferencesTab } from './components/settings/PreferencesTab';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { lazy, Suspense } from 'react';
-import { useNexoAvTheme } from './hooks/useNexoAvTheme';
 
 // Lazy load mobile tabs
 const DetailTabsMobile = lazy(() => import('./components/mobile/DetailTabsMobile'));
@@ -96,7 +94,8 @@ export default function SettingsPage() {
         showBack
       />
 
-      <main className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full">
+        <div className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isMobile ? (
           <Suspense fallback={
             <div className="flex items-center justify-center py-8">
@@ -196,7 +195,8 @@ export default function SettingsPage() {
             </TabsContent>
           </Tabs>
         )}
-      </main>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,418 +1,41 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams, NavigateFunction } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { 
-  Users, 
-  FileText, 
-  FolderKanban, 
-  Package,
-  Settings,
-  BarChart3,
-  Plus,
-  Home,
-  UserCog,
-  ShieldAlert,
-  Calculator,
-  Shield,
-  Receipt,
-} from "lucide-react";
+import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useInactivityLogout } from "@/hooks/useInactivityLogout";
-import UserManagement from "./components/UserManagement";
-import UserAvatarDropdown from "./components/UserAvatarDropdown";
-import QuickQuoteDialog from "./components/QuickQuoteDialog";
 import CreateClientDialog from "./components/CreateClientDialog";
-import MobileBottomNav from "./components/MobileBottomNav";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { lazy, Suspense } from "react";
-import Sidebar from "./components/desktop/Sidebar";
 import DashboardView from "./components/desktop/DashboardView";
-import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
-
-// Lazy load mobile components for better performance
-const DashboardMobile = lazy(() => import("./components/mobile/DashboardMobile"));
-
-interface UserInfo {
-  user_id: string;
-  email: string;
-  full_name: string;
-  department: string;
-  roles: string[];
-  phone?: string;
-  job_position?: string;
-}
-
-const NexoLogo = () => {
-  const [isLightTheme, setIsLightTheme] = useState(false);
-
-  useEffect(() => {
-    // Verificar si el body tiene la clase nexo-av-theme
-    const checkTheme = () => {
-      setIsLightTheme(document.body.classList.contains('nexo-av-theme'));
-    };
-
-    // Verificar al montar
-    checkTheme();
-
-    // Observar cambios en las clases del body
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Si está en modo light, usar el SVG con fill black
-  if (isLightTheme) {
-    return (
-      <svg
-        width="40"
-        height="40"
-        viewBox="0 0 500 500"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="w-10 h-10"
-      >
-        <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="currentColor" />
-        <path d="M256.098 250L500 6.09766V90.7789L340.955 250H256.098Z" fill="currentColor" />
-        <path d="M250 243.902L6.09753 -7.62939e-05H90.7788L250 159.045V243.902Z" fill="currentColor" />
-        <path d="M493.902 -0.000106812L250 243.902V159.221L409.045 -0.000106812H493.902Z" fill="currentColor" />
-        <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="currentColor" />
-        <path d="M6.09753 500L250 256.098V340.779L90.9553 500H6.09753Z" fill="currentColor" />
-        <path d="M3.05176e-05 6.09766L243.902 250H159.221L3.05176e-05 90.9554V6.09766Z" fill="currentColor" />
-        <path d="M243.902 250L4.57764e-05 493.902V409.221L159.045 250H243.902Z" fill="currentColor" />
-      </svg>
-    );
-  }
-
-  // Si está en modo dark, usar el SVG original
-  return (
-    <svg
-      width="40"
-      height="40"
-      viewBox="0 0 1000 1000"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-10 h-10"
-    >
-      <path d="M750 743.902L506.098 500H590.779L750 659.045V743.902Z" fill="white" />
-      <path d="M506.098 500L750 256.098V340.779L590.955 500H506.098Z" fill="white" />
-      <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="white" />
-      <path d="M743.902 250L500 493.902V409.221L659.045 250H743.902Z" fill="white" />
-      <path d="M500 506.098L743.902 750H659.221L500 590.955V506.098Z" fill="white" />
-      <path d="M256.098 750L500 506.098V590.779L340.955 750H256.098Z" fill="white" />
-      <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="white" />
-      <path d="M493.902 500L250 743.902V659.221L409.045 500H493.902Z" fill="white" />
-    </svg>
-  );
-};
 
 const Dashboard = () => {
   const { userId } = useParams<{ userId: string }>();
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [accessDenied, setAccessDenied] = useState(false);
-  const [showCreateClientDialog, setShowCreateClientDialog] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
-
-  // Apply nexo-av theme
-  useNexoAvTheme();
-
+  const [showCreateClientDialog, setShowCreateClientDialog] = useState(false);
+  
+  // Get user info for admin check
+  const [isAdmin, setIsAdmin] = useState(false);
+  
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchUserInfo = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          navigate('/nexo-av');
-          return;
-        }
-
-        // Get user info from internal.authorized_users
         const { data, error } = await supabase.rpc('get_current_user_info');
-        
-        if (error || !data || data.length === 0) {
-          console.error('Error getting user info:', error);
-          await supabase.auth.signOut();
-          navigate('/nexo-av');
-          return;
+        if (!error && data && data.length > 0) {
+          const user = data[0];
+          setIsAdmin(user.roles?.includes('admin') || false);
         }
-
-        const currentUserInfo = data[0] as UserInfo;
-
-        // CRITICAL SECURITY: Verify URL user_id matches authenticated user
-        if (userId && userId !== currentUserInfo.user_id) {
-          console.error('Access denied: URL user_id does not match authenticated user');
-          setAccessDenied(true);
-          setLoading(false);
-          return;
-        }
-
-        // If no userId in URL, redirect to proper URL with user_id
-        if (!userId) {
-          navigate(`/nexo-av/${currentUserInfo.user_id}/dashboard`, { replace: true });
-          return;
-        }
-
-        setUserInfo(currentUserInfo);
-        setLoading(false);
       } catch (err) {
-        console.error('Auth check error:', err);
-        navigate('/nexo-av');
+        console.error('Error fetching user info:', err);
       }
     };
-
-    checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_OUT' || !session) {
-          navigate('/nexo-av');
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, [navigate, userId]);
-
-  const handleLogout = async () => {
-    // Clear the OTP skip timestamp to require verification next time
-    try {
-      localStorage.removeItem('nexo_av_last_login');
-    } catch {
-      // Ignore localStorage errors
-    }
-    
-    await supabase.auth.signOut();
-    toast({
-      title: "Sesión cerrada",
-      description: "Has cerrado sesión correctamente.",
-    });
-    navigate('/nexo-av');
-  };
-
-  const isAdmin = userInfo?.roles?.includes('admin');
-  const isManager = userInfo?.roles?.includes('manager');
-  // Support both 'comercial' and 'sales' role names (internal schema uses 'sales')
-  const isComercial = userInfo?.roles?.includes('comercial') || userInfo?.roles?.includes('sales');
-  // Support both 'tecnico' and 'tech' role names
-  const isTech = userInfo?.roles?.includes('tecnico') || userInfo?.roles?.includes('tech');
-  
-  // Unified access flags
-  const hasSalesAccess = isComercial;
-  const hasTechAccess = isTech;
-
-  // Inactivity logout hook - 30 minutes timeout with 5 minute warning
-  useInactivityLogout({
-    timeoutMinutes: 30,
-    warningMinutes: 5,
-    enabled: !loading && !accessDenied && !!userInfo,
-  });
-
-  // Access denied screen
-  if (accessDenied) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <ShieldAlert className="h-16 w-16 text-destructive mx-auto" />
-          <h1 className="text-2xl font-bold text-foreground">Acceso Denegado</h1>
-          <p className="text-muted-foreground">No tienes permiso para acceder a este recurso.</p>
-          <Button 
-            onClick={() => navigate('/nexo-av')}
-          >
-            Volver al inicio
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-foreground">
-          <NexoLogo />
-        </div>
-      </div>
-    );
-  }
-
-  const modules = [
-    {
-      id: 'clients',
-      title: 'Clientes / Leads',
-      icon: Users,
-      color: 'from-blue-500/20 to-blue-600/10',
-      borderColor: 'border-blue-500/30',
-      available: isAdmin || isManager || hasSalesAccess,
-      path: `/nexo-av/${userId}/clients`,
-    },
-    {
-      id: 'quotes',
-      title: 'Presupuestos',
-      icon: FileText,
-      color: 'from-green-500/20 to-green-600/10',
-      borderColor: 'border-green-500/30',
-      available: isAdmin || isManager || hasSalesAccess,
-      path: `/nexo-av/${userId}/quotes`,
-    },
-    {
-      id: 'invoices',
-      title: 'Facturas',
-      icon: Receipt,
-      color: 'from-emerald-500/20 to-emerald-600/10',
-      borderColor: 'border-emerald-500/30',
-      available: isAdmin || isManager || hasSalesAccess,
-      path: `/nexo-av/${userId}/invoices`,
-    },
-    {
-      id: 'projects',
-      title: 'Proyectos',
-      icon: FolderKanban,
-      color: 'from-purple-500/20 to-purple-600/10',
-      borderColor: 'border-purple-500/30',
-      available: isAdmin || isManager || hasSalesAccess || hasTechAccess,
-      path: `/nexo-av/${userId}/projects`,
-    },
-    {
-      id: 'catalog',
-      title: 'Catálogo',
-      icon: Package,
-      color: 'from-orange-500/20 to-orange-600/10',
-      borderColor: 'border-orange-500/30',
-      available: true, // Everyone can view catalog
-      path: `/nexo-av/${userId}/catalog`,
-    },
-    {
-      id: 'calculator',
-      title: 'Calculadora',
-      icon: Calculator,
-      color: 'from-pink-500/20 to-pink-600/10',
-      borderColor: 'border-pink-500/30',
-      available: true, // Everyone can use calculator
-      path: `/nexo-av/${userId}/calculator`,
-    },
-    {
-      id: 'reports',
-      title: 'Informes',
-      icon: BarChart3,
-      color: 'from-cyan-500/20 to-cyan-600/10',
-      borderColor: 'border-cyan-500/30',
-      available: isAdmin || isManager,
-      path: `/nexo-av/${userId}/reports`,
-    },
-    {
-      id: 'users',
-      title: 'Usuarios',
-      icon: UserCog,
-      color: 'from-rose-500/20 to-rose-600/10',
-      borderColor: 'border-rose-500/30',
-      available: isAdmin, // Only admin
-      path: `/nexo-av/${userId}/users`,
-    },
-    {
-      id: 'settings',
-      title: 'Configuración',
-      icon: Settings,
-      color: 'from-gray-500/20 to-gray-600/10',
-      borderColor: 'border-gray-500/30',
-      available: isAdmin, // Only admin
-      path: `/nexo-av/${userId}/settings`,
-    },
-    {
-      id: 'audit',
-      title: 'Auditoría',
-      icon: Shield,
-      color: 'from-red-500/20 to-red-600/10',
-      borderColor: 'border-red-500/30',
-      available: isAdmin, // Only admin
-      path: `/nexo-av/${userId}/audit`,
-    },
-  ];
+    fetchUserInfo();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background pb-mobile-nav">
-      {/* Header */}
-      <header className="border-b border-border bg-background sticky top-0 z-50 shadow-sm">
-        <div className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14 md:h-16">
-            <div className="flex items-center gap-2 md:gap-3">
-              <NexoLogo />
-              <div>
-                <h1 className="text-foreground font-semibold tracking-wide text-sm md:text-base">NEXO AV</h1>
-                <p className="text-muted-foreground text-[10px] md:text-xs hidden md:block">Plataforma de Gestión</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2 md:gap-4">
-              <div className="text-right hidden sm:block">
-                <p className="text-foreground text-sm font-medium">{userInfo?.full_name}</p>
-                <p className="text-muted-foreground text-xs capitalize">
-                  {userInfo?.roles?.join(', ')}
-                </p>
-              </div>
-              <UserAvatarDropdown
-                fullName={userInfo?.full_name || ''}
-                email={userInfo?.email || ''}
-                userId={userInfo?.user_id || ''}
-                phone={userInfo?.phone || ''}
-                position={userInfo?.job_position || ''}
-                onLogout={handleLogout}
-              />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main content */}
-      {isMobile ? (
-        <main className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
-          <Suspense fallback={
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
-            </div>
-          }>
-            <DashboardMobile
-              userInfo={userInfo}
-              modules={modules}
-              isAdmin={isAdmin}
-              isManager={isManager}
-              isSales={hasSalesAccess}
-              isTech={hasTechAccess}
-              userId={userId}
-              navigate={navigate}
-              onNewLead={() => setShowCreateClientDialog(true)}
-            />
-          </Suspense>
-        </main>
-      ) : (
-        <div className="flex w-[90%] max-w-[1800px] mx-auto">
-          {/* Sidebar para desktop */}
-          <Sidebar 
-            userId={userId}
-            modules={modules}
-          />
-          
-          {/* Contenido principal con dashboard financiero */}
-          <main className="flex-1 px-4 lg:px-6 py-6">
-            <DashboardView 
-              userId={userId}
-              isAdmin={isAdmin}
-              isManager={isManager}
-            />
-          </main>
-        </div>
-      )}
-
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav userId={userId || ''} />
-
+    <>
+      <DashboardView 
+        userId={userId}
+        isAdmin={isAdmin}
+        isManager={false}
+      />
+      
       <CreateClientDialog
         open={showCreateClientDialog}
         onOpenChange={setShowCreateClientDialog}
@@ -422,10 +45,10 @@ const Dashboard = () => {
             description: "El cliente se ha creado correctamente.",
           });
         }}
-        currentUserId={userInfo?.user_id || null}
-        isAdmin={isAdmin || false}
+        currentUserId={userId || null}
+        isAdmin={isAdmin}
       />
-    </div>
+    </>
   );
 };
 

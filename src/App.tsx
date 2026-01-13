@@ -10,6 +10,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 
 import NexoLogin from "./pages/nexo_av/Login";
+import NexoAvLayout from "./pages/nexo_av/layouts/NexoAvLayout";
 import NexoDashboard from "./pages/nexo_av/Dashboard";
 import NexoUsersPage from "./pages/nexo_av/UsersPage";
 import NexoClientsPage from "./pages/nexo_av/ClientsPage";
@@ -54,29 +55,32 @@ const App = () => (
             {/* NEXO AV Routes */}
             <Route path="/nexo-av" element={<NexoLogin />} />
             <Route path="/nexo-av/setup-account" element={<NexoAccountSetup />} />
-            <Route path="/nexo-av/:userId/dashboard" element={<NexoDashboard />} />
-            <Route path="/nexo-av/:userId/users" element={<NexoUsersPage />} />
-            <Route path="/nexo-av/:userId/clients" element={<NexoClientsPage />} />
-            <Route path="/nexo-av/:userId/clients/:clientId" element={<NexoClientDetailPage />} />
-            <Route path="/nexo-av/:userId/quotes" element={<NexoQuotesPage />} />
-            <Route path="/nexo-av/:userId/quotes/new" element={<NexoNewQuotePage />} />
-            <Route path="/nexo-av/:userId/quotes/:quoteId" element={<NexoQuoteDetailPage />} />
-            <Route path="/nexo-av/:userId/quotes/:quoteId/edit" element={<NexoEditQuotePage />} />
-            <Route path="/nexo-av/:userId/clients/:clientId/quotes/new" element={<NexoNewQuotePage />} />
-            <Route path="/nexo-av/:userId/projects" element={<NexoProjectsPage />} />
-            <Route path="/nexo-av/:userId/projects/:projectId" element={<NexoProjectDetailPage />} />
-            <Route path="/nexo-av/:userId/settings" element={<NexoSettingsPage />} />
-            <Route path="/nexo-av/:userId/settings/taxes/:taxId" element={<NexoTaxDetailPage />} />
-            <Route path="/nexo-av/:userId/audit" element={<NexoAuditPage />} />
-            <Route path="/nexo-av/:userId/audit/:eventId" element={<NexoAuditEventDetailPage />} />
-            <Route path="/nexo-av/:userId/catalog" element={<NexoCatalogPage />} />
-            <Route path="/nexo-av/:userId/catalog/:productId" element={<NexoProductDetailPage />} />
-            <Route path="/nexo-av/:userId/calculator" element={<NexoCalculatorPage />} />
-            <Route path="/nexo-av/:userId/invoices" element={<NexoInvoicesPage />} />
-            <Route path="/nexo-av/:userId/invoices/new" element={<NexoNewInvoicePage />} />
-            <Route path="/nexo-av/:userId/invoices/:invoiceId" element={<NexoInvoiceDetailPage />} />
-            <Route path="/nexo-av/:userId/invoices/:invoiceId/edit" element={<NexoEditInvoicePage />} />
-            <Route path="/nexo-av/:userId/*" element={<NexoNotFound />} />
+            {/* All authenticated routes use the shared layout */}
+            <Route path="/nexo-av/:userId" element={<NexoAvLayout />}>
+              <Route path="dashboard" element={<NexoDashboard />} />
+              <Route path="users" element={<NexoUsersPage />} />
+              <Route path="clients" element={<NexoClientsPage />} />
+              <Route path="clients/:clientId" element={<NexoClientDetailPage />} />
+              <Route path="quotes" element={<NexoQuotesPage />} />
+              <Route path="quotes/new" element={<NexoNewQuotePage />} />
+              <Route path="quotes/:quoteId" element={<NexoQuoteDetailPage />} />
+              <Route path="quotes/:quoteId/edit" element={<NexoEditQuotePage />} />
+              <Route path="clients/:clientId/quotes/new" element={<NexoNewQuotePage />} />
+              <Route path="projects" element={<NexoProjectsPage />} />
+              <Route path="projects/:projectId" element={<NexoProjectDetailPage />} />
+              <Route path="settings" element={<NexoSettingsPage />} />
+              <Route path="settings/taxes/:taxId" element={<NexoTaxDetailPage />} />
+              <Route path="audit" element={<NexoAuditPage />} />
+              <Route path="audit/:eventId" element={<NexoAuditEventDetailPage />} />
+              <Route path="catalog" element={<NexoCatalogPage />} />
+              <Route path="catalog/:productId" element={<NexoProductDetailPage />} />
+              <Route path="calculator" element={<NexoCalculatorPage />} />
+              <Route path="invoices" element={<NexoInvoicesPage />} />
+              <Route path="invoices/new" element={<NexoNewInvoicePage />} />
+              <Route path="invoices/:invoiceId" element={<NexoInvoiceDetailPage />} />
+              <Route path="invoices/:invoiceId/edit" element={<NexoEditInvoicePage />} />
+              <Route path="*" element={<NexoNotFound />} />
+            </Route>
             {/* Legacy route - redirects to login */}
             <Route path="/nexo-av/dashboard" element={<NexoLogin />} />
             <Route path="/nexo-av/*" element={<NexoNotFound />} />

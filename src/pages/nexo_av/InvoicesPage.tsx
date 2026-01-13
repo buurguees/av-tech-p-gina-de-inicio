@@ -32,12 +32,10 @@ import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
-import NexoHeader from "./components/NexoHeader";
 import MobileBottomNav from "./components/MobileBottomNav";
 import PaginationControls from "./components/PaginationControls";
 import { createMobilePage } from "./MobilePageWrapper";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo } from "@/constants/financeStatuses";
-import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 // Lazy load mobile version
 const InvoicesPageMobile = lazy(() => import("./mobile/InvoicesPageMobile"));
@@ -76,10 +74,7 @@ const InvoicesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
-
-  // Apply nexo-av theme
-  useNexoAvTheme();
-
+  
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [searchInput, setSearchInput] = useState("");
@@ -212,10 +207,8 @@ const InvoicesPageDesktop = () => {
   } = usePagination(sortedInvoices, { pageSize: 50 });
 
   return (
-    <div className="min-h-screen bg-background pb-mobile-nav">
-      <NexoHeader title="Facturas" userId={userId || ""} />
-
-      <main className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
+    <div className="w-full">
+        <div className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -514,10 +507,7 @@ const InvoicesPageDesktop = () => {
             </>
           )}
         </motion.div>
-      </main>
-
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav userId={userId || ''} />
+      </div>
     </div>
   );
 };

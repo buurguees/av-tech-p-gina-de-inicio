@@ -25,7 +25,6 @@ import {
 import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
-import NexoHeader from "./components/NexoHeader";
 import ProductSearchInput from "./components/ProductSearchInput";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 
@@ -663,14 +662,8 @@ const EditQuotePage = () => {
   const displayNumber = hasFinalNumber ? quote.quote_number : `(${quote.quote_number})`;
 
   return (
-    <div className="min-h-screen bg-background pb-mobile-nav">
-      <NexoHeader 
-        title={`Editar ${displayNumber}`} 
-        userId={userId || ""} 
-        backTo={quoteId ? `/nexo-av/${userId}/quotes/${quoteId}` : `/nexo-av/${userId}/quotes`}
-      />
-
-      <main className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1123,7 +1116,7 @@ const EditQuotePage = () => {
             </div>
           </div>
         </motion.div>
-      </main>
+      </div>
     </div>
   );
 };

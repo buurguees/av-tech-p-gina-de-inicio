@@ -30,7 +30,7 @@ const Sidebar = ({ userId, modules }: SidebarProps) => {
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-56 bg-card border-r border-border h-[calc(100vh-3.25rem)] sticky top-[3.25rem]">
+    <aside className="hidden md:flex flex-col w-56 bg-card border-r border-border h-[calc(100vh-3.25rem)] sticky top-[3.25rem] shrink-0">
       <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
         {/* Dashboard Home */}
         <motion.button

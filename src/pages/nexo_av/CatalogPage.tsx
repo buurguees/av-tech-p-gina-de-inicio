@@ -3,11 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Package, Boxes, Loader2, Wrench } from 'lucide-react';
-import NexoHeader from './components/NexoHeader';
 import ProductsTab from './components/catalog/ProductsTab';
 import PacksTab from './components/catalog/PacksTab';
 import { createMobilePage } from './MobilePageWrapper';
-import { useNexoAvTheme } from './hooks/useNexoAvTheme';
 
 // Lazy load mobile version
 const CatalogPageMobile = lazy(() => import('./mobile/CatalogPageMobile'));
@@ -24,72 +22,32 @@ interface UserInfo {
 
 function CatalogPageDesktop() {
   const { userId } = useParams<{ userId: string }>();
-  const navigate = useNavigate();
-  
-  // Apply nexo-av theme
-  useNexoAvTheme();
-  
-  const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [activeTab, setActiveTab] = useState("products");
 
   const isAdmin = userInfo?.roles?.includes('admin') || false;
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate('/nexo-av');
-        return;
-      }
-
+    const fetchUserInfo = async () => {
       try {
         const { data, error } = await supabase.rpc('get_current_user_info');
         
         if (error) throw error;
         
         if (data && data.length > 0) {
-          const user = data[0];
-          
-          if (user.user_id !== userId) {
-            navigate('/nexo-av');
-            return;
-          }
-          
-          setUserInfo(user);
-        } else {
-          navigate('/nexo-av');
+          setUserInfo(data[0]);
         }
       } catch (error) {
         console.error('Error fetching user info:', error);
-        navigate('/nexo-av');
-      } finally {
-        setLoading(false);
       }
     };
 
-    checkAuth();
-  }, [navigate, userId]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-white/40" />
-      </div>
-    );
-  }
+    fetchUserInfo();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
-      <NexoHeader
-        title="Catálogo"
-        userId={userId || ''}
-        showBack={false}
-        showHome={true}
-      />
-
-      <main className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-6">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-6">
         <Tabs defaultValue="products" value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
           <TabsList className="bg-white/5 border border-white/10 h-9 md:h-10 w-full grid grid-cols-3 rounded-xl backdrop-blur-sm shadow-sm">
             <TabsTrigger 
@@ -127,7 +85,7 @@ function CatalogPageDesktop() {
             <PacksTab isAdmin={isAdmin} />
           </TabsContent>
         </Tabs>
-      </main>
+      </div>
     </div>
   );
 }

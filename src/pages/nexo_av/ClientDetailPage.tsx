@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import ClientDashboardTab from "./components/ClientDashboardTab";
 import ClientProjectsTab from "./components/ClientProjectsTab";
 import ClientQuotesTab from "./components/ClientQuotesTab";
@@ -174,78 +173,31 @@ const ClientDetailPageDesktop = () => {
   };
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchUserInfo = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          navigate('/nexo-av');
-          return;
-        }
-
         const { data, error } = await supabase.rpc('get_current_user_info');
         
         if (error || !data || data.length === 0) {
-          navigate('/nexo-av');
+          console.error('Error fetching user info:', error);
           return;
         }
 
         const currentUserInfo = data[0];
-
-        if (userId && userId !== currentUserInfo.user_id) {
-          setAccessDenied(true);
-          setLoading(false);
-          return;
-        }
-
-        const hasAccess = currentUserInfo.roles?.some((r: string) => 
-          ['admin', 'manager', 'sales'].includes(r)
-        );
-
         const userIsAdmin = currentUserInfo.roles?.includes('admin');
         setIsAdmin(userIsAdmin);
-
-        if (!hasAccess) {
-          setAccessDenied(true);
-          setLoading(false);
-          return;
-        }
-
-        setLoading(false);
-        await fetchClient();
       } catch (err) {
-        console.error('Auth check error:', err);
-        navigate('/nexo-av');
+        console.error('Error fetching user info:', err);
       }
     };
 
-    checkAuth();
-  }, [navigate, userId, clientId]);
-
-  if (accessDenied) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <ShieldAlert className="h-16 w-16 text-red-500 mx-auto" />
-          <h1 className="text-2xl font-bold text-white">Acceso Denegado</h1>
-          <p className="text-white/60">No tienes permiso para acceder a este recurso.</p>
-          <Button 
-            onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
-            className="bg-white text-black hover:bg-white/90"
-          >
-            Volver al inicio
-          </Button>
-        </div>
-      </div>
-    );
-  }
+    fetchUserInfo();
+    fetchClient();
+  }, [clientId]);
 
   if (loading || !client) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse">
-          <NexoLogo />
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
       </div>
     );
   }
@@ -253,15 +205,8 @@ const ClientDetailPageDesktop = () => {
   const stageInfo = getStageInfo(client.lead_stage);
 
   return (
-    <div className="min-h-screen bg-background">
-      <NexoHeader 
-        title={client.company_name}
-        subtitle="Ficha de Cliente"
-        userId={userId || ''} 
-        backTo={`/nexo-av/${userId}/clients`}
-      />
-
-      <main className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Client Header Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -414,7 +359,7 @@ const ClientDetailPageDesktop = () => {
             </TabsContent>
           </Tabs>
         </motion.div>
-      </main>
+      </div>
     </div>
   );
 };

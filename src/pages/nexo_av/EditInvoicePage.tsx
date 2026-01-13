@@ -22,7 +22,6 @@ import {
 import { ArrowLeft, Plus, Trash2, Save, Loader2, GripVertical, FileText } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
-import NexoHeader from "./components/NexoHeader";
 import ProductSearchInput from "./components/ProductSearchInput";
 import { LOCKED_INVOICE_STATES } from "@/constants/invoiceStatuses";
 
@@ -549,14 +548,8 @@ const EditInvoicePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-mobile-nav">
-      <NexoHeader 
-        title="Editar Factura" 
-        userId={userId || ""} 
-        backTo={invoiceId ? `/nexo-av/${userId}/invoices/${invoiceId}` : `/nexo-av/${userId}/invoices`}
-      />
-
-      <main className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -903,7 +896,7 @@ const EditInvoicePage = () => {
             </div>
           </div>
         </motion.div>
-      </main>
+      </div>
     </div>
   );
 };

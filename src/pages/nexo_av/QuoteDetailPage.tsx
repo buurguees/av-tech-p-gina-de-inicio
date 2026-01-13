@@ -31,7 +31,6 @@ import {
 import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock, MessageSquare, Clock, Send, MoreVertical, Share2, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import NexoHeader from "./components/NexoHeader";
 import QuotePDFViewer from "./components/QuotePDFViewer";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import { createMobilePage } from "./MobilePageWrapper";
@@ -390,30 +389,24 @@ const QuoteDetailPageDesktop = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black">
-        <NexoHeader title="Presupuesto" userId={userId || ""} />
-        <div className="flex items-center justify-center pt-32">
-          <Loader2 className="h-8 w-8 animate-spin text-white/40" />
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (!quote) {
     return (
-      <div className="min-h-screen bg-black">
-        <NexoHeader title="Presupuesto" userId={userId || ""} />
-        <div className="flex flex-col items-center justify-center pt-32">
-          <FileText className="h-16 w-16 text-white/20 mb-4" />
-          <p className="text-white/60">Presupuesto no encontrado</p>
-          <Button
-            variant="link"
-            onClick={() => navigate(`/nexo-av/${userId}/quotes`)}
-            className="text-orange-500 mt-2"
-          >
-            Volver a presupuestos
-          </Button>
-        </div>
+      <div className="flex flex-col items-center justify-center gap-4 py-12">
+        <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+        <p className="text-muted-foreground">Presupuesto no encontrado</p>
+        <Button
+          variant="link"
+          onClick={() => navigate(`/nexo-av/${userId}/quotes`)}
+          className="text-primary mt-2"
+        >
+          Volver a presupuestos
+        </Button>
       </div>
     );
   }
@@ -422,26 +415,9 @@ const QuoteDetailPageDesktop = () => {
   const displayNumber = hasFinalNumber ? quote.quote_number : `(${quote.quote_number})`;
   const pdfFileName = `${quote.quote_number}${quote.project_name ? ` - ${quote.project_name}` : ''}.pdf`;
 
-  // Custom header with status badge for mobile
-  const headerTitle = (
-    <div className="flex items-center gap-2">
-      <span>{displayNumber}</span>
-      <Badge className={`${statusInfo.className} text-[9px] md:text-xs px-1.5 py-0`}>
-        {statusInfo.label}
-      </Badge>
-      {isLocked && <Lock className="h-3 w-3 text-white/40" />}
-    </div>
-  );
-
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
-      <NexoHeader 
-        title={displayNumber} 
-        userId={userId || ""} 
-        customTitle={headerTitle}
-      />
-
-      <main className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -998,7 +974,7 @@ const QuoteDetailPageDesktop = () => {
             </div>
           </div>
         </motion.div>
-      </main>
+      </div>
     </div>
   );
 };

@@ -23,7 +23,6 @@ import {
 import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
-import NexoHeader from "./components/NexoHeader";
 import ProductSearchInput from "./components/ProductSearchInput";
 
 interface Client {
@@ -534,24 +533,15 @@ const NewQuotePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black">
-        <NexoHeader title="Nuevo Presupuesto" userId={userId || ""} />
-        <div className="flex items-center justify-center pt-32">
-          <Loader2 className="h-8 w-8 animate-spin text-white/40" />
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-mobile-nav">
-      <NexoHeader 
-        title={sourceQuoteNumber ? "Nueva Versión" : "Nuevo Presupuesto"} 
-        userId={userId || ""} 
-        backTo={`/nexo-av/${userId}/quotes`}
-      />
-
-      <main className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -997,7 +987,7 @@ const NewQuotePage = () => {
             </div>
           </div>
         </motion.div>
-      </main>
+      </div>
     </div>
   );
 };

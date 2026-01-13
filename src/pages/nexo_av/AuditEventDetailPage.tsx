@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
-import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -293,14 +292,8 @@ const AuditEventDetailPage = () => {
   const userAgentInfo = parseUserAgent(event.user_agent);
 
   return (
-    <div className="min-h-screen bg-black">
-      <NexoHeader 
-        title="Detalle de Evento" 
-        userId={userId || ''} 
-        backTo={`/nexo-av/${userId}/audit`}
-      />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-start justify-between">
@@ -641,7 +634,7 @@ const AuditEventDetailPage = () => {
             </Card>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

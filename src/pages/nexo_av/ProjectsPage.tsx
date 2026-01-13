@@ -23,12 +23,10 @@ import { Plus, Search, FolderKanban, Loader2, MoreVertical, ChevronUp, ChevronDo
 import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
-import NexoHeader from "./components/NexoHeader";
 import CreateProjectDialog from "./components/CreateProjectDialog";
 import PaginationControls from "./components/PaginationControls";
 import { createMobilePage } from "./MobilePageWrapper";
 import { cn } from "@/lib/utils";
-import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 // Lazy load mobile version
 const ProjectsPageMobile = lazy(() => import("./mobile/ProjectsPageMobile"));
@@ -64,9 +62,6 @@ const getStatusInfo = (status: string) => {
 const ProjectsPageDesktop = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
-  
-  // Apply nexo-av theme
-  useNexoAvTheme();
   
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -185,10 +180,8 @@ const ProjectsPageDesktop = () => {
   } = usePagination(sortedProjects, { pageSize: 50 });
 
   return (
-    <div className="min-h-screen bg-background">
-      <NexoHeader userId={userId || ""} title="Proyectos" showBack={false} showHome={true} />
-      
-      <main className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -429,7 +422,7 @@ const ProjectsPageDesktop = () => {
             </>
           )}
         </motion.div>
-      </main>
+      </div>
 
       <CreateProjectDialog
         open={isCreateDialogOpen}

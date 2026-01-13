@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import ProjectDashboardTab from "./components/ProjectDashboardTab";
 import ProjectPlanningTab from "./components/ProjectPlanningTab";
 import ProjectQuotesTab from "./components/ProjectQuotesTab";
@@ -126,30 +125,23 @@ const ProjectDetailPageDesktop = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse">
-          <NexoLogo />
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-black">
-        <NexoHeader userId={userId || ""} title="Proyecto" />
-        <main className="w-[90%] max-w-[1800px] mx-auto px-4 py-8">
-          <div className="text-center py-12">
-            <p className="text-white/60">Proyecto no encontrado</p>
-            <Button
-              variant="link"
-              className="text-white mt-2"
-              onClick={() => navigate(`/nexo-av/${userId}/projects`)}
-            >
-              Volver a proyectos
-            </Button>
-          </div>
-        </main>
+      <div className="flex flex-col items-center justify-center gap-4 py-12">
+        <p className="text-muted-foreground">Proyecto no encontrado</p>
+        <Button
+          variant="link"
+          className="text-primary mt-2"
+          onClick={() => navigate(`/nexo-av/${userId}/projects`)}
+        >
+          Volver a proyectos
+        </Button>
       </div>
     );
   }
@@ -157,15 +149,8 @@ const ProjectDetailPageDesktop = () => {
   const statusInfo = getStatusInfo(project.status);
 
   return (
-    <div className="min-h-screen bg-background">
-      <NexoHeader 
-        userId={userId || ""} 
-        title={project.project_name}
-        subtitle="Ficha de Proyecto"
-        backTo={`/nexo-av/${userId}/projects`}
-      />
-      
-      <main className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Project Header Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -317,11 +302,10 @@ const ProjectDetailPageDesktop = () => {
             <TabsContent value="invoices" className="mt-6">
               <ProjectInvoicesTab projectId={project.id} clientId={project.client_id || undefined} />
             </TabsContent>
-          </Tabs>
-        </motion.div>
-      </main>
+            </Tabs>
+          </motion.div>
 
-      {/* Edit Project Dialog */}
+        {/* Edit Project Dialog */}
       <CreateProjectDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
@@ -331,6 +315,7 @@ const ProjectDetailPageDesktop = () => {
         }}
         project={project}
       />
+      </div>
     </div>
   );
 };

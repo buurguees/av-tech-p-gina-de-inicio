@@ -25,7 +25,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import NexoHeader from "./components/NexoHeader";
 import InvoicePDFViewer from "./components/InvoicePDFViewer";
 import InvoicePaymentsSection from "./components/InvoicePaymentsSection";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
@@ -275,14 +274,8 @@ const InvoiceDetailPage = () => {
   const displayNumber = invoice.invoice_number || invoice.preliminary_number;
 
   return (
-    <div className="min-h-screen bg-nexo-bg">
-      <NexoHeader 
-        title={`Factura ${displayNumber}`} 
-        userId={userId || ""} 
-        backTo={`/nexo-av/${userId}/invoices`}
-      />
-
-      <main className="p-6 w-[90%] max-w-[1800px] mx-auto">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
         {/* Back button */}
         <Button
           variant="ghost"
@@ -534,7 +527,7 @@ const InvoiceDetailPage = () => {
             />
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

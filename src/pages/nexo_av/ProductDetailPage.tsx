@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Save, Loader2, Package, Wrench, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
-import NexoHeader, { NexoLogo } from './components/NexoHeader';
 
 type ProductType = 'product' | 'service';
 
@@ -235,15 +234,8 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <NexoHeader
-        title={`Detalle de ${itemLabel}`}
-        userId={userId || ''}
-        showBack
-        backTo={`/nexo-av/${userId}/catalog`}
-      />
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
         {/* Product header */}
         <div className="flex items-center gap-4 mb-8">
           <div className={`p-3 rounded-lg ${isProductType ? 'bg-blue-500/20' : 'bg-purple-500/20'}`}>
@@ -455,7 +447,7 @@ export default function ProductDetailPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

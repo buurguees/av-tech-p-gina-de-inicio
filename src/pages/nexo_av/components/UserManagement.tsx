@@ -511,7 +511,7 @@ const UserManagement = () => {
       case 'tech': return 'bg-green-500/20 text-green-400 border-green-500/30';
       case 'viewer': return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
       case 'invited': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-      default: return 'bg-white/10 text-white/60 border-white/20';
+      default: return 'bg-secondary text-muted-foreground border-border';
     }
   };
 
@@ -522,7 +522,7 @@ const UserManagement = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-white/50" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -532,11 +532,11 @@ const UserManagement = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
             <UserCog className="h-5 w-5" />
             Gestión de Usuarios
           </h2>
-          <p className="text-white/50 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Administra los usuarios autorizados del sistema
           </p>
         </div>
@@ -545,7 +545,6 @@ const UserManagement = () => {
             variant="outline"
             size="icon"
             onClick={fetchUsers}
-            className="border-white/20 text-white hover:bg-white/10"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -554,7 +553,6 @@ const UserManagement = () => {
               resetForm();
               setIsCreateDialogOpen(true);
             }}
-            className="bg-white text-black hover:bg-white/90"
           >
             <UserPlus className="h-4 w-4 mr-2" />
             Nuevo Usuario
@@ -564,60 +562,61 @@ const UserManagement = () => {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Buscar por nombre o email..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+          className="pl-9"
         />
       </div>
 
       {/* Users table */}
-      <div className="rounded-xl border border-white/10 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="text-white/60">Usuario</TableHead>
-              <TableHead className="text-white/60">Contacto</TableHead>
-              <TableHead className="text-white/60">Departamento</TableHead>
-              <TableHead className="text-white/60">Roles</TableHead>
-              <TableHead className="text-white/60">Estado</TableHead>
-              <TableHead className="text-white/60 text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <AnimatePresence>
-              {filteredUsers.map((user) => (
-                <motion.tr
-                  key={user.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="border-white/10 hover:bg-white/5"
-                >
-                  <TableCell>
-                    <div>
-                      <p className="text-white font-medium">{user.full_name}</p>
-                      <p className="text-white/50 text-sm">{user.email}</p>
-                      {user.position && (
-                        <p className="text-white/40 text-xs mt-0.5">{user.position}</p>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      {user.phone ? (
-                        <p className="text-white/70 text-sm">{user.phone}</p>
-                      ) : (
-                        <p className="text-white/30 text-sm italic">Sin teléfono</p>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-white/70">{getDepartmentLabel(user.department)}</span>
-                  </TableCell>
-                  <TableCell>
+      <div className="rounded-xl border border-border overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-muted-foreground">Usuario</TableHead>
+                  <TableHead className="text-muted-foreground hidden md:table-cell">Contacto</TableHead>
+                  <TableHead className="text-muted-foreground hidden lg:table-cell">Departamento</TableHead>
+                  <TableHead className="text-muted-foreground">Roles</TableHead>
+                  <TableHead className="text-muted-foreground">Estado</TableHead>
+                  <TableHead className="text-muted-foreground text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <AnimatePresence>
+                  {filteredUsers.map((user) => (
+                    <motion.tr
+                      key={user.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="hover:bg-secondary/50"
+                    >
+                      <TableCell>
+                        <div>
+                          <p className="text-foreground font-medium">{user.full_name}</p>
+                          <p className="text-muted-foreground text-sm">{user.email}</p>
+                          {user.position && (
+                            <p className="text-muted-foreground text-xs mt-0.5">{user.position}</p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div>
+                          {user.phone ? (
+                            <p className="text-foreground text-sm">{user.phone}</p>
+                          ) : (
+                            <p className="text-muted-foreground text-sm italic">Sin teléfono</p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <span className="text-foreground">{getDepartmentLabel(user.department)}</span>
+                      </TableCell>
+                      <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {!user.setup_completed ? (
                         <TooltipProvider>
@@ -639,23 +638,23 @@ const UserManagement = () => {
                             </TooltipTrigger>
                             <TooltipContent 
                               side="top" 
-                              className="bg-zinc-900 border-white/20 text-white p-3 max-w-xs"
+                              className="p-3 max-w-xs"
                             >
                               <div className="space-y-1.5 text-xs">
                                 {user.invitation_sent_at && (
-                                  <p className="text-white/70">
-                                    <span className="text-white/50">Enviada:</span>{' '}
+                                  <p className="text-foreground">
+                                    <span className="text-muted-foreground">Enviada:</span>{' '}
                                     {format(new Date(user.invitation_sent_at), "d 'de' MMMM 'a las' HH:mm", { locale: es })}
                                   </p>
                                 )}
                                 {user.invitation_expires_at && (
-                                  <p className="text-white/70">
-                                    <span className="text-white/50">Expira:</span>{' '}
+                                  <p className="text-foreground">
+                                    <span className="text-muted-foreground">Expira:</span>{' '}
                                     {format(new Date(user.invitation_expires_at), "d 'de' MMMM 'a las' HH:mm", { locale: es })}
                                   </p>
                                 )}
                                 {user.invitation_days_remaining !== null && (
-                                  <p className={`font-medium ${user.invitation_days_remaining <= 1 ? 'text-red-400' : user.invitation_days_remaining <= 3 ? 'text-amber-400' : 'text-green-400'}`}>
+                                  <p className={`font-medium ${user.invitation_days_remaining <= 1 ? 'text-red-600' : user.invitation_days_remaining <= 3 ? 'text-amber-600' : 'text-green-600'}`}>
                                     {user.invitation_days_remaining === 0 
                                       ? '⚠️ Expira hoy' 
                                       : user.invitation_days_remaining === 1 
@@ -664,7 +663,7 @@ const UserManagement = () => {
                                   </p>
                                 )}
                                 {!user.invitation_sent_at && (
-                                  <p className="text-white/50 italic">Sin información de invitación</p>
+                                  <p className="text-muted-foreground italic">Sin información de invitación</p>
                                 )}
                               </div>
                             </TooltipContent>
@@ -710,7 +709,7 @@ const UserManagement = () => {
                           size="icon"
                           onClick={() => handleResendInvitation(user)}
                           disabled={isSubmitting}
-                          className="h-8 w-8 text-white/50 hover:text-amber-400 hover:bg-amber-500/10"
+                          className="h-8 w-8"
                           title="Reenviar invitación"
                         >
                           <Send className="h-4 w-4" />
@@ -720,7 +719,7 @@ const UserManagement = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => openEditDialog(user)}
-                        className="h-8 w-8 text-white/50 hover:text-white hover:bg-white/10"
+                        className="h-8 w-8"
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
@@ -731,7 +730,7 @@ const UserManagement = () => {
                           setSelectedUser(user);
                           setIsResetPasswordDialogOpen(true);
                         }}
-                        className="h-8 w-8 text-white/50 hover:text-amber-400 hover:bg-amber-500/10"
+                        className="h-8 w-8"
                       >
                         <KeyRound className="h-4 w-4" />
                       </Button>
@@ -742,7 +741,7 @@ const UserManagement = () => {
                           setSelectedUser(user);
                           setIsDeleteDialogOpen(true);
                         }}
-                        className="h-8 w-8 text-white/50 hover:text-red-400 hover:bg-red-500/10"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -754,51 +753,51 @@ const UserManagement = () => {
             {filteredUsers.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8">
-                  <p className="text-white/40">No se encontraron usuarios</p>
+                  <p className="text-muted-foreground">No se encontraron usuarios</p>
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       {/* Create User Dialog - Simplified for invitations */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
               Invitar Nuevo Usuario
             </DialogTitle>
-            <DialogDescription className="text-white/50">
+            <DialogDescription>
               Se enviará un email de invitación para que el usuario configure su cuenta
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-white/70">Email *</Label>
+              <Label>Email *</Label>
               <Input
                 type="email"
                 placeholder="usuario@avtechesdeveniments.com"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white/70">Rol *</Label>
+              <Label>Rol *</Label>
               <Select
                 value={formData.selectedRoles[0] || ''}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, selectedRoles: [value] }))}
               >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectTrigger>
                   <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10">
                   {roles.map((role) => (
-                    <SelectItem key={role.id} value={role.name} className="text-white">
+                    <SelectItem key={role.id} value={role.name}>
                       <div className="flex items-center gap-2">
                         {role.name === 'admin' && <ShieldCheck className="h-4 w-4 text-red-400" />}
                         {role.name === 'manager' && <Shield className="h-4 w-4 text-purple-400" />}
@@ -828,7 +827,6 @@ const UserManagement = () => {
             <Button
               variant="outline"
               onClick={() => setIsCreateDialogOpen(false)}
-              className="border-white/20 text-white hover:bg-white/10"
             >
               Cancelar
             </Button>
@@ -855,20 +853,20 @@ const UserManagement = () => {
 
       {/* Edit User Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit2 className="h-5 w-5" />
               Editar Usuario
             </DialogTitle>
-            <DialogDescription className="text-white/50">
+            <DialogDescription>
               Modifica los datos del usuario
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-white/70">Email</Label>
+              <Label>Email</Label>
               <Input
                 type="email"
                 value={formData.email}
@@ -878,33 +876,31 @@ const UserManagement = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white/70">Nombre completo *</Label>
+              <Label>Nombre completo *</Label>
               <Input
                 placeholder="Nombre y apellidos"
                 value={formData.full_name}
                 onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white/70">Teléfono</Label>
+                <Label>Teléfono</Label>
                 <Input
                   placeholder="+34 600 000 000"
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white/70">Departamento</Label>
+                <Label>Departamento</Label>
                 <Select
                   value={formData.department}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, department: value }))}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10">
@@ -919,17 +915,16 @@ const UserManagement = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white/70">Cargo</Label>
+              <Label>Cargo</Label>
               <Input
                 placeholder="Director, Técnico, etc."
                 value={formData.position}
                 onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white/70">Roles</Label>
+              <Label>Roles</Label>
               <div className="flex flex-wrap gap-2">
                 {roles.map((role) => (
                   <button
@@ -946,7 +941,7 @@ const UserManagement = () => {
                     className={`px-3 py-1.5 rounded-lg border text-sm transition-colors ${
                       formData.selectedRoles.includes(role.name)
                         ? getRoleBadgeColor(role.name)
-                        : 'border-white/10 text-white/40 hover:border-white/30'
+                        : 'border-border text-muted-foreground hover:border-primary'
                     }`}
                   >
                     {role.display_name}
@@ -960,7 +955,6 @@ const UserManagement = () => {
             <Button
               variant="outline"
               onClick={() => setIsEditDialogOpen(false)}
-              className="border-white/20 text-white hover:bg-white/10"
             >
               Cancelar
             </Button>
@@ -984,26 +978,25 @@ const UserManagement = () => {
 
       {/* Reset Password Dialog */}
       <Dialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-amber-400" />
               Restablecer Contraseña
             </DialogTitle>
-            <DialogDescription className="text-white/50">
+            <DialogDescription>
               Establece una nueva contraseña para {selectedUser?.email}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-white/70">Nueva contraseña *</Label>
+              <Label>Nueva contraseña *</Label>
               <Input
                 type="password"
                 placeholder="Mínimo 12 caracteres con mayúsculas, números y símbolos"
                 value={formData.password}
                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
               {formData.password && (
                 <PasswordStrengthIndicator 
@@ -1020,7 +1013,6 @@ const UserManagement = () => {
                 setIsResetPasswordDialogOpen(false);
                 setFormData(prev => ({ ...prev, password: '' }));
               }}
-              className="border-white/20 text-white hover:bg-white/10"
             >
               Cancelar
             </Button>
@@ -1050,9 +1042,9 @@ const UserManagement = () => {
               <ShieldAlert className="h-5 w-5" />
               Eliminar Usuario
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
+            <AlertDialogDescription>
               ¿Estás seguro de que quieres eliminar al usuario{' '}
-              <span className="text-white font-medium">{selectedUser?.email}</span>?
+              <span className="font-medium">{selectedUser?.email}</span>?
               <br /><br />
               Esta acción no se puede deshacer. El usuario perderá acceso al sistema inmediatamente.
             </AlertDialogDescription>
