@@ -110,21 +110,6 @@ const InvoicesPageDesktop = () => {
     }
   };
 
-  // Pagination (50 records per page)
-  const {
-    currentPage,
-    totalPages,
-    paginatedData: paginatedInvoices,
-    goToPage,
-    nextPage,
-    prevPage,
-    canGoNext,
-    canGoPrev,
-    startIndex,
-    endIndex,
-    totalItems,
-  } = usePagination(sortedInvoices, { pageSize: 50 });
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-ES", {
       style: "currency",
@@ -206,6 +191,21 @@ const InvoicesPageDesktop = () => {
     if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
     return 0;
   });
+
+  // Pagination (50 records per page)
+  const {
+    currentPage,
+    totalPages,
+    paginatedData: paginatedInvoices,
+    goToPage,
+    nextPage,
+    prevPage,
+    canGoNext,
+    canGoPrev,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination(sortedInvoices, { pageSize: 50 });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black pb-mobile-nav">
