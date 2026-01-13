@@ -16,7 +16,7 @@ import {
   Image,
 } from "@react-pdf/renderer";
 import { supabase } from "@/integrations/supabase/client";
-import InvoicePDFViewer from "../InvoicePDFViewer";
+import { InvoicePDFDocument } from "../InvoicePDFViewer";
 
 // Register font
 Font.register({
@@ -805,16 +805,17 @@ export function TemplatesTab() {
                   </div>
                 </div>
               ) : invoice && company ? (
-                <div className="h-[600px] bg-zinc-800 overflow-hidden">
-                  <InvoicePDFViewer
-                    invoice={invoice}
-                    lines={invoiceLines}
-                    client={invoiceClient}
-                    company={company}
-                    project={showProject ? invoiceProject : null}
-                    preferences={invoicePreferences}
-                    fileName={`Plantilla-Factura-${invoice.invoice_number || 'template'}`}
-                  />
+                <div className="h-[600px] bg-zinc-800">
+                  <PDFViewer width="100%" height="100%" showToolbar={false}>
+                    <InvoicePDFDocument
+                      invoice={invoice}
+                      lines={invoiceLines}
+                      client={invoiceClient}
+                      company={company}
+                      project={showProject ? invoiceProject : null}
+                      preferences={invoicePreferences}
+                    />
+                  </PDFViewer>
                 </div>
               ) : (
                 <div className="h-[600px] bg-zinc-800">

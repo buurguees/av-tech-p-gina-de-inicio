@@ -500,7 +500,7 @@ const extractSwiftBic = (notes: string | null | undefined): string | null => {
 };
 
 // PDF Document Component
-const InvoicePDFDocument = ({ invoice, lines, client, company, project, preferences }: Omit<InvoicePDFViewerProps, 'fileName'>) => {
+export const InvoicePDFDocument = ({ invoice, lines, client, company, project, preferences }: Omit<InvoicePDFViewerProps, 'fileName'>) => {
   const taxes = groupTaxesByRate(lines);
   const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
   const total = lines.reduce((acc, line) => acc + line.total, 0);
