@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Building2, Phone, Mail } from "lucide-react";
+import { Building2, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PaginationControls from "../PaginationControls";
@@ -74,7 +74,7 @@ const ClientsListMobile = ({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {clients.map((client, index) => {
         const stageInfo = getStageInfo(client.lead_stage);
         return (
@@ -84,48 +84,38 @@ const ClientsListMobile = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.02 }}
             onClick={() => onClientClick(client.id)}
-            className="w-full p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200 text-left backdrop-blur-sm active:scale-[0.98] shadow-sm nexo-card-mobile"
+            className="w-full p-3 bg-white border-b border-gray-200 active:bg-gray-50 transition-colors text-left min-h-[70px] max-h-[80px]"
           >
-            <div className="flex items-start justify-between gap-3 mb-2">
+            <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  {client.client_number && (
-                    <span className="text-white/40 text-xs font-mono">
-                      #{client.client_number}
-                    </span>
-                  )}
-                  <h3 className="text-white font-semibold text-sm truncate">
-                    {client.company_name}
-                  </h3>
-                </div>
+                <h3 className="text-sm font-medium text-gray-900 truncate">
+                  {client.company_name}
+                </h3>
                 {client.assigned_to_name && (
-                  <p className="text-white/40 text-xs truncate">
+                  <p className="text-xs text-gray-500 truncate mt-0.5">
                     {client.assigned_to_name}
                   </p>
                 )}
               </div>
               <Badge 
                 variant="outline" 
-                className={`${stageInfo.color} border text-xs px-2.5 py-1 shrink-0`}
+                className={`${stageInfo.color} border text-xs px-2 py-0.5 shrink-0 ml-2`}
               >
                 {stageInfo.label}
               </Badge>
             </div>
-            
-            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-white/5">
-              {client.contact_phone && (
-                <div className="flex items-center gap-1.5 text-white/50 text-xs">
-                  <Phone className="h-3.5 w-3.5" />
-                  <span className="truncate">{client.contact_phone}</span>
-                </div>
-              )}
-              {client.contact_email && (
-                <div className="flex items-center gap-1.5 text-white/50 text-xs">
-                  <Mail className="h-3.5 w-3.5" />
-                  <span className="truncate max-w-[120px]">{client.contact_email}</span>
-                </div>
-              )}
-            </div>
+            {client.contact_phone && (
+              <div className="flex items-center mt-2">
+                <a 
+                  href={`tel:${client.contact_phone}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-xs text-blue-600 flex items-center"
+                >
+                  <Phone className="w-3 h-3 mr-1" />
+                  {client.contact_phone}
+                </a>
+              </div>
+            )}
           </motion.button>
         );
       })}

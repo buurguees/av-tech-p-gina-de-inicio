@@ -480,9 +480,14 @@ body.nexo-av-theme svg[class*="w-4"] {
    HEADER - Compact
    ============================================ */
 
-body.nexo-av-theme header,
-body.nexo-av-theme [class*="h-16"] {
+body.nexo-av-theme header {
   height: 3.25rem !important;
+  min-height: 3.25rem !important;
+  max-height: 3.25rem !important;
+}
+
+body.nexo-av-theme header > div {
+  height: 100% !important;
 }
 
 body.nexo-av-theme header h1,

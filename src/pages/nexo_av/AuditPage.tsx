@@ -13,6 +13,11 @@ import { useDebounce } from "@/hooks/useDebounce";
 import PaginationControls from "./components/PaginationControls";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { createMobilePage } from "./MobilePageWrapper";
+import { lazy } from "react";
+
+// Lazy load mobile version
+const AuditPageMobile = lazy(() => import("./mobile/AuditPageMobile"));
 
 interface AuditEvent {
   id: string;
@@ -63,7 +68,7 @@ const parseUserAgentShort = (ua: string | null): string => {
   return "Otro";
 };
 
-const AuditPage = () => {
+const AuditPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
   
   const [searchParams] = useSearchParams();
@@ -514,5 +519,11 @@ const AuditPage = () => {
     </div>
   );
 };
+
+// Export version with mobile routing
+const AuditPage = createMobilePage({
+  DesktopComponent: AuditPageDesktop,
+  MobileComponent: AuditPageMobile,
+});
 
 export default AuditPage;

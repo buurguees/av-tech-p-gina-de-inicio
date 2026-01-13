@@ -84,6 +84,23 @@ const LeadMap = ({ clients, selectedClient, onClientSelect, loading }: LeadMapPr
           margin: 0;
           min-width: 200px;
         }
+        /* Asegurar que el mapa y sus controles estén por debajo de los diálogos */
+        .leaflet-container {
+          z-index: 1 !important;
+        }
+        .leaflet-control-container {
+          z-index: 2 !important;
+        }
+        .leaflet-top,
+        .leaflet-bottom {
+          z-index: 2 !important;
+        }
+        .leaflet-control {
+          z-index: 2 !important;
+        }
+        .leaflet-popup {
+          z-index: 3 !important;
+        }
       `}</style>
       <MapContainer
         center={defaultCenter}

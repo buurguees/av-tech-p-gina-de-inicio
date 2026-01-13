@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { FileText, Calendar, User, Edit } from "lucide-react";
+import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PaginationControls from "../PaginationControls";
@@ -90,86 +90,52 @@ const QuotesListMobile = ({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {quotes.map((quote, index) => {
         const statusInfo = getStatusInfo(quote.status);
         const createdDate = new Date(quote.created_at);
         const formattedDate = createdDate.toLocaleDateString('es-ES', { 
           day: '2-digit', 
-          month: 'short' 
+          month: 'short',
+          year: 'numeric'
         });
 
         const isDraft = quote.status === "DRAFT";
 
         return (
-          <motion.div
+          <motion.button
             key={quote.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.02 }}
-            className="w-full p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200 backdrop-blur-sm shadow-sm nexo-card-mobile"
+            onClick={() => onQuoteClick(quote.id, quote.status)}
+            className="w-full p-3 bg-white border-b border-gray-200 active:bg-gray-50 transition-colors text-left min-h-[80px] max-h-[90px]"
           >
-            <button
-              onClick={() => onQuoteClick(quote.id, quote.status)}
-              className="w-full text-left"
-            >
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-orange-500 text-sm font-semibold">
-                      {quote.quote_number}
-                    </span>
-                    <Badge 
-                      variant="outline" 
-                      className={`${statusInfo.className} text-xs px-2 py-0.5`}
-                    >
-                      {statusInfo.label}
-                    </Badge>
-                  </div>
-                  <h3 className="text-white font-semibold text-sm mb-1 truncate">
-                    {quote.client_name || 'Sin cliente'}
-                  </h3>
-                  {quote.project_name && (
-                    <p className="text-white/50 text-xs truncate">
-                      {quote.project_name}
-                    </p>
-                  )}
-                </div>
-                {isDraft && onEditClick && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditClick(quote.id);
-                    }}
-                    className="h-8 w-8 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 shrink-0"
-                    title="Editar presupuesto"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                )}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-medium text-gray-900">
+                  {quote.quote_number}
+                </h3>
+                <p className="text-xs text-gray-500 truncate mt-0.5">
+                  {quote.client_name || 'Sin cliente'}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {formattedDate}
+                </p>
               </div>
-              
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
-                <div className="flex items-center gap-3 text-white/50 text-xs">
-                  {quote.created_by_name && (
-                    <div className="flex items-center gap-1.5">
-                      <User className="h-3.5 w-3.5" />
-                      <span className="truncate max-w-[100px]">{quote.created_by_name}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5" />
-                    <span>{formattedDate}</span>
-                  </div>
-                </div>
-                <span className="text-white font-semibold text-base">
+              <div className="ml-2 text-right">
+                <p className="text-sm font-semibold text-gray-900">
                   {formatCurrency(quote.total)}
-                </span>
+                </p>
+                <Badge 
+                  variant="outline" 
+                  className={`${statusInfo.className} text-xs px-2 py-0.5 inline-block mt-1`}
+                >
+                  {statusInfo.label}
+                </Badge>
               </div>
-            </button>
-          </motion.div>
+            </div>
+          </motion.button>
         );
       })}
       

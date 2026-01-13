@@ -28,6 +28,11 @@ import { toast } from "sonner";
 import InvoicePDFViewer from "./components/InvoicePDFViewer";
 import InvoicePaymentsSection from "./components/InvoicePaymentsSection";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
+import { createMobilePage } from "./MobilePageWrapper";
+import { lazy } from "react";
+
+// Lazy load mobile version
+const InvoiceDetailPageMobile = lazy(() => import("./mobile/InvoiceDetailPageMobile"));
 
 const getAvailableStatusTransitions = (currentStatus: string): string[] => {
   switch (currentStatus) {
@@ -48,7 +53,7 @@ const getAvailableStatusTransitions = (currentStatus: string): string[] => {
   }
 };
 
-const InvoiceDetailPage = () => {
+const InvoiceDetailPageDesktop = () => {
   const { userId, invoiceId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -531,5 +536,11 @@ const InvoiceDetailPage = () => {
     </div>
   );
 };
+
+// Export version with mobile routing
+const InvoiceDetailPage = createMobilePage({
+  DesktopComponent: InvoiceDetailPageDesktop,
+  MobileComponent: InvoiceDetailPageMobile,
+});
 
 export default InvoiceDetailPage;

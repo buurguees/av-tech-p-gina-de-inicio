@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Lock, Mail, Loader2, AlertCircle, Clock, ShieldCheck, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import NexoLoadingScreen from "./components/NexoLoadingScreen";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
@@ -146,6 +147,7 @@ const Login = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   // Countdown timer for rate limiting
   useEffect(() => {
@@ -287,7 +289,10 @@ const Login = () => {
         const { data: userInfo } = await supabase.rpc('get_current_user_info');
         
         if (userInfo && userInfo.length > 0) {
-          navigate(`/nexo-av/${userInfo[0].user_id}/dashboard`, { replace: true });
+          const targetPath = isMobile 
+            ? `/nexo-av/${userInfo[0].user_id}/lead-map`
+            : `/nexo-av/${userInfo[0].user_id}/dashboard`;
+          navigate(targetPath, { replace: true });
         } else {
           await supabase.auth.signOut();
         }
@@ -375,7 +380,10 @@ const Login = () => {
             title: "Bienvenido",
             description: "Has iniciado sesión correctamente.",
           });
-          navigate(`/nexo-av/${userInfo[0].user_id}/dashboard`, { replace: true });
+          const targetPath = isMobile 
+            ? `/nexo-av/${userInfo[0].user_id}/lead-map`
+            : `/nexo-av/${userInfo[0].user_id}/dashboard`;
+          navigate(targetPath, { replace: true });
           return;
         }
 
@@ -440,7 +448,10 @@ const Login = () => {
           title: "Bienvenido",
           description: "Has iniciado sesión correctamente.",
         });
-        navigate(`/nexo-av/${userInfo[0].user_id}/dashboard`, { replace: true });
+        const targetPath = isMobile 
+          ? `/nexo-av/${userInfo[0].user_id}/lead-map`
+          : `/nexo-av/${userInfo[0].user_id}/dashboard`;
+        navigate(targetPath, { replace: true });
       }
       
       // Clear pending session

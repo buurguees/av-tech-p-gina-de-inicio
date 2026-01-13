@@ -8,9 +8,14 @@ import LeadMapFilters from "./components/leadmap/LeadMapFilters";
 import LeadMapSidebar from "./components/leadmap/LeadMapSidebar";
 import LeadDetailPanel from "./components/leadmap/LeadDetailPanel";
 import LeadDetailMobileSheet from "./components/leadmap/LeadDetailMobileSheet";
-import CreateLeadDialog from "./components/leadmap/CreateLeadDialog";
+import CreateClientDialog from "./components/CreateClientDialog";
 import { Button } from "@/components/ui/button";
 import { Plus, Filter, X } from "lucide-react";
+import { createMobilePage } from "./MobilePageWrapper";
+import { lazy } from "react";
+
+// Lazy load mobile version
+const LeadMapPageMobile = lazy(() => import("./mobile/LeadMapPageMobile"));
 
 // Lead stage colors and labels
 export const LEAD_STAGE_COLORS: Record<string, string> = {
@@ -59,7 +64,7 @@ export interface LeadStats {
   count: number;
 }
 
-const LeadMapPage = () => {
+const LeadMapPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -73,7 +78,7 @@ const LeadMapPage = () => {
   
   // Filters
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
-  const [showOnlyMine, setShowOnlyMine] = useState(true);
+  const [showOnlyMine, setShowOnlyMine] = useState(false); // Por defecto mostrar todos los clientes
   
   // User info
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -256,14 +261,22 @@ const LeadMapPage = () => {
       )}
 
       {/* Create dialog */}
-      <CreateLeadDialog
+      <CreateClientDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         onSuccess={handleRefresh}
         currentUserId={currentUserId}
+        isAdmin={isAdmin}
+        enableGeocoding={true}
       />
     </div>
   );
 };
+
+// Export version with mobile routing
+const LeadMapPage = createMobilePage({
+  DesktopComponent: LeadMapPageDesktop,
+  MobileComponent: LeadMapPageMobile,
+});
 
 export default LeadMapPage;

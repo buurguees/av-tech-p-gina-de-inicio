@@ -146,7 +146,10 @@ const NexoAvLayout = () => {
 
         // If no userId in URL, redirect to proper URL with user_id
         if (!userId) {
-          navigate(`/nexo-av/${currentUserInfo.user_id}/dashboard`, { replace: true });
+          const targetPath = isMobile 
+            ? `/nexo-av/${currentUserInfo.user_id}/lead-map`
+            : `/nexo-av/${currentUserInfo.user_id}/dashboard`;
+          navigate(targetPath, { replace: true });
           return;
         }
 
@@ -200,6 +203,17 @@ const NexoAvLayout = () => {
     warningMinutes: 5,
     enabled: !loading && !accessDenied && !!userInfo,
   });
+
+  // Check if we're on dashboard route to show mobile dashboard
+  const isDashboardRoute = location.pathname === `/nexo-av/${userId}/dashboard`;
+  
+  // Redirect mobile users from dashboard to lead-map
+  // IMPORTANT: This useEffect must be before any conditional returns
+  useEffect(() => {
+    if (isMobile && isDashboardRoute && userInfo && !loading && !accessDenied) {
+      navigate(`/nexo-av/${userId}/lead-map`, { replace: true });
+    }
+  }, [isMobile, isDashboardRoute, userId, navigate, userInfo, loading, accessDenied]);
 
   // Build modules list
   const modules = [
@@ -333,26 +347,23 @@ const NexoAvLayout = () => {
     );
   }
 
-  // Check if we're on dashboard route to show mobile dashboard
-  const isDashboardRoute = location.pathname === `/nexo-av/${userId}/dashboard`;
-
   return (
     <div className="min-h-screen bg-background pb-mobile-nav">
-      {/* Header */}
-      <header className="border-b border-border bg-background sticky top-0 z-50 shadow-sm">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14 md:h-16">
-            <div className="flex items-center gap-2 md:gap-3">
+      {/* Header - Fijo en la parte superior */}
+      <header className="border-b border-border bg-background fixed top-0 left-0 right-0 z-50 shadow-sm h-[3.25rem]">
+        <div className="w-full h-full px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-full">
+            <div className="flex items-center gap-2.5 md:gap-3">
               <button
                 onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
-                className="cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                className="cursor-pointer hover:opacity-80 transition-opacity duration-200 flex-shrink-0"
                 aria-label="Ir al inicio"
               >
                 <NexoLogo />
               </button>
-              <div>
-                <h1 className="text-foreground font-semibold tracking-wide text-sm md:text-base">NEXO AV</h1>
-                <p className="text-muted-foreground text-[10px] md:text-xs hidden md:block">Plataforma de Gestión</p>
+              <div className="flex flex-col justify-center">
+                <h1 className="text-foreground font-semibold tracking-wide text-sm md:text-base leading-tight">NEXO AV</h1>
+                <p className="text-muted-foreground text-[10px] md:text-xs hidden md:block leading-tight">Plataforma de Gestión</p>
               </div>
             </div>
             
@@ -379,44 +390,49 @@ const NexoAvLayout = () => {
       {/* Main content */}
       {isMobile ? (
         <>
-          {isDashboardRoute ? (
-            <main className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
-              <Suspense fallback={
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
+          {/* En móvil, el contenido empieza después del header fijo */}
+          <div className="pt-[3.25rem]">
+            {isDashboardRoute ? (
+              <main className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
+                <Suspense fallback={
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
+                  </div>
+                }>
+                  <DashboardMobile
+                    userInfo={userInfo}
+                    modules={modules}
+                    isAdmin={isAdmin}
+                    isManager={isManager}
+                    isSales={hasSalesAccess}
+                    isTech={hasTechAccess}
+                    userId={userId}
+                    navigate={navigate}
+                    onNewLead={() => {}}
+                  />
+                </Suspense>
+              </main>
+            ) : (
+              <main className="w-full">
+                <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
+                  <Outlet />
                 </div>
-              }>
-                <DashboardMobile
-                  userInfo={userInfo}
-                  modules={modules}
-                  isAdmin={isAdmin}
-                  isManager={isManager}
-                  isSales={hasSalesAccess}
-                  isTech={hasTechAccess}
-                  userId={userId}
-                  navigate={navigate}
-                  onNewLead={() => {}}
-                />
-              </Suspense>
-            </main>
-          ) : (
-            <main className="w-full">
-              <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
-                <Outlet />
-              </div>
-            </main>
-          )}
+              </main>
+            )}
+          </div>
         </>
       ) : (
-        <div className="flex w-full">
-          {/* Sidebar para desktop - pegado al borde izquierdo */}
+        <div className="flex w-full h-screen pt-[3.25rem]">
+          {/* Sidebar para desktop - posición fija, no hace scroll */}
           <Sidebar 
             userId={userId}
             modules={modules}
+            userRole={isAdmin ? 'admin' : undefined}
           />
           
-          {/* Contenido principal - usa 90% del ancho disponible después del sidebar */}
-          <main className="flex-1 min-w-0">
+          {/* Contenido principal - tiene scroll independiente */}
+          {/* Añadimos margen izquierdo igual al ancho del sidebar para compensar el fixed */}
+          <main className="flex-1 min-w-0 ml-56 h-full overflow-y-auto">
             <div className="w-[90%] max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
               <Outlet />
             </div>
@@ -425,7 +441,10 @@ const NexoAvLayout = () => {
       )}
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav userId={userId || ''} />
+      <MobileBottomNav 
+        userId={userId || ''} 
+        userRoles={userInfo?.roles || []}
+      />
     </div>
   );
 };

@@ -31,9 +31,9 @@ import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
-const formSchema = z.object({
+const createFormSchema = (requireAddress: boolean = false) => z.object({
   company_name: z.string().min(1, "El nombre de la empresa es requerido"),
-  contact_email: z.string().email("Email inválido"),
+  contact_email: z.string().email("Email inválido").or(z.literal("")),
   contact_phone: z.string().min(1, "El teléfono es requerido"),
   lead_stage: z.string().default("NEW"),
   lead_source: z.string().optional(),
@@ -43,7 +43,9 @@ const formSchema = z.object({
   notes: z.string().optional(),
   assigned_to: z.string().optional(),
   // Billing address fields
-  billing_address: z.string().optional(),
+  billing_address: requireAddress 
+    ? z.string().min(1, "La dirección es obligatoria para mostrar en el mapa")
+    : z.string().optional(),
   billing_postal_code: z.string().optional(),
   billing_city: z.string().optional(),
   billing_province: z.string().optional(),
@@ -51,7 +53,7 @@ const formSchema = z.object({
   website: z.string().optional(),
 });
 
-type FormData = z.infer<typeof formSchema>;
+type FormData = z.infer<ReturnType<typeof createFormSchema>>;
 
 interface AssignableUser {
   id: string;
@@ -66,6 +68,7 @@ interface CreateClientDialogProps {
   onSuccess: () => void;
   currentUserId: string | null;
   isAdmin: boolean;
+  enableGeocoding?: boolean; // Si es true, geocodifica la dirección y guarda coordenadas
 }
 
 const LEAD_SOURCES = [
@@ -109,14 +112,17 @@ const CreateClientDialog = ({
   onOpenChange,
   onSuccess,
   currentUserId,
-  isAdmin
+  isAdmin,
+  enableGeocoding = false
 }: CreateClientDialogProps) => {
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(createFormSchema(enableGeocoding)),
     defaultValues: {
       company_name: "",
       contact_email: "",
@@ -159,12 +165,64 @@ const CreateClientDialog = ({
       const { data } = await supabase.rpc('list_assignable_users');
       if (data) setAssignableUsers(data);
     };
-    if (open) fetchUsers();
+    if (open) {
+      fetchUsers();
+      setGeocodeError(null);
+    }
   }, [open]);
+
+  const geocodeAddress = async (address: string): Promise<{ lat: number; lon: number } | null> => {
+    try {
+      setGeocoding(true);
+      setGeocodeError(null);
+      
+      // Delay de 1 segundo para cumplir con rate limiting de Nominatim
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&countrycodes=es&limit=1`,
+        {
+          headers: {
+            'User-Agent': 'NexoAV-LeadMap/1.0'
+          }
+        }
+      );
+
+      if (!response.ok) throw new Error('Geocoding failed');
+
+      const data = await response.json();
+      
+      if (data.length === 0) {
+        return null;
+      }
+
+      return {
+        lat: parseFloat(data[0].lat),
+        lon: parseFloat(data[0].lon)
+      };
+    } catch (err) {
+      console.error('Geocoding error:', err);
+      return null;
+    } finally {
+      setGeocoding(false);
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
+    setGeocodeError(null);
     try {
+      // If enableGeocoding is true, geocode the address first
+      let coords: { lat: number; lon: number } | null = null;
+      if (enableGeocoding && data.billing_address) {
+        coords = await geocodeAddress(data.billing_address);
+        if (!coords) {
+          setGeocodeError("No se pudo encontrar la dirección. Verifica que sea correcta.");
+          setLoading(false);
+          return;
+        }
+      }
+
       // First create the client (now returns table with client_id and client_number)
       const { data: clientResult, error: createError } = await supabase.rpc('create_client', {
         p_company_name: data.company_name.toUpperCase(),
@@ -201,6 +259,20 @@ const CreateClientDialog = ({
         
         if (updateError) {
           console.warn('Could not update billing address:', updateError);
+        }
+      }
+
+      // If geocoding was successful, update coordinates
+      if (clientId && coords && enableGeocoding && data.billing_address) {
+        const { error: coordError } = await supabase.rpc('update_client_coordinates', {
+          p_client_id: clientId,
+          p_latitude: coords.lat,
+          p_longitude: coords.lon,
+          p_full_address: data.billing_address
+        });
+        
+        if (coordError) {
+          console.warn('Could not update coordinates:', coordError);
         }
       }
 
@@ -370,14 +442,18 @@ const CreateClientDialog = ({
 
             {/* Billing Address - Collapsible section */}
             <div className="border border-white/10 rounded-lg p-3 space-y-3">
-              <p className="text-sm font-medium text-white/70">Dirección Fiscal (opcional)</p>
+              <p className="text-sm font-medium text-white/70">
+                {enableGeocoding ? "Dirección completa *" : "Dirección Fiscal (opcional)"}
+              </p>
               
               <FormField
                 control={form.control}
                 name="billing_address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Dirección</FormLabel>
+                    <FormLabel>
+                      {enableGeocoding ? "Dirección completa *" : "Dirección"}
+                    </FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
@@ -385,9 +461,21 @@ const CreateClientDialog = ({
                           "bg-white/5 border-white/10 text-white",
                           isMobile && "min-h-[44px] text-base"
                         )}
-                        placeholder="C/ Ejemplo, 123"
+                        placeholder={enableGeocoding ? "Calle, número, ciudad, código postal" : "C/ Ejemplo, 123"}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          setGeocodeError(null);
+                        }}
                       />
                     </FormControl>
+                    {enableGeocoding && (
+                      <p className="text-xs text-white/50">
+                        La dirección se geocodificará automáticamente para mostrarla en el mapa
+                      </p>
+                    )}
+                    {geocodeError && (
+                      <p className="text-sm text-destructive">{geocodeError}</p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
