@@ -23,6 +23,7 @@ interface Quote {
   id: string;
   quote_number: string;
   client_id: string;
+  project_id?: string | null;
   project_name: string | null;
   status: string;
   subtotal: number;
@@ -42,15 +43,15 @@ const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
     const fetchQuotes = async () => {
       try {
         setLoading(true);
+        // Usar la versión del RPC que devuelve project_id (sin p_status)
         const { data, error } = await supabase.rpc('list_quotes', {
-          p_search: null,
-          p_status: null
+          p_search: null
         });
 
         if (error) throw error;
         // Filter quotes by client_id
         const clientQuotes = (data || []).filter((q: any) => q.client_id === clientId);
-        setQuotes(clientQuotes);
+        setQuotes(clientQuotes as Quote[]);
       } catch (error) {
         console.error('Error fetching quotes:', error);
       } finally {

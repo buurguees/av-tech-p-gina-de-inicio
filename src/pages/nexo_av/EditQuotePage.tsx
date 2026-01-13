@@ -67,6 +67,7 @@ interface Quote {
   quote_number: string;
   client_id: string;
   client_name: string;
+  project_id: string | null;
   project_name: string | null;
   status: string;
   valid_until: string | null;
@@ -143,7 +144,7 @@ const EditQuotePage = () => {
     try {
       setLoading(true);
 
-      // Fetch quote
+      // Fetch quote - get_quote ahora devuelve project_id directamente
       const { data: quoteData, error: quoteError } = await supabase.rpc("get_quote", {
         p_quote_id: quoteId,
       });
@@ -152,19 +153,8 @@ const EditQuotePage = () => {
       
       const quoteInfo = quoteData[0];
       
-      // Get project_id - try from get_quote first, then from list_quotes as fallback
-      let projectId = quoteInfo.project_id;
-      
-      if (!projectId) {
-        // Fallback: Get project_id from list_quotes if not in get_quote
-        const { data: quotesListData } = await supabase.rpc("list_quotes", {
-          p_search: quoteInfo.quote_number,
-        });
-        projectId = (quotesListData?.find((q: any) => q.id === quoteId) as any)?.project_id;
-      }
-      
-      // Set quote with project_id included
-      setQuote({ ...quoteInfo, project_id: projectId || null });
+      // Set quote con todos los datos incluyendo project_id
+      setQuote(quoteInfo);
       setSelectedClientId(quoteInfo.client_id);
       setCurrentStatus(quoteInfo.status);
       

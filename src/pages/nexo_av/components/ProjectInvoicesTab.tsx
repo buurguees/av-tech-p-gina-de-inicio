@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -10,46 +12,77 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, FileText, Loader2 } from "lucide-react";
+import { getFinanceStatusInfo } from "@/constants/financeStatuses";
 
 interface Invoice {
   id: string;
   invoice_number: string;
-  description: string;
-  amount: number;
+  preliminary_number: string;
+  client_id: string;
+  project_id?: string | null;
+  project_name: string | null;
   status: string;
-  due_date: string;
+  subtotal: number;
+  tax_amount: number;
+  total: number;
+  due_date: string | null;
+  issue_date: string | null;
   created_at: string;
 }
 
 interface ProjectInvoicesTabProps {
   projectId: string;
+  clientId?: string;
 }
 
-const INVOICE_STATUSES = [
-  { value: 'DRAFT', label: 'Borrador', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
-  { value: 'SENT', label: 'Enviada', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'PAID', label: 'Pagada', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'OVERDUE', label: 'Vencida', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  { value: 'CANCELLED', label: 'Cancelada', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-];
-
-const getStatusInfo = (status: string) => {
-  return INVOICE_STATUSES.find(s => s.value === status) || INVOICE_STATUSES[0];
-};
-
-const ProjectInvoicesTab = ({ projectId }: ProjectInvoicesTabProps) => {
+const ProjectInvoicesTab = ({ projectId, clientId }: ProjectInvoicesTabProps) => {
+  const { userId } = useParams();
+  const navigate = useNavigate();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch invoices from database when table is created
-    setLoading(false);
-    setInvoices([]);
+    const fetchInvoices = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase.rpc('finance_list_invoices', {
+          p_search: null,
+          p_status: null
+        });
+
+        if (error) throw error;
+        const allInvoices = data || [];
+
+        // Filtrar facturas por project_id (vinculación directa)
+        const projectInvoices = allInvoices.filter((inv: any) => inv.project_id === projectId);
+
+        setInvoices(projectInvoices as Invoice[]);
+      } catch (error) {
+        console.error('Error fetching invoices:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoices();
   }, [projectId]);
 
   const handleCreateInvoice = () => {
-    // TODO: Open create invoice dialog
-    console.log('Create invoice for project:', projectId);
+    const params = new URLSearchParams();
+    params.set('projectId', projectId);
+    if (clientId) params.set('clientId', clientId);
+    navigate(`/nexo-av/${userId}/invoices/new?${params.toString()}`);
+  };
+
+  const handleInvoiceClick = (invoiceId: string) => {
+    navigate(`/nexo-av/${userId}/invoices/${invoiceId}`);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(amount);
   };
 
   if (loading) {
@@ -91,39 +124,40 @@ const ProjectInvoicesTab = ({ projectId }: ProjectInvoicesTabProps) => {
             <TableHeader>
               <TableRow className="border-white/10 hover:bg-transparent">
                 <TableHead className="text-white/60">Nº Factura</TableHead>
-                <TableHead className="text-white/60">Descripción</TableHead>
+                <TableHead className="text-white/60">Proyecto</TableHead>
                 <TableHead className="text-white/60">Estado</TableHead>
-                <TableHead className="text-white/60 text-right">Importe</TableHead>
+                <TableHead className="text-white/60 text-right">Total</TableHead>
                 <TableHead className="text-white/60">Vencimiento</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {invoices.map((invoice) => {
-                const statusInfo = getStatusInfo(invoice.status);
+                const statusInfo = getFinanceStatusInfo(invoice.status);
+                const displayNumber = invoice.invoice_number || invoice.preliminary_number;
                 return (
                   <TableRow
                     key={invoice.id}
-                    className="border-white/10 hover:bg-white/5"
+                    className="border-white/10 hover:bg-white/5 cursor-pointer"
+                    onClick={() => handleInvoiceClick(invoice.id)}
                   >
                     <TableCell className="font-mono text-white">
-                      {invoice.invoice_number}
+                      {displayNumber}
                     </TableCell>
                     <TableCell className="text-white">
-                      {invoice.description || '-'}
+                      {invoice.project_name || '-'}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={`${statusInfo.color} border`}>
+                      <Badge variant="outline" className={`${statusInfo.className} border`}>
                         {statusInfo.label}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-white text-right">
-                      {invoice.amount?.toLocaleString('es-ES', {
-                        style: 'currency',
-                        currency: 'EUR'
-                      })}
+                      {formatCurrency(invoice.total)}
                     </TableCell>
                     <TableCell className="text-white/60">
-                      {new Date(invoice.due_date).toLocaleDateString('es-ES')}
+                      {invoice.due_date 
+                        ? new Date(invoice.due_date).toLocaleDateString('es-ES')
+                        : '-'}
                     </TableCell>
                   </TableRow>
                 );
