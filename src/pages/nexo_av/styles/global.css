@@ -1,21 +1,21 @@
 /* ============================================
-   NEXO AV - Modern Dashboard Theme
-   Inspired by modern SaaS dashboards
-   Clean, professional, compact design
+   NEXO AV - Professional Dashboard Theme
+   Clean, neutral, high-contrast design
    ============================================ */
 
-/* Apply light theme when body has nexo-av-theme class */
+/* Apply theme when body has nexo-av-theme class */
 body.nexo-av-theme {
   /* ============================================
-     BASE COLORS - Clean & Professional
+     BASE COLORS - Neutral & Professional
+     Using slate tones instead of blue for a cleaner look
      ============================================ */
   
-  /* Background - Clean white */
-  --background: 0 0% 99% !important;
-  /* Foreground - Dark text for contrast */
+  /* Background - Soft off-white */
+  --background: 210 20% 98% !important;
+  /* Foreground - Deep slate for excellent readability */
   --foreground: 222 47% 11% !important;
 
-  /* Cards - Pure white with subtle depth */
+  /* Cards - Pure white */
   --card: 0 0% 100% !important;
   --card-foreground: 222 47% 11% !important;
 
@@ -23,100 +23,99 @@ body.nexo-av-theme {
   --popover: 0 0% 100% !important;
   --popover-foreground: 222 47% 11% !important;
 
-  /* Primary - Professional blue (inspired by references) */
-  --primary: 221 83% 53% !important;
+  /* Primary - Slate/charcoal for professional look (less blue!) */
+  --primary: 220 13% 26% !important;
   --primary-foreground: 0 0% 100% !important;
 
-  /* Secondary - Light gray for subtle backgrounds */
-  --secondary: 220 14% 96% !important;
+  /* Secondary - Light gray */
+  --secondary: 210 20% 96% !important;
   --secondary-foreground: 222 47% 11% !important;
 
-  /* Muted - For disabled states and subtle text */
-  --muted: 220 14% 96% !important;
-  --muted-foreground: 220 9% 46% !important;
+  /* Muted */
+  --muted: 210 15% 94% !important;
+  --muted-foreground: 215 14% 45% !important;
 
-  /* Accent - Light blue for highlights */
-  --accent: 221 83% 96% !important;
-  --accent-foreground: 221 83% 40% !important;
+  /* Accent - Subtle warm gray */
+  --accent: 210 15% 93% !important;
+  --accent-foreground: 222 47% 11% !important;
 
   /* Destructive */
   --destructive: 0 72% 51% !important;
   --destructive-foreground: 0 0% 100% !important;
 
-  /* Borders - Very subtle */
-  --border: 220 13% 91% !important;
+  /* Borders - Soft but visible */
+  --border: 214 15% 88% !important;
   /* Inputs */
-  --input: 220 13% 91% !important;
+  --input: 214 15% 88% !important;
   /* Ring - Focus states */
-  --ring: 221 83% 53% !important;
+  --ring: 220 13% 40% !important;
 
   /* ============================================
-     TEXT HIERARCHY - Compact & Clear
+     TEXT HIERARCHY - High Contrast
      ============================================ */
   --text-primary: 222 47% 11% !important;
-  --text-secondary: 220 9% 46% !important;
-  --text-muted: 220 9% 64% !important;
+  --text-secondary: 215 14% 40% !important;
+  --text-muted: 215 14% 55% !important;
 
   /* ============================================
-     SHADOWS - Subtle depth
+     SHADOWS - Clean depth
      ============================================ */
-  --shadow-xs: 0 1px 2px hsl(220 13% 91% / 0.6) !important;
-  --shadow-sm: 0 1px 3px hsl(220 13% 91% / 0.8), 0 1px 2px hsl(220 13% 91% / 0.4) !important;
-  --shadow-md: 0 4px 6px -1px hsl(220 13% 91% / 0.5), 0 2px 4px -2px hsl(220 13% 91% / 0.3) !important;
-  --shadow-lg: 0 10px 15px -3px hsl(220 13% 91% / 0.4), 0 4px 6px -4px hsl(220 13% 91% / 0.2) !important;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03) !important;
   
   /* ============================================
-     SIDEBAR - Clean navigation
+     SIDEBAR - Clean & Minimal
      ============================================ */
-  --sidebar-background: 220 14% 97% !important;
+  --sidebar-background: 0 0% 100% !important;
   --sidebar-foreground: 222 47% 11% !important;
-  --sidebar-primary: 221 83% 53% !important;
+  --sidebar-primary: 220 13% 26% !important;
   --sidebar-primary-foreground: 0 0% 100% !important;
-  --sidebar-accent: 221 83% 96% !important;
-  --sidebar-accent-foreground: 221 83% 40% !important;
-  --sidebar-border: 220 13% 91% !important;
-  --sidebar-ring: 221 83% 53% !important;
+  --sidebar-accent: 210 15% 95% !important;
+  --sidebar-accent-foreground: 222 47% 11% !important;
+  --sidebar-border: 214 15% 91% !important;
+  --sidebar-ring: 220 13% 40% !important;
 
   /* ============================================
      STATUS COLORS - Traffic Light System
-     Semantic colors for quick visual understanding
+     Clear, accessible status indicators
      ============================================ */
   
   /* Success / Approved / Paid - Green */
-  --status-success: 142 71% 45%;
-  --status-success-bg: 142 76% 95%;
-  --status-success-border: 142 71% 85%;
-  --status-success-text: 142 71% 29%;
+  --status-success: 152 69% 31%;
+  --status-success-bg: 149 80% 95%;
+  --status-success-border: 149 60% 80%;
+  --status-success-text: 152 69% 24%;
   
-  /* Warning / Pending / Expired - Amber/Orange */
-  --status-warning: 38 92% 50%;
-  --status-warning-bg: 48 96% 95%;
-  --status-warning-border: 48 96% 80%;
-  --status-warning-text: 25 95% 35%;
+  /* Warning / Pending / Expired - Amber */
+  --status-warning: 32 95% 44%;
+  --status-warning-bg: 48 100% 96%;
+  --status-warning-border: 40 90% 75%;
+  --status-warning-text: 25 85% 30%;
   
   /* Error / Rejected / Overdue - Red */
   --status-error: 0 72% 51%;
   --status-error-bg: 0 86% 97%;
-  --status-error-border: 0 72% 85%;
-  --status-error-text: 0 72% 35%;
+  --status-error-border: 0 60% 85%;
+  --status-error-text: 0 72% 38%;
   
-  /* Info / Sent / In Progress - Blue */
-  --status-info: 221 83% 53%;
-  --status-info-bg: 221 90% 97%;
-  --status-info-border: 221 83% 85%;
-  --status-info-text: 221 83% 40%;
+  /* Info / Sent / In Progress - Teal/cyan (less blue) */
+  --status-info: 187 70% 36%;
+  --status-info-bg: 187 70% 96%;
+  --status-info-border: 187 60% 82%;
+  --status-info-text: 187 70% 28%;
   
-  /* Neutral / Draft - Gray */
-  --status-neutral: 220 9% 46%;
-  --status-neutral-bg: 220 14% 96%;
-  --status-neutral-border: 220 13% 88%;
-  --status-neutral-text: 220 9% 35%;
+  /* Neutral / Draft - Slate gray */
+  --status-neutral: 215 14% 45%;
+  --status-neutral-bg: 210 15% 96%;
+  --status-neutral-border: 210 15% 85%;
+  --status-neutral-text: 215 14% 35%;
   
   /* Special / Invoiced / Completed - Purple */
-  --status-special: 262 83% 58%;
-  --status-special-bg: 262 90% 97%;
-  --status-special-border: 262 83% 85%;
-  --status-special-text: 262 83% 40%;
+  --status-special: 270 60% 50%;
+  --status-special-bg: 270 80% 97%;
+  --status-special-border: 270 50% 85%;
+  --status-special-text: 270 60% 38%;
 }
 
 /* ============================================
@@ -126,31 +125,30 @@ body.nexo-av-theme {
 body.nexo-av-theme {
   background-color: hsl(var(--background)) !important;
   color: hsl(var(--foreground)) !important;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  font-size: 14px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-size: 13px !important;
   line-height: 1.5 !important;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
 }
 
 /* ============================================
-   TYPOGRAPHY - Compact & Professional
+   TYPOGRAPHY - Compact & High Contrast
    ============================================ */
 
 body.nexo-av-theme h1 {
-  font-size: 1.5rem !important;
-  font-weight: 600 !important;
-  line-height: 1.25 !important;
-  letter-spacing: -0.025em !important;
-  color: hsl(var(--foreground)) !important;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-}
-
-body.nexo-av-theme h2 {
-  font-size: 1.125rem !important;
+  font-size: 1.375rem !important;
   font-weight: 600 !important;
   line-height: 1.3 !important;
   letter-spacing: -0.02em !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme h2 {
+  font-size: 1.0625rem !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  letter-spacing: -0.015em !important;
   color: hsl(var(--foreground)) !important;
 }
 
@@ -162,7 +160,7 @@ body.nexo-av-theme h3 {
 }
 
 body.nexo-av-theme h4 {
-  font-size: 0.875rem !important;
+  font-size: 0.8125rem !important;
   font-weight: 500 !important;
   line-height: 1.4 !important;
   color: hsl(var(--foreground)) !important;
@@ -170,15 +168,14 @@ body.nexo-av-theme h4 {
 
 body.nexo-av-theme p {
   font-size: 0.8125rem !important;
-  line-height: 1.5 !important;
+  line-height: 1.55 !important;
   color: hsl(var(--text-secondary)) !important;
 }
 
 /* ============================================
-   STATUS BADGE SYSTEM - Traffic Light Colors
+   STATUS BADGE SYSTEM
    ============================================ */
 
-/* Success states: APPROVED, PAID, COMPLETED */
 body.nexo-av-theme .status-success,
 body.nexo-av-theme [class*="bg-green-500/20"] {
   background-color: hsl(var(--status-success-bg)) !important;
@@ -186,7 +183,6 @@ body.nexo-av-theme [class*="bg-green-500/20"] {
   color: hsl(var(--status-success-text)) !important;
 }
 
-/* Warning states: EXPIRED, PENDING */
 body.nexo-av-theme .status-warning,
 body.nexo-av-theme [class*="bg-orange-500/20"],
 body.nexo-av-theme [class*="bg-yellow-500/20"] {
@@ -195,7 +191,6 @@ body.nexo-av-theme [class*="bg-yellow-500/20"] {
   color: hsl(var(--status-warning-text)) !important;
 }
 
-/* Error states: REJECTED, OVERDUE, CANCELLED */
 body.nexo-av-theme .status-error,
 body.nexo-av-theme [class*="bg-red-500/20"] {
   background-color: hsl(var(--status-error-bg)) !important;
@@ -203,7 +198,6 @@ body.nexo-av-theme [class*="bg-red-500/20"] {
   color: hsl(var(--status-error-text)) !important;
 }
 
-/* Info states: SENT, IN_PROGRESS */
 body.nexo-av-theme .status-info,
 body.nexo-av-theme [class*="bg-blue-500/20"] {
   background-color: hsl(var(--status-info-bg)) !important;
@@ -211,7 +205,6 @@ body.nexo-av-theme [class*="bg-blue-500/20"] {
   color: hsl(var(--status-info-text)) !important;
 }
 
-/* Neutral states: DRAFT */
 body.nexo-av-theme .status-neutral,
 body.nexo-av-theme [class*="bg-gray-500/20"] {
   background-color: hsl(var(--status-neutral-bg)) !important;
@@ -219,7 +212,6 @@ body.nexo-av-theme [class*="bg-gray-500/20"] {
   color: hsl(var(--status-neutral-text)) !important;
 }
 
-/* Special states: INVOICED, COMPLETED */
 body.nexo-av-theme .status-special,
 body.nexo-av-theme [class*="bg-purple-500/20"] {
   background-color: hsl(var(--status-special-bg)) !important;
@@ -227,25 +219,24 @@ body.nexo-av-theme [class*="bg-purple-500/20"] {
   color: hsl(var(--status-special-text)) !important;
 }
 
-/* Status badge base styles */
+/* Status badge base */
 body.nexo-av-theme .status-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.25rem 0.625rem;
+  padding: 0.1875rem 0.5rem;
   font-size: 0.6875rem;
   font-weight: 500;
-  letter-spacing: 0.025em;
-  border-radius: 9999px;
+  letter-spacing: 0.02em;
+  border-radius: 4px;
   border-width: 1px;
-  text-transform: uppercase;
 }
 
-/* Status dot indicator */
+/* Status dot */
 body.nexo-av-theme .status-dot {
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 9999px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
 }
 
 body.nexo-av-theme .status-dot-success { background-color: hsl(var(--status-success)) !important; }
@@ -256,15 +247,15 @@ body.nexo-av-theme .status-dot-neutral { background-color: hsl(var(--status-neut
 body.nexo-av-theme .status-dot-special { background-color: hsl(var(--status-special)) !important; }
 
 /* ============================================
-   CARDS - Clean & Minimal
+   CARDS - Clean with subtle borders
    ============================================ */
 
 body.nexo-av-theme .card,
 body.nexo-av-theme [class*="rounded-xl"][class*="border"] {
   background-color: hsl(var(--card)) !important;
-  border-color: hsl(var(--border)) !important;
+  border: 1px solid hsl(var(--border)) !important;
   box-shadow: var(--shadow-xs) !important;
-  border-radius: 0.75rem !important;
+  border-radius: 8px !important;
 }
 
 body.nexo-av-theme .card:hover,
@@ -272,14 +263,13 @@ body.nexo-av-theme [class*="hover:bg-card/80"]:hover {
   box-shadow: var(--shadow-sm) !important;
 }
 
-/* Card content spacing */
 body.nexo-av-theme .card-content,
-body.nexo-av-theme [class*="pt-6"] {
-  padding: 1rem !important;
+body.nexo-av-theme [class*="CardContent"] {
+  padding: 0.875rem !important;
 }
 
 /* ============================================
-   TABLES - Compact & Readable
+   TABLES - Compact with clear hierarchy
    ============================================ */
 
 body.nexo-av-theme table {
@@ -290,24 +280,25 @@ body.nexo-av-theme th {
   font-size: 0.6875rem !important;
   font-weight: 600 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
+  letter-spacing: 0.04em !important;
   color: hsl(var(--text-muted)) !important;
-  padding: 0.625rem 0.75rem !important;
+  padding: 0.5rem 0.75rem !important;
   background-color: hsl(var(--secondary)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
 }
 
 body.nexo-av-theme td {
-  padding: 0.625rem 0.75rem !important;
+  padding: 0.5rem 0.75rem !important;
   color: hsl(var(--foreground)) !important;
-  border-color: hsl(var(--border)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
 }
 
 body.nexo-av-theme tr:hover td {
-  background-color: hsl(var(--secondary) / 0.5) !important;
+  background-color: hsl(var(--accent)) !important;
 }
 
 /* ============================================
-   BUTTONS - Professional & Compact
+   BUTTONS - Clean, professional
    ============================================ */
 
 body.nexo-av-theme button {
@@ -324,7 +315,7 @@ body.nexo-av-theme button[class*="bg-primary"] {
 
 body.nexo-av-theme .btn-primary:hover,
 body.nexo-av-theme button[class*="bg-primary"]:hover {
-  filter: brightness(1.05) !important;
+  background-color: hsl(220 13% 20%) !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
@@ -332,27 +323,29 @@ body.nexo-av-theme .btn-secondary,
 body.nexo-av-theme button[class*="bg-secondary"] {
   background-color: hsl(var(--secondary)) !important;
   color: hsl(var(--secondary-foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
 }
 
 /* ============================================
-   INPUTS - Clean & Functional
+   INPUTS - Clean & functional
    ============================================ */
 
 body.nexo-av-theme input,
 body.nexo-av-theme textarea,
 body.nexo-av-theme select {
   background-color: hsl(var(--card)) !important;
-  border-color: hsl(var(--border)) !important;
+  border: 1px solid hsl(var(--border)) !important;
   color: hsl(var(--foreground)) !important;
   font-size: 0.8125rem !important;
-  border-radius: 0.5rem !important;
+  border-radius: 6px !important;
+  padding: 0.5rem 0.75rem !important;
 }
 
 body.nexo-av-theme input:focus,
 body.nexo-av-theme textarea:focus,
 body.nexo-av-theme select:focus {
   border-color: hsl(var(--ring)) !important;
-  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.15) !important;
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.12) !important;
   outline: none !important;
 }
 
@@ -365,56 +358,83 @@ body.nexo-av-theme label {
   font-size: 0.75rem !important;
   font-weight: 500 !important;
   color: hsl(var(--text-secondary)) !important;
-  margin-bottom: 0.375rem !important;
+  margin-bottom: 0.25rem !important;
 }
 
 /* ============================================
-   SIDEBAR - Clean Navigation
+   SIDEBAR - Clean & Elegant
    ============================================ */
 
 body.nexo-av-theme aside,
 body.nexo-av-theme [class*="bg-sidebar"] {
   background-color: hsl(var(--sidebar-background)) !important;
-  border-color: hsl(var(--sidebar-border)) !important;
+  border-right: 1px solid hsl(var(--sidebar-border)) !important;
 }
 
+/* Sidebar navigation items */
 body.nexo-av-theme aside nav button,
 body.nexo-av-theme aside nav a {
   font-size: 0.8125rem !important;
   font-weight: 500 !important;
   padding: 0.5rem 0.75rem !important;
-  border-radius: 0.5rem !important;
+  border-radius: 6px !important;
+  color: hsl(var(--text-secondary)) !important;
+  transition: all 0.15s ease !important;
 }
 
+body.nexo-av-theme aside nav button:hover,
+body.nexo-av-theme aside nav a:hover {
+  background-color: hsl(var(--sidebar-accent)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Active sidebar item */
 body.nexo-av-theme aside nav button[class*="bg-sidebar-accent"],
 body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"] {
   background-color: hsl(var(--sidebar-accent)) !important;
-  color: hsl(var(--sidebar-accent-foreground)) !important;
+  color: hsl(var(--foreground)) !important;
+  font-weight: 600 !important;
 }
 
-/* Sidebar icons */
+/* Sidebar icon container backgrounds */
+body.nexo-av-theme aside nav [class*="p-1.5"][class*="rounded-lg"] {
+  background-color: transparent !important;
+}
+
+body.nexo-av-theme aside nav button[class*="bg-sidebar-accent"] [class*="p-1.5"][class*="rounded-lg"],
+body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"] [class*="p-1.5"][class*="rounded-lg"] {
+  background-color: hsl(var(--primary) / 0.1) !important;
+}
+
+/* Sidebar icons - small & subtle */
 body.nexo-av-theme aside nav svg {
+  width: 1rem !important;
+  height: 1rem !important;
+  color: inherit !important;
+}
+
+/* Sidebar section divider */
+body.nexo-av-theme aside [class*="h-px"],
+body.nexo-av-theme aside [class*="border-sidebar-border"] {
+  background-color: hsl(var(--sidebar-border)) !important;
+}
+
+/* ============================================
+   ICONS - Reduced sizes
+   ============================================ */
+
+/* Dashboard stat card icon containers */
+body.nexo-av-theme .card [class*="p-3"][class*="rounded-xl"] {
+  padding: 0.5rem !important;
+  border-radius: 6px !important;
+}
+
+body.nexo-av-theme .card [class*="p-3"] svg {
   width: 1rem !important;
   height: 1rem !important;
 }
 
-/* ============================================
-   ICONS - Reduced Size for Professional Look
-   ============================================ */
-
-/* Dashboard stat cards icons */
-body.nexo-av-theme .card [class*="p-3"][class*="rounded-xl"] {
-  padding: 0.5rem !important;
-  border-radius: 0.5rem !important;
-}
-
-body.nexo-av-theme .card [class*="p-3"] svg,
-body.nexo-av-theme .card [class*="h-6"] svg {
-  width: 1.125rem !important;
-  height: 1.125rem !important;
-}
-
-/* General icon sizing */
+/* General icon reduction */
 body.nexo-av-theme svg[class*="h-8"],
 body.nexo-av-theme svg[class*="w-8"] {
   width: 1.25rem !important;
@@ -440,25 +460,53 @@ body.nexo-av-theme svg[class*="w-4"] {
 }
 
 /* ============================================
-   HEADER - Compact & Clean
+   HEADER - Compact
    ============================================ */
 
 body.nexo-av-theme header,
 body.nexo-av-theme [class*="h-16"] {
-  height: 3.5rem !important;
+  height: 3.25rem !important;
 }
 
 body.nexo-av-theme header h1,
 body.nexo-av-theme header [class*="text-xl"] {
-  font-size: 1rem !important;
+  font-size: 0.9375rem !important;
   font-weight: 600 !important;
 }
 
 /* ============================================
-   OVERRIDE HARDCODED DARK THEME CLASSES
+   DASHBOARD SPECIFIC
    ============================================ */
 
-/* Background overrides */
+/* Period selector buttons */
+body.nexo-av-theme button[class*="bg-primary"][class*="text-primary-foreground"] {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Stat card values */
+body.nexo-av-theme .card [class*="text-2xl"] {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Stat card amounts */
+body.nexo-av-theme .card [class*="text-sm"][class*="mt-1"] {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+}
+
+/* Period info banner - make it subtle */
+body.nexo-av-theme [class*="bg-accent"][class*="border-primary"] {
+  background-color: hsl(var(--secondary)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+/* ============================================
+   OVERRIDE DARK THEME CLASSES
+   ============================================ */
+
 body.nexo-av-theme div.bg-black,
 body.nexo-av-theme div[class*="bg-black"]:not([class*="hover"]):not([class*="active"]) {
   background-color: hsl(var(--background)) !important;
@@ -479,14 +527,14 @@ body.nexo-av-theme [class*="bg-zinc-800"] {
 }
 
 /* Text overrides */
-body.nexo-av-theme h1.text-white:not([class*="hover"]),
-body.nexo-av-theme h2.text-white:not([class*="hover"]),
-body.nexo-av-theme h3.text-white:not([class*="hover"]),
-body.nexo-av-theme p.text-white:not([class*="hover"]),
-body.nexo-av-theme span.text-white:not([class*="hover"]),
-body.nexo-av-theme div.text-white:not([class*="hover"]),
-body.nexo-av-theme label.text-white:not([class*="hover"]),
-body.nexo-av-theme button.text-white:not([class*="hover"]) {
+body.nexo-av-theme h1.text-white,
+body.nexo-av-theme h2.text-white,
+body.nexo-av-theme h3.text-white,
+body.nexo-av-theme p.text-white,
+body.nexo-av-theme span.text-white,
+body.nexo-av-theme div.text-white,
+body.nexo-av-theme label.text-white,
+body.nexo-av-theme button.text-white {
   color: hsl(var(--foreground)) !important;
 }
 
@@ -517,7 +565,7 @@ body.nexo-av-theme [class*="bg-white/10"]:not([class*="hover"]):not([class*="act
   background-color: hsl(var(--secondary)) !important;
 }
 
-/* Disable blur effects for cleaner look */
+/* Disable blur */
 body.nexo-av-theme [class*="backdrop-blur"] {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -549,10 +597,10 @@ body.nexo-av-theme [class*="bg-orange-100"] {
 }
 
 body.nexo-av-theme [class*="bg-indigo-100"] {
-  background-color: hsl(262 90% 97%) !important;
+  background-color: hsl(215 60% 96%) !important;
 }
 
-/* Icon text colors */
+/* Icon colors */
 body.nexo-av-theme [class*="text-green-600"] {
   color: hsl(var(--status-success)) !important;
 }
@@ -575,61 +623,58 @@ body.nexo-av-theme [class*="text-orange-600"] {
 }
 
 body.nexo-av-theme [class*="text-indigo-600"] {
-  color: hsl(262 83% 58%) !important;
+  color: hsl(215 60% 45%) !important;
 }
 
 /* ============================================
-   SPACING OPTIMIZATIONS
+   SPACING - Compact layout
    ============================================ */
 
-/* Reduce overall spacing for compactness */
 body.nexo-av-theme .space-y-6 > * + * {
-  margin-top: 1rem !important;
+  margin-top: 0.875rem !important;
 }
 
 body.nexo-av-theme .space-y-4 > * + * {
-  margin-top: 0.75rem !important;
+  margin-top: 0.625rem !important;
 }
 
 body.nexo-av-theme .gap-6 {
-  gap: 1rem !important;
+  gap: 0.875rem !important;
 }
 
 body.nexo-av-theme .gap-4 {
-  gap: 0.75rem !important;
+  gap: 0.625rem !important;
 }
 
-/* Padding adjustments */
 body.nexo-av-theme .p-6 {
-  padding: 1rem !important;
+  padding: 0.875rem !important;
 }
 
 body.nexo-av-theme .p-4 {
-  padding: 0.75rem !important;
+  padding: 0.625rem !important;
 }
 
 body.nexo-av-theme .px-6 {
-  padding-left: 1rem !important;
-  padding-right: 1rem !important;
+  padding-left: 0.875rem !important;
+  padding-right: 0.875rem !important;
 }
 
 body.nexo-av-theme .py-6 {
-  padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
+  padding-top: 0.875rem !important;
+  padding-bottom: 0.875rem !important;
 }
 
 /* ============================================
-   MISC IMPROVEMENTS
+   MISC
    ============================================ */
 
-/* Separators */
 body.nexo-av-theme hr,
 body.nexo-av-theme [class*="border-t"],
 body.nexo-av-theme [class*="border-b"] {
   border-color: hsl(var(--border)) !important;
 }
 
-/* Scrollbar styling for webkit browsers */
+/* Scrollbar */
 body.nexo-av-theme ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -637,7 +682,6 @@ body.nexo-av-theme ::-webkit-scrollbar {
 
 body.nexo-av-theme ::-webkit-scrollbar-track {
   background: hsl(var(--secondary));
-  border-radius: 3px;
 }
 
 body.nexo-av-theme ::-webkit-scrollbar-thumb {
@@ -649,7 +693,7 @@ body.nexo-av-theme ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--text-muted));
 }
 
-/* Badge text colors */
+/* Badge text overrides */
 body.nexo-av-theme [class*="text-green-300"] {
   color: hsl(var(--status-success-text)) !important;
 }
@@ -675,20 +719,19 @@ body.nexo-av-theme [class*="text-purple-300"] {
 }
 
 /* ============================================
-   RESPONSIVE ADJUSTMENTS
+   RESPONSIVE
    ============================================ */
 
 @media (max-width: 768px) {
   body.nexo-av-theme h1 {
-    font-size: 1.25rem !important;
+    font-size: 1.125rem !important;
   }
   
   body.nexo-av-theme h2 {
-    font-size: 1rem !important;
+    font-size: 0.9375rem !important;
   }
   
-  body.nexo-av-theme .card-content,
-  body.nexo-av-theme [class*="pt-6"] {
-    padding: 0.75rem !important;
+  body.nexo-av-theme .card-content {
+    padding: 0.625rem !important;
   }
 }
