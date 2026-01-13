@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -200,6 +201,9 @@ const CreateLeadDialog = ({ open, onOpenChange, onSuccess, currentUserId }: Crea
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Nuevo Lead</DialogTitle>
+          <DialogDescription>
+            Completa los datos para crear un nuevo lead en el mapa. La dirección se geocodificará automáticamente.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
