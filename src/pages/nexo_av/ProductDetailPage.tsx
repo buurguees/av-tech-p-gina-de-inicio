@@ -240,21 +240,10 @@ export default function ProductDetailPage() {
         title={`Detalle de ${itemLabel}`}
         userId={userId || ''}
         showBack
+        backTo={`/nexo-av/${userId}/catalog`}
       />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back button and title */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(`/nexo-av/${userId}/catalog`)}
-            className="text-white/60 hover:text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver al catálogo
-          </Button>
-        </div>
-
         {/* Product header */}
         <div className="flex items-center gap-4 mb-8">
           <div className={`p-3 rounded-lg ${isProductType ? 'bg-blue-500/20' : 'bg-purple-500/20'}`}>

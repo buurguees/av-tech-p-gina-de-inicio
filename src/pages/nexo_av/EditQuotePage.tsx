@@ -664,7 +664,11 @@ const EditQuotePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black pb-mobile-nav">
-      <NexoHeader title={`Editar ${displayNumber}`} userId={userId || ""} />
+      <NexoHeader 
+        title={`Editar ${displayNumber}`} 
+        userId={userId || ""} 
+        backTo={quoteId ? `/nexo-av/${userId}/quotes/${quoteId}` : `/nexo-av/${userId}/quotes`}
+      />
 
       <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
         <motion.div
@@ -674,24 +678,14 @@ const EditQuotePage = () => {
         >
           {/* Top bar */}
           <div className="flex items-center justify-between gap-2 mb-4 md:mb-8">
-            <div className="flex items-center gap-2 md:gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}`)}
-                className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8 md:h-10 md:w-10"
-              >
-                <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
-              </Button>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-base md:text-2xl font-bold text-white font-mono">{displayNumber}</h1>
-                  <Badge className={`${statusInfo.className} text-[10px] md:text-xs`}>
-                    {statusInfo.label}
-                  </Badge>
-                </div>
-                <p className="text-white/60 text-[10px] md:text-sm hidden md:block">Editando presupuesto</p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-base md:text-2xl font-bold text-white font-mono">{displayNumber}</h1>
+                <Badge className={`${statusInfo.className} text-[10px] md:text-xs`}>
+                  {statusInfo.label}
+                </Badge>
               </div>
+              <p className="text-white/60 text-[10px] md:text-sm hidden md:block">Editando presupuesto</p>
             </div>
 
             <Button

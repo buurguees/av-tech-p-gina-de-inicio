@@ -435,7 +435,11 @@ const NewInvoicePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black pb-mobile-nav">
-      <NexoHeader title="Nueva Factura" userId={userId || ""} />
+      <NexoHeader 
+        title="Nueva Factura" 
+        userId={userId || ""} 
+        backTo={`/nexo-av/${userId}/invoices`}
+      />
 
       <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
         <motion.div
@@ -445,23 +449,13 @@ const NewInvoicePage = () => {
         >
           {/* Top bar */}
           <div className="flex items-center justify-between gap-2 mb-4 md:mb-8">
-            <div className="flex items-center gap-2 md:gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate(`/nexo-av/${userId}/invoices`)}
-                className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8 md:h-10 md:w-10"
-              >
-                <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
-              </Button>
-              <div>
-                <h1 className="text-base md:text-2xl font-bold text-white">
-                  Nueva factura
-                </h1>
-                <p className="text-white/60 text-[10px] md:text-sm hidden md:block">
-                  El número se asignará automáticamente al guardar (F-YY-XXXXXX)
-                </p>
-              </div>
+            <div>
+              <h1 className="text-base md:text-2xl font-bold text-white">
+                Nueva factura
+              </h1>
+              <p className="text-white/60 text-[10px] md:text-sm hidden md:block">
+                El número se asignará automáticamente al guardar (F-YY-XXXXXX)
+              </p>
             </div>
 
             <Button

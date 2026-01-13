@@ -294,20 +294,15 @@ const AuditEventDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-black">
-      <NexoHeader title="Detalle de Evento" userId={userId || ''} />
+      <NexoHeader 
+        title="Detalle de Evento" 
+        userId={userId || ''} 
+        backTo={`/nexo-av/${userId}/audit`}
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back button and header */}
+        {/* Header */}
         <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(`/nexo-av/${userId}/audit`)}
-            className="text-white/60 hover:text-white hover:bg-white/10 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver a Auditoría
-          </Button>
-          
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-3">

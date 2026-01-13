@@ -439,6 +439,7 @@ const QuoteDetailPageDesktop = () => {
         title={displayNumber} 
         userId={userId || ""} 
         customTitle={headerTitle}
+        backTo={`/nexo-av/${userId}/quotes`}
       />
 
       <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
@@ -618,64 +619,8 @@ const QuoteDetailPageDesktop = () => {
                         })}
                       </SelectContent>
                     </Select>
-<<<<<<< Updated upstream
-                  ) : (
-                    <Badge className={`${statusInfo.className} text-xs mt-1`}>
-                      {statusInfo.label}
-                    </Badge>
-                  )}
-                  {quote.status === "DRAFT" && canChangeStatus && (
-                    <p className="text-blue-400/70 text-[10px] mt-1">
-                      Al enviar se asignará el número definitivo
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-1">
-                  {!isLocked && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
-                      className="text-white/60 hover:text-white hover:bg-white/10 h-8 w-8"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  )}
-                  {canDelete && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-white/60 hover:text-red-400 hover:bg-red-500/10 h-8 w-8"
-                          disabled={deleting}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-zinc-900 border-white/10">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-white">¿Eliminar presupuesto borrador?</AlertDialogTitle>
-                          <AlertDialogDescription className="text-white/60">
-                            Esta acción eliminará permanentemente el presupuesto {quote.quote_number} y todas sus líneas.
-                            Esta acción no se puede deshacer.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">
-                            Cancelar
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleDeleteQuote}
-                            className="bg-red-600 hover:bg-red-700 text-white"
-                          >
-                            Eliminar
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* Tabs - Estilo Holded */}

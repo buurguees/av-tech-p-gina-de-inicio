@@ -197,23 +197,20 @@ export default function TaxDetailPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
-      <NexoHeader title={tax.name} userId={userId || ''} showBack />
+      <NexoHeader 
+        title={tax.name} 
+        userId={userId || ''} 
+        showBack 
+        backTo={`/nexo-av/${userId}/settings`}
+      />
       
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back Button & Title */}
+        {/* Title */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-4 mb-8"
         >
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(`/nexo-av/${userId}/settings`)}
-            className="text-white/60 hover:text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
           <div className="flex-1">
             <div className="flex items-center gap-3">
               <Receipt className="w-6 h-6 text-orange-500" />

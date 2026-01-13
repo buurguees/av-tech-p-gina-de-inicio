@@ -119,12 +119,14 @@ const NexoHeader = ({
     );
   }
 
-  // Default back navigation goes to dashboard
+  // Smart back navigation: use backTo if provided, otherwise go back in history
   const handleBack = () => {
     if (backTo) {
       navigate(backTo);
     } else {
-      navigate(`/nexo-av/${userId}/dashboard`);
+      // Use navigate(-1) to go back in browser history
+      // React Router will handle cases where there's no history gracefully
+      navigate(-1);
     }
   };
 

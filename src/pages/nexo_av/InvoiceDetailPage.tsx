@@ -262,7 +262,11 @@ const InvoiceDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-nexo-bg">
-      <NexoHeader title={`Factura ${displayNumber}`} userId={userId || ""} />
+      <NexoHeader 
+        title={`Factura ${displayNumber}`} 
+        userId={userId || ""} 
+        backTo={`/nexo-av/${userId}/invoices`}
+      />
 
       <main className="p-6 max-w-7xl mx-auto">
         {/* Back button */}
