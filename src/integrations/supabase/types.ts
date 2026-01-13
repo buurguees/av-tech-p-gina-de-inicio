@@ -1248,15 +1248,25 @@ export type Database = {
         }
         Returns: string
       }
-      upsert_company_preferences: {
-        Args: {
-          p_bank_accounts?: Json
-          p_default_currency?: string
-          p_invoice_payment_days?: number
-          p_quote_validity_days?: number
-        }
-        Returns: string
-      }
+      upsert_company_preferences:
+        | {
+            Args: {
+              p_bank_accounts?: Json
+              p_default_currency?: string
+              p_invoice_payment_days?: number
+              p_quote_validity_days?: number
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_bank_accounts?: Json
+              p_default_currency?: string
+              p_invoice_payment_days?: number
+              p_quote_validity_days?: number
+            }
+            Returns: string
+          }
       upsert_company_settings: {
         Args: {
           p_billing_email?: string
