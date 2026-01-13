@@ -94,13 +94,15 @@ const QuotesPageDesktop = () => {
     navigate(`/nexo-av/${userId}/quotes/new`);
   };
 
-  const handleQuoteClick = (quoteId: string, status?: string) => {
-    // Si es DRAFT, ir directamente a editar
-    if (status === "DRAFT") {
-      navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`);
-    } else {
-      navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
+  const handleQuoteClick = (e: React.MouseEvent, quoteId: string) => {
+    // Prevenir navegación si se hace click en elementos interactivos
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('input') || target.closest('[role="menuitem"]')) {
+      return;
     }
+    
+    // Siempre navegar a la página de detalle
+    navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
   };
 
   const handleEditClick = (e: React.MouseEvent, quoteId: string) => {
@@ -414,7 +416,7 @@ const QuotesPageDesktop = () => {
                             "border-white/10 hover:bg-white/[0.06] cursor-pointer transition-colors duration-200",
                             isSelected && "bg-white/10"
                           )}
-                          onClick={() => handleQuoteClick(quote.id, quote.status)}
+                          onClick={(e) => handleQuoteClick(e, quote.id)}
                         >
                           <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
                             <Checkbox
@@ -463,7 +465,7 @@ const QuotesPageDesktop = () => {
                                   className="text-white hover:bg-white/10"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleQuoteClick(quote.id, quote.status);
+                                    navigate(`/nexo-av/${userId}/quotes/${quote.id}`);
                                   }}
                                 >
                                   Ver detalle

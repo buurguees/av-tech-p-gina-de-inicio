@@ -28,7 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock, MessageSquare, Clock, Send, MoreVertical, Share2 } from "lucide-react";
+import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock, MessageSquare, Clock, Send, MoreVertical, Share2, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader from "./components/NexoHeader";
@@ -439,7 +439,6 @@ const QuoteDetailPageDesktop = () => {
         title={displayNumber} 
         userId={userId || ""} 
         customTitle={headerTitle}
-        backTo={`/nexo-av/${userId}/quotes`}
       />
 
       <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
@@ -449,16 +448,44 @@ const QuoteDetailPageDesktop = () => {
           transition={{ duration: 0.5 }}
         >
           {/* Header Superior - Estilo Holded */}
-          <div className="hidden md:block mb-4">
+          <div className="hidden md:block mb-3">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl font-bold text-white mb-1">
+                <h1 className="text-lg font-bold text-white mb-1">
                   {client?.company_name || quote.client_name} - Presupuesto {displayNumber}
                 </h1>
                 <div className="flex items-center gap-2">
-                  <Badge className={`${statusInfo.className} text-xs`}>
-                    {statusInfo.label}
-                  </Badge>
+                  {canChangeStatus ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="inline-flex items-center">
+                          <Badge className={`${statusInfo.className} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
+                            {statusInfo.label}
+                            <ChevronDown className="h-3 w-3 ml-1" />
+                          </Badge>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="bg-zinc-900 border-white/10">
+                        {availableTransitions.map((status) => {
+                          const info = getStatusInfo(status);
+                          return (
+                            <DropdownMenuItem
+                              key={status}
+                              onClick={() => handleStatusChange(status)}
+                              className="text-white hover:bg-white/10"
+                              disabled={updatingStatus}
+                            >
+                              <span className={`${info.className} px-2 py-0.5 rounded text-xs`}>{info.label}</span>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <Badge className={`${statusInfo.className} text-xs`}>
+                      {statusInfo.label}
+                    </Badge>
+                  )}
                   {isLocked && (
                     <Badge variant="outline" className="border-white/20 text-white/60 text-xs">
                       <Lock className="h-3 w-3 mr-1" />
@@ -471,25 +498,25 @@ const QuoteDetailPageDesktop = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-white/70 hover:text-white hover:bg-white/10"
+                  className="text-white/70 hover:text-white hover:bg-white/10 h-8 text-xs"
                 >
                   Convertir
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-white/70 hover:text-white hover:bg-white/10"
+                  className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8"
                 >
-                  <Share2 className="h-4 w-4" />
+                  <Share2 className="h-3.5 w-3.5" />
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-white/70 hover:text-white hover:bg-white/10"
+                      className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8"
                     >
-                      <MoreVertical className="h-4 w-4" />
+                      <MoreVertical className="h-3.5 w-3.5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
@@ -515,9 +542,9 @@ const QuoteDetailPageDesktop = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
-                  className="bg-orange-500 hover:bg-orange-600 text-white h-9 px-4"
+                  className="bg-orange-500 hover:bg-orange-600 text-white h-8 px-3 text-xs"
                 >
-                  <Send className="h-4 w-4 mr-2" />
+                  <Send className="h-3.5 w-3.5 mr-1.5" />
                   Enviar
                 </Button>
               </div>
@@ -525,12 +552,12 @@ const QuoteDetailPageDesktop = () => {
           </div>
 
           {/* Desktop Layout: Side by side */}
-          <div className="hidden md:grid md:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+          <div className="hidden md:grid md:grid-cols-3 gap-4 h-[calc(100vh-180px)]">
             {/* PDF Preview - Left (2/3) */}
-            <div className="md:col-span-2 bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
-                <span className="text-white/60 text-sm font-medium">Vista previa</span>
-                <span className="text-white/40 text-xs">{pdfFileName}</span>
+            <div className="md:col-span-2 bg-white/5 rounded-lg border border-white/10 overflow-hidden flex flex-col">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-white/10 shrink-0">
+                <span className="text-white/60 text-xs font-medium">Vista previa</span>
+                <span className="text-white/40 text-[10px] truncate max-w-xs">{pdfFileName}</span>
               </div>
               <div className="flex-1 min-h-0">
                 <QuotePDFViewer
@@ -545,27 +572,27 @@ const QuoteDetailPageDesktop = () => {
             </div>
 
             {/* Info Panel - Right (1/3) - Estilo Holded */}
-            <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
+            <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden flex flex-col">
               {/* Header del Panel */}
-              <div className="px-4 py-3 border-b border-white/10 shrink-0">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-white font-mono font-bold text-lg">{displayNumber}</h2>
+              <div className="px-3 py-2 border-b border-white/10 shrink-0">
+                <div className="flex items-center justify-between mb-1.5">
+                  <h2 className="text-white font-mono font-bold text-sm">{displayNumber}</h2>
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-white/60 hover:text-white hover:bg-white/10 h-8 w-8"
+                      className="text-white/60 hover:text-white hover:bg-white/10 h-7 w-7"
                     >
-                      <Share2 className="h-4 w-4" />
+                      <Share2 className="h-3.5 w-3.5" />
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-white/60 hover:text-white hover:bg-white/10 h-8 w-8"
+                          className="text-white/60 hover:text-white hover:bg-white/10 h-7 w-7"
                         >
-                          <MoreVertical className="h-4 w-4" />
+                          <MoreVertical className="h-3.5 w-3.5" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
@@ -592,68 +619,71 @@ const QuoteDetailPageDesktop = () => {
                     </DropdownMenu>
                   </div>
                 </div>
-                {/* Status badge */}
-                <Badge className={`${statusInfo.className} text-xs`}>
-                  {statusInfo.label}
-                </Badge>
-                {canChangeStatus && (
-                  <div className="mt-2">
-                    <Select 
-                      value={quote.status} 
-                      onValueChange={handleStatusChange}
-                      disabled={updatingStatus}
-                    >
-                      <SelectTrigger className={`${statusInfo.className} border h-7 px-2 w-full text-xs font-medium rounded-md`}>
-                        <SelectValue>
-                          <span>{statusInfo.label}</span>
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-white/10 z-50">
-                        {availableTransitions.map((status) => {
-                          const info = getStatusInfo(status);
-                          return (
-                            <SelectItem key={status} value={status} className="text-white text-sm">
-                              <span className={`${info.className} px-2 py-0.5 rounded text-xs`}>{info.label}</span>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                {/* Status badge con dropdown integrado */}
+                {canChangeStatus ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="inline-flex items-center">
+                        <Badge className={`${statusInfo.className} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
+                          {statusInfo.label}
+                          <ChevronDown className="h-3 w-3 ml-1" />
+                        </Badge>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="bg-zinc-900 border-white/10">
+                      {availableTransitions.map((status) => {
+                        const info = getStatusInfo(status);
+                        return (
+                          <DropdownMenuItem
+                            key={status}
+                            onClick={() => handleStatusChange(status)}
+                            className="text-white hover:bg-white/10"
+                            disabled={updatingStatus}
+                          >
+                            <span className={`${info.className} px-2 py-0.5 rounded text-xs`}>{info.label}</span>
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Badge className={`${statusInfo.className} text-xs`}>
+                    {statusInfo.label}
+                  </Badge>
                 )}
               </div>
 
               {/* Tabs - Estilo Holded */}
               <Tabs defaultValue="general" className="flex-1 flex flex-col overflow-hidden">
-                <TabsList className="mx-4 mt-3 bg-white/5 border border-white/10 rounded-lg p-1 h-9">
+                <TabsList className="mx-3 mt-2 bg-white/5 border border-white/10 rounded-lg p-0.5 h-8">
                   <TabsTrigger 
                     value="general" 
-                    className="flex-1 text-xs data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
+                    className="flex-1 text-[11px] data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60 px-2 py-1"
                   >
                     General
                   </TabsTrigger>
                   <TabsTrigger 
                     value="messages" 
-                    className="flex-1 text-xs data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
+                    className="flex-1 text-[11px] data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60 px-2 py-1"
                   >
                     Mensajes
                   </TabsTrigger>
                   <TabsTrigger 
                     value="history" 
-                    className="flex-1 text-xs data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
+                    className="flex-1 text-[11px] data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60 px-2 py-1"
                   >
                     Historial
                   </TabsTrigger>
                 </TabsList>
 
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto p-3">
                   <TabsContent value="general" className="space-y-4 mt-0">
 
                 {/* Locked message */}
                 {isLocked && (
-                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-center gap-2">
-                    <Lock className="h-4 w-4 text-yellow-500 shrink-0" />
-                    <p className="text-yellow-300/80 text-xs">
+                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2 flex items-center gap-2 mb-3">
+                    <Lock className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
+                    <p className="text-yellow-300/80 text-[11px]">
                       {quote.status === "REJECTED" 
                         ? "Este presupuesto ha sido rechazado"
                         : quote.status === "EXPIRED"
@@ -664,14 +694,14 @@ const QuoteDetailPageDesktop = () => {
                 )}
 
                 {/* Action buttons */}
-                <div className="space-y-2">
+                <div className="space-y-1.5 mb-3">
                   {/* Invoice button for approved quotes */}
                   {showInvoiceButton && (
                     <Button
                       onClick={handleInvoice}
-                      className="w-full bg-purple-500 hover:bg-purple-600 text-white gap-2"
+                      className="w-full bg-purple-500 hover:bg-purple-600 text-white gap-1.5 h-8 text-xs"
                     >
-                      <Receipt className="h-4 w-4" />
+                      <Receipt className="h-3.5 w-3.5" />
                       Facturar
                     </Button>
                   )}
@@ -681,58 +711,58 @@ const QuoteDetailPageDesktop = () => {
                     variant="outline"
                     onClick={handleCreateNewVersion}
                     disabled={creatingVersion}
-                    className="w-full border-white/20 text-white hover:bg-white/10 gap-2"
+                    className="w-full border-white/20 text-white hover:bg-white/10 gap-1.5 h-8 text-xs"
                   >
                     {creatingVersion ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : (
-                      <Copy className="h-4 w-4" />
+                      <Copy className="h-3.5 w-3.5" />
                     )}
                     Nueva versión
                   </Button>
                 </div>
 
                 {/* Client */}
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Building2 className="h-4 w-4 text-orange-500" />
-                    <span className="text-white/50 text-xs uppercase tracking-wide">Cliente</span>
+                <div className="bg-white/5 rounded-lg p-2 mb-2">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Building2 className="h-3.5 w-3.5 text-orange-500" />
+                    <span className="text-white/50 text-[10px] uppercase tracking-wide">Cliente</span>
                   </div>
-                  <p className="text-white font-medium">{quote.client_name}</p>
+                  <p className="text-white font-medium text-sm">{quote.client_name}</p>
                   {client?.tax_id && (
-                    <p className="text-white/60 text-sm">{client.tax_id}</p>
+                    <p className="text-white/60 text-xs">{client.tax_id}</p>
                   )}
                 </div>
 
                 {/* Project */}
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FolderOpen className="h-4 w-4 text-blue-500" />
-                    <span className="text-white/50 text-xs uppercase tracking-wide">Proyecto</span>
+                <div className="bg-white/5 rounded-lg p-2 mb-2">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <FolderOpen className="h-3.5 w-3.5 text-blue-500" />
+                    <span className="text-white/50 text-[10px] uppercase tracking-wide">Proyecto</span>
                   </div>
-                  <p className="text-white font-medium">
+                  <p className="text-white font-medium text-sm">
                     {project?.project_name || quote.project_name || "Sin proyecto asignado"}
                   </p>
                 </div>
 
                 {/* Created by */}
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="h-4 w-4 text-purple-500" />
-                    <span className="text-white/50 text-xs uppercase tracking-wide">Creado por</span>
+                <div className="bg-white/5 rounded-lg p-2 mb-2">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <User className="h-3.5 w-3.5 text-purple-500" />
+                    <span className="text-white/50 text-[10px] uppercase tracking-wide">Creado por</span>
                   </div>
-                  <p className="text-white font-medium">
+                  <p className="text-white font-medium text-sm">
                     {quote.created_by_name || "Usuario"}
                   </p>
                 </div>
 
                 {/* Dates */}
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calendar className="h-4 w-4 text-green-500" />
-                    <span className="text-white/50 text-xs uppercase tracking-wide">Fechas</span>
+                <div className="bg-white/5 rounded-lg p-2 mb-2">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Calendar className="h-3.5 w-3.5 text-green-500" />
+                    <span className="text-white/50 text-[10px] uppercase tracking-wide">Fechas</span>
                   </div>
-                  <div className="space-y-1 text-sm">
+                  <div className="space-y-0.5 text-xs">
                     <div className="flex justify-between">
                       <span className="text-white/60">Creado</span>
                       <span className="text-white">{formatDate(quote.created_at)}</span>
@@ -747,19 +777,19 @@ const QuoteDetailPageDesktop = () => {
                 </div>
 
                 {/* Total */}
-                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FileText className="h-4 w-4 text-orange-500" />
-                    <span className="text-orange-400 text-xs uppercase tracking-wide">Total</span>
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 mb-2">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <FileText className="h-3.5 w-3.5 text-orange-500" />
+                    <span className="text-orange-400 text-[10px] uppercase tracking-wide">Total</span>
                   </div>
-                  <p className="text-white text-2xl font-bold">
+                  <p className="text-white text-xl font-bold">
                     {formatCurrency(quote.total)}
                   </p>
-                  <div className="flex justify-between text-sm mt-2 text-white/60">
+                  <div className="flex justify-between text-xs mt-1.5 text-white/60">
                     <span>Base</span>
                     <span>{formatCurrency(quote.subtotal)}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-white/60">
+                  <div className="flex justify-between text-xs text-white/60">
                     <span>Impuestos</span>
                     <span>{formatCurrency(quote.tax_amount)}</span>
                   </div>
@@ -767,9 +797,9 @@ const QuoteDetailPageDesktop = () => {
 
                 {/* Notes */}
                 {quote.notes && (
-                  <div className="bg-white/5 rounded-lg p-3">
-                    <span className="text-white/50 text-xs uppercase tracking-wide">Notas</span>
-                    <p className="text-white/80 text-sm mt-2">{quote.notes}</p>
+                  <div className="bg-white/5 rounded-lg p-2">
+                    <span className="text-white/50 text-[10px] uppercase tracking-wide">Notas</span>
+                    <p className="text-white/80 text-xs mt-1.5">{quote.notes}</p>
                   </div>
                 )}
                   </TabsContent>
