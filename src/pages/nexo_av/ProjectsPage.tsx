@@ -12,7 +12,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, FolderKanban, Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, Search, FolderKanban, Loader2, MoreVertical, ChevronUp, ChevronDown, Info, Filter } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
@@ -20,6 +27,7 @@ import NexoHeader from "./components/NexoHeader";
 import CreateProjectDialog from "./components/CreateProjectDialog";
 import PaginationControls from "./components/PaginationControls";
 import { createMobilePage } from "./MobilePageWrapper";
+import { cn } from "@/lib/utils";
 
 // Lazy load mobile version
 const ProjectsPageMobile = lazy(() => import("./mobile/ProjectsPageMobile"));
@@ -60,6 +68,9 @@ const ProjectsPageDesktop = () => {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchTerm = useDebounce(searchInput, 500);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const fetchProjects = async () => {
     try {
@@ -90,6 +101,69 @@ const ProjectsPageDesktop = () => {
     fetchProjects();
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedProjects(new Set(paginatedProjects.map(p => p.id)));
+    } else {
+      setSelectedProjects(new Set());
+    }
+  };
+
+  const handleSelectProject = (projectId: string, checked: boolean) => {
+    const newSelected = new Set(selectedProjects);
+    if (checked) {
+      newSelected.add(projectId);
+    } else {
+      newSelected.delete(projectId);
+    }
+    setSelectedProjects(newSelected);
+  };
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedProjects = [...projects].sort((a, b) => {
+    if (!sortColumn) return 0;
+    
+    let aValue: any;
+    let bValue: any;
+    
+    switch (sortColumn) {
+      case "number":
+        aValue = a.project_number || "";
+        bValue = b.project_number || "";
+        break;
+      case "client":
+        aValue = a.client_name || "";
+        bValue = b.client_name || "";
+        break;
+      case "name":
+        aValue = a.project_name || "";
+        bValue = b.project_name || "";
+        break;
+      case "status":
+        aValue = a.status;
+        bValue = b.status;
+        break;
+      case "city":
+        aValue = a.project_city || "";
+        bValue = b.project_city || "";
+        break;
+      default:
+        return 0;
+    }
+    
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
   // Pagination (50 records per page)
   const {
     currentPage,
@@ -103,132 +177,252 @@ const ProjectsPageDesktop = () => {
     startIndex,
     endIndex,
     totalItems,
-  } = usePagination(projects, { pageSize: 50 });
+  } = usePagination(sortedProjects, { pageSize: 50 });
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black">
       <NexoHeader userId={userId || ""} title="Proyectos" showBack={false} showHome={true} />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
+          transition={{ duration: 0.5 }}
         >
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Proyectos</h1>
-              <p className="text-white/60">Gestiona todos los proyectos</p>
+          {/* Header - Estilo Holded */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl md:text-3xl font-bold text-white">Proyectos</h1>
+                <Info className="h-4 w-4 text-white/40" />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
+                      Acciones
+                      <ChevronDown className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                      Exportar seleccionados
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                      Cambiar estado
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white h-9 px-4 text-sm font-medium"
+                >
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  Nuevo proyecto
+                  <span className="ml-2 text-xs opacity-70">N</span>
+                </Button>
+              </div>
             </div>
-            <Button 
-              className="bg-white text-black hover:bg-white/90"
-              onClick={() => setIsCreateDialogOpen(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Crear Proyecto
-            </Button>
+
+            {/* Search Bar - Estilo Holded */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 min-w-[200px] max-w-md">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                <Input
+                  placeholder="Buscar proyectos..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-8 text-xs"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Search */}
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-            <Input
-              placeholder="Buscar proyectos..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40"
-            />
-          </div>
+          {/* Table */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <FolderKanban className="h-16 w-16 text-white/20 mb-4" />
+              <p className="text-white/60">No hay proyectos</p>
+              <p className="text-white/40 text-sm mt-1">
+                Crea tu primer proyecto para comenzar
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table */}
+              <div className="bg-white/[0.02] rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm shadow-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-white/10 hover:bg-transparent bg-white/[0.03]">
+                      <TableHead className="w-12 px-4">
+                        <Checkbox
+                          checked={selectedProjects.size === paginatedProjects.length && paginatedProjects.length > 0}
+                          onCheckedChange={handleSelectAll}
+                          className="border-white/30 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                        />
+                      </TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("number")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Nº Proyecto
+                          {sortColumn === "number" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("client")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Cliente
+                          {sortColumn === "client" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("name")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Nombre
+                          {sortColumn === "name" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-white/70">Pedido</TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("status")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Estado
+                          {sortColumn === "status" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("city")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Ciudad
+                          {sortColumn === "city" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-white/70">Local</TableHead>
+                      <TableHead className="text-white/70 w-12"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedProjects.map((project) => {
+                      const statusInfo = getStatusInfo(project.status);
+                      const isSelected = selectedProjects.has(project.id);
+                      return (
+                        <TableRow
+                          key={project.id}
+                          className={cn(
+                            "border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200",
+                            isSelected && "bg-white/10"
+                          )}
+                          onClick={() => handleProjectClick(project.id)}
+                        >
+                          <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={(checked) => handleSelectProject(project.id, checked as boolean)}
+                              className="border-white/30 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                            />
+                          </TableCell>
+                          <TableCell className="font-mono text-white text-sm">
+                            {project.project_number}
+                          </TableCell>
+                          <TableCell className="text-white text-sm">
+                            {project.client_name || '-'}
+                          </TableCell>
+                          <TableCell className="text-white/80 text-sm max-w-xs truncate">
+                            {project.project_name}
+                          </TableCell>
+                          <TableCell className="text-white/70 text-sm">
+                            {project.client_order_number || '-'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={cn(statusInfo.color, "border text-xs")}>
+                              {statusInfo.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-white/70 text-sm">
+                            {project.project_city || '-'}
+                          </TableCell>
+                          <TableCell className="text-white/70 text-sm">
+                            {project.local_name || '-'}
+                          </TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                                <DropdownMenuItem 
+                                  className="text-white hover:bg-white/10"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleProjectClick(project.id);
+                                  }}
+                                >
+                                  Ver detalle
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-white hover:bg-white/10">
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-white hover:bg-white/10">
+                                  Duplicar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
 
-          {/* Desktop Table */}
-          <div className="rounded-2xl border border-white/10 overflow-hidden bg-white/[0.02] backdrop-blur-sm shadow-lg">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="text-white/60">Nº Proyecto</TableHead>
-                  <TableHead className="text-white/60">Cliente</TableHead>
-                  <TableHead className="text-white/60">Nombre del Proyecto</TableHead>
-                  <TableHead className="text-white/60">Nº Pedido</TableHead>
-                  <TableHead className="text-white/60">Estado</TableHead>
-                  <TableHead className="text-white/60">Ciudad</TableHead>
-                  <TableHead className="text-white/60">Local</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow className="border-white/10">
-                    <TableCell colSpan={7} className="text-center py-12">
-                      <Loader2 className="h-8 w-8 animate-spin text-white/40 mx-auto" />
-                    </TableCell>
-                  </TableRow>
-                ) : projects.length === 0 ? (
-                  <TableRow className="border-white/10">
-                    <TableCell colSpan={7} className="text-center py-12">
-                      <FolderKanban className="h-12 w-12 text-white/20 mx-auto mb-3" />
-                      <p className="text-white/40">No hay proyectos</p>
-                      <Button
-                        variant="link"
-                        className="text-white/60 hover:text-white mt-2"
-                        onClick={() => setIsCreateDialogOpen(true)}
-                      >
-                        Crear el primer proyecto
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedProjects.map((project) => {
-                    const statusInfo = getStatusInfo(project.status);
-                    return (
-                      <TableRow 
-                        key={project.id} 
-                        className="border-white/10 hover:bg-white/[0.06] cursor-pointer transition-colors duration-200"
-                        onClick={() => handleProjectClick(project.id)}
-                      >
-                        <TableCell className="font-mono text-white">
-                          {project.project_number}
-                        </TableCell>
-                        <TableCell className="text-white">
-                          {project.client_name || '-'}
-                        </TableCell>
-                        <TableCell className="text-white/80 max-w-xs truncate">
-                          {project.project_name}
-                        </TableCell>
-                        <TableCell className="text-white/60">
-                          {project.client_order_number || '-'}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={`${statusInfo.color} border`}>
-                            {statusInfo.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-white/60">
-                          {project.project_city || '-'}
-                        </TableCell>
-                        <TableCell className="text-white/60">
-                          {project.local_name || '-'}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-            {paginatedProjects.length > 0 && (
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={totalPages}
-                startIndex={startIndex}
-                endIndex={endIndex}
-                totalItems={totalItems}
-                canGoPrev={canGoPrev}
-                canGoNext={canGoNext}
-                onPrevPage={prevPage}
-                onNextPage={nextPage}
-                onGoToPage={goToPage}
-              />
-            )}
-          </div>
+              {/* Paginación */}
+              {totalPages > 1 && (
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  startIndex={startIndex}
+                  endIndex={endIndex}
+                  totalItems={totalItems}
+                  canGoPrev={canGoPrev}
+                  canGoNext={canGoNext}
+                  onPrevPage={prevPage}
+                  onNextPage={nextPage}
+                  onGoToPage={goToPage}
+                />
+              )}
+            </>
+          )}
         </motion.div>
       </main>
 

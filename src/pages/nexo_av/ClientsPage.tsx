@@ -12,11 +12,16 @@ import {
   User,
   Filter,
   Users,
-  UserCheck
+  UserCheck,
+  MoreVertical,
+  ChevronUp,
+  ChevronDown,
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox as UICheckbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -25,6 +30,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -44,6 +55,7 @@ import PaginationControls from "./components/PaginationControls";
 import MobileBottomNav from "./components/MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { lazy, Suspense } from "react";
+import { cn } from "@/lib/utils";
 
 // Lazy load mobile components
 const ClientsListMobile = lazy(() => import("./components/mobile/ClientsListMobile"));
@@ -96,6 +108,9 @@ const ClientsPage = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -103,6 +118,69 @@ const ClientsPage = () => {
   const filteredClients = showOnlyMine === true
     ? clients.filter(c => c.assigned_to === currentUserId || c.assigned_to === null)
     : clients;
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedClients(new Set(paginatedClients.map(c => c.id)));
+    } else {
+      setSelectedClients(new Set());
+    }
+  };
+
+  const handleSelectClient = (clientId: string, checked: boolean) => {
+    const newSelected = new Set(selectedClients);
+    if (checked) {
+      newSelected.add(clientId);
+    } else {
+      newSelected.delete(clientId);
+    }
+    setSelectedClients(newSelected);
+  };
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedClients = [...filteredClients].sort((a, b) => {
+    if (!sortColumn) return 0;
+    
+    let aValue: any;
+    let bValue: any;
+    
+    switch (sortColumn) {
+      case "number":
+        aValue = a.client_number || "";
+        bValue = b.client_number || "";
+        break;
+      case "company":
+        aValue = a.company_name || "";
+        bValue = b.company_name || "";
+        break;
+      case "stage":
+        aValue = a.lead_stage;
+        bValue = b.lead_stage;
+        break;
+      case "assigned":
+        aValue = a.assigned_to_name || "";
+        bValue = b.assigned_to_name || "";
+        break;
+      case "followup":
+        aValue = a.next_follow_up_date ? new Date(a.next_follow_up_date).getTime() : 0;
+        bValue = b.next_follow_up_date ? new Date(b.next_follow_up_date).getTime() : 0;
+        break;
+      default:
+        return 0;
+    }
+    
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
 
   // Pagination hook must be called unconditionally at the top level
   const {
@@ -117,7 +195,7 @@ const ClientsPage = () => {
     startIndex,
     endIndex,
     totalItems,
-  } = usePagination(filteredClients, { pageSize: 50 });
+  } = usePagination(sortedClients, { pageSize: 50 });
 
   const fetchClients = async () => {
     try {
@@ -224,7 +302,7 @@ const ClientsPage = () => {
 
 
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
+    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black pb-mobile-nav">
       <NexoHeader 
         title="Clientes" 
         userId={userId || ''} 
@@ -232,73 +310,116 @@ const ClientsPage = () => {
         showHome={true}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
-        {/* Actions bar */}
+      <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col gap-3 md:gap-4 mb-4 md:mb-6"
+          transition={{ duration: 0.5 }}
         >
-          {/* Search and filters row */}
-          <div className="flex flex-col sm:flex-row gap-2 md:gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-              <Input
-                placeholder="Buscar..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-9 md:h-10 text-sm"
-              />
+          {/* Header - Estilo Holded */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl md:text-3xl font-bold text-white">Clientes</h1>
+                <Info className="h-4 w-4 text-white/40" />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
+                      Acciones
+                      <ChevronDown className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                      Exportar seleccionados
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                      Asignar seleccionados
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  onClick={() => setShowCreateDialog(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4 text-sm font-medium"
+                >
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  Nuevo cliente
+                  <span className="ml-2 text-xs opacity-70">N</span>
+                </Button>
+              </div>
             </div>
-            
-            <Select value={stageFilter} onValueChange={setStageFilter}>
-              <SelectTrigger className="w-full sm:w-40 bg-white/5 border-white/10 text-white h-9 md:h-10 text-sm">
-                <Filter className="h-3.5 w-3.5 mr-2" />
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-white/10">
-                <SelectItem value="all" className="text-white text-sm">Todos</SelectItem>
-                {LEAD_STAGES.map((stage) => (
-                  <SelectItem key={stage.value} value={stage.value} className="text-white text-sm">
-                    {stage.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
 
-            <Button 
-              onClick={() => setShowCreateDialog(true)}
-              className="bg-white text-black hover:bg-white/90 h-9 md:h-10 text-sm"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Nuevo Cliente</span>
-              <span className="sm:hidden">Nuevo</span>
-            </Button>
+            {/* Search and Filters Bar - Estilo Holded */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "h-8 px-3 text-xs border-white/20 text-white/70 hover:bg-white/10",
+                      stageFilter !== "all" && "bg-white/10 text-white"
+                    )}
+                  >
+                    {stageFilter === "all" ? "Todos" : LEAD_STAGES.find(s => s.value === stageFilter)?.label || "Todos"}
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-zinc-900 border-white/10">
+                  <DropdownMenuItem
+                    onClick={() => setStageFilter("all")}
+                    className={cn("text-white hover:bg-white/10", stageFilter === "all" && "bg-white/10")}
+                  >
+                    Todos
+                  </DropdownMenuItem>
+                  {LEAD_STAGES.map((stage) => (
+                    <DropdownMenuItem
+                      key={stage.value}
+                      onClick={() => setStageFilter(stage.value)}
+                      className={cn("text-white hover:bg-white/10", stageFilter === stage.value && "bg-white/10")}
+                    >
+                      {stage.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-white/5 border border-white/10">
+                <Switch
+                  id="show-mine"
+                  checked={showOnlyMine === true}
+                  onCheckedChange={setShowOnlyMine}
+                  className="data-[state=checked]:bg-white"
+                />
+                <Label htmlFor="show-mine" className="text-white/70 text-xs flex items-center gap-1.5 cursor-pointer">
+                  {showOnlyMine === true ? (
+                    <>
+                      <UserCheck className="h-3 w-3" />
+                      Mis clientes
+                    </>
+                  ) : (
+                    <>
+                      <Users className="h-3 w-3" />
+                      Todos
+                    </>
+                  )}
+                </Label>
+              </div>
+              
+              <div className="relative flex-1 min-w-[200px] max-w-md">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                <Input
+                  placeholder="Buscar clientes..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-8 text-xs"
+                />
+              </div>
+            </div>
           </div>
-
-          {/* Filter toggle */}
-          <div className="flex items-center gap-2 px-1">
-            <Switch
-              id="show-mine"
-              checked={showOnlyMine === true}
-              onCheckedChange={setShowOnlyMine}
-              className="data-[state=checked]:bg-white"
-            />
-            <Label htmlFor="show-mine" className="text-white/60 text-xs md:text-sm flex items-center gap-1.5 cursor-pointer">
-              {showOnlyMine === true ? (
-                <>
-                  <UserCheck className="h-3.5 w-3.5" />
-                  Mis clientes y sin asignar
-                </>
-              ) : (
-                <>
-                  <Users className="h-3.5 w-3.5" />
-                  Todos los clientes
-                </>
-              )}
-            </Label>
-          </div>
-        </motion.div>
 
         {/* Mobile card view */}
         {isMobile ? (
@@ -333,125 +454,217 @@ const ClientsPage = () => {
           </Suspense>
         ) : null}
 
-        {/* Desktop table view */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="hidden md:block rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm bg-white/[0.02] shadow-lg"
-        >
-          <Table>
-            <TableHeader>
-              <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="text-white/60 w-16">Nº</TableHead>
-                <TableHead className="text-white/60">Empresa</TableHead>
-                <TableHead className="text-white/60">Contacto</TableHead>
-                <TableHead className="text-white/60">Estado</TableHead>
-                <TableHead className="text-white/60">Asignado</TableHead>
-                <TableHead className="text-white/60">Seguimiento</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredClients.length === 0 ? (
-                <TableRow className="border-white/10">
-                  <TableCell colSpan={6} className="text-center py-12">
-                    <Building2 className="h-12 w-12 text-white/20 mx-auto mb-3" />
-                    <p className="text-white/40">No hay clientes que mostrar</p>
-                    <Button
-                      variant="link"
-                      onClick={() => setShowCreateDialog(true)}
-                      className="text-white/60 hover:text-white mt-2"
-                    >
-                      Crear el primer cliente
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedClients.map((client) => {
-                  const stageInfo = getStageInfo(client.lead_stage);
-                  return (
-                    <TableRow 
-                      key={client.id} 
-                      className="border-white/10 hover:bg-white/[0.06] cursor-pointer transition-colors duration-200"
-                      onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
-                    >
-                      <TableCell className="font-mono text-white/50 text-sm">
-                        {client.client_number ? `#${client.client_number}` : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-xl bg-white/5 shadow-sm">
-                            <Building2 className="h-4 w-4 text-white/60" />
-                          </div>
-                          <div>
-                            <p className="text-white font-medium uppercase">{client.company_name}</p>
-                            {client.industry_sector && (
-                              <p className="text-white/40 text-xs capitalize">
-                                {client.industry_sector.toLowerCase()}
-                              </p>
-                            )}
-                          </div>
+          {/* Table */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+            </div>
+          ) : filteredClients.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Building2 className="h-16 w-16 text-white/20 mb-4" />
+              <p className="text-white/60">No hay clientes</p>
+              <p className="text-white/40 text-sm mt-1">
+                Crea tu primer cliente para comenzar
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table */}
+              <div className="bg-white/[0.02] rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm shadow-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-white/10 hover:bg-transparent bg-white/[0.03]">
+                      <TableHead className="w-12 px-4">
+                        <UICheckbox
+                          checked={selectedClients.size === paginatedClients.length && paginatedClients.length > 0}
+                          onCheckedChange={handleSelectAll}
+                          className="border-white/30 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                        />
+                      </TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("number")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Nº
+                          {sortColumn === "number" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-white/60 text-sm">
-                            <Mail className="h-3 w-3" />
-                            {client.contact_email}
-                          </div>
-                          <div className="flex items-center gap-2 text-white/60 text-sm">
-                            <Phone className="h-3 w-3" />
-                            {client.contact_phone}
-                          </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("company")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Empresa
+                          {sortColumn === "company" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant="outline" 
-                          className={`${stageInfo.color} border`}
-                        >
-                          {stageInfo.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {client.assigned_to_name ? (
-                          <div className="flex items-center gap-2 text-white/60 text-sm">
-                            <User className="h-3 w-3" />
-                            {client.assigned_to_name}
-                          </div>
-                        ) : (
-                          <span className="text-white/30 text-sm">Sin asignar</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {client.next_follow_up_date ? (
-                          <div className="flex items-center gap-2 text-white/60 text-sm">
-                            <Calendar className="h-3 w-3" />
-                            {new Date(client.next_follow_up_date).toLocaleDateString('es-ES')}
-                          </div>
-                        ) : (
-                          <span className="text-white/30 text-sm">-</span>
-                        )}
-                      </TableCell>
+                      </TableHead>
+                      <TableHead className="text-white/70">Contacto</TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("stage")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Estado
+                          {sortColumn === "stage" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("assigned")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Asignado
+                          {sortColumn === "assigned" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("followup")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Seguimiento
+                          {sortColumn === "followup" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-white/70 w-12"></TableHead>
                     </TableRow>
-                  );
-                })
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedClients.map((client) => {
+                      const stageInfo = getStageInfo(client.lead_stage);
+                      const isSelected = selectedClients.has(client.id);
+                      return (
+                        <TableRow
+                          key={client.id}
+                          className={cn(
+                            "border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200",
+                            isSelected && "bg-white/10"
+                          )}
+                          onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
+                        >
+                          <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
+                            <UICheckbox
+                              checked={isSelected}
+                              onCheckedChange={(checked) => handleSelectClient(client.id, checked as boolean)}
+                              className="border-white/30 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                            />
+                          </TableCell>
+                          <TableCell className="font-mono text-white/70 text-sm">
+                            {client.client_number ? `#${client.client_number}` : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 rounded-lg bg-white/5">
+                                <Building2 className="h-4 w-4 text-white/60" />
+                              </div>
+                              <div>
+                                <p className="text-white font-medium text-sm">{client.company_name}</p>
+                                {client.industry_sector && (
+                                  <p className="text-white/40 text-xs">
+                                    {client.industry_sector}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1.5 text-white/60 text-xs">
+                                <Mail className="h-3 w-3" />
+                                <span className="truncate max-w-[200px]">{client.contact_email}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-white/60 text-xs">
+                                <Phone className="h-3 w-3" />
+                                {client.contact_phone}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={cn(stageInfo.color, "border text-xs")}>
+                              {stageInfo.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-white/70 text-sm">
+                            {client.assigned_to_name || <span className="text-white/30">Sin asignar</span>}
+                          </TableCell>
+                          <TableCell className="text-white/70 text-sm">
+                            {client.next_follow_up_date ? (
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="h-3 w-3" />
+                                {new Date(client.next_follow_up_date).toLocaleDateString('es-ES', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric'
+                                })}
+                              </div>
+                            ) : (
+                              <span className="text-white/30">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                                <DropdownMenuItem 
+                                  className="text-white hover:bg-white/10"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/nexo-av/${userId}/clients/${client.id}`);
+                                  }}
+                                >
+                                  Ver detalle
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-white hover:bg-white/10">
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-white hover:bg-white/10">
+                                  Duplicar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Paginación */}
+              {totalPages > 1 && (
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  startIndex={startIndex}
+                  endIndex={endIndex}
+                  totalItems={totalItems}
+                  canGoPrev={canGoPrev}
+                  canGoNext={canGoNext}
+                  onPrevPage={prevPage}
+                  onNextPage={nextPage}
+                  onGoToPage={goToPage}
+                />
               )}
-            </TableBody>
-          </Table>
-          {paginatedClients.length > 0 && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              startIndex={startIndex}
-              endIndex={endIndex}
-              totalItems={totalItems}
-              canGoPrev={canGoPrev}
-              canGoNext={canGoNext}
-              onPrevPage={prevPage}
-              onNextPage={nextPage}
-              onGoToPage={goToPage}
-            />
+            </>
           )}
         </motion.div>
       </main>
