@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Save, Loader2, CreditCard, Calendar, Clock, Plus, Trash2 } from 'lucide-react';
+import { Save, Loader2, CreditCard, Calendar, Clock, Plus, Trash2, Eye } from 'lucide-react';
+import type { Json } from '@/integrations/supabase/types';
 
 interface BankAccount {
   id: string;
@@ -71,15 +72,30 @@ export function PreferencesTab() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase.rpc('upsert_company_preferences', {
+      // Convertir bank_accounts a un formato limpio para JSONB
+      const cleanBankAccounts = preferences.bank_accounts.map(acc => ({
+        id: acc.id,
+        holder: acc.holder || '',
+        bank: acc.bank || '',
+        iban: acc.iban || '',
+        notes: acc.notes || ''
+      }));
+
+      console.log('Saving preferences with bank_accounts:', cleanBankAccounts);
+
+      const { data, error } = await supabase.rpc('upsert_company_preferences', {
         p_quote_validity_days: preferences.quote_validity_days,
         p_invoice_payment_days: preferences.invoice_payment_days,
         p_default_currency: preferences.default_currency,
-        p_bank_accounts: JSON.parse(JSON.stringify(preferences.bank_accounts))
+        p_bank_accounts: cleanBankAccounts as unknown as Json
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('RPC error:', error);
+        throw error;
+      }
 
+      console.log('Save result:', data);
       toast.success('Preferencias guardadas correctamente');
     } catch (error) {
       console.error('Error saving preferences:', error);
@@ -189,6 +205,11 @@ export function PreferencesTab() {
               <p className="text-xs text-white/40">
                 Este valor se usará para calcular automáticamente la fecha de validez en los presupuestos
               </p>
+              {/* Mini preview */}
+              <div className="flex items-center gap-2 mt-2 p-2 bg-white/5 rounded text-xs">
+                <Eye className="w-3 h-3 text-white/40" />
+                <span className="text-white/50">Ej: Presupuesto emitido hoy → Válido hasta {new Date(Date.now() + preferences.quote_validity_days * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES')}</span>
+              </div>
             </div>
 
             {/* Plazo de pago de facturas */}
@@ -214,6 +235,11 @@ export function PreferencesTab() {
               <p className="text-xs text-white/40">
                 Este valor determinará la fecha de vencimiento en las facturas emitidas
               </p>
+              {/* Mini preview */}
+              <div className="flex items-center gap-2 mt-2 p-2 bg-white/5 rounded text-xs">
+                <Eye className="w-3 h-3 text-white/40" />
+                <span className="text-white/50">Ej: Factura emitida hoy → Vence el {new Date(Date.now() + preferences.invoice_payment_days * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES')}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -338,6 +364,35 @@ export function PreferencesTab() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Vista previa de cómo se mostrará en la factura */}
+          {preferences.bank_accounts.length > 0 && preferences.bank_accounts[0].iban && (
+            <div className="mt-6 pt-6 border-t border-white/10">
+              <div className="flex items-center gap-2 mb-3">
+                <Eye className="w-4 h-4 text-white/40" />
+                <span className="text-sm text-white/60">Vista previa en factura</span>
+              </div>
+              <div className="bg-white rounded-lg p-4 max-w-md">
+                <div className="border-t-2 border-gray-200 pt-3">
+                  <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                    Datos de Pago
+                  </p>
+                  <div className="space-y-1 text-[9px] text-gray-700">
+                    {preferences.bank_accounts[0].holder && (
+                      <p><span className="font-medium">Titular:</span> {preferences.bank_accounts[0].holder}</p>
+                    )}
+                    {preferences.bank_accounts[0].bank && (
+                      <p><span className="font-medium">Banco:</span> {preferences.bank_accounts[0].bank}</p>
+                    )}
+                    <p className="font-mono"><span className="font-medium font-sans">IBAN:</span> {preferences.bank_accounts[0].iban}</p>
+                    {preferences.bank_accounts[0].notes && (
+                      <p className="text-gray-500 italic mt-1">{preferences.bank_accounts[0].notes}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
