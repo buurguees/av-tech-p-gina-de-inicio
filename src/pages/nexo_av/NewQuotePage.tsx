@@ -560,10 +560,10 @@ const NewQuotePage = () => {
           {/* Top bar */}
           <div className="flex items-center justify-between gap-2 mb-4 md:mb-8">
             <div>
-              <h1 className="text-base md:text-2xl font-bold text-white">
+              <h1 className="text-base md:text-2xl font-bold text-foreground">
                 {sourceQuoteNumber ? "Nueva versión" : "Nuevo presupuesto"}
               </h1>
-              <p className="text-white/60 text-[10px] md:text-sm hidden md:block">
+              <p className="text-muted-foreground text-[10px] md:text-sm hidden md:block">
                 {sourceQuoteNumber 
                   ? `Basado en ${sourceQuoteNumber}` 
                   : "El número se asignará automáticamente al guardar"}
@@ -573,8 +573,7 @@ const NewQuotePage = () => {
             <Button
               onClick={() => handleSave(false)}
               disabled={saving}
-              size="icon"
-              className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 md:h-10 md:w-auto md:px-4 rounded-2xl shadow-lg shadow-orange-500/30 transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/40"
+              className="h-8 md:h-10 px-4"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -586,23 +585,23 @@ const NewQuotePage = () => {
           </div>
 
           {/* Quote header info - Client Data */}
-          <div className="bg-white/10 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/20 p-3 md:p-6 mb-3 md:mb-4 shadow-2xl shadow-black/30">
-            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/20">
-              <div className="p-1.5 rounded-xl bg-white/10 backdrop-blur-sm">
-                <FileText className="h-3 w-3 md:h-4 md:w-4 text-orange-500" />
+          <div className="bg-card rounded-lg border border-border p-3 md:p-6 mb-3 md:mb-4">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
+              <div className="p-1.5 rounded-lg bg-secondary">
+                <FileText className="h-3 w-3 md:h-4 md:w-4 text-primary" />
               </div>
-              <span className="text-white/70 text-[10px] md:text-xs font-medium uppercase tracking-wide">Datos del documento</span>
+              <span className="text-muted-foreground text-[10px] md:text-xs font-medium uppercase tracking-wide">Datos del documento</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
-                <Label className="text-white/70 text-[10px] md:text-sm">Contacto</Label>
+                <Label className="text-muted-foreground text-[10px] md:text-sm">Contacto</Label>
                 <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                  <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 md:h-10 text-xs md:text-sm rounded-xl transition-all hover:bg-white/15">
+                  <SelectTrigger className="h-8 md:h-10 text-xs md:text-sm">
                     <SelectValue placeholder="Seleccionar" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white/10 backdrop-blur-2xl border-white/20 rounded-2xl shadow-2xl">
+                  <SelectContent>
                     {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id} className="text-white text-xs md:text-sm">
+                      <SelectItem key={client.id} value={client.id} className="text-xs md:text-sm">
                         {client.company_name}
                       </SelectItem>
                     ))}

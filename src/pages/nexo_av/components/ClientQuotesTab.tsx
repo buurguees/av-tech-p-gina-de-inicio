@@ -43,13 +43,11 @@ const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
     const fetchQuotes = async () => {
       try {
         setLoading(true);
-        // Usar la versión del RPC que devuelve project_id (sin p_status)
         const { data, error } = await supabase.rpc('list_quotes', {
           p_search: null
         });
 
         if (error) throw error;
-        // Filter quotes by client_id
         const clientQuotes = (data || []).filter((q: any) => q.client_id === clientId);
         setQuotes(clientQuotes as Quote[]);
       } catch (error) {
@@ -63,7 +61,6 @@ const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
   }, [clientId]);
 
   const handleCreateQuote = () => {
-    // Navigate to create quote page with client context
     navigate(`/nexo-av/${userId}/quotes/new?clientId=${clientId}`);
   };
 
@@ -72,13 +69,16 @@ const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
   };
 
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€`;
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(amount);
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -87,10 +87,7 @@ const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
     <div className="space-y-4">
       {/* Actions */}
       <div className="flex justify-end">
-        <Button 
-          className="bg-white text-black hover:bg-white/90"
-          onClick={handleCreateQuote}
-        >
+        <Button onClick={handleCreateQuote}>
           <Plus className="h-4 w-4 mr-2" />
           Nuevo Presupuesto
         </Button>
@@ -100,29 +97,29 @@ const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl border border-white/10 overflow-hidden"
+        className="rounded-lg border border-border overflow-hidden bg-card"
       >
         <Table>
           <TableHeader>
-            <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="text-white/60">Nº Presupuesto</TableHead>
-              <TableHead className="text-white/60">Proyecto</TableHead>
-              <TableHead className="text-white/60">Estado</TableHead>
-              <TableHead className="text-white/60 text-right">Subtotal</TableHead>
-              <TableHead className="text-white/60 text-right">Total</TableHead>
-              <TableHead className="text-white/60">Validez</TableHead>
-              <TableHead className="text-white/60">Acciones</TableHead>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground">Nº Presupuesto</TableHead>
+              <TableHead className="text-muted-foreground">Proyecto</TableHead>
+              <TableHead className="text-muted-foreground">Estado</TableHead>
+              <TableHead className="text-muted-foreground text-right">Subtotal</TableHead>
+              <TableHead className="text-muted-foreground text-right">Total</TableHead>
+              <TableHead className="text-muted-foreground">Validez</TableHead>
+              <TableHead className="text-muted-foreground">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {quotes.length === 0 ? (
-              <TableRow className="border-white/10">
+              <TableRow className="border-border">
                 <TableCell colSpan={7} className="text-center py-12">
-                  <FileText className="h-12 w-12 text-white/20 mx-auto mb-3" />
-                  <p className="text-white/40">No hay presupuestos para este cliente</p>
+                  <FileText className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground">No hay presupuestos para este cliente</p>
                   <Button
                     variant="link"
-                    className="text-white/60 hover:text-white mt-2"
+                    className="text-primary mt-2"
                     onClick={handleCreateQuote}
                   >
                     Crear el primer presupuesto
@@ -135,44 +132,45 @@ const ClientQuotesTab = ({ clientId }: ClientQuotesTabProps) => {
                 return (
                   <TableRow 
                     key={quote.id} 
-                    className="border-white/10 hover:bg-white/5 cursor-pointer"
+                    className="border-border hover:bg-accent cursor-pointer"
                     onClick={() => handleQuoteClick(quote.id)}
                   >
-                    <TableCell className="text-white font-medium">
+                    <TableCell className="text-foreground font-medium font-mono">
                       {quote.quote_number}
                     </TableCell>
-                    <TableCell className="text-white/60">
+                    <TableCell className="text-muted-foreground">
                       {quote.project_name || '-'}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={`${statusInfo.className} border`}>
+                      <Badge variant="outline" className={statusInfo.className}>
                         {statusInfo.label}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right text-white/60">
+                    <TableCell className="text-right text-muted-foreground">
                       {formatCurrency(quote.subtotal)}
                     </TableCell>
-                    <TableCell className="text-right text-white font-medium">
+                    <TableCell className="text-right text-foreground font-medium">
                       {formatCurrency(quote.total)}
                     </TableCell>
-                    <TableCell className="text-white/60 text-sm">
+                    <TableCell className="text-muted-foreground text-sm">
                       {quote.valid_until 
                         ? new Date(quote.valid_until).toLocaleDateString('es-ES')
                         : '-'}
                     </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10"
+                          className="h-8 w-8"
+                          onClick={() => handleQuoteClick(quote.id)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10"
+                          className="h-8 w-8"
                         >
                           <Download className="h-4 w-4" />
                         </Button>

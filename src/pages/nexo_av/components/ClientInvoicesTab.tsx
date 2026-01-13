@@ -53,7 +53,6 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
         });
 
         if (error) throw error;
-        // Filtrar facturas por client_id
         const clientInvoices = (data || []).filter((inv: any) => inv.client_id === clientId);
         setInvoices(clientInvoices as Invoice[]);
       } catch (error) {
@@ -84,7 +83,7 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -93,10 +92,7 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
     <div className="space-y-4">
       {/* Actions */}
       <div className="flex justify-end">
-        <Button 
-          className="bg-white text-black hover:bg-white/90"
-          onClick={handleCreateInvoice}
-        >
+        <Button onClick={handleCreateInvoice}>
           <Plus className="h-4 w-4 mr-2" />
           Nueva Factura
         </Button>
@@ -106,29 +102,29 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl border border-white/10 overflow-hidden"
+        className="rounded-lg border border-border overflow-hidden bg-card"
       >
         <Table>
           <TableHeader>
-            <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="text-white/60">Nº Factura</TableHead>
-              <TableHead className="text-white/60">Nº Proyecto</TableHead>
-              <TableHead className="text-white/60">Estado</TableHead>
-              <TableHead className="text-white/60 text-right">Subtotal</TableHead>
-              <TableHead className="text-white/60 text-right">Total</TableHead>
-              <TableHead className="text-white/60">Vencimiento</TableHead>
-              <TableHead className="text-white/60">Acciones</TableHead>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground">Nº Factura</TableHead>
+              <TableHead className="text-muted-foreground">Nº Proyecto</TableHead>
+              <TableHead className="text-muted-foreground">Estado</TableHead>
+              <TableHead className="text-muted-foreground text-right">Subtotal</TableHead>
+              <TableHead className="text-muted-foreground text-right">Total</TableHead>
+              <TableHead className="text-muted-foreground">Vencimiento</TableHead>
+              <TableHead className="text-muted-foreground">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {invoices.length === 0 ? (
-              <TableRow className="border-white/10">
+              <TableRow className="border-border">
                 <TableCell colSpan={7} className="text-center py-12">
-                  <Receipt className="h-12 w-12 text-white/20 mx-auto mb-3" />
-                  <p className="text-white/40">No hay facturas para este cliente</p>
+                  <Receipt className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground">No hay facturas para este cliente</p>
                   <Button
                     variant="link"
-                    className="text-white/60 hover:text-white mt-2"
+                    className="text-primary mt-2"
                     onClick={handleCreateInvoice}
                   >
                     Crear la primera factura
@@ -148,43 +144,43 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
                 return (
                   <TableRow 
                     key={invoice.id} 
-                    className="border-white/10 hover:bg-white/5 cursor-pointer"
+                    className="border-border hover:bg-accent cursor-pointer"
                     onClick={() => handleInvoiceClick(invoice.id)}
                   >
-                    <TableCell className="text-white font-medium font-mono">
-                      <span className={isDraft ? 'text-white/60' : ''}>
+                    <TableCell className="text-foreground font-medium font-mono">
+                      <span className={isDraft ? 'text-muted-foreground' : ''}>
                         {displayNumber}
                       </span>
-                      {isDraft && <span className="ml-1 text-[10px] text-amber-400/80">(Borr.)</span>}
+                      {isDraft && <span className="ml-1 text-[10px] text-amber-600">(Borr.)</span>}
                     </TableCell>
-                    <TableCell className="text-white/60 font-mono">
+                    <TableCell className="text-muted-foreground font-mono">
                       {invoice.project_number || '-'}
                     </TableCell>
                     <TableCell>
                       <Badge 
                         variant="outline" 
-                        className={`${isOverdue ? 'bg-red-500/20 text-red-400 border-red-500/30' : statusInfo.className} border`}
+                        className={isOverdue ? 'status-error' : statusInfo.className}
                       >
                         {isOverdue ? 'Vencida' : statusInfo.label}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right text-white/60">
+                    <TableCell className="text-right text-muted-foreground">
                       {formatCurrency(invoice.subtotal)}
                     </TableCell>
-                    <TableCell className="text-right text-white font-medium">
+                    <TableCell className="text-right text-foreground font-medium">
                       {formatCurrency(invoice.total)}
                     </TableCell>
-                    <TableCell className={`text-sm ${isOverdue ? 'text-red-400' : 'text-white/60'}`}>
+                    <TableCell className={`text-sm ${isOverdue ? 'text-destructive' : 'text-muted-foreground'}`}>
                       {invoice.due_date 
                         ? new Date(invoice.due_date).toLocaleDateString('es-ES')
                         : '-'}
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10"
+                          className="h-8 w-8"
                           onClick={() => handleInvoiceClick(invoice.id)}
                         >
                           <Eye className="h-4 w-4" />
@@ -192,7 +188,7 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10"
+                          className="h-8 w-8"
                         >
                           <Download className="h-4 w-4" />
                         </Button>
