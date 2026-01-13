@@ -5,44 +5,58 @@
  * Cualquier cambio aquí debe reflejarse también en la base de datos y viceversa.
  * 
  * Enum en DB: quotes.quote_status ('DRAFT', 'SENT', 'APPROVED', 'REJECTED', 'EXPIRED', 'INVOICED')
+ * 
+ * Traffic Light System:
+ * - Green (success): APPROVED
+ * - Blue (info): SENT
+ * - Red (error): REJECTED
+ * - Orange (warning): EXPIRED
+ * - Purple (special): INVOICED
+ * - Gray (neutral): DRAFT
  */
 
 export const QUOTE_STATUSES = [
   { 
     value: "DRAFT", 
     label: "Borrador", 
-    color: "bg-gray-500/20 text-gray-300 border-gray-500/30",
-    className: "bg-gray-500/20 text-gray-300 border-gray-500/30" 
+    color: "status-neutral",
+    className: "bg-gray-500/20 text-gray-300 border border-gray-500/30",
+    priority: 0
   },
   { 
     value: "SENT", 
     label: "Enviado", 
-    color: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-    className: "bg-blue-500/20 text-blue-300 border-blue-500/30" 
+    color: "status-info",
+    className: "bg-blue-500/20 text-blue-300 border border-blue-500/30",
+    priority: 1
   },
   { 
     value: "APPROVED", 
     label: "Aprobado", 
-    color: "bg-green-500/20 text-green-300 border-green-500/30",
-    className: "bg-green-500/20 text-green-300 border-green-500/30" 
+    color: "status-success",
+    className: "bg-green-500/20 text-green-300 border border-green-500/30",
+    priority: 2
   },
   { 
     value: "REJECTED", 
     label: "Rechazado", 
-    color: "bg-red-500/20 text-red-300 border-red-500/30",
-    className: "bg-red-500/20 text-red-300 border-red-500/30" 
+    color: "status-error",
+    className: "bg-red-500/20 text-red-300 border border-red-500/30",
+    priority: 3
   },
   { 
     value: "EXPIRED", 
     label: "Expirado", 
-    color: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-    className: "bg-orange-500/20 text-orange-300 border-orange-500/30" 
+    color: "status-warning",
+    className: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
+    priority: 4
   },
   { 
     value: "INVOICED", 
     label: "Facturado", 
-    color: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-    className: "bg-purple-500/20 text-purple-300 border-purple-500/30" 
+    color: "status-special",
+    className: "bg-purple-500/20 text-purple-300 border border-purple-500/30",
+    priority: 5
   },
 ] as const;
 
