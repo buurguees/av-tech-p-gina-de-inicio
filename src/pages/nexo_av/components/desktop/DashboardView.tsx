@@ -1,15 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
-  BarChart3, 
   TrendingUp, 
   FileText, 
   Receipt, 
-  Euro,
-  Calendar,
-  DollarSign,
   AlertCircle,
-  CheckCircle,
   Clock,
   FolderKanban,
   Users,
@@ -18,25 +13,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface DashboardStats {
-  // Trimestre actual
   quarterInvoices: number;
   quarterInvoicesAmount: number;
   quarterQuotes: number;
   quarterQuotesAmount: number;
   quarterProjects: number;
-  
-  // Año actual
   yearInvoices: number;
   yearInvoicesAmount: number;
   yearQuotes: number;
   yearQuotesAmount: number;
   yearProjects: number;
-  
-  // Pendientes
   pendingInvoices: number;
   pendingAmount: number;
-  
-  // Totales
   totalClients: number;
   activeProjects: number;
 }
@@ -78,83 +66,62 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
       const currentYear = now.getFullYear();
       const currentQuarter = Math.floor(now.getMonth() / 3) + 1;
       
-      // Calcular fechas del trimestre
       const quarterStart = new Date(currentYear, (currentQuarter - 1) * 3, 1);
       const quarterEnd = new Date(currentYear, currentQuarter * 3, 0, 23, 59, 59);
-      
-      // Calcular fechas del año
       const yearStart = new Date(currentYear, 0, 1);
       const yearEnd = new Date(currentYear, 11, 31, 23, 59, 59);
 
-      // Obtener facturas usando RPC
       const { data: allInvoicesData, error: invoicesError } = await supabase.rpc("finance_list_invoices", {
         p_search: null,
         p_status: null,
       });
 
-      if (invoicesError) {
-        console.error('Error fetching invoices:', invoicesError);
-      }
+      if (invoicesError) console.error('Error fetching invoices:', invoicesError);
 
-      // Obtener presupuestos usando RPC
       const { data: allQuotesData, error: quotesError } = await supabase.rpc("list_quotes", {
         p_status: null,
         p_search: null,
       });
 
-      if (quotesError) {
-        console.error('Error fetching quotes:', quotesError);
-      }
+      if (quotesError) console.error('Error fetching quotes:', quotesError);
 
-      // Obtener proyectos usando RPC
       const { data: allProjectsData, error: projectsError } = await supabase.rpc('list_projects', {
         p_search: null
       });
 
-      if (projectsError) {
-        console.error('Error fetching projects:', projectsError);
-      }
+      if (projectsError) console.error('Error fetching projects:', projectsError);
 
-      // Obtener clientes - usar RPC en vez de acceso directo a tabla
       const { data: clientsData, error: clientsError } = await supabase.rpc('list_clients', {});
 
-      if (clientsError) {
-        console.error('Error fetching clients:', clientsError);
-      }
+      if (clientsError) console.error('Error fetching clients:', clientsError);
 
-      // Procesar datos
       const allInvoices = allInvoicesData || [];
       const allQuotes = allQuotesData || [];
       const allProjects = allProjectsData || [];
       const clients = clientsData || [];
 
-      // Filtrar facturas del trimestre
       const quarterInvoices = allInvoices.filter(inv => {
         if (!inv.issue_date) return false;
         const issueDate = new Date(inv.issue_date);
         return issueDate >= quarterStart && issueDate <= quarterEnd;
       });
 
-      // Filtrar facturas del año
       const yearInvoices = allInvoices.filter(inv => {
         if (!inv.issue_date) return false;
         const issueDate = new Date(inv.issue_date);
         return issueDate >= yearStart && issueDate <= yearEnd;
       });
 
-      // Filtrar presupuestos del trimestre
       const quarterQuotes = allQuotes.filter(q => {
         const created = new Date(q.created_at);
         return created >= quarterStart && created <= quarterEnd;
       });
 
-      // Filtrar presupuestos del año
       const yearQuotes = allQuotes.filter(q => {
         const created = new Date(q.created_at);
         return created >= yearStart && created <= yearEnd;
       });
 
-      // Filtrar proyectos del trimestre y año
       const quarterProjects = allProjects.filter(p => {
         const created = new Date(p.created_at);
         return created >= quarterStart && created <= quarterEnd;
@@ -165,12 +132,10 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
         return created >= yearStart && created <= yearEnd;
       });
 
-      // Calcular pendientes (facturas no pagadas ni canceladas)
       const pendingInvoices = allInvoices.filter(inv => {
         return inv.status !== 'PAID' && inv.status !== 'CANCELLED' && inv.status !== 'DRAFT';
       });
 
-      // Proyectos activos
       const activeProjects = allProjects.filter(p => 
         p.status === 'IN_PROGRESS' || p.status === 'PLANNED'
       );
@@ -226,133 +191,135 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
+        <div className="animate-spin rounded-full h-6 w-6 border-2 border-border border-t-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header con selector de período */}
+    <div className="space-y-5">
+      {/* Header with period selector */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Resumen Financiero</h1>
-          <p className="text-muted-foreground">Vista general de tu negocio</p>
+          <h1 className="text-xl font-semibold text-foreground">Resumen</h1>
+          <p className="text-sm text-muted-foreground">Vista general de tu negocio</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5 bg-secondary rounded-lg p-1">
           <button
             onClick={() => setSelectedPeriod('quarter')}
-            className={selectedPeriod === 'quarter' 
-              ? "px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium"
-              : "px-4 py-2 bg-secondary text-foreground rounded-lg font-medium hover:bg-secondary/80"
-            }
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              selectedPeriod === 'quarter' 
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
           >
             Trimestre
           </button>
           <button
             onClick={() => setSelectedPeriod('year')}
-            className={selectedPeriod === 'year'
-              ? "px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium"
-              : "px-4 py-2 bg-secondary text-foreground rounded-lg font-medium hover:bg-secondary/80"
-            }
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              selectedPeriod === 'year'
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
           >
             Año
           </button>
         </div>
       </div>
 
-      {/* Período seleccionado */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-accent border border-primary/30 rounded-xl p-4"
-      >
-        <div className="flex items-center gap-2 mb-2">
-          <Calendar className="h-5 w-5 text-primary" />
-          <span className="text-foreground font-medium">{currentPeriod.label}</span>
-        </div>
-      </motion.div>
-
-      {/* Cards principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Main stat cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Facturas */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <Card className="border border-border hover:shadow-sm transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">Facturas</p>
+                  <p className="text-lg font-bold text-foreground">{currentPeriod.invoices}</p>
+                  <p className="text-xs font-medium" style={{ color: 'hsl(152, 69%, 31%)' }}>
+                    {formatCurrency(currentPeriod.invoicesAmount)}
+                  </p>
+                </div>
+                <div className="p-2 rounded-md" style={{ backgroundColor: 'hsl(149, 80%, 95%)' }}>
+                  <Receipt size={16} style={{ color: 'hsl(152, 69%, 31%)' }} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Presupuestos */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="hover:bg-card/80 transition-colors">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm mb-1">Facturas</p>
-                  <p className="text-foreground text-2xl font-bold">{currentPeriod.invoices}</p>
-                  <p className="text-green-600 text-sm mt-1">{formatCurrency(currentPeriod.invoicesAmount)}</p>
+          <Card className="border border-border hover:shadow-sm transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">Presupuestos</p>
+                  <p className="text-lg font-bold text-foreground">{currentPeriod.quotes}</p>
+                  <p className="text-xs font-medium" style={{ color: 'hsl(187, 70%, 36%)' }}>
+                    {formatCurrency(currentPeriod.quotesAmount)}
+                  </p>
                 </div>
-                <div className="p-3 rounded-xl bg-green-100">
-                  <Receipt className="h-6 w-6 text-green-600" />
+                <div className="p-2 rounded-md" style={{ backgroundColor: 'hsl(187, 70%, 96%)' }}>
+                  <FileText size={16} style={{ color: 'hsl(187, 70%, 36%)' }} />
                 </div>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
+        {/* Proyectos */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <Card className="border border-border hover:shadow-sm transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">Proyectos</p>
+                  <p className="text-lg font-bold text-foreground">{currentPeriod.projects}</p>
+                  <p className="text-xs text-muted-foreground">
+                    En {selectedPeriod === 'quarter' ? 'trimestre' : 'año'}
+                  </p>
+                </div>
+                <div className="p-2 rounded-md" style={{ backgroundColor: 'hsl(270, 80%, 97%)' }}>
+                  <FolderKanban size={16} style={{ color: 'hsl(270, 60%, 50%)' }} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Pendiente Cobro */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="hover:bg-card/80 transition-colors">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm mb-1">Presupuestos</p>
-                  <p className="text-foreground text-2xl font-bold">{currentPeriod.quotes}</p>
-                  <p className="text-blue-600 text-sm mt-1">{formatCurrency(currentPeriod.quotesAmount)}</p>
+          <Card className="border border-border hover:shadow-sm transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">Pendiente</p>
+                  <p className="text-lg font-bold text-foreground">{stats.pendingInvoices}</p>
+                  <p className="text-xs font-medium" style={{ color: 'hsl(0, 72%, 51%)' }}>
+                    {formatCurrency(stats.pendingAmount)}
+                  </p>
                 </div>
-                <div className="p-3 rounded-xl bg-blue-100">
-                  <FileText className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="hover:bg-card/80 transition-colors">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm mb-1">Proyectos</p>
-                  <p className="text-foreground text-2xl font-bold">{currentPeriod.projects}</p>
-                  <p className="text-purple-600 text-sm mt-1">En {selectedPeriod === 'quarter' ? 'trimestre' : 'año'}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-purple-100">
-                  <FolderKanban className="h-6 w-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="hover:bg-card/80 transition-colors">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm mb-1">Pendiente Cobro</p>
-                  <p className="text-foreground text-2xl font-bold">{stats.pendingInvoices}</p>
-                  <p className="text-red-600 text-sm mt-1">{formatCurrency(stats.pendingAmount)}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-red-100">
-                  <AlertCircle className="h-6 w-6 text-red-600" />
+                <div className="p-2 rounded-md" style={{ backgroundColor: 'hsl(0, 86%, 97%)' }}>
+                  <AlertCircle size={16} style={{ color: 'hsl(0, 72%, 51%)' }} />
                 </div>
               </div>
             </CardContent>
@@ -360,22 +327,22 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
         </motion.div>
       </div>
 
-      {/* Estadísticas generales */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+      {/* Secondary stats */}
+      <div className="grid grid-cols-3 gap-3">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.25 }}
         >
-          <Card className="hover:bg-card/80 transition-colors">
-            <CardContent className="pt-6">
+          <Card className="border border-border hover:shadow-sm transition-shadow">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-muted-foreground text-sm mb-1">Total Clientes</p>
-                  <p className="text-foreground text-2xl font-bold">{stats.totalClients}</p>
+                  <p className="text-xs font-medium text-muted-foreground">Total Clientes</p>
+                  <p className="text-lg font-bold text-foreground">{stats.totalClients}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-indigo-100">
-                  <Users className="h-6 w-6 text-indigo-600" />
+                <div className="p-2 rounded-md bg-secondary">
+                  <Users size={16} className="text-muted-foreground" />
                 </div>
               </div>
             </CardContent>
@@ -383,19 +350,19 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.3 }}
         >
-          <Card className="hover:bg-card/80 transition-colors">
-            <CardContent className="pt-6">
+          <Card className="border border-border hover:shadow-sm transition-shadow">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-muted-foreground text-sm mb-1">Proyectos Activos</p>
-                  <p className="text-foreground text-2xl font-bold">{stats.activeProjects}</p>
+                  <p className="text-xs font-medium text-muted-foreground">Proyectos Activos</p>
+                  <p className="text-lg font-bold text-foreground">{stats.activeProjects}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-yellow-100">
-                  <Clock className="h-6 w-6 text-yellow-600" />
+                <div className="p-2 rounded-md" style={{ backgroundColor: 'hsl(48, 100%, 96%)' }}>
+                  <Clock size={16} style={{ color: 'hsl(32, 95%, 44%)' }} />
                 </div>
               </div>
             </CardContent>
@@ -403,19 +370,19 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
+          transition={{ delay: 0.35 }}
         >
-          <Card className="hover:bg-card/80 transition-colors">
-            <CardContent className="pt-6">
+          <Card className="border border-border hover:shadow-sm transition-shadow">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-muted-foreground text-sm mb-1">Total Facturado (Año)</p>
-                  <p className="text-foreground text-2xl font-bold">{formatCurrency(stats.yearInvoicesAmount)}</p>
+                  <p className="text-xs font-medium text-muted-foreground">Facturado (Año)</p>
+                  <p className="text-lg font-bold text-foreground">{formatCurrency(stats.yearInvoicesAmount)}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-green-100">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
+                <div className="p-2 rounded-md" style={{ backgroundColor: 'hsl(149, 80%, 95%)' }}>
+                  <TrendingUp size={16} style={{ color: 'hsl(152, 69%, 31%)' }} />
                 </div>
               </div>
             </CardContent>

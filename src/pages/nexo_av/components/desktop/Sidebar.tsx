@@ -1,24 +1,12 @@
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
-import { 
-  Users, 
-  FileText, 
-  FolderKanban, 
-  Package,
-  Settings,
-  BarChart3,
-  UserCog,
-  Shield,
-  Receipt,
-  Calculator,
-  Home,
-} from "lucide-react";
+import { Home, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Module {
   id: string;
   title: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: LucideIcon;
   path: string;
   available: boolean;
 }
@@ -42,33 +30,25 @@ const Sidebar = ({ userId, modules }: SidebarProps) => {
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border h-[calc(100vh-4rem)] sticky top-16">
-      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+    <aside className="hidden md:flex flex-col w-56 bg-card border-r border-border h-[calc(100vh-3.25rem)] sticky top-[3.25rem]">
+      <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
         {/* Dashboard Home */}
         <motion.button
           onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 group",
+            "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150",
             isActive(`/nexo-av/${userId}/dashboard`)
-              ? "bg-sidebar-accent text-sidebar-foreground shadow-sm"
-              : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+              ? "bg-secondary text-foreground font-medium"
+              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
           )}
-          whileHover={{ scale: 1.01, x: 2 }}
-          whileTap={{ scale: 0.99 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <div className={cn(
-            "p-1.5 rounded-lg transition-colors",
-            isActive(`/nexo-av/${userId}/dashboard`)
-              ? "bg-sidebar-primary/10"
-              : "bg-sidebar-accent/50 group-hover:bg-sidebar-primary/10"
-          )}>
-            <Home className="h-4 w-4 flex-shrink-0" />
-          </div>
-          <span className="font-medium text-sm">Dashboard</span>
+          <Home size={16} />
+          <span className="text-sm">Dashboard</span>
         </motion.button>
 
         {/* Divider */}
-        <div className="h-px bg-sidebar-border my-3" />
+        <div className="h-px bg-border my-2" />
 
         {/* Modules */}
         {availableModules.map((module) => {
@@ -80,23 +60,15 @@ const Sidebar = ({ userId, modules }: SidebarProps) => {
               key={module.id}
               onClick={() => navigate(module.path)}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 group",
+                "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150",
                 active
-                  ? "bg-sidebar-accent text-sidebar-foreground shadow-sm"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  ? "bg-secondary text-foreground font-medium"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
               )}
-              whileHover={{ scale: 1.01, x: 2 }}
-              whileTap={{ scale: 0.99 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <div className={cn(
-                "p-1.5 rounded-lg transition-colors",
-                active
-                  ? "bg-sidebar-primary/10"
-                  : "bg-sidebar-accent/50 group-hover:bg-sidebar-primary/10"
-              )}>
-                <Icon className="h-4 w-4 flex-shrink-0" />
-              </div>
-              <span className="font-medium text-sm">{module.title}</span>
+              <Icon size={16} />
+              <span className="text-sm">{module.title}</span>
             </motion.button>
           );
         })}
