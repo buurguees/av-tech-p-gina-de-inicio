@@ -1011,6 +1011,10 @@ export type Database = {
         Returns: undefined
       }
       remove_pack_item: { Args: { p_item_id: string }; Returns: boolean }
+      reorder_quote_line: {
+        Args: { p_direction: string; p_line_id: string }
+        Returns: boolean
+      }
       reset_rate_limit: {
         Args: { p_identifier: string; p_identifier_type: string }
         Returns: undefined
@@ -1225,6 +1229,10 @@ export type Database = {
           p_tax_rate?: number
           p_unit_price?: number
         }
+        Returns: boolean
+      }
+      update_quote_lines_order: {
+        Args: { p_line_ids: string[]; p_quote_id: string }
         Returns: boolean
       }
       update_tax: {
