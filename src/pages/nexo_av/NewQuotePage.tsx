@@ -683,7 +683,7 @@ const NewQuotePage = () => {
               const isFirst = index === 0;
               const isLast = index === lines.length - 1;
               return (
-              <div key={line.tempId || line.id} className="bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 p-3 space-y-2 shadow-xl shadow-black/20">
+                <div key={line.tempId || line.id} className="bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 p-3 space-y-2 shadow-xl shadow-black/20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="flex flex-col gap-1">
@@ -781,7 +781,8 @@ const NewQuotePage = () => {
                   <span className="text-white font-medium text-sm">{formatCurrency(line.subtotal)}</span>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Desktop Lines table */}
