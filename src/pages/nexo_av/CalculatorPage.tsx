@@ -63,7 +63,7 @@ export default function CalculatorPage() {
         showBack={false}
       />
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
+      <main className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col items-center justify-center py-12 md:py-16 text-center">
           <div className={`p-4 ${isMobile ? 'p-3' : 'p-4'} rounded-full bg-orange-500/10 mb-4 md:mb-6`}>
             <Construction className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} text-orange-500`} />

@@ -340,7 +340,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background pb-mobile-nav">
       {/* Header */}
       <header className="border-b border-border bg-background sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 md:h-16">
             <div className="flex items-center gap-2 md:gap-3">
               <NexoLogo />
@@ -372,7 +372,7 @@ const Dashboard = () => {
 
       {/* Main content */}
       {isMobile ? (
-        <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
+        <main className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
           <Suspense fallback={
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
@@ -392,7 +392,7 @@ const Dashboard = () => {
           </Suspense>
         </main>
       ) : (
-        <div className="flex">
+        <div className="flex w-[90%] max-w-[1800px] mx-auto">
           {/* Sidebar para desktop */}
           <Sidebar 
             userId={userId}
@@ -400,7 +400,7 @@ const Dashboard = () => {
           />
           
           {/* Contenido principal con dashboard financiero */}
-          <main className="flex-1 px-6 py-8">
+          <main className="flex-1 px-4 lg:px-6 py-6">
             <DashboardView 
               userId={userId}
               isAdmin={isAdmin}

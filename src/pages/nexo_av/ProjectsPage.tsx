@@ -188,7 +188,7 @@ const ProjectsPageDesktop = () => {
     <div className="min-h-screen bg-background">
       <NexoHeader userId={userId || ""} title="Proyectos" showBack={false} showHome={true} />
       
-      <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
+      <main className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
