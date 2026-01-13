@@ -43,9 +43,10 @@ const ProjectQuotesTab = ({ projectId, clientId }: ProjectQuotesTabProps) => {
     const fetchQuotes = async () => {
       try {
         setLoading(true);
-        // Usar la versión del RPC que devuelve project_id (sin p_status)
+        // Pasar ambos parámetros para evitar ambigüedad con funciones sobrecargadas
         const { data, error } = await supabase.rpc('list_quotes', {
-          p_search: null
+          p_search: null,
+          p_status: null
         });
 
         if (error) throw error;
