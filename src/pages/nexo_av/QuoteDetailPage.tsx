@@ -108,9 +108,12 @@ const getAvailableStatusTransitions = (currentStatus: string) => {
     case "SENT":
       return ["SENT", "APPROVED", "REJECTED"];
     case "APPROVED":
-      return ["APPROVED"]; // Can only be changed to INVOICED via the button
+      // Permite cambiar a Rechazado (el cliente puede cambiar de opinión)
+      // INVOICED solo se hace mediante el botón de facturar
+      return ["APPROVED", "REJECTED"];
     case "REJECTED":
-      return ["REJECTED"]; // Cannot be changed
+      // Permite cambiar a Aprobado (el cliente puede reconsiderar)
+      return ["REJECTED", "APPROVED"];
     case "EXPIRED":
       return ["EXPIRED"]; // Cannot be changed
     case "INVOICED":
