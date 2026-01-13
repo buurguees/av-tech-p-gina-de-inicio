@@ -534,7 +534,7 @@ const InvoicePDFViewer = ({ invoice, lines, client, company, project, fileName }
   const [showPreview, setShowPreview] = useState(true);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 200px)', minHeight: '600px' }}>
       {/* Controls */}
       <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10 shrink-0">
         <Button
@@ -587,12 +587,12 @@ const InvoicePDFViewer = ({ invoice, lines, client, company, project, fileName }
 
       {/* PDF Preview */}
       {showPreview && (
-        <div className="flex-1 min-h-0 bg-zinc-800">
+        <div className="flex-1 overflow-hidden bg-zinc-800" style={{ height: 'calc(100% - 48px)' }}>
           <PDFViewer
             width="100%"
             height="100%"
-            showToolbar={false}
-            className="border-0"
+            showToolbar={true}
+            className="border-0 w-full h-full"
           >
             <InvoicePDFDocument
               invoice={invoice}

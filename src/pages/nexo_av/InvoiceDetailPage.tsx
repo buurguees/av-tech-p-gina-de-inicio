@@ -90,7 +90,11 @@ const InvoiceDetailPage = () => {
       );
 
       if (linesError) throw linesError;
-      setLines(linesData || []);
+      // Sort lines by line_order to ensure correct order in PDF
+      const sortedLines = (linesData || []).sort((a: any, b: any) => 
+        (a.line_order || 0) - (b.line_order || 0)
+      );
+      setLines(sortedLines);
 
       // Fetch client
       if (invoiceRecord.client_id) {
@@ -375,8 +379,8 @@ const InvoiceDetailPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - PDF Preview */}
           <div className="lg:col-span-2">
-            <Card className="bg-white/5 border-white/10">
-              <CardContent className="p-0">
+            <Card className="bg-white/5 border-white/10 overflow-hidden">
+              <CardContent className="p-0 h-full">
                 <InvoicePDFViewer
                   invoice={invoice}
                   lines={lines}
