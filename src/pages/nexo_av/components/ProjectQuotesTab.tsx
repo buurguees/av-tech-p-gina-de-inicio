@@ -17,9 +17,14 @@ import { getStatusInfo } from "@/constants/quoteStatuses";
 interface Quote {
   id: string;
   quote_number: string;
-  project_name: string;
+  client_id: string;
+  project_id?: string | null;
+  project_name: string | null;
   status: string;
+  subtotal: number;
+  tax_amount: number;
   total: number;
+  valid_until: string | null;
   created_at: string;
 }
 
@@ -38,6 +43,7 @@ const ProjectQuotesTab = ({ projectId, clientId }: ProjectQuotesTabProps) => {
     const fetchQuotes = async () => {
       try {
         setLoading(true);
+        // Usar la versión del RPC que devuelve project_id (sin p_status)
         const { data, error } = await supabase.rpc('list_quotes', {
           p_search: null
         });
@@ -45,16 +51,10 @@ const ProjectQuotesTab = ({ projectId, clientId }: ProjectQuotesTabProps) => {
         if (error) throw error;
         const allQuotes = data || [];
 
-        // Primero intentamos vincular por project_id (nuevo modelo)
-        let projectQuotes = allQuotes.filter((q: any) => q.project_id === projectId);
+        // Filtrar presupuestos por project_id (vinculación directa)
+        const projectQuotes = allQuotes.filter((q: any) => q.project_id === projectId);
 
-        // Si no hay resultados pero tenemos clientId, usamos fallback por cliente
-        // Esto permite mostrar presupuestos antiguos que aún no tienen project_id
-        if (projectQuotes.length === 0 && clientId) {
-          projectQuotes = allQuotes.filter((q: any) => q.client_id === clientId);
-        }
-
-        setQuotes(projectQuotes);
+        setQuotes(projectQuotes as Quote[]);
       } catch (error) {
         console.error('Error fetching quotes:', error);
       } finally {
@@ -63,7 +63,7 @@ const ProjectQuotesTab = ({ projectId, clientId }: ProjectQuotesTabProps) => {
     };
 
     fetchQuotes();
-  }, [projectId, clientId]);
+  }, [projectId]);
 
   const handleCreateQuote = () => {
     // Navigate to create quote page with project and client context

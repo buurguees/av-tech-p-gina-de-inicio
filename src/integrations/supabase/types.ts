@@ -536,6 +536,29 @@ export type Database = {
           website: string
         }[]
       }
+      get_company_contacts: {
+        Args: never
+        Returns: {
+          business_hours: string
+          contact_email: string
+          contact_phone: string
+          contact_phone_secondary: string
+          google_maps_url: string
+          id: string
+          social_networks: Json
+          whatsapp_number: string
+        }[]
+      }
+      get_company_preferences: {
+        Args: never
+        Returns: {
+          bank_accounts: Json
+          default_currency: string
+          id: string
+          invoice_payment_days: number
+          quote_validity_days: number
+        }[]
+      }
       get_company_settings: {
         Args: never
         Returns: {
@@ -938,6 +961,7 @@ export type Database = {
               created_by_name: string
               id: string
               order_number: string
+              project_id: string
               project_name: string
               quote_number: string
               status: string
@@ -1215,6 +1239,27 @@ export type Database = {
           p_tax_id: string
         }
         Returns: boolean
+      }
+      upsert_company_contacts: {
+        Args: {
+          p_business_hours?: string
+          p_contact_email?: string
+          p_contact_phone?: string
+          p_contact_phone_secondary?: string
+          p_google_maps_url?: string
+          p_social_networks?: Json
+          p_whatsapp_number?: string
+        }
+        Returns: string
+      }
+      upsert_company_preferences: {
+        Args: {
+          p_bank_accounts?: Json
+          p_default_currency?: string
+          p_invoice_payment_days?: number
+          p_quote_validity_days?: number
+        }
+        Returns: string
       }
       upsert_company_settings: {
         Args: {

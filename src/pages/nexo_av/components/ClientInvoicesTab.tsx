@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus, Receipt, Download, Eye, Send } from "lucide-react";
+import { Plus, Receipt, Download, Eye, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,6 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
+import { getFinanceStatusInfo } from "@/constants/financeStatuses";
 
 interface ClientInvoicesTabProps {
   clientId: string;
@@ -19,47 +22,69 @@ interface ClientInvoicesTabProps {
 interface Invoice {
   id: string;
   invoice_number: string;
+  preliminary_number: string;
+  client_id: string;
+  project_id?: string | null;
   project_name: string | null;
   status: string;
   subtotal: number;
   tax_amount: number;
   total: number;
   due_date: string | null;
-  paid_at: string | null;
+  issue_date: string | null;
+  paid_amount: number;
+  pending_amount: number;
   created_at: string;
 }
 
-const INVOICE_STATUSES = [
-  { value: 'DRAFT', label: 'Borrador', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
-  { value: 'SENT', label: 'Enviada', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'VIEWED', label: 'Vista', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
-  { value: 'PARTIAL', label: 'Pago Parcial', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  { value: 'PAID', label: 'Pagada', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'OVERDUE', label: 'Vencida', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  { value: 'CANCELLED', label: 'Cancelada', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
-];
-
-const getStatusInfo = (status: string) => {
-  return INVOICE_STATUSES.find(s => s.value === status) || INVOICE_STATUSES[0];
-};
-
 const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
+  const { userId } = useParams();
+  const navigate = useNavigate();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch invoices from database when invoices table exists
-    setLoading(false);
+    const fetchInvoices = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase.rpc('finance_list_invoices', {
+          p_search: null,
+          p_status: null
+        });
+
+        if (error) throw error;
+        // Filtrar facturas por client_id
+        const clientInvoices = (data || []).filter((inv: any) => inv.client_id === clientId);
+        setInvoices(clientInvoices as Invoice[]);
+      } catch (error) {
+        console.error('Error fetching invoices:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoices();
   }, [clientId]);
 
+  const handleCreateInvoice = () => {
+    navigate(`/nexo-av/${userId}/invoices/new?clientId=${clientId}`);
+  };
+
+  const handleInvoiceClick = (invoiceId: string) => {
+    navigate(`/nexo-av/${userId}/invoices/${invoiceId}`);
+  };
+
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€`;
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(amount);
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
       </div>
     );
   }
@@ -68,7 +93,10 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
     <div className="space-y-4">
       {/* Actions */}
       <div className="flex justify-end">
-        <Button className="bg-white text-black hover:bg-white/90">
+        <Button 
+          className="bg-white text-black hover:bg-white/90"
+          onClick={handleCreateInvoice}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Nueva Factura
         </Button>
@@ -86,8 +114,8 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
               <TableHead className="text-white/60">Nº Factura</TableHead>
               <TableHead className="text-white/60">Proyecto</TableHead>
               <TableHead className="text-white/60">Estado</TableHead>
-              <TableHead className="text-white/60 text-right">Subtotal</TableHead>
               <TableHead className="text-white/60 text-right">Total</TableHead>
+              <TableHead className="text-white/60 text-right">Pendiente</TableHead>
               <TableHead className="text-white/60">Vencimiento</TableHead>
               <TableHead className="text-white/60">Acciones</TableHead>
             </TableRow>
@@ -101,6 +129,7 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
                   <Button
                     variant="link"
                     className="text-white/60 hover:text-white mt-2"
+                    onClick={handleCreateInvoice}
                   >
                     Crear la primera factura
                   </Button>
@@ -108,18 +137,21 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
               </TableRow>
             ) : (
               invoices.map((invoice) => {
-                const statusInfo = getStatusInfo(invoice.status);
+                const statusInfo = getFinanceStatusInfo(invoice.status);
+                const displayNumber = invoice.invoice_number || invoice.preliminary_number;
                 const isOverdue = invoice.due_date && 
                   new Date(invoice.due_date) < new Date() && 
-                  invoice.status !== 'PAID';
+                  invoice.status !== 'PAID' &&
+                  invoice.status !== 'CANCELLED';
                 
                 return (
                   <TableRow 
                     key={invoice.id} 
-                    className="border-white/10 hover:bg-white/5"
+                    className="border-white/10 hover:bg-white/5 cursor-pointer"
+                    onClick={() => handleInvoiceClick(invoice.id)}
                   >
-                    <TableCell className="text-white font-medium">
-                      {invoice.invoice_number}
+                    <TableCell className="text-white font-medium font-mono">
+                      {displayNumber}
                     </TableCell>
                     <TableCell className="text-white/60">
                       {invoice.project_name || '-'}
@@ -127,30 +159,29 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
                     <TableCell>
                       <Badge 
                         variant="outline" 
-                        className={`${isOverdue && invoice.status !== 'PAID' 
-                          ? 'bg-red-500/20 text-red-400 border-red-500/30' 
-                          : statusInfo.color} border`}
+                        className={`${isOverdue ? 'bg-red-500/20 text-red-400 border-red-500/30' : statusInfo.className} border`}
                       >
-                        {isOverdue && invoice.status !== 'PAID' ? 'Vencida' : statusInfo.label}
+                        {isOverdue ? 'Vencida' : statusInfo.label}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-right text-white/60">
-                      {formatCurrency(invoice.subtotal)}
                     </TableCell>
                     <TableCell className="text-right text-white font-medium">
                       {formatCurrency(invoice.total)}
+                    </TableCell>
+                    <TableCell className="text-right text-white/60">
+                      {formatCurrency(invoice.pending_amount)}
                     </TableCell>
                     <TableCell className={`text-sm ${isOverdue ? 'text-red-400' : 'text-white/60'}`}>
                       {invoice.due_date 
                         ? new Date(invoice.due_date).toLocaleDateString('es-ES')
                         : '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-2">
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10"
+                          onClick={() => handleInvoiceClick(invoice.id)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -161,15 +192,6 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
                         >
                           <Download className="h-4 w-4" />
                         </Button>
-                        {invoice.status === 'DRAFT' && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10"
-                          >
-                            <Send className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
                     </TableCell>
                   </TableRow>

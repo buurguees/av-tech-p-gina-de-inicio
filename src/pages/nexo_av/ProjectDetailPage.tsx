@@ -316,7 +316,7 @@ const ProjectDetailPageDesktop = () => {
             </TabsContent>
 
             <TabsContent value="invoices" className="mt-6">
-              <ProjectInvoicesTab projectId={project.id} />
+              <ProjectInvoicesTab projectId={project.id} clientId={project.client_id || undefined} />
             </TabsContent>
           </Tabs>
         </motion.div>
