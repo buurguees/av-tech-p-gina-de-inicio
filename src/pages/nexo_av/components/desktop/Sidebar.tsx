@@ -42,7 +42,7 @@ const Sidebar = ({ userId, modules }: SidebarProps) => {
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-black/40 backdrop-blur-xl border-r border-white/10 h-[calc(100vh-4rem)] sticky top-16">
+    <aside className="hidden md:flex flex-col w-64 bg-sidebar border-r border-sidebar-border h-[calc(100vh-4rem)] sticky top-16">
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
         {/* Dashboard Home */}
         <motion.button
@@ -50,8 +50,8 @@ const Sidebar = ({ userId, modules }: SidebarProps) => {
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 group",
             isActive(`/nexo-av/${userId}/dashboard`)
-              ? "bg-white/10 text-white shadow-lg shadow-white/5"
-              : "text-white/60 hover:bg-white/5 hover:text-white"
+              ? "bg-sidebar-accent text-sidebar-foreground shadow-sm"
+              : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
           )}
           whileHover={{ scale: 1.01, x: 2 }}
           whileTap={{ scale: 0.99 }}
@@ -59,8 +59,8 @@ const Sidebar = ({ userId, modules }: SidebarProps) => {
           <div className={cn(
             "p-1.5 rounded-lg transition-colors",
             isActive(`/nexo-av/${userId}/dashboard`)
-              ? "bg-white/10"
-              : "bg-white/5 group-hover:bg-white/10"
+              ? "bg-sidebar-primary/10"
+              : "bg-sidebar-accent/50 group-hover:bg-sidebar-primary/10"
           )}>
             <Home className="h-4 w-4 flex-shrink-0" />
           </div>
@@ -68,7 +68,7 @@ const Sidebar = ({ userId, modules }: SidebarProps) => {
         </motion.button>
 
         {/* Divider */}
-        <div className="h-px bg-white/10 my-3" />
+        <div className="h-px bg-sidebar-border my-3" />
 
         {/* Modules */}
         {availableModules.map((module) => {
@@ -82,8 +82,8 @@ const Sidebar = ({ userId, modules }: SidebarProps) => {
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 group",
                 active
-                  ? "bg-white/10 text-white shadow-lg shadow-white/5"
-                  : "text-white/60 hover:bg-white/5 hover:text-white"
+                  ? "bg-sidebar-accent text-sidebar-foreground shadow-sm"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
               )}
               whileHover={{ scale: 1.01, x: 2 }}
               whileTap={{ scale: 0.99 }}
@@ -91,8 +91,8 @@ const Sidebar = ({ userId, modules }: SidebarProps) => {
               <div className={cn(
                 "p-1.5 rounded-lg transition-colors",
                 active
-                  ? "bg-white/10"
-                  : "bg-white/5 group-hover:bg-white/10"
+                  ? "bg-sidebar-primary/10"
+                  : "bg-sidebar-accent/50 group-hover:bg-sidebar-primary/10"
               )}>
                 <Icon className="h-4 w-4 flex-shrink-0" />
               </div>

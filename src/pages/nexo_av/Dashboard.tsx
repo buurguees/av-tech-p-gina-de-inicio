@@ -29,6 +29,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { lazy, Suspense } from "react";
 import Sidebar from "./components/desktop/Sidebar";
 import DashboardView from "./components/desktop/DashboardView";
+import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 // Lazy load mobile components for better performance
 const DashboardMobile = lazy(() => import("./components/mobile/DashboardMobile"));
@@ -43,25 +44,72 @@ interface UserInfo {
   job_position?: string;
 }
 
-const NexoLogo = () => (
-  <svg
-    width="40"
-    height="40"
-    viewBox="0 0 1000 1000"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className="w-10 h-10"
-  >
-    <path d="M750 743.902L506.098 500H590.779L750 659.045V743.902Z" fill="white" />
-    <path d="M506.098 500L750 256.098V340.779L590.955 500H506.098Z" fill="white" />
-    <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="white" />
-    <path d="M743.902 250L500 493.902V409.221L659.045 250H743.902Z" fill="white" />
-    <path d="M500 506.098L743.902 750H659.221L500 590.955V506.098Z" fill="white" />
-    <path d="M256.098 750L500 506.098V590.779L340.955 750H256.098Z" fill="white" />
-    <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="white" />
-    <path d="M493.902 500L250 743.902V659.221L409.045 500H493.902Z" fill="white" />
-  </svg>
-);
+const NexoLogo = () => {
+  const [isLightTheme, setIsLightTheme] = useState(false);
+
+  useEffect(() => {
+    // Verificar si el body tiene la clase nexo-av-theme
+    const checkTheme = () => {
+      setIsLightTheme(document.body.classList.contains('nexo-av-theme'));
+    };
+
+    // Verificar al montar
+    checkTheme();
+
+    // Observar cambios en las clases del body
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Si está en modo light, usar el SVG con fill black
+  if (isLightTheme) {
+    return (
+      <svg
+        width="40"
+        height="40"
+        viewBox="0 0 500 500"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-10 h-10"
+      >
+        <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="currentColor" />
+        <path d="M256.098 250L500 6.09766V90.7789L340.955 250H256.098Z" fill="currentColor" />
+        <path d="M250 243.902L6.09753 -7.62939e-05H90.7788L250 159.045V243.902Z" fill="currentColor" />
+        <path d="M493.902 -0.000106812L250 243.902V159.221L409.045 -0.000106812H493.902Z" fill="currentColor" />
+        <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="currentColor" />
+        <path d="M6.09753 500L250 256.098V340.779L90.9553 500H6.09753Z" fill="currentColor" />
+        <path d="M3.05176e-05 6.09766L243.902 250H159.221L3.05176e-05 90.9554V6.09766Z" fill="currentColor" />
+        <path d="M243.902 250L4.57764e-05 493.902V409.221L159.045 250H243.902Z" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  // Si está en modo dark, usar el SVG original
+  return (
+    <svg
+      width="40"
+      height="40"
+      viewBox="0 0 1000 1000"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-10 h-10"
+    >
+      <path d="M750 743.902L506.098 500H590.779L750 659.045V743.902Z" fill="white" />
+      <path d="M506.098 500L750 256.098V340.779L590.955 500H506.098Z" fill="white" />
+      <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="white" />
+      <path d="M743.902 250L500 493.902V409.221L659.045 250H743.902Z" fill="white" />
+      <path d="M500 506.098L743.902 750H659.221L500 590.955V506.098Z" fill="white" />
+      <path d="M256.098 750L500 506.098V590.779L340.955 750H256.098Z" fill="white" />
+      <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="white" />
+      <path d="M493.902 500L250 743.902V659.221L409.045 500H493.902Z" fill="white" />
+    </svg>
+  );
+};
 
 const Dashboard = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -72,6 +120,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+
+  // Apply nexo-av theme
+  useNexoAvTheme();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -167,14 +218,13 @@ const Dashboard = () => {
   // Access denied screen
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <ShieldAlert className="h-16 w-16 text-red-500 mx-auto" />
-          <h1 className="text-2xl font-bold text-white">Acceso Denegado</h1>
-          <p className="text-white/60">No tienes permiso para acceder a este recurso.</p>
+          <ShieldAlert className="h-16 w-16 text-destructive mx-auto" />
+          <h1 className="text-2xl font-bold text-foreground">Acceso Denegado</h1>
+          <p className="text-muted-foreground">No tienes permiso para acceder a este recurso.</p>
           <Button 
             onClick={() => navigate('/nexo-av')}
-            className="bg-white text-black hover:bg-white/90"
           >
             Volver al inicio
           </Button>
@@ -185,8 +235,8 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-foreground">
           <NexoLogo />
         </div>
       </div>
@@ -287,23 +337,23 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
-      {/* Header with glass effect */}
-      <header className="border-b border-white/10 bg-black/60 backdrop-blur-xl sticky top-0 z-50 shadow-lg">
+    <div className="min-h-screen bg-background pb-mobile-nav">
+      {/* Header */}
+      <header className="border-b border-border bg-background sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 md:h-16">
             <div className="flex items-center gap-2 md:gap-3">
               <NexoLogo />
               <div>
-                <h1 className="text-white font-semibold tracking-wide text-sm md:text-base">NEXO AV</h1>
-                <p className="text-white/40 text-[10px] md:text-xs hidden md:block">Plataforma de Gestión</p>
+                <h1 className="text-foreground font-semibold tracking-wide text-sm md:text-base">NEXO AV</h1>
+                <p className="text-muted-foreground text-[10px] md:text-xs hidden md:block">Plataforma de Gestión</p>
               </div>
             </div>
             
             <div className="flex items-center gap-2 md:gap-4">
               <div className="text-right hidden sm:block">
-                <p className="text-white text-sm font-medium">{userInfo?.full_name}</p>
-                <p className="text-white/40 text-xs capitalize">
+                <p className="text-foreground text-sm font-medium">{userInfo?.full_name}</p>
+                <p className="text-muted-foreground text-xs capitalize">
                   {userInfo?.roles?.join(', ')}
                 </p>
               </div>
@@ -325,7 +375,7 @@ const Dashboard = () => {
         <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
           <Suspense fallback={
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
             </div>
           }>
             <DashboardMobile

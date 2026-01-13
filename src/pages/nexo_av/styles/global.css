@@ -1,0 +1,208 @@
+/* NEXO AV Light Theme - Solo para la plataforma de gestión interna */
+/* Este archivo sobrescribe las variables CSS solo para las páginas de nexo_av */
+/* Diseño inspirado en dashboards modernos con excelente contraste y UI limpia */
+
+/* Aplicar tema light solo cuando el body tiene la clase nexo-av-theme */
+body.nexo-av-theme {
+  /* ============================================
+     COLORES BASE - Alto contraste y limpieza
+     ============================================ */
+  
+  /* Fondo principal - Blanco puro para máxima limpieza */
+  --background: 0 0% 100% !important;
+  /* Texto principal - Negro para excelente contraste (WCAG AAA) */
+  --foreground: 0 0% 0% !important;
+
+  /* Cards - Blanco puro para máxima limpieza */
+  --card: 0 0% 100% !important;
+  --card-foreground: 0 0% 0% !important;
+
+  /* Popovers - Blanco puro */
+  --popover: 0 0% 100% !important;
+  --popover-foreground: 0 0% 0% !important;
+
+  /* Primary - Azul vibrante pero profesional (similar a referencias) */
+  --primary: 217 91% 60% !important;
+  --primary-foreground: 0 0% 100% !important;
+
+  /* Secondary - Gris muy claro para hover states y fondos sutiles */
+  --secondary: 0 0% 96% !important;
+  --secondary-foreground: 0 0% 0% !important;
+
+  /* Muted - Gris claro para texto secundario y fondos deshabilitados */
+  --muted: 0 0% 95% !important;
+  --muted-foreground: 0 0% 40% !important;
+
+  /* Accent - Azul muy claro para highlights sutiles */
+  --accent: 217 91% 97% !important;
+  --accent-foreground: 217 91% 40% !important;
+
+  /* Destructive - Rojo claro pero visible */
+  --destructive: 0 84% 60% !important;
+  --destructive-foreground: 0 0% 100% !important;
+
+  /* Bordes - Gris medio para mejor visibilidad y contraste */
+  --border: 0 0% 85% !important;
+  /* Inputs - Fondo muy claro */
+  --input: 0 0% 98% !important;
+  /* Ring - Color primario para focus states */
+  --ring: 217 91% 60% !important;
+
+  /* ============================================
+     COLORES DE TEXTO - Jerarquía clara con mejor contraste
+     ============================================ */
+  --text-primary: 0 0% 0% !important;
+  --text-secondary: 0 0% 40% !important;
+
+  /* ============================================
+     SOMBRAS - Sutiles y elegantes
+     ============================================ */
+  /* Sombras muy suaves para dar profundidad sin ser pesadas */
+  --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.04) !important;
+  --shadow-md: 0 2px 8px hsl(0 0% 0% / 0.06) !important;
+  --shadow-lg: 0 4px 16px hsl(0 0% 0% / 0.08) !important;
+  --shadow-xl: 0 8px 24px hsl(0 0% 0% / 0.10) !important;
+  
+  /* ============================================
+     SIDEBAR - Separación visual clara con mejor contraste
+     ============================================ */
+  /* Sidebar ligeramente más oscuro que el fondo principal para separación */
+  --sidebar-background: 0 0% 98% !important;
+  --sidebar-foreground: 0 0% 0% !important;
+  --sidebar-primary: 217 91% 60% !important;
+  --sidebar-primary-foreground: 0 0% 100% !important;
+  /* Accent para items activos - azul claro pero visible */
+  --sidebar-accent: 217 91% 94% !important;
+  --sidebar-accent-foreground: 217 91% 35% !important;
+  --sidebar-border: 0 0% 88% !important;
+  --sidebar-ring: 217 91% 60% !important;
+
+  /* ============================================
+     COLORES DE ESTADO - Vibrantes pero profesionales
+     ============================================ */
+  --success: 142 71% 45% !important;
+  --warning: 38 92% 50% !important;
+  --error: 0 84% 60% !important;
+  --info: 199 89% 48% !important;
+
+  /* ============================================
+     EFECTOS ESPECIALES
+     ============================================ */
+  --glow-primary: 217 91% 60% !important;
+}
+
+/* ============================================
+   APLICACIÓN DE ESTILOS BASE
+   ============================================ */
+
+/* Forzar fondo blanco y texto oscuro en body */
+body.nexo-av-theme {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* ============================================
+   SOBRESCRITURA DE CLASES HARDCODEADAS
+   ============================================ */
+
+/* Fondos negros -> Fondo blanco */
+body.nexo-av-theme div.bg-black,
+body.nexo-av-theme div[class*="bg-black"]:not([class*="hover"]):not([class*="active"]) {
+  background-color: hsl(var(--background)) !important;
+}
+
+/* Gradientes oscuros -> Fondo sólido blanco */
+body.nexo-av-theme div[class*="bg-gradient-to-br"][class*="from-black"],
+body.nexo-av-theme div[class*="from-black"][class*="via-zinc-900"] {
+  background: hsl(var(--background)) !important;
+  background-image: none !important;
+}
+
+/* Texto blanco -> Texto oscuro */
+body.nexo-av-theme h1.text-white:not([class*="hover"]),
+body.nexo-av-theme h2.text-white:not([class*="hover"]),
+body.nexo-av-theme h3.text-white:not([class*="hover"]),
+body.nexo-av-theme p.text-white:not([class*="hover"]),
+body.nexo-av-theme span.text-white:not([class*="hover"]),
+body.nexo-av-theme div.text-white:not([class*="hover"]),
+body.nexo-av-theme label.text-white:not([class*="hover"]),
+body.nexo-av-theme button.text-white:not([class*="hover"]) {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Texto blanco con opacidad -> Texto muted */
+body.nexo-av-theme [class*="text-white/60"],
+body.nexo-av-theme [class*="text-white/50"],
+body.nexo-av-theme [class*="text-white/40"],
+body.nexo-av-theme [class*="text-white/30"],
+body.nexo-av-theme [class*="text-white/70"],
+body.nexo-av-theme [class*="text-white/80"] {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+/* Bordes blancos con opacidad -> Bordes grises claros */
+body.nexo-av-theme [class*="border-white/10"],
+body.nexo-av-theme [class*="border-white/20"],
+body.nexo-av-theme [class*="border-white/30"] {
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Fondos blancos con opacidad baja -> Fondos muted */
+body.nexo-av-theme [class*="bg-white/5"],
+body.nexo-av-theme [class*="bg-white/[0.03]"],
+body.nexo-av-theme [class*="bg-white/\[0\.02\]"] {
+  background-color: hsl(var(--muted)) !important;
+}
+
+/* Fondos blancos con opacidad media -> Fondos secondary */
+body.nexo-av-theme [class*="bg-white/10"]:not([class*="hover"]):not([class*="active"]) {
+  background-color: hsl(var(--secondary)) !important;
+}
+
+/* Fondos zinc oscuros -> Fondos de card */
+body.nexo-av-theme [class*="bg-zinc-900"] {
+  background-color: hsl(var(--card)) !important;
+}
+
+body.nexo-av-theme [class*="bg-zinc-900/95"],
+body.nexo-av-theme [class*="bg-zinc-900/90"] {
+  background-color: hsl(var(--popover)) !important;
+}
+
+/* Backdrop blur -> Remover para tema light (más limpio) */
+body.nexo-av-theme [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ============================================
+   MEJORAS ADICIONALES PARA UI LIMPIA
+   ============================================ */
+
+/* Asegurar que los inputs tengan buen contraste */
+body.nexo-av-theme input,
+body.nexo-av-theme textarea,
+body.nexo-av-theme select {
+  background-color: hsl(var(--input)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Mejorar contraste en placeholders */
+body.nexo-av-theme input::placeholder,
+body.nexo-av-theme textarea::placeholder {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 0.7 !important;
+}
+
+/* Cards con sombras sutiles */
+body.nexo-av-theme [class*="shadow-2xl"] {
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Separadores más sutiles */
+body.nexo-av-theme hr,
+body.nexo-av-theme [class*="border-t"],
+body.nexo-av-theme [class*="border-b"] {
+  border-color: hsl(var(--border)) !important;
+}

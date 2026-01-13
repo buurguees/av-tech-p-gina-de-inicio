@@ -10,25 +10,72 @@ import UserAvatarDropdown from "./UserAvatarDropdown";
 // Lazy load mobile header
 const NexoHeaderMobile = lazy(() => import("./mobile/NexoHeaderMobile"));
 
-const NexoLogo = () => (
-  <svg
-    width="40"
-    height="40"
-    viewBox="0 0 1000 1000"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className="w-10 h-10"
-  >
-    <path d="M750 743.902L506.098 500H590.779L750 659.045V743.902Z" fill="white" />
-    <path d="M506.098 500L750 256.098V340.779L590.955 500H506.098Z" fill="white" />
-    <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="white" />
-    <path d="M743.902 250L500 493.902V409.221L659.045 250H743.902Z" fill="white" />
-    <path d="M500 506.098L743.902 750H659.221L500 590.955V506.098Z" fill="white" />
-    <path d="M256.098 750L500 506.098V590.779L340.955 750H256.098Z" fill="white" />
-    <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="white" />
-    <path d="M493.902 500L250 743.902V659.221L409.045 500H493.902Z" fill="white" />
-  </svg>
-);
+const NexoLogo = () => {
+  const [isLightTheme, setIsLightTheme] = useState(false);
+
+  useEffect(() => {
+    // Verificar si el body tiene la clase nexo-av-theme
+    const checkTheme = () => {
+      setIsLightTheme(document.body.classList.contains('nexo-av-theme'));
+    };
+
+    // Verificar al montar
+    checkTheme();
+
+    // Observar cambios en las clases del body
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Si está en modo light, usar el SVG con fill black
+  if (isLightTheme) {
+    return (
+      <svg
+        width="40"
+        height="40"
+        viewBox="0 0 500 500"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-10 h-10"
+      >
+        <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="currentColor" />
+        <path d="M256.098 250L500 6.09766V90.7789L340.955 250H256.098Z" fill="currentColor" />
+        <path d="M250 243.902L6.09753 -7.62939e-05H90.7788L250 159.045V243.902Z" fill="currentColor" />
+        <path d="M493.902 -0.000106812L250 243.902V159.221L409.045 -0.000106812H493.902Z" fill="currentColor" />
+        <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="currentColor" />
+        <path d="M6.09753 500L250 256.098V340.779L90.9553 500H6.09753Z" fill="currentColor" />
+        <path d="M3.05176e-05 6.09766L243.902 250H159.221L3.05176e-05 90.9554V6.09766Z" fill="currentColor" />
+        <path d="M243.902 250L4.57764e-05 493.902V409.221L159.045 250H243.902Z" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  // Si está en modo dark, usar el SVG original
+  return (
+    <svg
+      width="40"
+      height="40"
+      viewBox="0 0 1000 1000"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-10 h-10"
+    >
+      <path d="M750 743.902L506.098 500H590.779L750 659.045V743.902Z" fill="white" />
+      <path d="M506.098 500L750 256.098V340.779L590.955 500H506.098Z" fill="white" />
+      <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="white" />
+      <path d="M743.902 250L500 493.902V409.221L659.045 250H743.902Z" fill="white" />
+      <path d="M500 506.098L743.902 750H659.221L500 590.955V506.098Z" fill="white" />
+      <path d="M256.098 750L500 506.098V590.779L340.955 750H256.098Z" fill="white" />
+      <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="white" />
+      <path d="M493.902 500L250 743.902V659.221L409.045 500H493.902Z" fill="white" />
+    </svg>
+  );
+};
 
 interface UserInfo {
   user_id: string;
@@ -100,9 +147,9 @@ const NexoHeader = ({
   if (isMobile) {
     return (
       <Suspense fallback={
-        <header className="border-b border-white/20 bg-white/5 backdrop-blur-2xl sticky top-0 z-50 shadow-2xl shadow-black/20 safe-area-top">
+        <header className="border-b border-border bg-background sticky top-0 z-50 shadow-sm safe-area-top">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center">
-            <div className="animate-pulse w-32 h-4 bg-white/10 rounded-2xl"></div>
+            <div className="animate-pulse w-32 h-4 bg-muted rounded-2xl"></div>
           </div>
         </header>
       }>
@@ -135,7 +182,7 @@ const NexoHeader = ({
   };
 
   return (
-    <header className="border-b border-white/20 bg-white/5 backdrop-blur-2xl sticky top-0 z-50 shadow-2xl shadow-black/20">
+    <header className="border-b border-border bg-background sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
@@ -144,7 +191,7 @@ const NexoHeader = ({
                 variant="ghost"
                 size="icon"
                 onClick={handleBack}
-                className="text-white hover:bg-white/15 rounded-2xl transition-all duration-200 backdrop-blur-sm"
+                className="rounded-2xl transition-all duration-200"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
@@ -154,7 +201,7 @@ const NexoHeader = ({
                 variant="ghost"
                 size="icon"
                 onClick={handleHome}
-                className="text-white hover:bg-white/15 rounded-2xl transition-all duration-200 backdrop-blur-sm"
+                className="rounded-2xl transition-all duration-200"
               >
                 <Home className="h-5 w-5" />
               </Button>
@@ -168,11 +215,11 @@ const NexoHeader = ({
             </button>
             <div>
               {customTitle ? (
-                <h1 className="text-white font-semibold tracking-wide">{customTitle}</h1>
+                <h1 className="text-foreground font-semibold tracking-wide">{customTitle}</h1>
               ) : (
-                <h1 className="text-white font-semibold tracking-wide">{title}</h1>
+                <h1 className="text-foreground font-semibold tracking-wide">{title}</h1>
               )}
-              <p className="text-white/50 text-xs">{subtitle}</p>
+              <p className="text-muted-foreground text-xs">{subtitle}</p>
             </div>
           </div>
 
@@ -180,8 +227,8 @@ const NexoHeader = ({
           {showUserMenu && userInfo && (
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
-                <p className="text-white text-sm font-medium">{userInfo.full_name}</p>
-                <p className="text-white/40 text-xs">{userInfo.email}</p>
+                <p className="text-foreground text-sm font-medium">{userInfo.full_name}</p>
+                <p className="text-muted-foreground text-xs">{userInfo.email}</p>
               </div>
               <UserAvatarDropdown
                 fullName={userInfo.full_name || ''}
