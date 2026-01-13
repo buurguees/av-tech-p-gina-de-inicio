@@ -12,7 +12,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, FileText, Loader2, Edit } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, Search, FileText, Loader2, Edit, MoreVertical, ChevronUp, ChevronDown, Info, Calendar, Filter } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
@@ -51,6 +58,9 @@ const QuotesPageDesktop = () => {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchQuery = useDebounce(searchInput, 500);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [selectedQuotes, setSelectedQuotes] = useState<Set<string>>(new Set());
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     fetchQuotes();
@@ -98,6 +108,73 @@ const QuotesPageDesktop = () => {
     navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`);
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedQuotes(new Set(paginatedQuotes.map(q => q.id)));
+    } else {
+      setSelectedQuotes(new Set());
+    }
+  };
+
+  const handleSelectQuote = (quoteId: string, checked: boolean) => {
+    const newSelected = new Set(selectedQuotes);
+    if (checked) {
+      newSelected.add(quoteId);
+    } else {
+      newSelected.delete(quoteId);
+    }
+    setSelectedQuotes(newSelected);
+  };
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedQuotes = [...quotes].sort((a, b) => {
+    if (!sortColumn) return 0;
+    
+    let aValue: any;
+    let bValue: any;
+    
+    switch (sortColumn) {
+      case "number":
+        aValue = a.quote_number;
+        bValue = b.quote_number;
+        break;
+      case "client":
+        aValue = a.client_name || "";
+        bValue = b.client_name || "";
+        break;
+      case "project":
+        aValue = a.project_name || "";
+        bValue = b.project_name || "";
+        break;
+      case "status":
+        aValue = a.status;
+        bValue = b.status;
+        break;
+      case "total":
+        aValue = a.total;
+        bValue = b.total;
+        break;
+      case "date":
+        aValue = new Date(a.created_at).getTime();
+        bValue = new Date(b.created_at).getTime();
+        break;
+      default:
+        return 0;
+    }
+    
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
   // Pagination (50 records per page)
   const {
     currentPage,
@@ -111,7 +188,7 @@ const QuotesPageDesktop = () => {
     startIndex,
     endIndex,
     totalItems,
-  } = usePagination(quotes, { pageSize: 50 });
+  } = usePagination(sortedQuotes, { pageSize: 50 });
 
   return (
     <div className="min-h-screen bg-black pb-mobile-nav">
@@ -123,64 +200,104 @@ const QuotesPageDesktop = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between gap-2 mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Presupuestos</h1>
-              <p className="text-white/60 text-sm">Gestiona todos los presupuestos</p>
-            </div>
-            
-            <Button
-              onClick={handleNewQuote}
-              className="bg-white text-black hover:bg-white/90 h-10 text-sm"
-            >
-              <Plus className="h-4 w-4 mr-1.5" />
-              Nuevo Presupuesto
-            </Button>
-          </div>
-
-          {/* Search and Filters */}
-          <div className="flex flex-col gap-2 mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-              <Input
-                placeholder="Buscar..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-9 text-sm"
-              />
-            </div>
-            
-            <div className="flex gap-1.5 flex-wrap">
-              <Button
-                variant={statusFilter === null ? "secondary" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter(null)}
-                className={cn(
-                  "h-7 px-2 text-xs",
-                  statusFilter === null 
-                    ? "bg-white/20 text-white" 
-                    : "border-white/20 text-white/70 hover:bg-white/10"
-                )}
-              >
-                Todos
-              </Button>
-              {QUOTE_STATUSES.map((status) => (
+          {/* Header - Estilo Holded */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl md:text-3xl font-bold text-white">Presupuestos</h1>
+                <Info className="h-4 w-4 text-white/40" />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
+                      Acciones
+                      <ChevronDown className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                      Exportar seleccionados
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                      Duplicar seleccionados
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button
-                  key={status.value}
-                  variant={statusFilter === status.value ? "secondary" : "outline"}
-                  size="sm"
-                  onClick={() => setStatusFilter(status.value)}
-                  className={cn(
-                    "h-7 px-2 text-xs",
-                    statusFilter === status.value 
-                      ? "bg-white/20 text-white" 
-                      : "border-white/20 text-white/70 hover:bg-white/10"
-                  )}
+                  onClick={handleNewQuote}
+                  className="bg-orange-500 hover:bg-orange-600 text-white h-9 px-4 text-sm font-medium"
                 >
-                  {status.label}
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  Nuevo presupuesto
+                  <span className="ml-2 text-xs opacity-70">N</span>
                 </Button>
-              ))}
+              </div>
+            </div>
+
+            {/* Search and Filters Bar - Estilo Holded */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "h-8 px-3 text-xs border-white/20 text-white/70 hover:bg-white/10",
+                      statusFilter === null && "bg-white/10 text-white"
+                    )}
+                  >
+                    {statusFilter === null ? "Todos" : QUOTE_STATUSES.find(s => s.value === statusFilter)?.label || "Todos"}
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-zinc-900 border-white/10">
+                  <DropdownMenuItem 
+                    onClick={() => setStatusFilter(null)}
+                    className={cn("text-white hover:bg-white/10", statusFilter === null && "bg-white/10")}
+                  >
+                    Todos
+                  </DropdownMenuItem>
+                  {QUOTE_STATUSES.map((status) => (
+                    <DropdownMenuItem
+                      key={status.value}
+                      onClick={() => setStatusFilter(status.value)}
+                      className={cn("text-white hover:bg-white/10", statusFilter === status.value && "bg-white/10")}
+                    >
+                      {status.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-xs border-white/20 text-white/70 hover:bg-white/10"
+              >
+                <Filter className="h-3 w-3 mr-1" />
+                Filtro
+              </Button>
+              
+              <div className="relative flex-1 min-w-[200px] max-w-md">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                <Input
+                  placeholder="Buscar presupuestos..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-8 text-xs"
+                />
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-xs border-white/20 text-white/70 hover:bg-white/10"
+              >
+                <Calendar className="h-3 w-3 mr-1" />
+                01/12/2025 - 31/12/2025
+              </Button>
             </div>
           </div>
 
@@ -218,54 +335,160 @@ const QuotesPageDesktop = () => {
               <>
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-white/10 hover:bg-transparent">
-                      <TableHead className="text-white/70">Num.</TableHead>
-                      <TableHead className="text-white/70">Cliente</TableHead>
-                      <TableHead className="text-white/70">Proyecto</TableHead>
+                    <TableRow className="border-white/10 hover:bg-transparent bg-white/[0.03]">
+                      <TableHead className="w-12 px-4">
+                        <Checkbox
+                          checked={selectedQuotes.size === paginatedQuotes.length && paginatedQuotes.length > 0}
+                          onCheckedChange={handleSelectAll}
+                          className="border-white/30 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                        />
+                      </TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("date")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Fecha
+                          {sortColumn === "date" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("number")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Num
+                          {sortColumn === "number" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("client")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Cliente
+                          {sortColumn === "client" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("project")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Proyecto
+                          {sortColumn === "project" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
                       <TableHead className="text-white/70">Estado</TableHead>
-                      <TableHead className="text-white/70 text-right">Total</TableHead>
-                      <TableHead className="text-white/70 w-16"></TableHead>
+                      <TableHead 
+                        className="text-white/70 text-right cursor-pointer hover:text-white select-none"
+                        onClick={() => handleSort("total")}
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          Total
+                          {sortColumn === "total" && (
+                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-white/70 w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {paginatedQuotes.map((quote) => {
                       const statusInfo = getStatusInfo(quote.status);
                       const isDraft = quote.status === "DRAFT";
+                      const isSelected = selectedQuotes.has(quote.id);
                       return (
                         <TableRow
                           key={quote.id}
-                          className="border-white/10 hover:bg-white/[0.06] cursor-pointer transition-colors duration-200"
+                          className={cn(
+                            "border-white/10 hover:bg-white/[0.06] cursor-pointer transition-colors duration-200",
+                            isSelected && "bg-white/10"
+                          )}
                           onClick={() => handleQuoteClick(quote.id, quote.status)}
                         >
-                          <TableCell className="font-mono text-orange-500 font-medium">
+                          <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={(checked) => handleSelectQuote(quote.id, checked as boolean)}
+                              className="border-white/30 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                            />
+                          </TableCell>
+                          <TableCell className="text-white/80 text-xs">
+                            {new Date(quote.created_at).toLocaleDateString('es-ES', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric'
+                            })}
+                          </TableCell>
+                          <TableCell className="font-mono text-orange-500 font-medium text-sm">
                             {quote.quote_number}
                           </TableCell>
-                          <TableCell className="text-white uppercase">
+                          <TableCell className="text-white text-sm">
                             {quote.client_name || "-"}
                           </TableCell>
-                          <TableCell className="text-white/80">
+                          <TableCell className="text-white/70 text-sm">
                             {quote.project_name || "-"}
                           </TableCell>
                           <TableCell>
-                            <Badge className={statusInfo.className}>
+                            <Badge className={cn(statusInfo.className, "text-xs")}>
                               {statusInfo.label}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-white font-medium text-right">
+                          <TableCell className="text-white font-medium text-right text-sm">
                             {formatCurrency(quote.total)}
                           </TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
-                            {isDraft && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => handleEditClick(e, quote.id)}
-                                className="h-8 w-8 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10"
-                                title="Editar presupuesto"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            )}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                                <DropdownMenuItem 
+                                  className="text-white hover:bg-white/10"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleQuoteClick(quote.id, quote.status);
+                                  }}
+                                >
+                                  Ver detalle
+                                </DropdownMenuItem>
+                                {isDraft && (
+                                  <DropdownMenuItem 
+                                    className="text-white hover:bg-white/10"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditClick(e, quote.id);
+                                    }}
+                                  >
+                                    Editar
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem className="text-white hover:bg-white/10">
+                                  Duplicar
+                                </DropdownMenuItem>
+                                {isDraft && (
+                                  <DropdownMenuItem className="text-red-400 hover:bg-red-500/10">
+                                    Eliminar
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       );

@@ -10,7 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock, MessageSquare, Clock, Send, MoreVertical, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader from "./components/NexoHeader";
@@ -440,8 +447,84 @@ const QuoteDetailPageDesktop = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
+          {/* Header Superior - Estilo Holded */}
+          <div className="hidden md:block mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-bold text-white mb-1">
+                  {client?.company_name || quote.client_name} - Presupuesto {displayNumber}
+                </h1>
+                <div className="flex items-center gap-2">
+                  <Badge className={`${statusInfo.className} text-xs`}>
+                    {statusInfo.label}
+                  </Badge>
+                  {isLocked && (
+                    <Badge variant="outline" className="border-white/20 text-white/60 text-xs">
+                      <Lock className="h-3 w-3 mr-1" />
+                      Bloqueado
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/70 hover:text-white hover:bg-white/10"
+                >
+                  Convertir
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white/70 hover:text-white hover:bg-white/10"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-white/70 hover:text-white hover:bg-white/10"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                    {!isLocked && (
+                      <DropdownMenuItem 
+                        className="text-white hover:bg-white/10"
+                        onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                      <Copy className="h-4 w-4 mr-2" />
+                      Duplicar
+                    </DropdownMenuItem>
+                    {canDelete && (
+                      <DropdownMenuItem className="text-red-400 hover:bg-red-500/10">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  className="bg-orange-500 hover:bg-orange-600 text-white h-9 px-4"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Enviar
+                </Button>
+              </div>
+            </div>
+          </div>
+
           {/* Desktop Layout: Side by side */}
-          <div className="hidden md:grid md:grid-cols-3 gap-6 h-[calc(100vh-140px)]">
+          <div className="hidden md:grid md:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
             {/* PDF Preview - Left (2/3) */}
             <div className="md:col-span-2 bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
@@ -460,22 +543,66 @@ const QuoteDetailPageDesktop = () => {
               </div>
             </div>
 
-            {/* Info Panel - Right (1/3) */}
+            {/* Info Panel - Right (1/3) - Estilo Holded */}
             <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden flex flex-col">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-white font-mono font-bold text-lg">{displayNumber}</h2>
-                    {isLocked && <Lock className="h-4 w-4 text-white/40" />}
+              {/* Header del Panel */}
+              <div className="px-4 py-3 border-b border-white/10 shrink-0">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-white font-mono font-bold text-lg">{displayNumber}</h2>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-white/60 hover:text-white hover:bg-white/10 h-8 w-8"
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-white/60 hover:text-white hover:bg-white/10 h-8 w-8"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                        {!isLocked && (
+                          <DropdownMenuItem 
+                            className="text-white hover:bg-white/10"
+                            onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem className="text-white hover:bg-white/10">
+                          <Copy className="h-4 w-4 mr-2" />
+                          Duplicar
+                        </DropdownMenuItem>
+                        {canDelete && (
+                          <DropdownMenuItem className="text-red-400 hover:bg-red-500/10">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Eliminar
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  {/* Status selector or badge */}
-                  {canChangeStatus ? (
+                </div>
+                {/* Status badge */}
+                <Badge className={`${statusInfo.className} text-xs`}>
+                  {statusInfo.label}
+                </Badge>
+                {canChangeStatus && (
+                  <div className="mt-2">
                     <Select 
                       value={quote.status} 
                       onValueChange={handleStatusChange}
                       disabled={updatingStatus}
                     >
-                      <SelectTrigger className={`${statusInfo.className} border h-7 px-2 mt-1 w-auto min-w-[90px] text-xs font-medium rounded-md`}>
+                      <SelectTrigger className={`${statusInfo.className} border h-7 px-2 w-full text-xs font-medium rounded-md`}>
                         <SelectValue>
                           <span>{statusInfo.label}</span>
                         </SelectValue>
@@ -491,6 +618,7 @@ const QuoteDetailPageDesktop = () => {
                         })}
                       </SelectContent>
                     </Select>
+<<<<<<< Updated upstream
                   ) : (
                     <Badge className={`${statusInfo.className} text-xs mt-1`}>
                       {statusInfo.label}
@@ -550,7 +678,31 @@ const QuoteDetailPageDesktop = () => {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Tabs - Estilo Holded */}
+              <Tabs defaultValue="general" className="flex-1 flex flex-col overflow-hidden">
+                <TabsList className="mx-4 mt-3 bg-white/5 border border-white/10 rounded-lg p-1 h-9">
+                  <TabsTrigger 
+                    value="general" 
+                    className="flex-1 text-xs data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
+                  >
+                    General
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="messages" 
+                    className="flex-1 text-xs data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
+                  >
+                    Mensajes
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="history" 
+                    className="flex-1 text-xs data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
+                  >
+                    Historial
+                  </TabsTrigger>
+                </TabsList>
+
+                <div className="flex-1 overflow-y-auto p-4">
+                  <TabsContent value="general" className="space-y-4 mt-0">
 
                 {/* Locked message */}
                 {isLocked && (
@@ -675,7 +827,41 @@ const QuoteDetailPageDesktop = () => {
                     <p className="text-white/80 text-sm mt-2">{quote.notes}</p>
                   </div>
                 )}
-              </div>
+                  </TabsContent>
+
+                  <TabsContent value="messages" className="mt-0">
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <MessageSquare className="h-12 w-12 text-white/20 mb-4" />
+                      <p className="text-white/60 text-sm">No hay mensajes</p>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="history" className="mt-0">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
+                        <Clock className="h-4 w-4 text-white/40 mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-sm font-medium">Presupuesto creado</p>
+                          <p className="text-white/60 text-xs mt-1">
+                            {formatDate(quote.created_at)} por {quote.created_by_name || "Usuario"}
+                          </p>
+                        </div>
+                      </div>
+                      {quote.updated_at !== quote.created_at && (
+                        <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
+                          <Clock className="h-4 w-4 text-white/40 mt-0.5 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white text-sm font-medium">Última actualización</p>
+                            <p className="text-white/60 text-xs mt-1">
+                              {formatDate(quote.updated_at)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                </div>
+              </Tabs>
             </div>
           </div>
 
