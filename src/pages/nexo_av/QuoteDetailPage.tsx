@@ -11,6 +11,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader from "./components/NexoHeader";
@@ -136,6 +147,7 @@ const QuoteDetailPageDesktop = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [creatingVersion, setCreatingVersion] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (quoteId) {
@@ -323,6 +335,43 @@ const QuoteDetailPageDesktop = () => {
     });
   };
 
+  const handleDeleteQuote = async () => {
+    if (!quote || quote.status !== "DRAFT") return;
+
+    try {
+      setDeleting(true);
+      
+      // First delete all quote lines
+      for (const line of lines) {
+        await supabase.rpc("delete_quote_line", { p_line_id: line.id });
+      }
+
+      // Then delete the quote - we'll use update to set a 'deleted' status or simply cancel
+      // Since there's no delete_quote function, let's use update to CANCELLED
+      const { error } = await supabase.rpc("update_quote", {
+        p_quote_id: quoteId!,
+        p_status: "CANCELLED",
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Presupuesto eliminado",
+        description: `El presupuesto ${quote.quote_number} ha sido eliminado`,
+      });
+      navigate(`/nexo-av/${userId}/quotes`);
+    } catch (error: any) {
+      console.error("Error deleting quote:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar el presupuesto",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // Check if quote is locked
   const isLocked = quote ? LOCKED_STATES.includes(quote.status) : false;
   const canDelete = quote?.status === "DRAFT";
@@ -465,13 +514,38 @@ const QuoteDetailPageDesktop = () => {
                     </Button>
                   )}
                   {canDelete && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-white/60 hover:text-red-400 hover:bg-red-500/10 h-8 w-8"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-white/60 hover:text-red-400 hover:bg-red-500/10 h-8 w-8"
+                          disabled={deleting}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-zinc-900 border-white/10">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-white">¿Eliminar presupuesto borrador?</AlertDialogTitle>
+                          <AlertDialogDescription className="text-white/60">
+                            Esta acción eliminará permanentemente el presupuesto {quote.quote_number} y todas sus líneas.
+                            Esta acción no se puede deshacer.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">
+                            Cancelar
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDeleteQuote}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                          >
+                            Eliminar
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   )}
                 </div>
               </div>
