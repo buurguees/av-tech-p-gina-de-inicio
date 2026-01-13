@@ -33,11 +33,31 @@ import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+interface ProjectDetail {
+  id: string;
+  project_number: string;
+  client_id: string | null;
+  client_name: string | null;
+  status: string;
+  project_address: string | null;
+  project_city: string | null;
+  client_order_number: string | null;
+  local_name: string | null;
+  project_name: string;
+  quote_id: string | null;
+  notes: string | null;
+  created_by: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 interface CreateProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
   preselectedClientId?: string;
+  project?: ProjectDetail | null; // Para modo edición
 }
 
 interface Client {
@@ -53,11 +73,13 @@ const PROJECT_STATUSES = [
   { value: 'CANCELLED', label: 'Cancelado' },
 ];
 
-const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientId }: CreateProjectDialogProps) => {
+const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientId, project }: CreateProjectDialogProps) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [loadingClients, setLoadingClients] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [clientOpen, setClientOpen] = useState(false);
+  
+  const isEditMode = !!project;
   
   // Form state
   const [selectedClientId, setSelectedClientId] = useState<string>(preselectedClientId || "");
@@ -72,12 +94,67 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientI
   const [clientOrderNumber, setClientOrderNumber] = useState("");
   const [localName, setLocalName] = useState("");
 
+  // Parse address string into individual fields
+  const parseAddress = (address: string | null) => {
+    if (!address) return { street: "", postalCode: "", city: "", province: "", country: "España" };
+    
+    const parts = address.split(',').map(p => p.trim()).filter(Boolean);
+    // Typical format: "Calle, Código Postal, Ciudad, Provincia, País"
+    // We'll try to be smart about it
+    const result = {
+      street: "",
+      postalCode: "",
+      city: "",
+      province: "",
+      country: "España"
+    };
+    
+    if (parts.length > 0) {
+      // First part is usually the street
+      result.street = parts[0];
+    }
+    if (parts.length > 1) {
+      // Second part might be postal code (if numeric) or city
+      const secondPart = parts[1];
+      if (/^\d{5}$/.test(secondPart)) {
+        result.postalCode = secondPart;
+        if (parts.length > 2) result.city = parts[2];
+        if (parts.length > 3) result.province = parts[3];
+        if (parts.length > 4) result.country = parts[4];
+      } else {
+        result.city = secondPart;
+        if (parts.length > 2) result.province = parts[2];
+        if (parts.length > 3) result.country = parts[3];
+      }
+    }
+    
+    return result;
+  };
+
+  // Load project data when in edit mode
+  useEffect(() => {
+    if (open && project) {
+      setSelectedClientId(project.client_id || "");
+      setStatus(project.status || "PLANNED");
+      
+      const parsedAddress = parseAddress(project.project_address);
+      setProjectStreet(parsedAddress.street);
+      setProjectPostalCode(parsedAddress.postalCode);
+      setProjectCity(project.project_city || parsedAddress.city);
+      setProjectProvince(parsedAddress.province);
+      setProjectCountry(parsedAddress.country);
+      
+      setClientOrderNumber(project.client_order_number || "");
+      setLocalName(project.local_name || "");
+    }
+  }, [open, project]);
+
   // Update selectedClientId when preselectedClientId changes
   useEffect(() => {
-    if (preselectedClientId) {
+    if (preselectedClientId && !project) {
       setSelectedClientId(preselectedClientId);
     }
-  }, [preselectedClientId, open]);
+  }, [preselectedClientId, open, project]);
 
   // Fetch clients
   useEffect(() => {
@@ -100,15 +177,32 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientI
   }, [open]);
 
   const resetForm = () => {
-    setSelectedClientId(preselectedClientId || "");
-    setStatus("PLANNED");
-    setProjectStreet("");
-    setProjectPostalCode("");
-    setProjectCity("");
-    setProjectProvince("");
-    setProjectCountry("España");
-    setClientOrderNumber("");
-    setLocalName("");
+    if (project) {
+      // In edit mode, reload project data
+      setSelectedClientId(project.client_id || "");
+      setStatus(project.status || "PLANNED");
+      
+      const parsedAddress = parseAddress(project.project_address);
+      setProjectStreet(parsedAddress.street);
+      setProjectPostalCode(parsedAddress.postalCode);
+      setProjectCity(project.project_city || parsedAddress.city);
+      setProjectProvince(parsedAddress.province);
+      setProjectCountry(parsedAddress.country);
+      
+      setClientOrderNumber(project.client_order_number || "");
+      setLocalName(project.local_name || "");
+    } else {
+      // In create mode, reset to defaults
+      setSelectedClientId(preselectedClientId || "");
+      setStatus("PLANNED");
+      setProjectStreet("");
+      setProjectPostalCode("");
+      setProjectCity("");
+      setProjectProvince("");
+      setProjectCountry("España");
+      setClientOrderNumber("");
+      setLocalName("");
+    }
   };
 
   const handleSubmit = async () => {
@@ -129,23 +223,41 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientI
 
     setSubmitting(true);
     try {
-      const { data, error } = await supabase.rpc('create_project', {
-        p_client_id: selectedClientId,
-        p_status: status,
-        p_project_address: fullAddress || null,
-        p_project_city: projectCity || null,
-        p_client_order_number: clientOrderNumber || null,
-        p_local_name: localName || null,
-      });
+      if (isEditMode && project) {
+        // Update existing project
+        const { error } = await supabase.rpc('update_project', {
+          p_project_id: project.id,
+          p_status: status,
+          p_project_address: fullAddress || null,
+          p_project_city: projectCity || null,
+          p_client_order_number: clientOrderNumber || null,
+          p_local_name: localName || null,
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast.success("Proyecto creado correctamente");
-      resetForm();
-      onSuccess();
+        toast.success("Proyecto actualizado correctamente");
+        onSuccess();
+      } else {
+        // Create new project
+        const { data, error } = await supabase.rpc('create_project', {
+          p_client_id: selectedClientId,
+          p_status: status,
+          p_project_address: fullAddress || null,
+          p_project_city: projectCity || null,
+          p_client_order_number: clientOrderNumber || null,
+          p_local_name: localName || null,
+        });
+
+        if (error) throw error;
+
+        toast.success("Proyecto creado correctamente");
+        resetForm();
+        onSuccess();
+      }
     } catch (error: any) {
-      console.error('Error creating project:', error);
-      toast.error(error.message || "Error al crear el proyecto");
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} project:`, error);
+      toast.error(error.message || `Error al ${isEditMode ? 'actualizar' : 'crear'} el proyecto`);
     } finally {
       setSubmitting(false);
     }
@@ -160,7 +272,9 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientI
     }}>
       <DialogContent className="bg-zinc-900 border-white/10 text-white max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Crear Proyecto</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            {isEditMode ? "Editar Proyecto" : "Crear Proyecto"}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
@@ -173,7 +287,8 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientI
                   variant="outline"
                   role="combobox"
                   aria-expanded={clientOpen}
-                  className="w-full justify-between bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white"
+                  disabled={isEditMode}
+                  className="w-full justify-between bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loadingClients ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -182,7 +297,7 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientI
                   ) : (
                     "Seleccionar cliente..."
                   )}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  {!isEditMode && <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0 bg-zinc-900 border-white/10" align="start">
@@ -329,7 +444,7 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientI
           <div className="bg-white/5 rounded-lg p-3 text-sm text-white/60">
             <p className="font-medium text-white/80 mb-1">Nombre del proyecto (auto-generado):</p>
             <p className="font-mono text-xs">
-              XXXXXX - {selectedClient?.company_name || '[Cliente]'}
+              {isEditMode && project ? project.project_number : 'XXXXXX'} - {selectedClient?.company_name || '[Cliente]'}
               {clientOrderNumber ? ` - ${clientOrderNumber}` : ''}
               {projectCity ? ` - ${projectCity}` : ''}
               {localName ? ` - ${localName}` : ''}
@@ -353,10 +468,10 @@ const CreateProjectDialog = ({ open, onOpenChange, onSuccess, preselectedClientI
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Creando...
+                  {isEditMode ? "Actualizando..." : "Creando..."}
                 </>
               ) : (
-                'Crear Proyecto'
+                isEditMode ? 'Guardar Cambios' : 'Crear Proyecto'
               )}
             </Button>
           </div>

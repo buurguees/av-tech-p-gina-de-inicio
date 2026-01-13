@@ -30,6 +30,7 @@ import ProjectQuotesTab from "./components/ProjectQuotesTab";
 import ProjectTechniciansTab from "./components/ProjectTechniciansTab";
 import ProjectExpensesTab from "./components/ProjectExpensesTab";
 import ProjectInvoicesTab from "./components/ProjectInvoicesTab";
+import CreateProjectDialog from "./components/CreateProjectDialog";
 import { createMobilePage } from "./MobilePageWrapper";
 
 // Lazy load mobile version
@@ -73,6 +74,7 @@ const ProjectDetailPageDesktop = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const fetchProject = async () => {
     if (!projectId) return;
@@ -230,9 +232,7 @@ const ProjectDetailPageDesktop = () => {
                   <Button 
                     variant="outline" 
                     className="border-white/20 text-white hover:bg-white/10"
-                    onClick={() => {
-                      toast.info("Funcionalidad de edición próximamente");
-                    }}
+                    onClick={() => setEditDialogOpen(true)}
                   >
                     <Edit className="h-4 w-4 mr-2" />
                     Editar Proyecto
@@ -321,6 +321,17 @@ const ProjectDetailPageDesktop = () => {
           </Tabs>
         </motion.div>
       </main>
+
+      {/* Edit Project Dialog */}
+      <CreateProjectDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSuccess={() => {
+          setEditDialogOpen(false);
+          fetchProject(); // Reload project data
+        }}
+        project={project}
+      />
     </div>
   );
 };

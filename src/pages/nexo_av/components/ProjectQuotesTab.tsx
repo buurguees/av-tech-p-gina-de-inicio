@@ -43,8 +43,17 @@ const ProjectQuotesTab = ({ projectId, clientId }: ProjectQuotesTabProps) => {
         });
 
         if (error) throw error;
-        // Filter quotes by project_id
-        const projectQuotes = (data || []).filter((q: any) => q.project_id === projectId);
+        const allQuotes = data || [];
+
+        // Primero intentamos vincular por project_id (nuevo modelo)
+        let projectQuotes = allQuotes.filter((q: any) => q.project_id === projectId);
+
+        // Si no hay resultados pero tenemos clientId, usamos fallback por cliente
+        // Esto permite mostrar presupuestos antiguos que aún no tienen project_id
+        if (projectQuotes.length === 0 && clientId) {
+          projectQuotes = allQuotes.filter((q: any) => q.client_id === clientId);
+        }
+
         setQuotes(projectQuotes);
       } catch (error) {
         console.error('Error fetching quotes:', error);
@@ -54,7 +63,7 @@ const ProjectQuotesTab = ({ projectId, clientId }: ProjectQuotesTabProps) => {
     };
 
     fetchQuotes();
-  }, [projectId]);
+  }, [projectId, clientId]);
 
   const handleCreateQuote = () => {
     // Navigate to create quote page with project and client context

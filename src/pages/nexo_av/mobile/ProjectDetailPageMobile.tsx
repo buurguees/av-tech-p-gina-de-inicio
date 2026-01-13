@@ -28,7 +28,8 @@ import {
   ChevronDown,
   Building2,
   MapPin,
-  ExternalLink
+  ExternalLink,
+  Edit
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ import ProjectPlanningTab from "../components/ProjectPlanningTab";
 import ProjectQuotesTab from "../components/ProjectQuotesTab";
 import ProjectTechniciansTab from "../components/ProjectTechniciansTab";
 import ProjectExpensesTab from "../components/ProjectExpensesTab";
+import CreateProjectDialog from "../components/CreateProjectDialog";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { NexoLogo } from "../components/NexoHeader";
 
@@ -80,6 +82,7 @@ const ProjectDetailPageMobile = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const fetchProject = async () => {
     if (!projectId) return;
@@ -175,34 +178,44 @@ const ProjectDetailPageMobile = () => {
         >
           <Card className="bg-white/5 border-white/10">
             <CardContent className="pt-4 pb-4 space-y-3">
-              {/* Estado */}
+              {/* Estado y Editar */}
               <div className="flex items-center justify-between">
                 <span className="text-white/60 text-sm">Estado</span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild disabled={updatingStatus}>
-                    <button 
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${statusInfo.color}`}
-                    >
-                      {updatingStatus ? "Actualizando..." : statusInfo.label}
-                      <ChevronDown className="h-3 w-3" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent 
-                    align="end" 
-                    className="bg-zinc-900 border-white/10"
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setEditDialogOpen(true)}
+                    className="h-8 px-2 text-white/80 hover:text-white hover:bg-white/10"
                   >
-                    {PROJECT_STATUSES.map((status) => (
-                      <DropdownMenuItem
-                        key={status.value}
-                        onClick={() => handleStatusChange(status.value)}
-                        className={`cursor-pointer ${status.value === project.status ? 'bg-white/10' : ''}`}
+                    <Edit className="h-3.5 w-3.5" />
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild disabled={updatingStatus}>
+                      <button 
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${statusInfo.color}`}
                       >
-                        <span className={`inline-block w-2 h-2 rounded-full mr-2 ${status.color.split(' ')[0]}`} />
-                        <span className="text-white">{status.label}</span>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                        {updatingStatus ? "Actualizando..." : statusInfo.label}
+                        <ChevronDown className="h-3 w-3" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="end" 
+                      className="bg-zinc-900 border-white/10"
+                    >
+                      {PROJECT_STATUSES.map((status) => (
+                        <DropdownMenuItem
+                          key={status.value}
+                          onClick={() => handleStatusChange(status.value)}
+                          className={`cursor-pointer ${status.value === project.status ? 'bg-white/10' : ''}`}
+                        >
+                          <span className={`inline-block w-2 h-2 rounded-full mr-2 ${status.color.split(' ')[0]}`} />
+                          <span className="text-white">{status.label}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
 
               {/* Cliente */}
@@ -303,6 +316,17 @@ const ProjectDetailPageMobile = () => {
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav userId={userId || ''} />
+
+      {/* Edit Project Dialog */}
+      <CreateProjectDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSuccess={() => {
+          setEditDialogOpen(false);
+          fetchProject(); // Reload project data
+        }}
+        project={project}
+      />
     </div>
   );
 };
