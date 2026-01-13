@@ -28,7 +28,6 @@ const PaginationControls = ({
 }: PaginationControlsProps) => {
   if (totalItems === 0) return null;
 
-  // Generate page numbers to show
   const getPageNumbers = () => {
     const pages: (number | 'ellipsis')[] = [];
     
@@ -61,8 +60,8 @@ const PaginationControls = ({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-2">
-      <p className="text-white/60 text-sm">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 py-3 px-1">
+      <p className="text-muted-foreground text-xs">
         Mostrando {startIndex} - {endIndex} de {totalItems} registros
       </p>
       
@@ -72,26 +71,26 @@ const PaginationControls = ({
           size="sm"
           onClick={onPrevPage}
           disabled={!canGoPrev}
-          className="border-white/10 text-white/70 hover:bg-white/10 disabled:opacity-30"
+          className="h-7 w-7 p-0 border-border text-muted-foreground hover:bg-secondary disabled:opacity-40"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft size={14} />
         </Button>
         
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           {getPageNumbers().map((page, idx) => (
             page === 'ellipsis' ? (
-              <span key={`ellipsis-${idx}`} className="px-2 text-white/40">...</span>
+              <span key={`ellipsis-${idx}`} className="px-1.5 text-muted-foreground text-xs">...</span>
             ) : (
               <Button
                 key={page}
-                variant={page === currentPage ? "secondary" : "outline"}
+                variant={page === currentPage ? "default" : "outline"}
                 size="sm"
                 onClick={() => onGoToPage(page)}
-                className={
+                className={`h-7 min-w-[28px] px-2 text-xs ${
                   page === currentPage 
-                    ? "bg-white text-black min-w-[32px]" 
-                    : "border-white/10 text-white/70 hover:bg-white/10 min-w-[32px]"
-                }
+                    ? "bg-primary text-primary-foreground" 
+                    : "border-border text-muted-foreground hover:bg-secondary"
+                }`}
               >
                 {page}
               </Button>
@@ -104,9 +103,9 @@ const PaginationControls = ({
           size="sm"
           onClick={onNextPage}
           disabled={!canGoNext}
-          className="border-white/10 text-white/70 hover:bg-white/10 disabled:opacity-30"
+          className="h-7 w-7 p-0 border-border text-muted-foreground hover:bg-secondary disabled:opacity-40"
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight size={14} />
         </Button>
       </div>
     </div>
