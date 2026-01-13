@@ -24,6 +24,8 @@ import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "./components/ProductSearchInput";
 import { LOCKED_INVOICE_STATES } from "@/constants/invoiceStatuses";
+import NexoHeader, { NexoLogo } from "./components/NexoHeader";
+import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 interface Client {
   id: string;

@@ -10,6 +10,8 @@ import { TemplatesTab } from './components/settings/TemplatesTab';
 import { PreferencesTab } from './components/settings/PreferencesTab';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { lazy, Suspense } from 'react';
+import NexoHeader, { NexoLogo } from "./components/NexoHeader";
+import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 // Lazy load mobile tabs
 const DetailTabsMobile = lazy(() => import('./components/mobile/DetailTabsMobile'));
