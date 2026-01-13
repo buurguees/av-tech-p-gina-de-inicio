@@ -119,18 +119,18 @@ const NexoHeader = ({
     );
   }
 
-  // Smart back navigation: use backTo if provided, otherwise go back in history
+  // Back navigation: always use browser history to go to previous page
   const handleBack = () => {
-    if (backTo) {
-      navigate(backTo);
-    } else {
-      // Use navigate(-1) to go back in browser history
-      // React Router will handle cases where there's no history gracefully
-      navigate(-1);
-    }
+    // Always use navigate(-1) to go back in browser history
+    // This ensures we go to the actual previous page, not a predefined route
+    navigate(-1);
   };
 
   const handleHome = () => {
+    navigate(`/nexo-av/${userId}/dashboard`);
+  };
+
+  const handleLogoClick = () => {
     navigate(`/nexo-av/${userId}/dashboard`);
   };
 
@@ -159,7 +159,13 @@ const NexoHeader = ({
                 <Home className="h-5 w-5" />
               </Button>
             )}
-            <NexoLogo />
+            <button
+              onClick={handleLogoClick}
+              className="cursor-pointer hover:opacity-80 transition-opacity duration-200"
+              aria-label="Ir al inicio"
+            >
+              <NexoLogo />
+            </button>
             <div>
               {customTitle ? (
                 <h1 className="text-white font-semibold tracking-wide">{customTitle}</h1>

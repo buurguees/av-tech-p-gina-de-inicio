@@ -57,18 +57,18 @@ const NexoHeaderMobile = ({
     }
   }, [showUserMenu]);
 
-  // Smart back navigation: use backTo if provided, otherwise go back in history
+  // Back navigation: always use browser history to go to previous page
   const handleBack = () => {
-    if (backTo) {
-      navigate(backTo);
-    } else {
-      // Use navigate(-1) to go back in browser history
-      // React Router will handle cases where there's no history gracefully
-      navigate(-1);
-    }
+    // Always use navigate(-1) to go back in browser history
+    // This ensures we go to the actual previous page, not a predefined route
+    navigate(-1);
   };
 
   const handleHome = () => {
+    navigate(`/nexo-av/${userId}/dashboard`);
+  };
+
+  const handleLogoClick = () => {
     navigate(`/nexo-av/${userId}/dashboard`);
   };
 
@@ -114,9 +114,13 @@ const NexoHeaderMobile = ({
                 <Home className="h-5 w-5" />
               </Button>
             )}
-            <div className="shrink-0">
+            <button
+              onClick={handleLogoClick}
+              className="shrink-0 cursor-pointer hover:opacity-80 transition-opacity duration-200 touch-target"
+              aria-label="Ir al inicio"
+            >
               <NexoLogo />
-            </div>
+            </button>
             <div className="min-w-0 flex-1">
               {customTitle ? (
                 <h1 className="text-white font-semibold tracking-wide truncate text-sm sm:text-base">
