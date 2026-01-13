@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, FileText, Loader2, Edit, MoreVertical, ChevronUp, ChevronDown, Info, Calendar, Filter } from "lucide-react";
+import { Plus, Search, FileText, Loader2, Edit, MoreVertical, ChevronUp, ChevronDown, Info, Calendar, Filter, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
@@ -29,6 +29,17 @@ import MobileBottomNav from "./components/MobileBottomNav";
 import { cn } from "@/lib/utils";
 import { createMobilePage } from "./MobilePageWrapper";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 // Lazy load mobile version
 const QuotesPageMobile = lazy(() => import("./mobile/QuotesPageMobile"));
@@ -53,6 +64,7 @@ interface Quote {
 const QuotesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
+  const { toast } = useToast();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
@@ -61,6 +73,9 @@ const QuotesPageDesktop = () => {
   const [selectedQuotes, setSelectedQuotes] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [quoteToDelete, setQuoteToDelete] = useState<Quote | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchQuotes();
@@ -108,6 +123,67 @@ const QuotesPageDesktop = () => {
   const handleEditClick = (e: React.MouseEvent, quoteId: string) => {
     e.stopPropagation(); // Evitar que se active el onClick de la fila
     navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, quote: Quote) => {
+    e.stopPropagation();
+    if (quote.status !== "DRAFT") {
+      toast({
+        title: "Error",
+        description: "Solo se pueden eliminar presupuestos en estado borrador",
+        variant: "destructive",
+      });
+      return;
+    }
+    setQuoteToDelete(quote);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!quoteToDelete) return;
+
+    try {
+      setDeleting(true);
+      
+      // First, get quote lines to delete them
+      const { data: linesData } = await supabase.rpc("get_quote_lines", {
+        p_quote_id: quoteToDelete.id,
+      });
+
+      // Delete all quote lines
+      if (linesData) {
+        for (const line of linesData) {
+          await supabase.rpc("delete_quote_line", { p_line_id: line.id });
+        }
+      }
+
+      // Then cancel/delete the quote by setting status to CANCELLED
+      const { error } = await supabase.rpc("update_quote", {
+        p_quote_id: quoteToDelete.id,
+        p_status: "CANCELLED",
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Presupuesto eliminado",
+        description: `El presupuesto ${quoteToDelete.quote_number} ha sido eliminado`,
+      });
+
+      // Refresh quotes list
+      fetchQuotes();
+      setDeleteDialogOpen(false);
+      setQuoteToDelete(null);
+    } catch (error: any) {
+      console.error("Error deleting quote:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar el presupuesto",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleSelectAll = (checked: boolean) => {
@@ -478,6 +554,7 @@ const QuotesPageDesktop = () => {
                                       handleEditClick(e, quote.id);
                                     }}
                                   >
+                                    <Edit className="h-4 w-4 mr-2" />
                                     Editar
                                   </DropdownMenuItem>
                                 )}
@@ -485,7 +562,14 @@ const QuotesPageDesktop = () => {
                                   Duplicar
                                 </DropdownMenuItem>
                                 {isDraft && (
-                                  <DropdownMenuItem className="text-red-400 hover:bg-red-500/10">
+                                  <DropdownMenuItem 
+                                    className="text-red-400 hover:bg-red-500/10"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteClick(e, quote);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
                                     Eliminar
                                   </DropdownMenuItem>
                                 )}
@@ -519,6 +603,41 @@ const QuotesPageDesktop = () => {
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav userId={userId || ''} />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-zinc-900 border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">¿Eliminar presupuesto?</AlertDialogTitle>
+            <AlertDialogDescription className="text-white/60">
+              Esta acción eliminará permanentemente el presupuesto {quoteToDelete?.quote_number} y todas sus líneas.
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+              disabled={deleting}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={deleting}
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Eliminando...
+                </>
+              ) : (
+                "Eliminar"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
