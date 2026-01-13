@@ -40,6 +40,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_client_note: {
+        Args: { p_client_id: string; p_content: string; p_note_type?: string }
+        Returns: string
+      }
       add_invoice_line: {
         Args: {
           p_concept: string
@@ -524,6 +528,27 @@ export type Database = {
           website: string
         }[]
       }
+      get_client_for_map: {
+        Args: { p_client_id: string }
+        Returns: {
+          assigned_to: string
+          assigned_to_name: string
+          billing_address: string
+          billing_city: string
+          client_number: string
+          company_name: string
+          contact_email: string
+          contact_phone: string
+          created_at: string
+          full_address: string
+          id: string
+          latitude: number
+          lead_stage: string
+          legal_name: string
+          longitude: number
+          notes: string
+        }[]
+      }
       get_company_contacts: {
         Args: never
         Returns: {
@@ -620,6 +645,13 @@ export type Database = {
           tax_rate: number
           total: number
           unit_price: number
+        }[]
+      }
+      get_lead_stats: {
+        Args: { p_assigned_to?: string }
+        Returns: {
+          count: number
+          lead_stage: string
         }[]
       }
       get_next_invoice_number: { Args: never; Returns: string }
@@ -755,6 +787,21 @@ export type Database = {
           setup_completed: boolean
         }[]
       }
+      list_client_notes: {
+        Args: { p_client_id: string }
+        Returns: {
+          content: string
+          created_at: string
+          id: string
+          new_assignee_name: string
+          new_status: string
+          note_type: string
+          previous_assignee_name: string
+          previous_status: string
+          user_id: string
+          user_name: string
+        }[]
+      }
       list_clients: {
         Args: { p_lead_stage?: string; p_search?: string }
         Returns: {
@@ -774,6 +821,25 @@ export type Database = {
           notes: string
           tax_id: string
           urgency: string
+        }[]
+      }
+      list_clients_for_map: {
+        Args: { p_assigned_to?: string; p_lead_stages?: string[] }
+        Returns: {
+          assigned_to: string
+          assigned_to_name: string
+          client_number: string
+          company_name: string
+          contact_email: string
+          contact_phone: string
+          created_at: string
+          full_address: string
+          id: string
+          latitude: number
+          lead_stage: string
+          legal_name: string
+          longitude: number
+          notes_count: number
         }[]
       }
       list_invoices:
@@ -988,6 +1054,14 @@ export type Database = {
         Args: { p_token: string }
         Returns: undefined
       }
+      reassign_client: {
+        Args: {
+          p_client_id: string
+          p_new_assignee_id: string
+          p_note?: string
+        }
+        Returns: boolean
+      }
       record_login_attempt: {
         Args: {
           p_identifier: string
@@ -1045,6 +1119,19 @@ export type Database = {
           p_urgency?: string
           p_website?: string
         }
+        Returns: boolean
+      }
+      update_client_coordinates: {
+        Args: {
+          p_client_id: string
+          p_full_address: string
+          p_latitude: number
+          p_longitude: number
+        }
+        Returns: boolean
+      }
+      update_client_status: {
+        Args: { p_client_id: string; p_new_status: string; p_note?: string }
         Returns: boolean
       }
       update_invoice:
