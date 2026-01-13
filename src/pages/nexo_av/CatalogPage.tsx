@@ -89,7 +89,7 @@ function CatalogPageDesktop() {
         showHome={true}
       />
 
-      <main className="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-6">
+      <main className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-6">
         <Tabs defaultValue="products" value={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6">
           <TabsList className="bg-white/5 border border-white/10 h-9 md:h-10 w-full grid grid-cols-3 rounded-xl backdrop-blur-sm shadow-sm">
             <TabsTrigger 

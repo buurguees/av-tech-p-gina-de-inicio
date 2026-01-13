@@ -282,7 +282,7 @@ const InvoiceDetailPage = () => {
         backTo={`/nexo-av/${userId}/invoices`}
       />
 
-      <main className="p-6 max-w-7xl mx-auto">
+      <main className="p-6 w-[90%] max-w-[1800px] mx-auto">
         {/* Back button */}
         <Button
           variant="ghost"

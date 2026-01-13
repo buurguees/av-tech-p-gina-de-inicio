@@ -277,7 +277,7 @@ const QuotesPageDesktop = () => {
     <div className="min-h-screen bg-background pb-mobile-nav">
       <NexoHeader title="Presupuestos" userId={userId || ""} showBack={false} showHome={true} />
       
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-6">
+      <main className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

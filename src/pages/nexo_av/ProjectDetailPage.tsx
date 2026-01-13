@@ -138,7 +138,7 @@ const ProjectDetailPageDesktop = () => {
     return (
       <div className="min-h-screen bg-black">
         <NexoHeader userId={userId || ""} title="Proyecto" />
-        <main className="container mx-auto px-4 py-8">
+        <main className="w-[90%] max-w-[1800px] mx-auto px-4 py-8">
           <div className="text-center py-12">
             <p className="text-white/60">Proyecto no encontrado</p>
             <Button
@@ -165,7 +165,7 @@ const ProjectDetailPageDesktop = () => {
         backTo={`/nexo-av/${userId}/projects`}
       />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Project Header Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
