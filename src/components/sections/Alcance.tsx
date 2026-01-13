@@ -1,6 +1,5 @@
 import { motion, useInView } from 'framer-motion';
-import { useRef, useEffect, useState } from 'react';
-import Globe from 'globe.gl';
+import { useRef, useEffect, useState, useMemo } from 'react';
 
 // Coordenadas geográficas reales de proyectos [latitud, longitud]
 // La primera ciudad de cada país es la principal y se mostrará en el globo
@@ -119,32 +118,43 @@ const Alcance = () => {
   }, []);
 
   // Barcelona (HQ) coordinates
-  const barcelona = projects.find(c => c.isHQ)!;
+  const barcelona = useMemo(() => projects.find(c => c.isHQ)!, []);
 
   // Filtrar solo proyectos que se mostrarán en el globo (ciudades principales de cada país)
-  const projectsToShowOnGlobe = projects.filter(project => project.showOnGlobe || project.isHQ);
+  const projectsToShowOnGlobe = useMemo(
+    () => projects.filter(project => project.showOnGlobe || project.isHQ),
+    []
+  );
 
   // Crear arcos desde Barcelona hacia las ciudades principales
-  const arcsData = projectsToShowOnGlobe
-    .filter(project => !project.isHQ)
-    .map(project => ({
-      startLat: barcelona.lat,
-      startLng: barcelona.lng,
-      endLat: project.lat,
-      endLng: project.lng,
-      color: ['#ffffff', '#ffffff'],
-      name: project.name,
-    }));
+  const arcsData = useMemo(
+    () =>
+      projectsToShowOnGlobe
+        .filter(project => !project.isHQ)
+        .map(project => ({
+          startLat: barcelona.lat,
+          startLng: barcelona.lng,
+          endLat: project.lat,
+          endLng: project.lng,
+          color: ['#ffffff', '#ffffff'],
+          name: project.name,
+        })),
+    [barcelona, projectsToShowOnGlobe]
+  );
 
   // Puntos solo de las ciudades principales
-  const pointsData = projectsToShowOnGlobe.map(project => ({
-    lat: project.lat,
-    lng: project.lng,
-    size: project.isHQ ? 0.4 : 0.2,
-    color: '#ffffff',
-    name: project.name,
-    isHQ: project.isHQ,
-  }));
+  const pointsData = useMemo(
+    () =>
+      projectsToShowOnGlobe.map(project => ({
+        lat: project.lat,
+        lng: project.lng,
+        size: project.isHQ ? 0.4 : 0.2,
+        color: '#ffffff',
+        name: project.name,
+        isHQ: project.isHQ,
+      })),
+    [projectsToShowOnGlobe]
+  );
 
   // Función de rotación continua por puntos de interés
   const startRotationSequence = (globe: GlobeInstance) => {
@@ -179,8 +189,16 @@ const Alcance = () => {
     if (!globeRef.current || globeInstance.current) return;
     if (!isInView) return;
 
-    try {
-      const globe = new Globe(globeRef.current)
+    // Dynamic import de globe.gl solo cuando el componente esté en vista
+    let isMounted = true;
+
+    import('globe.gl').then((GlobeModule) => {
+      if (!isMounted || !globeRef.current || globeInstance.current) return;
+      
+      const Globe = GlobeModule.default;
+      
+      try {
+        const globe = new Globe(globeRef.current)
         .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
         .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
         .backgroundColor('rgba(0,0,0,0)')
@@ -256,17 +274,22 @@ const Alcance = () => {
 
       globeInstance.current = globe;
 
-      if (isInView) {
-        setTimeout(() => {
-          startRotationSequence(globe);
-        }, 500);
+        if (isInView) {
+          setTimeout(() => {
+            startRotationSequence(globe);
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Error initializing globe:', error);
+        setIsGlobeReady(true);
       }
-    } catch (error) {
-      console.error('Error initializing globe:', error);
+    }).catch((error) => {
+      console.error('Error loading globe.gl:', error);
       setIsGlobeReady(true);
-    }
+    });
 
     return () => {
+      isMounted = false;
       if (rotationTimeoutRef.current) {
         clearTimeout(rotationTimeoutRef.current);
       }
@@ -280,7 +303,7 @@ const Alcance = () => {
         globeInstance.current = null;
       }
     };
-  }, [isInView, isMobile]);
+  }, [isInView, isMobile, arcsData, pointsData]);
 
   useEffect(() => {
     const handleResize = () => {

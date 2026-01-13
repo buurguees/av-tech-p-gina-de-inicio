@@ -102,33 +102,33 @@ const InvoicesPageMobile = () => {
           className="space-y-3"
         >
           {/* Info Card */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white/60">
-            <FileText className="h-4 w-4 mb-1 text-white/40" />
+          <div className="bg-card border border-border rounded-lg p-2 text-[10px] text-muted-foreground">
+            <FileText className="h-3.5 w-3.5 mb-1 text-muted-foreground/60" />
             Las facturas se generan automáticamente desde presupuestos aprobados
           </div>
 
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               placeholder="Buscar factura, cliente o proyecto..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-11 text-sm"
+              className="pl-9 bg-card border-border text-foreground placeholder:text-muted-foreground h-9 text-xs"
             />
           </div>
           
           {/* Status Filters - Scrollable horizontal */}
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-3 px-3 scrollbar-hide">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-3 px-3 scrollbar-hide">
             <Button
               variant={statusFilter === null ? "secondary" : "outline"}
               size="sm"
               onClick={() => setStatusFilter(null)}
               className={cn(
-                "h-9 px-4 text-xs shrink-0",
+                "h-8 px-3 text-[10px] shrink-0",
                 statusFilter === null 
-                  ? "bg-white/20 text-white font-medium" 
-                  : "border-white/20 text-white/70 hover:bg-white/10"
+                  ? "bg-primary text-primary-foreground font-medium" 
+                  : "border-border text-muted-foreground"
               )}
             >
               Todos
@@ -140,10 +140,10 @@ const InvoicesPageMobile = () => {
                 size="sm"
                 onClick={() => setStatusFilter(status.value)}
                 className={cn(
-                  "h-9 px-4 text-xs shrink-0",
+                  "h-8 px-3 text-[10px] shrink-0",
                   statusFilter === status.value 
-                    ? "bg-white/20 text-white font-medium" 
-                    : "border-white/20 text-white/70 hover:bg-white/10"
+                    ? "bg-primary text-primary-foreground font-medium" 
+                    : "border-border text-muted-foreground"
                 )}
               >
                 {status.label}

@@ -11,7 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import NexoLoadingScreen from "./components/NexoLoadingScreen";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
-import blackLogo from "./styles/logos/black_logo.svg";
+import { NexoLogo } from "./components/NexoHeader";
 
 // Configuration
 const SUPABASE_URL = "https://takvthfatlcjsqgssnta.supabase.co";
@@ -64,61 +64,6 @@ const clearLastLogin = (): void => {
   } catch {
     // Ignore localStorage errors
   }
-};
-
-const NexoLogo = () => {
-  const [isLightTheme, setIsLightTheme] = useState(false);
-
-  useEffect(() => {
-    // Verificar si el body tiene la clase nexo-av-theme
-    const checkTheme = () => {
-      setIsLightTheme(document.body.classList.contains('nexo-av-theme'));
-    };
-
-    // Verificar al montar
-    checkTheme();
-
-    // Observar cambios en las clases del body
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Si está en modo light, usar el SVG black_logo
-  if (isLightTheme) {
-    return (
-      <img
-        src={blackLogo}
-        alt="NEXO AV"
-        className="w-20 h-20 object-contain"
-      />
-    );
-  }
-
-  // Si está en modo dark, usar el SVG original
-  return (
-    <svg
-      width="80"
-      height="80"
-      viewBox="0 0 1000 1000"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-20 h-20"
-    >
-      <path d="M750 743.902L506.098 500H590.779L750 659.045V743.902Z" fill="white" />
-      <path d="M506.098 500L750 256.098V340.779L590.955 500H506.098Z" fill="white" />
-      <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="white" />
-      <path d="M743.902 250L500 493.902V409.221L659.045 250H743.902Z" fill="white" />
-      <path d="M500 506.098L743.902 750H659.221L500 590.955V506.098Z" fill="white" />
-      <path d="M256.098 750L500 506.098V590.779L340.955 750H256.098Z" fill="white" />
-      <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="white" />
-      <path d="M493.902 500L250 743.902V659.221L409.045 500H493.902Z" fill="white" />
-    </svg>
-  );
 };
 
 const Login = () => {
@@ -493,7 +438,7 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -501,19 +446,24 @@ const Login = () => {
         className="w-full max-w-md"
       >
         {/* Logo y título */}
-        <div className="flex flex-col items-center mb-10">
+        <div className="flex flex-col items-center mb-8 sm:mb-10">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-4"
           >
-            <NexoLogo />
+            <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
+              <div className="w-full h-full [&_svg]:w-full [&_svg]:h-full [&_svg]:text-foreground">
+                <NexoLogo />
+              </div>
+            </div>
           </motion.div>
           <motion.h1
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-2xl font-bold text-foreground mt-6 tracking-wider"
+            className="text-2xl sm:text-3xl font-bold text-foreground mt-2 tracking-wider"
           >
             NEXO AV
           </motion.h1>
@@ -521,7 +471,7 @@ const Login = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-muted-foreground text-sm mt-2"
+            className="text-muted-foreground text-sm sm:text-base mt-1 text-center"
           >
             {loginStep === 'credentials' ? 'Plataforma de gestión interna' : 'Verificación en dos pasos'}
           </motion.p>
@@ -541,12 +491,12 @@ const Login = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-start gap-3 backdrop-blur-sm shadow-lg"
+                  className="mb-6 p-4 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-xl flex items-start gap-3 shadow-sm"
                 >
-                  <Clock className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
+                  <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-orange-400 text-sm font-medium">Cuenta bloqueada temporalmente</p>
-                    <p className="text-orange-400/70 text-sm">
+                    <p className="text-orange-800 dark:text-orange-400 text-sm font-medium">Cuenta bloqueada temporalmente</p>
+                    <p className="text-orange-700 dark:text-orange-400/70 text-sm">
                       Podrás intentarlo de nuevo en {Math.floor(retryAfter / 60)}:{(retryAfter % 60).toString().padStart(2, '0')} minutos
                     </p>
                   </div>
@@ -558,13 +508,13 @@ const Login = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3 backdrop-blur-sm shadow-lg"
+                  className="mb-6 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl flex items-start gap-3 shadow-sm"
                 >
-                  <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-red-400 text-sm">{error}</p>
+                    <p className="text-red-800 dark:text-red-400 text-sm">{error}</p>
                     {remainingAttempts !== null && remainingAttempts > 0 && remainingAttempts <= 3 && (
-                      <p className="text-red-400/70 text-xs mt-1">
+                      <p className="text-red-700 dark:text-red-400/70 text-xs mt-1">
                         {remainingAttempts} intento{remainingAttempts !== 1 ? 's' : ''} restante{remainingAttempts !== 1 ? 's' : ''}
                       </p>
                     )}
@@ -573,32 +523,32 @@ const Login = () => {
               )}
 
               {/* Credentials Form */}
-              <form onSubmit={handleCredentialsSubmit} className="space-y-6">
+              <form onSubmit={handleCredentialsSubmit} className="space-y-5 sm:space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white/70 text-sm">
+                  <Label htmlFor="email" className="text-foreground text-sm font-medium">
                     Correo electrónico
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="email"
                       type="email"
-                      placeholder="example@example.com"
+                      placeholder="tu@avtechesdeveniments.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={isSubmitting}
-                      className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/10 h-12 disabled:opacity-50"
+                      className="pl-10 bg-card border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 h-12 disabled:opacity-50 rounded-lg"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-white/70 text-sm">
+                  <Label htmlFor="password" className="text-foreground text-sm font-medium">
                     Contraseña
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
@@ -606,14 +556,14 @@ const Login = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={isSubmitting}
-                      className="pl-10 pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/10 h-12 disabled:opacity-50"
+                      className="pl-10 pr-10 bg-card border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 h-12 disabled:opacity-50 rounded-lg"
                       required
                       minLength={8}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/50 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       disabled={isSubmitting}
                     >
                       {showPassword ? (
@@ -628,7 +578,7 @@ const Login = () => {
                 <Button
                   type="submit"
                   disabled={isSubmitting || isRateLimited}
-                  className="w-full h-12 bg-white text-black font-medium hover:bg-white/90 transition-all disabled:opacity-50"
+                  className="w-full h-12 bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all disabled:opacity-50 rounded-lg shadow-sm"
                 >
                   {isSubmitting ? (
                     <>
@@ -645,7 +595,7 @@ const Login = () => {
                   )}
                 </Button>
 
-                <p className="text-center text-white/30 text-xs mt-8">
+                <p className="text-center text-muted-foreground text-xs sm:text-sm mt-6">
                   ¿Problemas para acceder? Contacta con el administrador
                 </p>
               </form>
@@ -659,12 +609,12 @@ const Login = () => {
               transition={{ duration: 0.3 }}
             >
               {/* OTP Info */}
-              <div className="mb-6 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl flex items-start gap-3 backdrop-blur-sm shadow-lg">
-                <ShieldCheck className="h-5 w-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+              <div className="mb-6 p-4 bg-blue-50 dark:bg-cyan-500/10 border border-blue-200 dark:border-cyan-500/20 rounded-xl flex items-start gap-3 shadow-sm">
+                <ShieldCheck className="h-5 w-5 text-blue-600 dark:text-cyan-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-cyan-400 text-sm font-medium">Verificación de seguridad</p>
-                  <p className="text-cyan-400/70 text-sm">
-                    Hemos enviado un código de 6 dígitos a <strong>{email}</strong>
+                  <p className="text-blue-800 dark:text-cyan-400 text-sm font-medium">Verificación de seguridad</p>
+                  <p className="text-blue-700 dark:text-cyan-400/70 text-sm">
+                    Hemos enviado un código de 6 dígitos a <strong className="font-semibold">{email}</strong>
                   </p>
                 </div>
               </div>
@@ -674,13 +624,13 @@ const Login = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3 backdrop-blur-sm shadow-lg"
+                  className="mb-6 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl flex items-start gap-3 shadow-sm"
                 >
-                  <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-red-400 text-sm">{otpError}</p>
+                    <p className="text-red-800 dark:text-red-400 text-sm">{otpError}</p>
                     {otpRemainingAttempts !== null && otpRemainingAttempts >= 0 && (
-                      <p className="text-red-400/70 text-xs mt-1">
+                      <p className="text-red-700 dark:text-red-400/70 text-xs mt-1">
                         {otpRemainingAttempts} intento{otpRemainingAttempts !== 1 ? 's' : ''} restante{otpRemainingAttempts !== 1 ? 's' : ''}
                       </p>
                     )}
@@ -691,7 +641,7 @@ const Login = () => {
               {/* OTP Form */}
               <form onSubmit={handleOtpSubmit} className="space-y-6">
                 <div className="space-y-4">
-                  <Label className="text-white/70 text-sm text-center block">
+                  <Label className="text-foreground text-sm sm:text-base text-center block font-medium">
                     Introduce el código de verificación
                   </Label>
                   <div className="flex justify-center">
@@ -700,14 +650,14 @@ const Login = () => {
                       value={otpCode}
                       onChange={handleOtpChange}
                       disabled={otpVerifying}
-                      containerClassName="gap-3"
+                      containerClassName="gap-2 sm:gap-3"
                     >
-                      <InputOTPGroup className="gap-3">
+                      <InputOTPGroup className="gap-2 sm:gap-3">
                         {[0, 1, 2, 3, 4, 5].map((index) => (
                           <InputOTPSlot
                             key={index}
                             index={index}
-                            className="!w-11 !h-14 text-xl bg-white/5 !border !border-white/20 text-white !rounded-lg first:!rounded-lg last:!rounded-lg"
+                            className="!w-10 !h-12 sm:!w-12 sm:!h-14 text-lg sm:text-xl bg-card !border !border-border text-foreground !rounded-lg focus:!border-primary focus:!ring-primary/20"
                           />
                         ))}
                       </InputOTPGroup>
@@ -718,7 +668,7 @@ const Login = () => {
                 <Button
                   type="submit"
                   disabled={otpVerifying || otpCode.length !== 6}
-                  className="w-full h-12 bg-white text-black font-medium hover:bg-white/90 transition-all disabled:opacity-50"
+                  className="w-full h-12 bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all disabled:opacity-50 rounded-lg shadow-sm"
                 >
                   {otpVerifying ? (
                     <>
@@ -738,7 +688,7 @@ const Login = () => {
                     type="button"
                     onClick={handleResendOtp}
                     disabled={!canResendOtp || otpSending}
-                    className="text-center text-white/50 text-sm hover:text-white/70 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="text-center text-muted-foreground text-sm hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     {otpSending ? (
                       'Enviando...'
@@ -752,7 +702,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={handleBackToCredentials}
-                    className="flex items-center justify-center gap-2 text-white/30 text-sm hover:text-white/50 transition-colors"
+                    className="flex items-center justify-center gap-2 text-muted-foreground text-sm hover:text-foreground transition-colors"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     Volver al inicio de sesión
@@ -764,10 +714,10 @@ const Login = () => {
         </AnimatePresence>
       </motion.div>
 
-      {/* Background decoration */}
+      {/* Background decoration - Subtle gradient */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
       </div>
     </div>
   );

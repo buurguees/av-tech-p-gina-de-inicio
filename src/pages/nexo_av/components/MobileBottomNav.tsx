@@ -29,7 +29,7 @@ const MobileBottomNav = ({ userId, userRoles = [] }: MobileBottomNavProps) => {
     },
     {
       id: 'lead-map',
-      label: 'Mapa',
+      label: 'Mapa Comercial',
       icon: MapPin,
       path: `/nexo-av/${userId}/lead-map`,
       matchPaths: ['/lead-map'],

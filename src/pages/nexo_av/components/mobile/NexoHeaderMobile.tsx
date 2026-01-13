@@ -13,6 +13,7 @@ interface UserInfo {
   full_name: string;
   phone?: string;
   job_position?: string;
+  theme_preference?: 'light' | 'dark';
 }
 
 interface NexoHeaderMobileProps {
@@ -39,13 +40,18 @@ const NexoHeaderMobile = ({
   const navigate = useNavigate();
   const { toast } = useToast();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
         const { data, error } = await supabase.rpc('get_current_user_info');
         if (!error && data && data.length > 0) {
-          setUserInfo(data[0] as UserInfo);
+          const userData = data[0] as UserInfo;
+          setUserInfo(userData);
+          // Set theme preference
+          const theme = (userData.theme_preference || 'light') as 'light' | 'dark';
+          setCurrentTheme(theme);
         }
       } catch (err) {
         console.error('Error fetching user info:', err);
@@ -56,6 +62,12 @@ const NexoHeaderMobile = ({
       fetchUserInfo();
     }
   }, [showUserMenu]);
+
+  const handleThemeChange = (theme: 'light' | 'dark') => {
+    setCurrentTheme(theme);
+    // Reload page to apply theme change
+    window.location.reload();
+  };
 
   // Back navigation: always use browser history to go to previous page
   const handleBack = () => {
@@ -143,7 +155,9 @@ const NexoHeaderMobile = ({
               userId={userInfo.user_id || ''}
               phone={userInfo.phone || ''}
               position={userInfo.job_position || ''}
+              themePreference={currentTheme}
               onLogout={handleLogout}
+              onThemeChange={handleThemeChange}
             />
           )}
         </div>

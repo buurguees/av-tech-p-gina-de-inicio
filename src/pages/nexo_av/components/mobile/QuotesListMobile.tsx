@@ -109,30 +109,29 @@ const QuotesListMobile = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.02 }}
             onClick={() => onQuoteClick(quote.id, quote.status)}
-            className="w-full p-3 bg-white border-b border-gray-200 active:bg-gray-50 transition-colors text-left min-h-[80px] max-h-[90px]"
+            className="w-full p-2.5 bg-card border border-border rounded-lg active:bg-secondary transition-colors text-left"
           >
-            <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-medium text-gray-900">
-                  {quote.quote_number}
-                </h3>
-                <p className="text-xs text-gray-500 truncate mt-0.5">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="text-[11px] font-semibold text-foreground truncate">
+                    {quote.quote_number}
+                  </p>
+                  <Badge 
+                    variant="outline" 
+                    className={`${statusInfo.className} text-[10px] px-1.5 py-0 shrink-0`}
+                  >
+                    {statusInfo.label}
+                  </Badge>
+                </div>
+                <p className="text-[10px] text-muted-foreground truncate">
                   {quote.client_name || 'Sin cliente'}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {formattedDate}
-                </p>
               </div>
-              <div className="ml-2 text-right">
-                <p className="text-sm font-semibold text-gray-900">
+              <div className="text-right shrink-0">
+                <p className="text-xs font-semibold text-foreground">
                   {formatCurrency(quote.total)}
                 </p>
-                <Badge 
-                  variant="outline" 
-                  className={`${statusInfo.className} text-xs px-2 py-0.5 inline-block mt-1`}
-                >
-                  {statusInfo.label}
-                </Badge>
               </div>
             </div>
           </motion.button>

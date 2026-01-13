@@ -36,6 +36,7 @@ interface UserInfo {
   roles: string[];
   phone?: string;
   job_position?: string;
+  theme_preference?: 'light' | 'dark';
 }
 
 const NexoLogo = () => {
@@ -56,6 +57,11 @@ const NexoLogo = () => {
 
     return () => observer.disconnect();
   }, []);
+
+  // Re-check when theme changes
+  useEffect(() => {
+    setIsLightTheme(document.body.classList.contains('nexo-av-theme'));
+  }, [document.body.className]);
 
   if (isLightTheme) {
     return (
@@ -110,9 +116,10 @@ const NexoAvLayout = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
 
   // Apply nexo-av theme
-  useNexoAvTheme();
+  useNexoAvTheme(currentTheme);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -152,6 +159,10 @@ const NexoAvLayout = () => {
           navigate(targetPath, { replace: true });
           return;
         }
+
+        // Set theme preference
+        const theme = (currentUserInfo.theme_preference || 'light') as 'light' | 'dark';
+        setCurrentTheme(theme);
 
         setUserInfo(currentUserInfo);
         setLoading(false);
@@ -219,7 +230,7 @@ const NexoAvLayout = () => {
   const modules = [
     {
       id: 'lead-map',
-      title: 'Mapa de Leads',
+      title: 'Mapa Comercial',
       icon: MapPin,
       color: 'from-teal-500/20 to-teal-600/10',
       borderColor: 'border-teal-500/30',
@@ -380,7 +391,9 @@ const NexoAvLayout = () => {
                 userId={userInfo?.user_id || ''}
                 phone={userInfo?.phone || ''}
                 position={userInfo?.job_position || ''}
+                themePreference={currentTheme}
                 onLogout={handleLogout}
+                onThemeChange={setCurrentTheme}
               />
             </div>
           </div>

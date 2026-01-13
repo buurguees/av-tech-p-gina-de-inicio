@@ -195,28 +195,53 @@ serve(async (req) => {
 
     // Handle update_own_info action - doesn't require admin
     if (action === 'update_own_info') {
-      const { userId, full_name, phone, position } = body;
+      const { userId, full_name, phone, position, theme_preference } = body;
+
+      console.log('update_own_info called with:', { userId, full_name, phone, position, theme_preference });
 
       // Verify user is updating their own info
       if (userId !== authorizedUser.id) {
+        console.error('User ID mismatch:', userId, 'vs', authorizedUser.id);
         return new Response(
           JSON.stringify({ error: 'Forbidden: Can only update your own information' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      const { error: updateError } = await supabaseAdmin
-        .rpc('update_own_user_info', { 
-          p_user_id: userId,
-          p_full_name: full_name || null,
-          p_phone: phone || null,
-          p_job_position: position || null
-        });
+      // Validate theme_preference if provided
+      if (theme_preference !== undefined && theme_preference !== null && !['light', 'dark'].includes(theme_preference)) {
+        console.error('Invalid theme_preference:', theme_preference);
+        return new Response(
+          JSON.stringify({ error: 'Invalid theme_preference. Must be "light" or "dark"' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
-      if (updateError) throw updateError;
+      // Build update object - only include fields that are provided
+      const updateParams: any = {
+        p_user_id: userId
+      };
+      
+      if (full_name !== undefined) updateParams.p_full_name = full_name || null;
+      if (phone !== undefined) updateParams.p_phone = phone || null;
+      if (position !== undefined) updateParams.p_job_position = position || null;
+      if (theme_preference !== undefined && theme_preference !== null) {
+        updateParams.p_theme_preference = theme_preference;
+      }
+
+      console.log('Calling update_own_user_info with params:', updateParams);
+
+      const { data, error: updateError } = await supabaseAdmin.rpc('update_own_user_info', updateParams);
+
+      if (updateError) {
+        console.error('Error updating user info:', updateError);
+        throw updateError;
+      }
+
+      console.log('Update successful, result:', data);
 
       return new Response(
-        JSON.stringify({ success: true }),
+        JSON.stringify({ success: true, data }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

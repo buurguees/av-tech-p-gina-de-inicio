@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { User, LogOut, Key, Eye, EyeOff } from "lucide-react";
 import { validatePassword } from "@/hooks/usePasswordValidation";
 import PasswordStrengthIndicator from "./PasswordStrengthIndicator";
+import ThemeToggle from "./ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +30,9 @@ interface UserAvatarDropdownProps {
   userId: string;
   phone?: string;
   position?: string;
+  themePreference?: 'light' | 'dark';
   onLogout: () => void;
+  onThemeChange?: (theme: 'light' | 'dark') => void;
 }
 
 const UserAvatarDropdown = ({ 
@@ -38,7 +41,9 @@ const UserAvatarDropdown = ({
   userId, 
   phone = '',
   position = '',
-  onLogout 
+  themePreference = 'light',
+  onLogout,
+  onThemeChange
 }: UserAvatarDropdownProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
@@ -60,6 +65,7 @@ const UserAvatarDropdown = ({
   });
 
   const { toast } = useToast();
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>(themePreference);
 
   // Update form when props change
   useEffect(() => {
@@ -69,6 +75,82 @@ const UserAvatarDropdown = ({
       position: position,
     });
   }, [fullName, phone, position]);
+
+  // Update theme when prop changes
+  useEffect(() => {
+    setCurrentTheme(themePreference);
+  }, [themePreference]);
+
+  const handleThemeChange = async (newTheme: 'light' | 'dark') => {
+    setCurrentTheme(newTheme);
+    
+    if (onThemeChange) {
+      onThemeChange(newTheme);
+    }
+
+    // Guardar en la base de datos
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("No session found");
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        throw new Error("Supabase URL not configured");
+      }
+
+      const requestBody = {
+        action: 'update_own_info',
+        userId: userId,
+        theme_preference: newTheme,
+      };
+
+      console.log('Saving theme preference:', requestBody);
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/admin-users`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      console.log('Response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response text:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || 'Unknown error' };
+        }
+        throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('Theme preference saved successfully:', result);
+      
+      toast({
+        title: "Tema actualizado",
+        description: `Tema ${newTheme === 'dark' ? 'oscuro' : 'claro'} guardado correctamente.`,
+      });
+    } catch (error: any) {
+      console.error('Error saving theme preference:', error);
+      toast({
+        title: "Error al guardar tema",
+        description: error.message || "No se pudo guardar la preferencia del tema. El cambio se aplicará solo en esta sesión.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Get initials from full name (first letter of first name + first letter of first surname)
   const getInitials = (name: string) => {
@@ -233,6 +315,14 @@ const UserAvatarDropdown = ({
             <Key className="mr-2 h-4 w-4" />
             <span>Cambiar contraseña</span>
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <div className="px-2 py-1.5 flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Tema</span>
+            <ThemeToggle 
+              currentTheme={currentTheme} 
+              onThemeChange={handleThemeChange}
+            />
+          </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem 
             onClick={onLogout}

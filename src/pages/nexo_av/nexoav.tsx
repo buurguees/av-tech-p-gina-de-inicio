@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
@@ -36,6 +36,7 @@ interface UserInfo {
   roles: string[];
   phone?: string;
   job_position?: string;
+  theme_preference?: 'light' | 'dark';
 }
 
 const NexoLogo = () => {
@@ -57,15 +58,20 @@ const NexoLogo = () => {
     return () => observer.disconnect();
   }, []);
 
+  // Re-check when theme changes
+  useEffect(() => {
+    setIsLightTheme(document.body.classList.contains('nexo-av-theme'));
+  }, [document.body.className]);
+
   if (isLightTheme) {
     return (
       <svg
-        width="40"
-        height="40"
+        width="32"
+        height="32"
         viewBox="0 0 500 500"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-10 h-10"
+        className="w-8 h-8"
       >
         <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="currentColor" />
         <path d="M256.098 250L500 6.09766V90.7789L340.955 250H256.098Z" fill="currentColor" />
@@ -81,12 +87,12 @@ const NexoLogo = () => {
 
   return (
     <svg
-      width="40"
-      height="40"
+      width="32"
+      height="32"
       viewBox="0 0 1000 1000"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="w-10 h-10"
+      className="w-8 h-8"
     >
       <path d="M750 743.902L506.098 500H590.779L750 659.045V743.902Z" fill="white" />
       <path d="M506.098 500L750 256.098V340.779L590.955 500H506.098Z" fill="white" />
@@ -114,9 +120,10 @@ const NexoAv = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
 
   // Apply nexo-av theme
-  useNexoAvTheme();
+  useNexoAvTheme(currentTheme);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -156,6 +163,10 @@ const NexoAv = () => {
           navigate(targetPath, { replace: true });
           return;
         }
+
+        // Set theme preference
+        const theme = (currentUserInfo.theme_preference || 'light') as 'light' | 'dark';
+        setCurrentTheme(theme);
 
         setUserInfo(currentUserInfo);
         setLoading(false);
@@ -218,11 +229,52 @@ const NexoAv = () => {
     }
   }, [isMobile, isDashboardRoute, userId, navigate, userInfo, loading, accessDenied]);
 
+  // Function to get page title based on current route
+  const getPageTitle = (pathname: string): string => {
+    if (!userId) return "NEXO AV";
+    
+    const basePath = `/nexo-av/${userId}`;
+    
+    // Exact matches
+    if (pathname === `${basePath}/lead-map`) return "Mapa Comercial";
+    if (pathname === `${basePath}/clients`) return "Clientes";
+    if (pathname === `${basePath}/quotes`) return "Presupuestos";
+    if (pathname === `${basePath}/invoices`) return "Facturas";
+    if (pathname === `${basePath}/projects`) return "Proyectos";
+    if (pathname === `${basePath}/catalog`) return "Catálogo";
+    if (pathname === `${basePath}/calculator`) return "Calculadora";
+    if (pathname === `${basePath}/reports`) return "Informes";
+    if (pathname === `${basePath}/users`) return "Usuarios";
+    if (pathname === `${basePath}/settings`) return "Configuración";
+    if (pathname === `${basePath}/audit`) return "Auditoría";
+    if (pathname === `${basePath}/dashboard`) return "Dashboard";
+    
+    // Pattern matches for detail pages
+    if (pathname.includes(`${basePath}/clients/`)) return "Detalle Cliente";
+    if (pathname.includes(`${basePath}/quotes/`)) return "Detalle Presupuesto";
+    if (pathname.includes(`${basePath}/invoices/`)) return "Detalle Factura";
+    if (pathname.includes(`${basePath}/projects/`)) return "Detalle Proyecto";
+    if (pathname.includes(`${basePath}/catalog/`)) return "Detalle Producto";
+    if (pathname.includes(`${basePath}/quotes/`) && pathname.includes("/edit")) return "Editar Presupuesto";
+    if (pathname.includes(`${basePath}/invoices/`) && pathname.includes("/edit")) return "Editar Factura";
+    if (pathname.includes(`${basePath}/quotes/new`)) return "Nuevo Presupuesto";
+    if (pathname.includes(`${basePath}/invoices/new`)) return "Nueva Factura";
+    
+    return "NEXO AV";
+  };
+
+  const currentPageTitle = getPageTitle(location.pathname);
+  
+  // Handle back navigation - always use browser history
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   // Build modules list
   const modules = [
     {
       id: 'lead-map',
-      title: 'Mapa de Leads',
+      title: 'Mapa Comercial',
       icon: MapPin,
       color: 'from-teal-500/20 to-teal-600/10',
       borderColor: 'border-teal-500/30',
@@ -355,38 +407,80 @@ const NexoAv = () => {
       {/* Header - Fijo en la parte superior */}
       <header className="flex-shrink-0 border-b border-border bg-background z-50 shadow-sm h-[3.25rem]">
         <div className="w-full h-full px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-full">
-            <div className="flex items-center gap-2.5 md:gap-3">
-              <button
-                onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
-                className="cursor-pointer hover:opacity-80 transition-opacity duration-200 flex-shrink-0"
-                aria-label="Ir al inicio"
-              >
-                <NexoLogo />
-              </button>
-              <div className="flex flex-col justify-center">
-                <h1 className="text-foreground font-semibold tracking-wide text-sm md:text-base leading-tight">NEXO AV</h1>
-                <p className="text-muted-foreground text-[10px] md:text-xs hidden md:block leading-tight">Plataforma de Gestión</p>
+          {isMobile ? (
+            // Mobile Header Layout: Back Button | Title (centered) | Avatar
+            <div className="flex items-center justify-between h-full">
+              {/* Left: Back Button */}
+              <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleBack}
+                  className="rounded-xl touch-target shrink-0 h-9 w-9"
+                  aria-label="Volver"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              {/* Center: Page Title */}
+              <div className="flex-1 flex items-center justify-center min-w-0 px-2">
+                <h1 className="text-foreground font-semibold tracking-wide text-sm sm:text-base truncate text-center">
+                  {currentPageTitle}
+                </h1>
+              </div>
+              
+              {/* Right: User Avatar */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <UserAvatarDropdown
+                  fullName={userInfo?.full_name || ''}
+                  email={userInfo?.email || ''}
+                  userId={userInfo?.user_id || ''}
+                  phone={userInfo?.phone || ''}
+                  position={userInfo?.job_position || ''}
+                  themePreference={currentTheme}
+                  onLogout={handleLogout}
+                  onThemeChange={setCurrentTheme}
+                />
               </div>
             </div>
-            
-            <div className="flex items-center gap-2 md:gap-4">
-              <div className="text-right hidden sm:block">
-                <p className="text-foreground text-sm font-medium">{userInfo?.full_name}</p>
-                <p className="text-muted-foreground text-xs capitalize">
-                  {userInfo?.roles?.join(', ')}
-                </p>
+          ) : (
+            // Desktop Header Layout: Logo + Title | User Info
+            <div className="flex items-center justify-between h-full">
+              <div className="flex items-center gap-2.5 md:gap-3">
+                <button
+                  onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
+                  className="cursor-pointer hover:opacity-80 transition-opacity duration-200 flex-shrink-0"
+                  aria-label="Ir al inicio"
+                >
+                  <NexoLogo />
+                </button>
+                <div className="flex flex-col justify-center">
+                  <h1 className="text-foreground font-semibold tracking-wide text-sm md:text-base leading-tight">NEXO AV</h1>
+                  <p className="text-muted-foreground text-[10px] md:text-xs hidden md:block leading-tight">Plataforma de Gestión</p>
+                </div>
               </div>
-              <UserAvatarDropdown
-                fullName={userInfo?.full_name || ''}
-                email={userInfo?.email || ''}
-                userId={userInfo?.user_id || ''}
-                phone={userInfo?.phone || ''}
-                position={userInfo?.job_position || ''}
-                onLogout={handleLogout}
-              />
+              
+              <div className="flex items-center gap-2 md:gap-4">
+                <div className="text-right hidden sm:block">
+                  <p className="text-foreground text-sm font-medium">{userInfo?.full_name}</p>
+                  <p className="text-muted-foreground text-xs capitalize">
+                    {userInfo?.roles?.join(', ')}
+                  </p>
+                </div>
+                <UserAvatarDropdown
+                  fullName={userInfo?.full_name || ''}
+                  email={userInfo?.email || ''}
+                  userId={userInfo?.user_id || ''}
+                  phone={userInfo?.phone || ''}
+                  position={userInfo?.job_position || ''}
+                  themePreference={currentTheme}
+                  onLogout={handleLogout}
+                  onThemeChange={setCurrentTheme}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </header>
 

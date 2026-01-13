@@ -84,38 +84,33 @@ const ClientsListMobile = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.02 }}
             onClick={() => onClientClick(client.id)}
-            className="w-full p-3 bg-white border-b border-gray-200 active:bg-gray-50 transition-colors text-left min-h-[70px] max-h-[80px]"
+            className="w-full p-2.5 bg-card border border-border rounded-lg active:bg-secondary transition-colors text-left"
           >
-            <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-medium text-gray-900 truncate">
-                  {client.company_name}
-                </h3>
-                {client.assigned_to_name && (
-                  <p className="text-xs text-gray-500 truncate mt-0.5">
-                    {client.assigned_to_name}
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="text-[11px] font-semibold text-foreground truncate">
+                    {client.company_name}
                   </p>
+                  <Badge 
+                    variant="outline" 
+                    className={`${stageInfo.color} text-[10px] px-1.5 py-0 shrink-0`}
+                  >
+                    {stageInfo.label}
+                  </Badge>
+                </div>
+                {client.contact_phone && (
+                  <a 
+                    href={`tel:${client.contact_phone}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-[10px] text-primary flex items-center gap-1"
+                  >
+                    <Phone className="w-3 h-3" />
+                    {client.contact_phone}
+                  </a>
                 )}
               </div>
-              <Badge 
-                variant="outline" 
-                className={`${stageInfo.color} border text-xs px-2 py-0.5 shrink-0 ml-2`}
-              >
-                {stageInfo.label}
-              </Badge>
             </div>
-            {client.contact_phone && (
-              <div className="flex items-center mt-2">
-                <a 
-                  href={`tel:${client.contact_phone}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-xs text-blue-600 flex items-center"
-                >
-                  <Phone className="w-3 h-3 mr-1" />
-                  {client.contact_phone}
-                </a>
-              </div>
-            )}
           </motion.button>
         );
       })}

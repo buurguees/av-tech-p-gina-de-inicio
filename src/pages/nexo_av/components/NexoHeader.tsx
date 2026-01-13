@@ -36,12 +36,12 @@ const NexoLogo = () => {
   if (isLightTheme) {
     return (
       <svg
-        width="40"
-        height="40"
+        width="32"
+        height="32"
         viewBox="0 0 500 500"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-10 h-10"
+        className="w-8 h-8"
       >
         <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="currentColor" />
         <path d="M256.098 250L500 6.09766V90.7789L340.955 250H256.098Z" fill="currentColor" />
@@ -58,12 +58,12 @@ const NexoLogo = () => {
   // Si está en modo dark, usar el SVG original
   return (
     <svg
-      width="40"
-      height="40"
+      width="32"
+      height="32"
       viewBox="0 0 1000 1000"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="w-10 h-10"
+      className="w-8 h-8"
     >
       <path d="M750 743.902L506.098 500H590.779L750 659.045V743.902Z" fill="white" />
       <path d="M506.098 500L750 256.098V340.779L590.955 500H506.098Z" fill="white" />
@@ -83,6 +83,7 @@ interface UserInfo {
   full_name: string;
   phone?: string;
   job_position?: string;
+  theme_preference?: 'light' | 'dark';
 }
 
 interface NexoHeaderProps {
@@ -110,13 +111,18 @@ const NexoHeader = ({
   const navigate = useNavigate();
   const { toast } = useToast();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
         const { data, error } = await supabase.rpc('get_current_user_info');
         if (!error && data && data.length > 0) {
-          setUserInfo(data[0] as UserInfo);
+          const userData = data[0] as UserInfo;
+          setUserInfo(userData);
+          // Set theme preference
+          const theme = (userData.theme_preference || 'light') as 'light' | 'dark';
+          setCurrentTheme(theme);
         }
       } catch (err) {
         console.error('Error fetching user info:', err);
@@ -127,6 +133,12 @@ const NexoHeader = ({
       fetchUserInfo();
     }
   }, [showUserMenu]);
+
+  const handleThemeChange = (theme: 'light' | 'dark') => {
+    setCurrentTheme(theme);
+    // Reload page to apply theme change
+    window.location.reload();
+  };
 
   const handleLogout = async () => {
     try {
@@ -236,7 +248,9 @@ const NexoHeader = ({
                 userId={userInfo.user_id || ''}
                 phone={userInfo.phone || ''}
                 position={userInfo.job_position || ''}
+                themePreference={currentTheme}
                 onLogout={handleLogout}
+                onThemeChange={handleThemeChange}
               />
             </div>
           )}

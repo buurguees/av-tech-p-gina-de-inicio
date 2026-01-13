@@ -8,7 +8,9 @@ import {
   Shield, 
   HelpCircle, 
   LogOut,
-  X
+  X,
+  Receipt,
+  FolderKanban
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +28,20 @@ const MenuDesplegable = ({ userId, isAdmin, onClose, onLogout }: MenuDesplegable
   const { toast } = useToast();
 
   const menuItems = [
+    {
+      id: 'invoices',
+      label: 'Facturas',
+      icon: Receipt,
+      path: `/nexo-av/${userId}/invoices`,
+      available: true,
+    },
+    {
+      id: 'projects',
+      label: 'Proyectos',
+      icon: FolderKanban,
+      path: `/nexo-av/${userId}/projects`,
+      available: true,
+    },
     {
       id: 'profile',
       label: 'Perfil',

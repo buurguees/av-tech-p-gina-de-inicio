@@ -111,53 +111,31 @@ const InvoicesListMobile = ({
             transition={{ delay: index * 0.05 }}
           >
             <Card
-              className={`bg-white/5 border-white/10 cursor-pointer active:scale-[0.98] transition-all duration-200 ${
-                isOverdue ? "border-red-500/30" : ""
+              className={`bg-card border-border cursor-pointer active:scale-[0.98] transition-all duration-200 ${
+                isOverdue ? "border-destructive/30" : ""
               }`}
               onClick={() => onInvoiceClick(invoice.id)}
             >
-              <CardContent className="p-4">
-                {/* Header: Número y Estado */}
-                <div className="flex items-start justify-between mb-3">
+              <CardContent className="p-2.5">
+                {/* Header: Número, Cliente y Estado */}
+                <div className="flex items-center justify-between gap-2 mb-1.5">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-white font-mono font-bold text-sm mb-1 truncate">
-                      {invoice.invoice_number}
-                    </h3>
-                    <div className="flex items-center gap-1.5 text-white/60">
-                      <Building2 className="h-3.5 w-3.5 shrink-0" />
-                      <span className="text-xs truncate">{invoice.client_name}</span>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <p className="text-[11px] font-semibold text-foreground truncate">
+                        {invoice.invoice_number}
+                      </p>
+                      <Badge className={`${statusInfo.className} text-[10px] px-1.5 py-0 shrink-0`}>
+                        {statusInfo.label}
+                      </Badge>
                     </div>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {invoice.client_name}
+                    </p>
                   </div>
-                  <Badge className={`${statusInfo.className} text-xs shrink-0 ml-2`}>
-                    {statusInfo.label}
-                  </Badge>
-                </div>
-
-                {/* Proyecto (si existe) */}
-                {invoice.project_name && (
-                  <div className="mb-3 text-xs text-white/50 truncate">
-                    📁 {invoice.project_name}
-                  </div>
-                )}
-
-                {/* Footer: Fechas y Total */}
-                <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                  <div className="flex flex-col gap-1 text-xs">
-                    <div className="flex items-center gap-1.5 text-white/50">
-                      <Calendar className="h-3 w-3" />
-                      <span>Emisión: {formatDate(invoice.issue_date)}</span>
-                    </div>
-                    {invoice.due_date && (
-                      <div className={`flex items-center gap-1.5 ${isOverdue ? "text-red-400" : "text-white/50"}`}>
-                        <Calendar className="h-3 w-3" />
-                        <span>Vence: {formatDate(invoice.due_date)}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <div className="text-white font-bold text-base">
+                  <div className="text-right shrink-0">
+                    <p className="text-xs font-semibold text-foreground">
                       {formatCurrency(invoice.total)}
-                    </div>
+                    </p>
                   </div>
                 </div>
               </CardContent>

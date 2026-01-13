@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import ExcelJS from 'exceljs';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -93,7 +92,7 @@ export function CategoryImportDialog({
     onOpenChange(false);
   };
 
-  const getCellValue = (row: ExcelJS.Row, colIndex: number): any => {
+  const getCellValue = (row: any, colIndex: number): any => {
     const cell = row.getCell(colIndex);
     if (cell.value === null || cell.value === undefined) return '';
     // Handle rich text
@@ -105,6 +104,9 @@ export function CategoryImportDialog({
 
   const parseExcelFile = async (file: File) => {
     try {
+      // Dynamic import de ExcelJS solo cuando se necesita
+      const ExcelJS = (await import('exceljs')).default;
+      
       const arrayBuffer = await file.arrayBuffer();
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load(arrayBuffer);

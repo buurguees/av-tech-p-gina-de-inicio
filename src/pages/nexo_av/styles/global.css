@@ -119,6 +119,291 @@ body.nexo-av-theme {
 }
 
 /* ============================================
+   NEXO AV - Dark Theme
+   Pure black background with high contrast
+   ============================================ */
+
+body.nexo-av-theme-dark {
+  /* ====
+     BASE COLORS - Dark Mode
+     ==== */
+  
+  /* Background - Pure black */
+  --background: 0 0% 0% !important;
+  /* Foreground - Pure white for maximum contrast */
+  --foreground: 0 0% 100% !important;
+
+  /* Cards - Dark gray with better contrast */
+  --card: 0 0% 8% !important;
+  --card-foreground: 0 0% 100% !important;
+
+  /* Popovers */
+  --popover: 0 0% 8% !important;
+  --popover-foreground: 0 0% 100% !important;
+
+  /* Primary - Lighter slate for dark mode */
+  --primary: 220 13% 80% !important;
+  --primary-foreground: 0 0% 0% !important;
+
+  /* Secondary - Dark gray with better contrast */
+  --secondary: 0 0% 12% !important;
+  --secondary-foreground: 0 0% 95% !important;
+
+  /* Muted - More visible */
+  --muted: 0 0% 15% !important;
+  --muted-foreground: 0 0% 70% !important;
+
+  /* Accent - More visible dark gray */
+  --accent: 0 0% 18% !important;
+  --accent-foreground: 0 0% 100% !important;
+
+  /* Destructive */
+  --destructive: 0 72% 51% !important;
+  --destructive-foreground: 0 0% 100% !important;
+
+  /* Borders - More visible for better contrast */
+  --border: 0 0% 20% !important;
+  /* Inputs */
+  --input: 0 0% 20% !important;
+  /* Ring - Focus states - more visible */
+  --ring: 220 13% 70% !important;
+
+  /* ====
+     TEXT HIERARCHY - High Contrast Dark
+     ==== */
+  --text-primary: 0 0% 100% !important;
+  --text-secondary: 0 0% 90% !important;
+  --text-muted: 0 0% 70% !important;
+
+  /* ====
+     SHADOWS - Subtle depth for dark mode
+     ==== */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4) !important;
+  
+  /* ====
+     SIDEBAR - Pure Black with better contrast
+     ==== */
+  --sidebar-background: 0 0% 0% !important;
+  --sidebar-foreground: 0 0% 100% !important;
+  --sidebar-primary: 220 13% 80% !important;
+  --sidebar-primary-foreground: 0 0% 0% !important;
+  --sidebar-accent: 0 0% 12% !important;
+  --sidebar-accent-foreground: 0 0% 100% !important;
+  --sidebar-border: 0 0% 18% !important;
+  --sidebar-ring: 220 13% 70% !important;
+
+  /* ====
+     STATUS COLORS - Dark Mode Variants
+     High contrast, vibrant but not blinding
+     ==== */
+  
+  /* Success / Approved / Paid - Green */
+  --status-success: 142 71% 45%;
+  --status-success-bg: 142 50% 12%;
+  --status-success-border: 142 50% 20%;
+  --status-success-text: 142 71% 65%;
+  
+  /* Warning / Pending / Expired - Amber */
+  --status-warning: 38 92% 50%;
+  --status-warning-bg: 38 70% 12%;
+  --status-warning-border: 38 70% 20%;
+  --status-warning-text: 38 92% 65%;
+  
+  /* Error / Rejected / Overdue - Red */
+  --status-error: 0 72% 51%;
+  --status-error-bg: 0 60% 12%;
+  --status-error-border: 0 60% 20%;
+  --status-error-text: 0 72% 65%;
+  
+  /* Info / Sent / In Progress - Cyan */
+  --status-info: 187 85% 45%;
+  --status-info-bg: 187 60% 12%;
+  --status-info-border: 187 60% 20%;
+  --status-info-text: 187 85% 65%;
+  
+  /* Neutral / Draft - Gray */
+  --status-neutral: 0 0% 50%;
+  --status-neutral-bg: 0 0% 12%;
+  --status-neutral-border: 0 0% 20%;
+  --status-neutral-text: 0 0% 70%;
+  
+  /* Special / Invoiced / Completed - Purple */
+  --status-special: 270 70% 55%;
+  --status-special-bg: 270 50% 12%;
+  --status-special-border: 270 50% 20%;
+  --status-special-text: 270 70% 70%;
+}
+
+/* Apply all base styles from light theme to dark theme as well */
+body.nexo-av-theme-dark {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* ============================================
+   SHARED STYLES - Apply to both light and dark themes
+   ============================================ */
+
+/* Typography */
+body.nexo-av-theme-dark h1,
+body.nexo-av-theme-dark h2,
+body.nexo-av-theme-dark h3,
+body.nexo-av-theme-dark h4,
+body.nexo-av-theme-dark p {
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme-dark h1 {
+  font-size: 1.375rem !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.02em !important;
+}
+
+body.nexo-av-theme-dark h2 {
+  font-size: 1.0625rem !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  letter-spacing: -0.015em !important;
+}
+
+body.nexo-av-theme-dark h3 {
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+}
+
+body.nexo-av-theme-dark h4 {
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+}
+
+body.nexo-av-theme-dark p {
+  font-size: 0.8125rem !important;
+  line-height: 1.55 !important;
+  color: hsl(var(--text-secondary)) !important;
+}
+
+/* Status badges - same structure as light theme */
+body.nexo-av-theme-dark .status-success,
+body.nexo-av-theme-dark [class*="bg-green-500/20"] {
+  background-color: hsl(var(--status-success-bg)) !important;
+  border-color: hsl(var(--status-success-border)) !important;
+  color: hsl(var(--status-success-text)) !important;
+}
+
+body.nexo-av-theme-dark .status-warning,
+body.nexo-av-theme-dark [class*="bg-orange-500/20"],
+body.nexo-av-theme-dark [class*="bg-yellow-500/20"] {
+  background-color: hsl(var(--status-warning-bg)) !important;
+  border-color: hsl(var(--status-warning-border)) !important;
+  color: hsl(var(--status-warning-text)) !important;
+}
+
+body.nexo-av-theme-dark .status-error,
+body.nexo-av-theme-dark [class*="bg-red-500/20"] {
+  background-color: hsl(var(--status-error-bg)) !important;
+  border-color: hsl(var(--status-error-border)) !important;
+  color: hsl(var(--status-error-text)) !important;
+}
+
+body.nexo-av-theme-dark .status-info,
+body.nexo-av-theme-dark [class*="bg-blue-500/20"] {
+  background-color: hsl(var(--status-info-bg)) !important;
+  border-color: hsl(var(--status-info-border)) !important;
+  color: hsl(var(--status-info-text)) !important;
+}
+
+body.nexo-av-theme-dark .status-neutral,
+body.nexo-av-theme-dark [class*="bg-gray-500/20"] {
+  background-color: hsl(var(--status-neutral-bg)) !important;
+  border-color: hsl(var(--status-neutral-border)) !important;
+  color: hsl(var(--status-neutral-text)) !important;
+}
+
+body.nexo-av-theme-dark .status-special,
+body.nexo-av-theme-dark [class*="bg-purple-500/20"] {
+  background-color: hsl(var(--status-special-bg)) !important;
+  border-color: hsl(var(--status-special-border)) !important;
+  color: hsl(var(--status-special-text)) !important;
+}
+
+/* Cards, tables, buttons, inputs - inherit from light theme structure */
+body.nexo-av-theme-dark .card,
+body.nexo-av-theme-dark [class*="rounded-xl"][class*="border"],
+body.nexo-av-theme-dark [class*="bg-card"],
+body.nexo-av-theme-dark [class*="bg-background"][class*="border"] {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  box-shadow: var(--shadow-xs) !important;
+  border-radius: 8px !important;
+}
+
+/* Panels and sidebars - better contrast */
+body.nexo-av-theme-dark [class*="bg-secondary"],
+body.nexo-av-theme-dark [class*="bg-muted"] {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme-dark input,
+body.nexo-av-theme-dark textarea,
+body.nexo-av-theme-dark select {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Tables - better contrast */
+body.nexo-av-theme-dark th {
+  background-color: hsl(var(--card)) !important;
+  border-bottom: 2px solid hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme-dark td {
+  border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme-dark tr:hover td {
+  background-color: hsl(var(--accent)) !important;
+}
+
+body.nexo-av-theme-dark input:focus,
+body.nexo-av-theme-dark textarea:focus,
+body.nexo-av-theme-dark select:focus {
+  border-color: hsl(var(--ring)) !important;
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.12) !important;
+}
+
+/* Sidebar */
+body.nexo-av-theme-dark aside,
+body.nexo-av-theme-dark [class*="bg-sidebar"] {
+  background-color: hsl(var(--sidebar-background)) !important;
+  border-right: 1px solid hsl(var(--sidebar-border)) !important;
+}
+
+/* Scrollbar */
+body.nexo-av-theme-dark ::-webkit-scrollbar-track {
+  background: hsl(var(--secondary));
+}
+
+body.nexo-av-theme-dark ::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+}
+
+body.nexo-av-theme-dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--text-muted));
+}
+
+/* ============================================
    BASE STYLES
    ============================================ */
 

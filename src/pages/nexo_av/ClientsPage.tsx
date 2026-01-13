@@ -54,9 +54,11 @@ import PaginationControls from "./components/PaginationControls";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { lazy, Suspense } from "react";
 import { cn } from "@/lib/utils";
+import { createMobilePage } from "./MobilePageWrapper";
 
 // Lazy load mobile components
 const ClientsListMobile = lazy(() => import("./components/mobile/ClientsListMobile"));
+const ClientsPageMobile = lazy(() => import("./mobile/ClientsPageMobile"));
 
 interface Client {
   id: string;
@@ -93,7 +95,7 @@ const getStageInfo = (stage: string) => {
   return LEAD_STAGES.find(s => s.value === stage) || LEAD_STAGES[0];
 };
 
-const ClientsPage = () => {
+const ClientsPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
   const isMobile = useIsMobile();
   
@@ -631,5 +633,11 @@ const ClientsPage = () => {
     </div>
   );
 };
+
+// Export version with mobile routing
+const ClientsPage = createMobilePage({
+  DesktopComponent: ClientsPageDesktop,
+  MobileComponent: ClientsPageMobile,
+});
 
 export default ClientsPage;
