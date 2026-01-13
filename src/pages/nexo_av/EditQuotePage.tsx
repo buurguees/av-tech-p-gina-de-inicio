@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader from "./components/NexoHeader";
@@ -52,6 +52,7 @@ interface QuoteLine {
   subtotal: number;
   tax_amount: number;
   total: number;
+  line_order?: number;
   isNew?: boolean;
   isModified?: boolean;
   isDeleted?: boolean;
@@ -169,7 +170,7 @@ const EditQuotePage = () => {
         setValidUntil(quoteInfo.valid_until ? quoteInfo.valid_until.split('T')[0] : '');
       }
 
-      // Fetch quote lines
+      // Fetch quote lines (already ordered by line_order from DB)
       const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", {
         p_quote_id: quoteId,
       });
@@ -339,6 +340,48 @@ const EditQuotePage = () => {
     }
   };
 
+  const moveLine = async (index: number, direction: 'up' | 'down') => {
+    const line = lines[index];
+    if (!line.id) {
+      // For new lines, just reorder in memory
+      const newLines = [...lines];
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= newLines.length) return;
+      
+      [newLines[index], newLines[targetIndex]] = [newLines[targetIndex], newLines[index]];
+      setLines(newLines);
+      return;
+    }
+
+    // For existing lines, call the RPC function
+    try {
+      const { error } = await supabase.rpc('reorder_quote_line', {
+        p_line_id: line.id,
+        p_direction: direction,
+      });
+
+      if (error) throw error;
+
+      // Reload lines to get updated order
+      const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", {
+        p_quote_id: quoteId!,
+      });
+      if (linesError) throw linesError;
+      
+      setLines((linesData || []).map((l: any) => ({
+        ...l,
+        description: l.description || "",
+      })));
+    } catch (error: any) {
+      console.error("Error reordering line:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo reordenar la línea",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getTotals = () => {
     const activeLines = lines.filter(l => !l.isDeleted);
     const subtotal = activeLines.reduce((acc, line) => acc + line.subtotal, 0);
@@ -502,7 +545,9 @@ const EditQuotePage = () => {
       });
       if (quoteError) throw quoteError;
 
-      // Process lines
+      // Process lines (in order: delete, add, update)
+      const lineIdsToOrder: string[] = [];
+      
       for (const line of lines) {
         if (line.isDeleted && line.id) {
           // Delete line
@@ -510,7 +555,7 @@ const EditQuotePage = () => {
           if (error) throw error;
         } else if (line.isNew && line.concept.trim()) {
           // Add new line
-          const { error } = await supabase.rpc("add_quote_line", {
+          const { data: newLineId, error } = await supabase.rpc("add_quote_line", {
             p_quote_id: quoteId!,
             p_concept: line.concept,
             p_description: line.description || null,
@@ -520,19 +565,34 @@ const EditQuotePage = () => {
             p_discount_percent: line.discount_percent,
           });
           if (error) throw error;
-        } else if (line.isModified && line.id) {
-          // Update existing line
-          const { error } = await supabase.rpc("update_quote_line", {
-            p_line_id: line.id,
-            p_concept: line.concept,
-            p_description: line.description || null,
-            p_quantity: line.quantity,
-            p_unit_price: line.unit_price,
-            p_tax_rate: line.tax_rate,
-            p_discount_percent: line.discount_percent,
-          });
-          if (error) throw error;
+          // add_quote_line returns UUID directly (not in array)
+          const lineId = typeof newLineId === 'string' ? newLineId : newLineId?.[0] || newLineId;
+          if (lineId) lineIdsToOrder.push(lineId);
+        } else if (line.id) {
+          // Update existing line or keep as-is
+          if (line.isModified) {
+            const { error } = await supabase.rpc("update_quote_line", {
+              p_line_id: line.id,
+              p_concept: line.concept,
+              p_description: line.description || null,
+              p_quantity: line.quantity,
+              p_unit_price: line.unit_price,
+              p_tax_rate: line.tax_rate,
+              p_discount_percent: line.discount_percent,
+            });
+            if (error) throw error;
+          }
+          lineIdsToOrder.push(line.id);
         }
+      }
+
+      // Update line_order to match the current order in the UI
+      if (lineIdsToOrder.length > 0) {
+        const { error: orderError } = await supabase.rpc("update_quote_lines_order", {
+          p_quote_id: quoteId!,
+          p_line_ids: lineIdsToOrder,
+        });
+        if (orderError) throw orderError;
       }
 
       // Show appropriate message based on what happened
@@ -739,12 +799,39 @@ const EditQuotePage = () => {
               <span className="text-white/40 text-[9px]">Usa @nombre para buscar</span>
             </div>
 
-            {lines.filter(l => !l.isDeleted).map((line) => {
+            {lines.filter(l => !l.isDeleted).map((line, displayIndex) => {
               const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
+              const activeLines = lines.filter(l => !l.isDeleted);
+              const isFirst = displayIndex === 0;
+              const isLast = displayIndex === activeLines.length - 1;
               return (
                 <div key={line.tempId || line.id} className="bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 p-3 space-y-2 shadow-xl shadow-black/20">
                   <div className="flex items-center justify-between">
-                    <span className="text-orange-500/70 text-[10px] font-mono">Línea {actualIndex + 1}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => moveLine(actualIndex, 'up')}
+                          disabled={isFirst}
+                          className="h-5 w-5 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed p-0"
+                          title="Mover arriba"
+                        >
+                          <ChevronUp className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => moveLine(actualIndex, 'down')}
+                          disabled={isLast}
+                          className="h-5 w-5 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed p-0"
+                          title="Mover abajo"
+                        >
+                          <ChevronDown className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <span className="text-orange-500/70 text-[10px] font-mono">Línea {displayIndex + 1}</span>
+                    </div>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -819,35 +906,19 @@ const EditQuotePage = () => {
               );
             })}
             
-            {/* Add line button mobile */}
-            <Button
-              variant="outline"
-              onClick={addLine}
-              className="w-full border-dashed border-white/30 text-white/60 hover:bg-white/15 backdrop-blur-sm rounded-2xl h-10 text-xs transition-all duration-200"
-            >
-              <Plus className="h-3 w-3 mr-1.5" />
-              Añadir línea
-            </Button>
           </div>
 
           {/* Desktop Lines Table (same structure as NewQuotePage) */}
           <div className="hidden md:block bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden mb-6 shadow-2xl shadow-black/40">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
               <span className="text-white text-sm font-semibold uppercase tracking-wider">Líneas del presupuesto</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={addLine}
-                className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/50 backdrop-blur-sm rounded-lg transition-all duration-200 h-10 px-4 gap-2 font-medium"
-              >
-                <Plus className="h-4 w-4" />
-                Añadir línea
-              </Button>
+              <span className="text-white/50 text-xs font-medium">Escribe @nombre para buscar en el catálogo</span>
             </div>
             <div className="overflow-x-auto bg-white/[0.02]">
               <Table>
                 <TableHeader>
                   <TableRow className="border-white/5 hover:bg-transparent bg-white/[0.03]">
+                    <TableHead className="text-white/60 w-16 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
                     <TableHead className="text-white/80 min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
                     <TableHead className="text-white/80 min-w-[250px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Descripción</TableHead>
                     <TableHead className="text-white/80 text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>
@@ -858,13 +929,40 @@ const EditQuotePage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {lines.filter(l => !l.isDeleted).map((line, index) => {
+                  {lines.filter(l => !l.isDeleted).map((line, displayIndex) => {
                     const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
+                    const activeLines = lines.filter(l => !l.isDeleted);
+                    const isFirst = displayIndex === 0;
+                    const isLast = displayIndex === activeLines.length - 1;
                     return (
                       <TableRow 
                         key={line.id || line.tempId} 
                         className="border-white/5 hover:bg-white/[0.04] transition-colors duration-150 group"
                       >
+                        <TableCell className="px-5 py-3.5">
+                          <div className="flex flex-col gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveLine(actualIndex, 'up')}
+                              disabled={isFirst}
+                              className="h-6 w-6 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed"
+                              title="Mover arriba"
+                            >
+                              <ChevronUp className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveLine(actualIndex, 'down')}
+                              disabled={isLast}
+                              className="h-6 w-6 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed"
+                              title="Mover abajo"
+                            >
+                              <ChevronDown className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
                         <TableCell className="px-5 py-3.5">
                           <ProductSearchInput
                             value={line.concept}
@@ -972,7 +1070,7 @@ const EditQuotePage = () => {
                   })}
                   {lines.filter(l => !l.isDeleted).length === 0 && (
                     <TableRow className="border-white/10">
-                      <TableCell colSpan={7} className="text-center py-12">
+                      <TableCell colSpan={8} className="text-center py-12">
                         <p className="text-white/40 text-sm mb-2">No hay líneas en este presupuesto</p>
                         <Button
                           variant="link"
@@ -987,8 +1085,30 @@ const EditQuotePage = () => {
                 </TableBody>
               </Table>
             </div>
+            <div className="p-5 border-t border-white/10 bg-gradient-to-r from-white/5 to-transparent">
+              <Button
+                variant="outline"
+                onClick={addLine}
+                className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/50 backdrop-blur-sm rounded-lg transition-all duration-200 h-10 px-4 gap-2 font-medium"
+              >
+                <Plus className="h-4 w-4" />
+                Añadir línea
+              </Button>
+            </div>
           </div>
 
+
+          {/* Mobile: Add line button at the end */}
+          <div className="md:hidden mb-3">
+            <Button
+              variant="outline"
+              onClick={addLine}
+              className="w-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/50 backdrop-blur-sm rounded-2xl h-10 text-xs transition-all duration-200"
+            >
+              <Plus className="h-3 w-3 mr-1.5" />
+              Añadir línea
+            </Button>
+          </div>
 
           {/* Totals */}
           <div className="bg-gradient-to-br from-white/[0.12] to-white/[0.06] backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/15 p-5 md:p-6 shadow-2xl shadow-black/40">

@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, GripVertical, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import NexoHeader from "./components/NexoHeader";
@@ -319,6 +319,16 @@ const NewQuotePage = () => {
     setLines(lines.filter((_, i) => i !== index));
   };
 
+  const moveLine = (index: number, direction: 'up' | 'down') => {
+    // For new quotes, just reorder in memory
+    const newLines = [...lines];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newLines.length) return;
+    
+    [newLines[index], newLines[targetIndex]] = [newLines[targetIndex], newLines[index]];
+    setLines(newLines);
+  };
+
   const getTotals = () => {
     const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
     const total = lines.reduce((acc, line) => acc + line.total, 0);
@@ -473,10 +483,11 @@ const NewQuotePage = () => {
 
       const quoteId = quoteData[0].quote_id;
 
-      // Add all lines
+      // Add all lines in order and collect their IDs
+      const lineIds: string[] = [];
       for (const line of lines) {
         if (line.concept.trim()) {
-          const { error: lineError } = await supabase.rpc("add_quote_line", {
+          const { data: lineIdData, error: lineError } = await supabase.rpc("add_quote_line", {
             p_quote_id: quoteId,
             p_concept: line.concept,
             p_description: line.description || null,
@@ -486,7 +497,19 @@ const NewQuotePage = () => {
             p_discount_percent: line.discount_percent,
           });
           if (lineError) throw lineError;
+          // add_quote_line returns UUID directly (not in array)
+          const lineId = typeof lineIdData === 'string' ? lineIdData : lineIdData?.[0] || lineIdData;
+          if (lineId) lineIds.push(lineId);
         }
+      }
+
+      // Update line_order to match the order in which they were added
+      if (lineIds.length > 0) {
+        const { error: orderError } = await supabase.rpc("update_quote_lines_order", {
+          p_quote_id: quoteId,
+          p_line_ids: lineIds,
+        });
+        if (orderError) throw orderError;
       }
 
       toast({
@@ -656,10 +679,37 @@ const NewQuotePage = () => {
               <span className="text-white/40 text-[9px]">Usa @nombre para buscar</span>
             </div>
 
-            {lines.map((line, index) => (
+            {lines.map((line, index) => {
+              const isFirst = index === 0;
+              const isLast = index === lines.length - 1;
+              return (
               <div key={line.tempId || line.id} className="bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 p-3 space-y-2 shadow-xl shadow-black/20">
                 <div className="flex items-center justify-between">
-                  <span className="text-orange-500/70 text-[10px] font-mono">Línea {index + 1}</span>
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => moveLine(index, 'up')}
+                        disabled={isFirst}
+                        className="h-5 w-5 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed p-0"
+                        title="Mover arriba"
+                      >
+                        <ChevronUp className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => moveLine(index, 'down')}
+                        disabled={isLast}
+                        className="h-5 w-5 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed p-0"
+                        title="Mover abajo"
+                      >
+                        <ChevronDown className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <span className="text-orange-500/70 text-[10px] font-mono">Línea {index + 1}</span>
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -726,20 +776,12 @@ const NewQuotePage = () => {
                   </div>
                 </div>
                 
-                <div className="flex justify-end pt-1 border-t border-white/10">
-                  <span className="text-white font-medium text-xs">{formatCurrency(line.total)}</span>
+                <div className="flex justify-between items-center pt-2 border-t border-white/10">
+                  <span className="text-white/50 text-[9px]">Subtotal</span>
+                  <span className="text-white font-medium text-sm">{formatCurrency(line.subtotal)}</span>
                 </div>
               </div>
             ))}
-            
-            <Button
-              variant="outline"
-              onClick={addLine}
-              className="w-full border-white/30 text-white hover:bg-white/15 backdrop-blur-sm rounded-2xl h-9 text-xs transition-all duration-200"
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Añadir línea
-            </Button>
           </div>
 
           {/* Desktop Lines table */}
@@ -752,24 +794,48 @@ const NewQuotePage = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="border-white/5 hover:bg-transparent bg-white/[0.03]">
-                    <TableHead className="text-white/60 w-10 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
+                    <TableHead className="text-white/60 w-16 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
                     <TableHead className="text-white/80 min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
                     <TableHead className="text-white/80 min-w-[250px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Descripción</TableHead>
                     <TableHead className="text-white/80 text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>
                     <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Precio</TableHead>
-                    <TableHead className="text-white/80 w-36 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Impuestos</TableHead>
-                    <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Total</TableHead>
+                    <TableHead className="text-white/80 w-36 px-5 py-3 text-xs font-semibold uppercase tracking-wider">IVA</TableHead>
+                    <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Subtotal</TableHead>
                     <TableHead className="text-white/60 w-14 px-5 py-3"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {lines.map((line, index) => (
+                  {lines.map((line, index) => {
+                    const isFirst = index === 0;
+                    const isLast = index === lines.length - 1;
+                    return (
                     <TableRow 
                       key={line.tempId || line.id} 
                       className="border-white/5 hover:bg-white/[0.04] transition-colors duration-150 group"
                     >
-                      <TableCell className="text-white/20 group-hover:text-white/40 px-5 py-3.5 transition-colors">
-                        <GripVertical className="h-4 w-4" />
+                      <TableCell className="px-5 py-3.5">
+                        <div className="flex flex-col gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => moveLine(index, 'up')}
+                            disabled={isFirst}
+                            className="h-6 w-6 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed"
+                            title="Mover arriba"
+                          >
+                            <ChevronUp className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => moveLine(index, 'down')}
+                            disabled={isLast}
+                            className="h-6 w-6 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed"
+                            title="Mover abajo"
+                          >
+                            <ChevronDown className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </TableCell>
                       <TableCell className="px-5 py-3.5">
                         <ProductSearchInput
@@ -860,8 +926,8 @@ const NewQuotePage = () => {
                           </Select>
                         </div>
                       </TableCell>
-                      <TableCell className="text-white text-right font-semibold px-5 py-3.5">
-                        {formatCurrency(line.total)}
+                      <TableCell className="text-white font-semibold text-right text-sm px-5 py-3.5">
+                        {formatCurrency(line.subtotal)}
                       </TableCell>
                       <TableCell className="px-5 py-3.5">
                         <Button
@@ -874,11 +940,25 @@ const NewQuotePage = () => {
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  );
+                  })}
+                  {lines.length === 0 && (
+                    <TableRow className="border-white/10">
+                      <TableCell colSpan={8} className="text-center py-12">
+                        <p className="text-white/40 text-sm mb-2">No hay líneas en este presupuesto</p>
+                        <Button
+                          variant="link"
+                          onClick={addLine}
+                          className="text-orange-500 text-sm"
+                        >
+                          Añadir primera línea
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
-
             <div className="p-5 border-t border-white/10 bg-gradient-to-r from-white/5 to-transparent">
               <Button
                 variant="outline"
@@ -891,24 +971,34 @@ const NewQuotePage = () => {
             </div>
           </div>
 
+          {/* Mobile: Add line button at the end */}
+          <div className="md:hidden mb-3">
+            <Button
+              variant="outline"
+              onClick={addLine}
+              className="w-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/50 backdrop-blur-sm rounded-2xl h-10 text-xs transition-all duration-200"
+            >
+              <Plus className="h-3 w-3 mr-1.5" />
+              Añadir línea
+            </Button>
+          </div>
+
           {/* Totals */}
-          <div className="flex justify-end">
-            <div className="bg-gradient-to-br from-white/[0.12] to-white/[0.06] backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/15 p-4 md:p-6 w-full md:w-80 shadow-2xl shadow-black/40">
-              <div className="space-y-3 md:space-y-4">
-                <div className="flex justify-between text-white/70 text-sm">
-                  <span className="font-medium">Base imponible</span>
-                  <span className="font-semibold">{formatCurrency(totals.subtotal)}</span>
+          <div className="bg-gradient-to-br from-white/[0.12] to-white/[0.06] backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/15 p-5 md:p-6 shadow-2xl shadow-black/40">
+            <div className="max-w-sm ml-auto space-y-4">
+              <div className="flex justify-between text-sm">
+                <span className="text-white/70 font-medium">Base imponible</span>
+                <span className="text-white font-semibold">{formatCurrency(totals.subtotal)}</span>
+              </div>
+              {totals.taxes.map((tax) => (
+                <div key={tax.rate} className="flex justify-between text-sm">
+                  <span className="text-white/70 font-medium">{tax.label}</span>
+                  <span className="text-white font-semibold">{formatCurrency(tax.amount)}</span>
                 </div>
-                {totals.taxes.map((tax) => (
-                  <div key={tax.rate} className="flex justify-between text-white/70 text-sm">
-                    <span className="font-medium">{tax.label}</span>
-                    <span className="font-semibold">{formatCurrency(tax.amount)}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between text-white text-lg md:text-xl font-bold pt-3 md:pt-4 border-t border-white/20">
-                  <span>Total</span>
-                  <span className="text-orange-400">{formatCurrency(totals.total)}</span>
-                </div>
+              ))}
+              <div className="flex justify-between pt-4 border-t border-white/20">
+                <span className="text-white font-semibold text-lg">Total</span>
+                <span className="text-orange-400 text-xl font-bold">{formatCurrency(totals.total)}</span>
               </div>
             </div>
           </div>
