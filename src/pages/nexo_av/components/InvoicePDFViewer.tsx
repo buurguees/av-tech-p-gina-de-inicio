@@ -46,6 +46,7 @@ interface Invoice {
   total: number;
   issue_date: string;
   due_date: string | null;
+  notes: string | null;
   created_at: string;
 }
 
@@ -353,6 +354,77 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "center",
   },
+  paymentSection: {
+    marginTop: 20,
+    marginBottom: 15,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+  },
+  paymentSectionTitle: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#333",
+    textTransform: "uppercase",
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
+  paymentInfoGrid: {
+    flexDirection: "row",
+    gap: 15,
+    marginBottom: 12,
+  },
+  paymentInfoColumn: {
+    flex: 1,
+    padding: 8,
+    backgroundColor: "#f8f8f8",
+    borderRadius: 4,
+  },
+  paymentColumnTitle: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#666",
+    textTransform: "uppercase",
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  paymentColumnValue: {
+    fontSize: 9,
+    color: "#333",
+    marginBottom: 2,
+  },
+  paymentColumnValueBold: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#333",
+    fontFamily: "Courier",
+  },
+  observationsBox: {
+    marginBottom: 12,
+    padding: 8,
+    backgroundColor: "#f8f8f8",
+    borderRadius: 4,
+  },
+  observationsTitle: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#666",
+    textTransform: "uppercase",
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  observationsText: {
+    fontSize: 9,
+    color: "#444",
+    lineHeight: 1.4,
+  },
+  legalNote: {
+    fontSize: 7,
+    color: "#888",
+    fontStyle: "italic",
+    textAlign: "center",
+    marginTop: 8,
+  },
   footerColumns: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -414,12 +486,26 @@ const groupTaxesByRate = (lines: InvoiceLine[]) => {
     .sort((a, b) => b.rate - a.rate);
 };
 
+// Extract SWIFT/BIC from bank account notes
+const extractSwiftBic = (notes: string | null | undefined): string | null => {
+  if (!notes) return null;
+  const swiftMatch = notes.match(/SWIFT\/BIC[:\s]+([A-Z0-9]+)/i);
+  if (swiftMatch) {
+    return swiftMatch[1];
+  }
+  if (notes.includes('SWIFT') || notes.includes('BIC')) {
+    return notes;
+  }
+  return null;
+};
+
 // PDF Document Component
 const InvoicePDFDocument = ({ invoice, lines, client, company, project, preferences }: Omit<InvoicePDFViewerProps, 'fileName'>) => {
   const taxes = groupTaxesByRate(lines);
   const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
   const total = lines.reduce((acc, line) => acc + line.total, 0);
   const bankAccount = preferences?.bank_accounts?.[0]; // Use first bank account
+  const swiftBic = extractSwiftBic(bankAccount?.notes);
 
   return (
     <Document>
@@ -564,37 +650,66 @@ const InvoicePDFDocument = ({ invoice, lines, client, company, project, preferen
           </View>
         </View>
 
-        {/* Footer with payment info and due date */}
-        <View style={styles.footer}>
-          <View style={styles.footerContent}>
-            {/* Bank Account Info */}
-            {bankAccount && (
-              <View style={styles.paymentInfoBox}>
-                <Text style={styles.paymentTitle}>Datos de Pago</Text>
-                {bankAccount.holder && (
-                  <Text style={styles.paymentDetail}>Titular: {bankAccount.holder}</Text>
-                )}
-                {bankAccount.bank && (
-                  <Text style={styles.paymentDetail}>Entidad: {bankAccount.bank}</Text>
-                )}
-                {bankAccount.iban && (
-                  <Text style={styles.paymentIban}>IBAN: {bankAccount.iban}</Text>
-                )}
-                {bankAccount.notes && (
-                  <Text style={styles.paymentNote}>{bankAccount.notes}</Text>
-                )}
-              </View>
-            )}
-            
-            {/* Due Date */}
+        {/* Payment Information Section - After totals, before footer */}
+        <View style={styles.paymentSection}>
+          {/* Observations */}
+          {invoice.notes && (
+            <View style={styles.observationsBox}>
+              <Text style={styles.observationsTitle}>Observaciones</Text>
+              <Text style={styles.observationsText}>{invoice.notes}</Text>
+            </View>
+          )}
+
+          {/* Payment Details Grid */}
+          <View style={styles.paymentInfoGrid}>
+            {/* Vencimientos */}
             {invoice.due_date && (
-              <View style={styles.dueDateBox}>
-                <Text style={styles.dueDateNote}>
-                  Fecha de vencimiento: {formatDate(invoice.due_date)}
+              <View style={styles.paymentInfoColumn}>
+                <Text style={styles.paymentColumnTitle}>Vencimientos</Text>
+                <Text style={styles.paymentColumnValue}>
+                  {formatDate(invoice.due_date)}
+                </Text>
+                <Text style={styles.paymentColumnValueBold}>
+                  {formatCurrency(total)}
                 </Text>
               </View>
             )}
+
+            {/* Método de pago */}
+            <View style={styles.paymentInfoColumn}>
+              <Text style={styles.paymentColumnTitle}>Método de pago</Text>
+              <Text style={styles.paymentColumnValue}>
+                Transferencia bancaria
+              </Text>
+            </View>
+
+            {/* Cuenta bancaria */}
+            {bankAccount && (
+              <View style={styles.paymentInfoColumn}>
+                <Text style={styles.paymentColumnTitle}>Cuenta bancaria</Text>
+                {bankAccount.iban && (
+                  <Text style={styles.paymentColumnValueBold}>
+                    IBAN: {bankAccount.iban}
+                  </Text>
+                )}
+                {swiftBic && (
+                  <Text style={styles.paymentColumnValue}>
+                    SWIFT/BIC: {swiftBic}
+                  </Text>
+                )}
+              </View>
+            )}
           </View>
+
+          {/* Legal Note */}
+          <Text style={styles.legalNote}>
+            Esta factura se emite conforme a la normativa fiscal vigente.
+          </Text>
+        </View>
+
+        {/* Footer - Only for page number and other footer info */}
+        <View style={styles.footer}>
+          {/* Footer can be used for additional info if needed */}
         </View>
 
         {/* Page Number */}
