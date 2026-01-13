@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { FileText, Receipt, Eye, Loader2 } from "lucide-react";
+import { FileText, Receipt, Eye, Loader2, AlertCircle } from "lucide-react";
 import {
   Document,
   Page,
@@ -15,6 +15,7 @@ import {
   Image,
 } from "@react-pdf/renderer";
 import { supabase } from "@/integrations/supabase/client";
+import { InvoicePDFDocument } from "../InvoicePDFViewer";
 
 // Register font
 Font.register({
@@ -568,10 +569,22 @@ export function TemplatesTab() {
   const [company, setCompany] = useState<CompanySettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [showProject, setShowProject] = useState(true);
+  
+  // Invoice template data
+  const [invoice, setInvoice] = useState<any>(null);
+  const [invoiceLines, setInvoiceLines] = useState<any[]>([]);
+  const [invoiceClient, setInvoiceClient] = useState<any>(null);
+  const [invoiceProject, setInvoiceProject] = useState<any>(null);
+  const [invoicePreferences, setInvoicePreferences] = useState<any>(null);
+  const [invoiceLoading, setInvoiceLoading] = useState(true);
+  const [noInvoices, setNoInvoices] = useState(false);
 
   useEffect(() => {
     fetchCompanySettings();
-  }, []);
+    if (selectedTemplate === "invoice") {
+      fetchFirstInvoice();
+    }
+  }, [selectedTemplate]);
 
   const fetchCompanySettings = async () => {
     try {
@@ -599,6 +612,92 @@ export function TemplatesTab() {
       console.error('Error fetching company settings:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFirstInvoice = async () => {
+    try {
+      setInvoiceLoading(true);
+      setNoInvoices(false);
+
+      // Get all invoices - finance_list_invoices doesn't support pagination
+      const { data: invoicesData, error: invoicesError } = await supabase.rpc(
+        "finance_list_invoices" as any,
+        { p_search: null, p_status: null }
+      );
+
+      if (invoicesError) throw invoicesError;
+
+      if (!invoicesData || invoicesData.length === 0) {
+        setNoInvoices(true);
+        setInvoiceLoading(false);
+        return;
+      }
+
+      // Get first invoice (most recent)
+      const firstInvoice = invoicesData[0];
+      setInvoice(firstInvoice);
+
+      // Fetch invoice details using finance_get_invoice
+      const { data: invoiceDetailData, error: invoiceDetailError } = await supabase.rpc(
+        "finance_get_invoice" as any,
+        { p_invoice_id: firstInvoice.id }
+      );
+
+      if (invoiceDetailError) throw invoiceDetailError;
+      
+      const invoiceRecord = Array.isArray(invoiceDetailData) ? invoiceDetailData[0] : invoiceDetailData;
+      if (invoiceRecord) {
+        setInvoice(invoiceRecord);
+      }
+
+      // Fetch invoice lines
+      const { data: linesData, error: linesError } = await supabase.rpc(
+        "finance_get_invoice_lines" as any,
+        { p_invoice_id: firstInvoice.id }
+      );
+
+      if (linesError) throw linesError;
+      const sortedLines = (linesData || []).sort((a: any, b: any) => 
+        (a.line_order || 0) - (b.line_order || 0)
+      );
+      setInvoiceLines(sortedLines);
+
+      // Fetch client
+      if (firstInvoice.client_id) {
+        const { data: clientData } = await supabase.rpc(
+          "get_client",
+          { p_client_id: firstInvoice.client_id }
+        );
+        if (clientData) {
+          setInvoiceClient(Array.isArray(clientData) ? clientData[0] : clientData);
+        }
+      }
+
+      // Fetch project
+      if (firstInvoice.project_id) {
+        const { data: projectData } = await supabase.rpc(
+          "get_project",
+          { p_project_id: firstInvoice.project_id }
+        );
+        if (projectData) {
+          setInvoiceProject(Array.isArray(projectData) ? projectData[0] : projectData);
+        }
+      }
+
+      // Fetch company preferences (for bank accounts)
+      const { data: preferencesData } = await supabase.rpc("get_company_preferences");
+      if (preferencesData) {
+        const prefs = Array.isArray(preferencesData) ? preferencesData[0] : preferencesData;
+        setInvoicePreferences({
+          bank_accounts: Array.isArray(prefs?.bank_accounts) ? prefs.bank_accounts : []
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching first invoice:', err);
+      setNoInvoices(true);
+    } finally {
+      setInvoiceLoading(false);
     }
   };
 
@@ -677,25 +776,67 @@ export function TemplatesTab() {
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                 <div className="flex items-center gap-2">
                   <Eye className="h-4 w-4 text-white/60" />
-                  <span className="text-white/60 text-sm">Vista previa - Plantilla de Factura</span>
+                  <span className="text-white/60 text-sm">
+                    {invoiceLoading 
+                      ? "Cargando plantilla..." 
+                      : noInvoices 
+                        ? "Vista previa - Plantilla de Factura (sin datos)"
+                        : `Vista previa - Plantilla de Factura (${invoice?.invoice_number || invoice?.preliminary_number || 'N/A'})`}
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="show-project-invoice"
-                    checked={showProject}
-                    onCheckedChange={setShowProject}
-                    className="data-[state=checked]:bg-orange-500"
-                  />
-                  <Label htmlFor="show-project-invoice" className="text-white/70 text-sm cursor-pointer">
-                    Mostrar Proyecto
-                  </Label>
+                {!noInvoices && (
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="show-project-invoice"
+                      checked={showProject}
+                      onCheckedChange={setShowProject}
+                      className="data-[state=checked]:bg-orange-500"
+                    />
+                    <Label htmlFor="show-project-invoice" className="text-white/70 text-sm cursor-pointer">
+                      Mostrar Proyecto
+                    </Label>
+                  </div>
+                )}
+              </div>
+              {invoiceLoading ? (
+                <div className="h-[600px] bg-zinc-800 flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+                    <p className="text-white/60 text-sm">Cargando factura de referencia...</p>
+                  </div>
                 </div>
-              </div>
-              <div className="h-[600px] bg-zinc-800">
-                <PDFViewer width="100%" height="100%" showToolbar={false}>
-                  <InvoiceTemplatePreview company={company} showProject={showProject} />
-                </PDFViewer>
-              </div>
+              ) : noInvoices ? (
+                <div className="h-[600px] bg-zinc-800 flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-3 max-w-md text-center px-4">
+                    <AlertCircle className="w-12 h-12 text-orange-500" />
+                    <p className="text-white/80 text-base font-medium">
+                      No hay facturas disponibles
+                    </p>
+                    <p className="text-white/60 text-sm">
+                      Crea al menos una factura para ver la plantilla con datos reales. Mientras tanto, se muestra la plantilla estática.
+                    </p>
+                  </div>
+                </div>
+              ) : invoice && company ? (
+                <div className="h-[600px] bg-zinc-800">
+                  <PDFViewer width="100%" height="100%" showToolbar={false}>
+                    <InvoicePDFDocument
+                      invoice={invoice}
+                      lines={invoiceLines}
+                      client={invoiceClient}
+                      company={company}
+                      project={showProject ? invoiceProject : null}
+                      preferences={invoicePreferences}
+                    />
+                  </PDFViewer>
+                </div>
+              ) : (
+                <div className="h-[600px] bg-zinc-800">
+                  <PDFViewer width="100%" height="100%" showToolbar={false}>
+                    <InvoiceTemplatePreview company={company} showProject={showProject} />
+                  </PDFViewer>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
