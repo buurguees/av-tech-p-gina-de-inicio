@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Save, Loader2, CreditCard, Calendar, Clock, Plus, Trash2, Eye } from 'lucide-react';
+import { Save, Loader2, CreditCard, Calendar, Clock, Plus, Trash2, Eye, Pencil, Check, AlertCircle, Lock } from 'lucide-react';
 import type { Json } from '@/integrations/supabase/types';
 
 interface BankAccount {
@@ -15,6 +15,7 @@ interface BankAccount {
   bank: string;
   iban: string;
   notes: string;
+  isLocked?: boolean; // Para controlar si está bloqueado (guardado)
 }
 
 interface CompanyPreferences {
@@ -23,6 +24,22 @@ interface CompanyPreferences {
   default_currency: string;
   bank_accounts: BankAccount[];
 }
+
+// Regex para validar IBAN español: 2 letras + 22 dígitos
+const IBAN_REGEX = /^[A-Z]{2}\d{22}$/;
+
+// Función para validar formato IBAN
+const validateIBAN = (iban: string): boolean => {
+  // Eliminar espacios y convertir a mayúsculas
+  const cleanIBAN = iban.replace(/\s/g, '').toUpperCase();
+  return IBAN_REGEX.test(cleanIBAN);
+};
+
+// Función para formatear IBAN con espacios cada 4 caracteres
+const formatIBAN = (iban: string): string => {
+  const clean = iban.replace(/\s/g, '').toUpperCase();
+  return clean.match(/.{1,4}/g)?.join(' ') || clean;
+};
 
 export function PreferencesTab() {
   const [loading, setLoading] = useState(true);
@@ -33,6 +50,8 @@ export function PreferencesTab() {
     default_currency: 'EUR',
     bank_accounts: []
   });
+  const [ibanErrors, setIbanErrors] = useState<Record<string, string>>({});
+  const [editingAccounts, setEditingAccounts] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchPreferences();
@@ -49,10 +68,15 @@ export function PreferencesTab() {
         // Parse bank_accounts safely
         let bankAccounts: BankAccount[] = [];
         if (prefs.bank_accounts && Array.isArray(prefs.bank_accounts)) {
-          bankAccounts = (prefs.bank_accounts as unknown as BankAccount[]).filter(
-            (acc): acc is BankAccount => 
+          bankAccounts = (prefs.bank_accounts as unknown as BankAccount[])
+            .filter((acc): acc is BankAccount => 
               typeof acc === 'object' && acc !== null && 'id' in acc
-          );
+            )
+            .map(acc => ({
+              ...acc,
+              // Marcar como bloqueadas las cuentas que ya tienen IBAN válido guardado
+              isLocked: acc.iban ? validateIBAN(acc.iban.replace(/\s/g, '')) : false
+            }));
         }
         setPreferences({
           quote_validity_days: prefs.quote_validity_days || 15,
@@ -70,6 +94,27 @@ export function PreferencesTab() {
   };
 
   const handleSave = async () => {
+    // Validar todos los IBANs antes de guardar
+    const newErrors: Record<string, string> = {};
+    let hasErrors = false;
+
+    preferences.bank_accounts.forEach((account) => {
+      if (account.iban) {
+        const cleanIBAN = account.iban.replace(/\s/g, '').toUpperCase();
+        if (!validateIBAN(cleanIBAN)) {
+          newErrors[account.id] = 'Formato inválido. Debe ser 2 letras + 22 números (ej: ES1234567890123456789012)';
+          hasErrors = true;
+        }
+      }
+    });
+
+    setIbanErrors(newErrors);
+
+    if (hasErrors) {
+      toast.error('Hay errores en el formato de IBAN. Por favor, corrígelos antes de guardar.');
+      return;
+    }
+
     setSaving(true);
     try {
       // Convertir bank_accounts a un formato limpio para JSONB
@@ -77,7 +122,7 @@ export function PreferencesTab() {
         id: acc.id,
         holder: acc.holder || '',
         bank: acc.bank || '',
-        iban: acc.iban || '',
+        iban: acc.iban?.replace(/\s/g, '').toUpperCase() || '', // Guardar sin espacios
         notes: acc.notes || ''
       }));
 
@@ -96,6 +141,19 @@ export function PreferencesTab() {
       }
 
       console.log('Save result:', data);
+      
+      // Después de guardar, marcar todas las cuentas con IBAN válido como bloqueadas
+      setPreferences(prev => ({
+        ...prev,
+        bank_accounts: prev.bank_accounts.map(acc => ({
+          ...acc,
+          isLocked: acc.iban ? validateIBAN(acc.iban.replace(/\s/g, '')) : false
+        }))
+      }));
+      
+      // Limpiar el estado de edición
+      setEditingAccounts(new Set());
+      
       toast.success('Preferencias guardadas correctamente');
     } catch (error) {
       console.error('Error saving preferences:', error);
@@ -106,19 +164,23 @@ export function PreferencesTab() {
   };
 
   const addBankAccount = () => {
+    const newId = crypto.randomUUID();
     setPreferences(prev => ({
       ...prev,
       bank_accounts: [
         ...prev.bank_accounts,
         {
-          id: crypto.randomUUID(),
+          id: newId,
           holder: '',
           bank: '',
           iban: '',
-          notes: ''
+          notes: '',
+          isLocked: false
         }
       ]
     }));
+    // Añadir a la lista de cuentas en edición
+    setEditingAccounts(prev => new Set(prev).add(newId));
   };
 
   const removeBankAccount = (id: string) => {
@@ -126,6 +188,17 @@ export function PreferencesTab() {
       ...prev,
       bank_accounts: prev.bank_accounts.filter(acc => acc.id !== id)
     }));
+    // Limpiar errores y estado de edición
+    setIbanErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[id];
+      return newErrors;
+    });
+    setEditingAccounts(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
   };
 
   const updateBankAccount = (id: string, field: keyof BankAccount, value: string) => {
@@ -135,6 +208,39 @@ export function PreferencesTab() {
         acc.id === id ? { ...acc, [field]: value } : acc
       )
     }));
+    
+    // Limpiar error de IBAN cuando el usuario empiece a escribir
+    if (field === 'iban' && ibanErrors[id]) {
+      setIbanErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[id];
+        return newErrors;
+      });
+    }
+  };
+
+  const toggleEditAccount = (id: string) => {
+    setEditingAccounts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+    
+    // Desbloquear la cuenta para editar
+    setPreferences(prev => ({
+      ...prev,
+      bank_accounts: prev.bank_accounts.map(acc =>
+        acc.id === id ? { ...acc, isLocked: false } : acc
+      )
+    }));
+  };
+
+  const isAccountEditing = (account: BankAccount): boolean => {
+    return editingAccounts.has(account.id) || !account.isLocked;
   };
 
   if (loading) {
@@ -302,68 +408,144 @@ export function PreferencesTab() {
             </div>
           ) : (
             <div className="space-y-4">
-              {preferences.bank_accounts.map((account, index) => (
-                <div
-                  key={account.id}
-                  className="p-4 bg-white/5 rounded-lg border border-white/10 space-y-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-white/80">
-                      Cuenta {index + 1}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeBankAccount(account.id)}
-                      className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+              {preferences.bank_accounts.map((account, index) => {
+                const isEditing = isAccountEditing(account);
+                const hasError = ibanErrors[account.id];
+                
+                return (
+                  <div
+                    key={account.id}
+                    className={`p-4 rounded-lg border space-y-4 transition-all ${
+                      account.isLocked && !editingAccounts.has(account.id)
+                        ? 'bg-green-500/5 border-green-500/20'
+                        : hasError
+                        ? 'bg-red-500/5 border-red-500/30'
+                        : 'bg-white/5 border-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {account.isLocked && !editingAccounts.has(account.id) ? (
+                          <Lock className="w-4 h-4 text-green-400" />
+                        ) : null}
+                        <span className="text-sm font-medium text-white/80">
+                          Cuenta {index + 1}
+                          {account.isLocked && !editingAccounts.has(account.id) && (
+                            <span className="ml-2 text-xs text-green-400">(Guardada)</span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {account.isLocked && !editingAccounts.has(account.id) ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleEditAccount(account.id)}
+                            className="h-8 text-white/60 hover:text-white hover:bg-white/10"
+                          >
+                            <Pencil className="w-4 h-4 mr-1" />
+                            Editar datos
+                          </Button>
+                        ) : null}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeBankAccount(account.id)}
+                          className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Modo visualización (bloqueado) */}
+                    {account.isLocked && !editingAccounts.has(account.id) ? (
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div className="space-y-1">
+                          <Label className="text-white/40 text-xs">Titular</Label>
+                          <p className="text-white/90 text-sm">{account.holder || '-'}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-white/40 text-xs">Entidad bancaria</Label>
+                          <p className="text-white/90 text-sm">{account.bank || '-'}</p>
+                        </div>
+                        <div className="space-y-1 md:col-span-2">
+                          <Label className="text-white/40 text-xs">IBAN</Label>
+                          <p className="text-white/90 text-sm font-mono flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-400" />
+                            {formatIBAN(account.iban)}
+                          </p>
+                        </div>
+                        {account.notes && (
+                          <div className="space-y-1 md:col-span-2">
+                            <Label className="text-white/40 text-xs">Notas de pago</Label>
+                            <p className="text-white/60 text-sm italic">{account.notes}</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      /* Modo edición */
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label className="text-white/60 text-sm">Titular de la cuenta</Label>
+                          <Input
+                            value={account.holder}
+                            onChange={(e) => updateBankAccount(account.id, 'holder', e.target.value)}
+                            placeholder="Nombre del titular"
+                            className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-white/60 text-sm">Entidad bancaria</Label>
+                          <Input
+                            value={account.bank}
+                            onChange={(e) => updateBankAccount(account.id, 'bank', e.target.value)}
+                            placeholder="Nombre del banco"
+                            className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                          />
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                          <Label className="text-white/60 text-sm flex items-center gap-2">
+                            IBAN
+                            {hasError && (
+                              <span className="text-red-400 text-xs flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3" />
+                                {hasError}
+                              </span>
+                            )}
+                          </Label>
+                          <Input
+                            value={account.iban}
+                            onChange={(e) => updateBankAccount(account.id, 'iban', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                            placeholder="ES1234567890123456789012"
+                            maxLength={24}
+                            className={`bg-white/5 text-white placeholder:text-white/30 font-mono ${
+                              hasError 
+                                ? 'border-red-500/50 focus-visible:ring-red-500/30' 
+                                : 'border-white/10'
+                            }`}
+                          />
+                          <p className="text-xs text-white/40">
+                            Formato: 2 letras + 22 números (ejemplo: ES1234567890123456789012)
+                          </p>
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                          <Label className="text-white/60 text-sm">Notas de pago (opcional)</Label>
+                          <Textarea
+                            value={account.notes}
+                            onChange={(e) => updateBankAccount(account.id, 'notes', e.target.value)}
+                            placeholder="Ej: Indicar número de factura en el concepto"
+                            className="bg-white/5 border-white/10 text-white placeholder:text-white/30 min-h-[60px]"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-white/60 text-sm">Titular de la cuenta</Label>
-                      <Input
-                        value={account.holder}
-                        onChange={(e) => updateBankAccount(account.id, 'holder', e.target.value)}
-                        placeholder="Nombre del titular"
-                        className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-white/60 text-sm">Entidad bancaria</Label>
-                      <Input
-                        value={account.bank}
-                        onChange={(e) => updateBankAccount(account.id, 'bank', e.target.value)}
-                        placeholder="Nombre del banco"
-                        className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
-                      />
-                    </div>
-
-                    <div className="space-y-2 md:col-span-2">
-                      <Label className="text-white/60 text-sm">IBAN</Label>
-                      <Input
-                        value={account.iban}
-                        onChange={(e) => updateBankAccount(account.id, 'iban', e.target.value.toUpperCase())}
-                        placeholder="ES00 0000 0000 0000 0000 0000"
-                        className="bg-white/5 border-white/10 text-white placeholder:text-white/30 font-mono"
-                      />
-                    </div>
-
-                    <div className="space-y-2 md:col-span-2">
-                      <Label className="text-white/60 text-sm">Notas de pago (opcional)</Label>
-                      <Textarea
-                        value={account.notes}
-                        onChange={(e) => updateBankAccount(account.id, 'notes', e.target.value)}
-                        placeholder="Ej: Indicar número de factura en el concepto"
-                        className="bg-white/5 border-white/10 text-white placeholder:text-white/30 min-h-[60px]"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -386,7 +568,9 @@ export function PreferencesTab() {
                     {preferences.bank_accounts[0].bank && (
                       <p><span className="font-medium">Banco:</span> {preferences.bank_accounts[0].bank}</p>
                     )}
-                    <p className="font-mono"><span className="font-medium font-sans">IBAN:</span> {preferences.bank_accounts[0].iban}</p>
+                    <p className="font-mono">
+                      <span className="font-medium font-sans">IBAN:</span> {formatIBAN(preferences.bank_accounts[0].iban)}
+                    </p>
                     {preferences.bank_accounts[0].notes && (
                       <p className="text-gray-500 italic mt-1">{preferences.bank_accounts[0].notes}</p>
                     )}
