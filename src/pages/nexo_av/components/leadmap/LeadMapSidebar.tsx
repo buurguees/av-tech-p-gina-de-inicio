@@ -1,9 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeadClient, LeadStats, LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../LeadMapPage";
-import { MapPin, Clock } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { MapPin, Users, Mail, Phone } from "lucide-react";
 
 interface LeadMapSidebarProps {
   stats: LeadStats[];
@@ -12,10 +10,10 @@ interface LeadMapSidebarProps {
 }
 
 const LeadMapSidebar = ({ stats, clients, onClientSelect }: LeadMapSidebarProps) => {
-  // Get recent leads (last 5)
-  const recentLeads = [...clients]
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 5);
+  // Show all clients, sorted by company name
+  const allClients = [...clients].sort((a, b) => 
+    a.company_name.localeCompare(b.company_name)
+  );
 
   const totalLeads = stats.reduce((sum, s) => sum + s.count, 0);
 
@@ -50,43 +48,67 @@ const LeadMapSidebar = ({ stats, clients, onClientSelect }: LeadMapSidebarProps)
         </CardContent>
       </Card>
 
-      {/* Recent leads */}
+      {/* Clients list */}
       <Card className="flex-1 flex flex-col min-h-0">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Clock size={14} />
-            Leads Recientes
+            <Users size={14} />
+            Listado de Clientes
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0 flex-1 min-h-0">
           <ScrollArea className="h-full">
             <div className="space-y-2 pr-2">
-              {recentLeads.map((client) => (
+              {allClients.map((client) => (
                 <button
                   key={client.id}
-                  className="w-full text-left p-2 rounded-md hover:bg-secondary transition-colors"
+                  className="w-full text-left p-3 rounded-md hover:bg-secondary transition-colors border border-border/50"
                   onClick={() => onClientSelect(client)}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{client.company_name}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {client.full_address || "Sin ubicación"}
-                      </p>
-                    </div>
+                  {/* Nombre Comercial y Estado */}
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="font-medium text-sm flex-1 min-w-0 truncate">{client.company_name}</p>
                     <div 
-                      className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                       style={{ backgroundColor: LEAD_STAGE_COLORS[client.lead_stage] }}
+                      title={LEAD_STAGE_LABELS[client.lead_stage]}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {format(new Date(client.created_at), "d MMM yyyy", { locale: es })}
-                  </p>
+                  
+                  {/* Ubicación */}
+                  {client.full_address && (
+                    <div className="flex items-start gap-1.5 mb-1.5">
+                      <MapPin size={12} className="text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-muted-foreground line-clamp-2 break-words">
+                        {client.full_address}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Email */}
+                  {client.contact_email && (
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Mail size={12} className="text-muted-foreground flex-shrink-0" />
+                      <p className="text-xs text-muted-foreground truncate">
+                        {client.contact_email}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Teléfono */}
+                  {client.contact_phone && (
+                    <div className="flex items-center gap-1.5">
+                      <Phone size={12} className="text-muted-foreground flex-shrink-0" />
+                      <p className="text-xs text-muted-foreground">
+                        {client.contact_phone}
+                      </p>
+                    </div>
+                  )}
                 </button>
               ))}
-              {recentLeads.length === 0 && (
+              {allClients.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No hay leads recientes
+                  No hay clientes
                 </p>
               )}
             </div>

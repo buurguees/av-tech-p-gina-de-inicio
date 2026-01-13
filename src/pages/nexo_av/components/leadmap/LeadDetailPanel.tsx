@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,8 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { LeadClient, LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../LeadMapPage";
-import { X, Phone, Mail, MapPin, User, Clock, MessageSquare, RefreshCw, Send } from "lucide-react";
+import { X, Phone, Mail, MapPin, User, Clock, MessageSquare, RefreshCw, Send, MoreVertical, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -28,10 +35,21 @@ interface LeadDetailPanelProps {
   onRefresh: () => void;
   isAdmin: boolean;
   currentUserId: string | null;
+  onFocusLocation: () => void;
+  userId: string;
 }
 
-const LeadDetailPanel = ({ client, onClose, onRefresh, isAdmin, currentUserId }: LeadDetailPanelProps) => {
+const LeadDetailPanel = ({ 
+  client, 
+  onClose, 
+  onRefresh, 
+  isAdmin, 
+  currentUserId,
+  onFocusLocation,
+  userId
+}: LeadDetailPanelProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [notes, setNotes] = useState<ClientNote[]>([]);
   const [loadingNotes, setLoadingNotes] = useState(true);
   const [newNote, setNewNote] = useState("");
@@ -100,9 +118,14 @@ const LeadDetailPanel = ({ client, onClose, onRefresh, isAdmin, currentUserId }:
     }
 
     try {
+      setChangingStatus(true);
+      // Include note if there's one, otherwise use default message
+      const noteContent = newNote.trim() || `Estado cambiado a "${LEAD_STAGE_LABELS[newStatus]}"`;
+      
       const { error } = await supabase.rpc('update_client_status', {
         p_client_id: client.id,
-        p_new_status: newStatus
+        p_new_status: newStatus,
+        p_note: noteContent
       });
 
       if (error) throw error;
@@ -112,6 +135,10 @@ const LeadDetailPanel = ({ client, onClose, onRefresh, isAdmin, currentUserId }:
         description: `Cambio a "${LEAD_STAGE_LABELS[newStatus]}"`,
       });
 
+      // Clear note if it was used for status change
+      if (newNote.trim()) {
+        setNewNote("");
+      }
       setChangingStatus(false);
       onRefresh();
       fetchNotes();
@@ -122,6 +149,7 @@ const LeadDetailPanel = ({ client, onClose, onRefresh, isAdmin, currentUserId }:
         description: "No se pudo cambiar el estado",
         variant: "destructive",
       });
+      setChangingStatus(false);
     }
   };
 
@@ -150,40 +178,15 @@ const LeadDetailPanel = ({ client, onClose, onRefresh, isAdmin, currentUserId }:
         </div>
         
         {/* Status badge */}
-        {!changingStatus ? (
-          <Badge
-            className="w-fit cursor-pointer mt-2"
-            style={{
-              backgroundColor: LEAD_STAGE_COLORS[client.lead_stage],
-              color: 'white'
-            }}
-            onClick={() => canEdit && setChangingStatus(true)}
-          >
-            {LEAD_STAGE_LABELS[client.lead_stage]}
-          </Badge>
-        ) : (
-          <div className="flex gap-2 mt-2">
-            <Select value={newStatus} onValueChange={setNewStatus}>
-              <SelectTrigger className="h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(LEAD_STAGE_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button size="sm" className="h-8" onClick={handleChangeStatus}>
-              Guardar
-            </Button>
-            <Button size="sm" variant="ghost" className="h-8" onClick={() => {
-              setChangingStatus(false);
-              setNewStatus(client.lead_stage);
-            }}>
-              Cancelar
-            </Button>
-          </div>
-        )}
+        <Badge
+          className="w-fit mt-2"
+          style={{
+            backgroundColor: LEAD_STAGE_COLORS[client.lead_stage],
+            color: 'white'
+          }}
+        >
+          {LEAD_STAGE_LABELS[client.lead_stage]}
+        </Badge>
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col min-h-0 pt-2">
@@ -228,17 +231,115 @@ const LeadDetailPanel = ({ client, onClose, onRefresh, isAdmin, currentUserId }:
                 className="min-h-[60px] text-sm"
               />
             </div>
-            {newNote.trim() && (
-              <Button 
-                size="sm" 
-                className="mt-2 w-full"
-                onClick={handleAddNote}
-                disabled={addingNote}
+            <div className="mt-2 space-y-2">
+              {/* Status change selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground whitespace-nowrap">Cambiar estado:</span>
+                <Select value={newStatus} onValueChange={setNewStatus}>
+                  <SelectTrigger className="h-8 text-xs flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(LEAD_STAGE_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2">
+                {newNote.trim() && (
+                  <Button 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={handleAddNote}
+                    disabled={addingNote}
+                  >
+                    <Send size={14} className="mr-1" />
+                    {addingNote ? "Guardando..." : "Añadir Nota"}
+                  </Button>
+                )}
+                {newStatus !== client.lead_stage && (
+                  <Button 
+                    size="sm" 
+                    variant="default"
+                    className="flex-1"
+                    onClick={handleChangeStatus}
+                    disabled={changingStatus}
+                  >
+                    <RefreshCw size={14} className="mr-1" />
+                    {changingStatus ? "Guardando..." : "Cambiar Estado"}
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {client.latitude && client.longitude && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={onFocusLocation}
+                    className="flex-1"
+                    title="Ver ubicación en el mapa"
+                  >
+                    <Eye size={14} className="mr-1" />
+                    Ver ubicación
+                  </Button>
+                )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-shrink-0"
+                      title="Más opciones"
+                    >
+                      <MoreVertical size={14} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
+                    >
+                      Ver detalles del cliente
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </div>
+        )}
+        {!canEdit && (
+          <div className="mb-4 flex-shrink-0 flex gap-2">
+            {client.latitude && client.longitude && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onFocusLocation}
+                className="flex-1"
+                title="Ver ubicación en el mapa"
               >
-                <Send size={14} className="mr-1" />
-                {addingNote ? "Guardando..." : "Añadir Nota"}
+                <Eye size={14} className="mr-1" />
+                Ver ubicación
               </Button>
             )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-shrink-0"
+                  title="Más opciones"
+                >
+                  <MoreVertical size={14} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
+                >
+                  Ver detalles del cliente
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
 

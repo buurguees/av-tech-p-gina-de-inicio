@@ -43,6 +43,7 @@ const LeadMapPageMobile = () => {
   const [loading, setLoading] = useState(true);
   const [geocodingProgress, setGeocodingProgress] = useState<{current: number; total: number} | null>(null);
   const [selectedClient, setSelectedClient] = useState<LeadClient | null>(null);
+  const [focusClient, setFocusClient] = useState<LeadClient | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   
   // Filters
@@ -175,6 +176,7 @@ const LeadMapPageMobile = () => {
           selectedClient={selectedClient}
           onClientSelect={handleClientSelect}
           loading={loading}
+          focusClient={focusClient}
         />
       </div>
 
@@ -195,10 +197,15 @@ const LeadMapPageMobile = () => {
         <LeadDetailMobileSheet
           client={selectedClient}
           open={!!selectedClient}
-          onClose={() => setSelectedClient(null)}
+          onClose={() => {
+            setSelectedClient(null);
+            setFocusClient(null);
+          }}
           onRefresh={handleRefresh}
           isAdmin={isAdmin}
           currentUserId={currentUserId}
+          onFocusLocation={() => setFocusClient(selectedClient)}
+          userId={userId || ''}
         />
       )}
 

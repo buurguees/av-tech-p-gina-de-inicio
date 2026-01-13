@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -17,6 +17,11 @@ interface LeadMapProps {
   selectedClient: LeadClient | null;
   onClientSelect: (client: LeadClient | null) => void;
   loading: boolean;
+  focusClient?: LeadClient | null;
+}
+
+export interface LeadMapRef {
+  focusOnClient: (client: LeadClient) => void;
 }
 
 // Create colored marker icon
@@ -37,7 +42,13 @@ const createMarkerIcon = (color: string) => {
 };
 
 // Component to handle map center updates
-const MapCenterHandler = ({ selectedClient }: { selectedClient: LeadClient | null }) => {
+const MapCenterHandler = ({ 
+  selectedClient, 
+  focusClient 
+}: { 
+  selectedClient: LeadClient | null;
+  focusClient?: LeadClient | null;
+}) => {
   const map = useMap();
   
   useEffect(() => {
@@ -48,18 +59,39 @@ const MapCenterHandler = ({ selectedClient }: { selectedClient: LeadClient | nul
     }
   }, [selectedClient, map]);
   
+  // Handle focus client with maximum zoom
+  useEffect(() => {
+    if (focusClient?.latitude && focusClient?.longitude) {
+      map.setView([focusClient.latitude, focusClient.longitude], 18, {
+        animate: true,
+      });
+    }
+  }, [focusClient, map]);
+  
   return null;
 };
 
-const LeadMap = ({ clients, selectedClient, onClientSelect, loading }: LeadMapProps) => {
+const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
+  ({ clients, selectedClient, onClientSelect, loading, focusClient }, ref) => {
   const mapRef = useRef<L.Map | null>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
 
   // Filter clients with valid coordinates
   const mappableClients = clients.filter(c => c.latitude && c.longitude);
 
-  // Spain center coordinates
-  const defaultCenter: [number, number] = [40.4637, -3.7492];
-  const defaultZoom = 6;
+  // Barcelona Metropolitan Area center coordinates
+  const defaultCenter: [number, number] = [41.3851, 2.1734];
+  const defaultZoom = 10;
+
+  useImperativeHandle(ref, () => ({
+    focusOnClient: (client: LeadClient) => {
+      if (client.latitude && client.longitude && mapInstanceRef.current) {
+        mapInstanceRef.current.setView([client.latitude, client.longitude], 18, {
+          animate: true,
+        });
+      }
+    },
+  }));
 
   if (loading) {
     return (
@@ -106,16 +138,20 @@ const LeadMap = ({ clients, selectedClient, onClientSelect, loading }: LeadMapPr
         center={defaultCenter}
         zoom={defaultZoom}
         className="h-full w-full"
-        ref={mapRef}
+        ref={(map) => {
+          mapRef.current = map;
+          mapInstanceRef.current = map;
+        }}
         zoomControl={true}
         scrollWheelZoom={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={19}
         />
         
-        <MapCenterHandler selectedClient={selectedClient} />
+        <MapCenterHandler selectedClient={selectedClient} focusClient={focusClient} />
         
         {mappableClients.map((client) => (
           <Marker
@@ -147,13 +183,15 @@ const LeadMap = ({ clients, selectedClient, onClientSelect, loading }: LeadMapPr
       {mappableClients.length === 0 && !loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-[500]">
           <div className="text-center">
-            <p className="text-muted-foreground">No hay leads con ubicación</p>
-            <p className="text-sm text-muted-foreground">Crea un nuevo lead para verlo en el mapa</p>
+            <p className="text-muted-foreground">No hay clientes con ubicación</p>
+            <p className="text-sm text-muted-foreground">Crea un nuevo cliente para verlo en el mapa</p>
           </div>
         </div>
       )}
     </div>
   );
-};
+});
+
+LeadMap.displayName = "LeadMap";
 
 export default LeadMap;

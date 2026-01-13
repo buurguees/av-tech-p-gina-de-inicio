@@ -10,7 +10,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 
 import NexoLogin from "./pages/nexo_av/Login";
-import NexoAvLayout from "./pages/nexo_av/layouts/NexoAvLayout";
+import NexoAv from "./pages/nexo_av/nexoav";
 import NexoDashboard from "./pages/nexo_av/Dashboard";
 import NexoUsersPage from "./pages/nexo_av/UsersPage";
 import NexoClientsPage from "./pages/nexo_av/ClientsPage";
@@ -57,7 +57,7 @@ const App = () => (
             <Route path="/nexo-av" element={<NexoLogin />} />
             <Route path="/nexo-av/setup-account" element={<NexoAccountSetup />} />
             {/* All authenticated routes use the shared layout */}
-            <Route path="/nexo-av/:userId" element={<NexoAvLayout />}>
+            <Route path="/nexo-av/:userId" element={<NexoAv />}>
               <Route path="dashboard" element={<NexoDashboard />} />
               <Route path="users" element={<NexoUsersPage />} />
               <Route path="clients" element={<NexoClientsPage />} />

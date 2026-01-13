@@ -34,15 +34,32 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
   
   const isAdmin = userRole === 'admin' || modules.some(m => m.id === 'settings' && m.available);
 
+  /**
+   * Determina si una ruta está activa basándose en la ubicación actual
+   * Mejora la detección para rutas específicas como quotes, invoices, etc.
+   */
   const isActive = (path: string) => {
+    if (!userId) return false;
+    
+    const currentPath = location.pathname;
+    
+    // Para dashboard, solo activo si es exactamente esa ruta
     if (path === `/nexo-av/${userId}/dashboard`) {
-      return location.pathname === path || location.pathname.startsWith(`${path}/`);
+      return currentPath === path;
     }
-    return location.pathname.startsWith(path);
+    
+    // Para otras rutas, está activo si:
+    // 1. La ruta actual coincide exactamente con la ruta del módulo
+    // 2. La ruta actual comienza con la ruta del módulo seguida de /
+    // Ejemplo: /nexo-av/123/quotes está activo cuando estamos en:
+    //   - /nexo-av/123/quotes (coincidencia exacta)
+    //   - /nexo-av/123/quotes/456 (ruta de detalle)
+    //   - /nexo-av/123/quotes/456/edit (ruta de edición)
+    return currentPath === path || currentPath.startsWith(`${path}/`);
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-56 bg-card border-r border-border h-[calc(100vh-3.25rem)] fixed left-0 top-[3.25rem] z-40">
+    <aside className="hidden md:flex flex-col w-56 bg-card border-r border-border h-full z-40 flex-shrink-0">
       <nav className="flex-1 overflow-y-auto flex flex-col py-2">
         {/* Sección Principal */}
         <div className="flex-1 px-2 space-y-0.5">

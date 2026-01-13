@@ -104,6 +104,7 @@ const LeadMapPageDesktop = () => {
   const [loading, setLoading] = useState(true);
   const [geocodingProgress, setGeocodingProgress] = useState<{current: number; total: number} | null>(null);
   const [selectedClient, setSelectedClient] = useState<LeadClient | null>(null);
+  const [focusClient, setFocusClient] = useState<LeadClient | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   
@@ -252,7 +253,7 @@ const LeadMapPageDesktop = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">Mapa de Leads</h1>
+          <h1 className="text-xl font-semibold text-foreground">Mapa Comercial</h1>
           <p className="text-sm text-muted-foreground">
             {showOnlyMine ? "Mis leads" : "Todos los leads"} ({mappableLeads}/{totalLeads} en mapa)
             {geocodingProgress && (
@@ -303,6 +304,7 @@ const LeadMapPageDesktop = () => {
             selectedClient={selectedClient}
             onClientSelect={handleClientSelect}
             loading={loading}
+            focusClient={focusClient}
           />
         </div>
 
@@ -312,10 +314,15 @@ const LeadMapPageDesktop = () => {
             {selectedClient ? (
               <LeadDetailPanel
                 client={selectedClient}
-                onClose={() => setSelectedClient(null)}
+                onClose={() => {
+                  setSelectedClient(null);
+                  setFocusClient(null);
+                }}
                 onRefresh={handleRefresh}
                 isAdmin={isAdmin}
                 currentUserId={currentUserId}
+                onFocusLocation={() => setFocusClient(selectedClient)}
+                userId={userId || ''}
               />
             ) : (
               <LeadMapSidebar

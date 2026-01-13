@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   TrendingUp, 
@@ -7,9 +8,21 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Euro
+  Euro,
+  MessageSquare,
+  RefreshCw,
+  Send
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../LeadMapPage";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface ClientDetail {
   id: string;
@@ -23,13 +36,140 @@ interface ClientDetail {
   lead_stage: string;
   notes: string | null;
   created_at: string;
+  assigned_to?: string | null;
 }
 
 interface ClientDashboardTabProps {
   client: ClientDetail;
+  isAdmin?: boolean;
+  currentUserId?: string | null;
+  onRefresh?: () => void;
 }
 
-const ClientDashboardTab = ({ client }: ClientDashboardTabProps) => {
+interface ClientNote {
+  id: string;
+  content: string;
+  note_type: string;
+  user_name: string;
+  created_at: string;
+  previous_status?: string;
+  new_status?: string;
+}
+
+const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onRefresh }: ClientDashboardTabProps) => {
+  const { toast } = useToast();
+  const [notes, setNotes] = useState<ClientNote[]>([]);
+  const [loadingNotes, setLoadingNotes] = useState(true);
+  const [newNote, setNewNote] = useState("");
+  const [addingNote, setAddingNote] = useState(false);
+  const [changingStatus, setChangingStatus] = useState(false);
+  const [newStatus, setNewStatus] = useState(client.lead_stage);
+
+  const canEdit = isAdmin || client.assigned_to === currentUserId;
+
+  useEffect(() => {
+    fetchNotes();
+  }, [client.id]);
+
+  const fetchNotes = async () => {
+    try {
+      setLoadingNotes(true);
+      const { data, error } = await supabase.rpc('list_client_notes', {
+        p_client_id: client.id
+      });
+
+      if (error) throw error;
+      setNotes(data || []);
+    } catch (err) {
+      console.error('Error fetching notes:', err);
+    } finally {
+      setLoadingNotes(false);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!newNote.trim()) return;
+
+    try {
+      setAddingNote(true);
+      const { error } = await supabase.rpc('add_client_note', {
+        p_client_id: client.id,
+        p_content: newNote.trim(),
+        p_note_type: 'manual'
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Nota añadida",
+        description: "La nota se ha guardado correctamente",
+      });
+
+      setNewNote("");
+      fetchNotes();
+      onRefresh?.();
+    } catch (err) {
+      console.error('Error adding note:', err);
+      toast({
+        title: "Error",
+        description: "No se pudo añadir la nota",
+        variant: "destructive",
+      });
+    } finally {
+      setAddingNote(false);
+    }
+  };
+
+  const handleChangeStatus = async () => {
+    if (newStatus === client.lead_stage) {
+      setChangingStatus(false);
+      return;
+    }
+
+    try {
+      setChangingStatus(true);
+      const noteContent = newNote.trim() || `Estado cambiado a "${LEAD_STAGE_LABELS[newStatus]}"`;
+      
+      const { error } = await supabase.rpc('update_client_status', {
+        p_client_id: client.id,
+        p_new_status: newStatus,
+        p_note: noteContent
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Estado actualizado",
+        description: `Cambio a "${LEAD_STAGE_LABELS[newStatus]}"`,
+      });
+
+      if (newNote.trim()) {
+        setNewNote("");
+      }
+      setChangingStatus(false);
+      fetchNotes();
+      onRefresh?.();
+    } catch (err) {
+      console.error('Error changing status:', err);
+      toast({
+        title: "Error",
+        description: "No se pudo cambiar el estado",
+        variant: "destructive",
+      });
+      setChangingStatus(false);
+    }
+  };
+
+  const getNoteIcon = (type: string) => {
+    switch (type) {
+      case 'status_change':
+        return <RefreshCw size={14} className="text-primary" />;
+      case 'creation':
+        return <Clock size={14} className="text-green-500" />;
+      default:
+        return <MessageSquare size={14} className="text-muted-foreground" />;
+    }
+  };
   // TODO: Fetch real data from projects, quotes, and invoices tables
   const stats = {
     totalProjects: 0,
@@ -182,7 +322,7 @@ const ClientDashboardTab = ({ client }: ClientDashboardTabProps) => {
           </Card>
         </motion.div>
 
-        {/* Recent Activity Card */}
+        {/* Notes and Activity Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -190,11 +330,87 @@ const ClientDashboardTab = ({ client }: ClientDashboardTabProps) => {
         >
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
-              <CardTitle className="text-white text-lg">Actividad Reciente</CardTitle>
+              <CardTitle className="text-white text-lg">Notas y Actividad</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center py-8 text-white/40">
-                <p>No hay actividad reciente</p>
+            <CardContent className="space-y-4">
+              {/* Add note section */}
+              {canEdit && (
+                <div className="space-y-3">
+                  <Textarea
+                    placeholder="Añadir nota..."
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    className="min-h-[80px] bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-white/60 whitespace-nowrap">Cambiar estado:</span>
+                    <Select value={newStatus} onValueChange={setNewStatus}>
+                      <SelectTrigger className="h-9 flex-1 bg-white/5 border-white/10 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(LEAD_STAGE_LABELS).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex gap-2">
+                    {newNote.trim() && (
+                      <Button 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={handleAddNote}
+                        disabled={addingNote}
+                      >
+                        <Send size={14} className="mr-1" />
+                        {addingNote ? "Guardando..." : "Añadir Nota"}
+                      </Button>
+                    )}
+                    {newStatus !== client.lead_stage && (
+                      <Button 
+                        size="sm" 
+                        variant="default"
+                        className="flex-1"
+                        onClick={handleChangeStatus}
+                        disabled={changingStatus}
+                      >
+                        <RefreshCw size={14} className="mr-1" />
+                        {changingStatus ? "Guardando..." : "Cambiar Estado"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Notes list */}
+              <div className="pt-2 border-t border-white/10">
+                <h4 className="text-sm font-medium text-white/80 mb-3">Historial de Actividad</h4>
+                <ScrollArea className="h-[300px]">
+                  <div className="space-y-3 pr-2">
+                    {loadingNotes ? (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/20 border-t-white/60"></div>
+                      </div>
+                    ) : notes.length === 0 ? (
+                      <p className="text-sm text-white/40 text-center py-4">
+                        Sin actividad registrada
+                      </p>
+                    ) : (
+                      notes.map((note) => (
+                        <div key={note.id} className="border-l-2 border-white/20 pl-3 py-1">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            {getNoteIcon(note.note_type)}
+                            <span className="text-xs text-white/60">
+                              {note.user_name} • {format(new Date(note.created_at), "d MMM, HH:mm", { locale: es })}
+                            </span>
+                          </div>
+                          <p className="text-sm text-white/80">{note.content}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
               </div>
             </CardContent>
           </Card>

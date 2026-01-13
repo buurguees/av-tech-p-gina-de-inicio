@@ -100,6 +100,7 @@ const ClientDetailPageMobile = () => {
   const [client, setClient] = useState<ClientDetail | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const navigate = useNavigate();
@@ -205,6 +206,7 @@ const ClientDetailPageMobile = () => {
 
         const userIsAdmin = currentUserInfo.roles?.includes('admin');
         setIsAdmin(userIsAdmin);
+        setCurrentUserId(currentUserInfo.user_id);
 
         if (!hasAccess) {
           setAccessDenied(true);
@@ -401,7 +403,12 @@ const ClientDetailPageMobile = () => {
             ]}
           >
             <TabsContent value="dashboard" className="mt-3">
-              <ClientDashboardTab client={client} />
+              <ClientDashboardTab 
+                client={client} 
+                isAdmin={isAdmin}
+                currentUserId={currentUserId}
+                onRefresh={fetchClient}
+              />
             </TabsContent>
 
             <TabsContent value="projects" className="mt-3">

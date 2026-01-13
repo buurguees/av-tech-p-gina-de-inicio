@@ -97,6 +97,7 @@ const ClientDetailPageDesktop = () => {
   const [client, setClient] = useState<ClientDetail | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const navigate = useNavigate();
@@ -185,6 +186,7 @@ const ClientDetailPageDesktop = () => {
         const currentUserInfo = data[0];
         const userIsAdmin = currentUserInfo.roles?.includes('admin');
         setIsAdmin(userIsAdmin);
+        setCurrentUserId(currentUserInfo.user_id);
       } catch (err) {
         console.error('Error fetching user info:', err);
       }
@@ -343,7 +345,12 @@ const ClientDetailPageDesktop = () => {
             </TabsList>
 
             <TabsContent value="dashboard" className="mt-6">
-              <ClientDashboardTab client={client} />
+              <ClientDashboardTab 
+                client={client} 
+                isAdmin={isAdmin}
+                currentUserId={currentUserId}
+                onRefresh={fetchClient}
+              />
             </TabsContent>
 
             <TabsContent value="projects" className="mt-6">
