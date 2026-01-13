@@ -7,37 +7,37 @@ export const FINANCE_INVOICE_STATUSES = [
   { 
     value: "DRAFT", 
     label: "Borrador", 
-    className: "bg-gray-500/20 text-gray-300 border-gray-500/30",
+    className: "bg-gray-100 text-gray-700 border-gray-300",
     description: "Número preliminar, editable"
   },
   { 
     value: "ISSUED", 
     label: "Emitida", 
-    className: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+    className: "bg-blue-100 text-blue-700 border-blue-300",
     description: "Número definitivo, bloqueada"
   },
   { 
     value: "PARTIAL", 
     label: "Cobro Parcial", 
-    className: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+    className: "bg-amber-100 text-amber-700 border-amber-300",
     description: "Pagos parciales recibidos"
   },
   { 
     value: "PAID", 
     label: "Cobrada", 
-    className: "bg-green-500/20 text-green-300 border-green-500/30",
+    className: "bg-green-100 text-green-700 border-green-300",
     description: "100% pagada"
   },
   { 
     value: "OVERDUE", 
     label: "Vencida", 
-    className: "bg-red-500/20 text-red-300 border-red-500/30",
+    className: "bg-red-100 text-red-700 border-red-300",
     description: "Fecha vencimiento superada"
   },
   { 
     value: "CANCELLED", 
     label: "Cancelada", 
-    className: "bg-orange-500/20 text-orange-300 border-orange-500/30",
+    className: "bg-orange-100 text-orange-700 border-orange-300",
     description: "Anulada"
   },
 ];

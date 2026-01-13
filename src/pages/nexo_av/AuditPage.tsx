@@ -14,6 +14,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import PaginationControls from "./components/PaginationControls";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 interface AuditEvent {
   id: string;
@@ -66,6 +67,9 @@ const parseUserAgentShort = (ua: string | null): string => {
 
 const AuditPage = () => {
   const { userId } = useParams<{ userId: string }>();
+  
+  // Apply nexo-av theme
+  useNexoAvTheme();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   

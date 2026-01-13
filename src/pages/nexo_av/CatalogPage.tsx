@@ -7,6 +7,7 @@ import NexoHeader from './components/NexoHeader';
 import ProductsTab from './components/catalog/ProductsTab';
 import PacksTab from './components/catalog/PacksTab';
 import { createMobilePage } from './MobilePageWrapper';
+import { useNexoAvTheme } from './hooks/useNexoAvTheme';
 
 // Lazy load mobile version
 const CatalogPageMobile = lazy(() => import('./mobile/CatalogPageMobile'));
@@ -24,6 +25,10 @@ interface UserInfo {
 function CatalogPageDesktop() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  
+  // Apply nexo-av theme
+  useNexoAvTheme();
+  
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [activeTab, setActiveTab] = useState("products");

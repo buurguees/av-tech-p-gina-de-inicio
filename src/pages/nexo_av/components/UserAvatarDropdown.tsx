@@ -208,37 +208,35 @@ const UserAvatarDropdown = ({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-white/30">
+          <button className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-ring">
             {initials}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent 
           align="end" 
-          className="w-56 bg-zinc-900 border-white/10 text-white z-[100]"
+          className="w-56 z-[100]"
         >
           <div className="px-3 py-2">
             <p className="text-sm font-medium">{fullName}</p>
-            <p className="text-xs text-white/50">{email}</p>
+            <p className="text-xs text-muted-foreground">{email}</p>
           </div>
-          <DropdownMenuSeparator className="bg-white/10" />
+          <DropdownMenuSeparator />
           <DropdownMenuItem 
             onClick={() => setIsEditDialogOpen(true)}
-            className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
           >
             <User className="mr-2 h-4 w-4" />
             <span>Editar información</span>
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={() => setIsPasswordDialogOpen(true)}
-            className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
           >
             <Key className="mr-2 h-4 w-4" />
             <span>Cambiar contraseña</span>
           </DropdownMenuItem>
-          <DropdownMenuSeparator className="bg-white/10" />
+          <DropdownMenuSeparator />
           <DropdownMenuItem 
             onClick={onLogout}
-            className="cursor-pointer hover:bg-white/10 focus:bg-white/10 text-red-400"
+            className="text-destructive focus:text-destructive"
           >
             <LogOut className="mr-2 h-4 w-4" />
             <span>Cerrar sesión</span>
@@ -248,53 +246,49 @@ const UserAvatarDropdown = ({
 
       {/* Edit Info Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white sm:max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Editar información</DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription>
               Actualiza tu información personal.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEditSubmit}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white/80">Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   value={email}
                   disabled
-                  className="bg-white/5 border-white/10 text-white/50"
                 />
-                <p className="text-xs text-white/40">El email no se puede cambiar.</p>
+                <p className="text-xs text-muted-foreground">El email no se puede cambiar.</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="full_name" className="text-white/80">Nombre completo</Label>
+                <Label htmlFor="full_name">Nombre completo</Label>
                 <Input
                   id="full_name"
                   value={editForm.full_name}
                   onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white focus:border-white/30"
                   placeholder="Tu nombre completo"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-white/80">Teléfono</Label>
+                <Label htmlFor="phone">Teléfono</Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={editForm.phone}
                   onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white focus:border-white/30"
                   placeholder="+34 600 000 000"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="position" className="text-white/80">Cargo</Label>
+                <Label htmlFor="position">Cargo</Label>
                 <Input
                   id="position"
                   value={editForm.position}
                   onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white focus:border-white/30"
                   placeholder="Tu cargo en la empresa"
                 />
               </div>
@@ -304,14 +298,12 @@ const UserAvatarDropdown = ({
                 type="button"
                 variant="outline"
                 onClick={() => setIsEditDialogOpen(false)}
-                className="border-white/20 text-white hover:bg-white/10"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="bg-white text-black hover:bg-white/90"
               >
                 {isLoading ? "Guardando..." : "Guardar"}
               </Button>
@@ -322,50 +314,50 @@ const UserAvatarDropdown = ({
 
       {/* Change Password Dialog */}
       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white sm:max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Cambiar contraseña</DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription>
               Introduce tu contraseña actual y la nueva contraseña.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handlePasswordSubmit}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="currentPassword" className="text-white/80">Contraseña actual</Label>
+                <Label htmlFor="currentPassword">Contraseña actual</Label>
                 <div className="relative">
                   <Input
                     id="currentPassword"
                     type={showCurrentPassword ? "text" : "password"}
                     value={passwordForm.currentPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                    className="bg-white/5 border-white/10 text-white focus:border-white/30 pr-10"
+                    className="pr-10"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="newPassword" className="text-white/80">Nueva contraseña</Label>
+                <Label htmlFor="newPassword">Nueva contraseña</Label>
                 <div className="relative">
                   <Input
                     id="newPassword"
                     type={showNewPassword ? "text" : "password"}
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                    className="bg-white/5 border-white/10 text-white focus:border-white/30 pr-10"
+                    className="pr-10"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -378,20 +370,20 @@ const UserAvatarDropdown = ({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-white/80">Confirmar nueva contraseña</Label>
+                <Label htmlFor="confirmPassword">Confirmar nueva contraseña</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                    className="bg-white/5 border-white/10 text-white focus:border-white/30 pr-10"
+                    className="pr-10"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -406,14 +398,12 @@ const UserAvatarDropdown = ({
                   setIsPasswordDialogOpen(false);
                   setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
                 }}
-                className="border-white/20 text-white hover:bg-white/10"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="bg-white text-black hover:bg-white/90"
               >
                 {isLoading ? "Cambiando..." : "Cambiar contraseña"}
               </Button>

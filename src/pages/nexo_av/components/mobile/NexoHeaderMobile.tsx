@@ -88,7 +88,7 @@ const NexoHeaderMobile = ({
   };
 
   return (
-    <header className="border-b border-white/10 bg-black/60 backdrop-blur-xl sticky top-0 z-50 shadow-lg safe-area-top">
+    <header className="border-b border-border bg-background sticky top-0 z-50 shadow-sm safe-area-top">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -97,7 +97,7 @@ const NexoHeaderMobile = ({
                 variant="ghost"
                 size="icon"
                 onClick={handleBack}
-                className="text-white hover:bg-white/10 rounded-xl touch-target shrink-0"
+                className="rounded-xl touch-target shrink-0"
                 aria-label="Volver"
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -108,7 +108,7 @@ const NexoHeaderMobile = ({
                 variant="ghost"
                 size="icon"
                 onClick={handleHome}
-                className="text-white hover:bg-white/10 rounded-xl touch-target shrink-0"
+                className="rounded-xl touch-target shrink-0"
                 aria-label="Inicio"
               >
                 <Home className="h-5 w-5" />
@@ -123,15 +123,15 @@ const NexoHeaderMobile = ({
             </button>
             <div className="min-w-0 flex-1">
               {customTitle ? (
-                <h1 className="text-white font-semibold tracking-wide truncate text-sm sm:text-base">
+                <h1 className="text-foreground font-semibold tracking-wide truncate text-sm sm:text-base">
                   {customTitle}
                 </h1>
               ) : (
-                <h1 className="text-white font-semibold tracking-wide truncate text-sm sm:text-base">
+                <h1 className="text-foreground font-semibold tracking-wide truncate text-sm sm:text-base">
                   {title}
                 </h1>
               )}
-              <p className="text-white/40 text-xs truncate">{subtitle}</p>
+              <p className="text-muted-foreground text-xs truncate">{subtitle}</p>
             </div>
           </div>
 

@@ -5,9 +5,14 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import UserManagement from "./components/UserManagement";
 import NexoHeader, { NexoLogo } from "./components/NexoHeader";
+import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 const UsersPage = () => {
   const { userId } = useParams<{ userId: string }>();
+  
+  // Apply nexo-av theme
+  useNexoAvTheme();
+  
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);

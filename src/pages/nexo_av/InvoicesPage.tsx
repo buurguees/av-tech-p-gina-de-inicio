@@ -37,6 +37,7 @@ import MobileBottomNav from "./components/MobileBottomNav";
 import PaginationControls from "./components/PaginationControls";
 import { createMobilePage } from "./MobilePageWrapper";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo } from "@/constants/financeStatuses";
+import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 // Lazy load mobile version
 const InvoicesPageMobile = lazy(() => import("./mobile/InvoicesPageMobile"));
@@ -75,6 +76,9 @@ const InvoicesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
+
+  // Apply nexo-av theme
+  useNexoAvTheme();
 
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -208,7 +212,7 @@ const InvoicesPageDesktop = () => {
   } = usePagination(sortedInvoices, { pageSize: 50 });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black pb-mobile-nav">
+    <div className="min-h-screen bg-background pb-mobile-nav">
       <NexoHeader title="Facturas" userId={userId || ""} />
 
       <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">

@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import NexoLoadingScreen from "./components/NexoLoadingScreen";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
+import blackLogo from "./styles/logos/black_logo.svg";
 
 // Configuration
 const SUPABASE_URL = "https://takvthfatlcjsqgssnta.supabase.co";
@@ -63,25 +65,60 @@ const clearLastLogin = (): void => {
   }
 };
 
-const NexoLogo = () => (
-  <svg
-    width="80"
-    height="80"
-    viewBox="0 0 1000 1000"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className="w-20 h-20"
-  >
-    <path d="M750 743.902L506.098 500H590.779L750 659.045V743.902Z" fill="white" />
-    <path d="M506.098 500L750 256.098V340.779L590.955 500H506.098Z" fill="white" />
-    <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="white" />
-    <path d="M743.902 250L500 493.902V409.221L659.045 250H743.902Z" fill="white" />
-    <path d="M500 506.098L743.902 750H659.221L500 590.955V506.098Z" fill="white" />
-    <path d="M256.098 750L500 506.098V590.779L340.955 750H256.098Z" fill="white" />
-    <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="white" />
-    <path d="M493.902 500L250 743.902V659.221L409.045 500H493.902Z" fill="white" />
-  </svg>
-);
+const NexoLogo = () => {
+  const [isLightTheme, setIsLightTheme] = useState(false);
+
+  useEffect(() => {
+    // Verificar si el body tiene la clase nexo-av-theme
+    const checkTheme = () => {
+      setIsLightTheme(document.body.classList.contains('nexo-av-theme'));
+    };
+
+    // Verificar al montar
+    checkTheme();
+
+    // Observar cambios en las clases del body
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Si está en modo light, usar el SVG black_logo
+  if (isLightTheme) {
+    return (
+      <img
+        src={blackLogo}
+        alt="NEXO AV"
+        className="w-20 h-20 object-contain"
+      />
+    );
+  }
+
+  // Si está en modo dark, usar el SVG original
+  return (
+    <svg
+      width="80"
+      height="80"
+      viewBox="0 0 1000 1000"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-20 h-20"
+    >
+      <path d="M750 743.902L506.098 500H590.779L750 659.045V743.902Z" fill="white" />
+      <path d="M506.098 500L750 256.098V340.779L590.955 500H506.098Z" fill="white" />
+      <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="white" />
+      <path d="M743.902 250L500 493.902V409.221L659.045 250H743.902Z" fill="white" />
+      <path d="M500 506.098L743.902 750H659.221L500 590.955V506.098Z" fill="white" />
+      <path d="M256.098 750L500 506.098V590.779L340.955 750H256.098Z" fill="white" />
+      <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="white" />
+      <path d="M493.902 500L250 743.902V659.221L409.045 500H493.902Z" fill="white" />
+    </svg>
+  );
+};
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -238,6 +275,9 @@ const Login = () => {
       setOtpVerifying(false);
     }
   };
+
+  // Apply nexo-av theme
+  useNexoAvTheme();
 
   // Check if user is already logged in
   useEffect(() => {
@@ -442,7 +482,7 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -462,7 +502,7 @@ const Login = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-2xl font-bold text-white mt-6 tracking-wider"
+            className="text-2xl font-bold text-foreground mt-6 tracking-wider"
           >
             NEXO AV
           </motion.h1>
@@ -470,7 +510,7 @@ const Login = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-white/50 text-sm mt-2"
+            className="text-muted-foreground text-sm mt-2"
           >
             {loginStep === 'credentials' ? 'Plataforma de gestión interna' : 'Verificación en dos pasos'}
           </motion.p>

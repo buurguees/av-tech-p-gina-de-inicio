@@ -40,6 +40,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 // Lazy load mobile version
 const QuotesPageMobile = lazy(() => import("./mobile/QuotesPageMobile"));
@@ -65,6 +66,10 @@ const QuotesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
+  
+  // Apply nexo-av theme
+  useNexoAvTheme();
+  
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
@@ -269,7 +274,7 @@ const QuotesPageDesktop = () => {
   } = usePagination(sortedQuotes, { pageSize: 50 });
 
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
+    <div className="min-h-screen bg-background pb-mobile-nav">
       <NexoHeader title="Presupuestos" userId={userId || ""} showBack={false} showHome={true} />
       
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-6">
@@ -282,23 +287,23 @@ const QuotesPageDesktop = () => {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-white">Presupuestos</h1>
-                <Info className="h-4 w-4 text-white/40" />
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">Presupuestos</h1>
+                <Info className="h-4 w-4 text-muted-foreground" />
               </div>
               
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
+                    <Button variant="ghost" size="sm">
                       Acciones
                       <ChevronDown className="h-3 w-3 ml-1" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
                       Exportar seleccionados
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                    <DropdownMenuItem>
                       Duplicar seleccionados
                     </DropdownMenuItem>
                   </DropdownMenuContent>

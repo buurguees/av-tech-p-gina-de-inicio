@@ -226,7 +226,7 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
       </div>
     );
   }
@@ -236,15 +236,15 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
       {/* Header con selector de período */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Resumen Financiero</h1>
-          <p className="text-white/60">Vista general de tu negocio</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Resumen Financiero</h1>
+          <p className="text-muted-foreground">Vista general de tu negocio</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setSelectedPeriod('quarter')}
             className={selectedPeriod === 'quarter' 
-              ? "px-4 py-2 bg-white text-black rounded-lg font-medium"
-              : "px-4 py-2 bg-white/10 text-white rounded-lg font-medium hover:bg-white/20"
+              ? "px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium"
+              : "px-4 py-2 bg-secondary text-foreground rounded-lg font-medium hover:bg-secondary/80"
             }
           >
             Trimestre
@@ -252,8 +252,8 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
           <button
             onClick={() => setSelectedPeriod('year')}
             className={selectedPeriod === 'year'
-              ? "px-4 py-2 bg-white text-black rounded-lg font-medium"
-              : "px-4 py-2 bg-white/10 text-white rounded-lg font-medium hover:bg-white/20"
+              ? "px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium"
+              : "px-4 py-2 bg-secondary text-foreground rounded-lg font-medium hover:bg-secondary/80"
             }
           >
             Año
@@ -265,11 +265,11 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-xl p-4"
+        className="bg-accent border border-primary/30 rounded-xl p-4"
       >
         <div className="flex items-center gap-2 mb-2">
-          <Calendar className="h-5 w-5 text-indigo-400" />
-          <span className="text-white/80 font-medium">{currentPeriod.label}</span>
+          <Calendar className="h-5 w-5 text-primary" />
+          <span className="text-foreground font-medium">{currentPeriod.label}</span>
         </div>
       </motion.div>
 
@@ -280,16 +280,16 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-colors">
+          <Card className="hover:bg-card/80 transition-colors">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white/40 text-sm mb-1">Facturas</p>
-                  <p className="text-white text-2xl font-bold">{currentPeriod.invoices}</p>
-                  <p className="text-emerald-400 text-sm mt-1">{formatCurrency(currentPeriod.invoicesAmount)}</p>
+                  <p className="text-muted-foreground text-sm mb-1">Facturas</p>
+                  <p className="text-foreground text-2xl font-bold">{currentPeriod.invoices}</p>
+                  <p className="text-green-600 text-sm mt-1">{formatCurrency(currentPeriod.invoicesAmount)}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-emerald-500/10">
-                  <Receipt className="h-6 w-6 text-emerald-400" />
+                <div className="p-3 rounded-xl bg-green-100">
+                  <Receipt className="h-6 w-6 text-green-600" />
                 </div>
               </div>
             </CardContent>
@@ -301,16 +301,16 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-colors">
+          <Card className="hover:bg-card/80 transition-colors">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white/40 text-sm mb-1">Presupuestos</p>
-                  <p className="text-white text-2xl font-bold">{currentPeriod.quotes}</p>
-                  <p className="text-blue-400 text-sm mt-1">{formatCurrency(currentPeriod.quotesAmount)}</p>
+                  <p className="text-muted-foreground text-sm mb-1">Presupuestos</p>
+                  <p className="text-foreground text-2xl font-bold">{currentPeriod.quotes}</p>
+                  <p className="text-blue-600 text-sm mt-1">{formatCurrency(currentPeriod.quotesAmount)}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-blue-500/10">
-                  <FileText className="h-6 w-6 text-blue-400" />
+                <div className="p-3 rounded-xl bg-blue-100">
+                  <FileText className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
             </CardContent>
@@ -322,16 +322,16 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-colors">
+          <Card className="hover:bg-card/80 transition-colors">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white/40 text-sm mb-1">Proyectos</p>
-                  <p className="text-white text-2xl font-bold">{currentPeriod.projects}</p>
-                  <p className="text-purple-400 text-sm mt-1">En {selectedPeriod === 'quarter' ? 'trimestre' : 'año'}</p>
+                  <p className="text-muted-foreground text-sm mb-1">Proyectos</p>
+                  <p className="text-foreground text-2xl font-bold">{currentPeriod.projects}</p>
+                  <p className="text-purple-600 text-sm mt-1">En {selectedPeriod === 'quarter' ? 'trimestre' : 'año'}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-purple-500/10">
-                  <FolderKanban className="h-6 w-6 text-purple-400" />
+                <div className="p-3 rounded-xl bg-purple-100">
+                  <FolderKanban className="h-6 w-6 text-purple-600" />
                 </div>
               </div>
             </CardContent>
@@ -343,16 +343,16 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-colors">
+          <Card className="hover:bg-card/80 transition-colors">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white/40 text-sm mb-1">Pendiente Cobro</p>
-                  <p className="text-white text-2xl font-bold">{stats.pendingInvoices}</p>
-                  <p className="text-red-400 text-sm mt-1">{formatCurrency(stats.pendingAmount)}</p>
+                  <p className="text-muted-foreground text-sm mb-1">Pendiente Cobro</p>
+                  <p className="text-foreground text-2xl font-bold">{stats.pendingInvoices}</p>
+                  <p className="text-red-600 text-sm mt-1">{formatCurrency(stats.pendingAmount)}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-red-500/10">
-                  <AlertCircle className="h-6 w-6 text-red-400" />
+                <div className="p-3 rounded-xl bg-red-100">
+                  <AlertCircle className="h-6 w-6 text-red-600" />
                 </div>
               </div>
             </CardContent>
@@ -367,15 +367,15 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-colors">
+          <Card className="hover:bg-card/80 transition-colors">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white/40 text-sm mb-1">Total Clientes</p>
-                  <p className="text-white text-2xl font-bold">{stats.totalClients}</p>
+                  <p className="text-muted-foreground text-sm mb-1">Total Clientes</p>
+                  <p className="text-foreground text-2xl font-bold">{stats.totalClients}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-indigo-500/10">
-                  <Users className="h-6 w-6 text-indigo-400" />
+                <div className="p-3 rounded-xl bg-indigo-100">
+                  <Users className="h-6 w-6 text-indigo-600" />
                 </div>
               </div>
             </CardContent>
@@ -387,15 +387,15 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-colors">
+          <Card className="hover:bg-card/80 transition-colors">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white/40 text-sm mb-1">Proyectos Activos</p>
-                  <p className="text-white text-2xl font-bold">{stats.activeProjects}</p>
+                  <p className="text-muted-foreground text-sm mb-1">Proyectos Activos</p>
+                  <p className="text-foreground text-2xl font-bold">{stats.activeProjects}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-yellow-500/10">
-                  <Clock className="h-6 w-6 text-yellow-400" />
+                <div className="p-3 rounded-xl bg-yellow-100">
+                  <Clock className="h-6 w-6 text-yellow-600" />
                 </div>
               </div>
             </CardContent>
@@ -407,15 +407,15 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
         >
-          <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-colors">
+          <Card className="hover:bg-card/80 transition-colors">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white/40 text-sm mb-1">Total Facturado (Año)</p>
-                  <p className="text-white text-2xl font-bold">{formatCurrency(stats.yearInvoicesAmount)}</p>
+                  <p className="text-muted-foreground text-sm mb-1">Total Facturado (Año)</p>
+                  <p className="text-foreground text-2xl font-bold">{formatCurrency(stats.yearInvoicesAmount)}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-green-500/10">
-                  <TrendingUp className="h-6 w-6 text-green-400" />
+                <div className="p-3 rounded-xl bg-green-100">
+                  <TrendingUp className="h-6 w-6 text-green-600" />
                 </div>
               </div>
             </CardContent>

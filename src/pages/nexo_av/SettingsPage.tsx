@@ -11,6 +11,7 @@ import { TemplatesTab } from './components/settings/TemplatesTab';
 import { PreferencesTab } from './components/settings/PreferencesTab';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { lazy, Suspense } from 'react';
+import { useNexoAvTheme } from './hooks/useNexoAvTheme';
 
 // Lazy load mobile tabs
 const DetailTabsMobile = lazy(() => import('./components/mobile/DetailTabsMobile'));
@@ -32,6 +33,9 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [activeTab, setActiveTab] = useState("company");
+
+  // Apply nexo-av theme
+  useNexoAvTheme();
 
   useEffect(() => {
     const checkAuth = async () => {

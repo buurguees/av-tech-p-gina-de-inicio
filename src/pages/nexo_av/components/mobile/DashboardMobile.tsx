@@ -56,10 +56,10 @@ const DashboardMobile = ({
         transition={{ duration: isIOS ? 0.1 : 0.3 }}
         className="mb-4"
       >
-        <h2 className="text-lg font-bold text-white mb-1">
+        <h2 className="text-lg font-bold text-foreground mb-1">
           Hola, {userInfo?.full_name?.split(' ')[0]}
         </h2>
-        <p className="text-white/50 text-sm">
+        <p className="text-muted-foreground text-sm">
           ¿Qué quieres hacer?
         </p>
       </motion.div>
@@ -73,7 +73,7 @@ const DashboardMobile = ({
         {(isAdmin || isManager || isSales) && (
           <Button 
             onClick={onNewLead}
-            className="bg-white text-black hover:bg-white/90 text-sm h-11 px-4 min-w-[120px] touch-target"
+            className="text-sm h-11 px-4 min-w-[120px] touch-target"
           >
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Lead
@@ -84,7 +84,7 @@ const DashboardMobile = ({
             trigger={
               <Button 
                 variant="outline" 
-                className="border-white/20 text-white hover:bg-white/10 text-sm h-11 px-4 min-w-[120px] touch-target"
+                className="text-sm h-11 px-4 min-w-[120px] touch-target"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Presupuesto
@@ -95,7 +95,7 @@ const DashboardMobile = ({
         {(isAdmin || isManager || isTech) && (
           <Button 
             variant="outline" 
-            className="border-white/20 text-white hover:bg-white/10 text-sm h-11 px-4 min-w-[120px] touch-target"
+            className="text-sm h-11 px-4 min-w-[120px] touch-target"
           >
             <Plus className="h-4 w-4 mr-2" />
             Proyecto
@@ -116,12 +116,12 @@ const DashboardMobile = ({
           >
             <button
               onClick={() => navigate(module.path)}
-              className={`w-full h-32 p-4 rounded-2xl border ${module.borderColor} bg-gradient-to-br ${module.color} hover:border-white/40 active:scale-[0.97] transition-all duration-200 group text-left flex flex-col justify-between backdrop-blur-sm shadow-lg touch-target`}
+              className={`w-full h-32 p-4 rounded-2xl border border-border bg-card hover:bg-card/80 hover:border-primary/30 active:scale-[0.97] transition-all duration-200 group text-left flex flex-col justify-between shadow-md touch-target`}
             >
-              <div className="p-3 rounded-xl bg-white/5 group-active:bg-white/10 transition-colors w-fit shadow-sm">
-                <module.icon className="h-6 w-6 text-white" />
+              <div className="p-3 rounded-xl bg-primary/10 group-active:bg-primary/20 transition-colors w-fit shadow-sm">
+                <module.icon className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-white font-semibold text-sm leading-tight">{module.title}</h3>
+              <h3 className="text-foreground font-semibold text-sm leading-tight">{module.title}</h3>
             </button>
           </motion.div>
         ))}
@@ -133,7 +133,7 @@ const DashboardMobile = ({
         transition={{ duration: isIOS ? 0.1 : 0.3, delay: isIOS ? 0 : 0.2 }}
         className="mt-8 text-center"
       >
-        <p className="text-white/30 text-xs">
+        <p className="text-muted-foreground/60 text-xs">
           Más funcionalidades próximamente
         </p>
       </motion.div>

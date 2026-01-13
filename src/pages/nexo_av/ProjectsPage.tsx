@@ -28,6 +28,7 @@ import CreateProjectDialog from "./components/CreateProjectDialog";
 import PaginationControls from "./components/PaginationControls";
 import { createMobilePage } from "./MobilePageWrapper";
 import { cn } from "@/lib/utils";
+import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 // Lazy load mobile version
 const ProjectsPageMobile = lazy(() => import("./mobile/ProjectsPageMobile"));
@@ -49,11 +50,11 @@ interface Project {
 }
 
 const PROJECT_STATUSES = [
-  { value: 'PLANNED', label: 'Planificado', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'IN_PROGRESS', label: 'En Progreso', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  { value: 'PAUSED', label: 'Pausado', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  { value: 'COMPLETED', label: 'Completado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'CANCELLED', label: 'Cancelado', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+  { value: 'PLANNED', label: 'Planificado', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  { value: 'IN_PROGRESS', label: 'En Progreso', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+  { value: 'PAUSED', label: 'Pausado', color: 'bg-orange-100 text-orange-700 border-orange-300' },
+  { value: 'COMPLETED', label: 'Completado', color: 'bg-green-100 text-green-700 border-green-300' },
+  { value: 'CANCELLED', label: 'Cancelado', color: 'bg-red-100 text-red-700 border-red-300' },
 ];
 
 const getStatusInfo = (status: string) => {
@@ -63,6 +64,10 @@ const getStatusInfo = (status: string) => {
 const ProjectsPageDesktop = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
+  
+  // Apply nexo-av theme
+  useNexoAvTheme();
+  
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
@@ -180,7 +185,7 @@ const ProjectsPageDesktop = () => {
   } = usePagination(sortedProjects, { pageSize: 50 });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black">
+    <div className="min-h-screen bg-background">
       <NexoHeader userId={userId || ""} title="Proyectos" showBack={false} showHome={true} />
       
       <main className="container mx-auto px-3 md:px-4 pt-20 md:pt-24 pb-4 md:pb-8">
@@ -193,30 +198,30 @@ const ProjectsPageDesktop = () => {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-white">Proyectos</h1>
-                <Info className="h-4 w-4 text-white/40" />
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">Proyectos</h1>
+                <Info className="h-4 w-4 text-muted-foreground" />
               </div>
               
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
+                    <Button variant="ghost" size="sm">
                       Acciones
                       <ChevronDown className="h-3 w-3 ml-1" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
                       Exportar seleccionados
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                    <DropdownMenuItem>
                       Cambiar estado
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
                   onClick={() => setIsCreateDialogOpen(true)}
-                  className="bg-purple-600 hover:bg-purple-700 text-white h-9 px-4 text-sm font-medium"
+                  className="h-9 px-4 text-sm font-medium"
                 >
                   <Plus className="h-4 w-4 mr-1.5" />
                   Nuevo proyecto
@@ -228,12 +233,12 @@ const ProjectsPageDesktop = () => {
             {/* Search Bar - Estilo Holded */}
             <div className="flex items-center gap-2">
               <div className="relative flex-1 min-w-[200px] max-w-md">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar proyectos..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-8 text-xs"
+                  className="pr-10 h-8 text-xs"
                 />
               </div>
             </div>
@@ -242,23 +247,23 @@ const ProjectsPageDesktop = () => {
           {/* Table */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : projects.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <FolderKanban className="h-16 w-16 text-white/20 mb-4" />
-              <p className="text-white/60">No hay proyectos</p>
-              <p className="text-white/40 text-sm mt-1">
+              <FolderKanban className="h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No hay proyectos</p>
+              <p className="text-muted-foreground/70 text-sm mt-1">
                 Crea tu primer proyecto para comenzar
               </p>
             </div>
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="bg-white/[0.02] rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm shadow-lg">
+              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-white/10 hover:bg-transparent bg-white/[0.03]">
+                    <TableRow className="hover:bg-transparent bg-muted/30">
                       <TableHead className="w-12 px-4">
                         <Checkbox
                           checked={selectedProjects.size === paginatedProjects.length && paginatedProjects.length > 0}

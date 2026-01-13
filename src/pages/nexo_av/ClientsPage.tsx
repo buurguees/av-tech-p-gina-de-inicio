@@ -56,6 +56,7 @@ import MobileBottomNav from "./components/MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { lazy, Suspense } from "react";
 import { cn } from "@/lib/utils";
+import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 // Lazy load mobile components
 const ClientsListMobile = lazy(() => import("./components/mobile/ClientsListMobile"));
@@ -80,15 +81,15 @@ interface Client {
 }
 
 const LEAD_STAGES = [
-  { value: 'NEW', label: 'Nuevo', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'CONTACTED', label: 'Contactado', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  { value: 'MEETING', label: 'Reunión', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
-  { value: 'PROPOSAL', label: 'Propuesta', color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' },
-  { value: 'NEGOTIATION', label: 'Negociación', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  { value: 'WON', label: 'Ganado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'RECURRING', label: 'Recurrente', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-  { value: 'LOST', label: 'Perdido', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  { value: 'PAUSED', label: 'Pausado', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
+  { value: 'NEW', label: 'Nuevo', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  { value: 'CONTACTED', label: 'Contactado', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+  { value: 'MEETING', label: 'Reunión', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+  { value: 'PROPOSAL', label: 'Propuesta', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
+  { value: 'NEGOTIATION', label: 'Negociación', color: 'bg-orange-100 text-orange-700 border-orange-300' },
+  { value: 'WON', label: 'Ganado', color: 'bg-green-100 text-green-700 border-green-300' },
+  { value: 'RECURRING', label: 'Recurrente', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
+  { value: 'LOST', label: 'Perdido', color: 'bg-red-100 text-red-700 border-red-300' },
+  { value: 'PAUSED', label: 'Pausado', color: 'bg-gray-100 text-gray-700 border-gray-300' },
 ];
 
 const getStageInfo = (stage: string) => {
@@ -98,6 +99,10 @@ const getStageInfo = (stage: string) => {
 const ClientsPage = () => {
   const { userId } = useParams<{ userId: string }>();
   const isMobile = useIsMobile();
+  
+  // Apply nexo-av theme
+  useNexoAvTheme();
+  
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
@@ -274,14 +279,13 @@ const ClientsPage = () => {
 
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <ShieldAlert className="h-16 w-16 text-red-500 mx-auto" />
-          <h1 className="text-2xl font-bold text-white">Acceso Denegado</h1>
-          <p className="text-white/60">No tienes permiso para acceder a este recurso.</p>
+          <ShieldAlert className="h-16 w-16 text-destructive mx-auto" />
+          <h1 className="text-2xl font-bold text-foreground">Acceso Denegado</h1>
+          <p className="text-muted-foreground">No tienes permiso para acceder a este recurso.</p>
           <Button 
             onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
-            className="bg-white text-black hover:bg-white/90"
           >
             Volver al inicio
           </Button>
@@ -292,8 +296,8 @@ const ClientsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-foreground">
           <NexoLogo />
         </div>
       </div>
@@ -302,7 +306,7 @@ const ClientsPage = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black pb-mobile-nav">
+    <div className="min-h-screen bg-background pb-mobile-nav">
       <NexoHeader 
         title="Clientes" 
         userId={userId || ''} 
@@ -320,30 +324,30 @@ const ClientsPage = () => {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-white">Clientes</h1>
-                <Info className="h-4 w-4 text-white/40" />
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">Clientes</h1>
+                <Info className="h-4 w-4 text-muted-foreground" />
               </div>
               
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
+                    <Button variant="ghost" size="sm">
                       Acciones
                       <ChevronDown className="h-3 w-3 ml-1" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
                       Exportar seleccionados
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                    <DropdownMenuItem>
                       Asignar seleccionados
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
                   onClick={() => setShowCreateDialog(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4 text-sm font-medium"
+                  className="h-9 px-4 text-sm font-medium"
                 >
                   <Plus className="h-4 w-4 mr-1.5" />
                   Nuevo cliente
@@ -360,18 +364,18 @@ const ClientsPage = () => {
                     variant="outline"
                     size="sm"
                     className={cn(
-                      "h-8 px-3 text-xs border-white/20 text-white/70 hover:bg-white/10",
-                      stageFilter !== "all" && "bg-white/10 text-white"
+                      "h-8 px-3 text-xs",
+                      stageFilter !== "all" && "bg-accent"
                     )}
                   >
                     {stageFilter === "all" ? "Todos" : LEAD_STAGES.find(s => s.value === stageFilter)?.label || "Todos"}
                     <ChevronDown className="h-3 w-3 ml-1" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-zinc-900 border-white/10">
+                <DropdownMenuContent align="start">
                   <DropdownMenuItem
                     onClick={() => setStageFilter("all")}
-                    className={cn("text-white hover:bg-white/10", stageFilter === "all" && "bg-white/10")}
+                    className={cn(stageFilter === "all" && "bg-accent")}
                   >
                     Todos
                   </DropdownMenuItem>
@@ -379,7 +383,7 @@ const ClientsPage = () => {
                     <DropdownMenuItem
                       key={stage.value}
                       onClick={() => setStageFilter(stage.value)}
-                      className={cn("text-white hover:bg-white/10", stageFilter === stage.value && "bg-white/10")}
+                      className={cn(stageFilter === stage.value && "bg-accent")}
                     >
                       {stage.label}
                     </DropdownMenuItem>
@@ -387,14 +391,13 @@ const ClientsPage = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
               
-              <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-white/5 border border-white/10">
+              <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-secondary border border-border">
                 <Switch
                   id="show-mine"
                   checked={showOnlyMine === true}
                   onCheckedChange={setShowOnlyMine}
-                  className="data-[state=checked]:bg-white"
                 />
-                <Label htmlFor="show-mine" className="text-white/70 text-xs flex items-center gap-1.5 cursor-pointer">
+                <Label htmlFor="show-mine" className="text-foreground text-xs flex items-center gap-1.5 cursor-pointer">
                   {showOnlyMine === true ? (
                     <>
                       <UserCheck className="h-3 w-3" />
@@ -410,12 +413,12 @@ const ClientsPage = () => {
               </div>
               
               <div className="relative flex-1 min-w-[200px] max-w-md">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar clientes..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-8 text-xs"
+                  className="pr-10 h-8 text-xs"
                 />
               </div>
             </div>
@@ -425,7 +428,7 @@ const ClientsPage = () => {
         {isMobile ? (
           <Suspense fallback={
             <div className="flex items-center justify-center py-12 md:hidden">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
             </div>
           }>
             <motion.div
@@ -457,32 +460,32 @@ const ClientsPage = () => {
           {/* Table */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
             </div>
           ) : filteredClients.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <Building2 className="h-16 w-16 text-white/20 mb-4" />
-              <p className="text-white/60">No hay clientes</p>
-              <p className="text-white/40 text-sm mt-1">
+              <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No hay clientes</p>
+              <p className="text-muted-foreground/70 text-sm mt-1">
                 Crea tu primer cliente para comenzar
               </p>
             </div>
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="bg-white/[0.02] rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm shadow-lg">
+              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-white/10 hover:bg-transparent bg-white/[0.03]">
+                    <TableRow className="hover:bg-transparent bg-muted/30">
                       <TableHead className="w-12 px-4">
                         <UICheckbox
                           checked={selectedClients.size === paginatedClients.length && paginatedClients.length > 0}
                           onCheckedChange={handleSelectAll}
-                          className="border-white/30 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
                       </TableHead>
                       <TableHead 
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-muted-foreground cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("number")}
                       >
                         <div className="flex items-center gap-1">
@@ -493,7 +496,7 @@ const ClientsPage = () => {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-white/70 cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("company")}
                       >
                         <div className="flex items-center gap-1">
@@ -505,7 +508,7 @@ const ClientsPage = () => {
                       </TableHead>
                       <TableHead className="text-white/70">Contacto</TableHead>
                       <TableHead 
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-white/70 cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("stage")}
                       >
                         <div className="flex items-center gap-1">
@@ -516,7 +519,7 @@ const ClientsPage = () => {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-white/70 cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("assigned")}
                       >
                         <div className="flex items-center gap-1">
@@ -527,7 +530,7 @@ const ClientsPage = () => {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-white/70 cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("followup")}
                       >
                         <div className="flex items-center gap-1">
@@ -618,7 +621,7 @@ const ClientsPage = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                                  className="h-8 w-8 text-white/40 hover:text-foreground hover:bg-white/10"
                                 >
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>

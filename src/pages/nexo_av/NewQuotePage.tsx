@@ -544,7 +544,7 @@ const NewQuotePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black pb-mobile-nav">
+    <div className="min-h-screen bg-background pb-mobile-nav">
       <NexoHeader 
         title={sourceQuoteNumber ? "Nueva Versión" : "Nuevo Presupuesto"} 
         userId={userId || ""} 
