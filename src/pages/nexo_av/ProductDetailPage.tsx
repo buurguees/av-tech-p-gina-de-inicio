@@ -205,7 +205,7 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-white/40" />
       </div>
     );
@@ -213,7 +213,7 @@ export default function ProductDetailPage() {
 
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <ShieldAlert className="h-16 w-16 text-red-500 mx-auto" />
           <h1 className="text-2xl font-bold text-white">Acceso Denegado</h1>

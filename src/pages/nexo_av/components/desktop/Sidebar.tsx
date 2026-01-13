@@ -69,7 +69,7 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
             className={cn(
               "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150",
               isActive(`/nexo-av/${userId}/dashboard`)
-                ? "bg-secondary text-foreground font-medium"
+                ? "bg-primary text-primary-foreground font-semibold shadow-sm"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground"
             )}
             whileTap={{ scale: 0.98 }}
@@ -93,7 +93,7 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                 className={cn(
                   "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150",
                   active
-                    ? "bg-secondary text-foreground font-medium"
+                    ? "bg-primary text-primary-foreground font-semibold shadow-sm"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 )}
                 whileTap={{ scale: 0.98 }}
@@ -121,7 +121,7 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                     className={cn(
                       "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150",
                       active
-                        ? "bg-secondary text-foreground font-medium"
+                        ? "bg-primary text-primary-foreground font-semibold shadow-sm"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                     )}
                     whileTap={{ scale: 0.98 }}

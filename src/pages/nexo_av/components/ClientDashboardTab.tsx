@@ -20,7 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../LeadMapPage";
+import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../LeadMapPage";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 

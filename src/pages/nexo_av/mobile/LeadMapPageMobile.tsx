@@ -12,7 +12,6 @@ import { useToast } from "@/hooks/use-toast";
 import LeadMap from "../components/leadmap/LeadMap";
 import LeadDetailMobileSheet from "../components/leadmap/LeadDetailMobileSheet";
 import CreateClientDialog from "../components/CreateClientDialog";
-import MobileBottomNav from "../components/MobileBottomNav";
 import { Button } from "@/components/ui/button";
 import { Plus, Loader2 } from "lucide-react";
 import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS, LeadClient, LeadStats } from "../LeadMapPage";
@@ -219,8 +218,6 @@ const LeadMapPageMobile = () => {
         enableGeocoding={true}
       />
 
-      {/* Bottom Navigation - Siempre visible */}
-      <MobileBottomNav userId={userId || ''} />
     </div>
   );
 };

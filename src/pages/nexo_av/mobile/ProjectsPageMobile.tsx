@@ -14,7 +14,6 @@ import { Plus, Search, FolderKanban } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
-import NexoHeaderMobile from "../components/mobile/NexoHeaderMobile";
 import ProjectsListMobile from "../components/mobile/ProjectsListMobile";
 import CreateProjectDialog from "../components/CreateProjectDialog";
 import MobileBottomNav from "../components/MobileBottomNav";
@@ -101,14 +100,7 @@ const ProjectsPageMobile = () => {
   } = usePagination(projects, { pageSize: 25 });
 
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
-      <NexoHeaderMobile 
-        userId={userId || ""} 
-        title="Proyectos" 
-        showBack={false} 
-        showHome={true} 
-      />
-      
+    <div className="min-h-screen bg-background pb-mobile-nav">
       <main className="px-3 py-3 space-y-3">
         <motion.div
           initial={{ opacity: 0, y: 10 }}

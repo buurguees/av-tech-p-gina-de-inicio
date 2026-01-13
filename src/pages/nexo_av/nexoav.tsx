@@ -392,31 +392,33 @@ const NexoAv = () => {
 
       {/* Main content area */}
       {isMobile ? (
-        <>
+        <div className="flex-1 flex flex-col overflow-hidden">
           {/* En móvil, el contenido empieza después del header fijo */}
-          <div className="flex-1 overflow-y-auto pt-0">
+          <div className="flex-1 overflow-y-auto">
             {isDashboardRoute ? (
-              <main className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
-                <Suspense fallback={
-                  <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
-                  </div>
-                }>
-                  <DashboardMobile
-                    userInfo={userInfo}
-                    modules={modules}
-                    isAdmin={isAdmin}
-                    isManager={isManager}
-                    isSales={hasSalesAccess}
-                    isTech={hasTechAccess}
-                    userId={userId}
-                    navigate={navigate}
-                    onNewLead={() => {}}
-                  />
-                </Suspense>
+              <main className="w-full min-h-full">
+                <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
+                    </div>
+                  }>
+                    <DashboardMobile
+                      userInfo={userInfo}
+                      modules={modules}
+                      isAdmin={isAdmin}
+                      isManager={isManager}
+                      isSales={hasSalesAccess}
+                      isTech={hasTechAccess}
+                      userId={userId}
+                      navigate={navigate}
+                      onNewLead={() => {}}
+                    />
+                  </Suspense>
+                </div>
               </main>
             ) : (
-              <main className="w-full">
+              <main className="w-full min-h-full">
                 <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
                   <Outlet />
                 </div>
@@ -428,7 +430,7 @@ const NexoAv = () => {
             userId={userId || ''} 
             userRoles={userInfo?.roles || []}
           />
-        </>
+        </div>
       ) : (
         <div className="flex-1 flex overflow-hidden">
           {/* Sidebar - Fijo a la izquierda */}
@@ -439,6 +441,7 @@ const NexoAv = () => {
           />
           
           {/* Contenido principal - Ocupa el espacio restante con scroll independiente */}
+          {/* El contenido ocupa el 90% del espacio disponible (descontando el sidebar de 224px) */}
           <main className="flex-1 min-w-0 overflow-y-auto bg-background">
             <div className="w-[90%] max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
               <Outlet />

@@ -27,7 +27,6 @@ import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "./components/ProductSearchInput";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
-import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 interface Client {
   id: string;
@@ -630,30 +629,24 @@ const EditQuotePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black">
-        <NexoHeader title="Editar Presupuesto" userId={userId || ""} />
-        <div className="flex items-center justify-center pt-32">
-          <Loader2 className="h-8 w-8 animate-spin text-white/40" />
-        </div>
+      <div className="flex items-center justify-center pt-32">
+        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
       </div>
     );
   }
 
   if (!quote) {
     return (
-      <div className="min-h-screen bg-black">
-        <NexoHeader title="Editar Presupuesto" userId={userId || ""} />
-        <div className="flex flex-col items-center justify-center pt-32">
-          <FileText className="h-16 w-16 text-white/20 mb-4" />
-          <p className="text-white/60">Presupuesto no encontrado</p>
-          <Button
-            variant="link"
-            onClick={() => navigate(`/nexo-av/${userId}/quotes`)}
-            className="text-orange-500 mt-2"
-          >
-            Volver a presupuestos
-          </Button>
-        </div>
+      <div className="flex flex-col items-center justify-center pt-32">
+        <FileText className="h-16 w-16 text-white/20 mb-4" />
+        <p className="text-white/60">Presupuesto no encontrado</p>
+        <Button
+          variant="link"
+          onClick={() => navigate(`/nexo-av/${userId}/quotes`)}
+          className="text-orange-500 mt-2"
+        >
+          Volver a presupuestos
+        </Button>
       </div>
     );
   }

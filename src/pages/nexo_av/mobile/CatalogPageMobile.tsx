@@ -10,7 +10,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { TabsContent } from '@/components/ui/tabs';
 import { Package, Boxes, Loader2 } from 'lucide-react';
-import NexoHeaderMobile from '../components/mobile/NexoHeaderMobile';
 import ProductsTab from '../components/catalog/ProductsTab';
 import PacksTab from '../components/catalog/PacksTab';
 import DetailTabsMobile from '../components/mobile/DetailTabsMobile';
@@ -75,7 +74,7 @@ export default function CatalogPageMobile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse">
           <NexoLogo />
         </div>
@@ -84,15 +83,7 @@ export default function CatalogPageMobile() {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
-      <NexoHeaderMobile
-        title="Catálogo"
-        subtitle="Consulta rápida"
-        userId={userId || ''}
-        showBack={false}
-        showHome={true}
-      />
-
+    <div className="min-h-screen bg-background pb-mobile-nav">
       <main className="px-3 py-3">
         <DetailTabsMobile
           value={activeTab}

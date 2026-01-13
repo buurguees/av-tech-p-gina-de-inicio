@@ -32,7 +32,6 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import NexoHeaderMobile from "../components/mobile/NexoHeaderMobile";
 import QuotePDFViewer from "../components/QuotePDFViewer";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
@@ -195,7 +194,7 @@ const QuoteDetailPageMobile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse">
           <NexoLogo />
         </div>
@@ -205,10 +204,10 @@ const QuoteDetailPageMobile = () => {
 
   if (!quote) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
-          <FileText className="h-16 w-16 text-white/20 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-white mb-2">Presupuesto no encontrado</h2>
+          <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-foreground mb-2">Presupuesto no encontrado</h2>
           <Button
             onClick={() => navigate(`/nexo-av/${userId}/quotes`)}
             className="bg-white text-black hover:bg-white/90 mt-4"
@@ -225,14 +224,7 @@ const QuoteDetailPageMobile = () => {
   const availableTransitions = getAvailableStatusTransitions(quote.status);
 
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
-      <NexoHeaderMobile 
-        title={`Presupuesto ${quote.quote_number}`}
-        subtitle={quote.client_name}
-        userId={userId || ""} 
-        backTo={`/nexo-av/${userId}/quotes`}
-      />
-
+    <div className="min-h-screen bg-background pb-mobile-nav">
       <main className="px-3 py-3 space-y-3">
         {/* Estado y Acciones Rápidas */}
         <motion.div

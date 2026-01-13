@@ -14,7 +14,6 @@ import { Search, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
-import NexoHeaderMobile from "../components/mobile/NexoHeaderMobile";
 import InvoicesListMobile from "../components/mobile/InvoicesListMobile";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { cn } from "@/lib/utils";
@@ -95,14 +94,7 @@ const InvoicesPageMobile = () => {
   } = usePagination(invoices, { pageSize: 25 });
 
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
-      <NexoHeaderMobile 
-        title="Facturas" 
-        userId={userId || ""} 
-        showBack={false}
-        showHome={true}
-      />
-      
+    <div className="min-h-screen bg-background pb-mobile-nav">
       <main className="px-3 py-3 space-y-3">
         <motion.div
           initial={{ opacity: 0, y: 10 }}

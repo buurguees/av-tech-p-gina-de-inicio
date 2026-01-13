@@ -22,7 +22,6 @@ import {
 import { ShieldAlert, Search, Filter, Info, AlertTriangle, AlertCircle, Clock, User } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
-import NexoHeaderMobile from "../components/mobile/NexoHeaderMobile";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -134,7 +133,7 @@ const AuditPageMobile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
       </div>
     );
@@ -142,7 +141,7 @@ const AuditPageMobile = () => {
 
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
           <ShieldAlert className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-lg font-semibold text-white mb-2">Acceso Denegado</h2>
@@ -159,13 +158,7 @@ const AuditPageMobile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
-      <NexoHeaderMobile 
-        title="Auditoría"
-        userId={userId || ""}
-        showBack={false}
-      />
-
+    <div className="min-h-screen bg-background pb-mobile-nav">
       <main className="p-3 space-y-3">
         {/* Filtros */}
         <div className="space-y-2">

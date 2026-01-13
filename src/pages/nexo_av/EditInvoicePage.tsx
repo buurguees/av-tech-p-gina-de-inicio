@@ -24,7 +24,6 @@ import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "./components/ProductSearchInput";
 import { LOCKED_INVOICE_STATES } from "@/constants/invoiceStatuses";
-import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 interface Client {
@@ -528,23 +527,17 @@ const EditInvoicePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black">
-        <NexoHeader title="Editar Factura" userId={userId || ""} />
-        <div className="flex items-center justify-center pt-32">
-          <Loader2 className="h-8 w-8 animate-spin text-white/40" />
-        </div>
+      <div className="flex items-center justify-center pt-32">
+        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
       </div>
     );
   }
 
   if (!invoice) {
     return (
-      <div className="min-h-screen bg-black">
-        <NexoHeader title="Editar Factura" userId={userId || ""} />
-        <div className="flex flex-col items-center justify-center pt-32 text-white/60">
-          <FileText className="h-12 w-12 mb-4" />
-          <p>Factura no encontrada</p>
-        </div>
+      <div className="flex flex-col items-center justify-center pt-32 text-white/60">
+        <FileText className="h-12 w-12 mb-4" />
+        <p>Factura no encontrada</p>
       </div>
     );
   }

@@ -33,7 +33,6 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import NexoHeaderMobile from "../components/mobile/NexoHeaderMobile";
 import DetailTabsMobile from "../components/mobile/DetailTabsMobile";
 import ProjectDashboardTab from "../components/ProjectDashboardTab";
 import ProjectPlanningTab from "../components/ProjectPlanningTab";
@@ -134,7 +133,7 @@ const ProjectDetailPageMobile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse">
           <NexoLogo />
         </div>
@@ -144,10 +143,10 @@ const ProjectDetailPageMobile = () => {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
-          <FolderKanban className="h-16 w-16 text-white/20 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-white mb-2">Proyecto no encontrado</h2>
+          <FolderKanban className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-foreground mb-2">Proyecto no encontrado</h2>
           <Button
             onClick={() => navigate(`/nexo-av/${userId}/projects`)}
             className="bg-white text-black hover:bg-white/90 mt-4"
@@ -162,14 +161,7 @@ const ProjectDetailPageMobile = () => {
   const statusInfo = getStatusInfo(project.status);
 
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
-      <NexoHeaderMobile 
-        userId={userId || ""} 
-        title={project.project_name}
-        subtitle={`#${project.project_number}`}
-        backTo={`/nexo-av/${userId}/projects`}
-      />
-
+    <div className="min-h-screen bg-background pb-mobile-nav">
       <main className="px-3 py-3 space-y-3">
         {/* Header Card - Información clave */}
         <motion.div

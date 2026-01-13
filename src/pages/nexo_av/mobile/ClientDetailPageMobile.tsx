@@ -36,7 +36,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { NexoLogo } from "../components/NexoHeader";
-import NexoHeaderMobile from "../components/mobile/NexoHeaderMobile";
 import DetailTabsMobile from "../components/mobile/DetailTabsMobile";
 import ClientDashboardTab from "../components/ClientDashboardTab";
 import ClientProjectsTab from "../components/ClientProjectsTab";
@@ -245,7 +244,7 @@ const ClientDetailPageMobile = () => {
 
   if (loading || !client) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse">
           <NexoLogo />
         </div>
@@ -256,14 +255,7 @@ const ClientDetailPageMobile = () => {
   const stageInfo = getStageInfo(client.lead_stage);
 
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
-      <NexoHeaderMobile 
-        title={client.company_name}
-        subtitle="Cliente"
-        userId={userId || ''} 
-        backTo={`/nexo-av/${userId}/clients`}
-      />
-
+    <div className="min-h-screen bg-background pb-mobile-nav">
       <main className="px-3 py-3 space-y-3">
         {/* Compact Client Header - Optimizado para móvil */}
         <motion.div

@@ -10,7 +10,6 @@ import { TemplatesTab } from './components/settings/TemplatesTab';
 import { PreferencesTab } from './components/settings/PreferencesTab';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { lazy, Suspense } from 'react';
-import NexoHeader, { NexoLogo } from "./components/NexoHeader";
 import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 // Lazy load mobile tabs
@@ -82,21 +81,14 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <NexoHeader
-        title="Configuración"
-        userId={userId || ''}
-        showBack
-      />
-
-      <div className="w-full">
+    <div className="w-full">
         <div className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isMobile ? (
           <Suspense fallback={
@@ -198,7 +190,6 @@ export default function SettingsPage() {
           </Tabs>
         )}
         </div>
-      </div>
     </div>
   );
 }

@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import NexoHeaderMobile from "../components/mobile/NexoHeaderMobile";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { motion } from "framer-motion";
 
@@ -146,12 +145,6 @@ const CalculatorPageMobile = () => {
 
   return (
     <div className="min-h-screen bg-background pb-mobile-nav">
-      <NexoHeaderMobile 
-        title="Calculadora"
-        userId={userId || ""}
-        showBack={false}
-      />
-
       <main className="p-3 space-y-3">
         <Tabs defaultValue="basic" className="w-full">
           <TabsList className="grid w-full grid-cols-3">

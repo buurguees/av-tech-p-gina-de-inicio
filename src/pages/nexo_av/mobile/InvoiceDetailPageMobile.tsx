@@ -33,7 +33,6 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import NexoHeaderMobile from "../components/mobile/NexoHeaderMobile";
 import MobileBottomNav from "../components/MobileBottomNav";
 import InvoicePaymentsSection from "../components/InvoicePaymentsSection";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
@@ -221,7 +220,7 @@ const InvoiceDetailPageMobile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse">
           <NexoLogo />
         </div>
@@ -231,10 +230,10 @@ const InvoiceDetailPageMobile = () => {
 
   if (!invoice) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
-          <Receipt className="h-16 w-16 text-white/20 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-white mb-2">Factura no encontrada</h2>
+          <Receipt className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-lg font-semibold text-foreground mb-2">Factura no encontrada</h2>
           <Button
             onClick={() => navigate(`/nexo-av/${userId}/invoices`)}
             className="bg-white text-black hover:bg-white/90 mt-4"
@@ -252,13 +251,7 @@ const InvoiceDetailPageMobile = () => {
   const displayNumber = invoice.invoice_number || invoice.preliminary_number;
 
   return (
-    <div className="min-h-screen bg-black pb-mobile-nav">
-      <NexoHeaderMobile 
-        title={`Factura ${displayNumber}`}
-        userId={userId || ""} 
-        backTo={`/nexo-av/${userId}/invoices`}
-      />
-
+    <div className="min-h-screen bg-background pb-mobile-nav">
       <main className="px-3 py-3 space-y-3">
         {/* Estado y Acciones Rápidas */}
         <motion.div

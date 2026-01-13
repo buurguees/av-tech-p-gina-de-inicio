@@ -242,7 +242,7 @@ const AuditEventDetailPage = () => {
 
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <ShieldAlert className="h-16 w-16 text-red-500 mx-auto" />
           <h1 className="text-2xl font-bold text-white">Acceso Denegado</h1>
@@ -260,7 +260,7 @@ const AuditEventDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse">
           <NexoLogo />
         </div>
@@ -270,7 +270,7 @@ const AuditEventDetailPage = () => {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <AlertCircle className="h-16 w-16 text-yellow-500 mx-auto" />
           <h1 className="text-2xl font-bold text-white">Evento no encontrado</h1>
