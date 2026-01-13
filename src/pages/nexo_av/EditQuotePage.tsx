@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -90,6 +91,8 @@ const EditQuotePage = () => {
   const [lines, setLines] = useState<QuoteLine[]>([]);
   const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
   const [defaultTaxRate, setDefaultTaxRate] = useState(21);
+  const [expandedDescriptionIndex, setExpandedDescriptionIndex] = useState<number | null>(null);
+  const [numericInputValues, setNumericInputValues] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (quoteId) {
@@ -108,6 +111,34 @@ const EditQuotePage = () => {
     }
   }, [selectedClientId]);
 
+  // Set project after projects are loaded and quote has project_id
+  useEffect(() => {
+    if (projects.length > 0 && quote?.project_id && !selectedProjectId) {
+      // Only set if project exists in the loaded projects
+      const projectExists = projects.some(p => p.id === quote.project_id);
+      if (projectExists) {
+        setSelectedProjectId(quote.project_id);
+      }
+    }
+  }, [projects, quote?.project_id, selectedProjectId]);
+
+  // Update valid_until when status changes to DRAFT
+  // This ensures that whenever we're in DRAFT status, the date is recalculated
+  useEffect(() => {
+    if (currentStatus === "DRAFT") {
+      const today = new Date();
+      const validUntilDate = new Date(today);
+      validUntilDate.setDate(validUntilDate.getDate() + 30);
+      const newValidUntil = validUntilDate.toISOString().split("T")[0];
+      // Only update if different to avoid unnecessary re-renders
+      if (validUntil !== newValidUntil) {
+        setValidUntil(newValidUntil);
+      }
+    }
+    // When status changes from DRAFT to another status, keep the current validUntil
+    // (it will be saved as-is in handleSave)
+  }, [currentStatus]);
+
   const fetchQuoteData = async () => {
     try {
       setLoading(true);
@@ -120,10 +151,33 @@ const EditQuotePage = () => {
       if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
       
       const quoteInfo = quoteData[0];
-      setQuote(quoteInfo);
+      
+      // Get project_id - try from get_quote first, then from list_quotes as fallback
+      let projectId = quoteInfo.project_id;
+      
+      if (!projectId) {
+        // Fallback: Get project_id from list_quotes if not in get_quote
+        const { data: quotesListData } = await supabase.rpc("list_quotes", {
+          p_search: quoteInfo.quote_number,
+        });
+        projectId = (quotesListData?.find((q: any) => q.id === quoteId) as any)?.project_id;
+      }
+      
+      // Set quote with project_id included
+      setQuote({ ...quoteInfo, project_id: projectId || null });
       setSelectedClientId(quoteInfo.client_id);
       setCurrentStatus(quoteInfo.status);
-      setValidUntil(quoteInfo.valid_until ? quoteInfo.valid_until.split('T')[0] : '');
+      
+      // If status is DRAFT, calculate valid_until as today + 30 days
+      // Otherwise, use the stored valid_until date
+      if (quoteInfo.status === "DRAFT") {
+        const today = new Date();
+        const validUntilDate = new Date(today);
+        validUntilDate.setDate(validUntilDate.getDate() + 30);
+        setValidUntil(validUntilDate.toISOString().split("T")[0]);
+      } else {
+        setValidUntil(quoteInfo.valid_until ? quoteInfo.valid_until.split('T')[0] : '');
+      }
 
       // Fetch quote lines
       const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", {
@@ -135,15 +189,6 @@ const EditQuotePage = () => {
         ...line,
         description: line.description || "",
       })));
-
-      // Get project_id from list_quotes
-      const { data: quotesListData } = await supabase.rpc("list_quotes", {
-        p_search: quoteInfo.quote_number,
-      });
-      const projectId = (quotesListData?.find((q: any) => q.id === quoteId) as any)?.project_id;
-      if (projectId) {
-        setSelectedProjectId(projectId);
-      }
       
     } catch (error: any) {
       console.error("Error fetching quote:", error);
@@ -341,6 +386,89 @@ const EditQuotePage = () => {
     }).format(amount);
   };
 
+  // Helper: Parse input value (handles both . and , as decimal separator)
+  const parseNumericInput = (value: string): number => {
+    if (!value || value === '') return 0;
+    
+    let cleaned = value.trim();
+    
+    // Count dots and commas
+    const dotCount = (cleaned.match(/\./g) || []).length;
+    const commaCount = (cleaned.match(/,/g) || []).length;
+    
+    // If there's a comma, it's definitely the decimal separator (European format)
+    if (commaCount > 0) {
+      // Remove all dots (thousand separators) and replace comma with dot for parsing
+      cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.');
+    } else if (dotCount === 1) {
+      // Single dot: check if it's likely a decimal (has digits after) or thousand separator
+      const dotIndex = cleaned.indexOf('.');
+      const afterDot = cleaned.substring(dotIndex + 1);
+      
+      // If there are 1-2 digits after the dot, treat it as decimal separator
+      // Otherwise, treat it as thousand separator
+      if (afterDot.length <= 2 && /^\d+$/.test(afterDot)) {
+        // Decimal separator - keep as is for parsing
+        cleaned = cleaned;
+      } else {
+        // Thousand separator - remove it
+        cleaned = cleaned.replace(/\./g, '');
+      }
+    } else if (dotCount > 1) {
+      // Multiple dots: all are thousand separators, remove them
+      cleaned = cleaned.replace(/\./g, '');
+    }
+    
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  };
+
+  // Helper: Format number for display (with thousand separators and comma decimal)
+  const formatNumericDisplay = (value: number | string): string => {
+    if (value === '' || value === null || value === undefined) return '';
+    const num = typeof value === 'string' ? parseNumericInput(value) : value;
+    if (isNaN(num) || num === 0) return '';
+    
+    // Format with thousand separators and comma decimal
+    return new Intl.NumberFormat('es-ES', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(num);
+  };
+
+  // Helper: Handle numeric input change
+  const handleNumericInputChange = (value: string, field: 'quantity' | 'unit_price', actualIndex: number) => {
+    const inputKey = `${actualIndex}-${field}`;
+    
+    // Store the raw input value for display
+    setNumericInputValues(prev => ({ ...prev, [inputKey]: value }));
+    
+    // Allow empty string for clearing
+    if (value === '' || value === null || value === undefined) {
+      updateLine(actualIndex, field, 0);
+      return;
+    }
+    
+    // Parse the value (handles both . and , as decimal separator)
+    const numericValue = parseNumericInput(value);
+    updateLine(actualIndex, field, numericValue);
+  };
+
+  // Get display value for numeric input
+  const getNumericDisplayValue = (value: number, field: 'quantity' | 'unit_price', actualIndex: number): string => {
+    const inputKey = `${actualIndex}-${field}`;
+    const storedValue = numericInputValues[inputKey];
+    
+    // If user is typing, show what they're typing
+    if (storedValue !== undefined) {
+      return storedValue;
+    }
+    
+    // Otherwise format the numeric value
+    if (value === 0) return '';
+    return formatNumericDisplay(value);
+  };
+
   const handleSave = async () => {
     if (!selectedClientId) {
       toast({
@@ -358,11 +486,28 @@ const EditQuotePage = () => {
     try {
       // Update quote
       const selectedProject = projects.find(p => p.id === selectedProjectId);
+      
+      // Calculate valid_until based on status
+      let calculatedValidUntil: string | null = null;
+      
+      if (currentStatus === "DRAFT") {
+        // If in DRAFT status, always recalculate valid_until as today + 30 days
+        const today = new Date();
+        const validUntilDate = new Date(today);
+        validUntilDate.setDate(validUntilDate.getDate() + 30);
+        calculatedValidUntil = validUntilDate.toISOString().split("T")[0];
+        // Update local state to reflect the new date
+        setValidUntil(calculatedValidUntil);
+      } else {
+        // If not in DRAFT, use the date set by user (or existing date)
+        calculatedValidUntil = validUntil || null;
+      }
+      
       const { error: quoteError } = await supabase.rpc("update_quote", {
         p_quote_id: quoteId!,
         p_client_id: selectedClientId,
         p_project_name: selectedProject?.project_name || null,
-        p_valid_until: validUntil || null,
+        p_valid_until: calculatedValidUntil,
         p_status: currentStatus,
       });
       if (quoteError) throw quoteError;
@@ -578,12 +723,19 @@ const EditQuotePage = () => {
               </div>
 
               <div className="space-y-1 md:space-y-2">
-                <Label className="text-white/70 text-[10px] md:text-sm">Vence</Label>
+                <Label className="text-white/70 text-[10px] md:text-sm">
+                  Vence
+                  {currentStatus === "DRAFT" && (
+                    <span className="text-orange-400/70 text-[9px] ml-1">(auto: +30 días)</span>
+                  )}
+                </Label>
                 <Input
                   type="date"
                   value={validUntil}
                   onChange={(e) => setValidUntil(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm"
+                  disabled={currentStatus === "DRAFT"}
+                  className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={currentStatus === "DRAFT" ? "En borrador, la fecha se calcula automáticamente como hoy + 30 días" : "Fecha de validez del presupuesto"}
                 />
               </div>
             </div>
@@ -689,99 +841,138 @@ const EditQuotePage = () => {
           </div>
 
           {/* Desktop Lines Table (same structure as NewQuotePage) */}
-          <div className="hidden md:block bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 overflow-hidden mb-6 shadow-2xl shadow-black/30">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/20 bg-white/5">
-              <span className="text-white/70 text-sm font-medium uppercase tracking-wide">Líneas del presupuesto</span>
+          <div className="hidden md:block bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden mb-6 shadow-2xl shadow-black/40">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
+              <span className="text-white text-sm font-semibold uppercase tracking-wider">Líneas del presupuesto</span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={addLine}
-                className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10 h-10 px-4 gap-2 rounded-xl"
+                className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/50 backdrop-blur-sm rounded-lg transition-all duration-200 h-10 px-4 gap-2 font-medium"
               >
                 <Plus className="h-4 w-4" />
                 Añadir línea
               </Button>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto bg-white/[0.02]">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="text-white/70 min-w-[280px] px-4">Concepto</TableHead>
-                    <TableHead className="text-white/70 min-w-[200px] px-4">Descripción</TableHead>
-                    <TableHead className="text-white/70 text-center w-24 px-4">Cant.</TableHead>
-                    <TableHead className="text-white/70 text-right w-32 px-4">Precio</TableHead>
-                    <TableHead className="text-white/70 w-36 px-4">IVA</TableHead>
-                    <TableHead className="text-white/70 text-right w-32 px-4">Subtotal</TableHead>
-                    <TableHead className="text-white/70 w-14 px-4"></TableHead>
+                  <TableRow className="border-white/5 hover:bg-transparent bg-white/[0.03]">
+                    <TableHead className="text-white/80 min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
+                    <TableHead className="text-white/80 min-w-[250px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Descripción</TableHead>
+                    <TableHead className="text-white/80 text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>
+                    <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Precio</TableHead>
+                    <TableHead className="text-white/80 w-36 px-5 py-3 text-xs font-semibold uppercase tracking-wider">IVA</TableHead>
+                    <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Subtotal</TableHead>
+                    <TableHead className="text-white/60 w-14 px-5 py-3"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {lines.filter(l => !l.isDeleted).map((line, index) => {
                     const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
                     return (
-                      <TableRow key={line.id || line.tempId} className="border-white/10 hover:bg-white/5">
-                        <TableCell className="px-4 py-3">
+                      <TableRow 
+                        key={line.id || line.tempId} 
+                        className="border-white/5 hover:bg-white/[0.04] transition-colors duration-150 group"
+                      >
+                        <TableCell className="px-5 py-3.5">
                           <ProductSearchInput
                             value={line.concept}
                             onChange={(value) => updateLine(actualIndex, "concept", value)}
                             onSelectItem={(item) => handleProductSelect(actualIndex, item)}
                             placeholder="@buscar producto"
-                            className="bg-white/5 border-white/10 text-white h-9 text-sm px-3 rounded-lg hover:bg-white/10 focus:bg-white/10"
+                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
                           />
                         </TableCell>
-                        <TableCell className="px-4 py-3">
+                        <TableCell className="px-5 py-3.5">
+                          {expandedDescriptionIndex === actualIndex ? (
+                            <div className="space-y-2">
+                              <Textarea
+                                value={line.description}
+                                onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
+                                placeholder="Descripción opcional"
+                                className="bg-white/5 border border-white/20 text-white/90 placeholder:text-white/25 text-sm px-3 py-2 min-h-[80px] resize-y focus:border-orange-500/60 focus-visible:ring-2 focus-visible:ring-orange-500/30 rounded-lg"
+                                onBlur={() => setExpandedDescriptionIndex(null)}
+                                autoFocus
+                              />
+                            </div>
+                          ) : (
+                            <Input
+                              value={line.description}
+                              onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
+                              onClick={() => setExpandedDescriptionIndex(actualIndex)}
+                              className="bg-transparent border-0 border-b border-white/10 text-white/85 placeholder:text-white/25 h-auto text-sm pl-2 pr-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors cursor-text"
+                              placeholder="Descripción opcional"
+                              readOnly
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <div className="flex justify-center">
+                            <Input
+                              type="text"
+                              inputMode="numeric"
+                              value={getNumericDisplayValue(line.quantity, 'quantity', actualIndex)}
+                              onChange={(e) => handleNumericInputChange(e.target.value, 'quantity', actualIndex)}
+                              onBlur={() => {
+                                const inputKey = `${actualIndex}-quantity`;
+                                setNumericInputValues(prev => {
+                                  const newValues = { ...prev };
+                                  delete newValues[inputKey];
+                                  return newValues;
+                                });
+                              }}
+                              className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                              placeholder="0"
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
                           <Input
-                            value={line.description}
-                            onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
-                            className="bg-white/5 border-white/10 text-white/90 placeholder:text-white/40 h-9 text-sm px-3 rounded-lg hover:bg-white/10 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-orange-500/50"
-                            placeholder="Descripción opcional"
+                            type="text"
+                            inputMode="decimal"
+                            value={getNumericDisplayValue(line.unit_price, 'unit_price', actualIndex)}
+                            onChange={(e) => handleNumericInputChange(e.target.value, 'unit_price', actualIndex)}
+                            onBlur={() => {
+                              const inputKey = `${actualIndex}-unit_price`;
+                              setNumericInputValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[inputKey];
+                                return newValues;
+                              });
+                            }}
+                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-right font-medium px-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                            placeholder="0,00"
                           />
                         </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <Input
-                            type="number"
-                            min="1"
-                            value={line.quantity}
-                            onChange={(e) => updateLine(actualIndex, "quantity", parseInt(e.target.value) || 0)}
-                            className="bg-white/5 border-white/10 text-white h-9 text-sm text-center px-3 rounded-lg hover:bg-white/10 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-orange-500/50"
-                          />
+                        <TableCell className="px-5 py-3.5">
+                          <div className="flex justify-center">
+                            <Select 
+                              value={String(line.tax_rate)} 
+                              onValueChange={(v) => updateLine(actualIndex, "tax_rate", parseFloat(v))}
+                            >
+                              <SelectTrigger className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium px-0 py-2 w-full hover:border-white/30 focus:border-orange-500/60 rounded-none shadow-none transition-colors">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-zinc-900/95 backdrop-blur-xl border-white/20 shadow-2xl">
+                                {taxOptions.map((tax) => (
+                                  <SelectItem key={tax.value} value={String(tax.value)} className="text-white hover:bg-white/10">
+                                    {tax.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={line.unit_price}
-                            onChange={(e) => updateLine(actualIndex, "unit_price", parseFloat(e.target.value) || 0)}
-                            className="bg-white/5 border-white/10 text-white h-9 text-sm text-right px-3 rounded-lg hover:bg-white/10 focus:bg-white/10 focus-visible:ring-2 focus-visible:ring-orange-500/50"
-                          />
-                        </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <Select 
-                            value={String(line.tax_rate)} 
-                            onValueChange={(v) => updateLine(actualIndex, "tax_rate", parseFloat(v))}
-                          >
-                            <SelectTrigger className="bg-white/5 border-white/10 text-white h-9 text-sm hover:bg-white/10">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-zinc-900 border-white/10">
-                              {taxOptions.map((tax) => (
-                                <SelectItem key={tax.value} value={String(tax.value)} className="text-white text-sm">
-                                  {tax.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell className="text-white font-medium text-right text-sm px-4 py-3">
+                        <TableCell className="text-white font-semibold text-right text-sm px-5 py-3.5">
                           {formatCurrency(line.subtotal)}
                         </TableCell>
-                        <TableCell className="px-4 py-3">
+                        <TableCell className="px-5 py-3.5">
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => removeLine(actualIndex)}
-                            className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-8 w-8"
+                            className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-8 w-8 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -810,21 +1001,21 @@ const EditQuotePage = () => {
 
 
           {/* Totals */}
-          <div className="bg-white/10 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/20 p-5 md:p-6 shadow-2xl shadow-black/30">
-            <div className="max-w-sm ml-auto space-y-3">
+          <div className="bg-gradient-to-br from-white/[0.12] to-white/[0.06] backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/15 p-5 md:p-6 shadow-2xl shadow-black/40">
+            <div className="max-w-sm ml-auto space-y-4">
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">Base imponible</span>
-                <span className="text-white font-medium">{formatCurrency(totals.subtotal)}</span>
+                <span className="text-white/70 font-medium">Base imponible</span>
+                <span className="text-white font-semibold">{formatCurrency(totals.subtotal)}</span>
               </div>
               {totals.taxes.map((tax) => (
                 <div key={tax.rate} className="flex justify-between text-sm">
-                  <span className="text-white/60">{tax.label}</span>
-                  <span className="text-white font-medium">{formatCurrency(tax.amount)}</span>
+                  <span className="text-white/70 font-medium">{tax.label}</span>
+                  <span className="text-white font-semibold">{formatCurrency(tax.amount)}</span>
                 </div>
               ))}
-              <div className="flex justify-between pt-3 border-t border-white/20">
+              <div className="flex justify-between pt-4 border-t border-white/20">
                 <span className="text-white font-semibold text-lg">Total</span>
-                <span className="text-white text-xl font-bold">{formatCurrency(totals.total)}</span>
+                <span className="text-orange-400 text-xl font-bold">{formatCurrency(totals.total)}</span>
               </div>
             </div>
           </div>

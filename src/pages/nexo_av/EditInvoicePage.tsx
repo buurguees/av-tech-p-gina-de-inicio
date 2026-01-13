@@ -89,6 +89,7 @@ const EditInvoicePage = () => {
   const [originalLines, setOriginalLines] = useState<InvoiceLine[]>([]);
   const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
   const [defaultTaxRate, setDefaultTaxRate] = useState(21);
+  const [numericInputValues, setNumericInputValues] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (invoiceId) {
@@ -359,6 +360,89 @@ const EditInvoicePage = () => {
       style: "currency",
       currency: "EUR",
     }).format(amount);
+  };
+
+  // Helper: Parse input value (handles both . and , as decimal separator)
+  const parseNumericInput = (value: string): number => {
+    if (!value || value === '') return 0;
+    
+    let cleaned = value.trim();
+    
+    // Count dots and commas
+    const dotCount = (cleaned.match(/\./g) || []).length;
+    const commaCount = (cleaned.match(/,/g) || []).length;
+    
+    // If there's a comma, it's definitely the decimal separator (European format)
+    if (commaCount > 0) {
+      // Remove all dots (thousand separators) and replace comma with dot for parsing
+      cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.');
+    } else if (dotCount === 1) {
+      // Single dot: check if it's likely a decimal (has digits after) or thousand separator
+      const dotIndex = cleaned.indexOf('.');
+      const afterDot = cleaned.substring(dotIndex + 1);
+      
+      // If there are 1-2 digits after the dot, treat it as decimal separator
+      // Otherwise, treat it as thousand separator
+      if (afterDot.length <= 2 && /^\d+$/.test(afterDot)) {
+        // Decimal separator - keep as is for parsing
+        cleaned = cleaned;
+      } else {
+        // Thousand separator - remove it
+        cleaned = cleaned.replace(/\./g, '');
+      }
+    } else if (dotCount > 1) {
+      // Multiple dots: all are thousand separators, remove them
+      cleaned = cleaned.replace(/\./g, '');
+    }
+    
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  };
+
+  // Helper: Format number for display (with thousand separators and comma decimal)
+  const formatNumericDisplay = (value: number | string): string => {
+    if (value === '' || value === null || value === undefined) return '';
+    const num = typeof value === 'string' ? parseNumericInput(value) : value;
+    if (isNaN(num) || num === 0) return '';
+    
+    // Format with thousand separators and comma decimal
+    return new Intl.NumberFormat('es-ES', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(num);
+  };
+
+  // Helper: Handle numeric input change
+  const handleNumericInputChange = (value: string, field: 'quantity' | 'unit_price', realIndex: number) => {
+    const inputKey = `${realIndex}-${field}`;
+    
+    // Store the raw input value for display
+    setNumericInputValues(prev => ({ ...prev, [inputKey]: value }));
+    
+    // Allow empty string for clearing
+    if (value === '' || value === null || value === undefined) {
+      updateLine(realIndex, field, 0);
+      return;
+    }
+    
+    // Parse the value (handles both . and , as decimal separator)
+    const numericValue = parseNumericInput(value);
+    updateLine(realIndex, field, numericValue);
+  };
+
+  // Get display value for numeric input
+  const getNumericDisplayValue = (value: number, field: 'quantity' | 'unit_price', realIndex: number): string => {
+    const inputKey = `${realIndex}-${field}`;
+    const storedValue = numericInputValues[inputKey];
+    
+    // If user is typing, show what they're typing
+    if (storedValue !== undefined) {
+      return storedValue;
+    }
+    
+    // Otherwise format the numeric value
+    if (value === 0) return '';
+    return formatNumericDisplay(value);
   };
 
   const handleSave = async () => {
@@ -676,101 +760,126 @@ const EditInvoicePage = () => {
           </div>
 
           {/* Desktop Lines table */}
-          <div className="hidden md:block bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 overflow-hidden mb-6 shadow-2xl shadow-black/30">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/20 bg-white/5">
-              <span className="text-white/70 text-xs font-medium uppercase tracking-wide">Líneas de la factura</span>
-              <span className="text-white/50 text-xs">Escribe @nombre para buscar en el catálogo</span>
+          <div className="hidden md:block bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden mb-6 shadow-2xl shadow-black/40">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
+              <span className="text-white text-sm font-semibold uppercase tracking-wider">Líneas de la factura</span>
+              <span className="text-white/50 text-xs font-medium">Escribe @nombre para buscar en el catálogo</span>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="text-white/70 w-8"></TableHead>
-                  <TableHead className="text-white/70">Concepto (usa @buscar)</TableHead>
-                  <TableHead className="text-white/70 text-center w-20">Cantidad</TableHead>
-                  <TableHead className="text-white/70 text-right w-24">Precio</TableHead>
-                  <TableHead className="text-white/70 w-36">Impuestos</TableHead>
-                  <TableHead className="text-white/70 text-right w-28">Total</TableHead>
-                  <TableHead className="text-white/70 w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {visibleLines.map((line, index) => {
-                  const realIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
-                  return (
-                    <TableRow key={line.tempId || line.id} className="border-white/10 hover:bg-white/5">
-                      <TableCell className="text-white/30">
-                        <GripVertical className="h-4 w-4" />
-                      </TableCell>
-                      <TableCell>
-                        <ProductSearchInput
-                          value={line.concept}
-                          onChange={(value) => updateLine(realIndex, "concept", value)}
-                          onSelectItem={(item) => handleProductSelect(realIndex, item)}
-                          placeholder="Concepto o @buscar"
-                          className="bg-transparent border-0 p-0 h-auto"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={line.quantity}
-                          onChange={(e) => updateLine(realIndex, "quantity", parseFloat(e.target.value) || 0)}
-                          className="bg-transparent border-0 text-white text-center p-0 h-auto focus-visible:ring-0 w-16 mx-auto"
-                          min="0"
-                          step="1"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={line.unit_price}
-                          onChange={(e) => updateLine(realIndex, "unit_price", parseFloat(e.target.value) || 0)}
-                          className="bg-transparent border-0 text-white text-right p-0 h-auto focus-visible:ring-0"
-                          min="0"
-                          step="0.01"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={line.tax_rate.toString()}
-                          onValueChange={(v) => updateLine(realIndex, "tax_rate", parseFloat(v))}
-                        >
-                          <SelectTrigger className="bg-white/10 border-white/10 text-white h-8 w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-zinc-900 border-white/10">
-                            {taxOptions.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value.toString()} className="text-white">
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className="text-white text-right font-medium">
-                        {formatCurrency(line.total)}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeLine(realIndex)}
-                          className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-8 w-8"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto bg-white/[0.02]">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-white/5 hover:bg-transparent bg-white/[0.03]">
+                    <TableHead className="text-white/60 w-10 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
+                    <TableHead className="text-white/80 min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
+                    <TableHead className="text-white/80 text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>
+                    <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Precio</TableHead>
+                    <TableHead className="text-white/80 w-36 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Impuestos</TableHead>
+                    <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Total</TableHead>
+                    <TableHead className="text-white/60 w-14 px-5 py-3"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {visibleLines.map((line, index) => {
+                    const realIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
+                    return (
+                      <TableRow 
+                        key={line.tempId || line.id} 
+                        className="border-white/5 hover:bg-white/[0.04] transition-colors duration-150 group"
+                      >
+                        <TableCell className="text-white/20 group-hover:text-white/40 px-5 py-3.5 transition-colors">
+                          <GripVertical className="h-4 w-4" />
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <ProductSearchInput
+                            value={line.concept}
+                            onChange={(value) => updateLine(realIndex, "concept", value)}
+                            onSelectItem={(item) => handleProductSelect(realIndex, item)}
+                            placeholder="Concepto o @buscar"
+                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                          />
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <div className="flex justify-center">
+                            <Input
+                              type="text"
+                              inputMode="numeric"
+                              value={getNumericDisplayValue(line.quantity, 'quantity', realIndex)}
+                              onChange={(e) => handleNumericInputChange(e.target.value, 'quantity', realIndex)}
+                              onBlur={() => {
+                                const inputKey = `${realIndex}-quantity`;
+                                setNumericInputValues(prev => {
+                                  const newValues = { ...prev };
+                                  delete newValues[inputKey];
+                                  return newValues;
+                                });
+                              }}
+                              className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                              placeholder="0"
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <Input
+                            type="text"
+                            inputMode="decimal"
+                            value={getNumericDisplayValue(line.unit_price, 'unit_price', realIndex)}
+                            onChange={(e) => handleNumericInputChange(e.target.value, 'unit_price', realIndex)}
+                            onBlur={() => {
+                              const inputKey = `${realIndex}-unit_price`;
+                              setNumericInputValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[inputKey];
+                                return newValues;
+                              });
+                            }}
+                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-right font-medium px-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                            placeholder="0,00"
+                          />
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <div className="flex justify-center">
+                            <Select
+                              value={line.tax_rate.toString()}
+                              onValueChange={(v) => updateLine(realIndex, "tax_rate", parseFloat(v))}
+                            >
+                              <SelectTrigger className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium px-0 py-2 w-full hover:border-white/30 focus:border-orange-500/60 rounded-none shadow-none transition-colors">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-zinc-900/95 backdrop-blur-xl border-white/20 shadow-2xl">
+                                {taxOptions.map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value.toString()} className="text-white hover:bg-white/10">
+                                    {opt.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-white text-right font-semibold px-5 py-3.5">
+                          {formatCurrency(line.total)}
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeLine(realIndex)}
+                            className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-8 w-8 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
 
-            <div className="p-4 border-t border-white/20 bg-white/5">
+            <div className="p-5 border-t border-white/10 bg-gradient-to-r from-white/5 to-transparent">
               <Button
                 variant="outline"
                 onClick={addLine}
-                className="border-white/30 text-white hover:bg-white/15 backdrop-blur-sm rounded-2xl transition-all duration-200"
+                className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/50 backdrop-blur-sm rounded-lg transition-all duration-200 h-10 px-4 font-medium"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Añadir línea
@@ -780,21 +889,21 @@ const EditInvoicePage = () => {
 
           {/* Totals */}
           <div className="flex justify-end">
-            <div className="bg-white/10 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/20 p-3 md:p-6 w-full md:w-80 shadow-2xl shadow-black/30">
-              <div className="space-y-2 md:space-y-3">
-                <div className="flex justify-between text-white/70 text-xs md:text-sm">
-                  <span>Subtotal</span>
-                  <span>{formatCurrency(totals.subtotal)}</span>
+            <div className="bg-gradient-to-br from-white/[0.12] to-white/[0.06] backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/15 p-4 md:p-6 w-full md:w-80 shadow-2xl shadow-black/40">
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex justify-between text-white/70 text-sm">
+                  <span className="font-medium">Base imponible</span>
+                  <span className="font-semibold">{formatCurrency(totals.subtotal)}</span>
                 </div>
                 {totals.taxes.map((tax) => (
-                  <div key={tax.rate} className="flex justify-between text-white/70 text-xs md:text-sm">
-                    <span>{tax.label}</span>
-                    <span>{formatCurrency(tax.amount)}</span>
+                  <div key={tax.rate} className="flex justify-between text-white/70 text-sm">
+                    <span className="font-medium">{tax.label}</span>
+                    <span className="font-semibold">{formatCurrency(tax.amount)}</span>
                   </div>
                 ))}
-                <div className="flex justify-between text-white text-sm md:text-lg font-bold pt-2 md:pt-3 border-t border-white/10">
+                <div className="flex justify-between text-white text-lg md:text-xl font-bold pt-3 md:pt-4 border-t border-white/20">
                   <span>Total</span>
-                  <span>{formatCurrency(totals.total)}</span>
+                  <span className="text-orange-400">{formatCurrency(totals.total)}</span>
                 </div>
               </div>
             </div>
