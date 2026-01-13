@@ -253,30 +253,18 @@ export type Database = {
         }
         Returns: string
       }
-      create_quote_with_number:
-        | {
-            Args: {
-              p_client_id: string
-              p_project_name?: string
-              p_valid_until?: string
-            }
-            Returns: {
-              quote_id: string
-              quote_number: string
-            }[]
-          }
-        | {
-            Args: {
-              p_client_id: string
-              p_project_id?: string
-              p_project_name?: string
-              p_valid_until?: string
-            }
-            Returns: {
-              quote_id: string
-              quote_number: string
-            }[]
-          }
+      create_quote_with_number: {
+        Args: {
+          p_client_id: string
+          p_project_id?: string
+          p_project_name?: string
+          p_valid_until?: string
+        }
+        Returns: {
+          quote_id: string
+          quote_number: string
+        }[]
+      }
       create_tax: {
         Args: {
           p_code: string
