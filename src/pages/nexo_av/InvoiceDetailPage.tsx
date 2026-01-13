@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Building2, Calendar, FileText, Edit, Lock, User } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, FileText, Edit, Lock, User, Send } from "lucide-react";
 import { toast } from "sonner";
 import NexoHeader from "./components/NexoHeader";
 import InvoicePDFViewer from "./components/InvoicePDFViewer";
@@ -119,13 +119,42 @@ const InvoiceDetailPage = () => {
     fetchInvoiceData();
   }, [invoiceId]);
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleIssueInvoice = async () => {
     if (!invoice) return;
 
     try {
       setUpdatingStatus(true);
 
-      const { error } = await supabase.rpc("finance_update_invoice_status" as any, {
+      // Call finance_issue_invoice to assign definitive number
+      const { data, error } = await supabase.rpc("finance_issue_invoice", {
+        p_invoice_id: invoice.id,
+      });
+
+      if (error) throw error;
+      
+      const result = Array.isArray(data) ? data[0] : data;
+      toast.success(`Factura emitida con número ${result?.invoice_number}`);
+      fetchInvoiceData();
+    } catch (error: any) {
+      console.error("Error issuing invoice:", error);
+      toast.error(error.message || "Error al emitir la factura");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!invoice) return;
+
+    // If changing from DRAFT to ISSUED, use the issue function
+    if (invoice.status === "DRAFT" && newStatus === "ISSUED") {
+      return handleIssueInvoice();
+    }
+
+    try {
+      setUpdatingStatus(true);
+
+      const { error } = await supabase.rpc("finance_update_invoice" as any, {
         p_invoice_id: invoice.id,
         p_status: newStatus,
       });
@@ -218,7 +247,27 @@ const InvoiceDetailPage = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {canChangeStatus && (
+            {invoice.status === "DRAFT" && (
+              <>
+                <Button
+                  onClick={handleIssueInvoice}
+                  disabled={updatingStatus}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Emitir Factura
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/nexo-av/${userId}/invoices/${invoice.id}/edit`)}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar
+                </Button>
+              </>
+            )}
+
+            {canChangeStatus && invoice.status !== "DRAFT" && (
               <Select
                 value={invoice.status}
                 onValueChange={handleStatusChange}
@@ -241,16 +290,6 @@ const InvoiceDetailPage = () => {
                   })}
                 </SelectContent>
               </Select>
-            )}
-
-            {invoice.status === "DRAFT" && (
-              <Button
-                variant="outline"
-                onClick={() => navigate(`/nexo-av/${userId}/invoices/${invoice.id}/edit`)}
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Editar
-              </Button>
             )}
           </div>
         </div>
