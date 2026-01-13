@@ -176,19 +176,25 @@ const QuoteDetailPageDesktop = () => {
 
       // Fetch project details if project exists (project_id now comes from get_quote)
       if (quoteInfo.project_id) {
+        console.log('[QuoteDetailPage] Fetching project with ID:', quoteInfo.project_id);
         const { data: projectData, error: projectError } = await supabase.rpc("get_project", {
           p_project_id: quoteInfo.project_id,
         });
+        console.log('[QuoteDetailPage] Project data:', projectData, 'Error:', projectError);
         if (!projectError && projectData && projectData.length > 0) {
-          setProject({
+          const projectToSet = {
             project_number: projectData[0].project_number,
             project_name: projectData[0].project_name,
             project_address: projectData[0].project_address,
             project_city: projectData[0].project_city,
             local_name: projectData[0].local_name,
             client_order_number: projectData[0].client_order_number,
-          });
+          };
+          console.log('[QuoteDetailPage] Setting project:', projectToSet);
+          setProject(projectToSet);
         }
+      } else {
+        console.log('[QuoteDetailPage] No project_id found in quoteInfo:', quoteInfo);
       }
 
       // Fetch company settings
