@@ -165,10 +165,9 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
         return created >= yearStart && created <= yearEnd;
       });
 
-      // Calcular pendientes (facturas con pending_amount > 0)
+      // Calcular pendientes (facturas no pagadas ni canceladas)
       const pendingInvoices = allInvoices.filter(inv => {
-        const pending = inv.pending_amount || 0;
-        return pending > 0 && inv.status !== 'cancelled';
+        return inv.status !== 'PAID' && inv.status !== 'CANCELLED' && inv.status !== 'DRAFT';
       });
 
       // Proyectos activos
@@ -188,7 +187,7 @@ const DashboardView = ({ userId, isAdmin, isManager }: DashboardViewProps) => {
         yearQuotesAmount: yearQuotes.reduce((sum, q) => sum + (q.total || 0), 0),
         yearProjects: yearProjects.length,
         pendingInvoices: pendingInvoices.length,
-        pendingAmount: pendingInvoices.reduce((sum, inv) => sum + (inv.pending_amount || 0), 0),
+        pendingAmount: pendingInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0),
         totalClients: clients.length,
         activeProjects: activeProjects.length,
       });

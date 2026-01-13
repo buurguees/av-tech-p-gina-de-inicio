@@ -25,15 +25,15 @@ interface Invoice {
   preliminary_number: string;
   client_id: string;
   project_id?: string | null;
+  project_number: string | null;
   project_name: string | null;
+  client_order_number: string | null;
   status: string;
   subtotal: number;
   tax_amount: number;
   total: number;
   due_date: string | null;
   issue_date: string | null;
-  paid_amount: number;
-  pending_amount: number;
   created_at: string;
 }
 
@@ -112,10 +112,10 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
           <TableHeader>
             <TableRow className="border-white/10 hover:bg-transparent">
               <TableHead className="text-white/60">Nº Factura</TableHead>
-              <TableHead className="text-white/60">Proyecto</TableHead>
+              <TableHead className="text-white/60">Nº Proyecto</TableHead>
               <TableHead className="text-white/60">Estado</TableHead>
+              <TableHead className="text-white/60 text-right">Subtotal</TableHead>
               <TableHead className="text-white/60 text-right">Total</TableHead>
-              <TableHead className="text-white/60 text-right">Pendiente</TableHead>
               <TableHead className="text-white/60">Vencimiento</TableHead>
               <TableHead className="text-white/60">Acciones</TableHead>
             </TableRow>
@@ -143,6 +143,7 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
                   new Date(invoice.due_date) < new Date() && 
                   invoice.status !== 'PAID' &&
                   invoice.status !== 'CANCELLED';
+                const isDraft = invoice.status === 'DRAFT';
                 
                 return (
                   <TableRow 
@@ -151,10 +152,13 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
                     onClick={() => handleInvoiceClick(invoice.id)}
                   >
                     <TableCell className="text-white font-medium font-mono">
-                      {displayNumber}
+                      <span className={isDraft ? 'text-white/60' : ''}>
+                        {displayNumber}
+                      </span>
+                      {isDraft && <span className="ml-1 text-[10px] text-amber-400/80">(Borr.)</span>}
                     </TableCell>
-                    <TableCell className="text-white/60">
-                      {invoice.project_name || '-'}
+                    <TableCell className="text-white/60 font-mono">
+                      {invoice.project_number || '-'}
                     </TableCell>
                     <TableCell>
                       <Badge 
@@ -164,11 +168,11 @@ const ClientInvoicesTab = ({ clientId }: ClientInvoicesTabProps) => {
                         {isOverdue ? 'Vencida' : statusInfo.label}
                       </Badge>
                     </TableCell>
+                    <TableCell className="text-right text-white/60">
+                      {formatCurrency(invoice.subtotal)}
+                    </TableCell>
                     <TableCell className="text-right text-white font-medium">
                       {formatCurrency(invoice.total)}
-                    </TableCell>
-                    <TableCell className="text-right text-white/60">
-                      {formatCurrency(invoice.pending_amount)}
                     </TableCell>
                     <TableCell className={`text-sm ${isOverdue ? 'text-red-400' : 'text-white/60'}`}>
                       {invoice.due_date 

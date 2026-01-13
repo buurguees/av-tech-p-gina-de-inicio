@@ -419,6 +419,7 @@ export type Database = {
         Returns: {
           client_id: string
           client_name: string
+          client_order_number: string
           created_at: string
           created_by: string
           created_by_name: string
@@ -427,11 +428,10 @@ export type Database = {
           invoice_number: string
           is_locked: boolean
           issue_date: string
-          paid_amount: number
-          pending_amount: number
           preliminary_number: string
           project_id: string
           project_name: string
+          project_number: string
           source_quote_id: string
           source_quote_number: string
           status: string
