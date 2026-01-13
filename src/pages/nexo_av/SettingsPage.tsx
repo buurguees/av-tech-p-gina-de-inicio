@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Tags, Receipt, FileText, Loader2 } from 'lucide-react';
+import { Building2, Tags, Receipt, FileText, Loader2, Settings2 } from 'lucide-react';
 import NexoHeader from './components/NexoHeader';
 import { CompanyDataTab } from './components/settings/CompanyDataTab';
 import { ProductCategoriesTab } from './components/settings/ProductCategoriesTab';
 import { TaxesTab } from './components/settings/TaxesTab';
 import { TemplatesTab } from './components/settings/TemplatesTab';
+import { PreferencesTab } from './components/settings/PreferencesTab';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { lazy, Suspense } from 'react';
 
@@ -103,6 +104,7 @@ export default function SettingsPage() {
               onValueChange={setActiveTab}
               tabs={[
                 { value: "company", label: "Empresa", icon: Building2 },
+                { value: "preferences", label: "Preferencias", icon: Settings2 },
                 { value: "categories", label: "Categorías", icon: Tags },
                 { value: "taxes", label: "Impuestos", icon: Receipt },
                 { value: "templates", label: "Plantillas", icon: FileText },
@@ -110,6 +112,10 @@ export default function SettingsPage() {
             >
             <TabsContent value="company" className="mt-6">
               <CompanyDataTab />
+            </TabsContent>
+
+            <TabsContent value="preferences" className="mt-6">
+              <PreferencesTab />
             </TabsContent>
 
             <TabsContent value="categories" className="mt-6">
@@ -136,6 +142,13 @@ export default function SettingsPage() {
                 Datos de la Empresa
               </TabsTrigger>
               <TabsTrigger 
+                value="preferences" 
+                className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
+              >
+                <Settings2 className="w-4 h-4 mr-2" />
+                Preferencias
+              </TabsTrigger>
+              <TabsTrigger 
                 value="categories" 
                 className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
               >
@@ -160,6 +173,10 @@ export default function SettingsPage() {
 
             <TabsContent value="company">
               <CompanyDataTab />
+            </TabsContent>
+
+            <TabsContent value="preferences">
+              <PreferencesTab />
             </TabsContent>
 
             <TabsContent value="categories">
