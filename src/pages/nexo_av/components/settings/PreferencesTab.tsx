@@ -342,6 +342,23 @@ export function PreferencesTab() {
           )}
         </CardContent>
       </Card>
+
+      {/* Botón guardar fijo al final */}
+      <div className="flex justify-end pt-4 border-t border-white/10">
+        <Button
+          onClick={handleSave}
+          disabled={saving}
+          size="lg"
+          className="bg-white text-black hover:bg-white/90"
+        >
+          {saving ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Save className="w-4 h-4 mr-2" />
+          )}
+          Guardar Preferencias
+        </Button>
+      </div>
     </div>
   );
 }

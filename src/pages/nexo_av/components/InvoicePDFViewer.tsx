@@ -86,12 +86,25 @@ interface CompanySettings {
   logo_url: string | null;
 }
 
+interface BankAccount {
+  id: string;
+  holder: string;
+  bank: string;
+  iban: string;
+  notes: string;
+}
+
+interface CompanyPreferences {
+  bank_accounts: BankAccount[];
+}
+
 interface InvoicePDFViewerProps {
   invoice: Invoice;
   lines: InvoiceLine[];
   client: Client | null;
   company: CompanySettings | null;
   project: Project | null;
+  preferences?: CompanyPreferences | null;
   fileName: string;
 }
 
@@ -295,8 +308,50 @@ const styles = StyleSheet.create({
     left: 40,
     right: 40,
     borderTopWidth: 1,
-    borderTopColor: "#eee",
-    paddingTop: 15,
+    borderTopColor: "#ddd",
+    paddingTop: 12,
+  },
+  footerContent: {
+    flexDirection: "row",
+    gap: 20,
+  },
+  paymentInfoBox: {
+    flex: 2,
+    padding: 10,
+    backgroundColor: "#f8f8f8",
+    borderRadius: 4,
+  },
+  paymentTitle: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#666",
+    textTransform: "uppercase",
+    marginBottom: 6,
+    letterSpacing: 1,
+  },
+  paymentDetail: {
+    fontSize: 8,
+    color: "#444",
+    marginBottom: 2,
+  },
+  paymentIban: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 2,
+    marginBottom: 2,
+    fontFamily: "Courier",
+  },
+  paymentNote: {
+    fontSize: 7,
+    color: "#888",
+    fontStyle: "italic",
+    marginTop: 4,
+  },
+  dueDateBox: {
+    flex: 1,
+    alignItems: "flex-end",
+    justifyContent: "center",
   },
   footerColumns: {
     flexDirection: "row",
@@ -360,10 +415,11 @@ const groupTaxesByRate = (lines: InvoiceLine[]) => {
 };
 
 // PDF Document Component
-const InvoicePDFDocument = ({ invoice, lines, client, company, project }: Omit<InvoicePDFViewerProps, 'fileName'>) => {
+const InvoicePDFDocument = ({ invoice, lines, client, company, project, preferences }: Omit<InvoicePDFViewerProps, 'fileName'>) => {
   const taxes = groupTaxesByRate(lines);
   const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
   const total = lines.reduce((acc, line) => acc + line.total, 0);
+  const bankAccount = preferences?.bank_accounts?.[0]; // Use first bank account
 
   return (
     <Document>
@@ -508,13 +564,37 @@ const InvoicePDFDocument = ({ invoice, lines, client, company, project }: Omit<I
           </View>
         </View>
 
-        {/* Footer with due date */}
+        {/* Footer with payment info and due date */}
         <View style={styles.footer}>
-          {invoice.due_date && (
-            <Text style={styles.dueDateNote}>
-              Fecha de vencimiento: {formatDate(invoice.due_date)}
-            </Text>
-          )}
+          <View style={styles.footerContent}>
+            {/* Bank Account Info */}
+            {bankAccount && (
+              <View style={styles.paymentInfoBox}>
+                <Text style={styles.paymentTitle}>Datos de Pago</Text>
+                {bankAccount.holder && (
+                  <Text style={styles.paymentDetail}>Titular: {bankAccount.holder}</Text>
+                )}
+                {bankAccount.bank && (
+                  <Text style={styles.paymentDetail}>Entidad: {bankAccount.bank}</Text>
+                )}
+                {bankAccount.iban && (
+                  <Text style={styles.paymentIban}>IBAN: {bankAccount.iban}</Text>
+                )}
+                {bankAccount.notes && (
+                  <Text style={styles.paymentNote}>{bankAccount.notes}</Text>
+                )}
+              </View>
+            )}
+            
+            {/* Due Date */}
+            {invoice.due_date && (
+              <View style={styles.dueDateBox}>
+                <Text style={styles.dueDateNote}>
+                  Fecha de vencimiento: {formatDate(invoice.due_date)}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Page Number */}
@@ -530,7 +610,7 @@ const InvoicePDFDocument = ({ invoice, lines, client, company, project }: Omit<I
   );
 };
 
-const InvoicePDFViewer = ({ invoice, lines, client, company, project, fileName }: InvoicePDFViewerProps) => {
+const InvoicePDFViewer = ({ invoice, lines, client, company, project, preferences, fileName }: InvoicePDFViewerProps) => {
   const [showPreview, setShowPreview] = useState(true);
 
   return (
@@ -564,6 +644,7 @@ const InvoicePDFViewer = ({ invoice, lines, client, company, project, fileName }
               client={client}
               company={company}
               project={project}
+              preferences={preferences}
             />
           }
           fileName={fileName}
@@ -600,6 +681,7 @@ const InvoicePDFViewer = ({ invoice, lines, client, company, project, fileName }
               client={client}
               company={company}
               project={project}
+              preferences={preferences}
             />
           </PDFViewer>
         </div>

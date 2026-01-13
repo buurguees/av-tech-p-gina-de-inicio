@@ -58,6 +58,7 @@ const InvoiceDetailPage = () => {
   const [client, setClient] = useState<any>(null);
   const [project, setProject] = useState<any>(null);
   const [company, setCompany] = useState<any>(null);
+  const [preferences, setPreferences] = useState<any>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -122,6 +123,15 @@ const InvoiceDetailPage = () => {
       const { data: companyData } = await supabase.rpc("get_company_settings");
       if (companyData) {
         setCompany(Array.isArray(companyData) ? companyData[0] : companyData);
+      }
+
+      // Fetch company preferences (for bank accounts)
+      const { data: preferencesData } = await supabase.rpc("get_company_preferences");
+      if (preferencesData) {
+        const prefs = Array.isArray(preferencesData) ? preferencesData[0] : preferencesData;
+        setPreferences({
+          bank_accounts: Array.isArray(prefs?.bank_accounts) ? prefs.bank_accounts : []
+        });
       }
     } catch (error: any) {
       console.error("Error fetching invoice:", error);
@@ -387,6 +397,7 @@ const InvoiceDetailPage = () => {
                   client={client}
                   company={company}
                   project={project}
+                  preferences={preferences}
                   fileName={`Factura-${displayNumber}`}
                 />
               </CardContent>
