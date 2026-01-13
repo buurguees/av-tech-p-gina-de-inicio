@@ -14,8 +14,26 @@ import LeadDetailMobileSheet from "../components/leadmap/LeadDetailMobileSheet";
 import CreateClientDialog from "../components/CreateClientDialog";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS, LeadClient, LeadStats } from "../LeadMapPage";
+
+// Geocoding helper
+const geocodeAddress = async (address: string): Promise<{ lat: number; lon: number } | null> => {
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1100));
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&countrycodes=es&limit=1`,
+      { headers: { 'User-Agent': 'NexoAV-LeadMap/1.0' } }
+    );
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (data.length === 0) return null;
+    return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+  } catch (err) {
+    console.error('Geocoding error:', err);
+    return null;
+  }
+};
 
 const LeadMapPageMobile = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -23,12 +41,13 @@ const LeadMapPageMobile = () => {
 
   const [clients, setClients] = useState<LeadClient[]>([]);
   const [loading, setLoading] = useState(true);
+  const [geocodingProgress, setGeocodingProgress] = useState<{current: number; total: number} | null>(null);
   const [selectedClient, setSelectedClient] = useState<LeadClient | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   
   // Filters
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
-  const [showOnlyMine, setShowOnlyMine] = useState(false); // Por defecto mostrar todos los clientes
+  const [showOnlyMine, setShowOnlyMine] = useState(false);
   
   // User info
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -82,12 +101,52 @@ const LeadMapPageMobile = () => {
         return;
       }
 
-      setClients(data || []);
+      const clientsData = data || [];
+      setClients(clientsData);
+
+      // Geocodificar clientes que no tienen coordenadas pero tienen dirección
+      const clientsNeedingGeocoding = clientsData.filter(
+        (c: LeadClient) => !c.latitude && !c.longitude && c.full_address
+      );
+
+      if (clientsNeedingGeocoding.length > 0) {
+        geocodeClientsInBackground(clientsNeedingGeocoding);
+      }
     } catch (err) {
       console.error('Error:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const geocodeClientsInBackground = async (clientsToGeocode: LeadClient[]) => {
+    setGeocodingProgress({ current: 0, total: clientsToGeocode.length });
+
+    for (let i = 0; i < clientsToGeocode.length; i++) {
+      const client = clientsToGeocode[i];
+      setGeocodingProgress({ current: i + 1, total: clientsToGeocode.length });
+
+      if (!client.full_address) continue;
+
+      const coords = await geocodeAddress(client.full_address);
+      
+      if (coords) {
+        await supabase.rpc('update_client_coordinates', {
+          p_client_id: client.id,
+          p_latitude: coords.lat,
+          p_longitude: coords.lon,
+          p_full_address: client.full_address
+        });
+
+        setClients(prev => prev.map(c => 
+          c.id === client.id 
+            ? { ...c, latitude: coords.lat, longitude: coords.lon }
+            : c
+        ));
+      }
+    }
+
+    setGeocodingProgress(null);
   };
 
   const handleClientSelect = (client: LeadClient | null) => {
@@ -101,6 +160,14 @@ const LeadMapPageMobile = () => {
 
   return (
     <div className="fixed inset-0 bg-background flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      {/* Geocoding progress indicator */}
+      {geocodingProgress && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-xs flex items-center gap-2 shadow-lg">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Geocodificando {geocodingProgress.current}/{geocodingProgress.total}...
+        </div>
+      )}
+
       {/* Mapa a pantalla completa */}
       <div className="flex-1 relative">
         <LeadMap

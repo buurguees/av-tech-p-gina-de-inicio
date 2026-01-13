@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +10,7 @@ import LeadDetailPanel from "./components/leadmap/LeadDetailPanel";
 import LeadDetailMobileSheet from "./components/leadmap/LeadDetailMobileSheet";
 import CreateClientDialog from "./components/CreateClientDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Filter, X } from "lucide-react";
+import { Plus, Filter, X, Loader2 } from "lucide-react";
 import { createMobilePage } from "./MobilePageWrapper";
 import { lazy } from "react";
 
@@ -64,6 +64,36 @@ export interface LeadStats {
   count: number;
 }
 
+// Geocoding helper - geocodifica direcciones usando Nominatim
+const geocodeAddress = async (address: string): Promise<{ lat: number; lon: number } | null> => {
+  try {
+    // Delay para cumplir rate limiting de Nominatim (1 request/second)
+    await new Promise(resolve => setTimeout(resolve, 1100));
+    
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&countrycodes=es&limit=1`,
+      {
+        headers: {
+          'User-Agent': 'NexoAV-LeadMap/1.0'
+        }
+      }
+    );
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    
+    if (data.length === 0) return null;
+
+    return {
+      lat: parseFloat(data[0].lat),
+      lon: parseFloat(data[0].lon)
+    };
+  } catch (err) {
+    console.error('Geocoding error:', err);
+    return null;
+  }
+};
+
 const LeadMapPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
@@ -72,13 +102,14 @@ const LeadMapPageDesktop = () => {
   const [clients, setClients] = useState<LeadClient[]>([]);
   const [stats, setStats] = useState<LeadStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [geocodingProgress, setGeocodingProgress] = useState<{current: number; total: number} | null>(null);
   const [selectedClient, setSelectedClient] = useState<LeadClient | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   
   // Filters
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
-  const [showOnlyMine, setShowOnlyMine] = useState(false); // Por defecto mostrar todos los clientes
+  const [showOnlyMine, setShowOnlyMine] = useState(false);
   
   // User info
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -133,12 +164,54 @@ const LeadMapPageDesktop = () => {
         return;
       }
 
-      setClients(data || []);
+      const clientsData = data || [];
+      setClients(clientsData);
+
+      // Geocodificar clientes que no tienen coordenadas pero tienen dirección
+      const clientsNeedingGeocoding = clientsData.filter(
+        (c: LeadClient) => !c.latitude && !c.longitude && c.full_address
+      );
+
+      if (clientsNeedingGeocoding.length > 0) {
+        geocodeClientsInBackground(clientsNeedingGeocoding);
+      }
     } catch (err) {
       console.error('Error:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const geocodeClientsInBackground = async (clientsToGeocode: LeadClient[]) => {
+    setGeocodingProgress({ current: 0, total: clientsToGeocode.length });
+
+    for (let i = 0; i < clientsToGeocode.length; i++) {
+      const client = clientsToGeocode[i];
+      setGeocodingProgress({ current: i + 1, total: clientsToGeocode.length });
+
+      if (!client.full_address) continue;
+
+      const coords = await geocodeAddress(client.full_address);
+      
+      if (coords) {
+        // Actualizar coordenadas en la base de datos
+        await supabase.rpc('update_client_coordinates', {
+          p_client_id: client.id,
+          p_latitude: coords.lat,
+          p_longitude: coords.lon,
+          p_full_address: client.full_address
+        });
+
+        // Actualizar estado local
+        setClients(prev => prev.map(c => 
+          c.id === client.id 
+            ? { ...c, latitude: coords.lat, longitude: coords.lon }
+            : c
+        ));
+      }
+    }
+
+    setGeocodingProgress(null);
   };
 
   const fetchStats = async () => {
@@ -171,7 +244,8 @@ const LeadMapPageDesktop = () => {
     setSelectedClient(null);
   };
 
-  const totalLeads = clients.filter(c => c.latitude && c.longitude).length;
+  const totalLeads = clients.length;
+  const mappableLeads = clients.filter(c => c.latitude && c.longitude).length;
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col">
@@ -180,7 +254,13 @@ const LeadMapPageDesktop = () => {
         <div>
           <h1 className="text-xl font-semibold text-foreground">Mapa de Leads</h1>
           <p className="text-sm text-muted-foreground">
-            {showOnlyMine ? "Mis leads" : "Todos los leads"} ({totalLeads} en mapa)
+            {showOnlyMine ? "Mis leads" : "Todos los leads"} ({mappableLeads}/{totalLeads} en mapa)
+            {geocodingProgress && (
+              <span className="ml-2 text-primary">
+                <Loader2 className="inline-block h-3 w-3 animate-spin mr-1" />
+                Geocodificando {geocodingProgress.current}/{geocodingProgress.total}...
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">
