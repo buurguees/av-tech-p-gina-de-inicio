@@ -48,10 +48,9 @@ interface Invoice {
   status: string;
   subtotal: number;
   tax_amount: number;
-  tax_rate: number;
   total: number;
-  amount_paid: number;
-  amount_due: number;
+  paid_amount: number;
+  pending_amount: number;
   issue_date: string | null;
   due_date: string | null;
   notes: string | null;
@@ -368,17 +367,17 @@ const InvoiceDetailPageMobile = () => {
               </div>
 
               {/* Pagos */}
-              {invoice.amount_paid > 0 && (
+              {invoice.paid_amount > 0 && (
                 <div className="flex items-center justify-between">
                   <span className="text-white/60">Pagado</span>
-                  <span className="text-white font-medium">{formatCurrency(invoice.amount_paid)}</span>
+                  <span className="text-white font-medium">{formatCurrency(invoice.paid_amount)}</span>
                 </div>
               )}
 
-              {invoice.amount_due > 0 && (
+              {invoice.pending_amount > 0 && (
                 <div className="flex items-center justify-between">
                   <span className="text-white/60">Pendiente</span>
-                  <span className="text-white font-medium">{formatCurrency(invoice.amount_due)}</span>
+                  <span className="text-white font-medium">{formatCurrency(invoice.pending_amount)}</span>
                 </div>
               )}
 
@@ -456,7 +455,7 @@ const InvoiceDetailPageMobile = () => {
                   <span>{formatCurrency(invoice.subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-white/60">
-                  <span>IVA ({invoice.tax_rate}%)</span>
+                  <span>IVA</span>
                   <span>{formatCurrency(invoice.tax_amount)}</span>
                 </div>
               </div>
@@ -504,8 +503,12 @@ const InvoiceDetailPageMobile = () => {
         {/* Pagos */}
         <InvoicePaymentsSection
           invoiceId={invoiceId!}
-          totalAmount={invoice.total}
-          onPaymentsChange={fetchInvoiceData}
+          total={invoice.total}
+          paidAmount={invoice.paid_amount}
+          pendingAmount={invoice.pending_amount}
+          status={invoice.status}
+          isLocked={invoice.is_locked}
+          onPaymentChange={fetchInvoiceData}
         />
       </main>
 
