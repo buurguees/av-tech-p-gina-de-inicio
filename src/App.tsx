@@ -34,6 +34,7 @@ import NexoNewInvoicePage from "./pages/nexo_av/NewInvoicePage";
 import NexoEditInvoicePage from "./pages/nexo_av/EditInvoicePage";
 import NexoNotFound from "./pages/nexo_av/NotFound";
 import NexoAccountSetup from "./pages/nexo_av/AccountSetup";
+import NexoLeadMapPage from "./pages/nexo_av/LeadMapPage";
 import SharkEventsPresentation from "./pages/presentations/SharkEventsPresentation";
 
 const queryClient = new QueryClient();
@@ -75,6 +76,7 @@ const App = () => (
               <Route path="catalog" element={<NexoCatalogPage />} />
               <Route path="catalog/:productId" element={<NexoProductDetailPage />} />
               <Route path="calculator" element={<NexoCalculatorPage />} />
+              <Route path="lead-map" element={<NexoLeadMapPage />} />
               <Route path="invoices" element={<NexoInvoicesPage />} />
               <Route path="invoices/new" element={<NexoNewInvoicePage />} />
               <Route path="invoices/:invoiceId" element={<NexoInvoiceDetailPage />} />
