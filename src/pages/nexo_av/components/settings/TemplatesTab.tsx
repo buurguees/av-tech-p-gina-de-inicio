@@ -409,7 +409,7 @@ const QuoteTemplatePreview = ({ company, showProject }: { company: CompanySettin
   </Document>
 );
 
-// Invoice Template Preview
+// Invoice Template Preview - Static template with sample data
 const InvoiceTemplatePreview = ({ company, showProject }: { company: CompanySettings | null; showProject: boolean }) => (
   <Document>
     <Page size="A4" style={styles.page}>
