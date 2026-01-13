@@ -1,33 +1,50 @@
 /**
  * Invoice status constants
  * Defines all possible invoice statuses and their display properties
+ * 
+ * Traffic Light System:
+ * - Green (success): PAID
+ * - Blue (info): SENT
+ * - Red (error): OVERDUE
+ * - Orange (warning): CANCELLED
+ * - Gray (neutral): DRAFT
  */
 
 export const INVOICE_STATUSES = [
   { 
     value: "DRAFT", 
     label: "Borrador", 
-    className: "bg-gray-500/20 text-gray-300 border-gray-500/30" 
+    color: "status-neutral",
+    className: "bg-gray-500/20 text-gray-300 border border-gray-500/30",
+    priority: 0
   },
   { 
     value: "SENT", 
     label: "Enviada", 
-    className: "bg-blue-500/20 text-blue-300 border-blue-500/30" 
+    color: "status-info",
+    className: "bg-blue-500/20 text-blue-300 border border-blue-500/30",
+    priority: 1
   },
   { 
     value: "PAID", 
     label: "Pagada", 
-    className: "bg-green-500/20 text-green-300 border-green-500/30" 
+    color: "status-success",
+    className: "bg-green-500/20 text-green-300 border border-green-500/30",
+    priority: 2
   },
   { 
     value: "OVERDUE", 
     label: "Vencida", 
-    className: "bg-red-500/20 text-red-300 border-red-500/30" 
+    color: "status-error",
+    className: "bg-red-500/20 text-red-300 border border-red-500/30",
+    priority: 3
   },
   { 
     value: "CANCELLED", 
     label: "Cancelada", 
-    className: "bg-orange-500/20 text-orange-300 border-orange-500/30" 
+    color: "status-warning",
+    className: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
+    priority: 4
   },
 ];
 
