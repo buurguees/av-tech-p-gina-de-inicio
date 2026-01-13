@@ -22,6 +22,7 @@ import {
   Calculator,
   Shield,
   Receipt,
+  MapPin,
 } from "lucide-react";
 
 // Lazy load mobile components
@@ -202,6 +203,15 @@ const NexoAvLayout = () => {
 
   // Build modules list
   const modules = [
+    {
+      id: 'lead-map',
+      title: 'Mapa de Leads',
+      icon: MapPin,
+      color: 'from-teal-500/20 to-teal-600/10',
+      borderColor: 'border-teal-500/30',
+      available: isAdmin || isManager || hasSalesAccess,
+      path: `/nexo-av/${userId}/lead-map`,
+    },
     {
       id: 'clients',
       title: 'Clientes / Leads',
