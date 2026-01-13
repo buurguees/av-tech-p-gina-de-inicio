@@ -157,7 +157,7 @@ const ProjectDetailPageDesktop = () => {
   const statusInfo = getStatusInfo(project.status);
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <NexoHeader 
         userId={userId || ""} 
         title={project.project_name}
@@ -172,16 +172,16 @@ const ProjectDetailPageDesktop = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-white/10">
-                    <FolderKanban className="h-8 w-8 text-white" />
+                  <div className="p-3 rounded-xl bg-secondary">
+                    <FolderKanban className="h-8 w-8 text-foreground" />
                   </div>
                   <div>
                     <div className="flex items-center gap-3 mb-1 flex-wrap">
-                      <span className="font-mono text-white/60">#{project.project_number}</span>
+                      <span className="font-mono text-muted-foreground">#{project.project_number}</span>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild disabled={updatingStatus}>
                           <button 
@@ -193,36 +193,36 @@ const ProjectDetailPageDesktop = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent 
                           align="start" 
-                          className="bg-zinc-900 border-white/10 min-w-[180px]"
+                          className="min-w-[180px]"
                         >
                           {PROJECT_STATUSES.map((status) => (
                             <DropdownMenuItem
                               key={status.value}
                               onClick={() => handleStatusChange(status.value)}
-                              className={`cursor-pointer ${status.value === project.status ? 'bg-white/10' : ''}`}
+                              className={`cursor-pointer ${status.value === project.status ? 'bg-accent' : ''}`}
                             >
                               <span className={`inline-block w-2 h-2 rounded-full mr-2 ${status.color.split(' ')[0]}`} />
-                              <span className="text-white">{status.label}</span>
+                              <span>{status.label}</span>
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-1">{project.project_name}</h2>
+                    <h2 className="text-2xl font-bold text-foreground mb-1">{project.project_name}</h2>
                     <div className="flex flex-wrap gap-4 mt-2 text-sm">
                       {project.client_name && (
-                        <span className="text-white/60">
-                          Cliente: <span className="text-white">{project.client_name}</span>
+                        <span className="text-muted-foreground">
+                          Cliente: <span className="text-foreground">{project.client_name}</span>
                         </span>
                       )}
                       {project.project_city && (
-                        <span className="text-white/60">
-                          Ciudad: <span className="text-white">{project.project_city}</span>
+                        <span className="text-muted-foreground">
+                          Ciudad: <span className="text-foreground">{project.project_city}</span>
                         </span>
                       )}
                       {project.local_name && (
-                        <span className="text-white/60">
-                          Local: <span className="text-white">{project.local_name}</span>
+                        <span className="text-muted-foreground">
+                          Local: <span className="text-foreground">{project.local_name}</span>
                         </span>
                       )}
                     </div>
@@ -230,8 +230,7 @@ const ProjectDetailPageDesktop = () => {
                 </div>
                 {activeTab === "dashboard" && (
                   <Button 
-                    variant="outline" 
-                    className="border-white/20 text-white hover:bg-white/10"
+                    variant="outline"
                     onClick={() => setEditDialogOpen(true)}
                   >
                     <Edit className="h-4 w-4 mr-2" />
@@ -250,45 +249,45 @@ const ProjectDetailPageDesktop = () => {
           transition={{ delay: 0.1 }}
         >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-white/5 border border-white/10 p-1 h-auto flex-wrap">
+            <TabsList className="bg-secondary border border-border p-1 h-auto flex-wrap">
               <TabsTrigger 
                 value="dashboard" 
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <LayoutDashboard className="h-4 w-4 mr-2" />
                 Dashboard
               </TabsTrigger>
               <TabsTrigger 
                 value="planning"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <CalendarDays className="h-4 w-4 mr-2" />
                 Planificación
               </TabsTrigger>
               <TabsTrigger 
                 value="quotes"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <FileText className="h-4 w-4 mr-2" />
                 Presupuestos
               </TabsTrigger>
               <TabsTrigger 
                 value="technicians"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <Users className="h-4 w-4 mr-2" />
                 Técnicos
               </TabsTrigger>
               <TabsTrigger 
                 value="expenses"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <Wallet className="h-4 w-4 mr-2" />
                 Gastos
               </TabsTrigger>
               <TabsTrigger 
                 value="invoices"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <Receipt className="h-4 w-4 mr-2" />
                 Facturas

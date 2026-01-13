@@ -253,7 +253,7 @@ const ClientDetailPageDesktop = () => {
   const stageInfo = getStageInfo(client.lead_stage);
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <NexoHeader 
         title={client.company_name}
         subtitle="Ficha de Cliente"
@@ -268,16 +268,16 @@ const ClientDetailPageDesktop = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-white/10">
-                    <Building2 className="h-8 w-8 text-white" />
+                  <div className="p-3 rounded-xl bg-secondary">
+                    <Building2 className="h-8 w-8 text-foreground" />
                   </div>
                   <div>
                     <div className="flex items-center gap-3 mb-1 flex-wrap">
-                      <h2 className="text-2xl font-bold text-white">{client.company_name}</h2>
+                      <h2 className="text-2xl font-bold text-foreground">{client.company_name}</h2>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild disabled={updatingStatus}>
                           <button 
@@ -289,30 +289,30 @@ const ClientDetailPageDesktop = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent 
                           align="start" 
-                          className="bg-zinc-900 border-white/10 min-w-[180px]"
+                          className="min-w-[180px]"
                         >
                           {LEAD_STAGES.map((stage) => (
                             <DropdownMenuItem
                               key={stage.value}
                               onClick={() => handleStatusChange(stage.value)}
-                              className={`cursor-pointer ${stage.value === client.lead_stage ? 'bg-white/10' : ''}`}
+                              className={`cursor-pointer ${stage.value === client.lead_stage ? 'bg-accent' : ''}`}
                             >
                               <span className={`inline-block w-2 h-2 rounded-full mr-2 ${stage.color.split(' ')[0]}`} />
-                              <span className="text-white">{stage.label}</span>
+                              <span>{stage.label}</span>
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
                     {client.legal_name && (
-                      <p className="text-white/40 text-sm">{client.legal_name}</p>
+                      <p className="text-muted-foreground text-sm">{client.legal_name}</p>
                     )}
                     <div className="flex flex-wrap gap-4 mt-3 text-sm">
-                      <span className="flex items-center gap-2 text-white/60">
+                      <span className="flex items-center gap-2 text-muted-foreground">
                         <Mail className="h-4 w-4" />
                         {client.contact_email}
                       </span>
-                      <span className="flex items-center gap-2 text-white/60">
+                      <span className="flex items-center gap-2 text-muted-foreground">
                         <Phone className="h-4 w-4" />
                         {client.contact_phone}
                       </span>
@@ -321,14 +321,14 @@ const ClientDetailPageDesktop = () => {
                           href={client.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-white/60 hover:text-white"
+                          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
                         >
                           <Globe className="h-4 w-4" />
                           {client.website}
                         </a>
                       )}
                       {client.billing_city && (
-                        <span className="flex items-center gap-2 text-white/60">
+                        <span className="flex items-center gap-2 text-muted-foreground">
                           <MapPin className="h-4 w-4" />
                           {client.billing_city}, {client.billing_province}
                         </span>
@@ -338,8 +338,7 @@ const ClientDetailPageDesktop = () => {
                 </div>
                 {activeTab === "dashboard" && (
                   <Button 
-                    variant="outline" 
-                    className="border-white/20 text-white hover:bg-white/10"
+                    variant="outline"
                     onClick={() => setEditDialogOpen(true)}
                   >
                     <Edit className="h-4 w-4 mr-2" />
@@ -367,31 +366,31 @@ const ClientDetailPageDesktop = () => {
           transition={{ delay: 0.1 }}
         >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-white/5 border border-white/10 p-1 h-auto flex-wrap">
+            <TabsList className="bg-secondary border border-border p-1 h-auto flex-wrap">
               <TabsTrigger 
                 value="dashboard" 
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <LayoutDashboard className="h-4 w-4 mr-2" />
                 Dashboard
               </TabsTrigger>
               <TabsTrigger 
                 value="projects"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <FolderKanban className="h-4 w-4 mr-2" />
                 Proyectos
               </TabsTrigger>
               <TabsTrigger 
                 value="quotes"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <FileText className="h-4 w-4 mr-2" />
                 Presupuestos
               </TabsTrigger>
               <TabsTrigger 
                 value="invoices"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white/60"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <Receipt className="h-4 w-4" />
                 Facturas

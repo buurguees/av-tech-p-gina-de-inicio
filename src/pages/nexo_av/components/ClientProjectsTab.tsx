@@ -31,11 +31,11 @@ interface Project {
 }
 
 const PROJECT_STATUSES = [
-  { value: 'PLANNED', label: 'Planificado', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'IN_PROGRESS', label: 'En Progreso', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  { value: 'PAUSED', label: 'Pausado', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  { value: 'COMPLETED', label: 'Completado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'CANCELLED', label: 'Cancelado', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+  { value: 'PLANNED', label: 'Planificado', color: 'status-info' },
+  { value: 'IN_PROGRESS', label: 'En Progreso', color: 'status-warning' },
+  { value: 'PAUSED', label: 'Pausado', color: 'status-neutral' },
+  { value: 'COMPLETED', label: 'Completado', color: 'status-success' },
+  { value: 'CANCELLED', label: 'Cancelado', color: 'status-error' },
 ];
 
 const getStatusInfo = (status: string) => {
@@ -84,7 +84,7 @@ const ClientProjectsTab = ({ clientId }: ClientProjectsTabProps) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -94,7 +94,6 @@ const ClientProjectsTab = ({ clientId }: ClientProjectsTabProps) => {
       {/* Actions */}
       <div className="flex justify-end">
         <Button 
-          className="bg-white text-black hover:bg-white/90"
           onClick={() => setIsCreateDialogOpen(true)}
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -106,28 +105,28 @@ const ClientProjectsTab = ({ clientId }: ClientProjectsTabProps) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl border border-white/10 overflow-hidden"
+        className="rounded-lg border border-border overflow-hidden bg-card"
       >
         <Table>
           <TableHeader>
-            <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="text-white/60">Nº Proyecto</TableHead>
-              <TableHead className="text-white/60">Nombre</TableHead>
-              <TableHead className="text-white/60">Estado</TableHead>
-              <TableHead className="text-white/60">Ciudad</TableHead>
-              <TableHead className="text-white/60">Local</TableHead>
-              <TableHead className="text-white/60">Fecha</TableHead>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground">Nº Proyecto</TableHead>
+              <TableHead className="text-muted-foreground">Nombre</TableHead>
+              <TableHead className="text-muted-foreground">Estado</TableHead>
+              <TableHead className="text-muted-foreground">Ciudad</TableHead>
+              <TableHead className="text-muted-foreground">Local</TableHead>
+              <TableHead className="text-muted-foreground">Fecha</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {projects.length === 0 ? (
-              <TableRow className="border-white/10">
+              <TableRow className="border-border">
                 <TableCell colSpan={6} className="text-center py-12">
-                  <FolderKanban className="h-12 w-12 text-white/20 mx-auto mb-3" />
-                  <p className="text-white/40">No hay proyectos para este cliente</p>
+                  <FolderKanban className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground">No hay proyectos para este cliente</p>
                   <Button
                     variant="link"
-                    className="text-white/60 hover:text-white mt-2"
+                    className="text-primary mt-2"
                     onClick={() => setIsCreateDialogOpen(true)}
                   >
                     Crear el primer proyecto
@@ -140,27 +139,27 @@ const ClientProjectsTab = ({ clientId }: ClientProjectsTabProps) => {
                 return (
                   <TableRow 
                     key={project.id} 
-                    className="border-white/10 hover:bg-white/5 cursor-pointer"
+                    className="border-border hover:bg-accent cursor-pointer"
                     onClick={() => handleProjectClick(project.id)}
                   >
-                    <TableCell className="font-mono text-white">
+                    <TableCell className="font-mono text-foreground">
                       {project.project_number}
                     </TableCell>
-                    <TableCell className="text-white max-w-xs truncate">
+                    <TableCell className="text-foreground max-w-xs truncate">
                       {project.project_name}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={`${statusInfo.color} border`}>
+                      <Badge variant="outline" className={statusInfo.color}>
                         {statusInfo.label}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-white/60">
+                    <TableCell className="text-muted-foreground">
                       {project.project_city || '-'}
                     </TableCell>
-                    <TableCell className="text-white/60">
+                    <TableCell className="text-muted-foreground">
                       {project.local_name || '-'}
                     </TableCell>
-                    <TableCell className="text-white/60 text-sm">
+                    <TableCell className="text-muted-foreground text-sm">
                       {new Date(project.created_at).toLocaleDateString('es-ES')}
                     </TableCell>
                   </TableRow>
