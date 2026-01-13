@@ -42,15 +42,15 @@ interface Invoice {
   client_id: string;
   client_name: string;
   project_id: string | null;
+  project_number: string | null;
   project_name: string | null;
+  client_order_number: string | null;
   status: string;
   issue_date: string | null;
   due_date: string | null;
   subtotal: number;
   tax_amount: number;
   total: number;
-  paid_amount: number;
-  pending_amount: number;
   is_locked: boolean;
   created_by: string | null;
   created_by_name: string | null;
@@ -199,56 +199,57 @@ const InvoicesPageDesktop = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-white/10 hover:bg-transparent">
-                      <TableHead className="text-white/60">Número</TableHead>
-                      <TableHead className="text-white/60">Cliente</TableHead>
-                      <TableHead className="text-white/60">Proyecto</TableHead>
                       <TableHead className="text-white/60">Emisión</TableHead>
-                      <TableHead className="text-white/60">Vencimiento</TableHead>
-                      <TableHead className="text-white/60">Estado</TableHead>
+                      <TableHead className="text-white/60">Nº Factura</TableHead>
+                      <TableHead className="text-white/60">Cliente</TableHead>
+                      <TableHead className="text-white/60">Nº Proyecto</TableHead>
+                      <TableHead className="text-white/60">Nº Pedido</TableHead>
+                      <TableHead className="text-white/60 text-right">Subtotal</TableHead>
                       <TableHead className="text-white/60 text-right">Total</TableHead>
+                      <TableHead className="text-white/60">Estado</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {paginatedInvoices.map((invoice) => {
                       const statusInfo = getFinanceStatusInfo(invoice.status);
                       const displayNumber = invoice.invoice_number || invoice.preliminary_number;
-                      const isOverdue = invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && 
-                        invoice.due_date && new Date(invoice.due_date) < new Date();
+                      const isDraft = invoice.status === 'DRAFT';
                       return (
                         <TableRow
                           key={invoice.id}
                           className="border-white/10 cursor-pointer hover:bg-white/5 transition-colors"
                           onClick={() => navigate(`/nexo-av/${userId}/invoices/${invoice.id}`)}
                         >
+                          <TableCell className="text-white/60">
+                            {invoice.issue_date ? formatDate(invoice.issue_date) : "-"}
+                          </TableCell>
                           <TableCell className="font-mono text-white font-medium">
-                            <span className={invoice.status === 'DRAFT' ? 'text-white/60' : ''}>
+                            <span className={isDraft ? 'text-white/60' : ''}>
                               {displayNumber}
                             </span>
+                            {isDraft && (
+                              <span className="ml-2 text-[10px] text-amber-400/80">(Borrador)</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-white">
                             {invoice.client_name}
                           </TableCell>
-                          <TableCell className="text-white/60">
-                            {invoice.project_name || "-"}
+                          <TableCell className="text-white/60 font-mono">
+                            {invoice.project_number || "-"}
                           </TableCell>
                           <TableCell className="text-white/60">
-                            {invoice.issue_date ? formatDate(invoice.issue_date) : "-"}
+                            {invoice.client_order_number || "-"}
                           </TableCell>
-                          <TableCell className={isOverdue ? "text-red-400" : "text-white/60"}>
-                            {invoice.due_date ? formatDate(invoice.due_date) : "-"}
+                          <TableCell className="text-right text-white/60">
+                            {formatCurrency(invoice.subtotal)}
+                          </TableCell>
+                          <TableCell className="text-right text-white font-medium">
+                            {formatCurrency(invoice.total)}
                           </TableCell>
                           <TableCell>
                             <Badge className={statusInfo.className}>
                               {statusInfo.label}
                             </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="text-white font-medium">{formatCurrency(invoice.total)}</div>
-                            {invoice.pending_amount > 0 && invoice.status !== 'DRAFT' && (
-                              <div className="text-xs text-amber-400">
-                                Pend: {formatCurrency(invoice.pending_amount)}
-                              </div>
-                            )}
                           </TableCell>
                         </TableRow>
                       );
