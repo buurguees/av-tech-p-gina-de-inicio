@@ -145,12 +145,12 @@ function TechniciansPageDesktop() {
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nombre, NIF, teléfono..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-10"
+                className="pl-11"
               />
             </div>
             <Button
@@ -259,6 +259,7 @@ function TechniciansPageDesktop() {
                   <TableHead>Contacto</TableHead>
                   <TableHead>Ubicación</TableHead>
                   <TableHead>Especialidades</TableHead>
+                  <TableHead className="w-[100px]">Tarifa/hora</TableHead>
                   <TableHead className="w-[100px]">Tarifa/día</TableHead>
                   <TableHead className="w-[100px]">Valoración</TableHead>
                   <TableHead className="w-[100px]">Estado</TableHead>
@@ -328,6 +329,15 @@ function TechniciansPageDesktop() {
                             </Badge>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {tech.hourly_rate ? (
+                          <span className="font-medium">
+                            {tech.hourly_rate.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {tech.daily_rate ? (

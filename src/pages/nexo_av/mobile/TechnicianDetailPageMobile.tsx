@@ -8,17 +8,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
-  Building2,
   Phone,
   Mail,
   MapPin,
   Star,
-  Euro,
   Edit,
   Loader2,
   Wrench,
   FileText,
   CreditCard,
+  Euro,
+  Clock,
+  Banknote,
+  PhoneCall,
+  Send,
+  Plus,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getTypeInfo, getStatusInfo } from "@/constants/technicianConstants";
@@ -118,60 +123,134 @@ export default function TechnicianDetailPageMobile() {
     return value.toLocaleString("es-ES", { style: "currency", currency: "EUR" });
   };
 
+  const RatingStars = ({ rating }: { rating: number | null }) => {
+    if (!rating) {
+      return <span className="text-sm text-muted-foreground">Sin valoración</span>;
+    }
+    return (
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={cn(
+              "h-4 w-4",
+              star <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30",
+            )}
+          />
+        ))}
+        <span className="ml-1 text-sm text-muted-foreground">{rating.toFixed(1)}/5</span>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full pb-20">
-      {/* Header */}
+      {/* Header sticky */}
       <div className="sticky top-0 z-10 bg-background border-b p-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(`/nexo-av/${userId}/technicians`)}>
+        <div className="flex items-center gap-3 mb-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={() => navigate(`/nexo-av/${userId}/technicians`)}
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mb-1">
               <TypeIcon className={cn("h-4 w-4 shrink-0", typeInfo.color)} />
-              <h1 className="font-bold truncate">{technician.company_name}</h1>
+              <h1 className="font-semibold text-base truncate">{technician.company_name}</h1>
             </div>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">{technician.technician_number}</span>
-              <Badge className={cn("text-xs", statusInfo.bgColor, statusInfo.color)}>
+              <Badge
+                className={cn(
+                  "text-xs px-2 py-0.5",
+                  statusInfo.bgColor,
+                  statusInfo.color,
+                )}
+              >
                 {statusInfo.label}
               </Badge>
             </div>
           </div>
-          <Button size="icon" variant="outline" onClick={() => setIsEditOpen(true)}>
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-9 w-9"
+            onClick={() => setIsEditOpen(true)}
+          >
             <Edit className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Acciones rápidas */}
+        <div className="flex items-center gap-2 mt-3">
+          {technician.contact_phone && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 gap-2"
+              asChild
+            >
+              <a href={`tel:${technician.contact_phone}`}>
+                <PhoneCall className="h-4 w-4" />
+                Llamar
+              </a>
+            </Button>
+          )}
+          {technician.contact_email && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 gap-2"
+              asChild
+            >
+              <a href={`mailto:${technician.contact_email}`}>
+                <Send className="h-4 w-4" />
+                Email
+              </a>
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Tarea
           </Button>
         </div>
       </div>
 
-      {/* Content */}
+      {/* Content scrollable */}
       <div className="flex-1 overflow-auto p-4 space-y-4">
-        {/* Valoración y tarifas */}
+        {/* Valoración y tarifas destacadas */}
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Valoración</p>
-                {technician.rating ? (
-                  <div className="flex items-center gap-1 mt-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={cn(
-                          "h-5 w-5",
-                          star <= technician.rating! ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"
-                        )}
-                      />
-                    ))}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Valoración media</p>
+                  <RatingStars rating={technician.rating} />
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground mb-1">Tarifa por día</p>
+                  <p className="text-xl font-bold">{formatCurrency(technician.daily_rate)}</p>
+                </div>
+              </div>
+              {technician.hourly_rate && (
+                <>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Tarifa por hora</span>
+                    </div>
+                    <span className="font-semibold">{formatCurrency(technician.hourly_rate)}</span>
                   </div>
-                ) : (
-                  <p className="text-muted-foreground text-sm">Sin valoración</p>
-                )}
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Tarifa/día</p>
-                <p className="text-xl font-bold">{formatCurrency(technician.daily_rate)}</p>
-              </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -179,7 +258,7 @@ export default function TechnicianDetailPageMobile() {
         {/* Contacto */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Phone className="h-4 w-4" />
               Contacto
             </CardTitle>
@@ -187,20 +266,35 @@ export default function TechnicianDetailPageMobile() {
           <CardContent className="space-y-3">
             {technician.contact_name && (
               <div>
-                <p className="text-xs text-muted-foreground">Persona de contacto</p>
+                <p className="text-xs text-muted-foreground mb-1">Persona de contacto</p>
                 <p className="font-medium">{technician.contact_name}</p>
               </div>
             )}
             {technician.contact_phone && (
-              <a href={`tel:${technician.contact_phone}`} className="flex items-center gap-2 text-primary">
+              <a
+                href={`tel:${technician.contact_phone}`}
+                className="flex items-center gap-2 text-primary active:opacity-70"
+              >
                 <Phone className="h-4 w-4" />
                 {technician.contact_phone}
               </a>
             )}
+            {technician.contact_phone_secondary && (
+              <a
+                href={`tel:${technician.contact_phone_secondary}`}
+                className="flex items-center gap-2 text-primary active:opacity-70"
+              >
+                <Phone className="h-4 w-4" />
+                {technician.contact_phone_secondary}
+              </a>
+            )}
             {technician.contact_email && (
-              <a href={`mailto:${technician.contact_email}`} className="flex items-center gap-2 text-primary">
-                <Mail className="h-4 w-4" />
-                {technician.contact_email}
+              <a
+                href={`mailto:${technician.contact_email}`}
+                className="flex items-center gap-2 text-primary active:opacity-70 break-all"
+              >
+                <Mail className="h-4 w-4 shrink-0" />
+                <span className="text-sm">{technician.contact_email}</span>
               </a>
             )}
           </CardContent>
@@ -210,16 +304,21 @@ export default function TechnicianDetailPageMobile() {
         {(technician.address || technician.city) && (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 Dirección
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p>{technician.address}</p>
-              <p className="text-muted-foreground">
-                {[technician.city, technician.province, technician.postal_code].filter(Boolean).join(", ")}
+              {technician.address && <p className="font-medium mb-1">{technician.address}</p>}
+              <p className="text-sm text-muted-foreground">
+                {[technician.postal_code, technician.city, technician.province]
+                  .filter(Boolean)
+                  .join(", ")}
               </p>
+              {technician.country && (
+                <p className="text-sm text-muted-foreground mt-1">{technician.country}</p>
+              )}
             </CardContent>
           </Card>
         )}
@@ -228,7 +327,7 @@ export default function TechnicianDetailPageMobile() {
         {technician.specialties.length > 0 && (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Wrench className="h-4 w-4" />
                 Especialidades
               </CardTitle>
@@ -236,7 +335,7 @@ export default function TechnicianDetailPageMobile() {
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {technician.specialties.map((spec) => (
-                  <Badge key={spec} variant="secondary">
+                  <Badge key={spec} variant="secondary" className="text-xs">
                     {spec}
                   </Badge>
                 ))}
@@ -248,26 +347,36 @@ export default function TechnicianDetailPageMobile() {
         {/* Datos de facturación */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
               Facturación
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-xs text-muted-foreground">NIF/CIF</p>
-                <p className="font-mono">{technician.tax_id || "-"}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Tarifa/hora</p>
-                <p>{formatCurrency(technician.hourly_rate)}</p>
-              </div>
+              {technician.tax_id && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">NIF/CIF</p>
+                  <p className="font-mono text-sm">{technician.tax_id}</p>
+                </div>
+              )}
+              {technician.legal_name && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Razón social</p>
+                  <p className="text-sm font-medium">{technician.legal_name}</p>
+                </div>
+              )}
             </div>
             {technician.iban && (
               <div>
-                <p className="text-xs text-muted-foreground">IBAN</p>
+                <p className="text-xs text-muted-foreground mb-1">IBAN</p>
                 <p className="font-mono text-sm break-all">{technician.iban}</p>
+              </div>
+            )}
+            {technician.payment_terms && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Condiciones de pago</p>
+                <p className="text-sm font-medium">{technician.payment_terms}</p>
               </div>
             )}
           </CardContent>
@@ -277,7 +386,7 @@ export default function TechnicianDetailPageMobile() {
         {technician.notes && (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 Notas
               </CardTitle>
@@ -287,6 +396,41 @@ export default function TechnicianDetailPageMobile() {
             </CardContent>
           </Card>
         )}
+
+        {/* Información del registro */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold">Información del registro</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-xs">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Creado</span>
+              <span>
+                {new Date(technician.created_at).toLocaleDateString("es-ES", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+            {technician.created_by_name && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Creado por</span>
+                <span>{technician.created_by_name}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Última actualización</span>
+              <span>
+                {new Date(technician.updated_at).toLocaleDateString("es-ES", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <EditTechnicianDialog

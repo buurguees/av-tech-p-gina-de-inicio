@@ -11,7 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import NexoLoadingScreen from "./components/NexoLoadingScreen";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
-import { NexoLogo } from "./components/NexoHeader";
+import whiteLogo from "./styles/logos/white_logo.svg";
 
 // Configuration
 const SUPABASE_URL = "https://takvthfatlcjsqgssnta.supabase.co";
@@ -223,8 +223,8 @@ const Login = () => {
     }
   };
 
-  // Apply nexo-av theme
-  useNexoAvTheme();
+  // Apply nexo-av theme - dark for login
+  useNexoAvTheme('dark');
 
   // Check if user is already logged in
   useEffect(() => {
@@ -439,7 +439,7 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 sm:p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -455,16 +455,18 @@ const Login = () => {
             className="mb-4"
           >
             <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
-              <div className="w-full h-full [&_svg]:w-full [&_svg]:h-full [&_svg]:text-foreground">
-                <NexoLogo />
-              </div>
+              <img 
+                src={whiteLogo} 
+                alt="NEXO AV Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
           </motion.div>
           <motion.h1
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-2xl sm:text-3xl font-bold text-foreground mt-2 tracking-wider"
+            className="text-2xl sm:text-3xl font-bold text-white mt-2 tracking-wider"
           >
             NEXO AV
           </motion.h1>
@@ -472,7 +474,7 @@ const Login = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-muted-foreground text-sm sm:text-base mt-1 text-center"
+            className="text-white/70 text-sm sm:text-base mt-1 text-center"
           >
             {loginStep === 'credentials' ? 'Plataforma de gestión interna' : 'Verificación en dos pasos'}
           </motion.p>
@@ -492,12 +494,12 @@ const Login = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-xl flex items-start gap-3 shadow-sm"
+                  className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-start gap-3 shadow-sm"
                 >
-                  <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
+                  <Clock className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-orange-800 dark:text-orange-400 text-sm font-medium">Cuenta bloqueada temporalmente</p>
-                    <p className="text-orange-700 dark:text-orange-400/70 text-sm">
+                    <p className="text-orange-400 text-sm font-medium">Cuenta bloqueada temporalmente</p>
+                    <p className="text-orange-400/70 text-sm">
                       Podrás intentarlo de nuevo en {Math.floor(retryAfter / 60)}:{(retryAfter % 60).toString().padStart(2, '0')} minutos
                     </p>
                   </div>
@@ -509,13 +511,13 @@ const Login = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl flex items-start gap-3 shadow-sm"
+                  className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 shadow-sm"
                 >
-                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-red-800 dark:text-red-400 text-sm">{error}</p>
+                    <p className="text-red-400 text-sm">{error}</p>
                     {remainingAttempts !== null && remainingAttempts > 0 && remainingAttempts <= 3 && (
-                      <p className="text-red-700 dark:text-red-400/70 text-xs mt-1">
+                      <p className="text-red-400/70 text-xs mt-1">
                         {remainingAttempts} intento{remainingAttempts !== 1 ? 's' : ''} restante{remainingAttempts !== 1 ? 's' : ''}
                       </p>
                     )}
@@ -526,11 +528,11 @@ const Login = () => {
               {/* Credentials Form */}
               <form onSubmit={handleCredentialsSubmit} className="space-y-5 sm:space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-foreground text-sm font-medium">
+                  <Label htmlFor="email" className="text-white/70 text-sm font-medium">
                     Correo electrónico
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
                     <Input
                       id="email"
                       type="email"
@@ -538,18 +540,18 @@ const Login = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={isSubmitting}
-                      className="pl-10 bg-card border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 h-12 disabled:opacity-50 rounded-lg"
+                      className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/20 h-12 disabled:opacity-50 rounded-lg"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-foreground text-sm font-medium">
+                  <Label htmlFor="password" className="text-white/70 text-sm font-medium">
                     Contraseña
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
@@ -557,14 +559,14 @@ const Login = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={isSubmitting}
-                      className="pl-10 pr-10 bg-card border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 h-12 disabled:opacity-50 rounded-lg"
+                      className="pl-10 pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/20 h-12 disabled:opacity-50 rounded-lg"
                       required
                       minLength={8}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
                       disabled={isSubmitting}
                     >
                       {showPassword ? (
@@ -579,7 +581,7 @@ const Login = () => {
                 <Button
                   type="submit"
                   disabled={isSubmitting || isRateLimited}
-                  className="w-full h-12 bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all disabled:opacity-50 rounded-lg shadow-sm"
+                  className="w-full h-12 bg-white text-black font-medium hover:bg-white/90 transition-all disabled:opacity-50 rounded-lg shadow-sm"
                 >
                   {isSubmitting ? (
                     <>
@@ -596,7 +598,7 @@ const Login = () => {
                   )}
                 </Button>
 
-                <p className="text-center text-muted-foreground text-xs sm:text-sm mt-6">
+                <p className="text-center text-white/50 text-xs sm:text-sm mt-6">
                   ¿Problemas para acceder? Contacta con el administrador
                 </p>
               </form>
@@ -610,12 +612,12 @@ const Login = () => {
               transition={{ duration: 0.3 }}
             >
               {/* OTP Info */}
-              <div className="mb-6 p-4 bg-blue-50 dark:bg-cyan-500/10 border border-blue-200 dark:border-cyan-500/20 rounded-xl flex items-start gap-3 shadow-sm">
-                <ShieldCheck className="h-5 w-5 text-blue-600 dark:text-cyan-400 flex-shrink-0 mt-0.5" />
+              <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-start gap-3 shadow-sm">
+                <ShieldCheck className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-blue-800 dark:text-cyan-400 text-sm font-medium">Verificación de seguridad</p>
-                  <p className="text-blue-700 dark:text-cyan-400/70 text-sm">
-                    Hemos enviado un código de 6 dígitos a <strong className="font-semibold">{email}</strong>
+                  <p className="text-blue-400 text-sm font-medium">Verificación de seguridad</p>
+                  <p className="text-blue-400/70 text-sm">
+                    Hemos enviado un código de 6 dígitos a <strong className="font-semibold text-blue-300">{email}</strong>
                   </p>
                 </div>
               </div>
@@ -625,13 +627,13 @@ const Login = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl flex items-start gap-3 shadow-sm"
+                  className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 shadow-sm"
                 >
-                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-red-800 dark:text-red-400 text-sm">{otpError}</p>
+                    <p className="text-red-400 text-sm">{otpError}</p>
                     {otpRemainingAttempts !== null && otpRemainingAttempts >= 0 && (
-                      <p className="text-red-700 dark:text-red-400/70 text-xs mt-1">
+                      <p className="text-red-400/70 text-xs mt-1">
                         {otpRemainingAttempts} intento{otpRemainingAttempts !== 1 ? 's' : ''} restante{otpRemainingAttempts !== 1 ? 's' : ''}
                       </p>
                     )}
@@ -642,7 +644,7 @@ const Login = () => {
               {/* OTP Form */}
               <form onSubmit={handleOtpSubmit} className="space-y-6">
                 <div className="space-y-4">
-                  <Label className="text-foreground text-sm sm:text-base text-center block font-medium">
+                  <Label className="text-white text-sm sm:text-base text-center block font-medium">
                     Introduce el código de verificación
                   </Label>
                   <div className="flex justify-center">
@@ -658,7 +660,7 @@ const Login = () => {
                           <InputOTPSlot
                             key={index}
                             index={index}
-                            className="!w-10 !h-12 sm:!w-12 sm:!h-14 text-lg sm:text-xl bg-card !border !border-border text-foreground !rounded-lg focus:!border-primary focus:!ring-primary/20"
+                            className="!w-10 !h-12 sm:!w-12 sm:!h-14 text-lg sm:text-xl font-semibold bg-white/5 !border !border-white/10 text-white !rounded-lg focus:!border-white/30 focus:!ring-white/20"
                           />
                         ))}
                       </InputOTPGroup>
@@ -669,7 +671,7 @@ const Login = () => {
                 <Button
                   type="submit"
                   disabled={otpVerifying || otpCode.length !== 6}
-                  className="w-full h-12 bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all disabled:opacity-50 rounded-lg shadow-sm"
+                  className="w-full h-12 bg-white text-black font-medium hover:bg-white/90 transition-all disabled:opacity-50 rounded-lg shadow-sm"
                 >
                   {otpVerifying ? (
                     <>
@@ -689,7 +691,7 @@ const Login = () => {
                     type="button"
                     onClick={handleResendOtp}
                     disabled={!canResendOtp || otpSending}
-                    className="text-center text-muted-foreground text-sm hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="text-center text-white/50 text-sm hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     {otpSending ? (
                       'Enviando...'
@@ -703,7 +705,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={handleBackToCredentials}
-                    className="flex items-center justify-center gap-2 text-muted-foreground text-sm hover:text-foreground transition-colors"
+                    className="flex items-center justify-center gap-2 text-white/50 text-sm hover:text-white transition-colors"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     Volver al inicio de sesión
@@ -717,8 +719,8 @@ const Login = () => {
 
       {/* Background decoration - Subtle gradient */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
       </div>
     </div>
   );

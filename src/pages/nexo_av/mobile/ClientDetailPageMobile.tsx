@@ -1,13 +1,5 @@
-/**
- * ClientDetailPageMobile
- * 
- * Versión optimizada para móviles (especialmente iPhone) de la página de detalle de cliente.
- * Diseñada para comerciales en campo con información esencial y acciones rápidas.
- */
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
 import { 
   ShieldAlert, 
   LayoutDashboard,
@@ -23,11 +15,18 @@ import {
   ChevronDown,
   ExternalLink,
   MessageSquare,
+  ArrowLeft,
+  PhoneCall,
+  Send,
+  Plus,
+  Briefcase,
+  Target,
+  Euro,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { NexoLogo } from "../components/NexoHeader";
+import { cn } from "@/lib/utils";
 import DetailTabsMobile from "../components/mobile/DetailTabsMobile";
 import ClientProjectsTab from "../components/ClientProjectsTab";
 import ClientQuotesTab from "../components/ClientQuotesTab";
@@ -44,6 +43,7 @@ import ClientInvoicesTab from "../components/ClientInvoicesTab";
 import EditClientDialog from "../components/EditClientDialog";
 import MobileBottomNav from "../components/MobileBottomNav";
 import ClientNotesSection from "../components/mobile/ClientNotesSection";
+import { Loader2 } from "lucide-react";
 
 interface ClientDetail {
   id: string;
@@ -110,6 +110,7 @@ const ClientDetailPageMobile = () => {
     if (!clientId) return;
     
     try {
+      setLoading(true);
       const { data, error } = await supabase.rpc('get_client', {
         p_client_id: clientId
       });
@@ -133,6 +134,8 @@ const ClientDetailPageMobile = () => {
         description: "No se pudo cargar el cliente",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -227,14 +230,13 @@ const ClientDetailPageMobile = () => {
 
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center space-y-4">
-          <ShieldAlert className="h-12 w-12 text-red-500 mx-auto" />
-          <h1 className="text-xl font-bold text-white">Acceso Denegado</h1>
-          <p className="text-white/60 text-sm">No tienes permiso para acceder a este recurso.</p>
+          <ShieldAlert className="h-12 w-12 text-destructive mx-auto" />
+          <h1 className="text-xl font-bold">Acceso Denegado</h1>
+          <p className="text-muted-foreground text-sm">No tienes permiso para acceder a este recurso.</p>
           <Button 
             onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
-            className="bg-white text-black hover:bg-white/90"
           >
             Volver al inicio
           </Button>
@@ -245,178 +247,295 @@ const ClientDetailPageMobile = () => {
 
   if (loading || !client) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse">
-          <NexoLogo />
-        </div>
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   const stageInfo = getStageInfo(client.lead_stage);
 
-  return (
-    <div className="min-h-screen bg-background pb-mobile-nav">
-      <main className="px-3 py-3 space-y-3">
-        {/* Compact Client Header - Optimizado para móvil */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Card className="bg-white/5 border-white/10">
-            <CardContent className="pt-4 pb-4 space-y-3">
-              {/* Empresa y Estado */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <div className="p-2.5 rounded-xl bg-white/10 shrink-0">
-                    <Building2 className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-lg font-bold text-white truncate">{client.company_name}</h2>
-                    {client.legal_name && (
-                      <p className="text-white/40 text-xs truncate">{client.legal_name}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+  const formatCurrency = (value: number | null) => {
+    if (!value) return "-";
+    return value.toLocaleString("es-ES", { style: "currency", currency: "EUR" });
+  };
 
-              {/* Estado del Lead - Clickable dropdown */}
+  return (
+    <div className="flex flex-col h-full pb-20">
+      {/* Header sticky */}
+      <div className="sticky top-0 z-10 bg-background border-b p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={() => navigate(`/nexo-av/${userId}/clients`)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <h1 className="font-semibold text-base truncate">{client.company_name}</h1>
+            </div>
+            <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild disabled={updatingStatus}>
                   <button 
-                    className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm font-medium border transition-colors active:scale-[0.98] ${stageInfo.color}`}
+                    className={cn(
+                      "text-xs px-2 py-0.5 rounded-full border transition-colors",
+                      stageInfo.color,
+                      updatingStatus && "opacity-50"
+                    )}
                   >
-                    <span>{updatingStatus ? "Actualizando..." : stageInfo.label}</span>
-                    <ChevronDown className="h-4 w-4 shrink-0" />
+                    {updatingStatus ? "Actualizando..." : stageInfo.label}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align="center" 
-                  className="bg-zinc-900 border-white/10 w-[calc(100vw-24px)] max-w-sm"
-                >
+                <DropdownMenuContent align="center" className="w-[calc(100vw-24px)] max-w-sm">
                   {LEAD_STAGES.map((stage) => (
                     <DropdownMenuItem
                       key={stage.value}
                       onClick={() => handleStatusChange(stage.value)}
-                      className={`cursor-pointer py-3 ${stage.value === client.lead_stage ? 'bg-white/10' : ''}`}
+                      className={cn(
+                        "cursor-pointer py-3",
+                        stage.value === client.lead_stage && 'bg-accent'
+                      )}
                     >
-                      <span className={`inline-block w-2.5 h-2.5 rounded-full mr-3 ${stage.color.split(' ')[0]}`} />
-                      <span className="text-white font-medium">{stage.label}</span>
+                      <span className={cn("inline-block w-2.5 h-2.5 rounded-full mr-3", stage.color.split(' ')[0])} />
+                      <span>{stage.label}</span>
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
+            </div>
+          </div>
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-9 w-9"
+            onClick={() => setEditDialogOpen(true)}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+        </div>
 
-              {/* Acciones Rápidas - Optimizado para touch */}
-              <div className="grid grid-cols-2 gap-2">
-                <a 
-                  href={`tel:${client.contact_phone}`}
-                  className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 font-medium text-sm active:scale-[0.97] transition-transform"
-                >
-                  <Phone className="h-4 w-4" />
-                  Llamar
-                </a>
-                <a 
-                  href={`mailto:${client.contact_email}`}
-                  className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 font-medium text-sm active:scale-[0.97] transition-transform"
-                >
-                  <Mail className="h-4 w-4" />
-                  Email
-                </a>
-              </div>
+        {/* Acciones rápidas */}
+        <div className="flex items-center gap-2 mt-3">
+          {client.contact_phone && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 gap-2"
+              asChild
+            >
+              <a href={`tel:${client.contact_phone}`}>
+                <PhoneCall className="h-4 w-4" />
+                Llamar
+              </a>
+            </Button>
+          )}
+          {client.contact_email && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 gap-2"
+              asChild
+            >
+              <a href={`mailto:${client.contact_email}`}>
+                <Send className="h-4 w-4" />
+                Email
+              </a>
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Tarea
+          </Button>
+        </div>
+      </div>
 
-              {/* Información de Contacto - Compacta */}
-              <div className="space-y-2 text-sm pt-2 border-t border-white/10">
-                <div className="flex items-center gap-2 text-white/60">
-                  <Phone className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{client.contact_phone}</span>
+      {/* Content scrollable */}
+      <div className="flex-1 overflow-auto p-4 space-y-4">
+        {/* Información destacada */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-2 gap-3">
+              {client.approximate_budget && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Presupuesto</p>
+                  <p className="text-lg font-bold">{formatCurrency(client.approximate_budget)}</p>
                 </div>
-                <div className="flex items-center gap-2 text-white/60">
-                  <Mail className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{client.contact_email}</span>
+              )}
+              {client.industry_sector && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Sector</p>
+                  <p className="text-sm font-medium capitalize">{client.industry_sector.toLowerCase()}</p>
                 </div>
-                {client.website && (
-                  <a 
-                    href={client.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-white/60 active:text-white"
-                  >
-                    <Globe className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate flex-1">{client.website}</span>
-                    <ExternalLink className="h-3 w-3 shrink-0" />
-                  </a>
-                )}
-                {client.billing_city && (
-                  <div className="flex items-center gap-2 text-white/60">
-                    <MapPin className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate">{client.billing_city}, {client.billing_province}</span>
-                  </div>
-                )}
-              </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-              {/* Botón Editar */}
-              {activeTab === "notes" && (
-                <Button 
-                  variant="outline" 
-                  className="w-full border-white/20 text-white hover:bg-white/10 h-11"
-                  onClick={() => setEditDialogOpen(true)}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar Cliente
-                </Button>
+        {/* Contacto */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              Contacto
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {client.contact_phone && (
+              <a
+                href={`tel:${client.contact_phone}`}
+                className="flex items-center gap-2 text-primary active:opacity-70"
+              >
+                <Phone className="h-4 w-4" />
+                {client.contact_phone}
+              </a>
+            )}
+            {client.contact_email && (
+              <a
+                href={`mailto:${client.contact_email}`}
+                className="flex items-center gap-2 text-primary active:opacity-70 break-all"
+              >
+                <Mail className="h-4 w-4 shrink-0" />
+                <span className="text-sm">{client.contact_email}</span>
+              </a>
+            )}
+            {client.website && (
+              <a
+                href={client.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-primary active:opacity-70 break-all"
+              >
+                <Globe className="h-4 w-4 shrink-0" />
+                <span className="text-sm">{client.website}</span>
+                <ExternalLink className="h-3 w-3 shrink-0" />
+              </a>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Dirección */}
+        {(client.billing_address || client.billing_city) && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Dirección
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {client.billing_address && <p className="font-medium mb-1">{client.billing_address}</p>}
+              <p className="text-sm text-muted-foreground">
+                {[client.billing_postal_code, client.billing_city, client.billing_province]
+                  .filter(Boolean)
+                  .join(", ")}
+              </p>
+              {client.billing_country && (
+                <p className="text-sm text-muted-foreground mt-1">{client.billing_country}</p>
               )}
             </CardContent>
           </Card>
-        </motion.div>
+        )}
 
-        {/* Edit Client Dialog */}
-        <EditClientDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          client={client}
-          isAdmin={isAdmin}
-          onSuccess={fetchClient}
-        />
+        {/* Información adicional */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Briefcase className="h-4 w-4" />
+              Información
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {client.tax_id && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">NIF/CIF</p>
+                <p className="font-mono text-sm">{client.tax_id}</p>
+              </div>
+            )}
+            {client.legal_name && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Razón social</p>
+                <p className="text-sm font-medium">{client.legal_name}</p>
+              </div>
+            )}
+            {client.number_of_locations && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Número de ubicaciones</p>
+                <p className="text-sm font-medium">{client.number_of_locations}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Objetivos */}
+        {client.target_objectives && client.target_objectives.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Objetivos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {client.target_objectives.map((obj) => (
+                  <Badge key={obj} variant="secondary" className="text-xs">
+                    {obj}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tabs Navigation - Optimizado para móvil */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
+        <DetailTabsMobile
+          value={activeTab}
+          onValueChange={setActiveTab}
+          tabs={[
+            { value: "notes", label: "Notas", icon: MessageSquare },
+            { value: "projects", label: "Proyectos", icon: FolderKanban },
+            { value: "quotes", label: "Presup.", icon: FileText },
+            { value: "invoices", label: "Facturas", icon: Receipt },
+          ]}
         >
-          <DetailTabsMobile
-            value={activeTab}
-            onValueChange={setActiveTab}
-            tabs={[
-              { value: "notes", label: "Notas", icon: MessageSquare },
-              { value: "projects", label: "Proyectos", icon: FolderKanban },
-              { value: "quotes", label: "Presup.", icon: FileText },
-              { value: "invoices", label: "Facturas", icon: Receipt },
-            ]}
-          >
-            <TabsContent value="notes" className="mt-3">
-              <ClientNotesSection 
-                clientId={client.id}
-                canEdit={isAdmin || client.assigned_to === currentUserId}
-                compact={false}
-              />
-            </TabsContent>
+          <TabsContent value="notes" className="mt-3">
+            <ClientNotesSection 
+              clientId={client.id}
+              canEdit={isAdmin || client.assigned_to === currentUserId}
+              compact={false}
+            />
+          </TabsContent>
 
-            <TabsContent value="projects" className="mt-3">
-              <ClientProjectsTab clientId={client.id} />
-            </TabsContent>
+          <TabsContent value="projects" className="mt-3">
+            <ClientProjectsTab clientId={client.id} />
+          </TabsContent>
 
-            <TabsContent value="quotes" className="mt-3">
-              <ClientQuotesTab clientId={client.id} />
-            </TabsContent>
+          <TabsContent value="quotes" className="mt-3">
+            <ClientQuotesTab clientId={client.id} />
+          </TabsContent>
 
-            <TabsContent value="invoices" className="mt-3">
-              <ClientInvoicesTab clientId={client.id} />
-            </TabsContent>
-          </DetailTabsMobile>
-        </motion.div>
-      </main>
+          <TabsContent value="invoices" className="mt-3">
+            <ClientInvoicesTab clientId={client.id} />
+          </TabsContent>
+        </DetailTabsMobile>
+      </div>
+
+      <EditClientDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        client={client}
+        isAdmin={isAdmin}
+        onSuccess={fetchClient}
+      />
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav userId={userId || ''} />

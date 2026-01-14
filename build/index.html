@@ -357,21 +357,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/index-6fE-DqHo.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/exceljs-UtwyKsgk.js">
-    <link rel="modulepreload" crossorigin href="/assets/polyfills-DSc8szvh.js">
-    <link rel="modulepreload" crossorigin href="/assets/vendor-Dmna8221.js">
-    <link rel="modulepreload" crossorigin href="/assets/react-hook-form-CqeDbn3T.js">
-    <link rel="modulepreload" crossorigin href="/assets/radix-ui-BUJmDVx2.js">
-    <link rel="modulepreload" crossorigin href="/assets/utils-CMzN147q.js">
-    <link rel="modulepreload" crossorigin href="/assets/react-vendor-C5Wg3R0h.js">
-    <link rel="modulepreload" crossorigin href="/assets/react-query-VOZXk3tu.js">
-    <link rel="modulepreload" crossorigin href="/assets/react-router-V5IqrfUr.js">
-    <link rel="modulepreload" crossorigin href="/assets/firebase-DyK8O8uJ.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-BNtqdfRC.css">
+    <script type="module" crossorigin src="/assets/index-rMfbrZdY.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CSSSPuZw.css">
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
+    <!-- Polyfill setup - must execute before any modules load -->
+    <script>
+      // Ensure global is available for Node.js-style libraries (exceljs, @react-pdf/renderer)
+      if (typeof window !== "undefined") {
+        if (!window.global) {
+          window.global = window;
+        }
+        if (!globalThis.global) {
+          globalThis.global = globalThis;
+        }
+      }
+    </script>
   </body>
 </html>

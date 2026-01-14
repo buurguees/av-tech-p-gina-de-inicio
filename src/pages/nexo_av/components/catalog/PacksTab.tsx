@@ -390,12 +390,12 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
       {/* Toolbar */}
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
           <Input
             placeholder="Buscar packs..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 w-64 bg-white/5 border-white/10 text-white"
+            className="pl-11 w-64 bg-white/5 border-white/10 text-white"
           />
         </div>
 

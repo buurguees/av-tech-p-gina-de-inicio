@@ -13,6 +13,7 @@ import { lazy } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useIsNexoAvDarkTheme } from "./hooks/useNexoAvThemeMode";
 
 // Lazy load mobile version
 const ProjectMapPageMobile = lazy(() => import("./mobile/ProjectMapPageMobile"));
@@ -104,6 +105,7 @@ const ProjectMapPageDesktop = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const isDarkTheme = useIsNexoAvDarkTheme();
 
   // Barcelona Metropolitan Area center coordinates
   const defaultCenter: [number, number] = [41.3851, 2.1734];
@@ -261,7 +263,8 @@ const ProjectMapPageDesktop = () => {
               scrollWheelZoom={true}
             >
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                key={isDarkTheme ? "nexo-project-map-dark" : "nexo-project-map-light"}
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
               <MapCenterHandler selectedProject={selectedProject} />

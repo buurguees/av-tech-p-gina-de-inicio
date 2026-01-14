@@ -35,6 +35,7 @@ interface Technician {
   contact_email: string | null;
   city: string | null;
   specialties: string[];
+  hourly_rate: number | null;
   daily_rate: number | null;
   status: string;
   rating: number | null;
@@ -111,12 +112,12 @@ export default function TechniciansPageMobile() {
 
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-10"
+              className="pl-11"
             />
           </div>
           <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
@@ -243,6 +244,12 @@ export default function TechniciansPageMobile() {
                           {tech.contact_phone}
                         </div>
                       )}
+                      {tech.contact_email && (
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Mail className="h-3.5 w-3.5" />
+                          {tech.contact_email}
+                        </div>
+                      )}
                       {tech.city && (
                         <div className="flex items-center gap-1 text-muted-foreground">
                           <MapPin className="h-3.5 w-3.5" />
@@ -267,13 +274,18 @@ export default function TechniciansPageMobile() {
                     )}
 
                     <div className="mt-3 flex items-center justify-between">
-                      {tech.daily_rate ? (
-                        <span className="text-sm font-medium">
-                          {tech.daily_rate.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}/día
-                        </span>
-                      ) : (
-                        <span />
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {tech.hourly_rate && (
+                          <span className="text-sm font-medium">
+                            {tech.hourly_rate.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}/hora
+                          </span>
+                        )}
+                        {tech.daily_rate && (
+                          <span className="text-sm font-medium">
+                            {tech.daily_rate.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}/día
+                          </span>
+                        )}
+                      </div>
                       {tech.rating && (
                         <div className="flex items-center gap-1">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />

@@ -9,6 +9,7 @@ import CanvassingTool, { CANVASSING_STATUSES, CanvassingStatus } from "./Canvass
 import CanvassingLocationDialog from "./CanvassingLocationDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useIsNexoAvDarkTheme } from "../../hooks/useNexoAvThemeMode";
 
 // Fix for default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -633,6 +634,14 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
   const defaultCenter: [number, number] = [41.3851, 2.1734];
   const defaultZoom = 12; // Zoom inicial para cargar el mapa
   const [initialLocationSet, setInitialLocationSet] = useState(false);
+  const isDarkTheme = useIsNexoAvDarkTheme();
+
+  // Usamos siempre el mismo estilo de calles (Carto Voyager)
+  // tanto en tema claro como en tema oscuro, para mantener
+  // los mismos colores y legibilidad del mapa.
+  const lightTileUrl =
+    "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+  const darkTileUrl = lightTileUrl;
 
   const handlePOIsLoaded = useCallback((loadedPois: POI[]) => {
     console.log('[LeadMap] Received POIs:', loadedPois.length);
@@ -1090,6 +1099,14 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
         .leaflet-popup {
           z-index: 3 !important;
         }
+        /* Asegurar que los controles flotantes de Canvassing estén por encima del mapa */
+        .leaflet-container {
+          pointer-events: auto;
+        }
+        /* Permitir que los elementos con z-index alto reciban eventos táctiles */
+        [style*="z-index"] {
+          pointer-events: auto !important;
+        }
       `}</style>
       <MapContainer
         center={defaultCenter}
@@ -1103,10 +1120,11 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
         zoomControl={true}
         scrollWheelZoom={true}
       >
-        {/* Map style with colored streets (but not highways) - CartoDB Voyager */}
+        {/* Capa base: cambia entre claro/oscuro según el tema de NEXO AV */}
         <TileLayer
+          key={isDarkTheme ? "nexo-map-dark" : "nexo-map-light"}
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          url={isDarkTheme ? darkTileUrl : lightTileUrl}
           maxZoom={19}
         />
         
@@ -1353,10 +1371,16 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
 
       {/* Indicador de modo Canvassing */}
       {isCanvassingMode && selectedCanvassingStatus && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg">
-          <p className="text-sm font-medium">
-            Modo Canvassing: {CANVASSING_STATUSES[selectedCanvassingStatus].label} - 
-            Haz clic en el mapa para marcar un punto
+        <div className="absolute left-1/2 -translate-x-1/2 z-[9998] bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg pointer-events-none top-20 md:top-4">
+          <p className="text-xs sm:text-sm font-medium text-center">
+            Estás usando la xinxeta{" "}
+            <span className="inline-block px-2 py-0.5 rounded-full bg-primary-foreground/10 text-primary-foreground font-semibold">
+              {CANVASSING_STATUSES[selectedCanvassingStatus].label}
+            </span>
+            <span className="block sm:inline mt-1 sm:mt-0">
+              {" "}
+              · toca en el mapa para marcar un punto
+            </span>
           </p>
         </div>
       )}

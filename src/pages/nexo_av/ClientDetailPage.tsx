@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
 import { 
   ShieldAlert, 
   LayoutDashboard,
@@ -13,12 +12,25 @@ import {
   MapPin,
   Globe,
   Edit,
-  ChevronDown
+  ChevronDown,
+  ArrowLeft,
+  PhoneCall,
+  Send,
+  Plus,
+  Euro,
+  Calendar,
+  Briefcase,
+  Target,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import ClientDashboardTab from "./components/ClientDashboardTab";
 import ClientProjectsTab from "./components/ClientProjectsTab";
 import ClientQuotesTab from "./components/ClientQuotesTab";
@@ -35,12 +48,10 @@ import EditClientDialog from "./components/EditClientDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { lazy, Suspense } from "react";
 import { createMobilePage } from "./MobilePageWrapper";
+import { Loader2 } from "lucide-react";
 
 // Lazy load mobile version
 const ClientDetailPageMobile = lazy(() => import("./mobile/ClientDetailPageMobile"));
-
-// Lazy load mobile tabs
-const DetailTabsMobile = lazy(() => import("./components/mobile/DetailTabsMobile"));
 
 interface ClientDetail {
   id: string;
@@ -75,15 +86,15 @@ interface ClientDetail {
 }
 
 const LEAD_STAGES = [
-  { value: 'NEW', label: 'Nuevo', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'CONTACTED', label: 'Contactado', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  { value: 'MEETING', label: 'Reunión', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
-  { value: 'PROPOSAL', label: 'Propuesta', color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' },
-  { value: 'NEGOTIATION', label: 'Negociación', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  { value: 'WON', label: 'Ganado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'RECURRING', label: 'Recurrente', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-  { value: 'LOST', label: 'Perdido', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  { value: 'PAUSED', label: 'Pausado', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
+  { value: 'NEW', label: 'Nuevo', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', statusColor: 'status-info' },
+  { value: 'CONTACTED', label: 'Contactado', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', statusColor: 'status-warning' },
+  { value: 'MEETING', label: 'Reunión', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', statusColor: 'status-special' },
+  { value: 'PROPOSAL', label: 'Propuesta', color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30', statusColor: 'status-info' },
+  { value: 'NEGOTIATION', label: 'Negociación', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', statusColor: 'status-warning' },
+  { value: 'WON', label: 'Ganado', color: 'bg-green-500/20 text-green-400 border-green-500/30', statusColor: 'status-success' },
+  { value: 'RECURRING', label: 'Recurrente', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', statusColor: 'status-success' },
+  { value: 'LOST', label: 'Perdido', color: 'bg-red-500/20 text-red-400 border-red-500/30', statusColor: 'status-error' },
+  { value: 'PAUSED', label: 'Pausado', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30', statusColor: 'status-neutral' },
 ];
 
 const getStageInfo = (stage: string) => {
@@ -156,7 +167,6 @@ const ClientDetailPageDesktop = () => {
         return;
       }
 
-      // Update local state
       setClient({ ...client, lead_stage: newStatus });
       
       const stageLabel = LEAD_STAGES.find(s => s.value === newStatus)?.label || newStatus;
@@ -201,175 +211,397 @@ const ClientDetailPageDesktop = () => {
 
   if (loading || !client) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   const stageInfo = getStageInfo(client.lead_stage);
 
+  const formatCurrency = (value: number | null) => {
+    if (!value) return "-";
+    return value.toLocaleString("es-ES", { style: "currency", currency: "EUR" });
+  };
+
   return (
-    <div className="w-full">
-      <div className="w-[90%] max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Client Header Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <Card className="bg-card border-border">
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-secondary">
-                    <Building2 className="h-8 w-8 text-foreground" />
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Header superior compacto */}
+      <header className="flex-shrink-0 border-b bg-card px-6 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => navigate(`/nexo-av/${userId}/clients`)}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                CRM · Cliente
+              </p>
+              <h1 className="text-base font-semibold leading-none mt-0.5">
+                {client.company_name}
+              </h1>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => setEditDialogOpen(true)}
+          >
+            <Edit className="h-3.5 w-3.5" />
+            Editar
+          </Button>
+        </div>
+      </header>
+
+      {/* Contenido principal con scroll */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            {/* Hero Section - Información principal */}
+            <div className="mb-4">
+              <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="h-9 w-9 rounded-md flex items-center justify-center border shrink-0"
+                    style={{
+                      background: "linear-gradient(135deg, hsl(var(--status-info-bg)), hsl(var(--status-success-bg)))",
+                    }}
+                  >
+                    <Building2 className="h-4 w-4 text-foreground" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-3 mb-1 flex-wrap">
-                      <h2 className="text-2xl font-bold text-foreground">{client.company_name}</h2>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild disabled={updatingStatus}>
-                          <button 
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border transition-colors hover:opacity-80 ${stageInfo.color} cursor-pointer`}
-                          >
-                            {updatingStatus ? "Actualizando..." : stageInfo.label}
-                            <ChevronDown className="h-3 w-3" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent 
-                          align="start" 
-                          className="min-w-[180px]"
+                  <div className="min-w-0 flex items-center gap-2 flex-wrap">
+                    <h2 className="text-base font-semibold leading-tight">{client.company_name}</h2>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild disabled={updatingStatus}>
+                        <button 
+                          className={cn(
+                            "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors",
+                            stageInfo.color,
+                            updatingStatus && "opacity-50 cursor-not-allowed"
+                          )}
                         >
-                          {LEAD_STAGES.map((stage) => (
-                            <DropdownMenuItem
-                              key={stage.value}
-                              onClick={() => handleStatusChange(stage.value)}
-                              className={`cursor-pointer ${stage.value === client.lead_stage ? 'bg-accent' : ''}`}
-                            >
-                              <span className={`inline-block w-2 h-2 rounded-full mr-2 ${stage.color.split(' ')[0]}`} />
-                              <span>{stage.label}</span>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                          {updatingStatus ? "Actualizando..." : stageInfo.label}
+                          <ChevronDown className="h-3 w-3" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="min-w-[180px]">
+                        {LEAD_STAGES.map((stage) => (
+                          <DropdownMenuItem
+                            key={stage.value}
+                            onClick={() => handleStatusChange(stage.value)}
+                            className={cn(
+                              "cursor-pointer",
+                              stage.value === client.lead_stage && 'bg-accent'
+                            )}
+                          >
+                            <span className={cn("inline-block w-2 h-2 rounded-full mr-2", stage.color.split(' ')[0])} />
+                            <span>{stage.label}</span>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     {client.legal_name && (
-                      <p className="text-muted-foreground text-sm">{client.legal_name}</p>
+                      <>
+                        <span className="text-xs text-muted-foreground">•</span>
+                        <span className="text-xs text-muted-foreground">{client.legal_name}</span>
+                      </>
                     )}
-                    <div className="flex flex-wrap gap-4 mt-3 text-sm">
-                      <span className="flex items-center gap-2 text-muted-foreground">
-                        <Mail className="h-4 w-4" />
-                        {client.contact_email}
-                      </span>
-                      <span className="flex items-center gap-2 text-muted-foreground">
-                        <Phone className="h-4 w-4" />
-                        {client.contact_phone}
-                      </span>
-                      {client.website && (
-                        <a 
+                  </div>
+                </div>
+
+                {/* Acciones rápidas + Tabs en la misma línea */}
+                <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => setEditDialogOpen(true)}
+                    >
+                      <Edit className="h-3.5 w-3.5" />
+                      Editar cliente
+                    </Button>
+                    {client.contact_phone && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        asChild
+                      >
+                        <a href={`tel:${client.contact_phone}`}>
+                          <PhoneCall className="h-3.5 w-3.5" />
+                          Llamar
+                        </a>
+                      </Button>
+                    )}
+                    {client.contact_email && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        asChild
+                      >
+                        <a href={`mailto:${client.contact_email}`}>
+                          <Send className="h-3.5 w-3.5" />
+                          Email
+                        </a>
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Crear tarea
+                    </Button>
+                  </div>
+                  {/* Tabs nav alineado horizontalmente con los botones */}
+                  <TabsList className="bg-muted/60">
+                    <TabsTrigger value="dashboard">
+                      <LayoutDashboard className="h-3.5 w-3.5 mr-1.5" />
+                      Dashboard
+                    </TabsTrigger>
+                    <TabsTrigger value="projects">
+                      <FolderKanban className="h-3.5 w-3.5 mr-1.5" />
+                      Proyectos
+                    </TabsTrigger>
+                    <TabsTrigger value="quotes">
+                      <FileText className="h-3.5 w-3.5 mr-1.5" />
+                      Presupuestos
+                    </TabsTrigger>
+                    <TabsTrigger value="invoices">
+                      <Receipt className="h-3.5 w-3.5 mr-1.5" />
+                      Facturas
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+              </div>
+
+              {/* Mini KPIs con color usando la paleta global */}
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div
+                  className="rounded-md border px-3 py-2 flex flex-col gap-1"
+                  style={{
+                    backgroundColor: "hsl(var(--status-info-bg))",
+                    borderColor: "hsl(var(--status-info-border))",
+                  }}
+                >
+                  <span className="text-[11px] font-medium" style={{ color: "hsl(var(--status-info-text))" }}>
+                    Presupuestos (mock)
+                  </span>
+                  <span className="text-sm font-semibold" style={{ color: "hsl(var(--status-info))" }}>
+                    8 activos
+                  </span>
+                </div>
+                <div
+                  className="rounded-md border px-3 py-2 flex flex-col gap-1"
+                  style={{
+                    backgroundColor: "hsl(var(--status-success-bg))",
+                    borderColor: "hsl(var(--status-success-border))",
+                  }}
+                >
+                  <span className="text-[11px] font-medium" style={{ color: "hsl(var(--status-success-text))" }}>
+                    Total facturado (mock)
+                  </span>
+                  <span className="text-sm font-semibold" style={{ color: "hsl(var(--status-success))" }}>
+                    45.200 €
+                  </span>
+                </div>
+                <div
+                  className="rounded-md border px-3 py-2 flex flex-col gap-1"
+                  style={{
+                    backgroundColor: "hsl(var(--status-warning-bg))",
+                    borderColor: "hsl(var(--status-warning-border))",
+                  }}
+                >
+                  <span className="text-[11px] font-medium" style={{ color: "hsl(var(--status-warning-text))" }}>
+                    Próximo seguimiento
+                  </span>
+                  <span className="text-sm font-semibold" style={{ color: "hsl(var(--status-warning))" }}>
+                    {client.next_follow_up_date 
+                      ? new Date(client.next_follow_up_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })
+                      : "Sin fecha"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid de información principal */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              {/* Columna izquierda - Información de contacto y ubicación */}
+              <div className="lg:col-span-1 space-y-4">
+                {/* Contacto */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      Contacto
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    {client.contact_email && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Email</p>
+                        <a
+                          href={`mailto:${client.contact_email}`}
+                          className="text-primary hover:underline break-all"
+                        >
+                          {client.contact_email}
+                        </a>
+                      </div>
+                    )}
+                    {client.contact_phone && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Teléfono</p>
+                        <a
+                          href={`tel:${client.contact_phone}`}
+                          className="text-primary hover:underline font-medium"
+                        >
+                          {client.contact_phone}
+                        </a>
+                      </div>
+                    )}
+                    {client.website && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Web</p>
+                        <a
                           href={client.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+                          className="text-primary hover:underline break-all inline-flex items-center gap-1"
                         >
-                          <Globe className="h-4 w-4" />
+                          <Globe className="h-3 w-3" />
                           {client.website}
                         </a>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Ubicación */}
+                {(client.billing_address || client.billing_city) && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        Ubicación
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-1 text-sm">
+                      {client.billing_address && (
+                        <p className="font-medium">{client.billing_address}</p>
                       )}
-                      {client.billing_city && (
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          {client.billing_city}, {client.billing_province}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {activeTab === "dashboard" && (
-                  <Button 
-                    variant="outline"
-                    onClick={() => setEditDialogOpen(true)}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar Cliente
-                  </Button>
+                      <p className="text-muted-foreground">
+                        {[client.billing_postal_code, client.billing_city].filter(Boolean).join(" ") || "—"}
+                      </p>
+                      <p className="text-muted-foreground">
+                        {[client.billing_province, client.billing_country || "España"]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Información del cliente */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      Información
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    {client.tax_id && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">NIF / CIF</p>
+                        <p className="font-mono">{client.tax_id}</p>
+                      </div>
+                    )}
+                    {client.industry_sector && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Sector</p>
+                        <p className="font-medium capitalize">{client.industry_sector.toLowerCase()}</p>
+                      </div>
+                    )}
+                    {client.approximate_budget && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Presupuesto aproximado</p>
+                        <p className="font-semibold">{formatCurrency(client.approximate_budget)}</p>
+                      </div>
+                    )}
+                    {client.number_of_locations && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Número de ubicaciones</p>
+                        <p className="font-medium">{client.number_of_locations}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Objetivos */}
+                {client.target_objectives && client.target_objectives.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <Target className="h-4 w-4 text-muted-foreground" />
+                        Objetivos
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2">
+                        {client.target_objectives.map((obj) => (
+                          <Badge key={obj} variant="secondary" className="text-xs">
+                            {obj}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
 
-        {/* Edit Client Dialog */}
-        <EditClientDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          client={client}
-          isAdmin={isAdmin}
-          onSuccess={fetchClient}
-        />
+              {/* Columna derecha - Contenido de pestañas alineado con la columna izquierda */}
+              <div className="lg:col-span-2">
+                <TabsContent value="dashboard" className="space-y-4 mt-0">
+                  <ClientDashboardTab 
+                    client={client} 
+                    isAdmin={isAdmin}
+                    currentUserId={currentUserId}
+                    onRefresh={fetchClient}
+                  />
+                </TabsContent>
 
-        {/* Tabs Navigation - Desktop */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-secondary border border-border p-1 h-auto flex-wrap">
-              <TabsTrigger 
-                value="dashboard" 
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                <LayoutDashboard className="h-4 w-4 mr-2" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger 
-                value="projects"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                <FolderKanban className="h-4 w-4 mr-2" />
-                Proyectos
-              </TabsTrigger>
-              <TabsTrigger 
-                value="quotes"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Presupuestos
-              </TabsTrigger>
-              <TabsTrigger 
-                value="invoices"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                <Receipt className="h-4 w-4" />
-                Facturas
-              </TabsTrigger>
-            </TabsList>
+                <TabsContent value="projects" className="space-y-4 mt-0">
+                  <ClientProjectsTab clientId={client.id} />
+                </TabsContent>
 
-            <TabsContent value="dashboard" className="mt-6">
-              <ClientDashboardTab 
-                client={client} 
-                isAdmin={isAdmin}
-                currentUserId={currentUserId}
-                onRefresh={fetchClient}
-              />
-            </TabsContent>
+                <TabsContent value="quotes" className="space-y-4 mt-0">
+                  <ClientQuotesTab clientId={client.id} />
+                </TabsContent>
 
-            <TabsContent value="projects" className="mt-6">
-              <ClientProjectsTab clientId={client.id} />
-            </TabsContent>
-
-            <TabsContent value="quotes" className="mt-6">
-              <ClientQuotesTab clientId={client.id} />
-            </TabsContent>
-
-            <TabsContent value="invoices" className="mt-6">
-              <ClientInvoicesTab clientId={client.id} />
-            </TabsContent>
+                <TabsContent value="invoices" className="space-y-4 mt-0">
+                  <ClientInvoicesTab clientId={client.id} />
+                </TabsContent>
+              </div>
+            </div>
           </Tabs>
-        </motion.div>
+        </div>
       </div>
+
+      <EditClientDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        client={client}
+        isAdmin={isAdmin}
+        onSuccess={fetchClient}
+      />
     </div>
   );
 };

@@ -358,12 +358,12 @@ const ClientsPageDesktop = () => {
               </div>
               
               <div className="relative flex-1 min-w-[200px] max-w-md">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar clientes..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="pr-10 h-8 text-xs"
+                  className="pr-11 h-8 text-xs"
                 />
               </div>
             </div>

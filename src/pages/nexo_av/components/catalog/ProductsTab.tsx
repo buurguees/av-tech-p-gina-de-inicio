@@ -693,12 +693,12 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         {/* Mobile Search and Filters */}
         <div className="flex flex-col gap-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
             <Input
               placeholder={isProductTab ? "Buscar productos..." : "Buscar servicios..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 w-full bg-white/5 border-white/10 text-white h-9 text-xs"
+              className="pl-11 w-full bg-white/5 border-white/10 text-white h-9 text-xs"
             />
           </div>
 

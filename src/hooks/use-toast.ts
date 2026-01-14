@@ -3,7 +3,9 @@ import * as React from "react";
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
 const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000000;
+// Tiempo que el toast permanece en memoria tras cerrarse (ms).
+// El tiempo visible lo controla `duration` en `ToastProvider` (1.5s).
+const TOAST_REMOVE_DELAY = 2000;
 
 type ToasterToast = ToastProps & {
   id: string;

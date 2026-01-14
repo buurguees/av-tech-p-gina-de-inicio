@@ -92,8 +92,8 @@ export default function EditTechnicianDialog({
   useEffect(() => {
     if (technician && open) {
       setFormData({
-        company_name: technician.company_name,
-        type: technician.type,
+        company_name: technician.company_name || "",
+        type: technician.type || "FREELANCER",
         legal_name: technician.legal_name || "",
         tax_id: technician.tax_id || "",
         contact_name: technician.contact_name || "",
@@ -110,7 +110,7 @@ export default function EditTechnicianDialog({
         daily_rate: technician.daily_rate?.toString() || "",
         iban: technician.iban || "",
         payment_terms: technician.payment_terms || "",
-        status: technician.status,
+        status: technician.status || "ACTIVE",
         rating: technician.rating?.toString() || "",
         notes: technician.notes || "",
       });
@@ -161,7 +161,7 @@ export default function EditTechnicianDialog({
         p_iban: formData.iban.trim() || null,
         p_payment_terms: formData.payment_terms.trim() || null,
         p_status: formData.status,
-        p_rating: formData.rating ? parseInt(formData.rating) : null,
+        p_rating: formData.rating && formData.rating !== "" ? parseInt(formData.rating) : null,
         p_notes: formData.notes.trim() || null,
       });
 
@@ -177,13 +177,17 @@ export default function EditTechnicianDialog({
     }
   };
 
+  if (!technician) {
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Técnico</DialogTitle>
           <DialogDescription>
-            Modifica los datos del técnico {technician.technician_number}.
+            Modifica los datos del técnico {technician.technician_number || ""}.
           </DialogDescription>
         </DialogHeader>
 
@@ -205,18 +209,22 @@ export default function EditTechnicianDialog({
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <Label htmlFor="type">Tipo</Label>
-                <Select value={formData.type} onValueChange={(v) => handleChange("type", v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TECHNICIAN_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {TECHNICIAN_TYPES.map((type) => (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => handleChange("type", type.value)}
+                      className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                        formData.type === type.value
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted text-foreground border-border hover:bg-muted/70"
+                      }`}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <Label htmlFor="status">Estado</Label>
@@ -235,12 +243,12 @@ export default function EditTechnicianDialog({
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <Label htmlFor="rating">Valoración (1-5)</Label>
-                <Select value={formData.rating} onValueChange={(v) => handleChange("rating", v)}>
+                <Select value={formData.rating || "none"} onValueChange={(v) => handleChange("rating", v === "none" ? "" : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Sin valoración" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sin valoración</SelectItem>
+                    <SelectItem value="none">Sin valoración</SelectItem>
                     {[1, 2, 3, 4, 5].map((r) => (
                       <SelectItem key={r} value={r.toString()}>
                         {"⭐".repeat(r)} ({r})
@@ -292,6 +300,15 @@ export default function EditTechnicianDialog({
                 />
               </div>
               <div className="col-span-2 sm:col-span-1">
+                <Label htmlFor="contact_phone_secondary">Teléfono secundario</Label>
+                <Input
+                  id="contact_phone_secondary"
+                  type="tel"
+                  value={formData.contact_phone_secondary}
+                  onChange={(e) => handleChange("contact_phone_secondary", e.target.value)}
+                />
+              </div>
+              <div className="col-span-2 sm:col-span-1">
                 <Label htmlFor="contact_email">Email</Label>
                 <Input
                   id="contact_email"
@@ -336,18 +353,11 @@ export default function EditTechnicianDialog({
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <Label htmlFor="province">Provincia</Label>
-                <Select value={formData.province} onValueChange={(v) => handleChange("province", v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SPANISH_PROVINCES.map((prov) => (
-                      <SelectItem key={prov} value={prov}>
-                        {prov}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="province"
+                  value={formData.province}
+                  onChange={(e) => handleChange("province", e.target.value)}
+                />
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <Label htmlFor="postal_code">Código Postal</Label>

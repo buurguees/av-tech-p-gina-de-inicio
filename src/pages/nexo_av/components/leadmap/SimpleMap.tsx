@@ -4,6 +4,7 @@ import { Crosshair, MapPin } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useIsNexoAvDarkTheme } from "../../hooks/useNexoAvThemeMode";
 
 // Fix for default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -100,6 +101,13 @@ const SimpleMap = forwardRef<SimpleMapRef, SimpleMapProps>(
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const isDarkTheme = useIsNexoAvDarkTheme();
+
+  // Usamos el mismo estilo de mapa (OSM estándar) tanto
+  // en tema claro como en oscuro para que no cambie el
+  // color de las calles entre temas.
+  const lightTileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  const darkTileUrl = lightTileUrl;
 
   // Barcelona Metropolitan Area center coordinates (fallback)
   const defaultCenter: [number, number] = [41.3851, 2.1734];
@@ -200,8 +208,9 @@ const SimpleMap = forwardRef<SimpleMapRef, SimpleMapProps>(
         scrollWheelZoom={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          key={isDarkTheme ? "nexo-simple-map-dark" : "nexo-simple-map-light"}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={isDarkTheme ? darkTileUrl : lightTileUrl}
         />
 
         <MapUpdater focusItem={focusItem} mapRef={mapInstanceRef} />

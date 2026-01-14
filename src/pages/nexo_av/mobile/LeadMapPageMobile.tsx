@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LeadMap from "../components/leadmap/LeadMap";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { List } from "lucide-react";
 import { CanvassingLocation, CanvassingStats } from "../LeadMapPage";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import CanvassingMapSidebar from "../components/leadmap/CanvassingMapSidebar";
@@ -29,6 +29,7 @@ const LeadMapPageMobile = () => {
   const [selectedLocation, setSelectedLocation] = useState<CanvassingLocation | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showSidebarSheet, setShowSidebarSheet] = useState(false);
   
   // User info
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -165,6 +166,19 @@ const LeadMapPageMobile = () => {
             handleRefresh();
           }}
         />
+
+        {/* Botón flotante para abrir el panel de lista/resumen de puntos */}
+        <div className="absolute left-4 z-[1000] bottom-24 md:bottom-4">
+          <Button
+            size="icon"
+            variant="secondary"
+            className="rounded-full shadow-lg h-10 w-10 bg-background/90 backdrop-blur-sm"
+            onClick={() => setShowSidebarSheet(true)}
+            aria-label="Ver lista de puntos de canvassing"
+          >
+            <List className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Mobile detail sheet - Popup desde abajo */}
@@ -176,13 +190,26 @@ const LeadMapPageMobile = () => {
               onClose={() => setSelectedLocation(null)}
               onEdit={() => {
                 setShowEditDialog(true);
-                setSelectedLocation(null);
               }}
               onRefresh={handleRefresh}
             />
           </SheetContent>
         </Sheet>
       )}
+
+      {/* Sheet con listado/resumen de puntos de canvassing */}
+      <Sheet open={showSidebarSheet} onOpenChange={setShowSidebarSheet}>
+        <SheetContent side="bottom" className="h-[70vh] overflow-y-auto p-0">
+          <CanvassingMapSidebar
+            stats={canvassingStats}
+            locations={canvassingLocations}
+            onLocationSelect={(location) => {
+              setSelectedLocation(location);
+              setShowSidebarSheet(false);
+            }}
+          />
+        </SheetContent>
+      </Sheet>
 
       {/* Edit dialog */}
       {showEditDialog && selectedLocation && (
@@ -193,6 +220,7 @@ const LeadMapPageMobile = () => {
           onSuccess={() => {
             handleRefresh();
             setShowEditDialog(false);
+            setSelectedLocation(null);
           }}
         />
       )}

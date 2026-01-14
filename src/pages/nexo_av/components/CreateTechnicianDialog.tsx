@@ -169,18 +169,22 @@ export default function CreateTechnicianDialog({
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <Label htmlFor="type">Tipo</Label>
-                <Select value={formData.type} onValueChange={(v) => handleChange("type", v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TECHNICIAN_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {TECHNICIAN_TYPES.map((type) => (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => handleChange("type", type.value)}
+                      className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                        formData.type === type.value
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted text-foreground border-border hover:bg-muted/70"
+                      }`}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <Label htmlFor="legal_name">Razón Social</Label>
@@ -277,18 +281,12 @@ export default function CreateTechnicianDialog({
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <Label htmlFor="province">Provincia</Label>
-                <Select value={formData.province} onValueChange={(v) => handleChange("province", v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SPANISH_PROVINCES.map((prov) => (
-                      <SelectItem key={prov} value={prov}>
-                        {prov}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="province"
+                  value={formData.province}
+                  onChange={(e) => handleChange("province", e.target.value)}
+                  placeholder="Provincia"
+                />
               </div>
               <div className="col-span-2 sm:col-span-1">
                 <Label htmlFor="postal_code">Código Postal</Label>

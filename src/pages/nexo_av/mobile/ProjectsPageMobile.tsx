@@ -116,16 +116,16 @@ const ProjectsPageMobile = () => {
             Crear Proyecto
           </Button>
 
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-            <Input
-              placeholder="Buscar proyectos..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-11 text-sm"
-            />
-          </div>
+        {/* Search */}
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <Input
+            placeholder="Buscar proyectos..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="pl-11 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-11 text-sm"
+          />
+        </div>
 
           {/* Projects List */}
           {loading ? (

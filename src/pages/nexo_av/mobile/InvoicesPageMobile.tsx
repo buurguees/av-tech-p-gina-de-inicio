@@ -107,16 +107,16 @@ const InvoicesPageMobile = () => {
             Las facturas se generan automáticamente desde presupuestos aprobados
           </div>
 
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              placeholder="Buscar factura, cliente o proyecto..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-9 bg-card border-border text-foreground placeholder:text-muted-foreground h-9 text-xs"
-            />
-          </div>
+        {/* Search */}
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Buscar factura, cliente o proyecto..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="pl-11 bg-card border-border text-foreground placeholder:text-muted-foreground h-9 text-xs"
+          />
+        </div>
           
           {/* Status Filters - Scrollable horizontal */}
           <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-3 px-3 scrollbar-hide">

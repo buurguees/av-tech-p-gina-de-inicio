@@ -163,13 +163,13 @@ const AuditPageMobile = () => {
         {/* Filtros */}
         <div className="space-y-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
             <Input
               type="text"
               placeholder="Buscar eventos..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-10 bg-white/5 border-white/10 text-white text-sm h-10"
+              className="pl-11 bg-white/5 border-white/10 text-white text-sm h-10"
             />
           </div>
 

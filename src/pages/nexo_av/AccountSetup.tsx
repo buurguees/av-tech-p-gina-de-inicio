@@ -16,7 +16,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { validatePassword } from "@/hooks/usePasswordValidation";
 import PasswordStrengthIndicator from "./components/PasswordStrengthIndicator";
-import { NexoLogo } from "./components/NexoHeader";
+import whiteLogo from "./styles/logos/white_logo.svg";
+import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 const DEPARTMENTS = [
   { value: 'COMMERCIAL', label: 'Comercial' },
@@ -31,6 +32,9 @@ const AccountSetup = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Apply dark theme for account setup
+  useNexoAvTheme('dark');
 
   const token = searchParams.get('token');
   const email = searchParams.get('email');
@@ -239,7 +243,13 @@ const AccountSetup = () => {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center space-y-4">
-          <NexoLogo />
+          <div className="w-24 h-24 mx-auto">
+            <img 
+              src={whiteLogo} 
+              alt="NEXO AV Logo" 
+              className="w-full h-full object-contain"
+            />
+          </div>
           <Loader2 className="h-8 w-8 animate-spin text-white/50 mx-auto" />
           <p className="text-white/50">Verificando invitación...</p>
         </div>
@@ -289,7 +299,13 @@ const AccountSetup = () => {
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center">
-          <NexoLogo />
+          <div className="w-24 h-24 mx-auto">
+            <img 
+              src={whiteLogo} 
+              alt="NEXO AV Logo" 
+              className="w-full h-full object-contain"
+            />
+          </div>
         </div>
 
         {/* Progress indicator */}

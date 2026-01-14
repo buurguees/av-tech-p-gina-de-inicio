@@ -146,30 +146,55 @@ const CanvassingTool = ({ onStatusSelect, isActive }: CanvassingToolProps) => {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="absolute bottom-4 right-4 z-[1000] flex items-center gap-2">
+      <div
+        className={cn(
+          "absolute right-4 flex items-center gap-2",
+          // En mobile subimos el botón por encima de la bottom-nav
+          "bottom-24 md:bottom-4",
+          // Z-index muy alto para estar por encima del mapa de Leaflet
+          "z-[9999] pointer-events-auto"
+        )}
+        style={{ pointerEvents: 'auto' }}
+      >
         {/* Selector de iconos - Horizontal hacia la izquierda del botón + */}
         {isOpen && (
-          <div className={cn(
-            "bg-background/95 backdrop-blur-sm border border-border rounded-xl shadow-xl p-1.5 flex gap-1",
-            "overflow-x-auto max-w-[calc(100vw-8rem)] scrollbar-hide",
-            isMobile ? "gap-0.5" : ""
-          )}>
+          <div 
+            className={cn(
+              "bg-background/95 backdrop-blur-sm border border-border rounded-xl shadow-xl p-1.5 flex gap-1",
+              "overflow-x-auto max-w-[calc(100vw-8rem)] scrollbar-hide",
+              isMobile ? "gap-0.5" : "",
+              "pointer-events-auto"
+            )}
+            style={{ pointerEvents: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {Object.entries(CANVASSING_STATUSES).map(([code, status]) => {
               const buttonContent = (
                 <button
                   key={code}
-                  onClick={() => handleStatusClick(code as CanvassingStatus)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleStatusClick(code as CanvassingStatus);
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation();
+                  }}
                   className={cn(
                     "flex items-center justify-center rounded-lg flex-shrink-0",
                     "hover:scale-110 active:scale-95 transition-all duration-200",
                     "border border-transparent hover:border-primary/30",
                     "hover:shadow-md",
+                    "pointer-events-auto touch-manipulation",
                     isMobile 
                       ? "w-7 h-7 p-0.5" // Móvil: muy compacto, solo iniciales
                       : "w-11 h-11 p-1.5" // Desktop: compacto, icono + código
                   )}
-                  style={isMobile ? {} : {
-                    backgroundColor: `${status.color}12`,
+                  style={{
+                    pointerEvents: 'auto',
+                    touchAction: 'manipulation',
+                    ...(isMobile ? {} : {
+                      backgroundColor: `${status.color}12`,
+                    })
                   }}
                 >
                   {isMobile ? (
@@ -234,14 +259,22 @@ const CanvassingTool = ({ onStatusSelect, isActive }: CanvassingToolProps) => {
 
         {/* Botón + */}
         <Button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(!isOpen);
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+          }}
           size="icon"
           className={cn(
             "rounded-full shadow-lg flex-shrink-0",
             "hover:scale-105 active:scale-95 transition-all duration-200",
             isMobile ? "h-10 w-10" : "h-12 w-12",
-            isOpen ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
+            isOpen ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90",
+            "pointer-events-auto touch-manipulation"
           )}
+          style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
           aria-label={isOpen ? "Cerrar selector" : "Abrir herramienta de Canvassing"}
         >
           {isOpen ? <X className={isMobile ? "h-4 w-4" : "h-5 w-5"} /> : <Plus className={isMobile ? "h-4 w-4" : "h-5 w-5"} />}
