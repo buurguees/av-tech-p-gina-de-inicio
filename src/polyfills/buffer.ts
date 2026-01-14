@@ -1,26 +1,14 @@
-// Buffer polyfill for libraries that require it (like @react-pdf/renderer, exceljs)
-// Simplified approach - just re-export buffer and set globals
+// Buffer polyfill - minimal setup for global context only
+// The actual Buffer is provided by the 'buffer' package when needed by libraries
 
-import { Buffer } from "buffer";
-
-// Ensure global is available
-if (typeof globalThis !== "undefined" && !(globalThis as any).global) {
+// Ensure global is available (required by some Node.js-style libraries)
+if (typeof globalThis !== "undefined" && typeof (globalThis as any).global === "undefined") {
   (globalThis as any).global = globalThis;
 }
 
-// Ensure Buffer is globally available
-if (typeof globalThis !== "undefined" && !(globalThis as any).Buffer) {
-  (globalThis as any).Buffer = Buffer;
+if (typeof window !== "undefined" && typeof (window as any).global === "undefined") {
+  (window as any).global = window;
 }
 
-// Also set on window for browser compatibility
-if (typeof window !== "undefined") {
-  if (!(window as any).global) {
-    (window as any).global = window;
-  }
-  if (!(window as any).Buffer) {
-    (window as any).Buffer = Buffer;
-  }
-}
-
-export { Buffer };
+// Note: Do NOT import Buffer here to avoid initialization order issues
+// Libraries like @react-pdf/renderer will import buffer themselves when needed
