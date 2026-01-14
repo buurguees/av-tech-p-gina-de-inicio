@@ -1,28 +1,26 @@
-// Buffer polyfill - simplified synchronous approach
-import { Buffer } from "buffer";
+// Buffer polyfill for libraries that require it (like @react-pdf/renderer, exceljs)
+// This must be imported at the entry point (main.tsx) before any other imports
+
+import { Buffer as BufferPolyfill } from "buffer";
 
 declare global {
   interface Window {
-    Buffer?: typeof Buffer;
-    global?: typeof globalThis;
+    Buffer: typeof BufferPolyfill;
+    global: typeof globalThis;
   }
 }
 
-// Safe initialization in browser environment
+// Set up global references for browser environment
 if (typeof window !== "undefined") {
-  try {
-    if (!window.global) {
-      window.global = globalThis;
-    }
-
-    if (!window.Buffer) {
-      window.Buffer = Buffer;
-    }
-  } catch (e) {
-    // Silently fail - buffer may not be needed for all features
-    console.warn("Buffer polyfill initialization warning:", e);
-  }
+  (window as any).global = (window as any).global || window;
+  (window as any).Buffer = (window as any).Buffer || BufferPolyfill;
 }
 
-export { Buffer };
+// Also set on globalThis for module compatibility
+if (typeof globalThis !== "undefined") {
+  (globalThis as any).global = (globalThis as any).global || globalThis;
+  (globalThis as any).Buffer = (globalThis as any).Buffer || BufferPolyfill;
+}
+
+export { BufferPolyfill as Buffer };
 
