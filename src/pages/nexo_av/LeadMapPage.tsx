@@ -6,10 +6,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import LeadMap from "./components/leadmap/LeadMap";
 import LeadMapFilters from "./components/leadmap/LeadMapFilters";
 import CanvassingMapSidebar from "./components/leadmap/CanvassingMapSidebar";
+import CanvassingDetailPanel from "./components/leadmap/CanvassingDetailPanel";
+import CanvassingLocationDialog from "./components/leadmap/CanvassingLocationDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Filter, X, Loader2 } from "lucide-react";
+import { Plus, Filter, X, Loader2, RefreshCw } from "lucide-react";
 import { createMobilePage } from "./MobilePageWrapper";
 import { lazy } from "react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 // Lazy load mobile version
 const LeadMapPageMobile = lazy(() => import("./mobile/LeadMapPageMobile"));
@@ -133,7 +136,6 @@ const LeadMapPageDesktop = () => {
   const [selectedLocation, setSelectedLocation] = useState<CanvassingLocation | null>(null);
   const [focusLocation, setFocusLocation] = useState<CanvassingLocation | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
   
   // Filters
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -141,6 +143,9 @@ const LeadMapPageDesktop = () => {
   // User info
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Dialog states
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   useEffect(() => {
     fetchUserInfo();
@@ -290,18 +295,20 @@ const LeadMapPageDesktop = () => {
           <Button
             variant="outline"
             size="sm"
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            <span className="ml-1 hidden sm:inline">Actualizar</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setShowFilters(!showFilters)}
             className={showFilters ? "bg-secondary" : ""}
           >
             {showFilters ? <X size={16} /> : <Filter size={16} />}
             <span className="ml-1 hidden sm:inline">Filtros</span>
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => setShowCreateDialog(true)}
-          >
-            <Plus size={16} />
-            <span className="ml-1 hidden sm:inline">Nuevo Punto</span>
           </Button>
         </div>
       </div>
@@ -342,7 +349,7 @@ const LeadMapPageDesktop = () => {
         {/* Sidebar - Desktop only - 40% del espacio */}
         {!isMobile && (
           <div 
-            className="flex-shrink-0 overflow-y-auto"
+            className="flex-shrink-0 overflow-hidden"
             style={{ 
               width: '40%', 
               minWidth: '40%',
@@ -352,9 +359,12 @@ const LeadMapPageDesktop = () => {
             }}
           >
             {selectedLocation ? (
-              <div className="h-full w-full flex items-center justify-center bg-card border border-border rounded-lg">
-                <p className="text-muted-foreground text-sm">Detalle de punto de canvassing próximamente</p>
-              </div>
+              <CanvassingDetailPanel
+                location={selectedLocation}
+                onClose={() => setSelectedLocation(null)}
+                onEdit={() => setShowEditDialog(true)}
+                onRefresh={handleRefresh}
+              />
             ) : (
               <CanvassingMapSidebar
                 stats={canvassingStats}
@@ -367,21 +377,31 @@ const LeadMapPageDesktop = () => {
       </div>
 
       {/* Mobile detail sheet */}
-      {isMobile && selectedLocation && (
-        <div className="fixed inset-0 z-50 bg-background">
-          <p className="text-muted-foreground text-sm p-4">Detalle de punto de canvassing próximamente</p>
-        </div>
+      {isMobile && (
+        <Sheet open={!!selectedLocation} onOpenChange={(open) => !open && setSelectedLocation(null)}>
+          <SheetContent side="bottom" className="h-[85vh] p-0">
+            {selectedLocation && (
+              <CanvassingDetailPanel
+                location={selectedLocation}
+                onClose={() => setSelectedLocation(null)}
+                onEdit={() => setShowEditDialog(true)}
+                onRefresh={handleRefresh}
+              />
+            )}
+          </SheetContent>
+        </Sheet>
       )}
 
-      {/* Create dialog - TODO: Crear diálogo específico para canvassing */}
-      {showCreateDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card p-4 rounded-lg">
-            <p className="text-muted-foreground text-sm">Crear punto de canvassing próximamente</p>
-            <Button onClick={() => setShowCreateDialog(false)} className="mt-4">Cerrar</Button>
-          </div>
-        </div>
-      )}
+      {/* Edit dialog */}
+      <CanvassingLocationDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        locationId={selectedLocation?.id || null}
+        onSuccess={() => {
+          handleRefresh();
+          setShowEditDialog(false);
+        }}
+      />
     </div>
   );
 };

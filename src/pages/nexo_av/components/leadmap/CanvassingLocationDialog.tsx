@@ -24,7 +24,7 @@ import LocationNotesSection from "./LocationNotesSection";
 
 interface CanvassingLocation {
   id: string;
-  status: CanvassingStatus;
+  status: string; // Usar string para compatibilidad
   // Ubicación
   address: string | null;
   city: string | null;
@@ -245,7 +245,7 @@ const CanvassingLocationDialog = ({
     setLocation(prev => ({ ...prev, [field]: value }));
   };
 
-  const statusInfo = location.status ? CANVASSING_STATUSES[location.status] : null;
+  const statusInfo = location.status ? CANVASSING_STATUSES[location.status as keyof typeof CANVASSING_STATUSES] : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -313,7 +313,7 @@ const CanvassingLocationDialog = ({
                         <Label>Estado</Label>
                         <Select 
                           value={location.status || ''} 
-                          onValueChange={(v) => updateField('status', v as CanvassingStatus)}
+                          onValueChange={(v) => updateField('status', v)}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccionar estado" />
