@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => ({
     global: 'globalThis',
   },
   optimizeDeps: {
-    include: ['buffer'],
+    // Buffer removed - causes initialization issues
   },
   build: {
     outDir: "build",
