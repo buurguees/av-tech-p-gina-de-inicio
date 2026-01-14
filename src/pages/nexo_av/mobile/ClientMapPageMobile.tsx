@@ -12,6 +12,7 @@ export interface Client {
   legal_name: string | null;
   contact_email: string | null;
   contact_phone: string | null;
+  lead_stage: string;
   latitude: number | null;
   longitude: number | null;
   full_address: string | null;
@@ -35,9 +36,9 @@ const ClientMapPageMobile = () => {
       setLoading(true);
       
       // Usar la función RPC list_clients_for_map para obtener clientes con coordenadas
-      // Filtrar solo clientes en estado WON (clientes registrados)
+      // Mostrar todos los clientes EXCEPTO los rechazados/perdidos (LOST)
       const { data, error } = await supabase.rpc('list_clients_for_map', {
-        p_lead_stages: ['WON', 'RECURRING']
+        p_lead_stages: ['NEW', 'CONTACTED', 'MEETING', 'PROPOSAL', 'NEGOTIATION', 'WON', 'RECURRING', 'PAUSED']
       });
       
       if (error) {
@@ -57,6 +58,7 @@ const ClientMapPageMobile = () => {
         legal_name: client.legal_name,
         contact_email: client.contact_email,
         contact_phone: client.contact_phone,
+        lead_stage: client.lead_stage || 'NEW',
         latitude: client.latitude ? parseFloat(String(client.latitude)) : null,
         longitude: client.longitude ? parseFloat(String(client.longitude)) : null,
         full_address: client.full_address,
@@ -84,7 +86,7 @@ const ClientMapPageMobile = () => {
     legal_name: client.legal_name,
     contact_email: client.contact_email || '',
     contact_phone: client.contact_phone || '',
-    lead_stage: 'WON',
+    lead_stage: client.lead_stage || 'NEW',
     latitude: client.latitude,
     longitude: client.longitude,
     full_address: client.full_address,
@@ -101,7 +103,7 @@ const ClientMapPageMobile = () => {
     legal_name: selectedClient.legal_name,
     contact_email: selectedClient.contact_email || '',
     contact_phone: selectedClient.contact_phone || '',
-    lead_stage: 'WON',
+    lead_stage: selectedClient.lead_stage || 'NEW',
     latitude: selectedClient.latitude,
     longitude: selectedClient.longitude,
     full_address: selectedClient.full_address,
