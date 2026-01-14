@@ -17,22 +17,13 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // Alias for buffer to avoid initialization issues
-      buffer: "buffer/",
     },
   },
   define: {
     global: 'globalThis',
-    'process.env': {},
   },
   optimizeDeps: {
     include: ['buffer'],
-    esbuildOptions: {
-      // Node.js global to browser globalThis
-      define: {
-        global: 'globalThis',
-      },
-    },
   },
   build: {
     outDir: "build",
