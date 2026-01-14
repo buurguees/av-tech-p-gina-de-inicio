@@ -1,33 +1,28 @@
-// Buffer polyfill - only initialize if needed and in a safe way
+// Buffer polyfill - simplified synchronous approach
+import { Buffer } from "buffer";
+
 declare global {
   interface Window {
-    Buffer?: typeof import("buffer").Buffer;
+    Buffer?: typeof Buffer;
     global?: typeof globalThis;
   }
 }
 
-// Lazy initialization to avoid issues with module loading
-const initPolyfills = async () => {
-  if (typeof window !== "undefined") {
+// Safe initialization in browser environment
+if (typeof window !== "undefined") {
+  try {
     if (!window.global) {
       window.global = globalThis;
     }
 
     if (!window.Buffer) {
-      try {
-        const { Buffer } = await import("buffer");
-        window.Buffer = Buffer;
-      } catch (e) {
-        console.warn("Buffer polyfill failed to load:", e);
-      }
+      window.Buffer = Buffer;
     }
+  } catch (e) {
+    // Silently fail - buffer may not be needed for all features
+    console.warn("Buffer polyfill initialization warning:", e);
   }
-};
-
-// Only run in browser environment
-if (typeof window !== "undefined") {
-  initPolyfills();
 }
 
-export {};
+export { Buffer };
 
