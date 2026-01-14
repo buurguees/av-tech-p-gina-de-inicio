@@ -6,6 +6,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { LeadClient, LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../LeadMapPage";
 import CanvassingTool, { CANVASSING_STATUSES, CanvassingStatus } from "./CanvassingTool";
+import CanvassingLocationDialog from "./CanvassingLocationDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -1293,7 +1294,16 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
         </div>
       )}
 
-      {/* TODO: Dialog para editar Canvassing Location - pendiente de implementación */}
+      {/* Dialog para editar Canvassing Location */}
+      <CanvassingLocationDialog
+        open={showCanvassingDialog}
+        onOpenChange={setShowCanvassingDialog}
+        locationId={selectedCanvassingLocation}
+        onSuccess={() => {
+          loadCanvassingLocations();
+          setSelectedCanvassingLocation(null);
+        }}
+      />
     </div>
   );
 });
