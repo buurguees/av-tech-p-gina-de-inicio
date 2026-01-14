@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
-import { MessageSquare, RefreshCw, Send, Clock, Loader2 } from "lucide-react";
+import { MessageSquare, RefreshCw, Send, Clock, Loader2, MapPin, Phone, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -92,9 +92,15 @@ const LocationNotesSection = ({ locationId, canEdit = true }: LocationNotesSecti
   const getNoteIcon = (type: string) => {
     switch (type) {
       case 'STATUS_CHANGE':
-        return <RefreshCw size={14} className="text-primary shrink-0" />;
+        return <RefreshCw size={14} className="text-orange-500 shrink-0" />;
       case 'CREATION':
         return <Clock size={14} className="text-green-500 shrink-0" />;
+      case 'VISIT':
+        return <MapPin size={14} className="text-blue-500 shrink-0" />;
+      case 'CALL':
+        return <Phone size={14} className="text-purple-500 shrink-0" />;
+      case 'MEETING':
+        return <Calendar size={14} className="text-indigo-500 shrink-0" />;
       default:
         return <MessageSquare size={14} className="text-muted-foreground shrink-0" />;
     }
@@ -112,8 +118,21 @@ const LocationNotesSection = ({ locationId, canEdit = true }: LocationNotesSecti
         return 'Llamada';
       case 'MEETING':
         return 'Reunión';
+      case 'INTERNAL':
+        return 'Nota';
       default:
         return 'Nota';
+    }
+  };
+
+  const getNoteStyle = (type: string) => {
+    switch (type) {
+      case 'STATUS_CHANGE':
+        return 'border-l-orange-500 bg-orange-500/5';
+      case 'CREATION':
+        return 'border-l-green-500 bg-green-500/5';
+      default:
+        return 'border-l-muted';
     }
   };
 
@@ -160,23 +179,24 @@ const LocationNotesSection = ({ locationId, canEdit = true }: LocationNotesSecti
               </p>
             ) : (
               notes.map((note) => (
-                <div key={note.id} className="border-l-2 border-muted pl-3 py-1 hover:border-primary transition-colors">
+                <div 
+                  key={note.id} 
+                  className={`border-l-2 pl-3 py-2 rounded-r transition-colors ${getNoteStyle(note.note_type)}`}
+                >
                   <div className="flex items-center gap-1.5 mb-1">
                     {getNoteIcon(note.note_type)}
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {getNoteTypeLabel(note.note_type)}
+                    </span>
+                    <span className="text-xs text-muted-foreground/60">•</span>
                     <span className="text-xs text-muted-foreground">
                       {note.created_by_name}
                     </span>
-                    <span className="text-xs text-muted-foreground/60">•</span>
-                    <span className="text-xs text-muted-foreground/60">
-                      {format(new Date(note.created_at), "d MMM yyyy, HH:mm", { locale: es })}
-                    </span>
                   </div>
                   <p className="text-sm">{note.content}</p>
-                  {note.note_type !== 'INTERNAL' && (
-                    <span className="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                      {getNoteTypeLabel(note.note_type)}
-                    </span>
-                  )}
+                  <span className="text-[10px] text-muted-foreground/60 mt-1 block">
+                    {format(new Date(note.created_at), "d MMM yyyy, HH:mm", { locale: es })}
+                  </span>
                 </div>
               ))
             )}
