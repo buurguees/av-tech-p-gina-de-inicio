@@ -5,10 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import LeadMap from "./components/leadmap/LeadMap";
 import LeadMapFilters from "./components/leadmap/LeadMapFilters";
-import LeadMapSidebar from "./components/leadmap/LeadMapSidebar";
-import LeadDetailPanel from "./components/leadmap/LeadDetailPanel";
-import LeadDetailMobileSheet from "./components/leadmap/LeadDetailMobileSheet";
-import CreateClientDialog from "./components/CreateClientDialog";
+import CanvassingMapSidebar from "./components/leadmap/CanvassingMapSidebar";
 import { Button } from "@/components/ui/button";
 import { Plus, Filter, X, Loader2 } from "lucide-react";
 import { createMobilePage } from "./MobilePageWrapper";
@@ -42,6 +39,30 @@ export const LEAD_STAGE_LABELS: Record<string, string> = {
   PAUSED: "Pausado",
 };
 
+// Canvassing Location interface
+export interface CanvassingLocation {
+  id: string;
+  status: string;
+  company_name: string | null;
+  latitude: number;
+  longitude: number;
+  address: string | null;
+  city: string | null;
+  province: string | null;
+  postal_code: string | null;
+  contact_first_name: string | null;
+  contact_last_name: string | null;
+  contact_phone_primary: string | null;
+  contact_email_primary: string | null;
+  priority: string | null;
+  lead_score: number | null;
+  appointment_date: string | null;
+  callback_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Legacy interface for backward compatibility (deprecated - use CanvassingLocation)
 export interface LeadClient {
   id: string;
   client_number: string;
@@ -61,6 +82,12 @@ export interface LeadClient {
 
 export interface LeadStats {
   lead_stage: string;
+  count: number;
+}
+
+// Canvassing stats interface
+export interface CanvassingStats {
+  status: string;
   count: number;
 }
 
@@ -99,18 +126,17 @@ const LeadMapPageDesktop = () => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  const [clients, setClients] = useState<LeadClient[]>([]);
-  const [stats, setStats] = useState<LeadStats[]>([]);
+  // Canvassing locations state
+  const [canvassingLocations, setCanvassingLocations] = useState<CanvassingLocation[]>([]);
+  const [canvassingStats, setCanvassingStats] = useState<CanvassingStats[]>([]);
   const [loading, setLoading] = useState(true);
-  const [geocodingProgress, setGeocodingProgress] = useState<{current: number; total: number} | null>(null);
-  const [selectedClient, setSelectedClient] = useState<LeadClient | null>(null);
-  const [focusClient, setFocusClient] = useState<LeadClient | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<CanvassingLocation | null>(null);
+  const [focusLocation, setFocusLocation] = useState<CanvassingLocation | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   
   // Filters
-  const [selectedStages, setSelectedStages] = useState<string[]>([]);
-  const [showOnlyMine, setShowOnlyMine] = useState(false);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   
   // User info
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -122,10 +148,10 @@ const LeadMapPageDesktop = () => {
 
   useEffect(() => {
     if (currentUserId !== null) {
-      fetchClients();
-      fetchStats();
+      fetchCanvassingLocations();
+      fetchCanvassingStats();
     }
-  }, [currentUserId, selectedStages, showOnlyMine]);
+  }, [currentUserId, selectedStatuses]);
 
   const fetchUserInfo = async () => {
     try {
@@ -140,113 +166,115 @@ const LeadMapPageDesktop = () => {
     }
   };
 
-  const fetchClients = async () => {
+  const fetchCanvassingLocations = async () => {
     try {
       setLoading(true);
-      const params: { p_assigned_to?: string; p_lead_stages?: string[] } = {};
       
-      if (showOnlyMine && currentUserId) {
-        params.p_assigned_to = currentUserId;
-      }
-      
-      if (selectedStages.length > 0) {
-        params.p_lead_stages = selectedStages;
-      }
-
-      const { data, error } = await supabase.rpc('list_clients_for_map', params);
+      // Llamar a la función RPC para obtener puntos de canvassing del usuario actual
+      const { data, error } = await (supabase.rpc as any)('list_user_canvassing_locations', {
+        p_user_id: currentUserId || null
+      });
       
       if (error) {
-        console.error('Error fetching clients:', error);
+        console.error('Error fetching canvassing locations:', error);
         toast({
           title: "Error",
-          description: "No se pudieron cargar los clientes",
+          description: "No se pudieron cargar los puntos de canvassing",
           variant: "destructive",
         });
         return;
       }
 
-      const clientsData = data || [];
-      setClients(clientsData);
+      const locationsData = (data || []).map((loc: any) => ({
+        id: loc.id,
+        status: loc.status,
+        company_name: loc.company_name,
+        latitude: parseFloat(loc.latitude) || 0,
+        longitude: parseFloat(loc.longitude) || 0,
+        address: loc.address,
+        city: loc.city,
+        province: loc.province,
+        postal_code: loc.postal_code,
+        contact_first_name: loc.contact_first_name,
+        contact_last_name: loc.contact_last_name,
+        contact_phone_primary: loc.contact_phone_primary,
+        contact_email_primary: loc.contact_email_primary,
+        priority: loc.priority,
+        lead_score: loc.lead_score,
+        appointment_date: loc.appointment_date,
+        callback_date: loc.callback_date,
+        created_at: loc.created_at,
+        updated_at: loc.updated_at,
+      }));
 
-      // Geocodificar clientes que no tienen coordenadas pero tienen dirección
-      const clientsNeedingGeocoding = clientsData.filter(
-        (c: LeadClient) => !c.latitude && !c.longitude && c.full_address
-      );
-
-      if (clientsNeedingGeocoding.length > 0) {
-        geocodeClientsInBackground(clientsNeedingGeocoding);
+      // Filtrar por estados seleccionados
+      let filteredLocations = locationsData;
+      if (selectedStatuses.length > 0) {
+        filteredLocations = locationsData.filter((loc: CanvassingLocation) =>
+          selectedStatuses.includes(loc.status)
+        );
       }
+
+      setCanvassingLocations(filteredLocations);
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Error fetching canvassing locations:', err);
+      toast({
+        title: "Error",
+        description: "Error al cargar los puntos de canvassing",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const geocodeClientsInBackground = async (clientsToGeocode: LeadClient[]) => {
-    setGeocodingProgress({ current: 0, total: clientsToGeocode.length });
-
-    for (let i = 0; i < clientsToGeocode.length; i++) {
-      const client = clientsToGeocode[i];
-      setGeocodingProgress({ current: i + 1, total: clientsToGeocode.length });
-
-      if (!client.full_address) continue;
-
-      const coords = await geocodeAddress(client.full_address);
-      
-      if (coords) {
-        // Actualizar coordenadas en la base de datos
-        await supabase.rpc('update_client_coordinates', {
-          p_client_id: client.id,
-          p_latitude: coords.lat,
-          p_longitude: coords.lon,
-          p_full_address: client.full_address
-        });
-
-        // Actualizar estado local
-        setClients(prev => prev.map(c => 
-          c.id === client.id 
-            ? { ...c, latitude: coords.lat, longitude: coords.lon }
-            : c
-        ));
-      }
-    }
-
-    setGeocodingProgress(null);
-  };
-
-  const fetchStats = async () => {
+  const fetchCanvassingStats = async () => {
     try {
-      const params: { p_assigned_to?: string } = {};
-      if (showOnlyMine && currentUserId) {
-        params.p_assigned_to = currentUserId;
-      }
-
-      const { data, error } = await supabase.rpc('get_lead_stats', params);
+      // Obtener todas las ubicaciones para calcular estadísticas
+      const { data, error } = await (supabase.rpc as any)('list_user_canvassing_locations', {
+        p_user_id: currentUserId || null
+      });
       
       if (error) {
-        console.error('Error fetching stats:', error);
+        console.error('Error fetching canvassing stats:', error);
         return;
       }
 
-      setStats(data || []);
+      const locationsData = data || [];
+      
+      // Calcular estadísticas por estado
+      const statsMap = new Map<string, number>();
+      locationsData.forEach((loc: any) => {
+        const status = loc.status || 'OTH';
+        statsMap.set(status, (statsMap.get(status) || 0) + 1);
+      });
+
+      const stats: CanvassingStats[] = Array.from(statsMap.entries()).map(([status, count]) => ({
+        status,
+        count,
+      }));
+
+      // Ordenar por cantidad descendente
+      stats.sort((a, b) => b.count - a.count);
+      
+      setCanvassingStats(stats);
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Error fetching canvassing stats:', err);
     }
   };
 
-  const handleClientSelect = (client: LeadClient | null) => {
-    setSelectedClient(client);
+  const handleLocationSelect = (location: CanvassingLocation | null) => {
+    setSelectedLocation(location);
   };
 
   const handleRefresh = () => {
-    fetchClients();
-    fetchStats();
-    setSelectedClient(null);
+    fetchCanvassingLocations();
+    fetchCanvassingStats();
+    setSelectedLocation(null);
   };
 
-  const totalLeads = clients.length;
-  const mappableLeads = clients.filter(c => c.latitude && c.longitude).length;
+  const totalLocations = canvassingLocations.length;
+  const mappableLocations = canvassingLocations.filter(loc => loc.latitude && loc.longitude).length;
 
   return (
     <div className="w-full flex flex-col" style={{ height: 'calc(100vh - 8rem)', minHeight: '600px' }}>
@@ -255,13 +283,7 @@ const LeadMapPageDesktop = () => {
         <div>
           <h1 className="text-xl font-semibold text-foreground">Mapa Comercial</h1>
           <p className="text-sm text-muted-foreground">
-            {showOnlyMine ? "Mis leads" : "Todos los leads"} ({mappableLeads}/{totalLeads} en mapa)
-            {geocodingProgress && (
-              <span className="ml-2 text-primary">
-                <Loader2 className="inline-block h-3 w-3 animate-spin mr-1" />
-                Geocodificando {geocodingProgress.current}/{geocodingProgress.total}...
-              </span>
-            )}
+            Puntos de Canvassing / Prospección ({mappableLocations}/{totalLocations} en mapa)
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -279,20 +301,16 @@ const LeadMapPageDesktop = () => {
             onClick={() => setShowCreateDialog(true)}
           >
             <Plus size={16} />
-            <span className="ml-1 hidden sm:inline">Nuevo Lead</span>
+            <span className="ml-1 hidden sm:inline">Nuevo Punto</span>
           </Button>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters - TODO: Crear filtros específicos para canvassing */}
       {showFilters && (
-        <LeadMapFilters
-          selectedStages={selectedStages}
-          onStagesChange={setSelectedStages}
-          showOnlyMine={showOnlyMine}
-          onShowOnlyMineChange={setShowOnlyMine}
-          isAdmin={isAdmin}
-        />
+        <div className="mb-4 p-4 bg-card border border-border rounded-lg">
+          <p className="text-sm text-muted-foreground">Filtros de Canvassing próximamente</p>
+        </div>
       )}
 
       {/* Main content - 60/40 split: Map gets 60%, Sidebar gets 40% */}
@@ -313,11 +331,11 @@ const LeadMapPageDesktop = () => {
           }}
         >
           <LeadMap
-            clients={clients}
-            selectedClient={selectedClient}
-            onClientSelect={handleClientSelect}
+            canvassingLocations={canvassingLocations}
+            selectedLocation={selectedLocation}
+            onLocationSelect={handleLocationSelect}
             loading={loading}
-            focusClient={focusClient}
+            focusLocation={focusLocation}
           />
         </div>
 
@@ -333,24 +351,15 @@ const LeadMapPageDesktop = () => {
               height: '100%'
             }}
           >
-            {selectedClient ? (
-              <LeadDetailPanel
-                client={selectedClient}
-                onClose={() => {
-                  setSelectedClient(null);
-                  setFocusClient(null);
-                }}
-                onRefresh={handleRefresh}
-                isAdmin={isAdmin}
-                currentUserId={currentUserId}
-                onFocusLocation={() => setFocusClient(selectedClient)}
-                userId={userId || ''}
-              />
+            {selectedLocation ? (
+              <div className="h-full w-full flex items-center justify-center bg-card border border-border rounded-lg">
+                <p className="text-muted-foreground text-sm">Detalle de punto de canvassing próximamente</p>
+              </div>
             ) : (
-              <LeadMapSidebar
-                stats={stats}
-                clients={clients}
-                onClientSelect={handleClientSelect}
+              <CanvassingMapSidebar
+                stats={canvassingStats}
+                locations={canvassingLocations}
+                onLocationSelect={handleLocationSelect}
               />
             )}
           </div>
@@ -358,26 +367,21 @@ const LeadMapPageDesktop = () => {
       </div>
 
       {/* Mobile detail sheet */}
-      {isMobile && selectedClient && (
-        <LeadDetailMobileSheet
-          client={selectedClient}
-          open={!!selectedClient}
-          onClose={() => setSelectedClient(null)}
-          onRefresh={handleRefresh}
-          isAdmin={isAdmin}
-          currentUserId={currentUserId}
-        />
+      {isMobile && selectedLocation && (
+        <div className="fixed inset-0 z-50 bg-background">
+          <p className="text-muted-foreground text-sm p-4">Detalle de punto de canvassing próximamente</p>
+        </div>
       )}
 
-      {/* Create dialog */}
-      <CreateClientDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        onSuccess={handleRefresh}
-        currentUserId={currentUserId}
-        isAdmin={isAdmin}
-        enableGeocoding={true}
-      />
+      {/* Create dialog - TODO: Crear diálogo específico para canvassing */}
+      {showCreateDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card p-4 rounded-lg">
+            <p className="text-muted-foreground text-sm">Crear punto de canvassing próximamente</p>
+            <Button onClick={() => setShowCreateDialog(false)} className="mt-4">Cerrar</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -34,10 +34,14 @@ interface CanvassingLocation {
 }
 
 interface LeadMapProps {
-  clients: LeadClient[];
-  selectedClient: LeadClient | null;
-  onClientSelect: (client: LeadClient | null) => void;
+  canvassingLocations?: CanvassingLocation[];
+  clients?: LeadClient[];
+  selectedLocation?: CanvassingLocation | null;
+  selectedClient?: LeadClient | null;
+  onLocationSelect?: (location: CanvassingLocation | null) => void;
+  onClientSelect?: (client: LeadClient | null) => void;
   loading: boolean;
+  focusLocation?: CanvassingLocation | null;
   focusClient?: LeadClient | null;
   onCanvassingLocationCreate?: (locationId: string) => void;
 }
@@ -172,11 +176,15 @@ interface POI {
 // Component to handle map center updates
 const MapCenterHandler = ({ 
   selectedClient, 
+  selectedLocation,
   focusClient,
+  focusLocation,
   userLocation
 }: { 
-  selectedClient: LeadClient | null;
+  selectedClient?: LeadClient | null;
+  selectedLocation?: CanvassingLocation | null;
   focusClient?: LeadClient | null;
+  focusLocation?: CanvassingLocation | null;
   userLocation?: { lat: number; lon: number } | null;
 }) => {
   const map = useMap();
@@ -186,17 +194,25 @@ const MapCenterHandler = ({
       map.setView([selectedClient.latitude, selectedClient.longitude], 14, {
         animate: true,
       });
+    } else if (selectedLocation?.latitude && selectedLocation?.longitude) {
+      map.setView([selectedLocation.latitude, selectedLocation.longitude], 14, {
+        animate: true,
+      });
     }
-  }, [selectedClient, map]);
+  }, [selectedClient, selectedLocation, map]);
   
-  // Handle focus client with maximum zoom
+  // Handle focus client or location with maximum zoom
   useEffect(() => {
     if (focusClient?.latitude && focusClient?.longitude) {
       map.setView([focusClient.latitude, focusClient.longitude], 18, {
         animate: true,
       });
+    } else if (focusLocation?.latitude && focusLocation?.longitude) {
+      map.setView([focusLocation.latitude, focusLocation.longitude], 18, {
+        animate: true,
+      });
     }
-  }, [focusClient, map]);
+  }, [focusClient, focusLocation, map]);
   
   // Handle user location focus (solo cuando se actualiza manualmente, no en carga inicial)
   useEffect(() => {
@@ -562,12 +578,23 @@ const MapClickHandler = ({
 };
 
 const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
-  ({ clients, selectedClient, onClientSelect, loading, focusClient, onCanvassingLocationCreate }, ref) => {
+  ({ 
+    canvassingLocations: propsCanvassingLocations, 
+    clients: propsClients, 
+    selectedLocation, 
+    selectedClient, 
+    onLocationSelect, 
+    onClientSelect, 
+    loading, 
+    focusLocation, 
+    focusClient, 
+    onCanvassingLocationCreate 
+  }, ref) => {
   const { toast } = useToast();
   const mapRef = useRef<L.Map | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [pois, setPois] = useState<POI[]>([]);
-  const [canvassingLocations, setCanvassingLocations] = useState<CanvassingLocation[]>([]);
+  const [internalCanvassingLocations, setInternalCanvassingLocations] = useState<CanvassingLocation[]>([]);
   const [isCanvassingMode, setIsCanvassingMode] = useState(false);
   const [selectedCanvassingStatus, setSelectedCanvassingStatus] = useState<CanvassingStatus | null>(null);
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lon: number } | null>(null);
@@ -582,8 +609,14 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
     stopWatching: () => void;
   } | null>(null);
 
-  // Filter clients with valid coordinates
-  const mappableClients = clients.filter(c => c.latitude && c.longitude);
+  // Use props canvassing locations if provided, otherwise use internal state
+  const canvassingLocations = propsCanvassingLocations || internalCanvassingLocations;
+  
+  // Filter clients with valid coordinates (only if clients are provided)
+  const mappableClients = (propsClients || []).filter(c => c.latitude && c.longitude);
+  
+  // Filter canvassing locations with valid coordinates
+  const mappableCanvassingLocations = canvassingLocations.filter(loc => loc.latitude && loc.longitude);
 
   // Barcelona Metropolitan Area center coordinates (fallback si no hay ubicación del dispositivo)
   const defaultCenter: [number, number] = [41.3851, 2.1734];
@@ -722,8 +755,13 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
     );
   }, [toast]);
 
-  // Load Canvassing locations for current user
+  // Load Canvassing locations for current user (only if not provided via props)
   const loadCanvassingLocations = useCallback(async () => {
+    // If canvassing locations are provided via props, don't load them
+    if (propsCanvassingLocations) {
+      return;
+    }
+    
     try {
       const { data, error } = await (supabase.rpc as any)('list_user_canvassing_locations');
       
@@ -751,11 +789,11 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
       }));
       
       console.log('[LeadMap] Loaded', locations.length, 'canvassing locations');
-      setCanvassingLocations(locations);
+      setInternalCanvassingLocations(locations);
     } catch (error) {
       console.error('[LeadMap] Error loading canvassing locations:', error);
     }
-  }, []);
+  }, [propsCanvassingLocations]);
 
   // Handle Canvassing status selection
   const handleCanvassingStatusSelect = useCallback((status: CanvassingStatus) => {
@@ -978,6 +1016,13 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
         });
       }
     },
+    focusOnLocation: (location: CanvassingLocation) => {
+      if (location.latitude && location.longitude && mapInstanceRef.current) {
+        mapInstanceRef.current.setView([location.latitude, location.longitude], 18, {
+          animate: true,
+        });
+      }
+    },
   }));
 
   if (loading) {
@@ -1054,7 +1099,13 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
           maxZoom={19}
         />
         
-        <MapCenterHandler selectedClient={selectedClient} focusClient={focusClient} userLocation={userLocation} />
+        <MapCenterHandler 
+          selectedClient={selectedClient} 
+          selectedLocation={selectedLocation}
+          focusClient={focusClient} 
+          focusLocation={focusLocation}
+          userLocation={userLocation} 
+        />
         <POILoader onPOIsLoaded={handlePOIsLoaded} />
         <MapClickHandler
           isCanvassingMode={isCanvassingMode}
@@ -1063,19 +1114,20 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
         />
         
         {/* Client markers */}
-        {mappableClients.map((client) => (
+        {/* Client markers - only show if clients are provided and no canvassing locations */}
+        {mappableClients.length > 0 && mappableCanvassingLocations.length === 0 && mappableClients.map((client) => (
           <Marker
             key={client.id}
             position={[client.latitude!, client.longitude!]}
             icon={createMarkerIcon(LEAD_STAGE_COLORS[client.lead_stage] || "#6B7280")}
             eventHandlers={{
-              click: () => onClientSelect(client),
+              click: () => onClientSelect && onClientSelect(client),
             }}
           >
             <Popup>
               <div className="p-3">
                 <h3 className="font-semibold text-sm mb-1">{client.company_name}</h3>
-                <div 
+                <div
                   className="inline-block px-2 py-0.5 rounded-full text-xs text-white mb-2"
                   style={{ backgroundColor: LEAD_STAGE_COLORS[client.lead_stage] }}
                 >
@@ -1174,20 +1226,21 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
           </Marker>
         )}
         
-        {/* Canvassing location markers */}
-        {canvassingLocations.map((location) => {
-          const statusInfo = CANVASSING_STATUSES[location.status];
+        {/* Canvassing location markers - show if canvassing locations are provided */}
+        {mappableCanvassingLocations.map((location) => {
+          const statusInfo = CANVASSING_STATUSES[location.status as CanvassingStatus];
           
           return (
             <Marker
               key={location.id}
               position={[location.latitude, location.longitude]}
-              icon={createCanvassingIcon(location.status)}
+              icon={createCanvassingIcon(location.status as CanvassingStatus)}
               zIndexOffset={100}
               eventHandlers={{
-                click: (e) => {
-                  // En mobile, el popup se abre automáticamente con el click
-                  // No abrir el formulario directamente
+                click: () => {
+                  if (onLocationSelect) {
+                    onLocationSelect(location);
+                  }
                 },
               }}
             >
@@ -1269,11 +1322,21 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
         </Button>
       </div>
       
-      {mappableClients.length === 0 && !loading && (
+      {/* Empty state messages */}
+      {mappableCanvassingLocations.length === 0 && mappableClients.length === 0 && !loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-[500]">
           <div className="text-center">
-            <p className="text-muted-foreground">No hay clientes con ubicación</p>
-            <p className="text-sm text-muted-foreground">Crea un nuevo cliente para verlo en el mapa</p>
+            {mappableCanvassingLocations.length === 0 && propsCanvassingLocations ? (
+              <>
+                <p className="text-muted-foreground">No hay puntos de canvassing con ubicación</p>
+                <p className="text-sm text-muted-foreground">Crea un nuevo punto para verlo en el mapa</p>
+              </>
+            ) : (
+              <>
+                <p className="text-muted-foreground">No hay elementos con ubicación</p>
+                <p className="text-sm text-muted-foreground">Crea un nuevo elemento para verlo en el mapa</p>
+              </>
+            )}
           </div>
         </div>
       )}

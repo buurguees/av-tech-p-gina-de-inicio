@@ -40,6 +40,7 @@ const NexoEditInvoicePage = lazy(() => import("./pages/nexo_av/EditInvoicePage")
 const NexoNotFound = lazy(() => import("./pages/nexo_av/NotFound"));
 const NexoAccountSetup = lazy(() => import("./pages/nexo_av/AccountSetup"));
 const NexoLeadMapPage = lazy(() => import("./pages/nexo_av/LeadMapPage"));
+const NexoClientMapPage = lazy(() => import("./pages/nexo_av/ClientMapPage"));
 const NexoTechMapPage = lazy(() => import("./pages/nexo_av/TechMapPage"));
 const NexoPurchaseInvoicesPage = lazy(() => import("./pages/nexo_av/PurchaseInvoicesPage"));
 const NexoExpensesPage = lazy(() => import("./pages/nexo_av/ExpensesPage"));
@@ -93,6 +94,7 @@ const App = () => (
                 <Route path="catalog/:productId" element={<NexoProductDetailPage />} />
                 <Route path="calculator" element={<NexoCalculatorPage />} />
                 <Route path="lead-map" element={<NexoLeadMapPage />} />
+                <Route path="client-map" element={<NexoClientMapPage />} />
                 <Route path="tech-map" element={<NexoTechMapPage />} />
                 <Route path="invoices" element={<NexoInvoicesPage />} />
                 <Route path="purchase-invoices" element={<NexoPurchaseInvoicesPage />} />
