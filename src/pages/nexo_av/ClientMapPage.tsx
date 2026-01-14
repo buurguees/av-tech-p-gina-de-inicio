@@ -23,11 +23,37 @@ export interface Client {
   legal_name: string | null;
   contact_email: string | null;
   contact_phone: string | null;
+  lead_stage: string;
   latitude: number | null;
   longitude: number | null;
   full_address: string | null;
   created_at: string;
 }
+
+// Colores de estados de clientes
+const CLIENT_STAGE_COLORS: Record<string, string> = {
+  NEW: "#3B82F6",
+  CONTACTED: "#F59E0B",
+  MEETING: "#A855F7",
+  PROPOSAL: "#6366F1",
+  NEGOTIATION: "#F97316",
+  WON: "#10B981",
+  RECURRING: "#059669",
+  LOST: "#EF4444",
+  PAUSED: "#6B7280",
+};
+
+const CLIENT_STAGE_LABELS: Record<string, string> = {
+  NEW: "Nuevo",
+  CONTACTED: "Contactado",
+  MEETING: "Reunión",
+  PROPOSAL: "Propuesta",
+  NEGOTIATION: "Negociación",
+  WON: "Cliente",
+  RECURRING: "Recurrente",
+  LOST: "Perdido",
+  PAUSED: "Pausado",
+};
 
 const ClientMapPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -49,9 +75,9 @@ const ClientMapPageDesktop = () => {
       setLoading(true);
       
       // Usar la función RPC list_clients_for_map para obtener clientes con coordenadas
-      // Filtrar solo clientes en estado WON (clientes registrados)
+      // Mostrar todos los clientes EXCEPTO los rechazados/perdidos (LOST)
       const { data, error } = await supabase.rpc('list_clients_for_map', {
-        p_lead_stages: ['WON', 'RECURRING']
+        p_lead_stages: ['NEW', 'CONTACTED', 'MEETING', 'PROPOSAL', 'NEGOTIATION', 'WON', 'RECURRING', 'PAUSED']
       });
       
       if (error) {
@@ -71,6 +97,7 @@ const ClientMapPageDesktop = () => {
         legal_name: client.legal_name,
         contact_email: client.contact_email,
         contact_phone: client.contact_phone,
+        lead_stage: client.lead_stage,
         latitude: client.latitude ? parseFloat(String(client.latitude)) : null,
         longitude: client.longitude ? parseFloat(String(client.longitude)) : null,
         full_address: client.full_address,
@@ -110,7 +137,7 @@ const ClientMapPageDesktop = () => {
     legal_name: client.legal_name,
     contact_email: client.contact_email || '',
     contact_phone: client.contact_phone || '',
-    lead_stage: 'WON', // Clientes registrados están en estado "Ganado"
+    lead_stage: client.lead_stage || 'NEW',
     latitude: client.latitude,
     longitude: client.longitude,
     full_address: client.full_address,
@@ -127,7 +154,7 @@ const ClientMapPageDesktop = () => {
     legal_name: selectedClient.legal_name,
     contact_email: selectedClient.contact_email || '',
     contact_phone: selectedClient.contact_phone || '',
-    lead_stage: 'WON',
+    lead_stage: selectedClient.lead_stage || 'NEW',
     latitude: selectedClient.latitude,
     longitude: selectedClient.longitude,
     full_address: selectedClient.full_address,
@@ -144,7 +171,7 @@ const ClientMapPageDesktop = () => {
     legal_name: focusClient.legal_name,
     contact_email: focusClient.contact_email || '',
     contact_phone: focusClient.contact_phone || '',
-    lead_stage: 'WON',
+    lead_stage: focusClient.lead_stage || 'NEW',
     latitude: focusClient.latitude,
     longitude: focusClient.longitude,
     full_address: focusClient.full_address,
@@ -278,7 +305,14 @@ const ClientMapPageDesktop = () => {
                           className="w-full text-left p-3 rounded-md hover:bg-secondary transition-colors border border-border/50 shadow-none"
                           onClick={() => handleClientSelect(client)}
                         >
-                          <p className="font-medium text-sm mb-1">{client.company_name}</p>
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <p className="font-medium text-sm truncate">{client.company_name}</p>
+                            <div 
+                              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: CLIENT_STAGE_COLORS[client.lead_stage] || '#6B7280' }}
+                              title={CLIENT_STAGE_LABELS[client.lead_stage] || client.lead_stage}
+                            />
+                          </div>
                           {client.full_address && (
                             <div className="flex items-start gap-1.5">
                               <MapPin size={12} className="text-muted-foreground mt-0.5 flex-shrink-0" />
