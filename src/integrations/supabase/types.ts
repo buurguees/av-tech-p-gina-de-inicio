@@ -306,6 +306,34 @@ export type Database = {
         }
         Returns: string
       }
+      create_technician: {
+        Args: {
+          p_address?: string
+          p_billing_email?: string
+          p_city?: string
+          p_company_name: string
+          p_contact_email?: string
+          p_contact_name?: string
+          p_contact_phone?: string
+          p_contact_phone_secondary?: string
+          p_country?: string
+          p_daily_rate?: number
+          p_hourly_rate?: number
+          p_iban?: string
+          p_legal_name?: string
+          p_notes?: string
+          p_payment_terms?: string
+          p_postal_code?: string
+          p_province?: string
+          p_specialties?: string[]
+          p_tax_id?: string
+          p_type?: string
+        }
+        Returns: {
+          technician_id: string
+          technician_number: string
+        }[]
+      }
       delete_authorized_user: { Args: { p_user_id: string }; Returns: string }
       delete_client: { Args: { p_client_id: string }; Returns: boolean }
       delete_invoice_line: { Args: { p_line_id: string }; Returns: boolean }
@@ -321,6 +349,7 @@ export type Database = {
       }
       delete_quote_line: { Args: { p_line_id: string }; Returns: boolean }
       delete_tax: { Args: { p_tax_id: string }; Returns: boolean }
+      delete_technician: { Args: { p_technician_id: string }; Returns: boolean }
       finance_add_invoice_line: {
         Args: {
           p_concept: string
@@ -835,6 +864,41 @@ export type Database = {
           unit_price: number
         }[]
       }
+      get_technician: {
+        Args: { p_technician_id: string }
+        Returns: {
+          address: string
+          billing_email: string
+          city: string
+          company_name: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          contact_phone_secondary: string
+          country: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          daily_rate: number
+          hourly_rate: number
+          iban: string
+          id: string
+          latitude: number
+          legal_name: string
+          longitude: number
+          notes: string
+          payment_terms: string
+          postal_code: string
+          province: string
+          rating: number
+          specialties: string[]
+          status: string
+          tax_id: string
+          technician_number: string
+          type: string
+          updated_at: string
+        }[]
+      }
       get_user_auth_id: { Args: { p_user_id: string }; Returns: string }
       get_user_auth_id_by_email: { Args: { p_email: string }; Returns: string }
       get_user_id_by_email: { Args: { p_email: string }; Returns: string }
@@ -1174,6 +1238,52 @@ export type Database = {
           updated_at: string
         }[]
       }
+      list_technicians: {
+        Args: {
+          p_search?: string
+          p_specialty?: string
+          p_status?: string
+          p_type?: string
+        }
+        Returns: {
+          city: string
+          company_name: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          daily_rate: number
+          hourly_rate: number
+          id: string
+          legal_name: string
+          province: string
+          rating: number
+          specialties: string[]
+          status: string
+          tax_id: string
+          technician_number: string
+          type: string
+        }[]
+      }
+      list_technicians_for_map: {
+        Args: { p_specialty?: string; p_status?: string; p_type?: string }
+        Returns: {
+          address: string
+          city: string
+          company_name: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          id: string
+          latitude: number
+          longitude: number
+          rating: number
+          specialties: string[]
+          status: string
+          technician_number: string
+          type: string
+        }[]
+      }
       list_user_canvassing_locations: {
         Args: { p_user_id?: string }
         Returns: {
@@ -1483,6 +1593,45 @@ export type Database = {
           p_name?: string
           p_rate?: number
           p_tax_id: string
+        }
+        Returns: boolean
+      }
+      update_technician: {
+        Args: {
+          p_address?: string
+          p_billing_email?: string
+          p_city?: string
+          p_company_name?: string
+          p_contact_email?: string
+          p_contact_name?: string
+          p_contact_phone?: string
+          p_contact_phone_secondary?: string
+          p_country?: string
+          p_daily_rate?: number
+          p_hourly_rate?: number
+          p_iban?: string
+          p_latitude?: number
+          p_legal_name?: string
+          p_longitude?: number
+          p_notes?: string
+          p_payment_terms?: string
+          p_postal_code?: string
+          p_province?: string
+          p_rating?: number
+          p_specialties?: string[]
+          p_status?: string
+          p_tax_id?: string
+          p_technician_id: string
+          p_type?: string
+        }
+        Returns: boolean
+      }
+      update_technician_coordinates: {
+        Args: {
+          p_full_address?: string
+          p_latitude: number
+          p_longitude: number
+          p_technician_id: string
         }
         Returns: boolean
       }

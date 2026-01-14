@@ -159,6 +159,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
       available: getModule('clients')?.available || false,
     },
     {
+      id: 'technicians',
+      title: 'Técnicos',
+      icon: Wrench,
+      path: `/nexo-av/${userId}/technicians`,
+      available: getModule('projects')?.available || false,
+    },
+    {
       id: 'catalog',
       title: 'Catálogo',
       icon: Package,
