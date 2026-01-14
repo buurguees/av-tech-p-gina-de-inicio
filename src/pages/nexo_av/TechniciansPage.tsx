@@ -63,7 +63,7 @@ function TechniciansPageDesktop() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const debouncedSearch = useDebounce(searchInput, 300);
 
-  const { paginatedData, currentPage, totalPages, goToPage, pageSize } = usePagination(technicians, { pageSize: 15 });
+  const { paginatedData, currentPage, totalPages, goToPage, nextPage, prevPage, canGoNext, canGoPrev, startIndex, endIndex, totalItems } = usePagination(technicians, { pageSize: 15 });
 
   const fetchTechnicians = useCallback(async () => {
     setLoading(true);
@@ -359,9 +359,14 @@ function TechniciansPageDesktop() {
               <PaginationControls
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={goToPage}
-                totalItems={technicians.length}
-                itemsPerPage={pageSize}
+                startIndex={startIndex}
+                endIndex={endIndex}
+                totalItems={totalItems}
+                canGoPrev={canGoPrev}
+                canGoNext={canGoNext}
+                onPrevPage={prevPage}
+                onNextPage={nextPage}
+                onGoToPage={goToPage}
               />
             </div>
           )}
