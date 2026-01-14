@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "@/polyfills/buffer";
 import {
   Document,
   Page,
