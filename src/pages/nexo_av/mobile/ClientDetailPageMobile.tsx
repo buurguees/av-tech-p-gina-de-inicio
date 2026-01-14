@@ -22,6 +22,7 @@ import {
   Edit,
   ChevronDown,
   ExternalLink,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
@@ -37,12 +38,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { NexoLogo } from "../components/NexoHeader";
 import DetailTabsMobile from "../components/mobile/DetailTabsMobile";
-import ClientDashboardTab from "../components/ClientDashboardTab";
 import ClientProjectsTab from "../components/ClientProjectsTab";
 import ClientQuotesTab from "../components/ClientQuotesTab";
 import ClientInvoicesTab from "../components/ClientInvoicesTab";
 import EditClientDialog from "../components/EditClientDialog";
 import MobileBottomNav from "../components/MobileBottomNav";
+import ClientNotesSection from "../components/mobile/ClientNotesSection";
 
 interface ClientDetail {
   id: string;
@@ -97,7 +98,7 @@ const ClientDetailPageMobile = () => {
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [client, setClient] = useState<ClientDetail | null>(null);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("notes");
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -355,7 +356,7 @@ const ClientDetailPageMobile = () => {
               </div>
 
               {/* Botón Editar */}
-              {activeTab === "dashboard" && (
+              {activeTab === "notes" && (
                 <Button 
                   variant="outline" 
                   className="w-full border-white/20 text-white hover:bg-white/10 h-11"
@@ -388,18 +389,17 @@ const ClientDetailPageMobile = () => {
             value={activeTab}
             onValueChange={setActiveTab}
             tabs={[
-              { value: "dashboard", label: "Info", icon: LayoutDashboard },
+              { value: "notes", label: "Notas", icon: MessageSquare },
               { value: "projects", label: "Proyectos", icon: FolderKanban },
               { value: "quotes", label: "Presup.", icon: FileText },
               { value: "invoices", label: "Facturas", icon: Receipt },
             ]}
           >
-            <TabsContent value="dashboard" className="mt-3">
-              <ClientDashboardTab 
-                client={client} 
-                isAdmin={isAdmin}
-                currentUserId={currentUserId}
-                onRefresh={fetchClient}
+            <TabsContent value="notes" className="mt-3">
+              <ClientNotesSection 
+                clientId={client.id}
+                canEdit={isAdmin || client.assigned_to === currentUserId}
+                compact={false}
               />
             </TabsContent>
 
