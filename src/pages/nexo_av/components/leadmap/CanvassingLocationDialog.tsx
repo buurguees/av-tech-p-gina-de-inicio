@@ -17,9 +17,10 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { CANVASSING_STATUSES, CanvassingStatus } from "./CanvassingTool";
-import { X, Save, Loader2, MapPin, User, Building2, Phone, Calendar, FileText } from "lucide-react";
+import { X, Save, Loader2, MapPin, User, Building2, Phone, Calendar, FileText, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import LocationNotesSection from "./LocationNotesSection";
 
 interface CanvassingLocation {
   id: string;
@@ -271,7 +272,7 @@ const CanvassingLocationDialog = ({
         ) : (
           <>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-              <TabsList className="grid grid-cols-4 flex-shrink-0">
+              <TabsList className="grid grid-cols-5 flex-shrink-0">
                 <TabsTrigger value="ubicacion" className="text-xs">
                   <MapPin className="h-3 w-3 mr-1" />
                   Ubicación
@@ -287,6 +288,10 @@ const CanvassingLocationDialog = ({
                 <TabsTrigger value="comercial" className="text-xs">
                   <FileText className="h-3 w-3 mr-1" />
                   Comercial
+                </TabsTrigger>
+                <TabsTrigger value="notas" className="text-xs">
+                  <MessageSquare className="h-3 w-3 mr-1" />
+                  Notas
                 </TabsTrigger>
               </TabsList>
 
@@ -667,6 +672,18 @@ const CanvassingLocationDialog = ({
                         />
                       </div>
                     </div>
+                  </TabsContent>
+
+                  {/* Notas Tab */}
+                  <TabsContent value="notas" className="mt-0">
+                    {locationId ? (
+                      <LocationNotesSection locationId={locationId} />
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p className="text-sm">Guarda la ubicación primero para añadir notas</p>
+                      </div>
+                    )}
                   </TabsContent>
                 </div>
               </ScrollArea>
