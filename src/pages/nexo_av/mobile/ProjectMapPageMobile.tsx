@@ -104,28 +104,9 @@ const ProjectMapPageMobile = () => {
     try {
       setLoading(true);
       
-      // Obtener proyectos con join a clientes para obtener coordenadas en una sola consulta
+      // Usar RPC function para obtener proyectos
       const { data: projectsData, error: projectsError } = await supabase
-        .from('projects')
-        .select(`
-          id,
-          project_number,
-          project_name,
-          local_name,
-          project_address,
-          project_city,
-          status,
-          client_id,
-          created_at,
-          clients:client_id (
-            company_name,
-            latitude,
-            longitude,
-            full_address
-          )
-        `)
-        .neq('status', 'CANCELLED')
-        .order('project_name');
+        .rpc('list_projects', { p_search: '' });
       
       if (projectsError) {
         console.error('Error fetching projects:', projectsError);
@@ -137,9 +118,30 @@ const ProjectMapPageMobile = () => {
         return;
       }
 
-      // Mapear los datos con coordenadas de los clientes
-      const projectsWithCoords: Project[] = (projectsData || []).map((project: any) => {
-        const client = project.clients;
+      // Filtrar proyectos cancelados
+      const filteredProjects = (projectsData || []).filter(
+        (p: any) => p.status !== 'CANCELLED'
+      );
+
+      // Obtener coordenadas de clientes
+      const clientIds = [...new Set(filteredProjects.map((p: any) => p.client_id).filter(Boolean))];
+      
+      let clientsMap: Record<string, any> = {};
+      if (clientIds.length > 0) {
+        const { data: clientsData } = await supabase
+          .rpc('list_clients_for_map', { p_lead_stages: null });
+        
+        if (clientsData) {
+          clientsMap = clientsData.reduce((acc: Record<string, any>, client: any) => {
+            acc[client.id] = client;
+            return acc;
+          }, {});
+        }
+      }
+
+      // Mapear los datos con coordenadas
+      const projectsWithCoords: Project[] = filteredProjects.map((project: any) => {
+        const client = clientsMap[project.client_id];
         const latitude = client?.latitude ? parseFloat(String(client.latitude)) : null;
         const longitude = client?.longitude ? parseFloat(String(client.longitude)) : null;
         const fullAddress = client?.full_address || project.project_address;
@@ -150,7 +152,7 @@ const ProjectMapPageMobile = () => {
           project_name: project.project_name || project.local_name || `Proyecto ${project.project_number}`,
           status: project.status,
           project_city: project.project_city,
-          client_name: client?.company_name || null,
+          client_name: project.client_name || client?.company_name || null,
           client_id: project.client_id,
           latitude,
           longitude,
