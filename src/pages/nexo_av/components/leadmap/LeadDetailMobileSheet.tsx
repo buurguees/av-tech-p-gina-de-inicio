@@ -34,8 +34,8 @@ interface LeadDetailMobileSheetProps {
   onRefresh: () => void;
   isAdmin: boolean;
   currentUserId: string | null;
-  onFocusLocation: () => void;
-  userId: string;
+  onFocusLocation?: () => void;
+  userId?: string;
 }
 
 const LeadDetailMobileSheet = ({ 
@@ -268,7 +268,7 @@ const LeadDetailMobileSheet = ({
                     )}
                   </div>
                   <div className="flex gap-2">
-                    {client.latitude && client.longitude && (
+                    {client.latitude && client.longitude && onFocusLocation && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -292,11 +292,13 @@ const LeadDetailMobileSheet = ({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
-                        >
-                          Ver detalles del cliente
-                        </DropdownMenuItem>
+                        {userId && (
+                          <DropdownMenuItem
+                            onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
+                          >
+                            Ver detalles del cliente
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -305,7 +307,7 @@ const LeadDetailMobileSheet = ({
             )}
             {!canEdit && (
               <div className="pt-2 border-t flex gap-2">
-                {client.latitude && client.longitude && (
+                {client.latitude && client.longitude && onFocusLocation && (
                   <Button
                     size="sm"
                     variant="outline"
@@ -329,11 +331,13 @@ const LeadDetailMobileSheet = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
-                    >
-                      Ver detalles del cliente
-                    </DropdownMenuItem>
+                    {userId && (
+                      <DropdownMenuItem
+                        onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
+                      >
+                        Ver detalles del cliente
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

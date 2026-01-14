@@ -56,6 +56,15 @@ export type Database = {
         }
         Returns: string
       }
+      add_location_note: {
+        Args: {
+          p_attachments?: string[]
+          p_content: string
+          p_location_id: string
+          p_note_type?: string
+        }
+        Returns: string
+      }
       add_pack_item: {
         Args: { p_pack_id: string; p_product_id: string; p_quantity?: number }
         Returns: string
@@ -139,6 +148,23 @@ export type Database = {
           p_phone: string
         }
         Returns: string
+      }
+      create_canvassing_location: {
+        Args: {
+          p_address?: string
+          p_city?: string
+          p_company_name: string
+          p_country?: string
+          p_latitude: number
+          p_location_references?: string
+          p_longitude: number
+          p_postal_code?: string
+          p_province?: string
+          p_status: string
+        }
+        Returns: {
+          location_id: string
+        }[]
       }
       create_client: {
         Args: {
@@ -493,6 +519,87 @@ export type Database = {
           is_active: boolean
         }[]
       }
+      get_canvassing_location: {
+        Args: { p_location_id: string }
+        Returns: {
+          address: string
+          appointment_date: string
+          appointment_location: string
+          appointment_time: string
+          appointment_type: string
+          approval_process: string
+          assigned_to: string
+          av_solutions_required: string[]
+          best_contact_time: string
+          business_floors: number
+          business_hours: string
+          business_size_sqm: number
+          business_type: string
+          callback_date: string
+          callback_time: string
+          city: string
+          company_name: string
+          competitors_contacted: string
+          contact_email_primary: string
+          contact_first_name: string
+          contact_last_name: string
+          contact_phone_primary: string
+          contact_phone_secondary: string
+          contact_position: string
+          country: string
+          created_at: string
+          current_installation_problems: string
+          current_provider: string
+          documents: string[]
+          economic_decision_maker_identified: boolean
+          equipment_locations: string
+          estimated_budget_range: string
+          existing_equipment: string
+          has_active_warranties: boolean
+          has_current_av_installation: boolean
+          has_maintenance_contract: boolean
+          has_requested_competitor_quotes: boolean
+          id: string
+          installation_age_years: number
+          interest_level: number
+          is_decision_maker: boolean
+          latitude: number
+          lead_score: number
+          lead_source: string
+          local_access_info: string
+          location_references: string
+          longitude: number
+          main_objections: string[]
+          maintenance_contract_end_date: string
+          maintenance_contract_provider: string
+          maintenance_contract_value: number
+          maintenance_frequency: string
+          number_of_screens: number
+          objections_other: string
+          photos: string[]
+          postal_code: string
+          preferred_contact_method: string
+          priority: string
+          project_urgency: string
+          proposed_maintenance_contract: boolean
+          province: string
+          purchase_phase: string
+          reminder_enabled: boolean
+          reminder_time_before: string
+          secondary_contact_name: string
+          secondary_contact_phone: string
+          solution_details: string
+          status: string
+          status_history: Json
+          tags: string[]
+          team_id: string
+          technical_service_type: string
+          updated_at: string
+          videos: string[]
+          warranty_end_date: string
+          years_in_operation: number
+        }[]
+      }
       get_client: {
         Args: { p_client_id: string }
         Returns: {
@@ -603,6 +710,7 @@ export type Database = {
           job_position: string
           phone: string
           roles: string[]
+          theme_preference: string
           user_id: string
         }[]
       }
@@ -886,6 +994,22 @@ export type Database = {
               total: number
             }[]
           }
+      list_location_notes: {
+        Args: { p_location_id: string }
+        Returns: {
+          attachments: string[]
+          content: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          edited_at: string
+          edited_by: string
+          edited_by_name: string
+          id: string
+          note_type: string
+          updated_at: string
+        }[]
+      }
       list_product_categories: {
         Args: never
         Returns: {
@@ -1050,6 +1174,30 @@ export type Database = {
           updated_at: string
         }[]
       }
+      list_user_canvassing_locations: {
+        Args: { p_user_id?: string }
+        Returns: {
+          address: string
+          appointment_date: string
+          callback_date: string
+          city: string
+          company_name: string
+          contact_email_primary: string
+          contact_first_name: string
+          contact_last_name: string
+          contact_phone_primary: string
+          created_at: string
+          id: string
+          latitude: number
+          lead_score: number
+          longitude: number
+          postal_code: string
+          priority: string
+          province: string
+          status: string
+          updated_at: string
+        }[]
+      }
       mark_invitation_token_used: {
         Args: { p_token: string }
         Returns: undefined
@@ -1095,6 +1243,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: boolean
+      }
+      update_canvassing_location: {
+        Args: { p_data: Json; p_location_id: string }
+        Returns: string
       }
       update_client: {
         Args: {
@@ -1170,15 +1322,26 @@ export type Database = {
         }
         Returns: boolean
       }
-      update_own_user_info: {
-        Args: {
-          p_full_name?: string
-          p_job_position?: string
-          p_phone?: string
-          p_user_id: string
-        }
-        Returns: boolean
-      }
+      update_own_user_info:
+        | {
+            Args: {
+              p_full_name?: string
+              p_job_position?: string
+              p_phone?: string
+              p_user_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_full_name?: string
+              p_job_position?: string
+              p_phone?: string
+              p_theme_preference?: string
+              p_user_id: string
+            }
+            Returns: boolean
+          }
       update_pack_item: {
         Args: { p_item_id: string; p_quantity: number }
         Returns: boolean

@@ -62,12 +62,12 @@ interface AssignableUser {
   department: string;
 }
 
-interface CreateClientDialogProps {
+export interface CreateClientDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
-  currentUserId: string | null;
-  isAdmin: boolean;
+  currentUserId?: string | null;
+  isAdmin?: boolean;
   enableGeocoding?: boolean; // Si es true, geocodifica la dirección y guarda coordenadas
 }
 
