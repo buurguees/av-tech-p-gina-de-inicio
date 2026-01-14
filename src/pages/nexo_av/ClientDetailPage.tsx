@@ -107,6 +107,7 @@ const ClientDetailPageDesktop = () => {
     if (!clientId) return;
     
     try {
+      setLoading(true);
       const { data, error } = await supabase.rpc('get_client', {
         p_client_id: clientId
       });
@@ -130,6 +131,8 @@ const ClientDetailPageDesktop = () => {
         description: "No se pudo cargar el cliente",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
