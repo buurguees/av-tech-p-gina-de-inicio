@@ -10,56 +10,111 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// Estados de Canvassing con colores e iconos
+// Estados de Canvassing con colores e iconos según prioridad
+// PRIORIDAD CRÍTICA 🔴: NEG, PRES, APP
+// PRIORIDAD ALTA 🟠: INT, CB
+// PRIORIDAD MEDIA 🟡: GB, NH
+// PRIORIDAD BAJA 🟢: OTH, NI
+// ESTADO FINAL ✅: CX
 export const CANVASSING_STATUSES = {
+  // PRIORIDAD CRÍTICA 🔴
+  NEG: {
+    code: 'NEG',
+    label: 'Negotiation',
+    description: 'En negociación - Máxima prioridad',
+    color: '#DC2626', // Rojo intenso
+    icon: '🤝',
+    priority: 1,
+  },
+  PRES: {
+    code: 'PRES',
+    label: 'Presupuesto enviado',
+    description: 'Presupuesto entregado',
+    color: '#EA580C', // Naranja intenso
+    icon: '📄',
+    priority: 2,
+  },
+  APP: {
+    code: 'APP',
+    label: 'Appointment Set',
+    description: 'Cita programada',
+    color: '#9333EA', // Morado
+    icon: '📅',
+    priority: 3,
+  },
+  
+  // PRIORIDAD ALTA 🟠
+  INT: {
+    code: 'INT',
+    label: 'Interested',
+    description: 'Interesado',
+    color: '#2563EB', // Azul brillante
+    icon: '⭐',
+    priority: 4,
+  },
   CB: {
     code: 'CB',
     label: 'Call Back',
     description: 'Llamar de nuevo',
-    color: '#3B82F6', // Azul
+    color: '#EAB308', // Amarillo
     icon: '📞',
+    priority: 5,
   },
-  CX: {
-    code: 'CX',
-    label: 'Customer',
-    description: 'Cliente convertido',
-    color: '#10B981', // Verde
-    icon: '✅',
-  },
+  
+  // PRIORIDAD MEDIA 🟡
   GB: {
     code: 'GB',
     label: 'Go Back',
     description: 'Volver más tarde',
-    color: '#8B5CF6', // Morado
+    color: '#22C55E', // Verde claro
     icon: '🔄',
+    priority: 6,
   },
   NH: {
     code: 'NH',
     label: 'Not Home',
     description: 'No está en casa',
-    color: '#F59E0B', // Naranja
+    color: '#9CA3AF', // Gris claro
     icon: '🏠',
+    priority: 7,
+  },
+  
+  // PRIORIDAD BAJA 🟢
+  OTH: {
+    code: 'OTH',
+    label: 'Other',
+    description: 'Otro',
+    color: '#4B5563', // Gris oscuro
+    icon: '❓',
+    priority: 8,
   },
   NI: {
     code: 'NI',
     label: 'Not Interested',
     description: 'No interesado',
-    color: '#EF4444', // Rojo
+    color: '#78350F', // Marrón
     icon: '❌',
+    priority: 9,
   },
-  OTH: {
-    code: 'OTH',
-    label: 'Other',
-    description: 'Otro',
-    color: '#6B7280', // Gris
-    icon: '❓',
+  
+  // ESTADO FINAL ✅
+  CX: {
+    code: 'CX',
+    label: 'Customer',
+    description: 'Cliente cerrado',
+    color: '#166534', // Verde oscuro
+    icon: '✅',
+    priority: 10,
   },
+  
+  // Otros estados adicionales (baja prioridad)
   DK: {
     code: 'DK',
     label: 'Doors Knocked',
     description: 'Puerta tocada',
     color: '#EC4899', // Rosa
     icon: '🚪',
+    priority: 11,
   },
   RNT: {
     code: 'RNT',
@@ -67,34 +122,7 @@ export const CANVASSING_STATUSES = {
     description: 'Inquilino',
     color: '#14B8A6', // Turquesa
     icon: '🏘️',
-  },
-  INT: {
-    code: 'INT',
-    label: 'Interested',
-    description: 'Interesado',
-    color: '#F97316', // Naranja oscuro
-    icon: '⭐',
-  },
-  APP: {
-    code: 'APP',
-    label: 'Appointment Set',
-    description: 'Cita programada',
-    color: '#6366F1', // Índigo
-    icon: '📅',
-  },
-  PRES: {
-    code: 'PRES',
-    label: 'Presupuesto enviado',
-    description: 'Presupuesto entregado',
-    color: '#8B5CF6', // Morado
-    icon: '📄',
-  },
-  NEG: {
-    code: 'NEG',
-    label: 'Negotiation',
-    description: 'En negociación',
-    color: '#F59E0B', // Naranja
-    icon: '🤝',
+    priority: 12,
   },
 } as const;
 

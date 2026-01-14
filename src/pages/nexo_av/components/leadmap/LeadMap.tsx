@@ -20,17 +20,24 @@ L.Icon.Default.mergeOptions({
 
 interface CanvassingLocation {
   id: string;
-  status: CanvassingStatus;
-  company_name?: string;
+  status: string; // Usamos string para compatibilidad con la base de datos
+  company_name?: string | null;
   latitude: number;
   longitude: number;
-  address: string;
-  city: string;
-  province?: string;
-  contact_first_name?: string;
-  contact_last_name?: string;
-  contact_phone_primary?: string;
+  address?: string | null;
+  city?: string | null;
+  province?: string | null;
+  postal_code?: string | null;
+  contact_first_name?: string | null;
+  contact_last_name?: string | null;
+  contact_phone_primary?: string | null;
+  contact_email_primary?: string | null;
+  priority?: string | null;
+  lead_score?: number | null;
+  appointment_date?: string | null;
+  callback_date?: string | null;
   created_at: string;
+  updated_at?: string;
 }
 
 interface LeadMapProps {
@@ -39,7 +46,7 @@ interface LeadMapProps {
   selectedLocation?: CanvassingLocation | null;
   selectedClient?: LeadClient | null;
   onLocationSelect?: (location: CanvassingLocation | null) => void;
-  onClientSelect?: (client: LeadClient | null) => void;
+  onClientSelect?: (client: any) => void; // Usar any para compatibilidad con Client de ClientMapPage
   loading: boolean;
   focusLocation?: CanvassingLocation | null;
   focusClient?: LeadClient | null;
@@ -68,14 +75,18 @@ const createMarkerIcon = (color: string) => {
 };
 
 // Create Canvassing marker icon
-const createCanvassingIcon = (status: CanvassingStatus) => {
-  const statusInfo = CANVASSING_STATUSES[status];
+const createCanvassingIcon = (status: string) => {
+  const statusInfo = CANVASSING_STATUSES[status as keyof typeof CANVASSING_STATUSES] || {
+    color: '#6B7280',
+    icon: '📍',
+  };
   const color = statusInfo.color;
+  const icon = statusInfo.icon;
   
   const svgIcon = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
       <circle cx="16" cy="16" r="14" fill="${color}" stroke="#fff" stroke-width="2"/>
-      <text x="16" y="20" font-size="16" text-anchor="middle" fill="#fff" font-weight="bold">${statusInfo.icon}</text>
+      <text x="16" y="20" font-size="16" text-anchor="middle" fill="#fff" font-weight="bold">${icon}</text>
     </svg>
   `;
   
