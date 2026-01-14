@@ -34,10 +34,11 @@ const ClientMapPageMobile = () => {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
-        .from('clients')
-        .select('id, client_number, company_name, legal_name, contact_email, contact_phone, latitude, longitude, full_address, created_at')
-        .order('company_name');
+      // Usar la función RPC list_clients_for_map para obtener clientes con coordenadas
+      // Filtrar solo clientes en estado WON (clientes registrados)
+      const { data, error } = await supabase.rpc('list_clients_for_map', {
+        p_lead_stages: ['WON', 'RECURRING']
+      });
       
       if (error) {
         console.error('Error fetching clients:', error);
@@ -56,8 +57,8 @@ const ClientMapPageMobile = () => {
         legal_name: client.legal_name,
         contact_email: client.contact_email,
         contact_phone: client.contact_phone,
-        latitude: client.latitude ? parseFloat(client.latitude) : null,
-        longitude: client.longitude ? parseFloat(client.longitude) : null,
+        latitude: client.latitude ? parseFloat(String(client.latitude)) : null,
+        longitude: client.longitude ? parseFloat(String(client.longitude)) : null,
         full_address: client.full_address,
         created_at: client.created_at,
       }));
