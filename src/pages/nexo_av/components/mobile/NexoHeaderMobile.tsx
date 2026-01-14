@@ -14,6 +14,7 @@ interface UserInfo {
   phone?: string;
   job_position?: string;
   theme_preference?: 'light' | 'dark';
+  roles?: string[];
 }
 
 interface NexoHeaderMobileProps {
@@ -76,14 +77,34 @@ const NexoHeaderMobile = ({
     navigate(-1);
   };
 
+  const getDefaultMobilePath = () => {
+    // Determinar la ruta inicial según el rol del usuario
+    if (!userInfo) {
+      return `/nexo-av/${userId}/lead-map`; // Por defecto
+    }
+    
+    const userRoles = userInfo.roles || [];
+    const isSales = userRoles.includes('sales') || userRoles.includes('comercial');
+    const isAdminUser = userRoles.includes('admin');
+    
+    if (isSales) {
+      // Usuario con rol "sales" -> Mapa Comercial
+      return `/nexo-av/${userId}/lead-map`;
+    } else if (isAdminUser) {
+      // Usuario con rol "admin" -> Mapa de Proyectos
+      return `/nexo-av/${userId}/project-map`;
+    } else {
+      // Por defecto, Mapa Comercial
+      return `/nexo-av/${userId}/lead-map`;
+    }
+  };
+
   const handleHome = () => {
-    // En móvil, siempre redirigir al Mapa Comercial como página inicial
-    navigate(`/nexo-av/${userId}/lead-map`);
+    navigate(getDefaultMobilePath());
   };
 
   const handleLogoClick = () => {
-    // En móvil, siempre redirigir al Mapa Comercial como página inicial
-    navigate(`/nexo-av/${userId}/lead-map`);
+    navigate(getDefaultMobilePath());
   };
 
   const handleLogout = async () => {

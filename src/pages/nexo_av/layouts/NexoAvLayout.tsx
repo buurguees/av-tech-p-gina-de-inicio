@@ -153,9 +153,27 @@ const NexoAvLayout = () => {
 
         // If no userId in URL, redirect to proper URL with user_id
         if (!userId) {
-          const targetPath = isMobile 
-            ? `/nexo-av/${currentUserInfo.user_id}/lead-map`
-            : `/nexo-av/${currentUserInfo.user_id}/dashboard`;
+          let targetPath: string;
+          if (isMobile) {
+            // En móvil, redirigir según el rol del usuario
+            const userRoles = currentUserInfo.roles || [];
+            const isSales = userRoles.includes('sales') || userRoles.includes('comercial');
+            const isAdminUser = userRoles.includes('admin');
+            
+            if (isSales) {
+              // Usuario con rol "sales" -> Mapa Comercial
+              targetPath = `/nexo-av/${currentUserInfo.user_id}/lead-map`;
+            } else if (isAdminUser) {
+              // Usuario con rol "admin" -> Mapa de Proyectos
+              targetPath = `/nexo-av/${currentUserInfo.user_id}/project-map`;
+            } else {
+              // Por defecto, Mapa Comercial
+              targetPath = `/nexo-av/${currentUserInfo.user_id}/lead-map`;
+            }
+          } else {
+            // Desktop siempre va al dashboard
+            targetPath = `/nexo-av/${currentUserInfo.user_id}/dashboard`;
+          }
           navigate(targetPath, { replace: true });
           return;
         }
@@ -218,11 +236,23 @@ const NexoAvLayout = () => {
   // Check if we're on dashboard route to show mobile dashboard
   const isDashboardRoute = location.pathname === `/nexo-av/${userId}/dashboard`;
   
-  // Redirect mobile users from dashboard to lead-map
+  // Redirect mobile users from dashboard to appropriate map based on role
   // IMPORTANT: This useEffect must be before any conditional returns
   useEffect(() => {
     if (isMobile && isDashboardRoute && userInfo && !loading && !accessDenied) {
-      navigate(`/nexo-av/${userId}/lead-map`, { replace: true });
+      const userRoles = userInfo.roles || [];
+      const isSales = userRoles.includes('sales') || userRoles.includes('comercial');
+      const isAdminUser = userRoles.includes('admin');
+      
+      let targetPath: string;
+      if (isSales) {
+        targetPath = `/nexo-av/${userId}/lead-map`;
+      } else if (isAdminUser) {
+        targetPath = `/nexo-av/${userId}/project-map`;
+      } else {
+        targetPath = `/nexo-av/${userId}/lead-map`; // Por defecto
+      }
+      navigate(targetPath, { replace: true });
     }
   }, [isMobile, isDashboardRoute, userId, navigate, userInfo, loading, accessDenied]);
 

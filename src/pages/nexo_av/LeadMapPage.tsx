@@ -343,6 +343,10 @@ const LeadMapPageDesktop = () => {
             onLocationSelect={handleLocationSelect}
             loading={loading}
             focusLocation={focusLocation}
+            onCanvassingLocationCreate={(locationId) => {
+              // Refrescar las ubicaciones después de crear un nuevo punto
+              handleRefresh();
+            }}
           />
         </div>
 

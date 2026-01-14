@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -85,6 +85,7 @@ const MapCenterHandler = ({ selectedProject }: { selectedProject?: Project | nul
 };
 
 const ProjectMapPageMobile = () => {
+  const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -103,10 +104,31 @@ const ProjectMapPageMobile = () => {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase.rpc('list_projects', {});
+      // Obtener proyectos con join a clientes para obtener coordenadas en una sola consulta
+      const { data: projectsData, error: projectsError } = await supabase
+        .from('projects')
+        .select(`
+          id,
+          project_number,
+          project_name,
+          local_name,
+          project_address,
+          project_city,
+          status,
+          client_id,
+          created_at,
+          clients:client_id (
+            company_name,
+            latitude,
+            longitude,
+            full_address
+          )
+        `)
+        .neq('status', 'CANCELLED')
+        .order('project_name');
       
-      if (error) {
-        console.error('Error fetching projects:', error);
+      if (projectsError) {
+        console.error('Error fetching projects:', projectsError);
         toast({
           title: "Error",
           description: "No se pudieron cargar los proyectos",
@@ -115,45 +137,36 @@ const ProjectMapPageMobile = () => {
         return;
       }
 
-      const projectsWithCoords: Project[] = [];
-      
-      for (const project of (data || [])) {
-        if (project.status === 'CANCELLED') continue;
+      // Mapear los datos con coordenadas de los clientes
+      const projectsWithCoords: Project[] = (projectsData || []).map((project: any) => {
+        const client = project.clients;
+        const latitude = client?.latitude ? parseFloat(String(client.latitude)) : null;
+        const longitude = client?.longitude ? parseFloat(String(client.longitude)) : null;
+        const fullAddress = client?.full_address || project.project_address;
         
-        let latitude = null;
-        let longitude = null;
-        let fullAddress = null;
-        
-        if (project.client_id) {
-          const { data: clientData } = await supabase.rpc('get_client_for_map', {
-            p_client_id: project.client_id
-          });
-          
-          if (clientData && clientData.length > 0) {
-            latitude = clientData[0].latitude ? parseFloat(String(clientData[0].latitude)) : null;
-            longitude = clientData[0].longitude ? parseFloat(String(clientData[0].longitude)) : null;
-            fullAddress = clientData[0].full_address;
-          }
-        }
-        
-        projectsWithCoords.push({
+        return {
           id: project.id,
           project_number: project.project_number,
           project_name: project.project_name || project.local_name || `Proyecto ${project.project_number}`,
           status: project.status,
           project_city: project.project_city,
-          client_name: project.client_name,
+          client_name: client?.company_name || null,
           client_id: project.client_id,
           latitude,
           longitude,
-          full_address: fullAddress || project.project_address,
+          full_address: fullAddress,
           created_at: project.created_at,
-        });
-      }
+        };
+      });
 
       setProjects(projectsWithCoords);
     } catch (err) {
       console.error('Error:', err);
+      toast({
+        title: "Error",
+        description: "Error al cargar los proyectos",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -164,7 +177,9 @@ const ProjectMapPageMobile = () => {
   };
 
   const handleViewProjectDetails = (projectId: string) => {
-    navigate(`/nexo_av/projects/${projectId}`);
+    if (userId) {
+      navigate(`/nexo-av/${userId}/projects/${projectId}`);
+    }
   };
 
   const totalProjects = projects.length;

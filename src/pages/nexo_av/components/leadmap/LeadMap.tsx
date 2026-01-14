@@ -1333,30 +1333,23 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
         </Button>
       </div>
       
-      {/* Empty state messages */}
-      {mappableCanvassingLocations.length === 0 && mappableClients.length === 0 && !loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-[500]">
+      {/* Empty state messages - Solo mostrar para clientes, no para canvassing (permite navegación) */}
+      {mappableCanvassingLocations.length === 0 && mappableClients.length === 0 && !loading && !propsCanvassingLocations && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-[500] pointer-events-none">
           <div className="text-center">
-            {mappableCanvassingLocations.length === 0 && propsCanvassingLocations ? (
-              <>
-                <p className="text-muted-foreground">No hay puntos de canvassing con ubicación</p>
-                <p className="text-sm text-muted-foreground">Crea un nuevo punto para verlo en el mapa</p>
-              </>
-            ) : (
-              <>
-                <p className="text-muted-foreground">No hay elementos con ubicación</p>
-                <p className="text-sm text-muted-foreground">Crea un nuevo elemento para verlo en el mapa</p>
-              </>
-            )}
+            <p className="text-muted-foreground">No hay elementos con ubicación</p>
+            <p className="text-sm text-muted-foreground">Crea un nuevo elemento para verlo en el mapa</p>
           </div>
         </div>
       )}
 
-      {/* Canvassing Tool */}
-      <CanvassingTool
-        onStatusSelect={handleCanvassingStatusSelect}
-        isActive={true}
-      />
+      {/* Canvassing Tool - Mostrar siempre si hay canvassingLocations o si no hay clients */}
+      {(propsCanvassingLocations || (mappableClients.length === 0 && !propsClients)) && (
+        <CanvassingTool
+          onStatusSelect={handleCanvassingStatusSelect}
+          isActive={true}
+        />
+      )}
 
       {/* Indicador de modo Canvassing */}
       {isCanvassingMode && selectedCanvassingStatus && (
@@ -1376,6 +1369,10 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
         onSuccess={() => {
           loadCanvassingLocations();
           setSelectedCanvassingLocation(null);
+          // Si las ubicaciones vienen desde props, notificar al padre para refrescar
+          if (propsCanvassingLocations && onCanvassingLocationCreate) {
+            // El padre debería refrescar las ubicaciones
+          }
         }}
       />
     </div>

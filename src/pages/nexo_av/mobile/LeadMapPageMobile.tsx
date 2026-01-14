@@ -1,7 +1,7 @@
 /**
  * LeadMapPageMobile
  * 
- * Versión optimizada para móviles del mapa de leads.
+ * Versión optimizada para móviles del Mapa Comercial (Canvassing).
  * Mapa a pantalla completa con botón flotante y popup desde abajo.
  */
 
@@ -10,48 +10,28 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LeadMap from "../components/leadmap/LeadMap";
-import LeadDetailMobileSheet from "../components/leadmap/LeadDetailMobileSheet";
-import CreateClientDialog from "../components/CreateClientDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2 } from "lucide-react";
-import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS, LeadClient, LeadStats } from "../LeadMapPage";
-
-// Geocoding helper
-const geocodeAddress = async (address: string): Promise<{ lat: number; lon: number } | null> => {
-  try {
-    await new Promise(resolve => setTimeout(resolve, 1100));
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&countrycodes=es&limit=1`,
-      { headers: { 'User-Agent': 'NexoAV-LeadMap/1.0' } }
-    );
-    if (!response.ok) return null;
-    const data = await response.json();
-    if (data.length === 0) return null;
-    return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
-  } catch (err) {
-    console.error('Geocoding error:', err);
-    return null;
-  }
-};
+import { Plus } from "lucide-react";
+import { CanvassingLocation, CanvassingStats } from "../LeadMapPage";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import CanvassingMapSidebar from "../components/leadmap/CanvassingMapSidebar";
+import CanvassingDetailPanel from "../components/leadmap/CanvassingDetailPanel";
+import CanvassingLocationDialog from "../components/leadmap/CanvassingLocationDialog";
 
 const LeadMapPageMobile = () => {
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
 
-  const [clients, setClients] = useState<LeadClient[]>([]);
+  // Canvassing locations state
+  const [canvassingLocations, setCanvassingLocations] = useState<CanvassingLocation[]>([]);
+  const [canvassingStats, setCanvassingStats] = useState<CanvassingStats[]>([]);
   const [loading, setLoading] = useState(true);
-  const [geocodingProgress, setGeocodingProgress] = useState<{current: number; total: number} | null>(null);
-  const [selectedClient, setSelectedClient] = useState<LeadClient | null>(null);
-  const [focusClient, setFocusClient] = useState<LeadClient | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<CanvassingLocation | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  
-  // Filters
-  const [selectedStages, setSelectedStages] = useState<string[]>([]);
-  const [showOnlyMine, setShowOnlyMine] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   
   // User info
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchUserInfo();
@@ -59,9 +39,10 @@ const LeadMapPageMobile = () => {
 
   useEffect(() => {
     if (currentUserId !== null) {
-      fetchClients();
+      fetchCanvassingLocations();
+      fetchCanvassingStats();
     }
-  }, [currentUserId, selectedStages, showOnlyMine]);
+  }, [currentUserId]);
 
   const fetchUserInfo = async () => {
     try {
@@ -69,155 +50,152 @@ const LeadMapPageMobile = () => {
       if (!error && data && data.length > 0) {
         const user = data[0];
         setCurrentUserId(user.user_id);
-        setIsAdmin(user.roles?.includes('admin') || false);
       }
     } catch (err) {
       console.error('Error fetching user info:', err);
     }
   };
 
-  const fetchClients = async () => {
+  const fetchCanvassingLocations = async () => {
     try {
       setLoading(true);
-      const params: { p_assigned_to?: string; p_lead_stages?: string[] } = {};
       
-      if (showOnlyMine && currentUserId) {
-        params.p_assigned_to = currentUserId;
-      }
-      
-      if (selectedStages.length > 0) {
-        params.p_lead_stages = selectedStages;
-      }
-
-      const { data, error } = await supabase.rpc('list_clients_for_map', params);
+      const { data, error } = await (supabase.rpc as any)('list_user_canvassing_locations', {
+        p_user_id: currentUserId || null
+      });
       
       if (error) {
-        console.error('Error fetching clients:', error);
+        console.error('Error fetching canvassing locations:', error);
         toast({
           title: "Error",
-          description: "No se pudieron cargar los clientes",
+          description: "No se pudieron cargar los puntos de canvassing",
           variant: "destructive",
         });
         return;
       }
 
-      const clientsData = data || [];
-      setClients(clientsData);
+      const locationsData = (data || []).map((loc: any) => ({
+        id: loc.id,
+        status: loc.status,
+        company_name: loc.company_name,
+        latitude: parseFloat(loc.latitude) || 0,
+        longitude: parseFloat(loc.longitude) || 0,
+        address: loc.address,
+        city: loc.city,
+        province: loc.province,
+        postal_code: loc.postal_code,
+        contact_first_name: loc.contact_first_name,
+        contact_last_name: loc.contact_last_name,
+        contact_phone_primary: loc.contact_phone_primary,
+        contact_email_primary: loc.contact_email_primary,
+        priority: loc.priority,
+        lead_score: loc.lead_score,
+        appointment_date: loc.appointment_date,
+        callback_date: loc.callback_date,
+        created_at: loc.created_at,
+        updated_at: loc.updated_at,
+      }));
 
-      // Geocodificar clientes que no tienen coordenadas pero tienen dirección
-      const clientsNeedingGeocoding = clientsData.filter(
-        (c: LeadClient) => !c.latitude && !c.longitude && c.full_address
-      );
-
-      if (clientsNeedingGeocoding.length > 0) {
-        geocodeClientsInBackground(clientsNeedingGeocoding);
-      }
+      setCanvassingLocations(locationsData);
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Error fetching canvassing locations:', err);
+      toast({
+        title: "Error",
+        description: "Error al cargar los puntos de canvassing",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const geocodeClientsInBackground = async (clientsToGeocode: LeadClient[]) => {
-    setGeocodingProgress({ current: 0, total: clientsToGeocode.length });
-
-    for (let i = 0; i < clientsToGeocode.length; i++) {
-      const client = clientsToGeocode[i];
-      setGeocodingProgress({ current: i + 1, total: clientsToGeocode.length });
-
-      if (!client.full_address) continue;
-
-      const coords = await geocodeAddress(client.full_address);
+  const fetchCanvassingStats = async () => {
+    try {
+      const { data, error } = await (supabase.rpc as any)('list_user_canvassing_locations', {
+        p_user_id: currentUserId || null
+      });
       
-      if (coords) {
-        await supabase.rpc('update_client_coordinates', {
-          p_client_id: client.id,
-          p_latitude: coords.lat,
-          p_longitude: coords.lon,
-          p_full_address: client.full_address
-        });
-
-        setClients(prev => prev.map(c => 
-          c.id === client.id 
-            ? { ...c, latitude: coords.lat, longitude: coords.lon }
-            : c
-        ));
+      if (error) {
+        console.error('Error fetching canvassing stats:', error);
+        return;
       }
-    }
 
-    setGeocodingProgress(null);
+      const locationsData = data || [];
+      
+      // Calcular estadísticas por estado
+      const statsMap = new Map<string, number>();
+      locationsData.forEach((loc: any) => {
+        const status = loc.status || 'OTH';
+        statsMap.set(status, (statsMap.get(status) || 0) + 1);
+      });
+
+      const stats: CanvassingStats[] = Array.from(statsMap.entries()).map(([status, count]) => ({
+        status,
+        count,
+      }));
+
+      stats.sort((a, b) => b.count - a.count);
+      
+      setCanvassingStats(stats);
+    } catch (err) {
+      console.error('Error fetching canvassing stats:', err);
+    }
   };
 
-  const handleClientSelect = (client: LeadClient | null) => {
-    setSelectedClient(client);
+  const handleLocationSelect = (location: CanvassingLocation | null) => {
+    setSelectedLocation(location);
   };
 
   const handleRefresh = () => {
-    fetchClients();
-    setSelectedClient(null);
+    fetchCanvassingLocations();
+    fetchCanvassingStats();
+    setSelectedLocation(null);
   };
 
   return (
     <div className="fixed inset-0 bg-background flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      {/* Geocoding progress indicator */}
-      {geocodingProgress && (
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-xs flex items-center gap-2 shadow-lg">
-          <Loader2 className="h-3 w-3 animate-spin" />
-          Geocodificando {geocodingProgress.current}/{geocodingProgress.total}...
-        </div>
-      )}
-
       {/* Mapa a pantalla completa */}
       <div className="flex-1 relative">
         <LeadMap
-          clients={clients}
-          selectedClient={selectedClient}
-          onClientSelect={handleClientSelect}
+          canvassingLocations={canvassingLocations}
+          selectedLocation={selectedLocation}
+          onLocationSelect={handleLocationSelect}
           loading={loading}
-          focusClient={focusClient}
+          onCanvassingLocationCreate={(locationId) => {
+            handleRefresh();
+          }}
         />
       </div>
 
-      {/* Botón flotante para crear lead */}
-      <Button
-        onClick={() => setShowCreateDialog(true)}
-        className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg bg-orange-500 hover:bg-orange-600 text-white"
-        style={{
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        }}
-        aria-label="Crear nuevo lead"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
-
       {/* Mobile detail sheet - Popup desde abajo */}
-      {selectedClient && (
-        <LeadDetailMobileSheet
-          client={selectedClient}
-          open={!!selectedClient}
-          onClose={() => {
-            setSelectedClient(null);
-            setFocusClient(null);
-          }}
-          onRefresh={handleRefresh}
-          isAdmin={isAdmin}
-          currentUserId={currentUserId}
-          onFocusLocation={() => setFocusClient(selectedClient)}
-          userId={userId || ''}
-        />
+      {selectedLocation && (
+        <Sheet open={!!selectedLocation} onOpenChange={(open) => !open && setSelectedLocation(null)}>
+          <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
+            <CanvassingDetailPanel
+              location={selectedLocation}
+              onClose={() => setSelectedLocation(null)}
+              onEdit={() => {
+                setShowEditDialog(true);
+                setSelectedLocation(null);
+              }}
+              onRefresh={handleRefresh}
+            />
+          </SheetContent>
+        </Sheet>
       )}
 
-      {/* Create dialog */}
-      <CreateClientDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        onSuccess={handleRefresh}
-        currentUserId={currentUserId}
-        isAdmin={isAdmin}
-        enableGeocoding={true}
-      />
-
+      {/* Edit dialog */}
+      {showEditDialog && selectedLocation && (
+        <CanvassingLocationDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          locationId={selectedLocation.id}
+          onSuccess={() => {
+            handleRefresh();
+            setShowEditDialog(false);
+          }}
+        />
+      )}
     </div>
   );
 };
