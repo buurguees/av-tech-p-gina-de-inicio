@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../LeadMapPage";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -163,11 +164,11 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
   const getNoteIcon = (type: string) => {
     switch (type) {
       case 'status_change':
-        return <RefreshCw size={14} className="text-primary" />;
+        return <RefreshCw size={12} className="text-primary" />;
       case 'creation':
-        return <Clock size={14} className="text-green-500" />;
+        return <Clock size={12} className="text-green-500" />;
       default:
-        return <MessageSquare size={14} className="text-muted-foreground" />;
+        return <MessageSquare size={12} className="text-muted-foreground" />;
     }
   };
   // TODO: Fetch real data from projects, quotes, and invoices tables
@@ -244,9 +245,9 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {statCards.map((stat, index) => (
           <motion.div
             key={stat.title}
@@ -254,15 +255,15 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
           >
-            <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-colors">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-xl ${stat.bgColor}`}>
-                    <stat.icon className={`h-5 w-5 ${stat.color}`} />
+            <Card className="bg-card border-border hover:bg-accent/50 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                    <stat.icon className={`h-4 w-4 ${stat.color}`} />
                   </div>
-                  <div>
-                    <p className="text-white/40 text-sm">{stat.title}</p>
-                    <p className="text-white text-xl font-bold">{stat.value}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-muted-foreground text-xs mb-0.5">{stat.title}</p>
+                    <p className="text-foreground text-base font-semibold truncate">{stat.value}</p>
                   </div>
                 </div>
               </CardContent>
@@ -272,50 +273,50 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
       </div>
 
       {/* Additional Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Client Info Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader>
-              <CardTitle className="text-white text-lg">Información del Cliente</CardTitle>
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold">Información del Cliente</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <CardContent className="space-y-3 pb-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-white/40 text-sm">Sector</p>
-                  <p className="text-white capitalize">{client.industry_sector?.toLowerCase() || '-'}</p>
+                  <p className="text-muted-foreground text-xs mb-1">Sector</p>
+                  <p className="text-foreground text-sm capitalize">{client.industry_sector?.toLowerCase() || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-white/40 text-sm">NIF/CIF</p>
-                  <p className="text-white">{client.tax_id || '-'}</p>
+                  <p className="text-muted-foreground text-xs mb-1">NIF/CIF</p>
+                  <p className="text-foreground text-sm font-mono">{client.tax_id || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-white/40 text-sm">Presupuesto Medio</p>
-                  <p className="text-white">
+                  <p className="text-muted-foreground text-xs mb-1">Presupuesto Medio</p>
+                  <p className="text-foreground text-sm">
                     {client.approximate_budget 
                       ? `${client.approximate_budget.toLocaleString('es-ES')}€`
                       : '-'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-white/40 text-sm">Cliente desde</p>
-                  <p className="text-white">
+                  <p className="text-muted-foreground text-xs mb-1">Cliente desde</p>
+                  <p className="text-foreground text-sm">
                     {new Date(client.created_at).toLocaleDateString('es-ES', {
                       year: 'numeric',
-                      month: 'long',
+                      month: 'short',
                       day: 'numeric'
                     })}
                   </p>
                 </div>
               </div>
               {client.notes && (
-                <div className="pt-4 border-t border-white/10">
-                  <p className="text-white/40 text-sm mb-2">Notas</p>
-                  <p className="text-white/80 text-sm">{client.notes}</p>
+                <div className="pt-3 border-t">
+                  <p className="text-muted-foreground text-xs mb-1.5">Notas</p>
+                  <p className="text-foreground text-sm leading-relaxed">{client.notes}</p>
                 </div>
               )}
             </CardContent>
@@ -328,24 +329,24 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader>
-              <CardTitle className="text-white text-lg">Notas y Actividad</CardTitle>
+          <Card className="bg-card border-border flex flex-col h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold">Notas y Actividad</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex flex-col flex-1 space-y-3 pb-4">
               {/* Add note section */}
               {canEdit && (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <Textarea
                     placeholder="Añadir nota..."
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
-                    className="min-h-[80px] bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                    className="min-h-[70px] resize-none"
                   />
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-white/60 whitespace-nowrap">Cambiar estado:</span>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">Cambiar estado:</span>
                     <Select value={newStatus} onValueChange={setNewStatus}>
-                      <SelectTrigger className="h-9 flex-1 bg-white/5 border-white/10 text-white">
+                      <SelectTrigger className="h-8 flex-1 text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -359,11 +360,11 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
                     {newNote.trim() && (
                       <Button 
                         size="sm" 
-                        className="flex-1"
+                        className="flex-1 h-8 text-xs"
                         onClick={handleAddNote}
                         disabled={addingNote}
                       >
-                        <Send size={14} className="mr-1" />
+                        <Send size={12} className="mr-1" />
                         {addingNote ? "Guardando..." : "Añadir Nota"}
                       </Button>
                     )}
@@ -371,11 +372,11 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
                       <Button 
                         size="sm" 
                         variant="default"
-                        className="flex-1"
+                        className="flex-1 h-8 text-xs"
                         onClick={handleChangeStatus}
                         disabled={changingStatus}
                       >
-                        <RefreshCw size={14} className="mr-1" />
+                        <RefreshCw size={12} className="mr-1" />
                         {changingStatus ? "Guardando..." : "Cambiar Estado"}
                       </Button>
                     )}
@@ -384,33 +385,39 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
               )}
 
               {/* Notes list */}
-              <div className="pt-2 border-t border-white/10">
-                <h4 className="text-sm font-medium text-white/80 mb-3">Historial de Actividad</h4>
-                <ScrollArea className="h-[300px]">
-                  <div className="space-y-3 pr-2">
-                    {loadingNotes ? (
-                      <div className="flex items-center justify-center py-4">
-                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/20 border-t-white/60"></div>
-                      </div>
-                    ) : notes.length === 0 ? (
-                      <p className="text-sm text-white/40 text-center py-4">
-                        Sin actividad registrada
-                      </p>
-                    ) : (
-                      notes.map((note) => (
-                        <div key={note.id} className="border-l-2 border-white/20 pl-3 py-1">
+              <div className={cn(
+                "flex-1 min-h-0",
+                canEdit && "pt-2.5 border-t"
+              )}>
+                <h4 className="text-xs font-medium text-foreground mb-2">Historial de Actividad</h4>
+                {loadingNotes ? (
+                  <div className="flex items-center justify-center py-6">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-muted border-t-primary"></div>
+                  </div>
+                ) : notes.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-6">
+                    Sin actividad registrada
+                  </p>
+                ) : (
+                  <ScrollArea className={cn(
+                    "max-h-[400px]",
+                    !canEdit && "max-h-[500px]"
+                  )}>
+                    <div className="space-y-2.5 pr-2">
+                      {notes.map((note) => (
+                        <div key={note.id} className="border-l-2 border-border pl-2.5 py-1.5">
                           <div className="flex items-center gap-1.5 mb-1">
                             {getNoteIcon(note.note_type)}
-                            <span className="text-xs text-white/60">
+                            <span className="text-[11px] text-muted-foreground">
                               {note.user_name} • {format(new Date(note.created_at), "d MMM, HH:mm", { locale: es })}
                             </span>
                           </div>
-                          <p className="text-sm text-white/80">{note.content}</p>
+                          <p className="text-xs text-foreground leading-relaxed">{note.content}</p>
                         </div>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
               </div>
             </CardContent>
           </Card>

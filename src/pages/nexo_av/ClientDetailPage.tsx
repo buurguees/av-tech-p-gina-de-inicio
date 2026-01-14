@@ -433,67 +433,69 @@ const ClientDetailPageDesktop = () => {
             </div>
 
             {/* Grid de información principal */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Columna izquierda - Información de contacto y ubicación */}
-              <div className="lg:col-span-1 space-y-4">
+              <div className="lg:col-span-1 space-y-3">
                 {/* Contacto */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      Contacto
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    {client.contact_email && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Email</p>
-                        <a
-                          href={`mailto:${client.contact_email}`}
-                          className="text-primary hover:underline break-all"
-                        >
-                          {client.contact_email}
-                        </a>
-                      </div>
-                    )}
-                    {client.contact_phone && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Teléfono</p>
-                        <a
-                          href={`tel:${client.contact_phone}`}
-                          className="text-primary hover:underline font-medium"
-                        >
-                          {client.contact_phone}
-                        </a>
-                      </div>
-                    )}
-                    {client.website && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Web</p>
-                        <a
-                          href={client.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline break-all inline-flex items-center gap-1"
-                        >
-                          <Globe className="h-3 w-3" />
-                          {client.website}
-                        </a>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                {(client.contact_email || client.contact_phone || client.website) && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        Contacto
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2.5 text-sm pb-4">
+                      {client.contact_email && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-0.5">Email</p>
+                          <a
+                            href={`mailto:${client.contact_email}`}
+                            className="text-primary hover:underline break-all"
+                          >
+                            {client.contact_email}
+                          </a>
+                        </div>
+                      )}
+                      {client.contact_phone && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-0.5">Teléfono</p>
+                          <a
+                            href={`tel:${client.contact_phone}`}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            {client.contact_phone}
+                          </a>
+                        </div>
+                      )}
+                      {client.website && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-0.5">Web</p>
+                          <a
+                            href={client.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline break-all inline-flex items-center gap-1"
+                          >
+                            <Globe className="h-3 w-3" />
+                            {client.website}
+                          </a>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Ubicación */}
                 {(client.billing_address || client.billing_city) && (
                   <Card>
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         Ubicación
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-1 text-sm">
+                    <CardContent className="space-y-1 text-sm pb-4">
                       {client.billing_address && (
                         <p className="font-medium">{client.billing_address}</p>
                       )}
@@ -510,51 +512,53 @@ const ClientDetailPageDesktop = () => {
                 )}
 
                 {/* Información del cliente */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                      <Briefcase className="h-4 w-4 text-muted-foreground" />
-                      Información
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    {client.tax_id && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">NIF / CIF</p>
-                        <p className="font-mono">{client.tax_id}</p>
-                      </div>
-                    )}
-                    {client.industry_sector && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Sector</p>
-                        <p className="font-medium capitalize">{client.industry_sector.toLowerCase()}</p>
-                      </div>
-                    )}
-                    {client.approximate_budget && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Presupuesto aproximado</p>
-                        <p className="font-semibold">{formatCurrency(client.approximate_budget)}</p>
-                      </div>
-                    )}
-                    {client.number_of_locations && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Número de ubicaciones</p>
-                        <p className="font-medium">{client.number_of_locations}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                {(client.tax_id || client.industry_sector || client.approximate_budget || client.number_of_locations) && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        Información
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2.5 text-sm pb-4">
+                      {client.tax_id && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-0.5">NIF / CIF</p>
+                          <p className="font-mono">{client.tax_id}</p>
+                        </div>
+                      )}
+                      {client.industry_sector && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-0.5">Sector</p>
+                          <p className="font-medium capitalize">{client.industry_sector.toLowerCase()}</p>
+                        </div>
+                      )}
+                      {client.approximate_budget && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-0.5">Presupuesto aproximado</p>
+                          <p className="font-semibold">{formatCurrency(client.approximate_budget)}</p>
+                        </div>
+                      )}
+                      {client.number_of_locations && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-0.5">Número de ubicaciones</p>
+                          <p className="font-medium">{client.number_of_locations}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Objetivos */}
                 {client.target_objectives && client.target_objectives.length > 0 && (
                   <Card>
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <Target className="h-4 w-4 text-muted-foreground" />
                         Objetivos
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pb-4">
                       <div className="flex flex-wrap gap-2">
                         {client.target_objectives.map((obj) => (
                           <Badge key={obj} variant="secondary" className="text-xs">
@@ -569,7 +573,7 @@ const ClientDetailPageDesktop = () => {
 
               {/* Columna derecha - Contenido de pestañas alineado con la columna izquierda */}
               <div className="lg:col-span-2">
-                <TabsContent value="dashboard" className="space-y-4 mt-0">
+                <TabsContent value="dashboard" className="mt-0">
                   <ClientDashboardTab 
                     client={client} 
                     isAdmin={isAdmin}
@@ -578,15 +582,15 @@ const ClientDetailPageDesktop = () => {
                   />
                 </TabsContent>
 
-                <TabsContent value="projects" className="space-y-4 mt-0">
+                <TabsContent value="projects" className="mt-0">
                   <ClientProjectsTab clientId={client.id} />
                 </TabsContent>
 
-                <TabsContent value="quotes" className="space-y-4 mt-0">
+                <TabsContent value="quotes" className="mt-0">
                   <ClientQuotesTab clientId={client.id} />
                 </TabsContent>
 
-                <TabsContent value="invoices" className="space-y-4 mt-0">
+                <TabsContent value="invoices" className="mt-0">
                   <ClientInvoicesTab clientId={client.id} />
                 </TabsContent>
               </div>

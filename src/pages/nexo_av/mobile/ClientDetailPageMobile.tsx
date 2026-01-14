@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { 
   ShieldAlert, 
-  LayoutDashboard,
   FolderKanban,
   FileText,
   Receipt,
@@ -26,7 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -260,30 +259,32 @@ const ClientDetailPageMobile = () => {
     return value.toLocaleString("es-ES", { style: "currency", currency: "EUR" });
   };
 
+  // Consolidar información en una sola tarjeta compacta
+  const hasContactInfo = client.contact_phone || client.contact_email || client.website;
+  const hasLocationInfo = client.billing_address || client.billing_city;
+  const hasAdditionalInfo = client.tax_id || client.industry_sector || client.approximate_budget || client.number_of_locations;
+
   return (
     <div className="flex flex-col h-full pb-20">
-      {/* Header sticky */}
-      <div className="sticky top-0 z-10 bg-background border-b p-4">
-        <div className="flex items-center gap-3 mb-3">
+      {/* Header sticky compacto */}
+      <div className="sticky top-0 z-10 bg-background border-b px-3 py-2.5">
+        <div className="flex items-center gap-2.5 mb-2">
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9"
+            className="h-8 w-8"
             onClick={() => navigate(`/nexo-av/${userId}/clients`)}
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <h1 className="font-semibold text-base truncate">{client.company_name}</h1>
-            </div>
-            <div className="flex items-center gap-2">
+            <h1 className="font-semibold text-sm truncate leading-tight">{client.company_name}</h1>
+            <div className="flex items-center gap-1.5 mt-0.5">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild disabled={updatingStatus}>
                   <button 
                     className={cn(
-                      "text-xs px-2 py-0.5 rounded-full border transition-colors",
+                      "text-[10px] px-2 py-0.5 rounded-full border transition-colors",
                       stageInfo.color,
                       updatingStatus && "opacity-50"
                     )}
@@ -297,12 +298,12 @@ const ClientDetailPageMobile = () => {
                       key={stage.value}
                       onClick={() => handleStatusChange(stage.value)}
                       className={cn(
-                        "cursor-pointer py-3",
+                        "cursor-pointer py-2.5",
                         stage.value === client.lead_stage && 'bg-accent'
                       )}
                     >
-                      <span className={cn("inline-block w-2.5 h-2.5 rounded-full mr-3", stage.color.split(' ')[0])} />
-                      <span>{stage.label}</span>
+                      <span className={cn("inline-block w-2 h-2 rounded-full mr-2.5", stage.color.split(' ')[0])} />
+                      <span className="text-sm">{stage.label}</span>
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -312,24 +313,24 @@ const ClientDetailPageMobile = () => {
           <Button
             size="icon"
             variant="outline"
-            className="h-9 w-9"
+            className="h-8 w-8"
             onClick={() => setEditDialogOpen(true)}
           >
-            <Edit className="h-4 w-4" />
+            <Edit className="h-3.5 w-3.5" />
           </Button>
         </div>
 
-        {/* Acciones rápidas */}
-        <div className="flex items-center gap-2 mt-3">
+        {/* Acciones rápidas compactas */}
+        <div className="flex items-center gap-1.5">
           {client.contact_phone && (
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 gap-2"
+              className="flex-1 h-8 text-xs gap-1.5"
               asChild
             >
               <a href={`tel:${client.contact_phone}`}>
-                <PhoneCall className="h-4 w-4" />
+                <PhoneCall className="h-3.5 w-3.5" />
                 Llamar
               </a>
             </Button>
@@ -338,11 +339,11 @@ const ClientDetailPageMobile = () => {
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 gap-2"
+              className="flex-1 h-8 text-xs gap-1.5"
               asChild
             >
               <a href={`mailto:${client.contact_email}`}>
-                <Send className="h-4 w-4" />
+                <Send className="h-3.5 w-3.5" />
                 Email
               </a>
             </Button>
@@ -350,151 +351,145 @@ const ClientDetailPageMobile = () => {
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 gap-2"
+            className="flex-1 h-8 text-xs gap-1.5"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
             Tarea
           </Button>
         </div>
       </div>
 
-      {/* Content scrollable */}
-      <div className="flex-1 overflow-auto p-4 space-y-4">
-        {/* Información destacada */}
+      {/* Content scrollable - Simplificado */}
+      <div className="flex-1 overflow-auto px-3 py-3 space-y-2.5">
+        {/* Tarjeta consolidada de información principal */}
         <Card>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-2 gap-3">
+          <CardContent className="p-3 space-y-2.5">
+            {/* Información destacada en grid compacto */}
+            <div className="grid grid-cols-2 gap-2.5 pb-2.5 border-b">
               {client.approximate_budget && (
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Presupuesto</p>
-                  <p className="text-lg font-bold">{formatCurrency(client.approximate_budget)}</p>
+                  <p className="text-[10px] text-muted-foreground mb-0.5">Presupuesto</p>
+                  <p className="text-sm font-semibold">{formatCurrency(client.approximate_budget)}</p>
                 </div>
               )}
               {client.industry_sector && (
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Sector</p>
-                  <p className="text-sm font-medium capitalize">{client.industry_sector.toLowerCase()}</p>
+                  <p className="text-[10px] text-muted-foreground mb-0.5">Sector</p>
+                  <p className="text-xs font-medium capitalize">{client.industry_sector.toLowerCase()}</p>
+                </div>
+              )}
+              {client.tax_id && (
+                <div>
+                  <p className="text-[10px] text-muted-foreground mb-0.5">NIF/CIF</p>
+                  <p className="text-xs font-mono">{client.tax_id}</p>
+                </div>
+              )}
+              {client.number_of_locations && (
+                <div>
+                  <p className="text-[10px] text-muted-foreground mb-0.5">Ubicaciones</p>
+                  <p className="text-xs font-medium">{client.number_of_locations}</p>
                 </div>
               )}
             </div>
+
+            {/* Contacto compacto */}
+            {hasContactInfo && (
+              <div className="space-y-1.5 pt-2.5">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Contacto</p>
+                <div className="space-y-1.5">
+                  {client.contact_phone && (
+                    <a
+                      href={`tel:${client.contact_phone}`}
+                      className="flex items-center gap-2 text-primary active:opacity-70 text-xs"
+                    >
+                      <Phone className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{client.contact_phone}</span>
+                    </a>
+                  )}
+                  {client.contact_email && (
+                    <a
+                      href={`mailto:${client.contact_email}`}
+                      className="flex items-center gap-2 text-primary active:opacity-70 text-xs break-all"
+                    >
+                      <Mail className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{client.contact_email}</span>
+                    </a>
+                  )}
+                  {client.website && (
+                    <a
+                      href={client.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-primary active:opacity-70 text-xs break-all"
+                    >
+                      <Globe className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate flex-1">{client.website}</span>
+                      <ExternalLink className="h-3 w-3 shrink-0" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Ubicación compacta */}
+            {hasLocationInfo && (
+              <div className="space-y-1 pt-2.5 border-t">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Ubicación</p>
+                <div className="space-y-0.5">
+                  {client.billing_address && (
+                    <p className="text-xs font-medium">{client.billing_address}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {[client.billing_postal_code, client.billing_city, client.billing_province]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Información adicional compacta */}
+            {hasAdditionalInfo && !client.tax_id && (
+              <div className="space-y-1 pt-2.5 border-t">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Información</p>
+                <div className="space-y-1.5">
+                  {client.industry_sector && !client.approximate_budget && (
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">Sector</p>
+                      <p className="text-xs font-medium capitalize">{client.industry_sector.toLowerCase()}</p>
+                    </div>
+                  )}
+                  {client.approximate_budget && !client.industry_sector && (
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">Presupuesto</p>
+                      <p className="text-xs font-semibold">{formatCurrency(client.approximate_budget)}</p>
+                    </div>
+                  )}
+                  {client.number_of_locations && (
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">Ubicaciones</p>
+                      <p className="text-xs font-medium">{client.number_of_locations}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Objetivos compactos */}
+            {client.target_objectives && client.target_objectives.length > 0 && (
+              <div className="pt-2.5 border-t">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-1.5">Objetivos</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {client.target_objectives.map((obj) => (
+                    <Badge key={obj} variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                      {obj}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
-
-        {/* Contacto */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              Contacto
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {client.contact_phone && (
-              <a
-                href={`tel:${client.contact_phone}`}
-                className="flex items-center gap-2 text-primary active:opacity-70"
-              >
-                <Phone className="h-4 w-4" />
-                {client.contact_phone}
-              </a>
-            )}
-            {client.contact_email && (
-              <a
-                href={`mailto:${client.contact_email}`}
-                className="flex items-center gap-2 text-primary active:opacity-70 break-all"
-              >
-                <Mail className="h-4 w-4 shrink-0" />
-                <span className="text-sm">{client.contact_email}</span>
-              </a>
-            )}
-            {client.website && (
-              <a
-                href={client.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-primary active:opacity-70 break-all"
-              >
-                <Globe className="h-4 w-4 shrink-0" />
-                <span className="text-sm">{client.website}</span>
-                <ExternalLink className="h-3 w-3 shrink-0" />
-              </a>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Dirección */}
-        {(client.billing_address || client.billing_city) && (
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Dirección
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {client.billing_address && <p className="font-medium mb-1">{client.billing_address}</p>}
-              <p className="text-sm text-muted-foreground">
-                {[client.billing_postal_code, client.billing_city, client.billing_province]
-                  .filter(Boolean)
-                  .join(", ")}
-              </p>
-              {client.billing_country && (
-                <p className="text-sm text-muted-foreground mt-1">{client.billing_country}</p>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Información adicional */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Briefcase className="h-4 w-4" />
-              Información
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {client.tax_id && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">NIF/CIF</p>
-                <p className="font-mono text-sm">{client.tax_id}</p>
-              </div>
-            )}
-            {client.legal_name && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Razón social</p>
-                <p className="text-sm font-medium">{client.legal_name}</p>
-              </div>
-            )}
-            {client.number_of_locations && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Número de ubicaciones</p>
-                <p className="text-sm font-medium">{client.number_of_locations}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Objetivos */}
-        {client.target_objectives && client.target_objectives.length > 0 && (
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                Objetivos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {client.target_objectives.map((obj) => (
-                  <Badge key={obj} variant="secondary" className="text-xs">
-                    {obj}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Tabs Navigation - Optimizado para móvil */}
         <DetailTabsMobile
@@ -507,23 +502,23 @@ const ClientDetailPageMobile = () => {
             { value: "invoices", label: "Facturas", icon: Receipt },
           ]}
         >
-          <TabsContent value="notes" className="mt-3">
+          <TabsContent value="notes" className="mt-2">
             <ClientNotesSection 
               clientId={client.id}
               canEdit={isAdmin || client.assigned_to === currentUserId}
-              compact={false}
+              compact={true}
             />
           </TabsContent>
 
-          <TabsContent value="projects" className="mt-3">
+          <TabsContent value="projects" className="mt-2">
             <ClientProjectsTab clientId={client.id} />
           </TabsContent>
 
-          <TabsContent value="quotes" className="mt-3">
+          <TabsContent value="quotes" className="mt-2">
             <ClientQuotesTab clientId={client.id} />
           </TabsContent>
 
-          <TabsContent value="invoices" className="mt-3">
+          <TabsContent value="invoices" className="mt-2">
             <ClientInvoicesTab clientId={client.id} />
           </TabsContent>
         </DetailTabsMobile>
