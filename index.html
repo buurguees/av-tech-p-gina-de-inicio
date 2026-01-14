@@ -361,6 +361,18 @@
 
   <body>
     <div id="root"></div>
+    <!-- Polyfill setup - must execute before any modules load -->
+    <script>
+      // Ensure global is available for Node.js-style libraries (exceljs, @react-pdf/renderer)
+      if (typeof window !== "undefined") {
+        if (!window.global) {
+          window.global = window;
+        }
+        if (!globalThis.global) {
+          globalThis.global = globalThis;
+        }
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

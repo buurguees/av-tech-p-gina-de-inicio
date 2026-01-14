@@ -23,12 +23,22 @@ export default defineConfig(({ mode }) => ({
     global: 'globalThis',
   },
   optimizeDeps: {
-    // Buffer removed - causes initialization issues
+    // Pre-bundle buffer para evitar problemas de inicialización
+    include: ['buffer'],
   },
   build: {
     outDir: "build",
     rollupOptions: {
       output: {
+        // Asegurar que react-vendor se cargue antes que vendor
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: (chunkInfo) => {
+          // React debe cargarse primero
+          if (chunkInfo.name === 'react-vendor') {
+            return 'assets/react-vendor-[hash].js';
+          }
+          return 'assets/[name]-[hash].js';
+        },
         manualChunks: (id) => {
           // IMPORTANTE: El orden importa. Primero las más específicas, luego las generales
           // Evitar dependencias circulares: no separar dependencias que comparten código común
@@ -106,10 +116,11 @@ export default defineConfig(({ mode }) => ({
             return 'lucide-icons';
           }
           
-          // Buffer y polyfills - mantener juntos para evitar ciclos
-          if (id.includes('buffer') || id.includes('process')) {
-            return 'polyfills';
-          }
+          // NOTA: NO separar buffer en su propio chunk - causa errores de inicialización
+          // Dejar buffer en vendor para que se inicialice correctamente
+          // if (id.includes('buffer') || id.includes('process')) {
+          //   return 'polyfills';
+          // }
           
           // Utilidades que NO dependen de React directamente
           // Agrupar en utils solo las que no causan dependencias circulares
