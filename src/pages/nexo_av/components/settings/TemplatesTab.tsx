@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import "@/polyfills/buffer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";

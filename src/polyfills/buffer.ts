@@ -1,14 +1,19 @@
-// Buffer polyfill - minimal setup for global context only
-// The actual Buffer is provided by the 'buffer' package when needed by libraries
+// Buffer polyfill - executed once at app startup
+// This ensures global and Buffer are available before any modules load
 
-// Ensure global is available (required by some Node.js-style libraries)
-if (typeof globalThis !== "undefined" && typeof (globalThis as any).global === "undefined") {
-  (globalThis as any).global = globalThis;
+if (typeof window !== "undefined") {
+  // Set up global reference (required by Node.js-style libraries)
+  if (!(window as any).global) {
+    (window as any).global = window;
+  }
+  
+  if (!(globalThis as any).global) {
+    (globalThis as any).global = globalThis;
+  }
+  
+  // Buffer will be provided by the 'buffer' package polyfill in the vendor bundle
+  // We don't import it here to avoid initialization order conflicts
+  // The bundle's polyfills will set window.Buffer when needed
 }
 
-if (typeof window !== "undefined" && typeof (window as any).global === "undefined") {
-  (window as any).global = window;
-}
-
-// Note: Do NOT import Buffer here to avoid initialization order issues
-// Libraries like @react-pdf/renderer will import buffer themselves when needed
+export {};

@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import '@/polyfills/buffer';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
