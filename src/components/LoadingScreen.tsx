@@ -9,12 +9,19 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
+    // Simplified timer - just call the callback after delay
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onLoadingComplete, 500); // Wait for fade out animation
     }, 2000);
+    
+    const completeTimer = setTimeout(() => {
+      onLoadingComplete();
+    }, 2500); // Wait for fade out animation
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(completeTimer);
+    };
   }, [onLoadingComplete]);
 
   return (
