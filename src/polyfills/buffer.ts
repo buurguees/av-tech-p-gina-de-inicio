@@ -1,26 +1,26 @@
 // Buffer polyfill for libraries that require it (like @react-pdf/renderer, exceljs)
-// This must be imported at the entry point (main.tsx) before any other imports
+// Simplified approach - just re-export buffer and set globals
 
-import { Buffer as BufferPolyfill } from "buffer";
+import { Buffer } from "buffer";
 
-declare global {
-  interface Window {
-    Buffer: typeof BufferPolyfill;
-    global: typeof globalThis;
+// Ensure global is available
+if (typeof globalThis !== "undefined" && !(globalThis as any).global) {
+  (globalThis as any).global = globalThis;
+}
+
+// Ensure Buffer is globally available
+if (typeof globalThis !== "undefined" && !(globalThis as any).Buffer) {
+  (globalThis as any).Buffer = Buffer;
+}
+
+// Also set on window for browser compatibility
+if (typeof window !== "undefined") {
+  if (!(window as any).global) {
+    (window as any).global = window;
+  }
+  if (!(window as any).Buffer) {
+    (window as any).Buffer = Buffer;
   }
 }
 
-// Set up global references for browser environment
-if (typeof window !== "undefined") {
-  (window as any).global = (window as any).global || window;
-  (window as any).Buffer = (window as any).Buffer || BufferPolyfill;
-}
-
-// Also set on globalThis for module compatibility
-if (typeof globalThis !== "undefined") {
-  (globalThis as any).global = (globalThis as any).global || globalThis;
-  (globalThis as any).Buffer = (globalThis as any).Buffer || BufferPolyfill;
-}
-
-export { BufferPolyfill as Buffer };
-
+export { Buffer };
