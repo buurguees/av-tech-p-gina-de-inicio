@@ -18,9 +18,9 @@ const LeadMapSidebar = ({ stats, clients, onClientSelect }: LeadMapSidebarProps)
   const totalLeads = stats.reduce((sum, s) => sum + s.count, 0);
 
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="h-full w-full flex flex-col gap-4">
       {/* Stats */}
-      <Card>
+      <Card className="shadow-none">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">Leads por Estado</CardTitle>
         </CardHeader>
@@ -49,7 +49,7 @@ const LeadMapSidebar = ({ stats, clients, onClientSelect }: LeadMapSidebarProps)
       </Card>
 
       {/* Clients list */}
-      <Card className="flex-1 flex flex-col min-h-0">
+      <Card className="flex-1 flex flex-col min-h-0 shadow-none">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Users size={14} />
@@ -62,7 +62,7 @@ const LeadMapSidebar = ({ stats, clients, onClientSelect }: LeadMapSidebarProps)
               {allClients.map((client) => (
                 <button
                   key={client.id}
-                  className="w-full text-left p-3 rounded-md hover:bg-secondary transition-colors border border-border/50"
+                  className="w-full text-left p-3 rounded-md hover:bg-secondary transition-colors border border-border/50 shadow-none"
                   onClick={() => onClientSelect(client)}
                 >
                   {/* Nombre Comercial y Estado */}

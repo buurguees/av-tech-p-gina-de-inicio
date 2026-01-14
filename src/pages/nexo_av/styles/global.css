@@ -404,6 +404,197 @@ body.nexo-av-theme-dark ::-webkit-scrollbar-thumb:hover {
 }
 
 /* ============================================
+   LAYOUT CONTROLS - Ensure pages use 98% of available space
+   ============================================ */
+
+/* Force layout container to use 98% width */
+body.nexo-av-theme main > div[class*="w-[98%]"],
+body.nexo-av-theme-dark main > div[class*="w-[98%]"],
+body.nexo-av-theme main > div[style*="maxWidth"],
+body.nexo-av-theme-dark main > div[style*="maxWidth"] {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 98% !important;
+  max-width: none !important;
+}
+
+/* Allow pages to use full available space from layout */
+body.nexo-av-theme main > div[class*="w-[98%]"] > div,
+body.nexo-av-theme-dark main > div[class*="w-[98%]"] > div {
+  width: 100% !important;
+  height: 100% !important;
+  flex: 1 !important;
+}
+
+/* Override any page-level width restrictions */
+body.nexo-av-theme main > div[class*="w-[98%]"] > div > *,
+body.nexo-av-theme-dark main > div[class*="w-[98%]"] > div > * {
+  max-width: none !important;
+}
+
+/* Force all page containers to use 98% width - override w-[90%] and max-w-[1800px] */
+body.nexo-av-theme main [class*="w-[90%]"],
+body.nexo-av-theme-dark main [class*="w-[90%]"],
+body.nexo-av-theme main [class*="w-[95%]"],
+body.nexo-av-theme-dark main [class*="w-[95%]"],
+body.nexo-av-theme main div[class*="w-[90%]"],
+body.nexo-av-theme-dark main div[class*="w-[90%]"],
+body.nexo-av-theme main div[class*="w-[95%]"],
+body.nexo-av-theme-dark main div[class*="w-[95%]"] {
+  width: 98% !important;
+  max-width: none !important;
+}
+
+/* Remove max-width restrictions from page containers - more specific selectors */
+body.nexo-av-theme main [class*="max-w-[1800px]"],
+body.nexo-av-theme-dark main [class*="max-w-[1800px]"],
+body.nexo-av-theme main [class*="max-w-"],
+body.nexo-av-theme-dark main [class*="max-w-"],
+body.nexo-av-theme main div[class*="max-w-[1800px]"],
+body.nexo-av-theme-dark main div[class*="max-w-[1800px]"],
+body.nexo-av-theme main div[class*="max-w-"],
+body.nexo-av-theme-dark main div[class*="max-w-"] {
+  max-width: none !important;
+}
+
+/* Ensure all direct children of Outlet use full width */
+body.nexo-av-theme main > div > div > div > *:first-child,
+body.nexo-av-theme-dark main > div > div > div > *:first-child {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Override any nested containers with width restrictions */
+body.nexo-av-theme main > div > div > div > * [class*="w-[90%]"],
+body.nexo-av-theme-dark main > div > div > div > * [class*="w-[90%]"],
+body.nexo-av-theme main > div > div > div > * [class*="w-[95%]"],
+body.nexo-av-theme-dark main > div > div > div > * [class*="w-[95%]"],
+body.nexo-av-theme main > div > div > div > * div[class*="w-[90%]"],
+body.nexo-av-theme-dark main > div > div > div > * div[class*="w-[90%]"],
+body.nexo-av-theme main > div > div > div > * div[class*="w-[95%]"],
+body.nexo-av-theme-dark main > div > div > div > * div[class*="w-[95%]"] {
+  width: 98% !important;
+  max-width: none !important;
+}
+
+/* Override max-width in nested containers */
+body.nexo-av-theme main > div > div > div > * [class*="max-w-[1800px]"],
+body.nexo-av-theme-dark main > div > div > div > * [class*="max-w-[1800px]"],
+body.nexo-av-theme main > div > div > div > * div[class*="max-w-[1800px]"],
+body.nexo-av-theme-dark main > div > div > div > * div[class*="max-w-[1800px]"] {
+  max-width: none !important;
+}
+
+/* Force all page root containers to use 98% width */
+body.nexo-av-theme main > div > div > div > *,
+body.nexo-av-theme-dark main > div > div > div > * {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Override any width constraints in page components - most aggressive */
+body.nexo-av-theme main *[class*="w-[90%]"],
+body.nexo-av-theme-dark main *[class*="w-[90%]"],
+body.nexo-av-theme main *[class*="w-[95%]"],
+body.nexo-av-theme-dark main *[class*="w-[95%]"],
+body.nexo-av-theme main div[class*="w-[90%]"],
+body.nexo-av-theme-dark main div[class*="w-[90%]"],
+body.nexo-av-theme main div[class*="w-[95%]"],
+body.nexo-av-theme-dark main div[class*="w-[95%]"] {
+  width: 98% !important;
+  max-width: none !important;
+}
+
+body.nexo-av-theme main *[class*="max-w-[1800px]"],
+body.nexo-av-theme-dark main *[class*="max-w-[1800px]"],
+body.nexo-av-theme main div[class*="max-w-[1800px]"],
+body.nexo-av-theme-dark main div[class*="max-w-[1800px]"] {
+  max-width: none !important;
+}
+
+/* Ensure main element uses full available width */
+body.nexo-av-theme main,
+body.nexo-av-theme-dark main {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* ============================================
+   MAP LAYOUTS - Ensure proper space distribution
+   ============================================ */
+
+/* LeadMapPage - 60/40 split for map and sidebar */
+body.nexo-av-theme [class*="flex-1"][class*="flex"][class*="gap-4"] {
+  width: 100% !important;
+}
+
+body.nexo-av-theme [style*="width: '60%'"],
+body.nexo-av-theme-dark [style*="width: '60%'"] {
+  width: 60% !important;
+  flex: 0 0 60% !important;
+}
+
+body.nexo-av-theme [style*="width: '40%'"],
+body.nexo-av-theme-dark [style*="width: '40%'"] {
+  width: 40% !important;
+  flex: 0 0 40% !important;
+}
+
+/* Ensure map container uses full height */
+body.nexo-av-theme [class*="LeadMap"],
+body.nexo-av-theme-dark [class*="LeadMap"],
+body.nexo-av-theme div[class*="h-full"][class*="w-full"][class*="relative"],
+body.nexo-av-theme-dark div[class*="h-full"][class*="w-full"][class*="relative"] {
+  height: 100% !important;
+  width: 100% !important;
+  min-height: 500px !important;
+}
+
+/* Force LeadMapPage container to use full space */
+body.nexo-av-theme div[class*="w-full"][class*="flex"][class*="flex-col"],
+body.nexo-av-theme-dark div[class*="w-full"][class*="flex"][class*="flex-col"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Ensure flex containers in map pages use full width and height */
+body.nexo-av-theme div[class*="flex-1"][class*="flex"][class*="gap-4"],
+body.nexo-av-theme-dark div[class*="flex-1"][class*="flex"][class*="gap-4"] {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 500px !important;
+}
+
+/* Ensure MapContainer from Leaflet has proper height */
+body.nexo-av-theme .leaflet-container,
+body.nexo-av-theme-dark .leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  min-height: 500px !important;
+}
+
+/* ============================================
+   LEAD MAP SIDEBAR - Remove shadows
+   ============================================ */
+
+/* Remove shadows from LeadMapSidebar cards */
+body.nexo-av-theme [class*="LeadMapSidebar"] [class*="Card"],
+body.nexo-av-theme-dark [class*="LeadMapSidebar"] [class*="Card"],
+body.nexo-av-theme [class*="LeadMapSidebar"] .card,
+body.nexo-av-theme-dark [class*="LeadMapSidebar"] .card {
+  box-shadow: none !important;
+  shadow: none !important;
+}
+
+/* Remove shadows from client list buttons in LeadMapSidebar */
+body.nexo-av-theme [class*="LeadMapSidebar"] button[class*="rounded-md"],
+body.nexo-av-theme-dark [class*="LeadMapSidebar"] button[class*="rounded-md"] {
+  box-shadow: none !important;
+  shadow: none !important;
+}
+
+/* ============================================
    BASE STYLES
    ============================================ */
 

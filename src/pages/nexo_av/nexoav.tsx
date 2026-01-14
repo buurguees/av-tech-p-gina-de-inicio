@@ -223,11 +223,18 @@ const NexoAv = () => {
   const isDashboardRoute = location.pathname === `/nexo-av/${userId}/dashboard`;
   
   // Redirect mobile users from dashboard to lead-map
+  // También redirige si acceden directamente a la ruta base sin especificar página
   useEffect(() => {
-    if (isMobile && isDashboardRoute && userInfo && !loading && !accessDenied) {
-      navigate(`/nexo-av/${userId}/lead-map`, { replace: true });
+    if (isMobile && userInfo && !loading && !accessDenied && userId) {
+      const currentPath = location.pathname;
+      const basePath = `/nexo-av/${userId}`;
+      
+      // Si está en dashboard o en la ruta base exacta, redirigir a lead-map
+      if (isDashboardRoute || currentPath === basePath) {
+        navigate(`${basePath}/lead-map`, { replace: true });
+      }
     }
-  }, [isMobile, isDashboardRoute, userId, navigate, userInfo, loading, accessDenied]);
+  }, [isMobile, isDashboardRoute, userId, navigate, userInfo, loading, accessDenied, location.pathname]);
 
   // Function to get page title based on current route
   const getPageTitle = (pathname: string): string => {
@@ -237,9 +244,14 @@ const NexoAv = () => {
     
     // Exact matches
     if (pathname === `${basePath}/lead-map`) return "Mapa Comercial";
+    if (pathname === `${basePath}/client-map`) return "Mapa Clientes";
+    if (pathname === `${basePath}/project-map`) return "Mapa Proyectos";
+    if (pathname === `${basePath}/tech-map`) return "Mapa Técnicos";
     if (pathname === `${basePath}/clients`) return "Clientes";
     if (pathname === `${basePath}/quotes`) return "Presupuestos";
     if (pathname === `${basePath}/invoices`) return "Facturas";
+    if (pathname === `${basePath}/purchase-invoices`) return "Facturas de Compra";
+    if (pathname === `${basePath}/expenses`) return "Gastos";
     if (pathname === `${basePath}/projects`) return "Proyectos";
     if (pathname === `${basePath}/catalog`) return "Catálogo";
     if (pathname === `${basePath}/calculator`) return "Calculadora";

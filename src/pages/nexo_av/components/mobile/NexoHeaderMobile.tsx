@@ -77,11 +77,13 @@ const NexoHeaderMobile = ({
   };
 
   const handleHome = () => {
-    navigate(`/nexo-av/${userId}/dashboard`);
+    // En móvil, siempre redirigir al Mapa Comercial como página inicial
+    navigate(`/nexo-av/${userId}/lead-map`);
   };
 
   const handleLogoClick = () => {
-    navigate(`/nexo-av/${userId}/dashboard`);
+    // En móvil, siempre redirigir al Mapa Comercial como página inicial
+    navigate(`/nexo-av/${userId}/lead-map`);
   };
 
   const handleLogout = async () => {

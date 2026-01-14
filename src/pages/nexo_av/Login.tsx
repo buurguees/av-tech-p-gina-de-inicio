@@ -234,6 +234,7 @@ const Login = () => {
         const { data: userInfo } = await supabase.rpc('get_current_user_info');
         
         if (userInfo && userInfo.length > 0) {
+          // Móviles siempre van al Mapa Comercial como página inicial
           const targetPath = isMobile 
             ? `/nexo-av/${userInfo[0].user_id}/lead-map`
             : `/nexo-av/${userInfo[0].user_id}/dashboard`;
@@ -245,7 +246,7 @@ const Login = () => {
     };
     
     checkSession();
-  }, [navigate]);
+  }, [navigate, isMobile]);
 
   // Handle credentials submission
   const handleCredentialsSubmit = async (e: React.FormEvent) => {

@@ -404,9 +404,9 @@ const NexoAvLayout = () => {
       {isMobile ? (
         <>
           {/* En móvil, el contenido empieza después del header fijo */}
-          <div className="pt-[3.25rem]">
+          <div className="pt-[3.25rem]" style={{ height: 'calc(100vh - 3.25rem)' }}>
             {isDashboardRoute ? (
-              <main className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
+              <main className="w-[98%] h-[98%] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
                 <Suspense fallback={
                   <div className="flex items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
@@ -426,16 +426,18 @@ const NexoAvLayout = () => {
                 </Suspense>
               </main>
             ) : (
-              <main className="w-full">
-                <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
-                  <Outlet />
+              <main className="w-full h-full">
+                <div className="w-[98%] h-[98%] mx-auto flex flex-col" style={{ maxWidth: 'none', padding: '1%' }}>
+                  <div className="w-full h-full" style={{ maxWidth: 'none', width: '100%', height: '100%' }}>
+                    <Outlet />
+                  </div>
                 </div>
               </main>
             )}
           </div>
         </>
       ) : (
-        <div className="flex w-full h-screen pt-[3.25rem]">
+        <div className="flex w-full" style={{ height: 'calc(100vh - 3.25rem)' }}>
           {/* Sidebar para desktop - posición fija, no hace scroll */}
           <Sidebar 
             userId={userId}
@@ -445,9 +447,11 @@ const NexoAvLayout = () => {
           
           {/* Contenido principal - tiene scroll independiente */}
           {/* Añadimos margen izquierdo igual al ancho del sidebar para compensar el fixed */}
-          <main className="flex-1 min-w-0 ml-56 h-full overflow-y-auto">
-            <div className="w-[90%] max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
-              <Outlet />
+          <main className="flex-1 min-w-0 ml-56 h-full overflow-y-auto" style={{ width: 'calc(100% - 14rem)' }}>
+            <div className="w-[98%] h-[98%] mx-auto flex flex-col" style={{ maxWidth: 'none', padding: '1%' }}>
+              <div className="w-full h-full" style={{ maxWidth: 'none', width: '100%', height: '100%' }}>
+                <Outlet />
+              </div>
             </div>
           </main>
         </div>

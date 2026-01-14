@@ -249,9 +249,9 @@ const LeadMapPageDesktop = () => {
   const mappableLeads = clients.filter(c => c.latitude && c.longitude).length;
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col">
+    <div className="w-full flex flex-col" style={{ height: 'calc(100vh - 8rem)', minHeight: '600px' }}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div>
           <h1 className="text-xl font-semibold text-foreground">Mapa Comercial</h1>
           <p className="text-sm text-muted-foreground">
@@ -295,10 +295,23 @@ const LeadMapPageDesktop = () => {
         />
       )}
 
-      {/* Main content */}
-      <div className="flex-1 flex gap-4 min-h-0">
-        {/* Map */}
-        <div className={`flex-1 rounded-lg overflow-hidden border border-border ${isMobile ? 'h-full' : ''}`}>
+      {/* Main content - 60/40 split: Map gets 60%, Sidebar gets 40% */}
+      <div className="flex-1 flex gap-4 min-h-0 overflow-hidden" style={{ height: '100%', padding: '0 1%' }}>
+        {/* Map - 60% del espacio con márgenes */}
+        <div 
+          className="rounded-lg overflow-hidden border border-border flex-shrink-0" 
+          style={{ 
+            width: '58%', 
+            minWidth: '58%',
+            maxWidth: '58%',
+            flex: '0 0 58%',
+            height: '100%',
+            minHeight: '500px',
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
           <LeadMap
             clients={clients}
             selectedClient={selectedClient}
@@ -308,9 +321,18 @@ const LeadMapPageDesktop = () => {
           />
         </div>
 
-        {/* Sidebar - Desktop only */}
+        {/* Sidebar - Desktop only - 40% del espacio */}
         {!isMobile && (
-          <div className="w-80 flex-shrink-0">
+          <div 
+            className="flex-shrink-0 overflow-y-auto"
+            style={{ 
+              width: '40%', 
+              minWidth: '40%',
+              maxWidth: '40%',
+              flex: '0 0 40%',
+              height: '100%'
+            }}
+          >
             {selectedClient ? (
               <LeadDetailPanel
                 client={selectedClient}

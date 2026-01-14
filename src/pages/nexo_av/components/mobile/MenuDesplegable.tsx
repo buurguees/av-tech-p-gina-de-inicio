@@ -10,7 +10,8 @@ import {
   LogOut,
   X,
   Receipt,
-  FolderKanban
+  FolderKanban,
+  Lock
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -105,6 +106,14 @@ const MenuDesplegable = ({ userId, isAdmin, onClose, onLogout }: MenuDesplegable
   ];
 
   const handleItemClick = (item: any) => {
+    if (!item.available) {
+      toast({
+        title: "No disponible",
+        description: "Esta funcionalidad estará disponible próximamente.",
+        variant: "default",
+      });
+      return;
+    }
     if (item.onClick) {
       item.onClick();
       onClose();
@@ -156,26 +165,40 @@ const MenuDesplegable = ({ userId, isAdmin, onClose, onLogout }: MenuDesplegable
 
           {/* Menu Items */}
           <div className="max-h-[60vh] overflow-y-auto">
-            {menuItems
-              .filter((item) => item.available)
-              .map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleItemClick(item)}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-secondary transition-colors active:bg-secondary/80',
-                      item.className
-                    )}
-                  >
-                    <Icon className={cn('w-5 h-5', item.className || 'text-muted-foreground')} />
-                    <span className={cn('text-sm font-medium', item.className || 'text-foreground')}>
-                      {item.label}
-                    </span>
-                  </button>
-                );
-              })}
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isAvailable = item.available !== false;
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleItemClick(item)}
+                  disabled={!isAvailable}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors relative',
+                    isAvailable 
+                      ? 'hover:bg-secondary active:bg-secondary/80' 
+                      : 'opacity-50 cursor-not-allowed',
+                    item.className
+                  )}
+                  aria-disabled={!isAvailable}
+                >
+                  <Icon className={cn(
+                    'w-5 h-5', 
+                    item.className || (isAvailable ? 'text-muted-foreground' : 'text-muted-foreground/50')
+                  )} />
+                  <span className={cn(
+                    'text-sm font-medium flex-1', 
+                    item.className || (isAvailable ? 'text-foreground' : 'text-foreground/50')
+                  )}>
+                    {item.label}
+                  </span>
+                  {!isAvailable && (
+                    <Lock className="h-4 w-4 text-muted-foreground/50" />
+                  )}
+                </button>
+              );
+            })}
           </div>
         </motion.div>
       </motion.div>
