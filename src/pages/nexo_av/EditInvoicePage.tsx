@@ -103,16 +103,16 @@ const EditInvoicePage = () => {
     try {
       const { data, error } = await supabase.rpc("list_taxes", { p_tax_type: "sales" });
       if (error) throw error;
-      
+
       const options: TaxOption[] = (data || [])
         .filter((t: any) => t.is_active)
         .map((t: any) => ({
           value: t.rate,
           label: t.name,
         }));
-      
+
       setTaxOptions(options);
-      
+
       const defaultTax = (data || []).find((t: any) => t.is_default && t.is_active);
       if (defaultTax) {
         setDefaultTaxRate(defaultTax.rate);
@@ -136,9 +136,9 @@ const EditInvoicePage = () => {
       if (!invoiceData || invoiceData.length === 0) throw new Error("Factura no encontrada");
 
       const inv = Array.isArray(invoiceData) ? invoiceData[0] : invoiceData;
-      
+
       // Check if invoice is locked (using is_locked field or locked states)
-      const isLocked = inv.is_locked || LOCKED_FINANCE_INVOICE_STATES.includes(inv.status);
+      const isLocked = (inv.is_locked || LOCKED_FINANCE_INVOICE_STATES.includes(inv.status)) && inv.status !== 'DRAFT';
       if (isLocked) {
         toast({
           title: "Factura bloqueada",
@@ -167,7 +167,7 @@ const EditInvoicePage = () => {
       setDueDate(inv.due_date?.split("T")[0] || "");
 
       // Fetch invoice lines
-      const { data: linesData, error: linesError } = await supabase.rpc("get_invoice_lines", {
+      const { data: linesData, error: linesError } = await supabase.rpc("finance_get_invoice_lines", {
         p_invoice_id: invoiceId!,
       });
       if (linesError) throw linesError;
@@ -287,7 +287,7 @@ const EditInvoicePage = () => {
   const updateLine = (index: number, field: keyof InvoiceLine, value: any) => {
     const updatedLines = [...lines];
     const line = updatedLines[index];
-    
+
     updatedLines[index] = calculateLineValues({
       ...line,
       [field]: value,
@@ -300,7 +300,7 @@ const EditInvoicePage = () => {
     const updatedLines = [...lines];
     const currentLine = updatedLines[index];
     const currentQuantity = currentLine.quantity;
-    
+
     const lineData = {
       ...currentLine,
       concept: item.name,
@@ -309,7 +309,7 @@ const EditInvoicePage = () => {
       quantity: currentQuantity,
       isModified: currentLine.id ? true : currentLine.isModified,
     };
-    
+
     updatedLines[index] = calculateLineValues(lineData);
     setLines(updatedLines);
   };
@@ -333,7 +333,7 @@ const EditInvoicePage = () => {
     const visibleLines = getVisibleLines();
     const subtotal = visibleLines.reduce((acc, line) => acc + line.subtotal, 0);
     const total = visibleLines.reduce((acc, line) => acc + line.total, 0);
-    
+
     const taxesByRate: Record<number, { rate: number; amount: number; label: string }> = {};
     visibleLines.forEach((line) => {
       if (line.tax_amount !== 0) {
@@ -348,7 +348,7 @@ const EditInvoicePage = () => {
         taxesByRate[line.tax_rate].amount += line.tax_amount;
       }
     });
-    
+
     return {
       subtotal,
       taxes: Object.values(taxesByRate).sort((a, b) => b.rate - a.rate),
@@ -366,13 +366,13 @@ const EditInvoicePage = () => {
   // Helper: Parse input value (handles both . and , as decimal separator)
   const parseNumericInput = (value: string): number => {
     if (!value || value === '') return 0;
-    
+
     let cleaned = value.trim();
-    
+
     // Count dots and commas
     const dotCount = (cleaned.match(/\./g) || []).length;
     const commaCount = (cleaned.match(/,/g) || []).length;
-    
+
     // If there's a comma, it's definitely the decimal separator (European format)
     if (commaCount > 0) {
       // Remove all dots (thousand separators) and replace comma with dot for parsing
@@ -381,7 +381,7 @@ const EditInvoicePage = () => {
       // Single dot: check if it's likely a decimal (has digits after) or thousand separator
       const dotIndex = cleaned.indexOf('.');
       const afterDot = cleaned.substring(dotIndex + 1);
-      
+
       // If there are 1-2 digits after the dot, treat it as decimal separator
       // Otherwise, treat it as thousand separator
       if (afterDot.length <= 2 && /^\d+$/.test(afterDot)) {
@@ -395,7 +395,7 @@ const EditInvoicePage = () => {
       // Multiple dots: all are thousand separators, remove them
       cleaned = cleaned.replace(/\./g, '');
     }
-    
+
     const num = parseFloat(cleaned);
     return isNaN(num) ? 0 : num;
   };
@@ -405,7 +405,7 @@ const EditInvoicePage = () => {
     if (value === '' || value === null || value === undefined) return '';
     const num = typeof value === 'string' ? parseNumericInput(value) : value;
     if (isNaN(num) || num === 0) return '';
-    
+
     // Format with thousand separators and comma decimal
     return new Intl.NumberFormat('es-ES', {
       minimumFractionDigits: 0,
@@ -414,33 +414,33 @@ const EditInvoicePage = () => {
   };
 
   // Helper: Handle numeric input change
-  const handleNumericInputChange = (value: string, field: 'quantity' | 'unit_price', realIndex: number) => {
+  const handleNumericInputChange = (value: string, field: 'quantity' | 'unit_price' | 'discount_percent', realIndex: number) => {
     const inputKey = `${realIndex}-${field}`;
-    
+
     // Store the raw input value for display
     setNumericInputValues(prev => ({ ...prev, [inputKey]: value }));
-    
+
     // Allow empty string for clearing
     if (value === '' || value === null || value === undefined) {
       updateLine(realIndex, field, 0);
       return;
     }
-    
+
     // Parse the value (handles both . and , as decimal separator)
     const numericValue = parseNumericInput(value);
     updateLine(realIndex, field, numericValue);
   };
 
   // Get display value for numeric input
-  const getNumericDisplayValue = (value: number, field: 'quantity' | 'unit_price', realIndex: number): string => {
+  const getNumericDisplayValue = (value: number, field: 'quantity' | 'unit_price' | 'discount_percent', realIndex: number): string => {
     const inputKey = `${realIndex}-${field}`;
     const storedValue = numericInputValues[inputKey];
-    
+
     // If user is typing, show what they're typing
     if (storedValue !== undefined) {
       return storedValue;
     }
-    
+
     // Otherwise format the numeric value
     if (value === 0) return '';
     return formatNumericDisplay(value);
@@ -605,18 +605,18 @@ const EditInvoicePage = () => {
 
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                 <Label className="text-white/70 text-[10px] md:text-sm">Proyecto</Label>
-                <Select 
-                  value={selectedProjectId} 
+                <Select
+                  value={selectedProjectId}
                   onValueChange={setSelectedProjectId}
                   disabled={!selectedClientId || loadingProjects}
                 >
                   <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 md:h-10 text-xs md:text-sm rounded-xl transition-all hover:bg-white/15">
                     <SelectValue placeholder={
-                      !selectedClientId 
-                        ? "Cliente primero" 
-                        : loadingProjects 
-                          ? "Cargando..." 
-                          : projects.length === 0 
+                      !selectedClientId
+                        ? "Cliente primero"
+                        : loadingProjects
+                          ? "Cargando..."
+                          : projects.length === 0
                             ? "Sin proyectos"
                             : "Seleccionar"
                     } />
@@ -675,15 +675,15 @@ const EditInvoicePage = () => {
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
-                  
+
                   <ProductSearchInput
                     value={line.concept}
                     onChange={(value) => updateLine(realIndex, "concept", value)}
                     onSelectItem={(item) => handleProductSelect(realIndex, item)}
                     placeholder="Concepto o @buscar"
                   />
-                  
-                  <div className="grid grid-cols-3 gap-2">
+
+                  <div className="grid grid-cols-4 gap-2">
                     <div className="space-y-1">
                       <Label className="text-white/50 text-[9px]">Cant.</Label>
                       <Input
@@ -706,6 +706,17 @@ const EditInvoicePage = () => {
                       />
                     </div>
                     <div className="space-y-1">
+                      <Label className="text-white/50 text-[9px]">Dto %</Label>
+                      <Input
+                        type="number"
+                        value={line.discount_percent}
+                        onChange={(e) => updateLine(realIndex, "discount_percent", parseFloat(e.target.value) || 0)}
+                        className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
+                        min="0"
+                        max="100"
+                      />
+                    </div>
+                    <div className="space-y-1">
                       <Label className="text-white/50 text-[9px]">IVA</Label>
                       <Select
                         value={line.tax_rate.toString()}
@@ -724,14 +735,14 @@ const EditInvoicePage = () => {
                       </Select>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-end pt-1 border-t border-white/10">
                     <span className="text-white font-medium text-xs">{formatCurrency(line.total)}</span>
                   </div>
                 </div>
               );
             })}
-            
+
             <Button
               variant="outline"
               onClick={addLine}
@@ -756,6 +767,7 @@ const EditInvoicePage = () => {
                     <TableHead className="text-white/80 min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
                     <TableHead className="text-white/80 text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>
                     <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Precio</TableHead>
+                    <TableHead className="text-white/80 text-center w-20 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Dto %</TableHead>
                     <TableHead className="text-white/80 w-36 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Impuestos</TableHead>
                     <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Total</TableHead>
                     <TableHead className="text-white/60 w-14 px-5 py-3"></TableHead>
@@ -765,8 +777,8 @@ const EditInvoicePage = () => {
                   {visibleLines.map((line, index) => {
                     const realIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
                     return (
-                      <TableRow 
-                        key={line.tempId || line.id} 
+                      <TableRow
+                        key={line.tempId || line.id}
                         className="border-white/5 hover:bg-white/[0.04] transition-colors duration-150 group"
                       >
                         <TableCell className="text-white/20 group-hover:text-white/40 px-5 py-3.5 transition-colors">
@@ -817,6 +829,24 @@ const EditInvoicePage = () => {
                             }}
                             className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-right font-medium px-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
                             placeholder="0,00"
+                          />
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <Input
+                            type="text"
+                            inputMode="decimal"
+                            value={getNumericDisplayValue(line.discount_percent || 0, 'discount_percent', realIndex)}
+                            onChange={(e) => handleNumericInputChange(e.target.value, 'discount_percent', realIndex)}
+                            onBlur={() => {
+                              const inputKey = `${realIndex}-discount_percent`;
+                              setNumericInputValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[inputKey];
+                                return newValues;
+                              });
+                            }}
+                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                            placeholder="0"
                           />
                         </TableCell>
                         <TableCell className="px-5 py-3.5">

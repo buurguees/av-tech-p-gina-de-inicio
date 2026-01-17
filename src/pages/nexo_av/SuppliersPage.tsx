@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, lazy } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -49,12 +49,13 @@ function SuppliersPageDesktop() {
     const fetchSuppliers = useCallback(async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase.rpc("list_suppliers", {
+            const { data, error } = await supabase.rpc("list_suppliers" as any, {
                 p_search: debouncedSearch || null,
+                p_page_size: 1000,
             });
 
             if (error) throw error;
-            setSuppliers(data || []);
+            setSuppliers((data as any) || []);
         } catch (err) {
             console.error("Error fetching suppliers:", err);
         } finally {
@@ -247,9 +248,12 @@ export default function SuppliersPage() {
 
     if (isMobile) {
         return (
-            <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-                <SuppliersPageMobile />
-            </Suspense>
+            <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                    <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">Versión móvil en desarrollo</p>
+                </div>
+            </div>
         );
     }
 

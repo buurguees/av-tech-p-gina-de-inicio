@@ -62,7 +62,7 @@ const getStatusInfo = (status: string) => {
 const ProjectsPageDesktop = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
-  
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
@@ -130,10 +130,10 @@ const ProjectsPageDesktop = () => {
 
   const sortedProjects = [...projects].sort((a, b) => {
     if (!sortColumn) return 0;
-    
+
     let aValue: any;
     let bValue: any;
-    
+
     switch (sortColumn) {
       case "number":
         aValue = a.project_number || "";
@@ -158,7 +158,7 @@ const ProjectsPageDesktop = () => {
       default:
         return 0;
     }
-    
+
     if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
     if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
     return 0;
@@ -187,6 +187,69 @@ const ProjectsPageDesktop = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
+                  <FolderKanban className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Proyectos Activos</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-3xl font-bold text-foreground">
+                  {projects.filter(p => p.status === 'IN_PROGRESS').length}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2">en ejecución</span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-600">
+                  <FolderKanban className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Planificados</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-3xl font-bold text-foreground">
+                  {projects.filter(p => p.status === 'PLANNED').length}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2">pendientes de inicio</span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+                  <FolderKanban className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Completados</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-3xl font-bold text-foreground">
+                  {projects.filter(p => p.status === 'COMPLETED').length}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2">histórico total</span>
+              </div>
+            </motion.div>
+          </div>
+
           {/* Header - Estilo Holded */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -194,7 +257,7 @@ const ProjectsPageDesktop = () => {
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">Proyectos</h1>
                 <Info className="h-4 w-4 text-muted-foreground" />
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -264,7 +327,7 @@ const ProjectsPageDesktop = () => {
                           className="border-white/30 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
                         />
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("number")}
                       >
@@ -275,7 +338,7 @@ const ProjectsPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("client")}
                       >
@@ -286,7 +349,7 @@ const ProjectsPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("name")}
                       >
@@ -298,7 +361,7 @@ const ProjectsPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead className="text-white/70">Pedido</TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("status")}
                       >
@@ -309,7 +372,7 @@ const ProjectsPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("city")}
                       >
@@ -379,7 +442,7 @@ const ProjectsPageDesktop = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   className="text-white hover:bg-white/10"
                                   onClick={(e) => {
                                     e.stopPropagation();

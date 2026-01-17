@@ -27,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Loader2, FileText, Plus, MoreVertical, ChevronUp, ChevronDown, Info, Calendar, Filter } from "lucide-react";
+import { Search, Loader2, FileText, Plus, MoreVertical, ChevronUp, ChevronDown, Info, Calendar, Filter, AlertCircle, CheckCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -74,7 +74,7 @@ const InvoicesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
-  
+
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [searchInput, setSearchInput] = useState("");
@@ -153,10 +153,10 @@ const InvoicesPageDesktop = () => {
 
   const sortedInvoices = [...invoices].sort((a, b) => {
     if (!sortColumn) return 0;
-    
+
     let aValue: any;
     let bValue: any;
-    
+
     switch (sortColumn) {
       case "date":
         aValue = a.issue_date ? new Date(a.issue_date).getTime() : 0;
@@ -185,7 +185,7 @@ const InvoicesPageDesktop = () => {
       default:
         return 0;
     }
-    
+
     if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
     if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
     return 0;
@@ -208,12 +208,98 @@ const InvoicesPageDesktop = () => {
 
   return (
     <div className="w-full">
-        <div className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pb-4 md:pb-8">
+      <div className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
+          {/* Summary Metric Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-zinc-900/50 border border-white/10 rounded-xl p-4 flex flex-col justify-between"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <span className="text-white/60 text-sm font-medium">Facturado este mes</span>
+              </div>
+              <div>
+                <span className="text-2xl font-bold text-white">
+                  {formatCurrency(invoices
+                    .filter(inv => {
+                      if (!inv.issue_date) return false;
+                      const d = new Date(inv.issue_date);
+                      const now = new Date();
+                      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                    })
+                    .reduce((sum, inv) => sum + (inv.total || 0), 0)
+                  )}
+                </span>
+                <div className="flex items-center gap-1 mt-1 text-xs text-white/40">
+                  <span>Volumen mensual actual</span>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-zinc-900/50 border border-white/10 rounded-xl p-4 flex flex-col justify-between"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
+                  <CheckCircle className="h-5 w-5" />
+                </div>
+                <span className="text-white/60 text-sm font-medium">Pendiente de Cobro</span>
+              </div>
+              <div>
+                <span className="text-2xl font-bold text-white">
+                  {formatCurrency(invoices
+                    .filter(inv => inv.status !== 'PAID' && inv.status !== 'DRAFT' && inv.status !== 'CANCELLED')
+                    .reduce((sum, inv) => sum + (inv.total || 0), 0)
+                  )}
+                </span>
+                <div className="flex items-center gap-1 mt-1 text-xs text-blue-400">
+                  <span>{invoices.filter(inv => inv.status !== 'PAID' && inv.status !== 'DRAFT' && inv.status !== 'CANCELLED').length} facturas pendientes</span>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-zinc-900/50 border border-white/10 rounded-xl p-4 flex flex-col justify-between"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-red-500/10 rounded-lg text-red-500">
+                  <AlertCircle className="h-5 w-5" />
+                </div>
+                <span className="text-white/60 text-sm font-medium">Vencido</span>
+              </div>
+              <div>
+                <span className="text-2xl font-bold text-red-500">
+                  {formatCurrency(invoices
+                    .filter(inv => {
+                      if (inv.status === 'PAID' || inv.status === 'DRAFT' || inv.status === 'CANCELLED') return false;
+                      if (!inv.due_date) return false;
+                      return new Date(inv.due_date) < new Date();
+                    })
+                    .reduce((sum, inv) => sum + (inv.total || 0), 0)
+                  )}
+                </span>
+                <div className="flex items-center gap-1 mt-1 text-xs text-red-400/80">
+                  <span>Requiere atención inmediata</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
           {/* Header - Estilo Holded */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -221,7 +307,7 @@ const InvoicesPageDesktop = () => {
                 <h1 className="text-2xl md:text-3xl font-bold text-white">Facturas</h1>
                 <Info className="h-4 w-4 text-white/40" />
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -278,7 +364,7 @@ const InvoicesPageDesktop = () => {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -287,7 +373,7 @@ const InvoicesPageDesktop = () => {
                 <Filter className="h-3 w-3 mr-1" />
                 Filtro
               </Button>
-              
+
               <div className="relative flex-1 min-w-[200px] max-w-md">
                 <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                 <Input
@@ -297,7 +383,7 @@ const InvoicesPageDesktop = () => {
                   className="pr-11 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-8 text-xs"
                 />
               </div>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -336,7 +422,7 @@ const InvoicesPageDesktop = () => {
                           className="border-white/30 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
                         />
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("date")}
                       >
@@ -347,7 +433,7 @@ const InvoicesPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("number")}
                       >
@@ -358,7 +444,7 @@ const InvoicesPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("client")}
                       >
@@ -369,7 +455,7 @@ const InvoicesPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("project")}
                       >
@@ -382,7 +468,7 @@ const InvoicesPageDesktop = () => {
                       </TableHead>
                       <TableHead className="text-white/70">Pedido</TableHead>
                       <TableHead className="text-white/70 text-right">Subtotal</TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 text-right cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("total")}
                       >
@@ -462,7 +548,7 @@ const InvoicesPageDesktop = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   className="text-white hover:bg-white/10"
                                   onClick={(e) => {
                                     e.stopPropagation();

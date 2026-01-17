@@ -140,13 +140,6 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           available: isAdmin || true, // Por ahora disponible para todos
         },
         {
-          id: 'suppliers',
-          title: 'Proveedores',
-          icon: Truck,
-          path: `/nexo-av/${userId}/suppliers`,
-          available: isAdmin || true, // Por ahora disponible para todos
-        },
-        {
           id: 'expenses',
           title: 'Gastos',
           icon: DollarSign,
@@ -172,6 +165,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
       icon: Wrench,
       path: `/nexo-av/${userId}/technicians`,
       available: getModule('projects')?.available || false,
+    },
+    {
+      id: 'suppliers',
+      title: 'Proveedores',
+      icon: Truck,
+      path: `/nexo-av/${userId}/suppliers`,
+      available: isAdmin || true, // Por ahora disponible para todos
     },
     {
       id: 'catalog',

@@ -228,7 +228,8 @@ const styles = StyleSheet.create({
   colConcept: { flex: 3 },
   colQuantity: { flex: 1, textAlign: "center" },
   colPrice: { flex: 1, textAlign: "right" },
-  colTax: { flex: 1, textAlign: "center" },
+  colDiscount: { flex: 0.8, textAlign: "center" },
+  colTax: { flex: 0.8, textAlign: "center" },
   colTotal: { flex: 1.2, textAlign: "right" },
   headerText: {
     fontSize: 8,
@@ -364,6 +365,7 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
   const taxes = groupTaxesByRate(lines);
   const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
   const total = lines.reduce((acc, line) => acc + line.total, 0);
+  const hasDiscount = lines.some((line) => line.discount_percent && line.discount_percent > 0.1);
 
   return (
     <Document>
@@ -474,27 +476,35 @@ const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<Quote
         {/* Table */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.headerText, styles.colConcept]}>CONCEPTO</Text>
-            <Text style={[styles.headerText, styles.colQuantity]}>CANTIDAD</Text>
+            <Text style={[styles.headerText, { flex: hasDiscount ? 2.5 : 3 }]}>CONCEPTO</Text>
+            <Text style={[styles.headerText, { flex: hasDiscount ? 0.8 : 1, textAlign: "center" }]}>CANTIDAD</Text>
             <Text style={[styles.headerText, styles.colPrice]}>PRECIO</Text>
+            {hasDiscount && (
+              <Text style={[styles.headerText, styles.colDiscount]}>DTO %</Text>
+            )}
             <Text style={[styles.headerText, styles.colTax]}>IVA</Text>
             <Text style={[styles.headerText, styles.colTotal]}>SUBTOTAL</Text>
           </View>
 
           {lines.map((line) => (
             <View key={line.id} style={styles.tableRow}>
-              <View style={styles.colConcept}>
+              <View style={{ flex: hasDiscount ? 2.5 : 3 }}>
                 <Text style={styles.cellText}>{line.concept}</Text>
                 {line.description && (
                   <Text style={styles.cellDescription}>{line.description}</Text>
                 )}
               </View>
-              <Text style={[styles.cellText, styles.colQuantity]}>
+              <Text style={[styles.cellText, { flex: hasDiscount ? 0.8 : 1, textAlign: "center" }]}>
                 {line.quantity}
               </Text>
               <Text style={[styles.cellText, styles.colPrice]}>
                 {formatCurrency(line.unit_price)}
               </Text>
+              {hasDiscount && (
+                <Text style={[styles.cellText, styles.colDiscount]}>
+                  {line.discount_percent > 0 ? `${line.discount_percent}%` : "-"}
+                </Text>
+              )}
               <Text style={[styles.cellText, styles.colTax]}>{line.tax_rate}%</Text>
               <Text style={[styles.cellText, styles.colTotal]}>
                 {formatCurrency(line.subtotal)}

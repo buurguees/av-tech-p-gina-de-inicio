@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  User, 
-  Bell, 
-  Settings, 
-  Shield, 
-  HelpCircle, 
+import {
+  User,
+  Bell,
+  Settings,
+  Shield,
+  HelpCircle,
   LogOut,
   X,
   Receipt,
   FolderKanban,
-  Lock
+  Lock,
+  Truck
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +35,13 @@ const MenuDesplegable = ({ userId, isAdmin, onClose, onLogout }: MenuDesplegable
       label: 'Facturas',
       icon: Receipt,
       path: `/nexo-av/${userId}/invoices`,
+      available: true,
+    },
+    {
+      id: 'suppliers',
+      label: 'Proveedores',
+      icon: Truck,
+      path: `/nexo-av/${userId}/suppliers`,
       available: true,
     },
     {
@@ -65,21 +73,21 @@ const MenuDesplegable = ({ userId, isAdmin, onClose, onLogout }: MenuDesplegable
     },
     ...(isAdmin
       ? [
-          {
-            id: 'settings',
-            label: 'Configuración',
-            icon: Settings,
-            path: `/nexo-av/${userId}/settings`,
-            available: true,
-          },
-          {
-            id: 'audit',
-            label: 'Auditoría',
-            icon: Shield,
-            path: `/nexo-av/${userId}/audit`,
-            available: true,
-          },
-        ]
+        {
+          id: 'settings',
+          label: 'Configuración',
+          icon: Settings,
+          path: `/nexo-av/${userId}/settings`,
+          available: true,
+        },
+        {
+          id: 'audit',
+          label: 'Auditoría',
+          icon: Shield,
+          path: `/nexo-av/${userId}/audit`,
+          available: true,
+        },
+      ]
       : []),
     {
       id: 'help',
@@ -168,7 +176,7 @@ const MenuDesplegable = ({ userId, isAdmin, onClose, onLogout }: MenuDesplegable
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isAvailable = item.available !== false;
-              
+
               return (
                 <button
                   key={item.id}
@@ -176,19 +184,19 @@ const MenuDesplegable = ({ userId, isAdmin, onClose, onLogout }: MenuDesplegable
                   disabled={!isAvailable}
                   className={cn(
                     'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors relative',
-                    isAvailable 
-                      ? 'hover:bg-secondary active:bg-secondary/80' 
+                    isAvailable
+                      ? 'hover:bg-secondary active:bg-secondary/80'
                       : 'opacity-50 cursor-not-allowed',
                     item.className
                   )}
                   aria-disabled={!isAvailable}
                 >
                   <Icon className={cn(
-                    'w-5 h-5', 
+                    'w-5 h-5',
                     item.className || (isAvailable ? 'text-muted-foreground' : 'text-muted-foreground/50')
                   )} />
                   <span className={cn(
-                    'text-sm font-medium flex-1', 
+                    'text-sm font-medium flex-1',
                     item.className || (isAvailable ? 'text-foreground' : 'text-foreground/50')
                   )}>
                     {item.label}

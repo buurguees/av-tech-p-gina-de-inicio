@@ -1,5 +1,5 @@
 // EditQuotePage - Quote editing with tax selector
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown, CheckCircle2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "./components/ProductSearchInput";
@@ -52,6 +52,7 @@ interface QuoteLine {
   tax_amount: number;
   total: number;
   line_order?: number;
+  group_name?: string;
   isNew?: boolean;
   isModified?: boolean;
   isDeleted?: boolean;
@@ -94,6 +95,8 @@ const EditQuotePage = () => {
   const [defaultTaxRate, setDefaultTaxRate] = useState(21);
   const [expandedDescriptionIndex, setExpandedDescriptionIndex] = useState<number | null>(null);
   const [numericInputValues, setNumericInputValues] = useState<Record<string, string>>({});
+  const [dirtyLines, setDirtyLines] = useState<Set<number>>(new Set());
+  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
 
   useEffect(() => {
     if (quoteId) {
@@ -150,14 +153,14 @@ const EditQuotePage = () => {
       });
       if (quoteError) throw quoteError;
       if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
-      
+
       const quoteInfo = quoteData[0];
-      
+
       // Set quote con todos los datos incluyendo project_id
       setQuote(quoteInfo);
       setSelectedClientId(quoteInfo.client_id);
       setCurrentStatus(quoteInfo.status);
-      
+
       // If status is DRAFT, calculate valid_until as today + 30 days
       // Otherwise, use the stored valid_until date
       if (quoteInfo.status === "DRAFT") {
@@ -174,12 +177,12 @@ const EditQuotePage = () => {
         p_quote_id: quoteId,
       });
       if (linesError) throw linesError;
-      
+
       setLines((linesData || []).map((line: any) => ({
         ...line,
         description: line.description || "",
       })));
-      
+
     } catch (error: any) {
       console.error("Error fetching quote:", error);
       toast({
@@ -226,16 +229,16 @@ const EditQuotePage = () => {
     try {
       const { data, error } = await supabase.rpc("list_taxes", { p_tax_type: "sales" });
       if (error) throw error;
-      
+
       const options: TaxOption[] = (data || [])
         .filter((t: any) => t.is_active)
         .map((t: any) => ({
           value: t.rate,
           label: t.name,
         }));
-      
+
       setTaxOptions(options);
-      
+
       const defaultTax = (data || []).find((t: any) => t.is_default && t.is_active);
       if (defaultTax) {
         setDefaultTaxRate(defaultTax.rate);
@@ -272,6 +275,57 @@ const EditQuotePage = () => {
     } as QuoteLine;
   };
 
+  const debounceRef = useRef<Record<string, NodeJS.Timeout>>({});
+
+  const autoSaveLine = async (line: QuoteLine) => {
+    // Only save if concept is present or it's an existing line being cleared (which might be valid? no, usually require concept)
+    if (!line.concept && !line.id) return;
+
+    // Use tempId or id as key
+    const uniqueKey = line.id || line.tempId || "unknown";
+
+    try {
+      // @ts-ignore
+      const { data: rpcData, error } = await supabase.rpc("auto_save_quote_line", {
+        p_line_id: line.id || null, // null for new
+        p_quote_id: quoteId,
+        p_concept: line.concept,
+        p_description: line.description || null,
+        p_quantity: line.quantity,
+        p_unit_price: line.unit_price,
+        p_tax_rate: line.tax_rate,
+        p_discount_percent: line.discount_percent,
+        p_group_name: line.group_name || null,
+        p_line_order: line.line_order // We will handle order separately usually, but can pass it if known
+      });
+
+      if (error) throw error;
+
+      // Update state if new line got an ID
+      const data = rpcData as any;
+      if (!line.id && data?.line_id) {
+        setLines(prev => prev.map(l => {
+          if (l.tempId === line.tempId) {
+            return { ...l, id: data.line_id, isNew: false, isModified: false };
+          }
+          return l;
+        }));
+      } else {
+        // Just clear isModified
+        setLines(prev => prev.map(l => {
+          if (l.id === line.id) {
+            return { ...l, isModified: false };
+          }
+          return l;
+        }));
+      }
+      setLastSavedTime(new Date());
+    } catch (err) {
+      console.error("Auto-save failed", err);
+    }
+  };
+
+
   const addLine = () => {
     const newLine = calculateLineValues({
       tempId: crypto.randomUUID(),
@@ -288,12 +342,22 @@ const EditQuotePage = () => {
 
   const updateLine = (index: number, field: keyof QuoteLine, value: any) => {
     const updatedLines = [...lines];
-    updatedLines[index] = calculateLineValues({
+    const updatedLine = calculateLineValues({
       ...updatedLines[index],
       [field]: value,
       isModified: !updatedLines[index].isNew,
     });
+    updatedLines[index] = updatedLine;
     setLines(updatedLines);
+
+    // Debounced Auto-Save
+    const uniqueKey = updatedLine.id || updatedLine.tempId;
+    if (uniqueKey) {
+      if (debounceRef.current[uniqueKey]) clearTimeout(debounceRef.current[uniqueKey]);
+      debounceRef.current[uniqueKey] = setTimeout(() => {
+        autoSaveLine(updatedLine);
+      }, 1000);
+    }
   };
 
   const handleProductSelect = (index: number, item: { id: string; type: string; name: string; code: string; price: number; tax_rate: number; description?: string }) => {
@@ -303,10 +367,10 @@ const EditQuotePage = () => {
     console.log('Item price:', item.price, typeof item.price);
     console.log('Item tax_rate:', item.tax_rate, typeof item.tax_rate);
     console.log('Item description:', item.description);
-    
+
     const updatedLines = [...lines];
     const currentQuantity = updatedLines[index].quantity;
-    
+
     const lineData = {
       ...updatedLines[index],
       concept: item.name,
@@ -316,13 +380,13 @@ const EditQuotePage = () => {
       quantity: currentQuantity,
       isModified: !updatedLines[index].isNew,
     };
-    
+
     console.log('Line data before calculate:', lineData);
-    
+
     updatedLines[index] = calculateLineValues(lineData);
-    
+
     console.log('Line after calculate:', updatedLines[index]);
-    
+
     setLines(updatedLines);
   };
 
@@ -346,7 +410,7 @@ const EditQuotePage = () => {
       const newLines = [...lines];
       const targetIndex = direction === 'up' ? index - 1 : index + 1;
       if (targetIndex < 0 || targetIndex >= newLines.length) return;
-      
+
       [newLines[index], newLines[targetIndex]] = [newLines[targetIndex], newLines[index]];
       setLines(newLines);
       return;
@@ -366,7 +430,7 @@ const EditQuotePage = () => {
         p_quote_id: quoteId!,
       });
       if (linesError) throw linesError;
-      
+
       setLines((linesData || []).map((l: any) => ({
         ...l,
         description: l.description || "",
@@ -385,7 +449,7 @@ const EditQuotePage = () => {
     const activeLines = lines.filter(l => !l.isDeleted);
     const subtotal = activeLines.reduce((acc, line) => acc + line.subtotal, 0);
     const total = activeLines.reduce((acc, line) => acc + line.total, 0);
-    
+
     // Group taxes by rate - this ensures each tax rate is shown separately
     const taxesByRate: Record<number, { rate: number; amount: number; label: string }> = {};
     activeLines.forEach((line) => {
@@ -403,7 +467,7 @@ const EditQuotePage = () => {
         taxesByRate[line.tax_rate].amount += line.tax_amount;
       }
     });
-    
+
     return {
       subtotal,
       taxes: Object.values(taxesByRate).sort((a, b) => b.rate - a.rate), // Sort by rate descending
@@ -421,13 +485,13 @@ const EditQuotePage = () => {
   // Helper: Parse input value (handles both . and , as decimal separator)
   const parseNumericInput = (value: string): number => {
     if (!value || value === '') return 0;
-    
+
     let cleaned = value.trim();
-    
+
     // Count dots and commas
     const dotCount = (cleaned.match(/\./g) || []).length;
     const commaCount = (cleaned.match(/,/g) || []).length;
-    
+
     // If there's a comma, it's definitely the decimal separator (European format)
     if (commaCount > 0) {
       // Remove all dots (thousand separators) and replace comma with dot for parsing
@@ -436,7 +500,7 @@ const EditQuotePage = () => {
       // Single dot: check if it's likely a decimal (has digits after) or thousand separator
       const dotIndex = cleaned.indexOf('.');
       const afterDot = cleaned.substring(dotIndex + 1);
-      
+
       // If there are 1-2 digits after the dot, treat it as decimal separator
       // Otherwise, treat it as thousand separator
       if (afterDot.length <= 2 && /^\d+$/.test(afterDot)) {
@@ -450,7 +514,7 @@ const EditQuotePage = () => {
       // Multiple dots: all are thousand separators, remove them
       cleaned = cleaned.replace(/\./g, '');
     }
-    
+
     const num = parseFloat(cleaned);
     return isNaN(num) ? 0 : num;
   };
@@ -460,7 +524,7 @@ const EditQuotePage = () => {
     if (value === '' || value === null || value === undefined) return '';
     const num = typeof value === 'string' ? parseNumericInput(value) : value;
     if (isNaN(num) || num === 0) return '';
-    
+
     // Format with thousand separators and comma decimal
     return new Intl.NumberFormat('es-ES', {
       minimumFractionDigits: 0,
@@ -469,33 +533,33 @@ const EditQuotePage = () => {
   };
 
   // Helper: Handle numeric input change
-  const handleNumericInputChange = (value: string, field: 'quantity' | 'unit_price', actualIndex: number) => {
+  const handleNumericInputChange = (value: string, field: 'quantity' | 'unit_price' | 'discount_percent', actualIndex: number) => {
     const inputKey = `${actualIndex}-${field}`;
-    
+
     // Store the raw input value for display
     setNumericInputValues(prev => ({ ...prev, [inputKey]: value }));
-    
+
     // Allow empty string for clearing
     if (value === '' || value === null || value === undefined) {
       updateLine(actualIndex, field, 0);
       return;
     }
-    
+
     // Parse the value (handles both . and , as decimal separator)
     const numericValue = parseNumericInput(value);
     updateLine(actualIndex, field, numericValue);
   };
 
   // Get display value for numeric input
-  const getNumericDisplayValue = (value: number, field: 'quantity' | 'unit_price', actualIndex: number): string => {
+  const getNumericDisplayValue = (value: number, field: 'quantity' | 'unit_price' | 'discount_percent', actualIndex: number): string => {
     const inputKey = `${actualIndex}-${field}`;
     const storedValue = numericInputValues[inputKey];
-    
+
     // If user is typing, show what they're typing
     if (storedValue !== undefined) {
       return storedValue;
     }
-    
+
     // Otherwise format the numeric value
     if (value === 0) return '';
     return formatNumericDisplay(value);
@@ -514,14 +578,14 @@ const EditQuotePage = () => {
     setSaving(true);
     const wasProvisional = quote?.quote_number.startsWith("BORR-");
     const isApproving = currentStatus === "APPROVED" && quote?.status !== "APPROVED";
-    
+
     try {
       // Update quote
       const selectedProject = projects.find(p => p.id === selectedProjectId);
-      
+
       // Calculate valid_until based on status
       let calculatedValidUntil: string | null = null;
-      
+
       if (currentStatus === "DRAFT") {
         // If in DRAFT status, always recalculate valid_until as today + 30 days
         const today = new Date();
@@ -534,7 +598,7 @@ const EditQuotePage = () => {
         // If not in DRAFT, use the date set by user (or existing date)
         calculatedValidUntil = validUntil || null;
       }
-      
+
       const { error: quoteError } = await supabase.rpc("update_quote", {
         p_quote_id: quoteId!,
         p_client_id: selectedClientId,
@@ -546,7 +610,7 @@ const EditQuotePage = () => {
 
       // Process lines (in order: delete, add, update)
       const lineIdsToOrder: string[] = [];
-      
+
       for (const line of lines) {
         if (line.isDeleted && line.id) {
           // Delete line
@@ -599,7 +663,7 @@ const EditQuotePage = () => {
         // Fetch the updated quote to get the new number
         const { data: updatedQuote } = await supabase.rpc("get_quote", { p_quote_id: quoteId });
         const newNumber = updatedQuote?.[0]?.quote_number || "asignado";
-        
+
         toast({
           title: "¡Presupuesto aprobado!",
           description: `Se ha asignado el número definitivo: ${newNumber}`,
@@ -716,18 +780,18 @@ const EditQuotePage = () => {
 
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                 <Label className="text-white/70 text-[10px] md:text-sm">Proyecto</Label>
-                <Select 
-                  value={selectedProjectId} 
+                <Select
+                  value={selectedProjectId}
                   onValueChange={setSelectedProjectId}
                   disabled={!selectedClientId || loadingProjects}
                 >
                   <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm">
                     <SelectValue placeholder={
-                      !selectedClientId 
-                        ? "Cliente primero" 
-                        : loadingProjects 
-                          ? "Cargando..." 
-                          : projects.length === 0 
+                      !selectedClientId
+                        ? "Cliente primero"
+                        : loadingProjects
+                          ? "Cargando..."
+                          : projects.length === 0
                             ? "Sin proyectos"
                             : "Seleccionar"
                     } />
@@ -821,22 +885,29 @@ const EditQuotePage = () => {
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
-                  
+
+                  <Input
+                    value={line.group_name || ''}
+                    onChange={(e) => updateLine(actualIndex, "group_name", e.target.value)}
+                    placeholder="Grupo (opcional)"
+                    className="bg-white/5 border-white/10 text-white/60 h-7 text-[10px] mb-2"
+                  />
+
                   <ProductSearchInput
                     value={line.concept}
                     onChange={(value) => updateLine(actualIndex, "concept", value)}
                     onSelectItem={(item) => handleProductSelect(actualIndex, item)}
                     placeholder="Concepto o @buscar"
                   />
-                  
+
                   <Input
                     value={line.description}
                     onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
                     placeholder="Descripción (opcional)"
                     className="bg-white/5 border-white/10 text-white/80 h-8 text-xs"
                   />
-                  
-                  <div className="grid grid-cols-3 gap-2">
+
+                  <div className="grid grid-cols-4 gap-2">
                     <div className="space-y-1">
                       <Label className="text-white/50 text-[9px]">Cant.</Label>
                       <Input
@@ -859,6 +930,17 @@ const EditQuotePage = () => {
                       />
                     </div>
                     <div className="space-y-1">
+                      <Label className="text-white/50 text-[9px]">Dto %</Label>
+                      <Input
+                        type="number"
+                        value={line.discount_percent}
+                        onChange={(e) => updateLine(actualIndex, "discount_percent", parseFloat(e.target.value) || 0)}
+                        className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
+                        min="0"
+                        max="100"
+                      />
+                    </div>
+                    <div className="space-y-1">
                       <Label className="text-white/50 text-[9px]">IVA</Label>
                       <Select
                         value={line.tax_rate.toString()}
@@ -877,7 +959,7 @@ const EditQuotePage = () => {
                       </Select>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center pt-2 border-t border-white/10">
                     <span className="text-white/50 text-[9px]">Subtotal</span>
                     <span className="text-white font-medium text-sm">{formatCurrency(line.subtotal)}</span>
@@ -885,7 +967,7 @@ const EditQuotePage = () => {
                 </div>
               );
             })}
-            
+
           </div>
 
           {/* Desktop Lines Table (same structure as NewQuotePage) */}
@@ -899,10 +981,12 @@ const EditQuotePage = () => {
                 <TableHeader>
                   <TableRow className="border-white/5 hover:bg-transparent bg-white/[0.03]">
                     <TableHead className="text-white/60 w-16 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
+                    <TableHead className="text-white/80 w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Grupo</TableHead>
                     <TableHead className="text-white/80 min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
                     <TableHead className="text-white/80 min-w-[250px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Descripción</TableHead>
                     <TableHead className="text-white/80 text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>
                     <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Precio</TableHead>
+                    <TableHead className="text-white/80 text-center w-20 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Dto %</TableHead>
                     <TableHead className="text-white/80 w-36 px-5 py-3 text-xs font-semibold uppercase tracking-wider">IVA</TableHead>
                     <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Subtotal</TableHead>
                     <TableHead className="text-white/60 w-14 px-5 py-3"></TableHead>
@@ -915,8 +999,8 @@ const EditQuotePage = () => {
                     const isFirst = displayIndex === 0;
                     const isLast = displayIndex === activeLines.length - 1;
                     return (
-                      <TableRow 
-                        key={line.id || line.tempId} 
+                      <TableRow
+                        key={line.id || line.tempId}
                         className="border-white/5 hover:bg-white/[0.04] transition-colors duration-150 group"
                       >
                         <TableCell className="px-5 py-3.5">
@@ -942,6 +1026,14 @@ const EditQuotePage = () => {
                               <ChevronDown className="h-3 w-3" />
                             </Button>
                           </div>
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <Input
+                            value={line.group_name || ''}
+                            onChange={(e) => updateLine(actualIndex, "group_name", e.target.value)}
+                            placeholder="Grupo"
+                            className="bg-transparent border-0 border-b border-white/10 text-white/70 h-auto text-sm pl-2 pr-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                          />
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
                           <ProductSearchInput
@@ -1014,9 +1106,27 @@ const EditQuotePage = () => {
                           />
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
+                          <Input
+                            type="text"
+                            inputMode="decimal"
+                            value={getNumericDisplayValue(line.discount_percent || 0, 'discount_percent' as any, actualIndex)}
+                            onChange={(e) => handleNumericInputChange(e.target.value, 'discount_percent' as any, actualIndex)}
+                            onBlur={() => {
+                              const inputKey = `${actualIndex}-discount_percent`;
+                              setNumericInputValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[inputKey];
+                                return newValues;
+                              });
+                            }}
+                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                            placeholder="0"
+                          />
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
                           <div className="flex justify-center">
-                            <Select 
-                              value={String(line.tax_rate)} 
+                            <Select
+                              value={String(line.tax_rate)}
                               onValueChange={(v) => updateLine(actualIndex, "tax_rate", parseFloat(v))}
                             >
                               <SelectTrigger className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium px-0 py-2 w-full hover:border-white/30 focus:border-orange-500/60 rounded-none shadow-none transition-colors">

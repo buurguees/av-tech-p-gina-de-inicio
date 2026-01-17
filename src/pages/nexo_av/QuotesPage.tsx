@@ -63,7 +63,7 @@ const QuotesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
-  
+
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
@@ -114,7 +114,7 @@ const QuotesPageDesktop = () => {
     if (target.closest('button') || target.closest('input') || target.closest('[role="menuitem"]')) {
       return;
     }
-    
+
     // Siempre navegar a la página de detalle
     navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
   };
@@ -143,7 +143,7 @@ const QuotesPageDesktop = () => {
 
     try {
       setDeleting(true);
-      
+
       // First, get quote lines to delete them
       const { data: linesData } = await supabase.rpc("get_quote_lines", {
         p_quote_id: quoteToDelete.id,
@@ -214,10 +214,10 @@ const QuotesPageDesktop = () => {
 
   const sortedQuotes = [...quotes].sort((a, b) => {
     if (!sortColumn) return 0;
-    
+
     let aValue: any;
     let bValue: any;
-    
+
     switch (sortColumn) {
       case "number":
         aValue = a.quote_number;
@@ -246,7 +246,7 @@ const QuotesPageDesktop = () => {
       default:
         return 0;
     }
-    
+
     if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
     if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
     return 0;
@@ -275,6 +275,80 @@ const QuotesPageDesktop = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+              className="bg-card/50 border border-white/10 rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-orange-500/10 rounded-lg text-orange-500 uppercase font-bold text-xs tracking-wider">
+                  Pipeline Activo
+                </div>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {formatCurrency(quotes
+                    .filter(q => q.status === 'SENT' || q.status === 'VIEWED' || q.status === 'PENDING')
+                    .reduce((sum, q) => sum + (q.total || 0), 0)
+                  )}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  en {quotes.filter(q => q.status === 'SENT' || q.status === 'VIEWED' || q.status === 'PENDING').length} presupuestos
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="bg-card/50 border border-white/10 rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-green-500/10 rounded-lg text-green-500 uppercase font-bold text-xs tracking-wider">
+                  Tasa de Aceptación
+                </div>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {(() => {
+                    const closed = quotes.filter(q => q.status === 'ACCEPTED' || q.status === 'REJECTED');
+                    if (closed.length === 0) return '0%';
+                    const won = closed.filter(q => q.status === 'ACCEPTED').length;
+                    return `${Math.round((won / closed.length) * 100)}%`;
+                  })()}
+                </span>
+                <span className="text-xs text-muted-foreground">de conversión global</span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+              className="bg-card/50 border border-white/10 rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500 uppercase font-bold text-xs tracking-wider">
+                  Ticket Medio
+                </div>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {formatCurrency(
+                    quotes.length > 0
+                      ? quotes.reduce((sum, q) => sum + (q.total || 0), 0) / quotes.length
+                      : 0
+                  )}
+                </span>
+                <span className="text-xs text-muted-foreground">por presupuesto</span>
+              </div>
+            </motion.div>
+          </div>
+
           {/* Header - Estilo Holded */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -282,7 +356,7 @@ const QuotesPageDesktop = () => {
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">Presupuestos</h1>
                 <Info className="h-4 w-4 text-muted-foreground" />
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -328,7 +402,7 @@ const QuotesPageDesktop = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="bg-zinc-900 border-white/10">
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => setStatusFilter(null)}
                     className={cn("text-white hover:bg-white/10", statusFilter === null && "bg-white/10")}
                   >
@@ -345,7 +419,7 @@ const QuotesPageDesktop = () => {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -354,7 +428,7 @@ const QuotesPageDesktop = () => {
                 <Filter className="h-3 w-3 mr-1" />
                 Filtro
               </Button>
-              
+
               <div className="relative flex-1 min-w-[200px] max-w-md">
                 <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                 <Input
@@ -364,7 +438,7 @@ const QuotesPageDesktop = () => {
                   className="pr-11 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-8 text-xs"
                 />
               </div>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -418,7 +492,7 @@ const QuotesPageDesktop = () => {
                           className="border-white/30 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
                         />
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("date")}
                       >
@@ -429,7 +503,7 @@ const QuotesPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("number")}
                       >
@@ -440,7 +514,7 @@ const QuotesPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("client")}
                       >
@@ -451,7 +525,7 @@ const QuotesPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("project")}
                       >
@@ -463,7 +537,7 @@ const QuotesPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead className="text-white/70">Estado</TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 text-right cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("total")}
                       >
@@ -534,7 +608,7 @@ const QuotesPageDesktop = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   className="text-white hover:bg-white/10"
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -544,7 +618,7 @@ const QuotesPageDesktop = () => {
                                   Ver detalle
                                 </DropdownMenuItem>
                                 {isDraft && (
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     className="text-white hover:bg-white/10"
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -559,7 +633,7 @@ const QuotesPageDesktop = () => {
                                   Duplicar
                                 </DropdownMenuItem>
                                 {isDraft && (
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     className="text-red-400 hover:bg-red-500/10"
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -609,7 +683,7 @@ const QuotesPageDesktop = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel 
+            <AlertDialogCancel
               className="bg-white/5 border-white/10 text-white hover:bg-white/10"
               disabled={deleting}
             >

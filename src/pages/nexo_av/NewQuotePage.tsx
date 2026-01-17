@@ -85,13 +85,13 @@ const NewQuotePage = () => {
   useEffect(() => {
     fetchClients();
     fetchSaleTaxes();
-    
+
     // Pre-select client from URL params
     const urlClientId = searchParams.get('clientId') || clientId;
     if (urlClientId) {
       setSelectedClientId(urlClientId);
     }
-    
+
     // Check if we're creating a new version from an existing quote
     const sourceQuoteId = searchParams.get('sourceQuoteId');
     if (sourceQuoteId) {
@@ -109,7 +109,7 @@ const NewQuotePage = () => {
       });
       if (quoteError) throw quoteError;
       if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
-      
+
       const quoteInfo = quoteData[0];
       setSourceQuoteNumber(quoteInfo.quote_number);
       setSelectedClientId(quoteInfo.client_id);
@@ -128,7 +128,7 @@ const NewQuotePage = () => {
         p_quote_id: sourceQuoteId,
       });
       if (linesError) throw linesError;
-      
+
       // Convert lines to our format with new tempIds
       const importedLines: QuoteLine[] = (linesData || []).map((line: any) => ({
         tempId: crypto.randomUUID(),
@@ -142,9 +142,9 @@ const NewQuotePage = () => {
         tax_amount: line.tax_amount,
         total: line.total,
       }));
-      
+
       setLines(importedLines);
-      
+
       toast({
         title: "Datos importados",
         description: `Se han cargado los datos del presupuesto ${quoteInfo.quote_number}`,
@@ -165,16 +165,16 @@ const NewQuotePage = () => {
     try {
       const { data, error } = await supabase.rpc("list_taxes", { p_tax_type: "sales" });
       if (error) throw error;
-      
+
       const options: TaxOption[] = (data || [])
         .filter((t: any) => t.is_active)
         .map((t: any) => ({
           value: t.rate,
           label: t.name,
         }));
-      
+
       setTaxOptions(options);
-      
+
       // Set default tax rate
       const defaultTax = (data || []).find((t: any) => t.is_default && t.is_active);
       if (defaultTax) {
@@ -292,10 +292,10 @@ const NewQuotePage = () => {
     console.log('Item price:', item.price, typeof item.price);
     console.log('Item tax_rate:', item.tax_rate, typeof item.tax_rate);
     console.log('Item description:', item.description);
-    
+
     const updatedLines = [...lines];
     const currentQuantity = updatedLines[index].quantity;
-    
+
     const lineData = {
       ...updatedLines[index],
       concept: item.name,
@@ -304,13 +304,13 @@ const NewQuotePage = () => {
       tax_rate: item.tax_rate || defaultTaxRate,
       quantity: currentQuantity,
     };
-    
+
     console.log('Line data before calculate:', lineData);
-    
+
     updatedLines[index] = calculateLineValues(lineData);
-    
+
     console.log('Line after calculate:', updatedLines[index]);
-    
+
     setLines(updatedLines);
   };
 
@@ -323,7 +323,7 @@ const NewQuotePage = () => {
     const newLines = [...lines];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= newLines.length) return;
-    
+
     [newLines[index], newLines[targetIndex]] = [newLines[targetIndex], newLines[index]];
     setLines(newLines);
   };
@@ -331,7 +331,7 @@ const NewQuotePage = () => {
   const getTotals = () => {
     const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
     const total = lines.reduce((acc, line) => acc + line.total, 0);
-    
+
     // Group taxes by rate - this ensures each tax rate is shown separately
     const taxesByRate: Record<number, { rate: number; amount: number; label: string }> = {};
     lines.forEach((line) => {
@@ -349,7 +349,7 @@ const NewQuotePage = () => {
         taxesByRate[line.tax_rate].amount += line.tax_amount;
       }
     });
-    
+
     return {
       subtotal,
       taxes: Object.values(taxesByRate).sort((a, b) => b.rate - a.rate), // Sort by rate descending
@@ -367,13 +367,13 @@ const NewQuotePage = () => {
   // Helper: Parse input value (handles both . and , as decimal separator)
   const parseNumericInput = (value: string): number => {
     if (!value || value === '') return 0;
-    
+
     let cleaned = value.trim();
-    
+
     // Count dots and commas
     const dotCount = (cleaned.match(/\./g) || []).length;
     const commaCount = (cleaned.match(/,/g) || []).length;
-    
+
     // If there's a comma, it's definitely the decimal separator (European format)
     if (commaCount > 0) {
       // Remove all dots (thousand separators) and replace comma with dot for parsing
@@ -382,7 +382,7 @@ const NewQuotePage = () => {
       // Single dot: check if it's likely a decimal (has digits after) or thousand separator
       const dotIndex = cleaned.indexOf('.');
       const afterDot = cleaned.substring(dotIndex + 1);
-      
+
       // If there are 1-2 digits after the dot, treat it as decimal separator
       // Otherwise, treat it as thousand separator
       if (afterDot.length <= 2 && /^\d+$/.test(afterDot)) {
@@ -396,7 +396,7 @@ const NewQuotePage = () => {
       // Multiple dots: all are thousand separators, remove them
       cleaned = cleaned.replace(/\./g, '');
     }
-    
+
     const num = parseFloat(cleaned);
     return isNaN(num) ? 0 : num;
   };
@@ -406,7 +406,7 @@ const NewQuotePage = () => {
     if (value === '' || value === null || value === undefined) return '';
     const num = typeof value === 'string' ? parseNumericInput(value) : value;
     if (isNaN(num) || num === 0) return '';
-    
+
     // Format with thousand separators and comma decimal
     return new Intl.NumberFormat('es-ES', {
       minimumFractionDigits: 0,
@@ -415,33 +415,33 @@ const NewQuotePage = () => {
   };
 
   // Helper: Handle numeric input change
-  const handleNumericInputChange = (value: string, field: 'quantity' | 'unit_price', index: number) => {
+  const handleNumericInputChange = (value: string, field: 'quantity' | 'unit_price' | 'discount_percent', index: number) => {
     const inputKey = `${index}-${field}`;
-    
+
     // Store the raw input value for display
     setNumericInputValues(prev => ({ ...prev, [inputKey]: value }));
-    
+
     // Allow empty string for clearing
     if (value === '' || value === null || value === undefined) {
       updateLine(index, field, 0);
       return;
     }
-    
+
     // Parse the value (handles both . and , as decimal separator)
     const numericValue = parseNumericInput(value);
     updateLine(index, field, numericValue);
   };
 
   // Get display value for numeric input
-  const getNumericDisplayValue = (value: number, field: 'quantity' | 'unit_price', index: number): string => {
+  const getNumericDisplayValue = (value: number, field: 'quantity' | 'unit_price' | 'discount_percent', index: number): string => {
     const inputKey = `${index}-${field}`;
     const storedValue = numericInputValues[inputKey];
-    
+
     // If user is typing, show what they're typing
     if (storedValue !== undefined) {
       return storedValue;
     }
-    
+
     // Otherwise format the numeric value
     if (value === 0) return '';
     return formatNumericDisplay(value);
@@ -465,7 +465,7 @@ const NewQuotePage = () => {
       const validUntilDate = new Date(today);
       validUntilDate.setDate(validUntilDate.getDate() + 30);
       const calculatedValidUntil = validUntilDate.toISOString().split("T")[0];
-      
+
       const selectedProject = projects.find(p => p.id === selectedProjectId);
       const { data: quoteData, error: quoteError } = await supabase.rpc(
         "create_quote_with_number",
@@ -554,8 +554,8 @@ const NewQuotePage = () => {
                 {sourceQuoteNumber ? "Nueva versión" : "Nuevo presupuesto"}
               </h1>
               <p className="text-muted-foreground text-[10px] md:text-sm hidden md:block">
-                {sourceQuoteNumber 
-                  ? `Basado en ${sourceQuoteNumber}` 
+                {sourceQuoteNumber
+                  ? `Basado en ${sourceQuoteNumber}`
                   : "El número se asignará automáticamente al guardar"}
               </p>
             </div>
@@ -601,18 +601,18 @@ const NewQuotePage = () => {
 
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                 <Label className="text-white/70 text-[10px] md:text-sm">Proyecto</Label>
-                <Select 
-                  value={selectedProjectId} 
+                <Select
+                  value={selectedProjectId}
                   onValueChange={setSelectedProjectId}
                   disabled={!selectedClientId || loadingProjects}
                 >
                   <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 md:h-10 text-xs md:text-sm rounded-xl transition-all hover:bg-white/15">
                     <SelectValue placeholder={
-                      !selectedClientId 
-                        ? "Cliente primero" 
-                        : loadingProjects 
-                          ? "Cargando..." 
-                          : projects.length === 0 
+                      !selectedClientId
+                        ? "Cliente primero"
+                        : loadingProjects
+                          ? "Cargando..."
+                          : projects.length === 0
                             ? "Sin proyectos"
                             : "Seleccionar"
                     } />
@@ -667,103 +667,114 @@ const NewQuotePage = () => {
               const isLast = index === lines.length - 1;
               return (
                 <div key={line.tempId || line.id} className="bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 p-3 space-y-2 shadow-xl shadow-black/20">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex flex-col gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => moveLine(index, 'up')}
-                        disabled={isFirst}
-                        className="h-5 w-5 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed p-0"
-                        title="Mover arriba"
-                      >
-                        <ChevronUp className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => moveLine(index, 'down')}
-                        disabled={isLast}
-                        className="h-5 w-5 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed p-0"
-                        title="Mover abajo"
-                      >
-                        <ChevronDown className="h-3 w-3" />
-                      </Button>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => moveLine(index, 'up')}
+                          disabled={isFirst}
+                          className="h-5 w-5 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed p-0"
+                          title="Mover arriba"
+                        >
+                          <ChevronUp className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => moveLine(index, 'down')}
+                          disabled={isLast}
+                          className="h-5 w-5 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed p-0"
+                          title="Mover abajo"
+                        >
+                          <ChevronDown className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <span className="text-orange-500/70 text-[10px] font-mono">Línea {index + 1}</span>
                     </div>
-                    <span className="text-orange-500/70 text-[10px] font-mono">Línea {index + 1}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeLine(index)}
+                      className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-6 w-6"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeLine(index)}
-                    className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-6 w-6"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-                
-                <ProductSearchInput
-                  value={line.concept}
-                  onChange={(value) => updateLine(index, "concept", value)}
-                  onSelectItem={(item) => handleProductSelect(index, item)}
-                  placeholder="Concepto o @buscar"
-                />
-                
+
+                  <ProductSearchInput
+                    value={line.concept}
+                    onChange={(value) => updateLine(index, "concept", value)}
+                    onSelectItem={(item) => handleProductSelect(index, item)}
+                    placeholder="Concepto o @buscar"
+                  />
+
                   <Input
                     value={line.description}
                     onChange={(e) => updateLine(index, "description", e.target.value)}
                     placeholder="Descripción (opcional)"
                     className="bg-white/10 backdrop-blur-sm border-white/20 text-white/80 h-8 text-xs rounded-xl transition-all hover:bg-white/15"
                   />
-                
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-white/50 text-[9px]">Cant.</Label>
-                    <Input
-                      type="number"
-                      value={line.quantity}
-                      onChange={(e) => updateLine(index, "quantity", parseFloat(e.target.value) || 0)}
-                      className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
-                      min="0"
-                    />
+
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-white/50 text-[9px]">Cant.</Label>
+                      <Input
+                        type="number"
+                        value={line.quantity}
+                        onChange={(e) => updateLine(index, "quantity", parseFloat(e.target.value) || 0)}
+                        className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
+                        min="0"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-white/50 text-[9px]">Precio</Label>
+                      <Input
+                        type="number"
+                        value={line.unit_price}
+                        onChange={(e) => updateLine(index, "unit_price", parseFloat(e.target.value) || 0)}
+                        className="bg-white/5 border-white/10 text-white h-8 text-xs"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-white/50 text-[9px]">Dto %</Label>
+                      <Input
+                        type="number"
+                        value={line.discount_percent}
+                        onChange={(e) => updateLine(index, "discount_percent", parseFloat(e.target.value) || 0)}
+                        className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
+                        min="0"
+                        max="100"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-white/50 text-[9px]">IVA</Label>
+                      <Select
+                        value={line.tax_rate.toString()}
+                        onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
+                      >
+                        <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 text-xs rounded-xl transition-all hover:bg-white/15">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white/10 backdrop-blur-2xl border-white/20 rounded-2xl shadow-2xl">
+                          {taxOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value.toString()} className="text-white text-xs">
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-white/50 text-[9px]">Precio</Label>
-                    <Input
-                      type="number"
-                      value={line.unit_price}
-                      onChange={(e) => updateLine(index, "unit_price", parseFloat(e.target.value) || 0)}
-                      className="bg-white/5 border-white/10 text-white h-8 text-xs"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-white/50 text-[9px]">IVA</Label>
-                    <Select
-                      value={line.tax_rate.toString()}
-                      onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
-                    >
-                      <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 text-xs rounded-xl transition-all hover:bg-white/15">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white/10 backdrop-blur-2xl border-white/20 rounded-2xl shadow-2xl">
-                        {taxOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value.toString()} className="text-white text-xs">
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+
+                  <div className="flex justify-between items-center pt-2 border-t border-white/10">
+                    <span className="text-white/50 text-[9px]">Subtotal</span>
+                    <span className="text-white font-medium text-sm">{formatCurrency(line.subtotal)}</span>
                   </div>
                 </div>
-                
-                <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                  <span className="text-white/50 text-[9px]">Subtotal</span>
-                  <span className="text-white font-medium text-sm">{formatCurrency(line.subtotal)}</span>
-                </div>
-              </div>
               );
             })}
           </div>
@@ -783,6 +794,7 @@ const NewQuotePage = () => {
                     <TableHead className="text-white/80 min-w-[250px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Descripción</TableHead>
                     <TableHead className="text-white/80 text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>
                     <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Precio</TableHead>
+                    <TableHead className="text-white/80 text-center w-20 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Dto %</TableHead>
                     <TableHead className="text-white/80 w-36 px-5 py-3 text-xs font-semibold uppercase tracking-wider">IVA</TableHead>
                     <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Subtotal</TableHead>
                     <TableHead className="text-white/60 w-14 px-5 py-3"></TableHead>
@@ -793,138 +805,156 @@ const NewQuotePage = () => {
                     const isFirst = index === 0;
                     const isLast = index === lines.length - 1;
                     return (
-                    <TableRow 
-                      key={line.tempId || line.id} 
-                      className="border-white/5 hover:bg-white/[0.04] transition-colors duration-150 group"
-                    >
-                      <TableCell className="px-5 py-3.5">
-                        <div className="flex flex-col gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => moveLine(index, 'up')}
-                            disabled={isFirst}
-                            className="h-6 w-6 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed"
-                            title="Mover arriba"
-                          >
-                            <ChevronUp className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => moveLine(index, 'down')}
-                            disabled={isLast}
-                            className="h-6 w-6 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed"
-                            title="Mover abajo"
-                          >
-                            <ChevronDown className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        <ProductSearchInput
-                          value={line.concept}
-                          onChange={(value) => updateLine(index, "concept", value)}
-                          onSelectItem={(item) => handleProductSelect(index, item)}
-                          placeholder="Concepto o @buscar"
-                          className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
-                        />
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        {expandedDescriptionIndex === index ? (
-                          <div className="space-y-2">
-                            <Textarea
+                      <TableRow
+                        key={line.tempId || line.id}
+                        className="border-white/5 hover:bg-white/[0.04] transition-colors duration-150 group"
+                      >
+                        <TableCell className="px-5 py-3.5">
+                          <div className="flex flex-col gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveLine(index, 'up')}
+                              disabled={isFirst}
+                              className="h-6 w-6 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed"
+                              title="Mover arriba"
+                            >
+                              <ChevronUp className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => moveLine(index, 'down')}
+                              disabled={isLast}
+                              className="h-6 w-6 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed"
+                              title="Mover abajo"
+                            >
+                              <ChevronDown className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <ProductSearchInput
+                            value={line.concept}
+                            onChange={(value) => updateLine(index, "concept", value)}
+                            onSelectItem={(item) => handleProductSelect(index, item)}
+                            placeholder="Concepto o @buscar"
+                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                          />
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          {expandedDescriptionIndex === index ? (
+                            <div className="space-y-2">
+                              <Textarea
+                                value={line.description}
+                                onChange={(e) => updateLine(index, "description", e.target.value)}
+                                placeholder="Descripción opcional"
+                                className="bg-white/5 border border-white/20 text-white/90 placeholder:text-white/25 text-sm px-3 py-2 min-h-[80px] resize-y focus:border-orange-500/60 focus-visible:ring-2 focus-visible:ring-orange-500/30 rounded-lg"
+                                onBlur={() => setExpandedDescriptionIndex(null)}
+                                autoFocus
+                              />
+                            </div>
+                          ) : (
+                            <Input
                               value={line.description}
                               onChange={(e) => updateLine(index, "description", e.target.value)}
+                              onClick={() => setExpandedDescriptionIndex(index)}
                               placeholder="Descripción opcional"
-                              className="bg-white/5 border border-white/20 text-white/90 placeholder:text-white/25 text-sm px-3 py-2 min-h-[80px] resize-y focus:border-orange-500/60 focus-visible:ring-2 focus-visible:ring-orange-500/30 rounded-lg"
-                              onBlur={() => setExpandedDescriptionIndex(null)}
-                              autoFocus
+                              className="bg-transparent border-0 border-b border-white/10 text-white/85 placeholder:text-white/25 h-auto text-sm pl-2 pr-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors cursor-text"
+                              readOnly
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <div className="flex justify-center">
+                            <Input
+                              type="text"
+                              inputMode="numeric"
+                              value={getNumericDisplayValue(line.quantity, 'quantity', index)}
+                              onChange={(e) => handleNumericInputChange(e.target.value, 'quantity', index)}
+                              onBlur={() => {
+                                const inputKey = `${index}-quantity`;
+                                setNumericInputValues(prev => {
+                                  const newValues = { ...prev };
+                                  delete newValues[inputKey];
+                                  return newValues;
+                                });
+                              }}
+                              className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                              placeholder="0"
                             />
                           </div>
-                        ) : (
-                          <Input
-                            value={line.description}
-                            onChange={(e) => updateLine(index, "description", e.target.value)}
-                            onClick={() => setExpandedDescriptionIndex(index)}
-                            placeholder="Descripción opcional"
-                            className="bg-transparent border-0 border-b border-white/10 text-white/85 placeholder:text-white/25 h-auto text-sm pl-2 pr-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors cursor-text"
-                            readOnly
-                          />
-                        )}
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        <div className="flex justify-center">
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
                           <Input
                             type="text"
-                            inputMode="numeric"
-                            value={getNumericDisplayValue(line.quantity, 'quantity', index)}
-                            onChange={(e) => handleNumericInputChange(e.target.value, 'quantity', index)}
+                            inputMode="decimal"
+                            value={getNumericDisplayValue(line.unit_price, 'unit_price', index)}
+                            onChange={(e) => handleNumericInputChange(e.target.value, 'unit_price', index)}
                             onBlur={() => {
-                              const inputKey = `${index}-quantity`;
+                              const inputKey = `${index}-unit_price`;
                               setNumericInputValues(prev => {
                                 const newValues = { ...prev };
                                 delete newValues[inputKey];
                                 return newValues;
                               });
                             }}
-                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-right font-medium px-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                            placeholder="0,00"
+                          />
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <Input
+                            type="text"
+                            inputMode="decimal"
+                            value={getNumericDisplayValue(line.discount_percent || 0, 'discount_percent', index)}
+                            onChange={(e) => handleNumericInputChange(e.target.value, 'discount_percent', index)}
+                            onBlur={() => {
+                              const inputKey = `${index}-discount_percent`;
+                              setNumericInputValues(prev => {
+                                const newValues = { ...prev };
+                                delete newValues[inputKey];
+                                return newValues;
+                              });
+                            }}
+                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
                             placeholder="0"
                           />
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={getNumericDisplayValue(line.unit_price, 'unit_price', index)}
-                          onChange={(e) => handleNumericInputChange(e.target.value, 'unit_price', index)}
-                          onBlur={() => {
-                            const inputKey = `${index}-unit_price`;
-                            setNumericInputValues(prev => {
-                              const newValues = { ...prev };
-                              delete newValues[inputKey];
-                              return newValues;
-                            });
-                          }}
-                          className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-right font-medium px-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
-                          placeholder="0,00"
-                        />
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        <div className="flex justify-center">
-                          <Select
-                            value={line.tax_rate.toString()}
-                            onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <div className="flex justify-center">
+                            <Select
+                              value={line.tax_rate.toString()}
+                              onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
+                            >
+                              <SelectTrigger className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium px-0 py-2 w-full hover:border-white/30 focus:border-orange-500/60 rounded-none shadow-none transition-colors">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-zinc-900/95 backdrop-blur-xl border-white/20 shadow-2xl">
+                                {taxOptions.map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value.toString()} className="text-white hover:bg-white/10">
+                                    {opt.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-white font-semibold text-right text-sm px-5 py-3.5">
+                          {formatCurrency(line.subtotal)}
+                        </TableCell>
+                        <TableCell className="px-5 py-3.5">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeLine(index)}
+                            className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-8 w-8 transition-colors"
                           >
-                            <SelectTrigger className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium px-0 py-2 w-full hover:border-white/30 focus:border-orange-500/60 rounded-none shadow-none transition-colors">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-zinc-900/95 backdrop-blur-xl border-white/20 shadow-2xl">
-                              {taxOptions.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value.toString()} className="text-white hover:bg-white/10">
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-white font-semibold text-right text-sm px-5 py-3.5">
-                        {formatCurrency(line.subtotal)}
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeLine(index)}
-                          className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-8 w-8 transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
                   })}
                   {lines.length === 0 && (
                     <TableRow className="border-white/10">
