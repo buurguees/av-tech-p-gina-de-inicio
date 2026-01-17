@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
@@ -154,6 +155,7 @@ const QuoteDetailPageDesktop = () => {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [creatingVersion, setCreatingVersion] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (quoteId) {
@@ -171,7 +173,7 @@ const QuoteDetailPageDesktop = () => {
       });
       if (quoteError) throw quoteError;
       if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
-      
+
       const quoteInfo = quoteData[0];
       setQuote(quoteInfo);
 
@@ -214,7 +216,7 @@ const QuoteDetailPageDesktop = () => {
       if (!companyError && companyData && companyData.length > 0) {
         setCompany(companyData[0]);
       }
-      
+
     } catch (error: any) {
       console.error("Error fetching quote:", error);
       toast({
@@ -229,23 +231,23 @@ const QuoteDetailPageDesktop = () => {
 
   const handleStatusChange = async (newStatus: string) => {
     if (!quote || newStatus === quote.status) return;
-    
+
     setUpdatingStatus(true);
     try {
       const { error } = await supabase.rpc("update_quote", {
         p_quote_id: quoteId!,
         p_status: newStatus,
       });
-      
+
       if (error) throw error;
-      
+
       // Refetch quote to get updated number if changed to SENT
       await fetchQuoteData();
-      
+
       const statusLabel = getStatusInfo(newStatus).label;
       toast({
         title: "Estado actualizado",
-        description: newStatus === "SENT" 
+        description: newStatus === "SENT"
           ? "El presupuesto se ha bloqueado y se ha asignado el número definitivo"
           : `El presupuesto ahora está "${statusLabel}"`,
       });
@@ -263,7 +265,7 @@ const QuoteDetailPageDesktop = () => {
 
   const handleCreateNewVersion = async () => {
     if (!quote) return;
-    
+
     // If quote is in DRAFT, first change it to SENT
     if (quote.status === "DRAFT") {
       setCreatingVersion(true);
@@ -272,9 +274,9 @@ const QuoteDetailPageDesktop = () => {
           p_quote_id: quoteId!,
           p_status: "SENT",
         });
-        
+
         if (error) throw error;
-        
+
         toast({
           title: "Presupuesto enviado",
           description: "El presupuesto original se ha bloqueado como 'Enviado'",
@@ -291,30 +293,30 @@ const QuoteDetailPageDesktop = () => {
       }
       setCreatingVersion(false);
     }
-    
+
     // Navigate to new quote page with source quote id to copy data from
     navigate(`/nexo-av/${userId}/quotes/new?sourceQuoteId=${quoteId}`);
   };
 
   const handleInvoice = async () => {
     if (!quote) return;
-    
+
     try {
       const { data, error } = await supabase.rpc("create_invoice_from_quote", {
         p_quote_id: quoteId!,
       });
-      
+
       if (error) throw error;
       if (!data || data.length === 0) throw new Error("No se pudo crear la factura");
-      
+
       const invoiceId = data[0].invoice_id;
       const invoiceNumber = data[0].invoice_number;
-      
+
       toast({
         title: "Factura creada",
         description: `Se ha generado la factura ${invoiceNumber}`,
       });
-      
+
       navigate(`/nexo-av/${userId}/invoices/${invoiceId}`);
     } catch (error: any) {
       console.error("Error creating invoice:", error);
@@ -346,7 +348,7 @@ const QuoteDetailPageDesktop = () => {
 
     try {
       setDeleting(true);
-      
+
       // First delete all quote lines
       for (const line of lines) {
         await supabase.rpc("delete_quote_line", { p_line_id: line.id });
@@ -497,7 +499,7 @@ const QuoteDetailPageDesktop = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
                     {!isLocked && (
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         className="text-white hover:bg-white/10"
                         onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
                       >
@@ -573,7 +575,7 @@ const QuoteDetailPageDesktop = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
                         {!isLocked && (
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-white hover:bg-white/10"
                             onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
                           >
@@ -632,20 +634,20 @@ const QuoteDetailPageDesktop = () => {
               {/* Tabs - Estilo Holded */}
               <Tabs defaultValue="general" className="flex-1 flex flex-col overflow-hidden">
                 <TabsList className="mx-3 mt-2 bg-white/5 border border-white/10 rounded-lg p-0.5 h-8">
-                  <TabsTrigger 
-                    value="general" 
+                  <TabsTrigger
+                    value="general"
                     className="flex-1 text-[11px] data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60 px-2 py-1"
                   >
                     General
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="messages" 
+                  <TabsTrigger
+                    value="messages"
                     className="flex-1 text-[11px] data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60 px-2 py-1"
                   >
                     Mensajes
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="history" 
+                  <TabsTrigger
+                    value="history"
                     className="flex-1 text-[11px] data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60 px-2 py-1"
                   >
                     Historial
@@ -655,135 +657,172 @@ const QuoteDetailPageDesktop = () => {
                 <div className="flex-1 overflow-y-auto p-3">
                   <TabsContent value="general" className="space-y-4 mt-0">
 
-                {/* Locked message */}
-                {isLocked && (
-                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2 flex items-center gap-2 mb-3">
-                    <Lock className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
-                    <p className="text-yellow-300/80 text-[11px]">
-                      {quote.status === "REJECTED" 
-                        ? "Este presupuesto ha sido rechazado"
-                        : quote.status === "EXPIRED"
-                        ? "Este presupuesto ha expirado"
-                        : "Este presupuesto está bloqueado para edición"}
-                    </p>
-                  </div>
-                )}
-
-                {/* Action buttons */}
-                <div className="space-y-1.5 mb-3">
-                  {/* Invoice button for approved quotes */}
-                  {showInvoiceButton && (
-                    <Button
-                      onClick={handleInvoice}
-                      className="w-full bg-purple-500 hover:bg-purple-600 text-white gap-1.5 h-8 text-xs"
-                    >
-                      <Receipt className="h-3.5 w-3.5" />
-                      Facturar
-                    </Button>
-                  )}
-                  
-                  {/* New version button */}
-                  <Button
-                    variant="outline"
-                    onClick={handleCreateNewVersion}
-                    disabled={creatingVersion}
-                    className="w-full border-white/20 text-white hover:bg-white/10 gap-1.5 h-8 text-xs"
-                  >
-                    {creatingVersion ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Copy className="h-3.5 w-3.5" />
-                    )}
-                    Nueva versión
-                  </Button>
-                </div>
-
-                {/* Client */}
-                <div className="bg-white/5 rounded-lg p-2 mb-2">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <Building2 className="h-3.5 w-3.5 text-orange-500" />
-                    <span className="text-white/50 text-[10px] uppercase tracking-wide">Cliente</span>
-                  </div>
-                  <p className="text-white font-medium text-sm">{quote.client_name}</p>
-                  {client?.tax_id && (
-                    <p className="text-white/60 text-xs">{client.tax_id}</p>
-                  )}
-                </div>
-
-                {/* Project */}
-                <div className="bg-white/5 rounded-lg p-2 mb-2">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <FolderOpen className="h-3.5 w-3.5 text-blue-500" />
-                    <span className="text-white/50 text-[10px] uppercase tracking-wide">Proyecto</span>
-                  </div>
-                  <p className="text-white font-medium text-sm">
-                    {project?.project_name || quote.project_name || "Sin proyecto asignado"}
-                  </p>
-                </div>
-
-                {/* Created by */}
-                <div className="bg-white/5 rounded-lg p-2 mb-2">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <User className="h-3.5 w-3.5 text-purple-500" />
-                    <span className="text-white/50 text-[10px] uppercase tracking-wide">Creado por</span>
-                  </div>
-                  <p className="text-white font-medium text-sm">
-                    {quote.created_by_name || "Usuario"}
-                  </p>
-                </div>
-
-                {/* Dates */}
-                <div className="bg-white/5 rounded-lg p-2 mb-2">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <Calendar className="h-3.5 w-3.5 text-green-500" />
-                    <span className="text-white/50 text-[10px] uppercase tracking-wide">Fechas</span>
-                  </div>
-                  <div className="space-y-0.5 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Creado</span>
-                      <span className="text-white">{formatDate(quote.created_at)}</span>
-                    </div>
-                    {quote.valid_until && (
-                      <div className="flex justify-between">
-                        <span className="text-white/60">Válido hasta</span>
-                        <span className="text-white">{formatDate(quote.valid_until)}</span>
+                    {/* Locked message */}
+                    {isLocked && (
+                      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2 flex items-center gap-2 mb-3">
+                        <Lock className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
+                        <p className="text-yellow-300/80 text-[11px]">
+                          {quote.status === "REJECTED"
+                            ? "Este presupuesto ha sido rechazado"
+                            : quote.status === "EXPIRED"
+                              ? "Este presupuesto ha expirado"
+                              : "Este presupuesto está bloqueado para edición"}
+                        </p>
                       </div>
                     )}
-                  </div>
-                </div>
 
-                {/* Total */}
-                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 mb-2">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <FileText className="h-3.5 w-3.5 text-orange-500" />
-                    <span className="text-orange-400 text-[10px] uppercase tracking-wide">Total</span>
-                  </div>
-                  <p className="text-white text-xl font-bold">
-                    {formatCurrency(quote.total)}
-                  </p>
-                  <div className="flex justify-between text-xs mt-1.5 text-white/60">
-                    <span>Base</span>
-                    <span>{formatCurrency(quote.subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-white/60">
-                    <span>Impuestos</span>
-                    <span>{formatCurrency(quote.tax_amount)}</span>
-                  </div>
-                </div>
+                    {/* Action buttons */}
+                    <div className="space-y-1.5 mb-3">
+                      {/* Invoice button for approved quotes */}
+                      {showInvoiceButton && (
+                        <Button
+                          onClick={handleInvoice}
+                          className="w-full bg-purple-500 hover:bg-purple-600 text-white gap-1.5 h-8 text-xs"
+                        >
+                          <Receipt className="h-3.5 w-3.5" />
+                          Facturar
+                        </Button>
+                      )}
 
-                {/* Notes */}
-                {quote.notes && (
-                  <div className="bg-white/5 rounded-lg p-2">
-                    <span className="text-white/50 text-[10px] uppercase tracking-wide">Notas</span>
-                    <p className="text-white/80 text-xs mt-1.5">{quote.notes}</p>
-                  </div>
-                )}
+                      {/* New version button */}
+                      <Button
+                        variant="outline"
+                        onClick={handleCreateNewVersion}
+                        disabled={creatingVersion}
+                        className="w-full border-white/20 text-white hover:bg-white/10 gap-1.5 h-8 text-xs"
+                      >
+                        {creatingVersion ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
+                        Nueva versión
+                      </Button>
+                    </div>
+
+                    {/* Client */}
+                    <div className="bg-white/5 rounded-lg p-2 mb-2">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Building2 className="h-3.5 w-3.5 text-orange-500" />
+                        <span className="text-white/50 text-[10px] uppercase tracking-wide">Cliente</span>
+                      </div>
+                      <p className="text-white font-medium text-sm">{quote.client_name}</p>
+                      {client?.tax_id && (
+                        <p className="text-white/60 text-xs">{client.tax_id}</p>
+                      )}
+                    </div>
+
+                    {/* Project */}
+                    <div className="bg-white/5 rounded-lg p-2 mb-2">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <FolderOpen className="h-3.5 w-3.5 text-blue-500" />
+                        <span className="text-white/50 text-[10px] uppercase tracking-wide">Proyecto</span>
+                      </div>
+                      <p className="text-white font-medium text-sm">
+                        {project?.project_name || quote.project_name || "Sin proyecto asignado"}
+                      </p>
+                    </div>
+
+                    {/* Created by */}
+                    <div className="bg-white/5 rounded-lg p-2 mb-2">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <User className="h-3.5 w-3.5 text-purple-500" />
+                        <span className="text-white/50 text-[10px] uppercase tracking-wide">Creado por</span>
+                      </div>
+                      <p className="text-white font-medium text-sm">
+                        {quote.created_by_name || "Usuario"}
+                      </p>
+                    </div>
+
+                    {/* Dates */}
+                    <div className="bg-white/5 rounded-lg p-2 mb-2">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Calendar className="h-3.5 w-3.5 text-green-500" />
+                        <span className="text-white/50 text-[10px] uppercase tracking-wide">Fechas</span>
+                      </div>
+                      <div className="space-y-0.5 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-white/60">Creado</span>
+                          <span className="text-white">{formatDate(quote.created_at)}</span>
+                        </div>
+                        {quote.valid_until && (
+                          <div className="flex justify-between">
+                            <span className="text-white/60">Válido hasta</span>
+                            <span className="text-white">{formatDate(quote.valid_until)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Total */}
+                    <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 mb-2">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <FileText className="h-3.5 w-3.5 text-orange-500" />
+                        <span className="text-orange-400 text-[10px] uppercase tracking-wide">Total</span>
+                      </div>
+                      <p className="text-white text-xl font-bold">
+                        {formatCurrency(quote.total)}
+                      </p>
+                      <div className="flex justify-between text-xs mt-1.5 text-white/60">
+                        <span>Base</span>
+                        <span>{formatCurrency(quote.subtotal)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-white/60">
+                        <span>Impuestos</span>
+                        <span>{formatCurrency(quote.tax_amount)}</span>
+                      </div>
+                    </div>
+
+                    {/* Notes */}
+                    {quote.notes && (
+                      <div className="bg-white/5 rounded-lg p-2">
+                        <span className="text-white/50 text-[10px] uppercase tracking-wide">Notas</span>
+                        <p className="text-white/80 text-xs mt-1.5">{quote.notes}</p>
+                      </div>
+                    )}
                   </TabsContent>
 
-                  <TabsContent value="messages" className="mt-0">
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                      <MessageSquare className="h-12 w-12 text-white/20 mb-4" />
-                      <p className="text-white/60 text-sm">No hay mensajes</p>
+                  <TabsContent value="notes" className="mt-0 h-full flex flex-col">
+                    <div className="flex-1 bg-white/5 rounded-lg border border-white/10 p-3 flex flex-col">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-white font-medium text-sm flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          Notas del presupuesto
+                        </h3>
+                        {saving && <span className="text-xs text-white/40 animate-pulse">Guardando...</span>}
+                      </div>
+                      <Textarea
+                        value={quote.notes || ""}
+                        onChange={(e) => {
+                          const newNotes = e.target.value;
+                          setQuote(prev => prev ? { ...prev, notes: newNotes } : null);
+
+                          // Debounced save
+                          const timeoutId = setTimeout(async () => {
+                            setSaving(true);
+                            try {
+                              const { error } = await supabase.rpc("update_quote", {
+                                p_quote_id: quoteId!,
+                                p_notes: newNotes
+                              });
+                              if (error) throw error;
+                            } catch (err) {
+                              console.error("Error saving notes:", err);
+                              toast({
+                                title: "Error al guardar notas",
+                                variant: "destructive"
+                              });
+                            } finally {
+                              setSaving(false);
+                            }
+                          }, 1000);
+
+                          // Clear previous timeout
+                          return () => clearTimeout(timeoutId);
+                        }}
+                        className="flex-1 bg-transparent border-0 resize-none focus-visible:ring-0 p-0 text-sm text-white/80 placeholder:text-white/20"
+                        placeholder="Escribe aquí las notas, condiciones especiales o comentarios internos..."
+                      />
                     </div>
                   </TabsContent>
 
@@ -866,8 +905,8 @@ const QuoteDetailPageDesktop = () => {
               <div className="flex items-center gap-2">
                 <span className="text-white/50 text-[10px] uppercase tracking-wide">Estado:</span>
                 {canChangeStatus ? (
-                  <Select 
-                    value={quote.status} 
+                  <Select
+                    value={quote.status}
                     onValueChange={handleStatusChange}
                     disabled={updatingStatus}
                   >
@@ -954,7 +993,7 @@ const QuoteDetailPageDesktop = () => {
                 <span className="text-white/60 text-xs font-medium">Vista previa</span>
                 <span className="text-white/40 text-[10px] truncate max-w-[140px]">{pdfFileName}</span>
               </div>
-              
+
               <QuotePDFViewer
                 quote={quote}
                 lines={lines}

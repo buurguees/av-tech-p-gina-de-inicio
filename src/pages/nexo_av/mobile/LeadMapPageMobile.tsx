@@ -30,7 +30,7 @@ const LeadMapPageMobile = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showSidebarSheet, setShowSidebarSheet] = useState(false);
-  
+
   // User info
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -60,11 +60,11 @@ const LeadMapPageMobile = () => {
   const fetchCanvassingLocations = async () => {
     try {
       setLoading(true);
-      
+
       const { data, error } = await (supabase.rpc as any)('list_user_canvassing_locations', {
         p_user_id: currentUserId || null
       });
-      
+
       if (error) {
         console.error('Error fetching canvassing locations:', error);
         toast({
@@ -115,14 +115,14 @@ const LeadMapPageMobile = () => {
       const { data, error } = await (supabase.rpc as any)('list_user_canvassing_locations', {
         p_user_id: currentUserId || null
       });
-      
+
       if (error) {
         console.error('Error fetching canvassing stats:', error);
         return;
       }
 
       const locationsData = data || [];
-      
+
       // Calcular estadísticas por estado
       const statsMap = new Map<string, number>();
       locationsData.forEach((loc: any) => {
@@ -136,7 +136,7 @@ const LeadMapPageMobile = () => {
       }));
 
       stats.sort((a, b) => b.count - a.count);
-      
+
       setCanvassingStats(stats);
     } catch (err) {
       console.error('Error fetching canvassing stats:', err);
@@ -154,9 +154,9 @@ const LeadMapPageMobile = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-background flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+    <div className="fixed inset-0 bg-background flex flex-col" style={{ height: '100dvh', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       {/* Mapa a pantalla completa */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative h-full">
         <LeadMap
           canvassingLocations={canvassingLocations}
           selectedLocation={selectedLocation}
@@ -172,11 +172,11 @@ const LeadMapPageMobile = () => {
           <Button
             size="icon"
             variant="secondary"
-            className="rounded-full shadow-lg h-10 w-10 bg-background/90 backdrop-blur-sm"
+            className="rounded-full shadow-lg h-12 w-12 bg-background/80 backdrop-blur-md border border-white/20 touch-target"
             onClick={() => setShowSidebarSheet(true)}
             aria-label="Ver lista de puntos de canvassing"
           >
-            <List className="h-5 w-5" />
+            <List className="h-6 w-6" />
           </Button>
         </div>
       </div>
@@ -184,7 +184,7 @@ const LeadMapPageMobile = () => {
       {/* Mobile detail sheet - Popup desde abajo */}
       {selectedLocation && (
         <Sheet open={!!selectedLocation} onOpenChange={(open) => !open && setSelectedLocation(null)}>
-          <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
+          <SheetContent side="bottom" className="h-[80vh] overflow-y-auto rounded-t-[2rem] border-t border-white/20 bg-background/95 backdrop-blur-xl">
             <CanvassingDetailPanel
               location={selectedLocation}
               onClose={() => setSelectedLocation(null)}
@@ -199,7 +199,7 @@ const LeadMapPageMobile = () => {
 
       {/* Sheet con listado/resumen de puntos de canvassing */}
       <Sheet open={showSidebarSheet} onOpenChange={setShowSidebarSheet}>
-        <SheetContent side="bottom" className="h-[70vh] overflow-y-auto p-0">
+        <SheetContent side="bottom" className="h-[70vh] overflow-y-auto p-0 rounded-t-[2rem] border-t border-white/20 bg-background/95 backdrop-blur-xl">
           <CanvassingMapSidebar
             stats={canvassingStats}
             locations={canvassingLocations}

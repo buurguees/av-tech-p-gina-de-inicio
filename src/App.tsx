@@ -48,6 +48,7 @@ const NexoExpensesPage = lazy(() => import("./pages/nexo_av/ExpensesPage"));
 const NexoReportsPage = lazy(() => import("./pages/nexo_av/ReportsPage"));
 const NexoTechniciansPage = lazy(() => import("./pages/nexo_av/TechniciansPage"));
 const NexoTechnicianDetailPage = lazy(() => import("./pages/nexo_av/TechnicianDetailPage"));
+const NexoSuppliersPage = lazy(() => import("./pages/nexo_av/SuppliersPage"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -68,7 +69,7 @@ const App = () => (
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Index />} />
-              
+
               <Route path="/privacidad" element={<PrivacyPolicy />} />
               <Route path="/terminos" element={<TermsAndConditions />} />
               {/* Custom Presentation Routes */}
@@ -102,6 +103,7 @@ const App = () => (
                 <Route path="tech-map" element={<NexoTechMapPage />} />
                 <Route path="technicians" element={<NexoTechniciansPage />} />
                 <Route path="technicians/:technicianId" element={<NexoTechnicianDetailPage />} />
+                <Route path="suppliers" element={<NexoSuppliersPage />} />
                 <Route path="invoices" element={<NexoInvoicesPage />} />
                 <Route path="purchase-invoices" element={<NexoPurchaseInvoicesPage />} />
                 <Route path="expenses" element={<NexoExpensesPage />} />

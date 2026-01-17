@@ -101,6 +101,7 @@ firebase-adminsdk-*.json
 supabase/.env
 supabase/.env.local
 .supabase/
+mcp.json
 
 # ===================================
 # EDITOR Y HERRAMIENTAS

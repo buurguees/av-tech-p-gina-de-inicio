@@ -434,7 +434,7 @@ const NexoAvLayout = () => {
       {isMobile ? (
         <>
           {/* En móvil, el contenido empieza después del header fijo */}
-          <div className="pt-[3.25rem]" style={{ height: 'calc(100vh - 3.25rem)' }}>
+          <div className="pt-[3.25rem]" style={{ height: 'calc(100dvh - 3.25rem)' }}>
             {isDashboardRoute ? (
               <main className="w-[98%] h-[98%] mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-8">
                 <Suspense fallback={

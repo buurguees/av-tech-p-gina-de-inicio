@@ -1,23 +1,24 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  LucideIcon, 
-  ChevronRight, 
-  MapPin, 
-  Users, 
-  FolderKanban, 
-  FileText, 
-  Receipt, 
-  ShoppingCart, 
-  DollarSign, 
-  Package, 
-  Calculator, 
-  BarChart3, 
-  Settings, 
+import {
+  Home,
+  LucideIcon,
+  ChevronRight,
+  MapPin,
+  Users,
+  FolderKanban,
+  FileText,
+  Receipt,
+  ShoppingCart,
+  DollarSign,
+  Package,
+  Calculator,
+  BarChart3,
+  Settings,
   Shield,
-  Wrench
+  Wrench,
+  Truck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -139,6 +140,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           available: isAdmin || true, // Por ahora disponible para todos
         },
         {
+          id: 'suppliers',
+          title: 'Proveedores',
+          icon: Truck,
+          path: `/nexo-av/${userId}/suppliers`,
+          available: isAdmin || true, // Por ahora disponible para todos
+        },
+        {
           id: 'expenses',
           title: 'Gastos',
           icon: DollarSign,
@@ -211,14 +219,14 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
    */
   const isActive = (path: string) => {
     if (!userId) return false;
-    
+
     const currentPath = location.pathname;
-    
+
     // Para dashboard, solo activo si es exactamente esa ruta
     if (path === `/nexo-av/${userId}/dashboard`) {
       return currentPath === path;
     }
-    
+
     // Para otras rutas, está activo si:
     // 1. La ruta actual coincide exactamente con la ruta del módulo
     // 2. La ruta actual comienza con la ruta del módulo seguida de /
@@ -255,7 +263,7 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
         foldersToOpen.add(folder.id);
       }
     });
-    
+
     if (foldersToOpen.size > 0) {
       setOpenFolders(prev => {
         const newSet = new Set(prev);

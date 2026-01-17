@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -18,13 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Edit, 
-  Building2, 
-  User, 
-  FolderOpen, 
-  Calendar, 
-  FileText, 
+import {
+  Edit,
+  Building2,
+  User,
+  FolderOpen,
+  Calendar,
+  FileText,
   Lock,
   ExternalLink,
   Phone,
@@ -117,7 +119,7 @@ const QuoteDetailPageMobile = () => {
       });
       if (quoteError) throw quoteError;
       if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
-      
+
       const quoteInfo = quoteData[0];
       setQuote(quoteInfo);
 
@@ -130,7 +132,7 @@ const QuoteDetailPageMobile = () => {
           setClient(clientData[0]);
         }
       }
-      
+
     } catch (error: any) {
       console.error("Error fetching quote:", error);
       toast({
@@ -146,7 +148,7 @@ const QuoteDetailPageMobile = () => {
   const handleStatusChange = async (newStatus: string) => {
     try {
       setUpdatingStatus(true);
-      
+
       const { error } = await supabase.rpc("update_quote", {
         p_quote_id: quoteId!,
         p_status: newStatus,
@@ -158,7 +160,7 @@ const QuoteDetailPageMobile = () => {
         title: "Estado actualizado",
         description: "El estado del presupuesto se ha actualizado correctamente",
       });
-      
+
       await fetchQuoteData();
     } catch (error: any) {
       console.error("Error updating status:", error);
@@ -256,8 +258,8 @@ const QuoteDetailPageMobile = () => {
                     {QUOTE_STATUSES
                       .filter(s => availableTransitions.includes(s.value))
                       .map((status) => (
-                        <SelectItem 
-                          key={status.value} 
+                        <SelectItem
+                          key={status.value}
                           value={status.value}
                           className="text-white"
                         >
@@ -267,7 +269,7 @@ const QuoteDetailPageMobile = () => {
                   </SelectContent>
                 </Select>
               )}
-              
+
               {isLocked && (
                 <div className="flex items-center gap-2 text-white/40 text-xs mt-2">
                   <Lock className="h-3 w-3" />
@@ -286,7 +288,7 @@ const QuoteDetailPageMobile = () => {
               <FileText className="h-4 w-4 mr-2" />
               {showPDF ? "Ocultar PDF" : "Ver PDF"}
             </Button>
-            
+
             {!isLocked && (
               <Button
                 onClick={handleEdit}
@@ -354,7 +356,7 @@ const QuoteDetailPageMobile = () => {
               {client && (
                 <div className="space-y-2 pl-6">
                   {client.contact_phone && (
-                    <a 
+                    <a
                       href={`tel:${client.contact_phone}`}
                       className="flex items-center gap-2 text-white/60 active:text-white text-xs"
                     >
@@ -363,7 +365,7 @@ const QuoteDetailPageMobile = () => {
                     </a>
                   )}
                   {client.contact_email && (
-                    <a 
+                    <a
                       href={`mailto:${client.contact_email}`}
                       className="flex items-center gap-2 text-white/60 active:text-white text-xs"
                     >

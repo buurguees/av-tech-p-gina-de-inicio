@@ -23,7 +23,7 @@ import { ArrowLeft, Plus, Trash2, Save, Loader2, GripVertical, FileText } from "
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "./components/ProductSearchInput";
-import { LOCKED_INVOICE_STATES } from "@/constants/invoiceStatuses";
+import { LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
 import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
 
 interface Client {
@@ -128,20 +128,21 @@ const EditInvoicePage = () => {
   const fetchInvoiceData = async () => {
     setLoading(true);
     try {
-      // Fetch invoice details
-      const { data: invoiceData, error: invoiceError } = await supabase.rpc("get_invoice", {
+      // Fetch invoice details using finance_get_invoice to get all new fields
+      const { data: invoiceData, error: invoiceError } = await supabase.rpc("finance_get_invoice", {
         p_invoice_id: invoiceId!,
       });
       if (invoiceError) throw invoiceError;
       if (!invoiceData || invoiceData.length === 0) throw new Error("Factura no encontrada");
 
-      const inv = invoiceData[0];
+      const inv = Array.isArray(invoiceData) ? invoiceData[0] : invoiceData;
       
-      // Check if invoice is locked
-      if (LOCKED_INVOICE_STATES.includes(inv.status)) {
+      // Check if invoice is locked (using is_locked field or locked states)
+      const isLocked = inv.is_locked || LOCKED_FINANCE_INVOICE_STATES.includes(inv.status);
+      if (isLocked) {
         toast({
           title: "Factura bloqueada",
-          description: `La factura está en estado "${inv.status}" y no puede ser editada`,
+          description: `La factura está bloqueada y no puede ser editada. Estado: ${inv.status}`,
           variant: "destructive",
         });
         navigate(`/nexo-av/${userId}/invoices/${invoiceId}`);
