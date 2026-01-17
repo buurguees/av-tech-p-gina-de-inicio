@@ -30,11 +30,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <DashboardView 
-        userId={userId}
-        isAdmin={isAdmin}
-        isManager={false}
-      />
+      <DashboardView userId={userId} />
       
       <CreateClientDialog
         open={showCreateClientDialog}

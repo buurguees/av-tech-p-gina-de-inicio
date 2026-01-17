@@ -135,7 +135,8 @@ const RegisterPaymentDialog = ({
     setLoading(true);
     try {
       if (isEditing) {
-        const { error } = await supabase.rpc("finance_update_payment", {
+        // Using type assertion as the RPC was just created and types haven't regenerated
+        const { error } = await supabase.rpc("finance_update_payment" as any, {
           p_payment_id: payment.id,
           p_amount: numAmount,
           p_payment_date: format(paymentDate, "yyyy-MM-dd"),
@@ -150,7 +151,8 @@ const RegisterPaymentDialog = ({
           description: `Se ha modificado el cobro a ${formatCurrency(numAmount)}`,
         });
       } else {
-        const { error } = await supabase.rpc("finance_register_payment", {
+        // Using type assertion for new parameter not yet in generated types
+        const { error } = await supabase.rpc("finance_register_payment" as any, {
           p_invoice_id: invoiceId,
           p_amount: numAmount,
           p_payment_date: format(paymentDate, "yyyy-MM-dd"),
