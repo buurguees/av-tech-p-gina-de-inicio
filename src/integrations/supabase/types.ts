@@ -123,6 +123,25 @@ export type Database = {
           user_name: string
         }[]
       }
+      auto_save_quote_line: {
+        Args: {
+          p_concept: string
+          p_description?: string
+          p_discount_percent?: number
+          p_group_name?: string
+          p_line_id?: string
+          p_line_order?: number
+          p_quantity?: number
+          p_quote_id: string
+          p_tax_rate?: number
+          p_unit_price?: number
+        }
+        Returns: Json
+      }
+      auto_save_quote_notes: {
+        Args: { p_notes: string; p_quote_id: string }
+        Returns: Json
+      }
       check_email_exists: { Args: { p_email: string }; Returns: boolean }
       check_rate_limit: {
         Args: {
@@ -389,6 +408,20 @@ export type Database = {
         Args: { p_payment_id: string }
         Returns: boolean
       }
+      finance_get_client_payments: {
+        Args: { p_client_id: string }
+        Returns: {
+          amount: number
+          invoice_id: string
+          invoice_number: string
+          payment_date: string
+          payment_id: string
+          payment_method: string
+          project_id: string
+          project_name: string
+          total_invoice: number
+        }[]
+      }
       finance_get_invoice: {
         Args: { p_invoice_id: string }
         Returns: {
@@ -444,6 +477,7 @@ export type Database = {
         Returns: {
           amount: number
           bank_reference: string
+          company_bank_account_id: string
           created_at: string
           id: string
           is_confirmed: boolean
@@ -452,6 +486,34 @@ export type Database = {
           payment_method: string
           registered_by: string
           registered_by_name: string
+        }[]
+      }
+      finance_get_period_summary: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: {
+          invoice_count: number
+          overdue_invoice_count: number
+          paid_invoice_count: number
+          partial_invoice_count: number
+          period_end: string
+          period_start: string
+          total_invoiced: number
+          total_paid: number
+          total_pending: number
+        }[]
+      }
+      finance_get_project_payments: {
+        Args: { p_project_id: string }
+        Returns: {
+          amount: number
+          client_id: string
+          client_name: string
+          invoice_id: string
+          invoice_number: string
+          payment_date: string
+          payment_id: string
+          payment_method: string
+          total_invoice: number
         }[]
       }
       finance_get_tax_summary: {
@@ -503,6 +565,7 @@ export type Database = {
         Args: {
           p_amount: number
           p_bank_reference?: string
+          p_company_bank_account_id?: string
           p_invoice_id: string
           p_notes?: string
           p_payment_date: string
@@ -533,6 +596,18 @@ export type Database = {
           p_quantity?: number
           p_tax_rate?: number
           p_unit_price?: number
+        }
+        Returns: boolean
+      }
+      finance_update_payment: {
+        Args: {
+          p_amount?: number
+          p_bank_reference?: string
+          p_company_bank_account_id?: string
+          p_notes?: string
+          p_payment_date?: string
+          p_payment_id: string
+          p_payment_method?: string
         }
         Returns: boolean
       }
@@ -1320,6 +1395,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      recalculate_quote_totals: {
+        Args: { p_quote_id: string }
+        Returns: undefined
+      }
       record_login_attempt: {
         Args: {
           p_identifier: string
@@ -1565,7 +1644,7 @@ export type Database = {
           p_status?: string
           p_valid_until?: string
         }
-        Returns: boolean
+        Returns: undefined
       }
       update_quote_line: {
         Args: {
