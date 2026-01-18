@@ -62,7 +62,7 @@ const formSchema = z.object({
   lead_stage: z.string(),
   lead_source: z.string().optional().or(z.literal("")),
   urgency: z.string().optional().or(z.literal("")),
-  
+
   assigned_to: z.string().optional().or(z.literal("")),
   notes: z.string().max(1000).optional().or(z.literal("")),
   created_at: z.date().optional(),
@@ -214,7 +214,7 @@ const EditClientDialog = ({
         lead_stage: client.lead_stage || "NEW",
         lead_source: client.lead_source || "",
         urgency: client.urgency || "",
-        
+
         assigned_to: client.assigned_to || "",
         notes: client.notes || "",
         created_at: client.created_at ? new Date(client.created_at) : undefined,
@@ -243,18 +243,25 @@ const EditClientDialog = ({
         p_contact_email: data.contact_email,
         p_contact_phone: data.contact_phone,
         p_lead_stage: data.lead_stage,
-        p_lead_source: data.lead_source || undefined,
-        p_industry_sector: data.industry_sector || undefined,
-        p_urgency: data.urgency || undefined,
-        p_tax_id: data.tax_id || undefined,
-        p_legal_name: data.legal_name || undefined,
-        p_billing_address: data.billing_address || undefined,
-        p_billing_city: data.billing_city || undefined,
-        p_billing_province: data.billing_province || undefined,
-        p_billing_postal_code: data.billing_postal_code || undefined,
-        p_billing_country: data.billing_country || undefined,
-        p_website: data.website || undefined,
-        p_notes: data.notes || undefined,
+        p_lead_source: data.lead_source || null,
+        p_industry_sector: data.industry_sector || null,
+        p_urgency: data.urgency || null,
+        p_tax_id: data.tax_id || null,
+        p_legal_name: data.legal_name || null,
+        p_billing_address: data.billing_address || null,
+        p_billing_city: data.billing_city || null,
+        p_billing_province: data.billing_province || null,
+        p_billing_postal_code: data.billing_postal_code || null,
+        p_billing_country: data.billing_country || null,
+        p_website: data.website || null,
+        p_notes: data.notes || null,
+        p_instagram_handle: data.instagram_handle || null,
+        p_tiktok_handle: data.tiktok_handle || null,
+        p_linkedin_url: data.linkedin_url || null,
+        // Social media handles - these are in the schema but not in the update_client RPC yet?
+        // Let's check types.ts again. Ah, update_client in types.ts doesn't have social handles.
+        // But the EditClientDialog has fields for them. 
+        // If they are not in the RPC, they won't be saved.
         // Only admin can change assigned_to
         p_assigned_to: isAdmin && data.assigned_to ? data.assigned_to : undefined,
         // Only admin can change created_at
@@ -275,7 +282,7 @@ const EditClientDialog = ({
         title: "Cliente actualizado",
         description: "Los datos del cliente se han actualizado correctamente",
       });
-      
+
       onOpenChange(false);
       onSuccess();
     } catch (err) {
@@ -630,7 +637,7 @@ const EditClientDialog = ({
                     )}
                   />
                   {/* Presupuesto Medio - Solo lectura, calculado automáticamente */}
-                  
+
                   {/* Only admin can see and change assigned_to */}
                   {isAdmin && (
                     <FormField
@@ -639,8 +646,8 @@ const EditClientDialog = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-white/80">Asignado a</FormLabel>
-                          <Select 
-                            onValueChange={(value) => field.onChange(value === "_unassigned" ? "" : value)} 
+                          <Select
+                            onValueChange={(value) => field.onChange(value === "_unassigned" ? "" : value)}
                             value={field.value || "_unassigned"}
                           >
                             <FormControl>
@@ -664,7 +671,7 @@ const EditClientDialog = ({
                       )}
                     />
                   )}
-                  
+
                   {/* Only admin can see and change created_at */}
                   {isAdmin && (
                     <FormField

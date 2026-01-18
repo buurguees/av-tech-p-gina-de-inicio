@@ -15,29 +15,43 @@ const TaxSummaryWidget = () => {
 
     const calculateTaxes = async () => {
         try {
+            setLoading(true);
             const startOfQuarter = new Date();
             startOfQuarter.setMonth(Math.floor(startOfQuarter.getMonth() / 3) * 3, 1);
             startOfQuarter.setHours(0, 0, 0, 0);
 
-            const { data } = await supabase.rpc("finance_list_invoices", { p_search: null, p_status: null });
+            // Fetch Sales Invoices for Collected VAT
+            const { data: salesData } = await supabase.rpc("finance_list_invoices", { p_search: null, p_status: null });
+
+            // Fetch Purchase Invoices for Paid VAT
+            const { data: purchaseData } = await supabase.rpc("list_purchase_invoices", { p_search: null, p_status: null, p_page_size: 1000 });
 
             let collected = 0;
-            if (data) {
-                (data as any[]).forEach(inv => {
+            if (salesData) {
+                (salesData as any[]).forEach(inv => {
                     if (inv.issue_date) {
                         const d = new Date(inv.issue_date);
                         if (d >= startOfQuarter) {
-                            // Assuming simplified 21% VAT estimation from total if tax_amount isn't reliable/easy
-                            // But the RPC returns 'tax_amount', let's TRY to use it.
-                            collected += (inv.tax_amount || (inv.total * 0.21 / 1.21));
+                            collected += (inv.tax_amount || 0);
+                        }
+                    }
+                });
+            }
+
+            let paid = 0;
+            if (purchaseData) {
+                (purchaseData as any[]).forEach(pinv => {
+                    if (pinv.date) {
+                        const d = new Date(pinv.date);
+                        if (d >= startOfQuarter) {
+                            paid += (pinv.tax_amount || 0);
                         }
                     }
                 });
             }
 
             setVatCollected(collected);
-            // Mock VAT Paid (purchases) as ~40-50% of collected
-            setVatPaid(collected * 0.45);
+            setVatPaid(paid);
 
         } catch (e) {
             console.error(e);

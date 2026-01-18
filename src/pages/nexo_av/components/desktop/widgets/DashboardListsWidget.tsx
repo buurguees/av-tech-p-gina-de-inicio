@@ -68,11 +68,7 @@ const DashboardListsWidget = ({ userId }: DashboardListsWidgetProps) => {
                 fetchProjects(),
                 fetchQuotes(),
                 fetchInvoices(),
-                // Payables are mock, set directly
-            ]);
-            setPayables([
-                { id: '1', vendor_name: 'Tech Suppliers S.L.', amount: 1250.50, due_date: '2025-02-15' },
-                { id: '2', vendor_name: 'Office Rent Corp', amount: 800.00, due_date: '2025-02-01' },
+                fetchPurchaseInvoices(),
             ]);
         } catch (err) {
             console.error('Error fetching dashboard lists:', err);
@@ -136,6 +132,23 @@ const DashboardListsWidget = ({ userId }: DashboardListsWidgetProps) => {
                 total: inv.total,
                 due_date: inv.due_date,
                 status: inv.status
+            })));
+        }
+    };
+
+    const fetchPurchaseInvoices = async () => {
+        // Using the new RPC we created
+        const { data } = await supabase.rpc('list_purchase_invoices', {
+            p_status: 'PENDING_APPROVAL', // Or any non-paid status
+            p_page_size: 5
+        });
+
+        if (data) {
+            setPayables((data as any[]).map(inv => ({
+                id: inv.id,
+                vendor_name: inv.provider_name || 'Proveedor desconocido',
+                amount: inv.total,
+                due_date: inv.due_date
             })));
         }
     };

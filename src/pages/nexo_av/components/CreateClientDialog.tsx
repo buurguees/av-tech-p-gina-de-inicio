@@ -43,7 +43,7 @@ const createFormSchema = (requireAddress: boolean = false) => z.object({
   notes: z.string().optional(),
   assigned_to: z.string().optional(),
   // Billing address fields
-  billing_address: requireAddress 
+  billing_address: requireAddress
     ? z.string().min(1, "La dirección es obligatoria para mostrar en el mapa")
     : z.string().optional(),
   billing_postal_code: z.string().optional(),
@@ -175,10 +175,10 @@ const CreateClientDialog = ({
     try {
       setGeocoding(true);
       setGeocodeError(null);
-      
+
       // Delay de 1 segundo para cumplir con rate limiting de Nominatim
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&countrycodes=es&limit=1`,
         {
@@ -191,7 +191,7 @@ const CreateClientDialog = ({
       if (!response.ok) throw new Error('Geocoding failed');
 
       const data = await response.json();
-      
+
       if (data.length === 0) {
         return null;
       }
@@ -223,7 +223,7 @@ const CreateClientDialog = ({
         }
       }
 
-      // First create the client (now returns table with client_id and client_number)
+      // First create the client. The RPC returns a UUID if successful.
       const { data: clientResult, error: createError } = await supabase.rpc('create_client', {
         p_company_name: data.company_name.toUpperCase(),
         p_contact_phone: data.contact_phone,
@@ -239,16 +239,25 @@ const CreateClientDialog = ({
       });
 
       if (createError) throw createError;
-      
-      // Extract client_id from the result array
-      const clientId = clientResult?.[0]?.client_id;
+
+      // The RPC returns a scalar string (UUID), not an array of objects
+      // We handle potential variations just in case
+      let clientId: string | undefined;
+
+      if (typeof clientResult === 'string') {
+        clientId = clientResult;
+      } else if (Array.isArray(clientResult) && clientResult.length > 0) {
+        // If it was returning a table
+        clientId = clientResult[0]?.client_id || clientResult[0]?.id || clientResult[0];
+      }
 
       // Then update with billing address and website if provided
       const hasBillingData = data.billing_address || data.billing_city || data.billing_postal_code || data.billing_province || data.billing_country || data.website;
-      
+
       if (clientId && hasBillingData) {
         const { error: updateError } = await supabase.rpc('update_client', {
           p_client_id: clientId,
+          p_company_name: data.company_name.toUpperCase(), // Include company name in update to be safe
           p_billing_address: data.billing_address || null,
           p_billing_city: data.billing_city || null,
           p_billing_postal_code: data.billing_postal_code || null,
@@ -256,7 +265,7 @@ const CreateClientDialog = ({
           p_billing_country: data.billing_country || null,
           p_website: data.website || null,
         });
-        
+
         if (updateError) {
           console.warn('Could not update billing address:', updateError);
         }
@@ -270,7 +279,7 @@ const CreateClientDialog = ({
           p_longitude: coords.lon,
           p_full_address: data.billing_address
         });
-        
+
         if (coordError) {
           console.warn('Could not update coordinates:', coordError);
         }
@@ -310,8 +319,8 @@ const CreateClientDialog = ({
                   <FormItem>
                     <FormLabel>Nombre de Empresa *</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         className={cn(
                           "bg-white/5 border-white/10 text-white",
                           isMobile && "min-h-[44px] text-base"
@@ -331,8 +340,8 @@ const CreateClientDialog = ({
                   <FormItem>
                     <FormLabel>Razón Social</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         className={cn(
                           "bg-white/5 border-white/10 text-white",
                           isMobile && "min-h-[44px] text-base"
@@ -354,8 +363,8 @@ const CreateClientDialog = ({
                   <FormItem>
                     <FormLabel>Email *</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         type="email"
                         className={cn(
                           "bg-white/5 border-white/10 text-white",
@@ -376,8 +385,8 @@ const CreateClientDialog = ({
                   <FormItem>
                     <FormLabel>Teléfono *</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         type="tel"
                         className={cn(
                           "bg-white/5 border-white/10 text-white",
@@ -400,8 +409,8 @@ const CreateClientDialog = ({
                   <FormItem>
                     <FormLabel>NIF/CIF</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         className="bg-white/5 border-white/10 text-white"
                         placeholder="B12345678"
                       />
@@ -445,7 +454,7 @@ const CreateClientDialog = ({
               <p className="text-sm font-medium text-white/70">
                 {enableGeocoding ? "Dirección completa *" : "Dirección Fiscal (opcional)"}
               </p>
-              
+
               <FormField
                 control={form.control}
                 name="billing_address"
@@ -455,8 +464,8 @@ const CreateClientDialog = ({
                       {enableGeocoding ? "Dirección completa *" : "Dirección"}
                     </FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         className={cn(
                           "bg-white/5 border-white/10 text-white",
                           isMobile && "min-h-[44px] text-base"
@@ -489,8 +498,8 @@ const CreateClientDialog = ({
                     <FormItem>
                       <FormLabel>C.P.</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
+                        <Input
+                          {...field}
                           className={cn(
                             "bg-white/5 border-white/10 text-white",
                             isMobile && "min-h-[44px] text-base"
@@ -510,8 +519,8 @@ const CreateClientDialog = ({
                     <FormItem>
                       <FormLabel>Ciudad</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
+                        <Input
+                          {...field}
                           className={cn(
                             "bg-white/5 border-white/10 text-white",
                             isMobile && "min-h-[44px] text-base"
@@ -531,8 +540,8 @@ const CreateClientDialog = ({
                     <FormItem>
                       <FormLabel>Provincia</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
+                        <Input
+                          {...field}
                           className={cn(
                             "bg-white/5 border-white/10 text-white",
                             isMobile && "min-h-[44px] text-base"
@@ -552,8 +561,8 @@ const CreateClientDialog = ({
                     <FormItem>
                       <FormLabel>País</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
+                        <Input
+                          {...field}
                           className={cn(
                             "bg-white/5 border-white/10 text-white",
                             isMobile && "min-h-[44px] text-base"
@@ -574,8 +583,8 @@ const CreateClientDialog = ({
                   <FormItem>
                     <FormLabel>Página Web</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         type="url"
                         className={cn(
                           "bg-white/5 border-white/10 text-white",
@@ -623,7 +632,7 @@ const CreateClientDialog = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Origen</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger className="bg-white/5 border-white/10 text-white">
                           <SelectValue placeholder="¿Cómo nos encontró?" />
@@ -648,7 +657,7 @@ const CreateClientDialog = ({
                 render={({ field }) => {
                   // Find current user's name for display when disabled
                   const currentUserName = assignableUsers.find(u => u.id === field.value)?.full_name;
-                  
+
                   return (
                     <FormItem>
                       <FormLabel>Asignar a {!isAdmin && "(automático)"}</FormLabel>
@@ -663,8 +672,8 @@ const CreateClientDialog = ({
                         </FormControl>
                       ) : (
                         // For admins: show the select dropdown
-                        <Select 
-                          onValueChange={(value) => field.onChange(value === "_none_" ? "" : value)} 
+                        <Select
+                          onValueChange={(value) => field.onChange(value === "_none_" ? "" : value)}
                           value={field.value || "_none_"}
                         >
                           <FormControl>
@@ -698,8 +707,8 @@ const CreateClientDialog = ({
                 <FormItem>
                   <FormLabel>Notas</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      {...field} 
+                    <Textarea
+                      {...field}
                       className={cn(
                         "bg-white/5 border-white/10 text-white min-h-[100px]",
                         isMobile && "min-h-[120px] text-base"

@@ -129,7 +129,7 @@ const NexoAv = () => {
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        
+
         if (!session) {
           navigate('/nexo-av');
           return;
@@ -137,7 +137,7 @@ const NexoAv = () => {
 
         // Get user info from internal.authorized_users
         const { data, error } = await supabase.rpc('get_current_user_info');
-        
+
         if (error || !data || data.length === 0) {
           console.error('Error getting user info:', error);
           await supabase.auth.signOut();
@@ -163,7 +163,7 @@ const NexoAv = () => {
             const userRoles = currentUserInfo.roles || [];
             const isSales = userRoles.includes('sales') || userRoles.includes('comercial');
             const isAdminUser = userRoles.includes('admin');
-            
+
             if (isSales) {
               // Usuario con rol "sales" -> Mapa Comercial
               targetPath = `/nexo-av/${currentUserInfo.user_id}/lead-map`;
@@ -208,12 +208,7 @@ const NexoAv = () => {
   }, [navigate, userId, isMobile]);
 
   const handleLogout = async () => {
-    try {
-      localStorage.removeItem('nexo_av_last_login');
-    } catch {
-      // Ignore localStorage errors
-    }
-    
+
     await supabase.auth.signOut();
     toast({
       title: "Sesión cerrada",
@@ -226,33 +221,33 @@ const NexoAv = () => {
   const isManager = userInfo?.roles?.includes('manager');
   const isComercial = userInfo?.roles?.includes('comercial') || userInfo?.roles?.includes('sales');
   const isTech = userInfo?.roles?.includes('tecnico') || userInfo?.roles?.includes('tech');
-  
+
   const hasSalesAccess = isComercial;
   const hasTechAccess = isTech;
 
   // Inactivity logout hook - 30 minutes timeout with 5 minute warning
   useInactivityLogout({
-    timeoutMinutes: 30,
+    timeoutMinutes: 240, // 4 hours
     warningMinutes: 5,
     enabled: !loading && !accessDenied && !!userInfo,
   });
 
   // Check if we're on dashboard route to show mobile dashboard
   const isDashboardRoute = location.pathname === `/nexo-av/${userId}/dashboard`;
-  
+
   // Redirect mobile users from dashboard to appropriate map based on role
   // También redirige si acceden directamente a la ruta base sin especificar página
   useEffect(() => {
     if (isMobile && userInfo && !loading && !accessDenied && userId) {
       const currentPath = location.pathname;
       const basePath = `/nexo-av/${userId}`;
-      
+
       // Si está en dashboard o en la ruta base exacta, redirigir según el rol
       if (isDashboardRoute || currentPath === basePath) {
         const userRoles = userInfo.roles || [];
         const isSales = userRoles.includes('sales') || userRoles.includes('comercial');
         const isAdminUser = userRoles.includes('admin');
-        
+
         let targetPath: string;
         if (isSales) {
           targetPath = `${basePath}/lead-map`;
@@ -269,9 +264,9 @@ const NexoAv = () => {
   // Function to get page title based on current route
   const getPageTitle = (pathname: string): string => {
     if (!userId) return "NEXO AV";
-    
+
     const basePath = `/nexo-av/${userId}`;
-    
+
     // Exact matches
     if (pathname === `${basePath}/lead-map`) return "Mapa Comercial";
     if (pathname === `${basePath}/client-map`) return "Mapa Clientes";
@@ -290,7 +285,7 @@ const NexoAv = () => {
     if (pathname === `${basePath}/settings`) return "Configuración";
     if (pathname === `${basePath}/audit`) return "Auditoría";
     if (pathname === `${basePath}/dashboard`) return "Dashboard";
-    
+
     // Pattern matches for detail pages
     if (pathname.includes(`${basePath}/clients/`)) return "Detalle Cliente";
     if (pathname.includes(`${basePath}/quotes/`)) return "Detalle Presupuesto";
@@ -301,12 +296,12 @@ const NexoAv = () => {
     if (pathname.includes(`${basePath}/invoices/`) && pathname.includes("/edit")) return "Editar Factura";
     if (pathname.includes(`${basePath}/quotes/new`)) return "Nuevo Presupuesto";
     if (pathname.includes(`${basePath}/invoices/new`)) return "Nueva Factura";
-    
+
     return "NEXO AV";
   };
 
   const currentPageTitle = getPageTitle(location.pathname);
-  
+
   // Handle back navigation - always use browser history
   const handleBack = () => {
     navigate(-1);
@@ -423,7 +418,7 @@ const NexoAv = () => {
           <ShieldAlert className="h-16 w-16 text-destructive mx-auto" />
           <h1 className="text-2xl font-bold text-foreground">Acceso Denegado</h1>
           <p className="text-muted-foreground">No tienes permiso para acceder a este recurso.</p>
-          <Button 
+          <Button
             onClick={() => navigate('/nexo-av')}
           >
             Volver al inicio
@@ -464,14 +459,14 @@ const NexoAv = () => {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               </div>
-              
+
               {/* Center: Page Title */}
               <div className="flex-1 flex items-center justify-center min-w-0 px-2">
                 <h1 className="text-foreground font-semibold tracking-wide text-sm sm:text-base truncate text-center">
                   {currentPageTitle}
                 </h1>
               </div>
-              
+
               {/* Right: User Avatar */}
               <div className="flex items-center gap-2 flex-shrink-0">
                 <UserAvatarDropdown
@@ -502,7 +497,7 @@ const NexoAv = () => {
                   <p className="text-muted-foreground text-[10px] md:text-xs hidden md:block leading-tight">Plataforma de Gestión</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-2 md:gap-4">
                 <div className="text-right hidden sm:block">
                   <p className="text-foreground text-sm font-medium">{userInfo?.full_name}</p>
@@ -548,7 +543,7 @@ const NexoAv = () => {
                       isTech={hasTechAccess}
                       userId={userId}
                       navigate={navigate}
-                      onNewLead={() => {}}
+                      onNewLead={() => { }}
                     />
                   </Suspense>
                 </div>
@@ -562,20 +557,20 @@ const NexoAv = () => {
             )}
           </div>
           {/* Mobile Bottom Navigation */}
-          <MobileBottomNav 
-            userId={userId || ''} 
+          <MobileBottomNav
+            userId={userId || ''}
             userRoles={userInfo?.roles || []}
           />
         </div>
       ) : (
         <div className="flex-1 flex overflow-hidden">
           {/* Sidebar - Fijo a la izquierda */}
-          <Sidebar 
+          <Sidebar
             userId={userId}
             modules={modules}
             userRole={isAdmin ? 'admin' : undefined}
           />
-          
+
           {/* Contenido principal - Ocupa el espacio restante con scroll independiente */}
           {/* El contenido ocupa el 90% del espacio disponible (descontando el sidebar de 224px) */}
           <main className="flex-1 min-w-0 overflow-y-auto bg-background">

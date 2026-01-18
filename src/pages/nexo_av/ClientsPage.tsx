@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  Plus, 
-  Search, 
-  ShieldAlert, 
-  Building2, 
-  Phone, 
+import {
+  Plus,
+  Search,
+  ShieldAlert,
+  Building2,
+  Phone,
   Mail,
   Calendar,
   User,
@@ -50,6 +50,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
 import CreateClientDialog from "./components/CreateClientDialog";
+import EditClientDialog from "./components/EditClientDialog";
 import PaginationControls from "./components/PaginationControls";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { lazy, Suspense } from "react";
@@ -98,7 +99,7 @@ const getStageInfo = (stage: string) => {
 const ClientsPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
   const isMobile = useIsMobile();
-  
+
   const [loading, setLoading] = useState(true);
   const [clients, setClients] = useState<Client[]>([]);
   const [searchInput, setSearchInput] = useState("");
@@ -111,6 +112,8 @@ const ClientsPageDesktop = () => {
   const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [editingClient, setEditingClient] = useState<any | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -119,23 +122,6 @@ const ClientsPageDesktop = () => {
     ? clients.filter(c => c.assigned_to === currentUserId || c.assigned_to === null)
     : clients;
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedClients(new Set(paginatedClients.map(c => c.id)));
-    } else {
-      setSelectedClients(new Set());
-    }
-  };
-
-  const handleSelectClient = (clientId: string, checked: boolean) => {
-    const newSelected = new Set(selectedClients);
-    if (checked) {
-      newSelected.add(clientId);
-    } else {
-      newSelected.delete(clientId);
-    }
-    setSelectedClients(newSelected);
-  };
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -148,10 +134,10 @@ const ClientsPageDesktop = () => {
 
   const sortedClients = [...filteredClients].sort((a, b) => {
     if (!sortColumn) return 0;
-    
+
     let aValue: any;
     let bValue: any;
-    
+
     switch (sortColumn) {
       case "number":
         aValue = a.client_number || "";
@@ -176,7 +162,7 @@ const ClientsPageDesktop = () => {
       default:
         return 0;
     }
-    
+
     if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
     if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
     return 0;
@@ -196,6 +182,52 @@ const ClientsPageDesktop = () => {
     endIndex,
     totalItems,
   } = usePagination(sortedClients, { pageSize: 50 });
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedClients(new Set(paginatedClients.map(c => c.id)));
+    } else {
+      setSelectedClients(new Set());
+    }
+  };
+
+  const handleSelectClient = (clientId: string, checked: boolean) => {
+    const newSelected = new Set(selectedClients);
+    if (checked) {
+      newSelected.add(clientId);
+    } else {
+      newSelected.delete(clientId);
+    }
+    setSelectedClients(newSelected);
+  };
+
+  const handleEditClient = async (clientId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('get_client', {
+        p_client_id: clientId
+      });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setEditingClient(data[0]);
+        setEditDialogOpen(true);
+      } else {
+        toast({
+          title: "Error",
+          description: "No se pudo encontrar la información detallada del cliente",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching client for edit:', err);
+      toast({
+        title: "Error",
+        description: "No se pudo cargar el cliente para editar",
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchClients = async () => {
     try {
@@ -220,7 +252,7 @@ const ClientsPageDesktop = () => {
     const fetchUserInfo = async () => {
       try {
         const { data, error } = await supabase.rpc('get_current_user_info');
-        
+
         if (error || !data || data.length === 0) {
           console.error('Error fetching user info:', error);
           return;
@@ -272,7 +304,7 @@ const ClientsPageDesktop = () => {
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">Clientes</h1>
                 <Info className="h-4 w-4 text-muted-foreground" />
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -335,7 +367,7 @@ const ClientsPageDesktop = () => {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              
+
               <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-secondary border border-border">
                 <Switch
                   id="show-mine"
@@ -356,7 +388,7 @@ const ClientsPageDesktop = () => {
                   )}
                 </Label>
               </div>
-              
+
               <div className="relative flex-1 min-w-[200px] max-w-md">
                 <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -369,38 +401,38 @@ const ClientsPageDesktop = () => {
             </div>
           </div>
 
-        {/* Mobile card view */}
-        {isMobile ? (
-          <Suspense fallback={
-            <div className="flex items-center justify-center py-12 md:hidden">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
-            </div>
-          }>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="md:hidden"
-            >
-              <ClientsListMobile
-                clients={paginatedClients}
-                getStageInfo={getStageInfo}
-                onClientClick={(clientId) => navigate(`/nexo-av/${userId}/clients/${clientId}`)}
-                onCreateClick={() => setShowCreateDialog(true)}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                startIndex={startIndex}
-                endIndex={endIndex}
-                totalItems={totalItems}
-                canGoPrev={canGoPrev}
-                canGoNext={canGoNext}
-                onPrevPage={prevPage}
-                onNextPage={nextPage}
-                onGoToPage={goToPage}
-              />
-            </motion.div>
-          </Suspense>
-        ) : null}
+          {/* Mobile card view */}
+          {isMobile ? (
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-12 md:hidden">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
+              </div>
+            }>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="md:hidden"
+              >
+                <ClientsListMobile
+                  clients={paginatedClients}
+                  getStageInfo={getStageInfo}
+                  onClientClick={(clientId) => navigate(`/nexo-av/${userId}/clients/${clientId}`)}
+                  onCreateClick={() => setShowCreateDialog(true)}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  startIndex={startIndex}
+                  endIndex={endIndex}
+                  totalItems={totalItems}
+                  canGoPrev={canGoPrev}
+                  canGoNext={canGoNext}
+                  onPrevPage={prevPage}
+                  onNextPage={nextPage}
+                  onGoToPage={goToPage}
+                />
+              </motion.div>
+            </Suspense>
+          ) : null}
 
           {/* Table */}
           {loading ? (
@@ -429,7 +461,7 @@ const ClientsPageDesktop = () => {
                           className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-muted-foreground cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("number")}
                       >
@@ -440,7 +472,7 @@ const ClientsPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("company")}
                       >
@@ -452,7 +484,7 @@ const ClientsPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead className="text-white/70">Contacto</TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("stage")}
                       >
@@ -463,7 +495,7 @@ const ClientsPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("assigned")}
                       >
@@ -474,7 +506,7 @@ const ClientsPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-white/70 cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("followup")}
                       >
@@ -572,7 +604,7 @@ const ClientsPageDesktop = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   className="text-white hover:bg-white/10"
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -581,7 +613,13 @@ const ClientsPageDesktop = () => {
                                 >
                                   Ver detalle
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="text-white hover:bg-white/10">
+                                <DropdownMenuItem
+                                  className="text-white hover:bg-white/10"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditClient(client.id);
+                                  }}
+                                >
                                   Editar
                                 </DropdownMenuItem>
                                 <DropdownMenuItem className="text-white hover:bg-white/10">
@@ -630,6 +668,19 @@ const ClientsPageDesktop = () => {
         currentUserId={currentUserId}
         isAdmin={isAdmin}
       />
+
+      {editingClient && (
+        <EditClientDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          client={editingClient}
+          isAdmin={isAdmin}
+          onSuccess={() => {
+            fetchClients();
+            setEditingClient(null);
+          }}
+        />
+      )}
     </div>
   );
 };

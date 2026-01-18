@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { 
-  TrendingUp, 
-  FolderKanban, 
-  FileText, 
+import {
+  TrendingUp,
+  FolderKanban,
+  FileText,
   Receipt,
   Clock,
   CheckCircle,
@@ -130,7 +130,7 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
     try {
       setChangingStatus(true);
       const noteContent = newNote.trim() || `Estado cambiado a "${LEAD_STAGE_LABELS[newStatus]}"`;
-      
+
       const { error } = await supabase.rpc('update_client_status', {
         p_client_id: client.id,
         p_new_status: newStatus,
@@ -171,73 +171,109 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
         return <MessageSquare size={12} className="text-muted-foreground" />;
     }
   };
-  // TODO: Fetch real data from projects, quotes, and invoices tables
-  const stats = {
+  const [stats, setStats] = useState({
     totalProjects: 0,
     activeProjects: 0,
     completedProjects: 0,
-    pendingProjects: 0,
     totalQuotes: 0,
     quotesAmount: 0,
     totalInvoices: 0,
     invoicesAmount: 0,
-    paidAmount: 0,
     pendingAmount: 0,
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    fetchNotes();
+    fetchStats();
+  }, [client.id]);
+
+  const fetchStats = async () => {
+    try {
+      setLoadingStats(true);
+
+      // Fetch Projects
+      const { data: projectsData } = await supabase.rpc('list_projects', { p_search: null });
+      const projects = (projectsData || []).filter((p: any) => p.client_id === client.id);
+
+      // Fetch Quotes
+      const { data: quotesData } = await supabase.rpc('list_quotes', { p_search: null });
+      const clientQuotes = (quotesData || []).filter((q: any) => q.client_id === client.id);
+
+      // Fetch Invoices
+      const { data: invoicesData } = await supabase.rpc('finance_list_invoices', { p_search: null, p_status: null });
+      const clientInvoices = (invoicesData || []).filter((inv: any) => inv.client_id === client.id);
+
+      setStats({
+        totalProjects: projects.length,
+        activeProjects: projects.filter((p: any) => p.status === 'IN_PROGRESS').length,
+        completedProjects: projects.filter((p: any) => p.status === 'COMPLETED').length,
+        totalQuotes: clientQuotes.length,
+        quotesAmount: clientQuotes.reduce((sum, q) => sum + (q.total || 0), 0),
+        totalInvoices: clientInvoices.length,
+        invoicesAmount: clientInvoices.filter(i => i.status !== 'CANCELLED').reduce((sum, i) => sum + (i.total || 0), 0),
+        pendingAmount: clientInvoices.reduce((sum, i) => sum + (i.pending_amount || 0), 0),
+      });
+    } catch (err) {
+      console.error('Error fetching dashboard stats:', err);
+    } finally {
+      setLoadingStats(false);
+    }
   };
 
   const statCards = [
     {
       title: "Proyectos Totales",
-      value: stats.totalProjects,
+      value: loadingStats ? "..." : stats.totalProjects,
       icon: FolderKanban,
       color: "text-blue-400",
       bgColor: "bg-blue-500/10",
     },
     {
       title: "En Progreso",
-      value: stats.activeProjects,
+      value: loadingStats ? "..." : stats.activeProjects,
       icon: Clock,
       color: "text-yellow-400",
       bgColor: "bg-yellow-500/10",
     },
     {
       title: "Completados",
-      value: stats.completedProjects,
+      value: loadingStats ? "..." : stats.completedProjects,
       icon: CheckCircle,
       color: "text-green-400",
       bgColor: "bg-green-500/10",
     },
     {
       title: "Presupuestos",
-      value: stats.totalQuotes,
+      value: loadingStats ? "..." : stats.totalQuotes,
       icon: FileText,
       color: "text-purple-400",
       bgColor: "bg-purple-500/10",
     },
     {
       title: "Total Presupuestado",
-      value: `${stats.quotesAmount.toLocaleString('es-ES')}€`,
+      value: loadingStats ? "..." : `${stats.quotesAmount.toLocaleString('es-ES')}€`,
       icon: Euro,
       color: "text-indigo-400",
       bgColor: "bg-indigo-500/10",
     },
     {
       title: "Facturas",
-      value: stats.totalInvoices,
+      value: loadingStats ? "..." : stats.totalInvoices,
       icon: Receipt,
       color: "text-orange-400",
       bgColor: "bg-orange-500/10",
     },
     {
       title: "Total Facturado",
-      value: `${stats.invoicesAmount.toLocaleString('es-ES')}€`,
+      value: loadingStats ? "..." : `${stats.invoicesAmount.toLocaleString('es-ES')}€`,
       icon: TrendingUp,
       color: "text-emerald-400",
       bgColor: "bg-emerald-500/10",
     },
     {
       title: "Pendiente Cobro",
-      value: `${stats.pendingAmount.toLocaleString('es-ES')}€`,
+      value: loadingStats ? "..." : `${stats.pendingAmount.toLocaleString('es-ES')}€`,
       icon: AlertCircle,
       color: "text-red-400",
       bgColor: "bg-red-500/10",
@@ -297,7 +333,7 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
                 <div>
                   <p className="text-muted-foreground text-xs mb-1">Presupuesto Medio</p>
                   <p className="text-foreground text-sm">
-                    {client.approximate_budget 
+                    {client.approximate_budget
                       ? `${client.approximate_budget.toLocaleString('es-ES')}€`
                       : '-'}
                   </p>
@@ -358,8 +394,8 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
                   </div>
                   <div className="flex gap-2">
                     {newNote.trim() && (
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         className="flex-1 h-8 text-xs"
                         onClick={handleAddNote}
                         disabled={addingNote}
@@ -369,8 +405,8 @@ const ClientDashboardTab = ({ client, isAdmin = false, currentUserId = null, onR
                       </Button>
                     )}
                     {newStatus !== client.lead_stage && (
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="default"
                         className="flex-1 h-8 text-xs"
                         onClick={handleChangeStatus}

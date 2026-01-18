@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { 
-  ShieldAlert, 
+import {
+  ShieldAlert,
   LayoutDashboard,
   FolderKanban,
   FileText,
@@ -111,12 +111,18 @@ const ClientDetailPageDesktop = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [stats, setStats] = useState({
+    activeQuotes: 0,
+    totalInvoiced: 0,
+    averageTicket: 0
+  });
+  const [summaryLoading, setSummaryLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const fetchClient = async () => {
     if (!clientId) return;
-    
+
     try {
       setLoading(true);
       const { data, error } = await supabase.rpc('get_client', {
@@ -124,7 +130,7 @@ const ClientDetailPageDesktop = () => {
       });
 
       if (error) throw error;
-      
+
       if (data && data.length > 0) {
         setClient(data[0]);
       } else {
@@ -147,9 +153,46 @@ const ClientDetailPageDesktop = () => {
     }
   };
 
+  const fetchClientStats = async () => {
+    if (!clientId) return;
+
+    try {
+      setSummaryLoading(true);
+
+      // Fetch Quotes
+      const { data: quotesData } = await supabase.rpc('list_quotes', { p_search: null });
+      const clientQuotes = (quotesData || []).filter((q: any) => q.client_id === clientId);
+      const activeQuotes = clientQuotes.filter((q: any) =>
+        ['DRAFT', 'SENT', 'APPROVED'].includes(q.status)
+      ).length;
+
+      // Fetch Invoices
+      const { data: invoicesData } = await supabase.rpc('finance_list_invoices', { p_search: null, p_status: null });
+      const clientInvoices = (invoicesData || []).filter((inv: any) => inv.client_id === clientId);
+
+      // Filter out drafts and cancelled for financial stats
+      const validInvoices = clientInvoices.filter((inv: any) =>
+        !['DRAFT', 'CANCELLED'].includes(inv.status)
+      );
+
+      const totalInvoiced = validInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+      const averageTicket = validInvoices.length > 0 ? totalInvoiced / validInvoices.length : 0;
+
+      setStats({
+        activeQuotes,
+        totalInvoiced,
+        averageTicket
+      });
+    } catch (err) {
+      console.error('Error fetching client stats:', err);
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
   const handleStatusChange = async (newStatus: string) => {
     if (!client) return;
-    
+
     setUpdatingStatus(true);
     try {
       const { error } = await supabase.rpc('update_client', {
@@ -168,7 +211,7 @@ const ClientDetailPageDesktop = () => {
       }
 
       setClient({ ...client, lead_stage: newStatus });
-      
+
       const stageLabel = LEAD_STAGES.find(s => s.value === newStatus)?.label || newStatus;
       toast({
         title: "Estado actualizado",
@@ -190,7 +233,7 @@ const ClientDetailPageDesktop = () => {
     const fetchUserInfo = async () => {
       try {
         const { data, error } = await supabase.rpc('get_current_user_info');
-        
+
         if (error || !data || data.length === 0) {
           console.error('Error fetching user info:', error);
           return;
@@ -207,6 +250,7 @@ const ClientDetailPageDesktop = () => {
 
     fetchUserInfo();
     fetchClient();
+    fetchClientStats();
   }, [clientId]);
 
   if (loading || !client) {
@@ -278,7 +322,7 @@ const ClientDetailPageDesktop = () => {
                     <h2 className="text-base font-semibold leading-tight">{client.company_name}</h2>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild disabled={updatingStatus}>
-                        <button 
+                        <button
                           className={cn(
                             "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors",
                             stageInfo.color,
@@ -393,10 +437,10 @@ const ClientDetailPageDesktop = () => {
                   }}
                 >
                   <span className="text-[11px] font-medium" style={{ color: "hsl(var(--status-info-text))" }}>
-                    Presupuestos (mock)
+                    Presupuestos activos
                   </span>
                   <span className="text-sm font-semibold" style={{ color: "hsl(var(--status-info))" }}>
-                    8 activos
+                    {summaryLoading ? "..." : `${stats.activeQuotes} activos`}
                   </span>
                 </div>
                 <div
@@ -407,26 +451,24 @@ const ClientDetailPageDesktop = () => {
                   }}
                 >
                   <span className="text-[11px] font-medium" style={{ color: "hsl(var(--status-success-text))" }}>
-                    Total facturado (mock)
+                    Total facturado
                   </span>
                   <span className="text-sm font-semibold" style={{ color: "hsl(var(--status-success))" }}>
-                    45.200 €
+                    {summaryLoading ? "..." : formatCurrency(stats.totalInvoiced)}
                   </span>
                 </div>
                 <div
                   className="rounded-md border px-3 py-2 flex flex-col gap-1"
                   style={{
-                    backgroundColor: "hsl(var(--status-warning-bg))",
-                    borderColor: "hsl(var(--status-warning-border))",
+                    backgroundColor: "hsl(var(--status-special-bg))",
+                    borderColor: "hsl(var(--status-special-border))",
                   }}
                 >
-                  <span className="text-[11px] font-medium" style={{ color: "hsl(var(--status-warning-text))" }}>
-                    Próximo seguimiento
+                  <span className="text-[11px] font-medium" style={{ color: "hsl(var(--status-special-text))" }}>
+                    Ticket medio
                   </span>
-                  <span className="text-sm font-semibold" style={{ color: "hsl(var(--status-warning))" }}>
-                    {client.next_follow_up_date 
-                      ? new Date(client.next_follow_up_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })
-                      : "Sin fecha"}
+                  <span className="text-sm font-semibold" style={{ color: "hsl(var(--status-special))" }}>
+                    {summaryLoading ? "..." : formatCurrency(stats.averageTicket)}
                   </span>
                 </div>
               </div>
@@ -574,8 +616,8 @@ const ClientDetailPageDesktop = () => {
               {/* Columna derecha - Contenido de pestañas alineado con la columna izquierda */}
               <div className="lg:col-span-2">
                 <TabsContent value="dashboard" className="mt-0">
-                  <ClientDashboardTab 
-                    client={client} 
+                  <ClientDashboardTab
+                    client={client}
                     isAdmin={isAdmin}
                     currentUserId={currentUserId}
                     onRefresh={fetchClient}

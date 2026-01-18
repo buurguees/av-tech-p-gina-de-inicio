@@ -70,9 +70,12 @@ const RegisterPaymentDialog = ({
   const [paymentDate, setPaymentDate] = useState<Date>(
     payment ? new Date(payment.payment_date) : new Date()
   );
+
+  // Initialize amount. For new payments, default to pendingAmount but allow editing.
   const [amount, setAmount] = useState(
     payment ? payment.amount.toString() : pendingAmount.toString()
   );
+
   const [paymentMethod, setPaymentMethod] = useState(
     payment ? payment.payment_method : "TRANSFER"
   );
@@ -90,8 +93,13 @@ const RegisterPaymentDialog = ({
   useEffect(() => {
     if (open) {
       fetchBankAccounts();
+      // Reset form when opening for new payment if not editing
+      if (!isEditing) {
+        setAmount(pendingAmount.toString());
+        setPaymentDate(new Date());
+      }
     }
-  }, [open]);
+  }, [open, pendingAmount]);
 
   const fetchBankAccounts = async () => {
     try {
@@ -113,6 +121,21 @@ const RegisterPaymentDialog = ({
     }).format(value);
   };
 
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Replace comma with dot for consistency while typing
+    let value = e.target.value.replace(/,/g, ".");
+
+    // Allow empty string or valid number format (including single decimal point)
+    if (value === "" || /^\d*\.?\d{0,2}$/.test(value)) {
+      setAmount(value);
+    }
+  };
+
+  // Calculate remaining pending amount after this payment
+  const currentAmount = parseFloat(amount) || 0;
+  const maxAllowed = isEditing ? (pendingAmount + payment.amount) : pendingAmount;
+  const remainingAfterPayment = Math.max(0, maxAllowed - currentAmount);
+
   const handleSubmit = async () => {
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
@@ -124,10 +147,9 @@ const RegisterPaymentDialog = ({
       return;
     }
 
-    const maxAllowed = isEditing ? (pendingAmount + payment.amount) : pendingAmount;
     if (numAmount > (maxAllowed + 0.01)) {
       const confirm = window.confirm(
-        `El importe (${formatCurrency(numAmount)}) supera el pendiente (${formatCurrency(maxAllowed)}). ¿Deseas registrarlo de todos modos como sobrepago?`
+        `El importe (${formatCurrency(numAmount)}) supera el pendiente (${formatCurrency(maxAllowed)}). ¿Deseas registrarlo de todos modos?`
       );
       if (!confirm) return;
     }
@@ -135,7 +157,6 @@ const RegisterPaymentDialog = ({
     setLoading(true);
     try {
       if (isEditing) {
-        // Using type assertion as the RPC was just created and types haven't regenerated
         const { error } = await supabase.rpc("finance_update_payment" as any, {
           p_payment_id: payment.id,
           p_amount: numAmount,
@@ -151,7 +172,6 @@ const RegisterPaymentDialog = ({
           description: `Se ha modificado el cobro a ${formatCurrency(numAmount)}`,
         });
       } else {
-        // Using type assertion for new parameter not yet in generated types
         const { error } = await supabase.rpc("finance_register_payment" as any, {
           p_invoice_id: invoiceId,
           p_amount: numAmount,
@@ -169,7 +189,6 @@ const RegisterPaymentDialog = ({
       }
 
       setOpen(false);
-      if (!isEditing) resetForm();
       onPaymentRegistered();
     } catch (error: any) {
       console.error("Error saving payment:", error);
@@ -181,15 +200,6 @@ const RegisterPaymentDialog = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  const resetForm = () => {
-    setPaymentDate(new Date());
-    setAmount(pendingAmount.toString());
-    setPaymentMethod("TRANSFER");
-    setBankReference("");
-    setNotes("");
-    setBankAccountId("NONE");
   };
 
   return (
@@ -221,17 +231,22 @@ const RegisterPaymentDialog = ({
           </DialogHeader>
 
           {/* Amount context display */}
-          <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 flex items-center justify-between">
-            <div className="space-y-0.5">
-              <span className="text-[10px] uppercase tracking-wider text-white/30 font-semibold">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 flex flex-col justify-between">
+              <span className="text-[10px] uppercase tracking-wider text-white/30 font-semibold mb-1">
                 {isEditing ? "Total Editable" : "Saldo Pendiente"}
               </span>
-              <p className="text-xl font-bold text-white leading-none">
-                {formatCurrency(isEditing ? (pendingAmount + payment.amount) : pendingAmount)}
+              <p className="text-lg font-bold text-white leading-none">
+                {formatCurrency(maxAllowed)}
               </p>
             </div>
-            <div className={`p-3 rounded-2xl ${isEditing ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
-              <Landmark className={`h-4 w-4 ${isEditing ? 'text-amber-400' : 'text-emerald-400'}`} />
+            <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 flex flex-col justify-between">
+              <span className="text-[10px] uppercase tracking-wider text-white/30 font-semibold mb-1">
+                Restante tras pago
+              </span>
+              <p className={`text-lg font-bold leading-none ${remainingAfterPayment < 0 ? "text-red-400" : "text-emerald-400"}`}>
+                {formatCurrency(Math.max(0, remainingAfterPayment))}
+              </p>
             </div>
           </div>
 
@@ -239,7 +254,7 @@ const RegisterPaymentDialog = ({
             {/* Fecha de pago */}
             <div className="space-y-2">
               <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">Fecha del Movimiento</Label>
-              <Popover>
+              <Popover modal={true}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -254,7 +269,7 @@ const RegisterPaymentDialog = ({
                       : "Seleccionar fecha"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-zinc-900/95 backdrop-blur-3xl border-white/10 rounded-2xl shadow-2xl z-[110]" align="start">
+                <PopoverContent className="w-auto p-0 bg-zinc-900/95 backdrop-blur-3xl border-white/10 rounded-2xl shadow-2xl z-[10002]" align="start">
                   <Calendar
                     mode="single"
                     selected={paymentDate}
@@ -271,12 +286,11 @@ const RegisterPaymentDialog = ({
               <div className="space-y-2">
                 <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">Importe (€)</Label>
                 <Input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
+                  type="text"
+                  inputMode="decimal"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="h-12 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-emerald-500/20 focus:border-emerald-500/40 pl-4 transition-all"
+                  onChange={handleAmountChange}
+                  className="h-12 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-emerald-500/20 focus:border-emerald-500/40 pl-4 transition-all font-mono text-lg"
                   placeholder="0.00"
                 />
               </div>
@@ -385,3 +399,5 @@ const RegisterPaymentDialog = ({
 };
 
 export default RegisterPaymentDialog;
+
+

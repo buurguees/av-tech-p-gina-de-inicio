@@ -15,7 +15,7 @@ import whiteLogo from "./styles/logos/white_logo.svg";
 
 // Configuration
 const SUPABASE_URL = "https://takvthfatlcjsqgssnta.supabase.co";
-const OTP_SKIP_DURATION_MS = 60 * 60 * 1000; // 1 hour in milliseconds
+
 const LAST_LOGIN_KEY = 'nexo_av_last_login';
 
 interface RateLimitResponse {
@@ -27,19 +27,22 @@ interface RateLimitResponse {
 
 type LoginStep = 'credentials' | 'otp';
 
-// Check if OTP can be skipped based on last login time
+// Check if OTP can be skipped based on last login time (once per day)
 const canSkipOtp = (email: string): boolean => {
   try {
     const stored = localStorage.getItem(LAST_LOGIN_KEY);
     if (!stored) return false;
-    
+
     const { email: storedEmail, timestamp } = JSON.parse(stored);
-    
-    // Must be the same user and within the time window
+
+    // Must be the same user
     if (storedEmail !== email.toLowerCase()) return false;
-    
-    const elapsed = Date.now() - timestamp;
-    return elapsed < OTP_SKIP_DURATION_MS;
+
+    // Check if it's the same day
+    const lastLoginDate = new Date(timestamp);
+    const now = new Date();
+
+    return lastLoginDate.toDateString() === now.toDateString();
   } catch {
     return false;
   }
@@ -76,7 +79,7 @@ const Login = () => {
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [retryAfter, setRetryAfter] = useState(0);
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
-  
+
   // 2FA OTP state
   const [loginStep, setLoginStep] = useState<LoginStep>('credentials');
   const [otpCode, setOtpCode] = useState("");
@@ -86,10 +89,10 @@ const Login = () => {
   const [otpRemainingAttempts, setOtpRemainingAttempts] = useState<number | null>(null);
   const [canResendOtp, setCanResendOtp] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
-  
+
   // Store session temporarily until OTP is verified
   const [pendingSession, setPendingSession] = useState<any>(null);
-  
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -97,7 +100,7 @@ const Login = () => {
   // Countdown timer for rate limiting
   useEffect(() => {
     if (retryAfter <= 0) return;
-    
+
     const timer = setInterval(() => {
       setRetryAfter(prev => {
         if (prev <= 1) {
@@ -117,7 +120,7 @@ const Login = () => {
       setCanResendOtp(true);
       return;
     }
-    
+
     const timer = setInterval(() => {
       setResendCountdown(prev => prev - 1);
     }, 1000);
@@ -133,12 +136,12 @@ const Login = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'check', email: emailToCheck }),
       });
-      
+
       if (!response.ok) {
         console.error('Rate limit check failed');
         return null;
       }
-      
+
       return await response.json();
     } catch (err) {
       console.error('Rate limit check error:', err);
@@ -163,24 +166,24 @@ const Login = () => {
   const sendOtpCode = async (emailToSend: string): Promise<boolean> => {
     setOtpSending(true);
     setOtpError(null);
-    
+
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailToSend }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Error al enviar el código');
       }
-      
+
       // Start resend countdown (60 seconds)
       setResendCountdown(60);
       setCanResendOtp(false);
-      
+
       return true;
     } catch (err: any) {
       setOtpError(err.message || 'Error al enviar el código de verificación');
@@ -194,20 +197,20 @@ const Login = () => {
   const verifyOtpCode = async (emailToVerify: string, code: string): Promise<boolean> => {
     setOtpVerifying(true);
     setOtpError(null);
-    
+
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailToVerify, code }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Error al verificar el código');
       }
-      
+
       if (data.valid) {
         return true;
       } else {
@@ -232,10 +235,10 @@ const Login = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         const { data: userInfo } = await supabase.rpc('get_current_user_info');
-        
+
         if (userInfo && userInfo.length > 0) {
           // Móviles siempre van al Mapa Comercial como página inicial
-          const targetPath = isMobile 
+          const targetPath = isMobile
             ? `/nexo-av/${userInfo[0].user_id}/lead-map`
             : `/nexo-av/${userInfo[0].user_id}/dashboard`;
           navigate(targetPath, { replace: true });
@@ -244,7 +247,7 @@ const Login = () => {
         }
       }
     };
-    
+
     checkSession();
   }, [navigate, isMobile]);
 
@@ -273,7 +276,7 @@ const Login = () => {
         setIsSubmitting(false);
         return;
       }
-      
+
       if (rateLimitCheck) {
         setRemainingAttempts(rateLimitCheck.remaining_attempts);
       }
@@ -286,7 +289,7 @@ const Login = () => {
 
       if (signInError) {
         await recordAttempt(email, false);
-        
+
         const newCheck = await checkRateLimit(email);
         if (newCheck) {
           setRemainingAttempts(newCheck.remaining_attempts);
@@ -298,7 +301,7 @@ const Login = () => {
             return;
           }
         }
-        
+
         setError(GENERIC_AUTH_ERROR);
         setIsSubmitting(false);
         return;
@@ -307,7 +310,7 @@ const Login = () => {
       // Verify user is authorized
       if (data.session) {
         const { data: userInfo, error: userInfoError } = await supabase.rpc('get_current_user_info');
-        
+
         if (userInfoError || !userInfo || userInfo.length === 0) {
           await supabase.auth.signOut();
           await recordAttempt(email, false);
@@ -321,12 +324,12 @@ const Login = () => {
           // Skip OTP - direct login
           await recordAttempt(email, true);
           saveLastLogin(email);
-          
+
           toast({
             title: "Bienvenido",
             description: "Has iniciado sesión correctamente.",
           });
-          const targetPath = isMobile 
+          const targetPath = isMobile
             ? `/nexo-av/${userInfo[0].user_id}/lead-map`
             : `/nexo-av/${userInfo[0].user_id}/dashboard`;
           navigate(targetPath, { replace: true });
@@ -335,13 +338,13 @@ const Login = () => {
 
         // Sign out temporarily - we'll complete login after OTP verification
         await supabase.auth.signOut();
-        
+
         // Store credentials for after OTP
         setPendingSession({ email, password });
-        
+
         // Send OTP code
         const otpSent = await sendOtpCode(email);
-        
+
         if (otpSent) {
           setLoginStep('otp');
           toast({
@@ -360,46 +363,46 @@ const Login = () => {
   // Handle OTP verification
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (otpCode.length !== 6) {
       setOtpError('Introduce el código de 6 dígitos');
       return;
     }
-    
+
     const isValid = await verifyOtpCode(email, otpCode);
-    
+
     if (isValid && pendingSession) {
       // Re-authenticate with stored credentials
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: pendingSession.email,
         password: pendingSession.password,
       });
-      
+
       if (signInError) {
         setOtpError('Error al completar el inicio de sesión. Inténtalo de nuevo.');
         setLoginStep('credentials');
         setPendingSession(null);
         return;
       }
-      
+
       // Record successful login and save timestamp for OTP skip
       await recordAttempt(email, true);
       saveLastLogin(email);
-      
+
       // Get user info for navigation
       const { data: userInfo } = await supabase.rpc('get_current_user_info');
-      
+
       if (userInfo && userInfo.length > 0) {
         toast({
           title: "Bienvenido",
           description: "Has iniciado sesión correctamente.",
         });
-        const targetPath = isMobile 
+        const targetPath = isMobile
           ? `/nexo-av/${userInfo[0].user_id}/lead-map`
           : `/nexo-av/${userInfo[0].user_id}/dashboard`;
         navigate(targetPath, { replace: true });
       }
-      
+
       // Clear pending session
       setPendingSession(null);
     }
@@ -414,7 +417,7 @@ const Login = () => {
   // Resend OTP
   const handleResendOtp = async () => {
     if (!canResendOtp) return;
-    
+
     const sent = await sendOtpCode(email);
     if (sent) {
       setOtpCode("");
@@ -455,9 +458,9 @@ const Login = () => {
             className="mb-4"
           >
             <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
-              <img 
-                src={whiteLogo} 
-                alt="NEXO AV Logo" 
+              <img
+                src={whiteLogo}
+                alt="NEXO AV Logo"
                 className="w-full h-full object-contain"
               />
             </div>
@@ -701,7 +704,7 @@ const Login = () => {
                       `Reenviar código en ${resendCountdown}s`
                     )}
                   </button>
-                  
+
                   <button
                     type="button"
                     onClick={handleBackToCredentials}

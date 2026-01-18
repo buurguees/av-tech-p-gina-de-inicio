@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, MapPin, FileText, Calendar, Hash, User } from "lucide-react";
+import ProjectFinancialsWidget from "./desktop/widgets/ProjectFinancialsWidget";
 
 interface ProjectDetail {
   id: string;
@@ -27,6 +28,9 @@ interface ProjectDashboardTabProps {
 const ProjectDashboardTab = ({ project }: ProjectDashboardTabProps) => {
   return (
     <div className="space-y-6">
+      {/* Financial Overview */}
+      <ProjectFinancialsWidget projectId={project.id} />
+
       {/* Info Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Cliente */}

@@ -29,6 +29,13 @@ const CashFlowChart = () => {
                 p_status: null
             });
 
+            // Get Purchase Invoices for Expenses (Real Data)
+            const { data: purchaseInvoices } = await supabase.rpc("list_purchase_invoices", {
+                p_search: null,
+                p_status: null,
+                p_page_size: 1000 // Get enough for history
+            });
+
             // Prepare 6 months data
             const today = new Date();
             const months: CashFlowData[] = [];
@@ -41,7 +48,6 @@ const CashFlowChart = () => {
                 let monthIncome = 0;
                 if (invoices) {
                     (invoices as any[]).forEach(inv => {
-                        // Only count PAID for cash flow, or maybe SENT if accrual basis. Let's start with PAID/SENT for "Revenue"
                         if ((inv.status === 'PAID' || inv.status === 'SENT') && inv.issue_date) {
                             const invDate = new Date(inv.issue_date);
                             if (invDate.getMonth() === d.getMonth() && invDate.getFullYear() === d.getFullYear()) {
@@ -51,11 +57,18 @@ const CashFlowChart = () => {
                     });
                 }
 
-                // Mock Expenses (Randomized but consistent-ish)
-                // Assume expenses are roughly 60-80% of income + fixed costs
-                const fixedCosts = 3000;
-                const variableCosts = monthIncome * (Math.random() * 0.2 + 0.4); // 40-60% margin
-                const monthExpenses = fixedCosts + variableCosts;
+                // Filter expenses for this month (Real Data)
+                let monthExpenses = 0;
+                if (purchaseInvoices) {
+                    (purchaseInvoices as any[]).forEach(pinv => {
+                        if (pinv.date) {
+                            const pinvDate = new Date(pinv.date);
+                            if (pinvDate.getMonth() === d.getMonth() && pinvDate.getFullYear() === d.getFullYear()) {
+                                monthExpenses += (pinv.total || 0);
+                            }
+                        }
+                    });
+                }
 
                 months.push({
                     month: monthKey,

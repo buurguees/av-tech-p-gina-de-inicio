@@ -67,9 +67,12 @@ const InvoicePaymentsSection = ({
   onPaymentChange,
 }: InvoicePaymentsSectionProps) => {
   const { toast } = useToast();
+  /* Existing imports */
+
   const [payments, setPayments] = useState<Payment[]>([]);
   const [bankAccounts, setBankAccounts] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const paymentPercentage = total > 0 ? (paidAmount / total) * 100 : 0;
 
@@ -78,6 +81,20 @@ const InvoicePaymentsSection = ({
       style: "currency",
       currency: "EUR",
     }).format(value);
+  };
+
+  const checkUserRole = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_current_user_info');
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const roles = (data[0].roles || []).map((r: string) => r.toLowerCase());
+        setIsAdmin(roles.includes('admin'));
+      }
+    } catch (err) {
+      console.error("Error checking user role:", err);
+    }
   };
 
   const fetchBankAccounts = async () => {
@@ -113,9 +130,11 @@ const InvoicePaymentsSection = ({
   useEffect(() => {
     fetchPayments();
     fetchBankAccounts();
+    checkUserRole();
   }, [invoiceId]);
 
   const handleDeletePayment = async (paymentId: string) => {
+    /* ... existing delete logic ... */
     try {
       const { error } = await supabase.rpc("finance_delete_payment", {
         p_payment_id: paymentId,
@@ -173,8 +192,9 @@ const InvoicePaymentsSection = ({
         )}
       </div>
 
-      {/* Stats and Progress Tracker */}
+      {/* Stats and Progress Tracker logic remains same... */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 relative z-10">
+        {/* ... stats blocks ... */}
         <div className="bg-white/5 border border-white/5 rounded-[1.5rem] p-5 space-y-2">
           <div className="flex justify-between items-center text-xs uppercase tracking-wider text-white/30 font-bold">
             <span>Cobrado</span>
@@ -197,11 +217,11 @@ const InvoicePaymentsSection = ({
             <span>Pendiente</span>
             <AlertCircle className={`h-3 w-3 ${pendingAmount > 0 ? 'text-amber-400' : 'text-emerald-400'}`} />
           </div>
-          <p className={`text-2xl font-bold leading-none ${pendingAmount > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+          <p className={`text-2xl font-bold leading-none ${pendingAmount > 0 ? 'text-amber-500' : 'text-emerald-400'}`}>
             {pendingAmount > 0 ? formatCurrency(pendingAmount) : "Todo cobrado"}
           </p>
           <div className="pt-3">
-            <Badge className={`rounded-full px-3 py-0.5 text-[10px] font-bold ${pendingAmount > 0 ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'}`}>
+            <Badge className={`rounded-full px-3 py-0.5 text-[10px] font-bold ${pendingAmount > 0 ? 'bg-amber-500/20 text-amber-500 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30'}`}>
               {pendingAmount > 0 ? "PAGO PENDIENTE" : "SALDADO"}
             </Badge>
           </div>
@@ -224,16 +244,16 @@ const InvoicePaymentsSection = ({
       {/* Payments history table */}
       {payments.length > 0 ? (
         <div className="rounded-[1.5rem] border border-white/5 bg-white/[0.02] overflow-hidden shadow-2xl relative z-10">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             <Table>
               <TableHeader>
                 <TableRow className="border-white/5 hover:bg-transparent bg-white/[0.03]">
                   <TableHead className="text-white/40 font-bold uppercase text-[10px] tracking-widest pl-6">Fecha</TableHead>
                   <TableHead className="text-white/40 font-bold uppercase text-[10px] tracking-widest">Importe</TableHead>
-                  <TableHead className="text-white/40 font-bold uppercase text-[10px] tracking-widest">Método / Banco</TableHead>
+                  <TableHead className="text-white/40 font-bold uppercase text-[10px] tracking-widest">Cuenta Bancaria</TableHead>
                   <TableHead className="text-white/40 font-bold uppercase text-[10px] tracking-widest">Referencia</TableHead>
                   <TableHead className="text-white/40 font-bold uppercase text-[10px] tracking-widest">Gestor</TableHead>
-                  <TableHead className="text-white/40 w-[100px]"></TableHead>
+                  <TableHead className="text-white/40 w-[100px] text-right pr-6">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -245,21 +265,18 @@ const InvoicePaymentsSection = ({
                     <TableCell className="text-white font-medium pl-6">
                       {format(new Date(payment.payment_date), "dd/MM/yyyy", { locale: es })}
                     </TableCell>
-                    <TableCell className="text-emerald-400 font-bold">
+                    <TableCell className="text-emerald-500 font-bold">
                       {formatCurrency(payment.amount)}
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <Badge variant="outline" className="bg-white/5 border-white/10 text-white/70 text-[10px] rounded-lg w-fit">
-                          {getPaymentMethodLabel(payment.payment_method)}
-                        </Badge>
-                        {payment.company_bank_account_id && bankAccounts[payment.company_bank_account_id] && (
-                          <div className="flex items-center gap-1.5 text-[9px] text-white/40 font-medium">
-                            <Landmark className="h-2.5 w-2.5" />
-                            {bankAccounts[payment.company_bank_account_id]}
-                          </div>
-                        )}
-                      </div>
+                      {payment.company_bank_account_id && bankAccounts[payment.company_bank_account_id] ? (
+                        <div className="flex items-center gap-2 text-xs text-white/70 font-medium">
+                          <Landmark className="h-3.5 w-3.5 text-blue-400" />
+                          {bankAccounts[payment.company_bank_account_id]}
+                        </div>
+                      ) : (
+                        <span className="text-white/20 text-xs italic">No especificada</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-white/40 max-w-[150px] truncate text-xs italic">
                       {payment.bank_reference || "No ref."}
@@ -272,29 +289,34 @@ const InvoicePaymentsSection = ({
                         {payment.registered_by_name}
                       </div>
                     </TableCell>
-                    <TableCell className="pr-4">
-                      <div className="flex items-center gap-1 justify-end">
-                        <RegisterPaymentDialog
-                          invoiceId={invoiceId}
-                          pendingAmount={pendingAmount}
-                          payment={payment}
-                          onPaymentRegistered={handlePaymentRegistered}
-                          trigger={
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-white/20 hover:text-amber-400 hover:bg-amber-500/10 rounded-xl transition-colors"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                          }
-                        />
+                    <TableCell className="pr-6">
+                      <div className="flex items-center gap-2 justify-end">
+                        {/* DEBUG: Remove this span in production */}
+                        {isAdmin && <span className="text-[10px] text-emerald-500 font-mono hidden md:inline">ADMIN</span>}
+
+                        {isAdmin && (
+                          <RegisterPaymentDialog
+                            invoiceId={invoiceId}
+                            pendingAmount={pendingAmount}
+                            payment={payment}
+                            onPaymentRegistered={handlePaymentRegistered}
+                            trigger={
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 text-amber-500 border-amber-500/20 hover:bg-amber-500/10 hover:text-amber-600 rounded-xl transition-all shadow-sm"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            }
+                          />
+                        )}
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
+                              className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-colors"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

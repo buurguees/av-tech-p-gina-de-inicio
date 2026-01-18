@@ -11,13 +11,17 @@ import {
 } from "@/components/ui/table";
 import { Plus, Receipt, Loader2 } from "lucide-react";
 
+import { supabase } from "@/integrations/supabase/client";
+import CreateProjectExpenseDialog from "./CreateProjectExpenseDialog";
+import { toast } from "sonner";
+
 interface Expense {
   id: string;
   description: string;
   amount: number;
   category: string;
   date: string;
-  status: string;
+  notes: string | null;
 }
 
 interface ProjectExpensesTabProps {
@@ -38,16 +42,33 @@ const getCategoryInfo = (category: string) => {
 const ProjectExpensesTab = ({ projectId }: ProjectExpensesTabProps) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const fetchExpenses = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('projects.expenses' as any)
+        .select('*')
+        .eq('project_id', projectId)
+        .order('date', { ascending: false }) as { data: Expense[] | null; error: any };
+
+      if (error) throw error;
+      setExpenses(data || []);
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+      toast.error("Error al cargar los gastos");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // TODO: Fetch expenses from database when table is created
-    setLoading(false);
-    setExpenses([]);
+    fetchExpenses();
   }, [projectId]);
 
   const handleCreateExpense = () => {
-    // TODO: Open create expense dialog
-    console.log('Create expense for project:', projectId);
+    setIsDialogOpen(true);
   };
 
   if (loading) {
@@ -126,6 +147,13 @@ const ProjectExpensesTab = ({ projectId }: ProjectExpensesTabProps) => {
           </Table>
         </div>
       )}
+
+      <CreateProjectExpenseDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        projectId={projectId}
+        onSuccess={fetchExpenses}
+      />
     </div>
   );
 };

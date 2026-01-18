@@ -48,6 +48,8 @@ interface QuoteLine {
   subtotal: number;
   tax_amount: number;
   total: number;
+  group_name?: string;
+  line_order?: number;
 }
 
 interface TaxOption {
@@ -114,13 +116,18 @@ const NewQuotePage = () => {
       setSourceQuoteNumber(quoteInfo.quote_number);
       setSelectedClientId(quoteInfo.client_id);
 
-      // Get project_id from list_quotes (get_quote doesn't return it)
-      const { data: quotesListData } = await supabase.rpc("list_quotes", {
-        p_search: quoteInfo.quote_number,
-      });
-      const projectId = (quotesListData?.find((q: any) => q.id === sourceQuoteId) as any)?.project_id as string | undefined;
-      if (projectId) {
-        setSelectedProjectId(projectId);
+      // Use project_id from quoteInfo if available (it should be)
+      if (quoteInfo.project_id) {
+        setSelectedProjectId(quoteInfo.project_id);
+      } else {
+        // Fallback: Get project_id from list_quotes (if get_quote returns null project_id but it actually exists)
+        const { data: quotesListData } = await supabase.rpc("list_quotes", {
+          p_search: quoteInfo.quote_number,
+        });
+        const projectId = (quotesListData?.find((q: any) => q.id === sourceQuoteId) as any)?.project_id as string | undefined;
+        if (projectId) {
+          setSelectedProjectId(projectId);
+        }
       }
 
       // Fetch quote lines
@@ -141,6 +148,8 @@ const NewQuotePage = () => {
         subtotal: line.subtotal,
         tax_amount: line.tax_amount,
         total: line.total,
+        group_name: line.group_name || null,
+        line_order: line.line_order,
       }));
 
       setLines(importedLines);
@@ -494,6 +503,8 @@ const NewQuotePage = () => {
             p_unit_price: line.unit_price,
             p_tax_rate: line.tax_rate,
             p_discount_percent: line.discount_percent,
+            p_group_name: line.group_name || null,
+            p_line_order: line.line_order || null
           });
           if (lineError) throw lineError;
           // add_quote_line returns UUID directly (not in array)

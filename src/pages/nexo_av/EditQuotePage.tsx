@@ -605,12 +605,36 @@ const EditQuotePage = () => {
         p_project_name: selectedProject?.project_name || null,
         p_valid_until: calculatedValidUntil,
         p_status: currentStatus,
+        p_project_id: selectedProjectId || null,
       });
       if (quoteError) throw quoteError;
 
       // Process lines (in order: delete, add, update)
       const lineIdsToOrder: string[] = [];
 
+      // Sort lines by group before saving to ensure line_order matches group structure
+      // Non-deleted lines only for determining order
+      const linesToSort = [...lines].filter(l => !l.isDeleted);
+      linesToSort.sort((a, b) => {
+        const groupA = a.group_name || '';
+        const groupB = b.group_name || '';
+        if (groupA && !groupB) return -1; // Groups first
+        if (!groupA && groupB) return 1;
+        if (groupA === groupB) return (a.line_order || 0) - (b.line_order || 0); // Keep relative order
+        return groupA.localeCompare(groupB, undefined, { numeric: true }); // Alphanumeric sort (Group 1 < Group 2)
+      });
+
+      // We need to map the sorted order back to the original array processing or just re-process
+      // Actually, we just need the IDs in the correct order for `update_quote_lines_order`
+      // But we also need to SAVE them.
+      // The saving part (add/update) doesn't care about order usually, but `add_quote_line` does insert with a new order.
+      // However, `update_quote_lines_order` at the end FIXES the order.
+      // So we can process `lines` as is for saving, but construct `lineIdsToOrder` from the SORTED list.
+
+      // Map of tempId/id to resolved ID
+      const idMap = new Map<string, string>();
+
+      // First pass: Save all lines (add/update)
       for (const line of lines) {
         if (line.isDeleted && line.id) {
           // Delete line
@@ -626,13 +650,18 @@ const EditQuotePage = () => {
             p_unit_price: line.unit_price,
             p_tax_rate: line.tax_rate,
             p_discount_percent: line.discount_percent,
+            p_group_name: line.group_name || null
           });
           if (error) throw error;
-          // add_quote_line returns UUID directly (not in array)
+
           const lineId = typeof newLineId === 'string' ? newLineId : newLineId?.[0] || newLineId;
-          if (lineId) lineIdsToOrder.push(lineId);
+          // Store mapping for sorting later
+          if (lineId) {
+            const key = line.id || line.tempId || ''; // Should be tempId for new lines
+            if (key) idMap.set(key, lineId);
+          }
         } else if (line.id) {
-          // Update existing line or keep as-is
+          // Update existing line
           if (line.isModified) {
             const { error } = await supabase.rpc("update_quote_line", {
               p_line_id: line.id,
@@ -645,7 +674,35 @@ const EditQuotePage = () => {
             });
             if (error) throw error;
           }
-          lineIdsToOrder.push(line.id);
+          idMap.set(line.id, line.id);
+        }
+      }
+
+      // Second pass: Construct ordered ID list based on GROUPS
+      // We use the same sorting logic on the lines we have in memory (ignoring deleted)
+      const activeLines = lines.filter(l => !l.isDeleted && (l.id || l.isNew));
+
+      activeLines.sort((a, b) => {
+        const groupA = a.group_name || '';
+        const groupB = b.group_name || '';
+
+        // Logic: Groups first, then empty groups
+        if (groupA && !groupB) return -1;
+        if (!groupA && groupB) return 1;
+
+        if (groupA === groupB) {
+          // Stable sort for same group
+          return lines.indexOf(a) - lines.indexOf(b);
+        }
+
+        return groupA.localeCompare(groupB, undefined, { numeric: true });
+      });
+
+      // Now build the ID list from the sorted active lines, using the idMap to get real IDs for new lines
+      for (const line of activeLines) {
+        const key = line.id || line.tempId;
+        if (key && idMap.has(key)) {
+          lineIdsToOrder.push(idMap.get(key)!);
         }
       }
 

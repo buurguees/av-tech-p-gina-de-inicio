@@ -28,7 +28,7 @@ export function useInactivityLogout(options: UseInactivityLogoutOptions = {}) {
 
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasWarnedRef = useRef(false);
@@ -39,13 +39,7 @@ export function useInactivityLogout(options: UseInactivityLogoutOptions = {}) {
 
   const performLogout = useCallback(async () => {
     try {
-      // Clear the OTP skip timestamp since this is an inactivity logout
-      try {
-        localStorage.removeItem('nexo_av_last_login');
-      } catch {
-        // Ignore localStorage errors
-      }
-      
+
       await supabase.auth.signOut();
       toast({
         title: "Sesión cerrada",
@@ -61,10 +55,10 @@ export function useInactivityLogout(options: UseInactivityLogoutOptions = {}) {
 
   const showWarning = useCallback(() => {
     if (hasWarnedRef.current) return;
-    
+
     hasWarnedRef.current = true;
     const remainingSeconds = warningMinutes * 60;
-    
+
     toast({
       title: "⚠️ Sesión a punto de expirar",
       description: `Tu sesión se cerrará en ${warningMinutes} minutos por inactividad. Mueve el ratón o pulsa una tecla para mantenerla activa.`,
@@ -134,7 +128,7 @@ export function useInactivityLogout(options: UseInactivityLogoutOptions = {}) {
       activityEvents.forEach(event => {
         document.removeEventListener(event, throttledReset);
       });
-      
+
       if (inactivityTimerRef.current) {
         clearTimeout(inactivityTimerRef.current);
       }

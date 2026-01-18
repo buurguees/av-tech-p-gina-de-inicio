@@ -79,7 +79,7 @@ const InvoiceDetailPageDesktop = () => {
       );
 
       if (invoiceError) throw invoiceError;
-      
+
       const invoiceRecord = Array.isArray(invoiceData) ? invoiceData[0] : invoiceData;
       if (!invoiceRecord) {
         toast.error("Factura no encontrada");
@@ -96,7 +96,7 @@ const InvoiceDetailPageDesktop = () => {
 
       if (linesError) throw linesError;
       // Sort lines by line_order to ensure correct order in PDF
-      const sortedLines = (linesData || []).sort((a: any, b: any) => 
+      const sortedLines = (linesData || []).sort((a: any, b: any) =>
         (a.line_order || 0) - (b.line_order || 0)
       );
       setLines(sortedLines);
@@ -161,7 +161,7 @@ const InvoiceDetailPageDesktop = () => {
       });
 
       if (error) throw error;
-      
+
       const result = Array.isArray(data) ? data[0] : data;
       toast.success(`Factura emitida con número ${result?.invoice_number}`);
       fetchInvoiceData();
@@ -210,7 +210,7 @@ const InvoiceDetailPageDesktop = () => {
 
     try {
       setDeleting(true);
-      
+
       // First delete all invoice lines
       for (const line of lines) {
         await supabase.rpc("finance_delete_invoice_line", { p_line_id: line.id });
@@ -281,15 +281,22 @@ const InvoiceDetailPageDesktop = () => {
   return (
     <div className="w-full">
       <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
-        {/* Back button */}
-        <Button
-          variant="ghost"
-          className="mb-4 text-white/60 hover:text-white"
-          onClick={() => navigate(`/nexo-av/${userId}/invoices`)}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver a Facturas
-        </Button>
+        {/* Header with Title and Back button */}
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white/60 hover:text-white hover:bg-white/10 rounded-full h-10 w-10 flex-shrink-0"
+            onClick={() => navigate(`/nexo-av/${userId}/invoices`)}
+            title="Volver a Facturas"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-bold text-white tracking-tight">Detalle de Factura</h1>
+            <p className="text-white/40 text-xs font-mono">{displayNumber}</p>
+          </div>
+        </div>
 
         {/* Header Actions */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -474,11 +481,11 @@ const InvoiceDetailPageDesktop = () => {
                   </div>
                   {invoice.status !== "DRAFT" && (
                     <>
-                      <div className="flex justify-between text-green-400">
+                      <div className="flex justify-between text-emerald-400 font-medium">
                         <span>Cobrado</span>
                         <span>{formatCurrency(invoice.paid_amount || 0)}</span>
                       </div>
-                      <div className="flex justify-between text-amber-400 font-medium">
+                      <div className="flex justify-between text-amber-500 font-bold">
                         <span>Pendiente</span>
                         <span>{formatCurrency(invoice.pending_amount || 0)}</span>
                       </div>
