@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useDebounce } from "@/hooks/useDebounce";
-import { usePagination } from "@/hooks/usePagination";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -15,396 +13,336 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Loader2, Plus, Search, Star, Phone, Mail, MapPin, Building2, User, UserCheck, Filter, X } from "lucide-react";
+  Search,
+  Loader2,
+  Plus,
+  ChevronDown,
+  Filter,
+  UserRound,
+  Mail,
+  Phone,
+  Euro,
+  MapPin,
+  Star
+} from "lucide-react";
+import { motion } from "motion/react";
+import { useToast } from "@/hooks/use-toast";
+import { useDebounce } from "@/hooks/useDebounce";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { TECHNICIAN_TYPES, TECHNICIAN_STATUSES, TECHNICIAN_SPECIALTIES, getTypeInfo, getStatusInfo } from "@/constants/technicianConstants";
-import { useIsMobile } from "@/hooks/use-mobile";
-import PaginationControls from "./components/PaginationControls";
-import CreateTechnicianDialog from "./components/CreateTechnicianDialog";
-
-const TechniciansPageMobile = lazy(() => import("./mobile/TechniciansPageMobile"));
 
 interface Technician {
   id: string;
   technician_number: string;
-  type: string;
   company_name: string;
-  legal_name: string | null;
-  tax_id: string | null;
-  contact_name: string | null;
-  contact_phone: string | null;
-  contact_email: string | null;
-  city: string | null;
-  province: string | null;
-  specialties: string[];
-  hourly_rate: number | null;
-  daily_rate: number | null;
+  legal_name: string;
+  tax_id: string;
+  type: string;
+  email: string;
+  phone: string;
+  city: string;
   status: string;
-  rating: number | null;
+  specialties: string[];
+  daily_rate: number;
+  hourly_rate: number;
   created_at: string;
 }
 
-function TechniciansPageDesktop() {
-  const { userId } = useParams<{ userId: string }>();
+const TechniciansPage = () => {
   const navigate = useNavigate();
-  const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const { userId } = useParams<{ userId: string }>();
+  const { toast } = useToast();
+
   const [loading, setLoading] = useState(true);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [searchInput, setSearchInput] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [specialtyFilter, setSpecialtyFilter] = useState<string>("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const debouncedSearch = useDebounce(searchInput, 300);
-
-  const { paginatedData, currentPage, totalPages, goToPage, nextPage, prevPage, canGoNext, canGoPrev, startIndex, endIndex, totalItems } = usePagination(technicians, { pageSize: 15 });
-
-  const fetchTechnicians = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("list_technicians", {
-        p_search: debouncedSearch || null,
-        p_type: typeFilter || null,
-        p_status: statusFilter || null,
-        p_specialty: specialtyFilter || null,
-      });
-
-      if (error) throw error;
-      setTechnicians(data || []);
-    } catch (err) {
-      console.error("Error fetching technicians:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [debouncedSearch, typeFilter, statusFilter, specialtyFilter]);
+  const debouncedSearchQuery = useDebounce(searchInput, 500);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
 
   useEffect(() => {
     fetchTechnicians();
-  }, [fetchTechnicians]);
+  }, [debouncedSearchQuery, statusFilter, typeFilter]);
 
-  const handleRowClick = (technicianId: string) => {
-    navigate(`/nexo-av/${userId}/technicians/${technicianId}`);
+  const fetchTechnicians = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.rpc("list_technicians", {
+        p_search: debouncedSearchQuery || null,
+        p_status: statusFilter === "all" ? null : statusFilter,
+        p_type: typeFilter === "all" ? null : typeFilter,
+      });
+      if (error) throw error;
+      setTechnicians(data || []);
+    } catch (error: any) {
+      console.error("Error fetching technicians:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudieron cargar los técnicos",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const clearFilters = () => {
-    setTypeFilter("");
-    setStatusFilter("");
-    setSpecialtyFilter("");
-    setSearchInput("");
-  };
-
-  const hasActiveFilters = typeFilter || statusFilter || specialtyFilter || searchInput;
-
-  const TypeIcon = ({ type }: { type: string }) => {
-    const typeInfo = getTypeInfo(type);
-    const IconComponent = typeInfo.icon;
-    return <IconComponent className={cn("h-4 w-4", typeInfo.color)} />;
-  };
-
-  const RatingStars = ({ rating }: { rating: number | null }) => {
-    if (!rating) return <span className="text-muted-foreground text-sm">-</span>;
-    return (
-      <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={cn(
-              "h-3.5 w-3.5",
-              star <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"
-            )}
-          />
-        ))}
-      </div>
-    );
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "EUR",
+    }).format(amount);
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Técnicos</h1>
-            <p className="text-muted-foreground text-sm">
-              {technicians.length} técnicos registrados
-            </p>
-          </div>
-          <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nuevo Técnico
-          </Button>
-        </div>
+    <div className="w-full">
+      <div className="w-[95%] max-w-[1800px] mx-auto px-4 pb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-violet-500/10 rounded-2xl border border-violet-500/20">
+                  <UserRound className="h-6 w-6 text-violet-400" />
+                </div>
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Técnicos</h1>
+                  <p className="text-white/40 text-sm mt-0.5">Freelances y personal externo especializado</p>
+                </div>
+              </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 max-w-md">
-              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nombre, NIF, teléfono..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-11"
-              />
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={() => { }}
+                  className="bg-violet-600 hover:bg-violet-700 text-white h-10 px-5 rounded-2xl shadow-lg shadow-violet-500/20 gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nuevo Técnico
+                </Button>
+              </div>
             </div>
-            <Button
-              variant={showFilters ? "secondary" : "outline"}
-              onClick={() => setShowFilters(!showFilters)}
-              className="gap-2"
-            >
-              <Filter className="h-4 w-4" />
-              Filtros
-              {hasActiveFilters && (
-                <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                  {[typeFilter, statusFilter, specialtyFilter].filter(Boolean).length}
-                </Badge>
-              )}
-            </Button>
-            {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-muted-foreground">
-                <X className="h-4 w-4" />
-                Limpiar
-              </Button>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-sm p-4 rounded-3xl flex items-center gap-4">
+                <div className="p-3 bg-violet-500/10 rounded-2xl">
+                  <Star className="h-5 w-5 text-violet-400" />
+                </div>
+                <div>
+                  <p className="text-white/40 text-xs font-medium uppercase tracking-wider">Total Técnicos</p>
+                  <p className="text-xl font-bold text-white">{technicians.length}</p>
+                </div>
+              </div>
+
+              <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-sm p-4 rounded-3xl flex items-center gap-4">
+                <div className="p-3 bg-blue-500/10 rounded-2xl">
+                  <UserRound className="h-5 w-5 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-white/40 text-xs font-medium uppercase tracking-wider">Freelances</p>
+                  <p className="text-xl font-bold text-white">
+                    {technicians.filter(t => t.type === 'FREELANCE').length}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Filters Bar */}
+            <div className="flex flex-col md:flex-row items-center gap-3 bg-white/[0.02] border border-white/5 p-3 rounded-[2rem] backdrop-blur-md">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                <Input
+                  placeholder="Buscar por nombre, especialidad o ciudad..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="pl-11 h-11 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-violet-500/20 focus:border-violet-500/40 transition-all text-sm"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="h-11 px-4 bg-white/5 border-white/10 text-white rounded-2xl hover:bg-white/10 gap-2 whitespace-nowrap min-w-[140px]"
+                    >
+                      <Filter className="h-4 w-4 text-white/40" />
+                      {typeFilter === "all" ? "Tipo" : typeFilter}
+                      <ChevronDown className="h-3 w-3 ml-auto opacity-40" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10 rounded-2xl p-1 w-48">
+                    <DropdownMenuItem onClick={() => setTypeFilter("all")} className="text-white rounded-xl focus:bg-white/10">
+                      Todos los tipos
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTypeFilter("FREELANCE")} className="text-white rounded-xl focus:bg-white/10">
+                      Autónomo / Freelance
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTypeFilter("COMPANY")} className="text-white rounded-xl focus:bg-white/10">
+                      Empresa Externa
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="h-11 px-4 bg-white/5 border-white/10 text-white rounded-2xl hover:bg-white/10 gap-2 whitespace-nowrap min-w-[140px]"
+                    >
+                      {statusFilter === "all" ? "Estado" : statusFilter}
+                      <ChevronDown className="h-3 w-3 ml-auto opacity-40" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10 rounded-2xl p-1 w-48">
+                    <DropdownMenuItem onClick={() => setStatusFilter("all")} className="text-white rounded-xl focus:bg-white/10">
+                      Cualquier estado
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatusFilter("ACTIVE")} className="text-white rounded-xl focus:bg-white/10">
+                      Disponible / Activo
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatusFilter("INACTIVE")} className="text-white rounded-xl focus:bg-white/10">
+                      No disponible
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-md rounded-[2.5rem] overflow-hidden">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-24 gap-4">
+                <Loader2 className="h-10 w-10 text-violet-500 animate-spin" />
+                <p className="text-white/40 font-medium animate-pulse">Cargando base de técnicos...</p>
+              </div>
+            ) : technicians.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
+                <div className="p-6 bg-white/[0.03] rounded-[2.5rem] border border-white/5 mb-6">
+                  <UserRound className="h-12 w-12 text-white/10" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">No hay técnicos registrados</h3>
+                <p className="text-white/40 max-w-sm mb-8">
+                  No hemos encontrado ningún perfil que coincida con la búsqueda actual.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => { setSearchInput(""); setStatusFilter("all"); setTypeFilter("all"); }}
+                  className="rounded-2xl border-white/10 text-white/60 hover:text-white"
+                >
+                  Limpiar filtros
+                </Button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-white/[0.02]">
+                    <TableRow className="border-white/5 hover:bg-transparent">
+                      <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] pl-8 h-14">Técnico</TableHead>
+                      <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14">Especialidades</TableHead>
+                      <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14">Tarifas</TableHead>
+                      <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14">Estado</TableHead>
+                      <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14 text-right pr-8">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {technicians.map((tech) => (
+                      <TableRow
+                        key={tech.id}
+                        className="group border-white/[0.03] hover:bg-white/[0.02] cursor-pointer transition-colors h-24"
+                        onClick={() => navigate(`/nexo-av/${userId}/technicians/${tech.id}`)}
+                      >
+                        <TableCell className="pl-8">
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400 font-bold">
+                              {tech.company_name.substring(0, 1).toUpperCase()}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-white group-hover:text-violet-400 transition-colors capitalize">
+                                {tech.company_name.toLowerCase()}
+                              </span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <MapPin className="h-3 w-3 text-white/20" />
+                                <span className="text-[10px] text-white/30 uppercase tracking-wider">
+                                  {tech.city || "Sin ciudad"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1 max-w-[250px]">
+                            {tech.specialties && tech.specialties.length > 0 ? (
+                              tech.specialties.slice(0, 3).map((s, i) => (
+                                <Badge key={i} variant="secondary" className="bg-white/5 text-[10px] py-0 px-2 rounded-md border-none text-white/60">
+                                  {s}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-white/20 text-xs italic">No especificadas</span>
+                            )}
+                            {tech.specialties && tech.specialties.length > 3 && (
+                              <span className="text-[10px] text-white/20 ml-1">+{tech.specialties.length - 3}</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {tech.daily_rate > 0 && (
+                              <div className="flex items-center gap-1.5 font-mono text-xs">
+                                <span className="text-white/40 bg-white/5 px-1 rounded">D</span>
+                                <span className="text-white/80">{formatCurrency(tech.daily_rate)}</span>
+                              </div>
+                            )}
+                            {tech.hourly_rate > 0 && (
+                              <div className="flex items-center gap-1.5 font-mono text-xs mt-0.5">
+                                <span className="text-white/40 bg-white/5 px-1 rounded">H</span>
+                                <span className="text-white/80">{formatCurrency(tech.hourly_rate)}</span>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border-none",
+                              tech.status === 'ACTIVE' ? "bg-emerald-500/10 text-emerald-400" : "bg-zinc-500/10 text-zinc-400"
+                            )}
+                          >
+                            {tech.status === 'ACTIVE' ? "DISPONIBLE" : "BAJA"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button size="icon" variant="ghost" className="rounded-xl h-9 w-9 text-white/20 hover:text-white hover:bg-white/10">
+                              <Mail className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="rounded-xl h-9 w-9 text-white/20 hover:text-white hover:bg-white/10">
+                              <Phone className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </div>
-
-          {showFilters && (
-            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos los tipos</SelectItem>
-                  {TECHNICIAN_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos los estados</SelectItem>
-                  {TECHNICIAN_STATUSES.map((status) => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={specialtyFilter} onValueChange={setSpecialtyFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Especialidad" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todas las especialidades</SelectItem>
-                  {TECHNICIAN_SPECIALTIES.map((specialty) => (
-                    <SelectItem key={specialty.value} value={specialty.value}>
-                      {specialty.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </div>
+        </motion.div>
       </div>
-
-      {/* Table */}
-      {loading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : technicians.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
-          <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-            <Building2 className="h-8 w-8 text-muted-foreground" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-lg">No hay técnicos</h3>
-            <p className="text-muted-foreground text-sm">
-              {hasActiveFilters
-                ? "No se encontraron técnicos con los filtros aplicados"
-                : "Añade tu primer técnico para empezar"}
-            </p>
-          </div>
-          {!hasActiveFilters && (
-            <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Añadir Técnico
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 overflow-auto border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="w-[100px]">Número</TableHead>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead className="w-[100px]">Tipo</TableHead>
-                  <TableHead>Contacto</TableHead>
-                  <TableHead>Ubicación</TableHead>
-                  <TableHead>Especialidades</TableHead>
-                  <TableHead className="w-[100px]">Tarifa/hora</TableHead>
-                  <TableHead className="w-[100px]">Tarifa/día</TableHead>
-                  <TableHead className="w-[100px]">Valoración</TableHead>
-                  <TableHead className="w-[100px]">Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedData.map((tech) => {
-                  const statusInfo = getStatusInfo(tech.status);
-                  const typeInfo = getTypeInfo(tech.type);
-                  return (
-                    <TableRow
-                      key={tech.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleRowClick(tech.id)}
-                    >
-                      <TableCell className="font-mono text-sm text-muted-foreground">
-                        {tech.technician_number}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{tech.company_name}</span>
-                          {tech.contact_name && (
-                            <span className="text-sm text-muted-foreground">{tech.contact_name}</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <TypeIcon type={tech.type} />
-                          <span className="text-sm">{typeInfo.label}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-0.5">
-                          {tech.contact_phone && (
-                            <div className="flex items-center gap-1.5 text-sm">
-                              <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                              {tech.contact_phone}
-                            </div>
-                          )}
-                          {tech.contact_email && (
-                            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <Mail className="h-3.5 w-3.5" />
-                              {tech.contact_email}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {(tech.city || tech.province) && (
-                          <div className="flex items-center gap-1.5 text-sm">
-                            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                            {[tech.city, tech.province].filter(Boolean).join(", ")}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {tech.specialties.slice(0, 2).map((spec) => (
-                            <Badge key={spec} variant="secondary" className="text-xs">
-                              {spec}
-                            </Badge>
-                          ))}
-                          {tech.specialties.length > 2 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{tech.specialties.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {tech.hourly_rate ? (
-                          <span className="font-medium">
-                            {tech.hourly_rate.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {tech.daily_rate ? (
-                          <span className="font-medium">
-                            {tech.daily_rate.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <RatingStars rating={tech.rating} />
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={cn("gap-1", statusInfo.bgColor, statusInfo.color, "hover:opacity-80")}>
-                          <span className={cn("h-1.5 w-1.5 rounded-full", statusInfo.dotColor)} />
-                          {statusInfo.label}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-
-          {totalPages > 1 && (
-            <div className="mt-4">
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={totalPages}
-                startIndex={startIndex}
-                endIndex={endIndex}
-                totalItems={totalItems}
-                canGoPrev={canGoPrev}
-                canGoNext={canGoNext}
-                onPrevPage={prevPage}
-                onNextPage={nextPage}
-                onGoToPage={goToPage}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      <CreateTechnicianDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        onSuccess={() => {
-          setIsDialogOpen(false);
-          fetchTechnicians();
-        }}
-      />
     </div>
   );
-}
+};
 
-export default function TechniciansPage() {
-  const isMobile = useIsMobile();
-
-  if (isMobile) {
-    return (
-      <Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-        <TechniciansPageMobile />
-      </Suspense>
-    );
-  }
-
-  return <TechniciansPageDesktop />;
-}
+export default TechniciansPage;

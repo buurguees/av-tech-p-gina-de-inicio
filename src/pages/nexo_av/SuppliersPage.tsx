@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useDebounce } from "@/hooks/useDebounce";
-import { usePagination } from "@/hooks/usePagination";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
     Table,
@@ -14,248 +12,290 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Loader2, Plus, Search, Phone, Mail, MapPin, Building2, Filter, X } from "lucide-react";
+import {
+    Search,
+    Loader2,
+    Plus,
+    ChevronDown,
+    Info,
+    Filter,
+    Users,
+    Truck,
+    Building2,
+    Mail,
+    Phone,
+    ArrowUpDown
+} from "lucide-react";
+import { motion } from "motion/react";
+import { useToast } from "@/hooks/use-toast";
+import { useDebounce } from "@/hooks/useDebounce";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
-import PaginationControls from "./components/PaginationControls";
-
-// const SuppliersPageMobile = lazy(() => import("./mobile/SuppliersPageMobile"));
 
 interface Supplier {
     id: string;
     supplier_number: string;
     company_name: string;
-    tax_id: string | null;
-    contact_name: string | null;
-    email: string | null;
-    phone: string | null;
-    city: string | null;
-    province: string | null;
-    payment_terms: string | null;
+    legal_name: string;
+    tax_id: string;
+    contact_name: string;
+    phone: string;
+    email: string;
+    city: string;
+    province: string;
+    payment_terms: string;
+    status: string;
     created_at: string;
 }
 
-function SuppliersPageDesktop() {
-    const { userId } = useParams<{ userId: string }>();
+const SuppliersPage = () => {
     const navigate = useNavigate();
-    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const { userId } = useParams<{ userId: string }>();
+    const { toast } = useToast();
+
     const [loading, setLoading] = useState(true);
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [searchInput, setSearchInput] = useState("");
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const debouncedSearch = useDebounce(searchInput, 300);
-
-    const { paginatedData, currentPage, totalPages, goToPage, nextPage, prevPage, canGoNext, canGoPrev, startIndex, endIndex, totalItems } = usePagination(suppliers, { pageSize: 15 });
-
-    const fetchSuppliers = useCallback(async () => {
-        setLoading(true);
-        try {
-            const { data, error } = await supabase.rpc("list_suppliers" as any, {
-                p_search: debouncedSearch || null,
-                p_page_size: 1000,
-            });
-
-            if (error) throw error;
-            setSuppliers((data as any) || []);
-        } catch (err) {
-            console.error("Error fetching suppliers:", err);
-        } finally {
-            setLoading(false);
-        }
-    }, [debouncedSearch]);
+    const debouncedSearchQuery = useDebounce(searchInput, 500);
+    const [statusFilter, setStatusFilter] = useState("all");
 
     useEffect(() => {
         fetchSuppliers();
-    }, [fetchSuppliers]);
+    }, [debouncedSearchQuery, statusFilter]);
 
-    const handleRowClick = (supplierId: string) => {
-        navigate(`/nexo-av/${userId}/suppliers/${supplierId}`);
+    const fetchSuppliers = async () => {
+        try {
+            setLoading(true);
+            const { data, error } = await supabase.rpc("list_suppliers", {
+                p_search: debouncedSearchQuery || null,
+                p_status: statusFilter === "all" ? null : statusFilter,
+            });
+            if (error) throw error;
+            setSuppliers(data || []);
+        } catch (error: any) {
+            console.error("Error fetching suppliers:", error);
+            toast({
+                title: "Error",
+                description: error.message || "No se pudieron cargar los proveedores",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
     };
-
-    const clearFilters = () => {
-        setSearchInput("");
-    };
-
-    const hasActiveFilters = searchInput;
 
     return (
-        <div className="flex flex-col h-full">
-            {/* Header */}
-            <div className="flex flex-col gap-4 mb-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">Proveedores</h1>
-                        <p className="text-muted-foreground text-sm">
-                            {suppliers.length} proveedores registrados
-                        </p>
-                    </div>
-                    <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
-                        <Plus className="h-4 w-4" />
-                        Nuevo Proveedor
-                    </Button>
-                </div>
+        <div className="w-full">
+            <div className="w-[95%] max-w-[1800px] mx-auto px-4 pb-8">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    {/* Header */}
+                    <div className="mb-8">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+                                    <Truck className="h-6 w-6 text-blue-400" />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Proveedores</h1>
+                                    <p className="text-white/40 text-sm mt-0.5">Gestión de suministros y servicios externos</p>
+                                </div>
+                            </div>
 
-                {/* Search */}
-                <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-3">
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Buscar por nombre, NIF, teléfono..."
-                                value={searchInput}
-                                onChange={(e) => setSearchInput(e.target.value)}
-                                className="pl-11"
-                            />
+                            <div className="flex items-center gap-3">
+                                <Button
+                                    onClick={() => { }}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white h-10 px-5 rounded-2xl shadow-lg shadow-blue-500/20 gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    Nuevo Proveedor
+                                </Button>
+                            </div>
                         </div>
-                        {hasActiveFilters && (
-                            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-muted-foreground">
-                                <X className="h-4 w-4" />
-                                Limpiar
-                            </Button>
+
+                        {/* Quick Stats */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-sm p-4 rounded-3xl flex items-center gap-4">
+                                <div className="p-3 bg-blue-500/10 rounded-2xl">
+                                    <Building2 className="h-5 w-5 text-blue-400" />
+                                </div>
+                                <div>
+                                    <p className="text-white/40 text-xs font-medium uppercase tracking-wider">Total Proveedores</p>
+                                    <p className="text-xl font-bold text-white">{suppliers.length}</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-sm p-4 rounded-3xl flex items-center gap-4">
+                                <div className="p-3 bg-emerald-500/10 rounded-2xl">
+                                    <Users className="h-5 w-5 text-emerald-400" />
+                                </div>
+                                <div>
+                                    <p className="text-white/40 text-xs font-medium uppercase tracking-wider">Activos</p>
+                                    <p className="text-xl font-bold text-white">
+                                        {suppliers.filter(s => s.status === 'ACTIVE').length}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Filters Bar */}
+                        <div className="flex flex-col sm:flex-row items-center gap-3 bg-white/[0.02] border border-white/5 p-3 rounded-[2rem] backdrop-blur-md">
+                            <div className="relative flex-1 w-full">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                                <Input
+                                    placeholder="Buscar por nombre, CIF o número..."
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                    className="pl-11 h-11 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-blue-500/20 focus:border-blue-500/40 transition-all text-sm"
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className="h-11 px-4 bg-white/5 border-white/10 text-white rounded-2xl hover:bg-white/10 gap-2 whitespace-nowrap min-w-[140px]"
+                                        >
+                                            <Filter className="h-4 w-4 text-white/40" />
+                                            {statusFilter === "all" ? "Todos los estados" : statusFilter}
+                                            <ChevronDown className="h-3 w-3 ml-auto opacity-40" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10 rounded-2xl p-1 w-56">
+                                        <DropdownMenuItem onClick={() => setStatusFilter("all")} className="text-white rounded-xl focus:bg-white/10">
+                                            Todos los estados
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setStatusFilter("ACTIVE")} className="text-white rounded-xl focus:bg-white/10">
+                                            Activos
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setStatusFilter("INACTIVE")} className="text-white rounded-xl focus:bg-white/10">
+                                            Inactivos
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => setStatusFilter("BLOCKED")} className="text-red-400 rounded-xl focus:bg-red-500/10">
+                                            Bloqueados
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Table */}
+                    <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-md rounded-[2.5rem] overflow-hidden">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-24 gap-4">
+                                <div className="relative">
+                                    <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
+                                    <div className="absolute inset-0 blur-lg bg-blue-500/20" />
+                                </div>
+                                <p className="text-white/40 font-medium animate-pulse">Cargando base de proveedores...</p>
+                            </div>
+                        ) : suppliers.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
+                                <div className="p-6 bg-white/[0.03] rounded-[2.5rem] border border-white/5 mb-6">
+                                    <Search className="h-12 w-12 text-white/10" />
+                                </div>
+                                <h3 className="text-xl font-semibold text-white mb-2">No hay resultados</h3>
+                                <p className="text-white/40 max-w-sm mb-8">
+                                    No hemos encontrado ningún proveedor que coincida con tus criterios de búsqueda.
+                                </p>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => { setSearchInput(""); setStatusFilter("all"); }}
+                                    className="rounded-2xl border-white/10 text-white/60 hover:text-white"
+                                >
+                                    Limpiar filtros
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader className="bg-white/[0.02]">
+                                        <TableRow className="border-white/5 hover:bg-transparent">
+                                            <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] pl-8 h-14">Proveedor</TableHead>
+                                            <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14">Contacto</TableHead>
+                                            <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14">Localización</TableHead>
+                                            <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14">Estado</TableHead>
+                                            <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14 text-right pr-8">Acciones</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {suppliers.map((supplier) => (
+                                            <TableRow
+                                                key={supplier.id}
+                                                className="group border-white/[0.03] hover:bg-white/[0.02] cursor-pointer transition-colors h-20"
+                                                onClick={() => navigate(`/nexo-av/${userId}/suppliers/${supplier.id}`)}
+                                            >
+                                                <TableCell className="pl-8">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-white group-hover:text-blue-400 transition-colors">
+                                                            {supplier.company_name}
+                                                        </span>
+                                                        <span className="text-xs text-white/30 font-mono mt-1">
+                                                            {supplier.supplier_number} • {supplier.tax_id}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <div className="flex items-center gap-2 text-white/60">
+                                                            <Mail className="h-3 w-3 text-blue-500/50" />
+                                                            <span className="text-xs truncate max-w-[180px]">{supplier.email || "—"}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-white/60">
+                                                            <Phone className="h-3 w-3 text-emerald-500/50" />
+                                                            <span className="text-xs">{supplier.phone || "—"}</span>
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm text-white/80">{supplier.city || "—"}</span>
+                                                        <span className="text-[10px] text-white/40 uppercase tracking-wide mt-1">{supplier.province || "—"}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={cn(
+                                                            "rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border-none",
+                                                            supplier.status === 'ACTIVE' ? "bg-emerald-500/10 text-emerald-400" :
+                                                                supplier.status === 'INACTIVE' ? "bg-zinc-500/10 text-zinc-400" :
+                                                                    "bg-red-500/10 text-red-500"
+                                                        )}
+                                                    >
+                                                        {supplier.status}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="text-right pr-8">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="rounded-xl hover:bg-white/10 text-white/20 group-hover:text-white transition-all shadow-none"
+                                                    >
+                                                        <Info className="h-5 w-5" />
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         )}
                     </div>
-                </div>
+                </motion.div>
             </div>
-
-            {/* Table */}
-            {loading ? (
-                <div className="flex-1 flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-            ) : suppliers.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
-                    <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-                        <Building2 className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-lg">No hay proveedores</h3>
-                        <p className="text-muted-foreground text-sm">
-                            {hasActiveFilters
-                                ? "No se encontraron proveedores con los filtros aplicados"
-                                : "Añade tu primer proveedor para empezar"}
-                        </p>
-                    </div>
-                    {!hasActiveFilters && (
-                        <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
-                            <Plus className="h-4 w-4" />
-                            Añadir Proveedor
-                        </Button>
-                    )}
-                </div>
-            ) : (
-                <div className="flex-1 flex flex-col">
-                    <div className="flex-1 overflow-auto border rounded-lg">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-muted/50">
-                                    <TableHead className="w-[100px]">Número</TableHead>
-                                    <TableHead>Nombre</TableHead>
-                                    <TableHead>NIF</TableHead>
-                                    <TableHead>Contacto</TableHead>
-                                    <TableHead>Ubicación</TableHead>
-                                    <TableHead>Condiciones de pago</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {paginatedData.map((supplier) => {
-                                    return (
-                                        <TableRow
-                                            key={supplier.id}
-                                            className="cursor-pointer hover:bg-muted/50"
-                                            onClick={() => handleRowClick(supplier.id)}
-                                        >
-                                            <TableCell className="font-mono text-sm text-muted-foreground">
-                                                {supplier.supplier_number}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">{supplier.company_name}</span>
-                                                    {supplier.contact_name && (
-                                                        <span className="text-sm text-muted-foreground">{supplier.contact_name}</span>
-                                                    )}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className="font-mono text-sm">{supplier.tax_id || "-"}</span>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex flex-col gap-0.5">
-                                                    {supplier.phone && (
-                                                        <div className="flex items-center gap-1.5 text-sm">
-                                                            <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                                                            {supplier.phone}
-                                                        </div>
-                                                    )}
-                                                    {supplier.email && (
-                                                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                                                            <Mail className="h-3.5 w-3.5" />
-                                                            {supplier.email}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                {(supplier.city || supplier.province) && (
-                                                    <div className="flex items-center gap-1.5 text-sm">
-                                                        <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                                                        {[supplier.city, supplier.province].filter(Boolean).join(", ")}
-                                                    </div>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className="text-sm">{supplier.payment_terms || "-"}</span>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </div>
-
-                    {totalPages > 1 && (
-                        <div className="mt-4">
-                            <PaginationControls
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                startIndex={startIndex}
-                                endIndex={endIndex}
-                                totalItems={totalItems}
-                                canGoPrev={canGoPrev}
-                                canGoNext={canGoNext}
-                                onPrevPage={prevPage}
-                                onNextPage={nextPage}
-                                onGoToPage={goToPage}
-                            />
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* TODO: Create CreateSupplierDialog component */}
-            {/* <CreateSupplierDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        onSuccess={() => {
-          setIsDialogOpen(false);
-          fetchSuppliers();
-        }}
-      /> */}
         </div>
     );
-}
+};
 
-export default function SuppliersPage() {
-    const isMobile = useIsMobile();
-
-    if (isMobile) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                    <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">Versión móvil en desarrollo</p>
-                </div>
-            </div>
-        );
-    }
-
-    return <SuppliersPageDesktop />;
-}
+export default SuppliersPage;

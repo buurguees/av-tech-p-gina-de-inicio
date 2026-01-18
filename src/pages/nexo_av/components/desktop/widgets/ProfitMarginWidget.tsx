@@ -3,36 +3,23 @@ import DashboardWidget from "../DashboardWidget";
 import { TrendingUp, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const ProfitMarginWidget = () => {
+interface ProfitMarginWidgetProps {
+    data?: any;
+}
+
+const ProfitMarginWidget = ({ data: externalData }: ProfitMarginWidgetProps) => {
     const [stats, setStats] = useState({ margin: 0, profit: 0 });
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!externalData);
 
     useEffect(() => {
-        fetchProfitStats();
-    }, []);
-
-    const fetchProfitStats = async () => {
-        try {
-            setLoading(true);
-            const { data: sales } = await supabase.rpc("finance_list_invoices", { p_search: null, p_status: null });
-            const { data: purchases } = await supabase.rpc("list_purchase_invoices", { p_search: null, p_status: null, p_page_size: 1000 });
-
-            const totalRevenue = (sales as any[] || []).reduce((sum, inv) => sum + (inv.total || 0), 0);
-            const totalCosts = (purchases as any[] || []).reduce((sum, inv) => sum + (inv.total || 0), 0);
-
-            const grossProfit = totalRevenue - totalCosts;
-            const marginPercent = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
-
+        if (externalData) {
             setStats({
-                margin: Math.round(marginPercent * 10) / 10,
-                profit: grossProfit
+                margin: Math.round((externalData.margin || 0) * 10) / 10,
+                profit: externalData.profit || 0
             });
-        } catch (err) {
-            console.error('Error calculating margin:', err);
-        } finally {
             setLoading(false);
         }
-    };
+    }, [externalData]);
 
     if (loading) {
         return (

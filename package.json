@@ -54,6 +54,7 @@
     "firebase": "^12.7.0",
     "globe.gl": "^2.45.0",
     "input-otp": "^1.4.2",
+    "jscanify": "^1.4.2",
     "leaflet": "^1.9.4",
     "lovable-tagger": "^1.1.13",
     "lucide-react": "^0.462.0",

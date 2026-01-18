@@ -1315,33 +1315,7 @@ export type Database = {
           updated_at: string
         }[]
       }
-      list_technicians: {
-        Args: {
-          p_search?: string
-          p_specialty?: string
-          p_status?: string
-          p_type?: string
-        }
-        Returns: {
-          city: string
-          company_name: string
-          contact_email: string
-          contact_name: string
-          contact_phone: string
-          created_at: string
-          daily_rate: number
-          hourly_rate: number
-          id: string
-          legal_name: string
-          province: string
-          rating: number
-          specialties: string[]
-          status: string
-          tax_id: string
-          technician_number: string
-          type: string
-        }[]
-      }
+
       list_technicians_for_map: {
         Args: { p_specialty?: string; p_status?: string; p_type?: string }
         Returns: {
@@ -1797,24 +1771,134 @@ export type Database = {
       }
       list_purchase_invoices: {
         Args: {
+          p_document_type?: string
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
+          p_status?: string
+          p_supplier_id?: string
+          p_technician_id?: string
+        }
+        Returns: {
+          id: string
+          invoice_number: string
+          document_type: string
+          issue_date: string
+          due_date: string | null
+          subtotal: number
+          tax_amount: number
+          retention_amount: number
+          total: number
+          paid_amount: number
+          pending_amount: number
+          status: string
+          provider_id: string
+          provider_name: string
+          provider_type: string
+          provider_tax_id: string
+          file_path: string | null
+          project_id: string | null
+          project_name: string | null
+          is_locked: boolean
+          created_at: string
+          total_count: number
+        }[]
+      }
+      list_suppliers: {
+        Args: {
+          p_page?: number
+          p_page_size?: number
           p_search?: string
           p_status?: string
         }
         Returns: {
           id: string
-          invoice_number: string
-          provider_id: string
-          provider_name: string
-          project_id: string | null
-          project_name: string | null
+          supplier_number: string
+          company_name: string
+          legal_name: string
+          tax_id: string
+          contact_name: string
+          phone: string
+          email: string
+          city: string
+          province: string
+          payment_terms: string
           status: string
-          issue_date: string
-          due_date: string | null
-          total_amount: number
-          paid_amount: number
-          pending_amount: number
           created_at: string
+          total_count: number
         }[]
+      }
+      list_technicians: {
+        Args: {
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
+          p_status?: string
+          p_type?: string
+        }
+        Returns: {
+          id: string
+          technician_number: string
+          company_name: string
+          legal_name: string
+          tax_id: string
+          type: string
+          email: string
+          phone: string
+          city: string
+          status: string
+          specialties: string[]
+          daily_rate: number
+          hourly_rate: number
+          created_at: string
+          total_count: number
+        }[]
+      }
+      create_purchase_invoice: {
+        Args: {
+          p_document_type?: string
+          p_due_date?: string
+          p_expense_category?: string
+          p_file_name?: string
+          p_file_path?: string
+          p_invoice_number: string
+          p_issue_date?: string
+          p_notes?: string
+          p_project_id?: string
+          p_retention_percentage?: number
+          p_supplier_id?: string
+          p_technician_id?: string
+        }
+        Returns: string
+      }
+      add_purchase_invoice_line: {
+        Args: {
+          p_description: string
+          p_purchase_invoice_id: string
+          p_quantity: number
+          p_tax_rate?: number
+          p_unit_price: number
+          p_notes?: string
+        }
+        Returns: string
+      }
+      register_purchase_payment: {
+        Args: {
+          p_amount: number
+          p_bank_reference?: string
+          p_company_bank_account_id?: string
+          p_notes?: string
+          p_payment_date: string
+          p_payment_method: string
+          p_purchase_invoice_id: string
+        }
+        Returns: string
+      }
+      recalculate_purchase_invoice: {
+        Args: {
+          p_invoice_id: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

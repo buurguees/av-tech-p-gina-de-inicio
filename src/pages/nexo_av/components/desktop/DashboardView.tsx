@@ -17,44 +17,12 @@ import TaxSummaryWidget from "./widgets/TaxSummaryWidget";
 import ProfitMarginWidget from "./widgets/ProfitMarginWidget";
 import RevenueChart from "./widgets/RevenueChart";
 
-interface DashboardStats {
-  quarterInvoices: number;
-  quarterInvoicesAmount: number;
-  quarterQuotes: number;
-  quarterQuotesAmount: number;
-  quarterProjects: number;
-  yearInvoices: number;
-  yearInvoicesAmount: number;
-  yearQuotes: number;
-  yearQuotesAmount: number;
-  yearProjects: number;
-  pendingInvoices: number;
-  pendingAmount: number;
-  totalClients: number;
-  activeProjects: number;
-}
-
 interface DashboardViewProps {
   userId: string | undefined;
 }
 
 const DashboardView = ({ userId }: DashboardViewProps) => {
-  const [stats, setStats] = useState<DashboardStats>({
-    quarterInvoices: 0,
-    quarterInvoicesAmount: 0,
-    quarterQuotes: 0,
-    quarterQuotesAmount: 0,
-    quarterProjects: 0,
-    yearInvoices: 0,
-    yearInvoicesAmount: 0,
-    yearQuotes: 0,
-    yearQuotesAmount: 0,
-    yearProjects: 0,
-    pendingInvoices: 0,
-    pendingAmount: 0,
-    totalClients: 0,
-    activeProjects: 0,
-  });
+  const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<'quarter' | 'year'>('quarter');
 
@@ -65,54 +33,12 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentQuarter = Math.floor(now.getMonth() / 3) + 1;
-
-      const quarterStart = new Date(currentYear, (currentQuarter - 1) * 3, 1);
-      const quarterEnd = new Date(currentYear, currentQuarter * 3, 0, 23, 59, 59);
-      const yearStart = new Date(currentYear, 0, 1);
-      const yearEnd = new Date(currentYear, 11, 31, 23, 59, 59);
-
-      const { data: allInvoicesData } = await supabase.rpc("finance_list_invoices", { p_search: null, p_status: null });
-      const { data: allQuotesData } = await supabase.rpc("list_quotes", { p_status: null, p_search: null });
-      const { data: allProjectsData } = await supabase.rpc('list_projects', { p_search: null });
-      const { data: clientsData } = await supabase.rpc('list_clients', {});
-
-      const allInvoices = allInvoicesData || [];
-      const allQuotes = allQuotesData || [];
-      const allProjects = allProjectsData || [];
-      const clients = clientsData || [];
-
-      // Calculate stats (same logic as before)
-      const quarterInvoices = allInvoices.filter(inv => inv.issue_date && new Date(inv.issue_date) >= quarterStart && new Date(inv.issue_date) <= quarterEnd);
-      const yearInvoices = allInvoices.filter(inv => inv.issue_date && new Date(inv.issue_date) >= yearStart && new Date(inv.issue_date) <= yearEnd);
-
-      const quarterQuotes = allQuotes.filter(q => q.created_at && new Date(q.created_at) >= quarterStart && new Date(q.created_at) <= quarterEnd);
-      const yearQuotes = allQuotes.filter(q => q.created_at && new Date(q.created_at) >= yearStart && new Date(q.created_at) <= yearEnd);
-
-      const quarterProjects = allProjects.filter(p => p.created_at && new Date(p.created_at) >= quarterStart && new Date(p.created_at) <= quarterEnd);
-      const yearProjects = allProjects.filter(p => p.created_at && new Date(p.created_at) >= yearStart && new Date(p.created_at) <= yearEnd);
-
-      const pendingInvoices = allInvoices.filter(inv => inv.status !== 'PAID' && inv.status !== 'CANCELLED' && inv.status !== 'DRAFT');
-      const activeProjects = allProjects.filter(p => p.status === 'IN_PROGRESS' || p.status === 'PLANNED');
-
-      setStats({
-        quarterInvoices: quarterInvoices.length,
-        quarterInvoicesAmount: quarterInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0),
-        quarterQuotes: quarterQuotes.length,
-        quarterQuotesAmount: quarterQuotes.reduce((sum, q) => sum + (q.total || 0), 0),
-        quarterProjects: quarterProjects.length,
-        yearInvoices: yearInvoices.length,
-        yearInvoicesAmount: yearInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0),
-        yearQuotes: yearQuotes.length,
-        yearQuotesAmount: yearQuotes.reduce((sum, q) => sum + (q.total || 0), 0),
-        yearProjects: yearProjects.length,
-        pendingInvoices: pendingInvoices.length,
-        pendingAmount: pendingInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0),
-        totalClients: clients.length,
-        activeProjects: activeProjects.length,
+      const { data, error } = await supabase.rpc("get_dashboard_metrics", {
+        p_period: selectedPeriod
       });
+
+      if (error) throw error;
+      setDashboardData(data);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
     } finally {
@@ -123,22 +49,6 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 
-  const currentPeriod = selectedPeriod === 'quarter' ? {
-    invoices: stats.quarterInvoices,
-    invoicesAmount: stats.quarterInvoicesAmount,
-    quotes: stats.quarterQuotes,
-    quotesAmount: stats.quarterQuotesAmount,
-    projects: stats.quarterProjects,
-    label: 'Trimestre Actual',
-  } : {
-    invoices: stats.yearInvoices,
-    invoicesAmount: stats.yearInvoicesAmount,
-    quotes: stats.yearQuotes,
-    quotesAmount: stats.yearQuotesAmount,
-    projects: stats.yearProjects,
-    label: 'Año Actual',
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -146,6 +56,35 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
       </div>
     );
   }
+
+  if (!dashboardData && !loading) {
+    return (
+      <div className="p-8 text-center flex flex-col items-center justify-center min-h-[400px] border border-dashed rounded-3xl">
+        <AlertCircle className="w-12 h-12 text-muted-foreground/20 mb-4" />
+        <h3 className="text-xl font-bold text-foreground mb-2">Error al cargar el Dashboard</h3>
+        <p className="text-muted-foreground max-w-md mb-6">
+          No se pudieron obtener los datos. Asegúrate de que las funciones de la base de datos (RPC) hayan sido aplicadas correctamente.
+        </p>
+        <button
+          onClick={() => fetchDashboardStats()}
+          className="px-6 py-2 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-opacity"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
+  const kpis = dashboardData?.kpis || {
+    invoicesAmount: 0,
+    invoicesCount: 0,
+    quotesAmount: 0,
+    quotesCount: 0,
+    activeProjects: 0,
+    pendingAmount: 0,
+    pendingCount: 0,
+    totalClients: 0
+  };
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto pb-8">
@@ -184,11 +123,11 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
                 <Users size={16} className="text-muted-foreground/40" />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Facturado ({currentPeriod.label})</p>
+                <p className="text-sm font-medium text-muted-foreground">Facturado ({selectedPeriod === 'quarter' ? 'Trimestre' : 'Año'})</p>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(currentPeriod.invoicesAmount)}</p>
+                  <p className="text-2xl font-bold text-foreground">{formatCurrency(kpis.invoicesAmount)}</p>
                   <span className="text-xs font-medium text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded-full">
-                    {currentPeriod.invoices} ops
+                    {kpis.invoicesCount} ops
                   </span>
                 </div>
               </div>
@@ -209,9 +148,9 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Presupuestado</p>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(currentPeriod.quotesAmount)}</p>
+                  <p className="text-2xl font-bold text-foreground">{formatCurrency(kpis.quotesAmount)}</p>
                   <span className="text-xs font-medium text-cyan-600 bg-cyan-500/10 px-1.5 py-0.5 rounded-full">
-                    {currentPeriod.quotes} ops
+                    {kpis.quotesCount} ops
                   </span>
                 </div>
               </div>
@@ -232,7 +171,7 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Proyectos Activos</p>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold text-foreground">{stats.activeProjects}</p>
+                  <p className="text-2xl font-bold text-foreground">{kpis.activeProjects}</p>
                   <p className="text-xs text-muted-foreground">En curso</p>
                 </div>
               </div>
@@ -253,9 +192,9 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Pendiente cobrar</p>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold text-red-600">{formatCurrency(stats.pendingAmount)}</p>
+                  <p className="text-2xl font-bold text-red-600">{formatCurrency(kpis.pendingAmount)}</p>
                   <span className="text-xs font-medium text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded-full">
-                    {stats.pendingInvoices} ops
+                    {kpis.pendingCount} ops
                   </span>
                 </div>
               </div>
@@ -284,7 +223,7 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.35 }}
           >
-            <TaxSummaryWidget />
+            <TaxSummaryWidget data={dashboardData.taxes} />
           </motion.div>
 
           <motion.div
@@ -293,7 +232,7 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <ProfitMarginWidget />
+            <ProfitMarginWidget data={dashboardData.profitability} />
           </motion.div>
         </div>
       </div>
@@ -305,7 +244,7 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <RevenueChart />
+        <RevenueChart data={dashboardData.revenueChart} />
       </motion.div>
 
       {/* Row 4: Cash Flow Chart (Extra insight) */}
@@ -315,7 +254,7 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.55 }}
       >
-        <CashFlowChart />
+        <CashFlowChart data={dashboardData.revenueChart} />
       </motion.div>
 
     </div>
