@@ -44,18 +44,33 @@ export type Database = {
         Args: { p_client_id: string; p_content: string; p_note_type?: string }
         Returns: string
       }
-      add_invoice_line: {
-        Args: {
-          p_concept: string
-          p_description?: string
-          p_discount_percent?: number
-          p_invoice_id: string
-          p_quantity?: number
-          p_tax_rate?: number
-          p_unit_price?: number
-        }
-        Returns: string
-      }
+      add_invoice_line:
+        | {
+            Args: {
+              p_concept: string
+              p_description?: string
+              p_discount_percent?: number
+              p_invoice_id: string
+              p_product_id?: string
+              p_quantity?: number
+              p_tax_id?: string
+              p_tax_rate?: number
+              p_unit_price?: number
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_concept: string
+              p_description?: string
+              p_discount_percent?: number
+              p_invoice_id: string
+              p_quantity?: number
+              p_tax_rate?: number
+              p_unit_price?: number
+            }
+            Returns: string
+          }
       add_location_note: {
         Args: {
           p_attachments?: string[]
@@ -69,18 +84,46 @@ export type Database = {
         Args: { p_pack_id: string; p_product_id: string; p_quantity?: number }
         Returns: string
       }
-      add_quote_line: {
+      add_purchase_invoice_line: {
         Args: {
           p_concept: string
           p_description?: string
           p_discount_percent?: number
+          p_invoice_id: string
+          p_product_id?: string
           p_quantity?: number
-          p_quote_id: string
           p_tax_rate?: number
           p_unit_price?: number
         }
         Returns: string
       }
+      add_quote_line:
+        | {
+            Args: {
+              p_concept: string
+              p_description?: string
+              p_discount_percent?: number
+              p_quantity?: number
+              p_quote_id: string
+              p_tax_rate?: number
+              p_unit_price?: number
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_concept: string
+              p_description?: string
+              p_discount_percent?: number
+              p_group_name?: string
+              p_line_order?: number
+              p_quantity?: number
+              p_quote_id: string
+              p_tax_rate?: number
+              p_unit_price?: number
+            }
+            Returns: string
+          }
       assign_user_role: {
         Args: { p_assigned_by: string; p_role_name: string; p_user_id: string }
         Returns: boolean
@@ -215,19 +258,35 @@ export type Database = {
           invoice_number: string
         }[]
       }
-      create_invoice_with_number: {
-        Args: {
-          p_client_id: string
-          p_due_date?: string
-          p_issue_date?: string
-          p_project_id?: string
-          p_project_name?: string
-        }
-        Returns: {
-          invoice_id: string
-          invoice_number: string
-        }[]
-      }
+      create_invoice_with_number:
+        | {
+            Args: {
+              p_client_id: string
+              p_due_date?: string
+              p_issue_date?: string
+              p_project_id?: string
+              p_project_name?: string
+              p_source_quote_id?: string
+            }
+            Returns: {
+              invoice_id: string
+              invoice_number: string
+              preliminary_number: string
+            }[]
+          }
+        | {
+            Args: {
+              p_client_id: string
+              p_due_date?: string
+              p_issue_date?: string
+              p_project_id?: string
+              p_project_name?: string
+            }
+            Returns: {
+              invoice_id: string
+              invoice_number: string
+            }[]
+          }
       create_product: {
         Args: {
           p_base_price?: number
@@ -294,6 +353,24 @@ export type Database = {
           project_number: string
         }[]
       }
+      create_purchase_invoice: {
+        Args: {
+          p_document_type?: string
+          p_due_date?: string
+          p_expense_category?: string
+          p_file_name?: string
+          p_file_path?: string
+          p_invoice_number: string
+          p_issue_date?: string
+          p_notes?: string
+          p_project_id?: string
+          p_supplier_id?: string
+          p_technician_id?: string
+        }
+        Returns: {
+          purchase_invoice_id: string
+        }[]
+      }
       create_quote: {
         Args: {
           p_client_id: string
@@ -312,6 +389,30 @@ export type Database = {
         Returns: {
           quote_id: string
           quote_number: string
+        }[]
+      }
+      create_supplier: {
+        Args: {
+          p_address?: string
+          p_billing_email?: string
+          p_city?: string
+          p_company_name: string
+          p_contact_email?: string
+          p_contact_name?: string
+          p_contact_phone?: string
+          p_contact_phone_secondary?: string
+          p_country?: string
+          p_iban?: string
+          p_legal_name?: string
+          p_notes?: string
+          p_payment_terms?: string
+          p_postal_code?: string
+          p_province?: string
+          p_tax_id?: string
+        }
+        Returns: {
+          supplier_id: string
+          supplier_number: string
         }[]
       }
       create_tax: {
@@ -366,7 +467,16 @@ export type Database = {
         Args: { p_subcategory_id: string }
         Returns: boolean
       }
+      delete_purchase_invoice_line: {
+        Args: { p_line_id: string }
+        Returns: boolean
+      }
+      delete_purchase_payment: {
+        Args: { p_payment_id: string }
+        Returns: boolean
+      }
       delete_quote_line: { Args: { p_line_id: string }; Returns: boolean }
+      delete_supplier: { Args: { p_supplier_id: string }; Returns: boolean }
       delete_tax: { Args: { p_tax_id: string }; Returns: boolean }
       delete_technician: { Args: { p_technician_id: string }; Returns: boolean }
       finance_add_invoice_line: {
@@ -540,38 +650,38 @@ export type Database = {
         Returns: {
           client_id: string
           client_name: string
-          client_order_number: string | null
+          client_order_number: string
           created_at: string
-          created_by: string | null
-          created_by_name: string | null
-          due_date: string | null
+          created_by: string
+          created_by_name: string
+          due_date: string
           id: string
-          invoice_number: string | null
+          invoice_number: string
           is_locked: boolean
-          issue_date: string | null
-          preliminary_number: string | null
-          project_id: string | null
-          project_name: string | null
-          project_number: string | null
-          source_quote_id: string | null
-          source_quote_number: string | null
+          issue_date: string
+          paid_amount: number
+          pending_amount: number
+          preliminary_number: string
+          project_id: string
+          project_name: string
+          project_number: string
+          source_quote_id: string
+          source_quote_number: string
           status: string
           subtotal: number
           tax_amount: number
           total: number
-          paid_amount: number
-          pending_amount: number
         }[]
       }
       finance_register_payment: {
         Args: {
           p_amount: number
-          p_invoice_id: string
-          p_payment_date?: string
-          p_payment_method?: string
-          p_reference?: string
-          p_notes?: string
+          p_bank_reference?: string
           p_company_bank_account_id?: string
+          p_invoice_id: string
+          p_notes?: string
+          p_payment_date: string
+          p_payment_method: string
         }
         Returns: string
       }
@@ -603,13 +713,13 @@ export type Database = {
       }
       finance_update_payment: {
         Args: {
-          p_payment_id: string
           p_amount?: number
-          p_payment_date?: string
-          p_payment_method?: string
-          p_reference?: string
-          p_notes?: string
+          p_bank_reference?: string
           p_company_bank_account_id?: string
+          p_notes?: string
+          p_payment_date?: string
+          p_payment_id: string
+          p_payment_method?: string
         }
         Returns: boolean
       }
@@ -820,6 +930,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_dashboard_metrics: { Args: { p_period?: string }; Returns: Json }
       get_invoice: {
         Args: { p_invoice_id: string }
         Returns: {
@@ -902,6 +1013,94 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_project_financial_stats: {
+        Args: { p_project_id: string }
+        Returns: {
+          margin: number
+          margin_percentage: number
+          total_budget: number
+          total_expenses: number
+          total_invoiced: number
+        }[]
+      }
+      get_projects_portfolio_summary: {
+        Args: never
+        Returns: {
+          avg_project_ticket: number
+          max_project_value: number
+          min_project_value: number
+          total_active_projects: number
+          total_invoiced_ytd: number
+          total_pipeline_value: number
+        }[]
+      }
+      get_purchase_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          created_by_name: string
+          document_type: string
+          due_date: string
+          expense_category: string
+          file_name: string
+          file_path: string
+          id: string
+          internal_notes: string
+          invoice_number: string
+          is_locked: boolean
+          issue_date: string
+          notes: string
+          paid_amount: number
+          pending_amount: number
+          project_id: string
+          project_name: string
+          project_number: string
+          status: string
+          supplier_id: string
+          supplier_name: string
+          supplier_tax_id: string
+          tax_amount: number
+          tax_base: number
+          technician_id: string
+          technician_name: string
+          technician_tax_id: string
+          total: number
+          updated_at: string
+        }[]
+      }
+      get_purchase_invoice_lines: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          concept: string
+          description: string
+          discount_percent: number
+          id: string
+          line_order: number
+          product_id: string
+          quantity: number
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          unit_price: number
+        }[]
+      }
+      get_purchase_invoice_payments: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          amount: number
+          bank_reference: string
+          company_bank_account_id: string
+          created_at: string
+          id: string
+          notes: string
+          payment_date: string
+          payment_method: string
+          registered_by: string
+          registered_by_name: string
+        }[]
+      }
       get_quote: {
         Args: { p_quote_id: string }
         Returns: {
@@ -931,6 +1130,7 @@ export type Database = {
           concept: string
           description: string
           discount_percent: number
+          group_name: string
           id: string
           line_order: number
           quantity: number
@@ -939,6 +1139,36 @@ export type Database = {
           tax_rate: number
           total: number
           unit_price: number
+        }[]
+      }
+      get_supplier: {
+        Args: { p_supplier_id: string }
+        Returns: {
+          address: string
+          billing_email: string
+          city: string
+          company_name: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          contact_phone_secondary: string
+          country: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          iban: string
+          id: string
+          latitude: number
+          legal_name: string
+          longitude: number
+          notes: string
+          payment_terms: string
+          postal_code: string
+          province: string
+          status: string
+          supplier_number: string
+          tax_id: string
+          updated_at: string
         }[]
       }
       get_technician: {
@@ -1092,49 +1322,49 @@ export type Database = {
         }[]
       }
       list_invoices:
-      | {
-        Args: { p_search?: string }
-        Returns: {
-          client_id: string
-          client_name: string
-          created_at: string
-          created_by: string
-          created_by_name: string
-          due_date: string
-          id: string
-          invoice_number: string
-          issue_date: string
-          project_id: string
-          project_name: string
-          project_number: string
-          status: string
-          subtotal: number
-          tax_amount: number
-          total: number
-        }[]
-      }
-      | {
-        Args: { p_search?: string; p_status?: string }
-        Returns: {
-          client_id: string
-          client_name: string
-          created_at: string
-          created_by: string
-          created_by_name: string
-          due_date: string
-          id: string
-          invoice_number: string
-          issue_date: string
-          project_id: string
-          project_name: string
-          source_quote_id: string
-          source_quote_number: string
-          status: string
-          subtotal: number
-          tax_amount: number
-          total: number
-        }[]
-      }
+        | {
+            Args: { p_search?: string }
+            Returns: {
+              client_id: string
+              client_name: string
+              created_at: string
+              created_by: string
+              created_by_name: string
+              due_date: string
+              id: string
+              invoice_number: string
+              issue_date: string
+              project_id: string
+              project_name: string
+              project_number: string
+              status: string
+              subtotal: number
+              tax_amount: number
+              total: number
+            }[]
+          }
+        | {
+            Args: { p_search?: string; p_status?: string }
+            Returns: {
+              client_id: string
+              client_name: string
+              created_at: string
+              created_by: string
+              created_by_name: string
+              due_date: string
+              id: string
+              invoice_number: string
+              issue_date: string
+              project_id: string
+              project_name: string
+              source_quote_id: string
+              source_quote_number: string
+              status: string
+              subtotal: number
+              tax_amount: number
+              total: number
+            }[]
+          }
       list_location_notes: {
         Args: { p_location_id: string }
         Returns: {
@@ -1248,48 +1478,107 @@ export type Database = {
           status: string
         }[]
       }
+      list_purchase_invoices:
+        | {
+            Args: {
+              p_page?: number
+              p_page_size?: number
+              p_search?: string
+              p_status?: string
+            }
+            Returns: {
+              created_at: string
+              date: string
+              due_date: string
+              id: string
+              invoice_number: string
+              provider_name: string
+              provider_type: string
+              status: string
+              tax_amount: number
+              tax_base: number
+              total: number
+              total_count: number
+            }[]
+          }
+        | {
+            Args: {
+              p_document_type?: string
+              p_page?: number
+              p_page_size?: number
+              p_search?: string
+              p_status?: string
+              p_supplier_id?: string
+              p_technician_id?: string
+            }
+            Returns: {
+              created_at: string
+              document_type: string
+              due_date: string
+              expense_category: string
+              file_name: string
+              file_path: string
+              id: string
+              invoice_number: string
+              is_locked: boolean
+              issue_date: string
+              paid_amount: number
+              pending_amount: number
+              project_id: string
+              project_name: string
+              provider_id: string
+              provider_name: string
+              provider_tax_id: string
+              provider_type: string
+              status: string
+              tax_amount: number
+              tax_base: number
+              total: number
+              total_count: number
+            }[]
+          }
       list_quotes:
-      | {
-        Args: { p_search?: string }
-        Returns: {
-          client_id: string
-          client_name: string
-          created_at: string
-          created_by: string
-          created_by_name: string
-          id: string
-          order_number: string
-          project_id: string
-          project_name: string
-          project_number: string
-          quote_number: string
-          status: string
-          subtotal: number
-          tax_amount: number
-          total: number
-          valid_until: string
-        }[]
-      }
-      | {
-        Args: { p_search?: string; p_status?: string }
-        Returns: {
-          client_id: string
-          client_name: string
-          created_at: string
-          created_by: string
-          created_by_name: string
-          id: string
-          order_number: string
-          project_id: string
-          project_name: string
-          quote_number: string
-          status: string
-          subtotal: number
-          tax_amount: number
-          total: number
-          valid_until: string
-        }[]
-      }
+        | {
+            Args: { p_search?: string }
+            Returns: {
+              client_id: string
+              client_name: string
+              created_at: string
+              created_by: string
+              created_by_name: string
+              id: string
+              order_number: string
+              project_id: string
+              project_name: string
+              project_number: string
+              quote_number: string
+              status: string
+              subtotal: number
+              tax_amount: number
+              total: number
+              valid_until: string
+            }[]
+          }
+        | {
+            Args: { p_search?: string; p_status?: string }
+            Returns: {
+              client_id: string
+              client_name: string
+              created_at: string
+              created_by: string
+              created_by_name: string
+              id: string
+              order_number: string
+              project_id: string
+              project_name: string
+              quote_number: string
+              status: string
+              subtotal: number
+              tax_amount: number
+              total: number
+              valid_until: string
+            }[]
+          }
       list_roles: {
         Args: never
         Returns: {
@@ -1297,6 +1586,24 @@ export type Database = {
           id: string
           level: number
           name: string
+        }[]
+      }
+      list_suppliers: {
+        Args: { p_search?: string; p_status?: string }
+        Returns: {
+          city: string
+          company_name: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          id: string
+          legal_name: string
+          payment_terms: string
+          province: string
+          status: string
+          supplier_number: string
+          tax_id: string
         }[]
       }
       list_taxes: {
@@ -1315,7 +1622,33 @@ export type Database = {
           updated_at: string
         }[]
       }
-
+      list_technicians: {
+        Args: {
+          p_search?: string
+          p_specialty?: string
+          p_status?: string
+          p_type?: string
+        }
+        Returns: {
+          city: string
+          company_name: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          daily_rate: number
+          hourly_rate: number
+          id: string
+          legal_name: string
+          province: string
+          rating: number
+          specialties: string[]
+          status: string
+          tax_id: string
+          technician_number: string
+          type: string
+        }[]
+      }
       list_technicians_for_map: {
         Args: { p_specialty?: string; p_status?: string; p_type?: string }
         Returns: {
@@ -1385,6 +1718,22 @@ export type Database = {
         }
         Returns: undefined
       }
+      register_purchase_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: boolean
+      }
+      register_purchase_payment: {
+        Args: {
+          p_amount: number
+          p_bank_reference?: string
+          p_company_bank_account_id?: string
+          p_invoice_id: string
+          p_notes?: string
+          p_payment_date?: string
+          p_payment_method?: string
+        }
+        Returns: string
+      }
       remove_pack_item: { Args: { p_item_id: string }; Returns: boolean }
       reorder_quote_line: {
         Args: { p_direction: string; p_line_id: string }
@@ -1427,12 +1776,15 @@ export type Database = {
           p_contact_phone?: string
           p_created_at?: string
           p_industry_sector?: string
+          p_instagram_handle?: string
           p_lead_source?: string
           p_lead_stage?: string
           p_legal_name?: string
+          p_linkedin_url?: string
           p_next_follow_up_date?: string
           p_notes?: string
           p_tax_id?: string
+          p_tiktok_handle?: string
           p_urgency?: string
           p_website?: string
         }
@@ -1452,29 +1804,44 @@ export type Database = {
         Returns: boolean
       }
       update_invoice:
-      | {
-        Args: {
-          p_client_id?: string
-          p_due_date?: string
-          p_invoice_id: string
-          p_issue_date?: string
-          p_notes?: string
-          p_project_id?: string
-          p_project_name?: string
-          p_status?: string
-        }
-        Returns: boolean
-      }
-      | {
-        Args: {
-          p_due_date?: string
-          p_invoice_id: string
-          p_issue_date?: string
-          p_notes?: string
-          p_status?: string
-        }
-        Returns: boolean
-      }
+        | {
+            Args: {
+              p_client_id?: string
+              p_due_date?: string
+              p_internal_notes?: string
+              p_invoice_id: string
+              p_issue_date?: string
+              p_notes?: string
+              p_payment_terms?: string
+              p_project_id?: string
+              p_project_name?: string
+              p_status?: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_client_id?: string
+              p_due_date?: string
+              p_invoice_id: string
+              p_issue_date?: string
+              p_notes?: string
+              p_project_id?: string
+              p_project_name?: string
+              p_status?: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_due_date?: string
+              p_invoice_id: string
+              p_issue_date?: string
+              p_notes?: string
+              p_status?: string
+            }
+            Returns: boolean
+          }
       update_invoice_line: {
         Args: {
           p_concept?: string
@@ -1488,95 +1855,95 @@ export type Database = {
         Returns: boolean
       }
       update_own_user_info:
-      | {
-        Args: {
-          p_full_name?: string
-          p_job_position?: string
-          p_phone?: string
-          p_user_id: string
-        }
-        Returns: boolean
-      }
-      | {
-        Args: {
-          p_full_name?: string
-          p_job_position?: string
-          p_phone?: string
-          p_theme_preference?: string
-          p_user_id: string
-        }
-        Returns: boolean
-      }
+        | {
+            Args: {
+              p_full_name?: string
+              p_job_position?: string
+              p_phone?: string
+              p_user_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_full_name?: string
+              p_job_position?: string
+              p_phone?: string
+              p_theme_preference?: string
+              p_user_id: string
+            }
+            Returns: boolean
+          }
       update_pack_item: {
         Args: { p_item_id: string; p_quantity: number }
         Returns: boolean
       }
       update_product:
-      | {
-        Args: {
-          p_base_price?: number
-          p_cost_price?: number
-          p_description?: string
-          p_is_active?: boolean
-          p_name?: string
-          p_product_id: string
-          p_tax_rate?: number
-        }
-        Returns: boolean
-      }
-      | {
-        Args: {
-          p_base_price?: number
-          p_cost_price?: number
-          p_description?: string
-          p_is_active?: boolean
-          p_name?: string
-          p_product_id: string
-          p_stock?: number
-          p_tax_rate?: number
-          p_type?: Database["public"]["Enums"]["product_type"]
-        }
-        Returns: boolean
-      }
-      | {
-        Args: {
-          p_base_price?: number
-          p_cost_price?: number
-          p_default_tax_id?: string
-          p_description?: string
-          p_is_active?: boolean
-          p_name?: string
-          p_product_id: string
-          p_stock?: number
-          p_tax_rate?: number
-          p_type?: Database["public"]["Enums"]["product_type"]
-        }
-        Returns: boolean
-      }
+        | {
+            Args: {
+              p_base_price?: number
+              p_cost_price?: number
+              p_description?: string
+              p_is_active?: boolean
+              p_name?: string
+              p_product_id: string
+              p_tax_rate?: number
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_base_price?: number
+              p_cost_price?: number
+              p_description?: string
+              p_is_active?: boolean
+              p_name?: string
+              p_product_id: string
+              p_stock?: number
+              p_tax_rate?: number
+              p_type?: Database["public"]["Enums"]["product_type"]
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_base_price?: number
+              p_cost_price?: number
+              p_default_tax_id?: string
+              p_description?: string
+              p_is_active?: boolean
+              p_name?: string
+              p_product_id: string
+              p_stock?: number
+              p_tax_rate?: number
+              p_type?: Database["public"]["Enums"]["product_type"]
+            }
+            Returns: boolean
+          }
       update_product_category:
-      | {
-        Args: {
-          p_category_id: string
-          p_code?: string
-          p_description?: string
-          p_display_order?: number
-          p_is_active?: boolean
-          p_name?: string
-        }
-        Returns: boolean
-      }
-      | {
-        Args: {
-          p_category_id: string
-          p_code?: string
-          p_description?: string
-          p_display_order?: number
-          p_is_active?: boolean
-          p_name?: string
-          p_type?: string
-        }
-        Returns: boolean
-      }
+        | {
+            Args: {
+              p_category_id: string
+              p_code?: string
+              p_description?: string
+              p_display_order?: number
+              p_is_active?: boolean
+              p_name?: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_category_id: string
+              p_code?: string
+              p_description?: string
+              p_display_order?: number
+              p_is_active?: boolean
+              p_name?: string
+              p_type?: string
+            }
+            Returns: boolean
+          }
       update_product_pack: {
         Args: {
           p_description?: string
@@ -1611,10 +1978,39 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_purchase_invoice: {
+        Args: {
+          p_due_date?: string
+          p_expense_category?: string
+          p_internal_notes?: string
+          p_invoice_id: string
+          p_invoice_number?: string
+          p_issue_date?: string
+          p_notes?: string
+          p_project_id?: string
+          p_status?: string
+          p_supplier_id?: string
+          p_technician_id?: string
+        }
+        Returns: boolean
+      }
+      update_purchase_invoice_line: {
+        Args: {
+          p_concept?: string
+          p_description?: string
+          p_discount_percent?: number
+          p_line_id: string
+          p_quantity?: number
+          p_tax_rate?: number
+          p_unit_price?: number
+        }
+        Returns: boolean
+      }
       update_quote: {
         Args: {
           p_client_id?: string
           p_notes?: string
+          p_project_id?: string
           p_project_name?: string
           p_quote_id: string
           p_status?: string
@@ -1636,6 +2032,31 @@ export type Database = {
       }
       update_quote_lines_order: {
         Args: { p_line_ids: string[]; p_quote_id: string }
+        Returns: boolean
+      }
+      update_supplier: {
+        Args: {
+          p_address?: string
+          p_billing_email?: string
+          p_city?: string
+          p_company_name?: string
+          p_contact_email?: string
+          p_contact_name?: string
+          p_contact_phone?: string
+          p_contact_phone_secondary?: string
+          p_country?: string
+          p_iban?: string
+          p_latitude?: number
+          p_legal_name?: string
+          p_longitude?: number
+          p_notes?: string
+          p_payment_terms?: string
+          p_postal_code?: string
+          p_province?: string
+          p_status?: string
+          p_supplier_id: string
+          p_tax_id?: string
+        }
         Returns: boolean
       }
       update_tax: {
@@ -1746,160 +2167,6 @@ export type Database = {
           valid: boolean
         }[]
       }
-      get_projects_portfolio_summary: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          total_active_projects: number
-          total_pipeline_value: number
-          avg_project_ticket: number
-          max_project_value: number
-          min_project_value: number
-          total_invoiced_ytd: number
-        }[]
-      }
-      get_project_financial_stats: {
-        Args: {
-          p_project_id: string
-        }
-        Returns: {
-          total_budget: number
-          total_invoiced: number
-          total_expenses: number
-          margin: number
-          margin_percentage: number
-        }[]
-      }
-      list_purchase_invoices: {
-        Args: {
-          p_document_type?: string
-          p_page?: number
-          p_page_size?: number
-          p_search?: string
-          p_status?: string
-          p_supplier_id?: string
-          p_technician_id?: string
-        }
-        Returns: {
-          id: string
-          invoice_number: string
-          document_type: string
-          issue_date: string
-          due_date: string | null
-          subtotal: number
-          tax_amount: number
-          retention_amount: number
-          total: number
-          paid_amount: number
-          pending_amount: number
-          status: string
-          provider_id: string
-          provider_name: string
-          provider_type: string
-          provider_tax_id: string
-          file_path: string | null
-          project_id: string | null
-          project_name: string | null
-          is_locked: boolean
-          created_at: string
-          total_count: number
-        }[]
-      }
-      list_suppliers: {
-        Args: {
-          p_page?: number
-          p_page_size?: number
-          p_search?: string
-          p_status?: string
-        }
-        Returns: {
-          id: string
-          supplier_number: string
-          company_name: string
-          legal_name: string
-          tax_id: string
-          contact_name: string
-          phone: string
-          email: string
-          city: string
-          province: string
-          payment_terms: string
-          status: string
-          created_at: string
-          total_count: number
-        }[]
-      }
-      list_technicians: {
-        Args: {
-          p_page?: number
-          p_page_size?: number
-          p_search?: string
-          p_status?: string
-          p_type?: string
-        }
-        Returns: {
-          id: string
-          technician_number: string
-          company_name: string
-          legal_name: string
-          tax_id: string
-          type: string
-          email: string
-          phone: string
-          city: string
-          status: string
-          specialties: string[]
-          daily_rate: number
-          hourly_rate: number
-          created_at: string
-          total_count: number
-        }[]
-      }
-      create_purchase_invoice: {
-        Args: {
-          p_document_type?: string
-          p_due_date?: string
-          p_expense_category?: string
-          p_file_name?: string
-          p_file_path?: string
-          p_invoice_number: string
-          p_issue_date?: string
-          p_notes?: string
-          p_project_id?: string
-          p_retention_percentage?: number
-          p_supplier_id?: string
-          p_technician_id?: string
-        }
-        Returns: string
-      }
-      add_purchase_invoice_line: {
-        Args: {
-          p_description: string
-          p_purchase_invoice_id: string
-          p_quantity: number
-          p_tax_rate?: number
-          p_unit_price: number
-          p_notes?: string
-        }
-        Returns: string
-      }
-      register_purchase_payment: {
-        Args: {
-          p_amount: number
-          p_bank_reference?: string
-          p_company_bank_account_id?: string
-          p_notes?: string
-          p_payment_date: string
-          p_payment_method: string
-          p_purchase_invoice_id: string
-        }
-        Returns: string
-      }
-      recalculate_purchase_invoice: {
-        Args: {
-          p_invoice_id: string
-        }
-        Returns: undefined
-      }
     }
     Enums: {
       app_role: "admin" | "comercial" | "tecnico"
@@ -1917,116 +2184,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-  : never = never,
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-  ? R
-  : never
+    ? R
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-  ? R
-  : never
-  : never
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
+      Insert: infer I
+    }
+    ? I
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Update: infer U
-  }
-  ? U
-  : never
+      Update: infer U
+    }
+    ? U
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Update: infer U
-  }
-  ? U
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-  | keyof DefaultSchema["Enums"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof DefaultSchema["CompositeTypes"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {

@@ -44,8 +44,8 @@ interface Supplier {
     legal_name: string;
     tax_id: string;
     contact_name: string;
-    phone: string;
-    email: string;
+    contact_phone: string;
+    contact_email: string;
     city: string;
     province: string;
     payment_terms: string;
@@ -249,11 +249,11 @@ const SuppliersPage = () => {
                                                     <div className="flex flex-col gap-1.5">
                                                         <div className="flex items-center gap-2 text-white/60">
                                                             <Mail className="h-3 w-3 text-blue-500/50" />
-                                                            <span className="text-xs truncate max-w-[180px]">{supplier.email || "—"}</span>
+                                                            <span className="text-xs truncate max-w-[180px]">{supplier.contact_email || "—"}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2 text-white/60">
                                                             <Phone className="h-3 w-3 text-emerald-500/50" />
-                                                            <span className="text-xs">{supplier.phone || "—"}</span>
+                                                            <span className="text-xs">{supplier.contact_phone || "—"}</span>
                                                         </div>
                                                     </div>
                                                 </TableCell>

@@ -50,9 +50,8 @@ interface PurchaseInvoice {
   document_type: string;
   issue_date: string;
   due_date: string | null;
-  subtotal: number;
+  tax_base: number;
   tax_amount: number;
-  retention_amount: number;
   total: number;
   paid_amount: number;
   pending_amount: number;
@@ -62,10 +61,13 @@ interface PurchaseInvoice {
   provider_type: string;
   provider_tax_id: string;
   file_path: string | null;
+  file_name: string | null;
   project_id: string | null;
   project_name: string | null;
+  expense_category: string | null;
   is_locked: boolean;
   created_at: string;
+  total_count: number;
 }
 
 const PurchaseInvoicesPage = () => {

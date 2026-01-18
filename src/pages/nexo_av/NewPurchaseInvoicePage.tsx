@@ -11,7 +11,8 @@ import {
     X,
     FileText,
     Upload,
-    Loader2
+    Loader2,
+    Plus
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
