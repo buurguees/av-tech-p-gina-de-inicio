@@ -61,12 +61,11 @@ const PurchaseInvoiceDetailPage = () => {
             }
             setInvoice(record);
 
-            // Líneas
+            // Líneas usando RPC
             const { data: linesData, error: linesError } = await supabase
-                .from('purchase_invoice_lines')
-                .select('*')
-                .eq('purchase_invoice_id', invoiceId)
-                .order('line_number', { ascending: true });
+                .rpc('get_purchase_invoice_lines', {
+                    p_invoice_id: invoiceId
+                });
 
             if (linesError) throw linesError;
             setLines(linesData || []);
@@ -278,35 +277,29 @@ const PurchaseInvoiceDetailPage = () => {
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center text-white/40 font-medium">
                                     <span className="text-xs uppercase tracking-widest">Base Imponible</span>
-                                    <span className="font-mono text-sm">{formatCurrency(invoice.subtotal)}</span>
+                                    <span className="font-mono text-sm">{formatCurrency(invoice.tax_base || 0)}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-white/40 font-medium">
                                     <span className="text-xs uppercase tracking-widest">Impuestos (IVA)</span>
-                                    <span className="font-mono text-sm">{formatCurrency(invoice.tax_amount)}</span>
+                                    <span className="font-mono text-sm">{formatCurrency(invoice.tax_amount || 0)}</span>
                                 </div>
-                                {invoice.retention_amount > 0 && (
-                                    <div className="flex justify-between items-center text-red-400/60 font-medium">
-                                        <span className="text-xs uppercase tracking-widest">Retención IRPF</span>
-                                        <span className="font-mono text-sm">-{formatCurrency(invoice.retention_amount)}</span>
-                                    </div>
-                                )}
                                 <Separator className="bg-white/5 my-2" />
                                 <div className="flex justify-between items-end pt-2">
                                     <div>
                                         <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] block mb-1">Total Documento</span>
                                         <span className="text-3xl font-black text-white tracking-tighter leading-none">
-                                            {formatCurrency(invoice.total)}
+                                            {formatCurrency(invoice.total || 0)}
                                         </span>
                                     </div>
                                 </div>
 
-                                {invoice.pending_amount > 0 && (
+                                {(invoice.pending_amount || 0) > 0 && (
                                     <div className="mt-6 bg-red-500/5 border border-red-500/10 p-4 rounded-3xl flex justify-between items-center">
                                         <div className="flex items-center gap-2">
                                             <Info className="h-3.5 w-3.5 text-red-400" />
                                             <span className="text-[10px] font-black text-red-400 uppercase tracking-widest">Pendiente de Pago</span>
                                         </div>
-                                        <span className="text-sm font-black text-red-400">{formatCurrency(invoice.pending_amount)}</span>
+                                        <span className="text-sm font-black text-red-400">{formatCurrency(invoice.pending_amount || 0)}</span>
                                     </div>
                                 )}
                             </div>

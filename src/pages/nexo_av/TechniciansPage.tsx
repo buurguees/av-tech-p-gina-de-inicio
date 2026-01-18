@@ -43,13 +43,16 @@ interface Technician {
   legal_name: string;
   tax_id: string;
   type: string;
-  email: string;
-  phone: string;
+  contact_email: string;
+  contact_phone: string;
+  contact_name: string;
   city: string;
+  province: string;
   status: string;
   specialties: string[];
   daily_rate: number;
   hourly_rate: number;
+  rating: number;
   created_at: string;
 }
 
