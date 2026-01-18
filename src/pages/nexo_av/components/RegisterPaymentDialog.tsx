@@ -157,7 +157,7 @@ const RegisterPaymentDialog = ({
     setLoading(true);
     try {
       if (isEditing) {
-        const { error } = await supabase.rpc("finance_update_payment" as any, {
+        const { error } = await supabase.rpc("finance_update_payment", {
           p_payment_id: payment.id,
           p_amount: numAmount,
           p_payment_date: format(paymentDate, "yyyy-MM-dd"),
@@ -172,7 +172,7 @@ const RegisterPaymentDialog = ({
           description: `Se ha modificado el cobro a ${formatCurrency(numAmount)}`,
         });
       } else {
-        const { error } = await supabase.rpc("finance_register_payment" as any, {
+        const { error } = await supabase.rpc("finance_register_payment", {
           p_invoice_id: invoiceId,
           p_amount: numAmount,
           p_payment_date: format(paymentDate, "yyyy-MM-dd"),

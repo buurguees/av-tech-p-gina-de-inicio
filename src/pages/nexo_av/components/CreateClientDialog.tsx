@@ -248,7 +248,7 @@ const CreateClientDialog = ({
         clientId = clientResult;
       } else if (Array.isArray(clientResult) && clientResult.length > 0) {
         // If it was returning a table
-        clientId = clientResult[0]?.client_id || clientResult[0]?.id || clientResult[0];
+        clientId = typeof clientResult[0] === 'object' ? clientResult[0]?.client_id : clientResult[0];
       }
 
       // Then update with billing address and website if provided
