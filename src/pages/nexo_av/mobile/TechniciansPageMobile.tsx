@@ -138,12 +138,12 @@ export default function TechniciansPageMobile() {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Tipo</label>
-                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <Select value={typeFilter || "all"} onValueChange={(value) => setTypeFilter(value === "all" ? "" : value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Todos los tipos" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="all">Todos</SelectItem>
                       {TECHNICIAN_TYPES.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.label}
@@ -154,12 +154,12 @@ export default function TechniciansPageMobile() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Estado</label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Todos los estados" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="all">Todos</SelectItem>
                       {TECHNICIAN_STATUSES.map((status) => (
                         <SelectItem key={status.value} value={status.value}>
                           {status.label}
@@ -170,12 +170,12 @@ export default function TechniciansPageMobile() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Especialidad</label>
-                  <Select value={specialtyFilter} onValueChange={setSpecialtyFilter}>
+                  <Select value={specialtyFilter || "all"} onValueChange={(value) => setSpecialtyFilter(value === "all" ? "" : value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Todas las especialidades" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todas</SelectItem>
+                      <SelectItem value="all">Todas</SelectItem>
                       {TECHNICIAN_SPECIALTIES.map((specialty) => (
                         <SelectItem key={specialty.value} value={specialty.value}>
                           {specialty.label}

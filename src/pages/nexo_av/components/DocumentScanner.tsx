@@ -1,5 +1,4 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import JScanify from 'jscanify';
 import { Button } from "@/components/ui/button";
 import { Camera, RefreshCw, Check, X, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from "motion/react";
@@ -11,8 +10,6 @@ interface DocumentScannerProps {
     onCancel: () => void;
     title?: string;
 }
-
-const scanner = new JScanify();
 
 const DocumentScanner: React.FC<DocumentScannerProps> = ({ onCapture, onCancel, title = "Escanear Documento" }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -49,7 +46,7 @@ const DocumentScanner: React.FC<DocumentScannerProps> = ({ onCapture, onCancel, 
         };
     }, []);
 
-    const capture = useCallback(() => {
+    const capture = useCallback(async () => {
         if (!videoRef.current || !canvasRef.current || isProcessing) return;
 
         setIsProcessing(true);
@@ -61,13 +58,18 @@ const DocumentScanner: React.FC<DocumentScannerProps> = ({ onCapture, onCancel, 
         canvas.height = video.videoHeight;
 
         const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+        if (!ctx) {
+            setIsProcessing(false);
+            return;
+        }
 
         // Draw current video frame
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         try {
-            // Use jscanify to detect and extract paper
+            // Try to use jscanify dynamically if available
+            const JScanify = (await import('jscanify')).default;
+            const scanner = new JScanify();
             const resultCanvas = scanner.extractPaper(canvas, canvas.width, canvas.height);
             setCapturedImage(resultCanvas.toDataURL('image/jpeg', 0.8));
         } catch (err) {

@@ -432,92 +432,8 @@ body.nexo-av-theme-dark main > div[class*="w-[98%]"] > div > * {
   max-width: none !important;
 }
 
-/* Force all page containers to use 98% width - override w-[90%] and max-w-[1800px] */
-body.nexo-av-theme main [class*="w-[90%]"],
-body.nexo-av-theme-dark main [class*="w-[90%]"],
-body.nexo-av-theme main [class*="w-[95%]"],
-body.nexo-av-theme-dark main [class*="w-[95%]"],
-body.nexo-av-theme main div[class*="w-[90%]"],
-body.nexo-av-theme-dark main div[class*="w-[90%]"],
-body.nexo-av-theme main div[class*="w-[95%]"],
-body.nexo-av-theme-dark main div[class*="w-[95%]"] {
-  width: 98% !important;
-  max-width: none !important;
-}
-
-/* Remove max-width restrictions from page containers - more specific selectors */
-body.nexo-av-theme main [class*="max-w-[1800px]"],
-body.nexo-av-theme-dark main [class*="max-w-[1800px]"],
-body.nexo-av-theme main [class*="max-w-"],
-body.nexo-av-theme-dark main [class*="max-w-"],
-body.nexo-av-theme main div[class*="max-w-[1800px]"],
-body.nexo-av-theme-dark main div[class*="max-w-[1800px]"],
-body.nexo-av-theme main div[class*="max-w-"],
-body.nexo-av-theme-dark main div[class*="max-w-"] {
-  max-width: none !important;
-}
-
-/* Ensure all direct children of Outlet use full width */
-body.nexo-av-theme main > div > div > div > *:first-child,
-body.nexo-av-theme-dark main > div > div > div > *:first-child {
-  width: 100% !important;
-  max-width: none !important;
-}
-
-/* Override any nested containers with width restrictions */
-body.nexo-av-theme main > div > div > div > * [class*="w-[90%]"],
-body.nexo-av-theme-dark main > div > div > div > * [class*="w-[90%]"],
-body.nexo-av-theme main > div > div > div > * [class*="w-[95%]"],
-body.nexo-av-theme-dark main > div > div > div > * [class*="w-[95%]"],
-body.nexo-av-theme main > div > div > div > * div[class*="w-[90%]"],
-body.nexo-av-theme-dark main > div > div > div > * div[class*="w-[90%]"],
-body.nexo-av-theme main > div > div > div > * div[class*="w-[95%]"],
-body.nexo-av-theme-dark main > div > div > div > * div[class*="w-[95%]"] {
-  width: 98% !important;
-  max-width: none !important;
-}
-
-/* Override max-width in nested containers */
-body.nexo-av-theme main > div > div > div > * [class*="max-w-[1800px]"],
-body.nexo-av-theme-dark main > div > div > div > * [class*="max-w-[1800px]"],
-body.nexo-av-theme main > div > div > div > * div[class*="max-w-[1800px]"],
-body.nexo-av-theme-dark main > div > div > div > * div[class*="max-w-[1800px]"] {
-  max-width: none !important;
-}
-
-/* Force all page root containers to use 98% width */
-body.nexo-av-theme main > div > div > div > *,
-body.nexo-av-theme-dark main > div > div > div > * {
-  width: 100% !important;
-  max-width: none !important;
-}
-
-/* Override any width constraints in page components - most aggressive */
-body.nexo-av-theme main *[class*="w-[90%]"],
-body.nexo-av-theme-dark main *[class*="w-[90%]"],
-body.nexo-av-theme main *[class*="w-[95%]"],
-body.nexo-av-theme-dark main *[class*="w-[95%]"],
-body.nexo-av-theme main div[class*="w-[90%]"],
-body.nexo-av-theme-dark main div[class*="w-[90%]"],
-body.nexo-av-theme main div[class*="w-[95%]"],
-body.nexo-av-theme-dark main div[class*="w-[95%]"] {
-  width: 98% !important;
-  max-width: none !important;
-}
-
-body.nexo-av-theme main *[class*="max-w-[1800px]"],
-body.nexo-av-theme-dark main *[class*="max-w-[1800px]"],
-body.nexo-av-theme main div[class*="max-w-[1800px]"],
-body.nexo-av-theme-dark main div[class*="max-w-[1800px]"] {
-  max-width: none !important;
-}
-
-/* Ensure main element uses full available width */
-body.nexo-av-theme main,
-body.nexo-av-theme-dark main {
-  width: 100% !important;
-  max-width: none !important;
-}
+/* Page containers now use w-full and respect the layout's available space */
+/* Removed forced width overrides - containers now properly respect parent width */
 
 /* ============================================
    MAP LAYOUTS - Ensure proper space distribution
@@ -1233,3 +1149,4 @@ body.nexo-av-theme [class*="text-purple-300"] {
     padding: 0.625rem !important;
   }
 }
+

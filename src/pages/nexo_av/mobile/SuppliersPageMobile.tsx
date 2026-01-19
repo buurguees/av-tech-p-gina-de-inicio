@@ -137,12 +137,12 @@ export default function SuppliersPageMobile() {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Estado</label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "" : value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Todos los estados" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos</SelectItem>
+                      <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="ACTIVE">Activos</SelectItem>
                       <SelectItem value="INACTIVE">Inactivos</SelectItem>
                       <SelectItem value="BLOCKED">Bloqueados</SelectItem>

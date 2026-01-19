@@ -49,6 +49,8 @@ interface Technician {
   status: string;
   rating: number | null;
   notes: string | null;
+  vat_rate: number | null;
+  withholding_tax_rate: number | null;
 }
 
 interface EditTechnicianDialogProps {
@@ -87,6 +89,8 @@ export default function EditTechnicianDialog({
     status: "ACTIVE",
     rating: "",
     notes: "",
+    vat_rate: "",
+    withholding_tax_rate: "",
   });
 
   useEffect(() => {
@@ -113,6 +117,8 @@ export default function EditTechnicianDialog({
         status: technician.status || "ACTIVE",
         rating: technician.rating?.toString() || "",
         notes: technician.notes || "",
+        vat_rate: technician.vat_rate?.toString() || "",
+        withholding_tax_rate: technician.withholding_tax_rate?.toString() || "",
       });
     }
   }, [technician, open]);
@@ -163,6 +169,8 @@ export default function EditTechnicianDialog({
         p_status: formData.status,
         p_rating: formData.rating && formData.rating !== "" ? parseInt(formData.rating) : null,
         p_notes: formData.notes.trim() || null,
+        p_vat_rate: formData.vat_rate && formData.vat_rate !== "" ? parseFloat(formData.vat_rate) : null,
+        p_withholding_tax_rate: formData.withholding_tax_rate && formData.withholding_tax_rate !== "" ? parseFloat(formData.withholding_tax_rate) : null,
       });
 
       if (error) throw error;
@@ -435,6 +443,34 @@ export default function EditTechnicianDialog({
                   value={formData.payment_terms}
                   onChange={(e) => handleChange("payment_terms", e.target.value)}
                 />
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <Label htmlFor="vat_rate">IVA (%)</Label>
+                <Input
+                  id="vat_rate"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={formData.vat_rate}
+                  onChange={(e) => handleChange("vat_rate", e.target.value)}
+                  placeholder="Ej: 21, 10, 0"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Porcentaje de IVA que aplica el técnico</p>
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <Label htmlFor="withholding_tax_rate">IRPF a retener (%)</Label>
+                <Input
+                  id="withholding_tax_rate"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={formData.withholding_tax_rate}
+                  onChange={(e) => handleChange("withholding_tax_rate", e.target.value)}
+                  placeholder="Ej: 15, 7, 19"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Porcentaje de retención IRPF (dejar vacío si no aplica)</p>
               </div>
             </div>
           </div>

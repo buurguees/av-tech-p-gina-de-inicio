@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, FolderKanban, Loader2, MoreVertical, ChevronUp, ChevronDown, Info, Filter } from "lucide-react";
+import { Plus, Search, FolderKanban, Loader2, MoreVertical, ChevronUp, ChevronDown, Info, Filter, Euro, TrendingUp, BarChart3, Target, CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
@@ -59,6 +59,15 @@ const getStatusInfo = (status: string) => {
   return PROJECT_STATUSES.find(s => s.value === status) || PROJECT_STATUSES[0];
 };
 
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
 import ProjectsListSidebar from "./components/ProjectsListSidebar";
 
 const ProjectsPageDesktop = () => {
@@ -74,6 +83,19 @@ const ProjectsPageDesktop = () => {
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [projectKPIs, setProjectKPIs] = useState({
+    byStatus: {} as Record<string, number>,
+    totalRevenue: 0,
+    totalCosts: 0,
+    profitability: 0,
+    profitMargin: 0,
+    avgProjectsPerClient: 0,
+    monthlyNewProjects: 0,
+    monthlyCompletedProjects: 0,
+    avgProjectValue: 0,
+    avgQuoteValue: 0,
+    totalQuotesValue: 0
+  });
 
   const fetchProjects = async () => {
     try {
@@ -91,9 +113,128 @@ const ProjectsPageDesktop = () => {
     }
   };
 
+  const calculateProjectKPIs = async () => {
+    try {
+      // Contar proyectos por estado
+      const byStatus: Record<string, number> = {};
+      PROJECT_STATUSES.forEach(status => {
+        byStatus[status.value] = projects.filter(p => p.status === status.value).length;
+      });
+
+      // Obtener presupuestos (quotes) asignados a proyectos
+      const { data: quotesData, error: quotesError } = await supabase
+        .from('quotes.quotes')
+        .select('project_id, total, status');
+
+      if (quotesError) {
+        console.error('Error fetching quotes:', quotesError);
+      }
+
+      // Calcular presupuestos totales y medios de proyectos
+      const projectQuotes = (quotesData || []).filter((quote: any) => 
+        quote.project_id && quote.status !== 'REJECTED' && quote.status !== 'EXPIRED'
+      );
+      const totalQuotesValue = projectQuotes.reduce((sum: number, quote: any) => sum + (quote.total || 0), 0);
+      const projectsWithQuotes = new Set(projectQuotes.map((q: any) => q.project_id));
+      const avgQuoteValue = projectsWithQuotes.size > 0 
+        ? totalQuotesValue / projectsWithQuotes.size 
+        : 0;
+
+      // Obtener facturas de venta relacionadas con proyectos
+      const { data: invoicesData, error: invoicesError } = await supabase
+        .from('sales.invoices')
+        .select('project_id, total, status');
+
+      if (invoicesError) {
+        console.error('Error fetching invoices:', invoicesError);
+      }
+
+      // Calcular facturación total de proyectos (solo facturas con project_id asignado)
+      const projectInvoices = (invoicesData || []).filter((inv: any) => 
+        inv.project_id && inv.status !== 'CANCELLED' && inv.status !== 'DRAFT'
+      );
+      const totalRevenue = projectInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+
+      // Obtener facturas de compra relacionadas con proyectos
+      const { data: purchaseInvoicesData, error: purchaseInvoicesError } = await supabase.rpc('list_purchase_invoices', {
+        p_limit: 10000,
+        p_offset: 0,
+        p_search: null,
+        p_status: null,
+        p_document_type: null
+      });
+
+      if (purchaseInvoicesError) {
+        console.error('Error fetching purchase invoices:', purchaseInvoicesError);
+      }
+
+      // Calcular costes totales de proyectos (solo facturas de compra con project_id asignado)
+      const projectPurchaseInvoices = (purchaseInvoicesData || []).filter((inv: any) => 
+        inv.project_id && (inv.status === 'APPROVED' || inv.status === 'PAID')
+      );
+      const totalCosts = projectPurchaseInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+
+      // Calcular rentabilidad
+      const profitability = totalRevenue - totalCosts;
+      const profitMargin = totalRevenue > 0 ? (profitability / totalRevenue) * 100 : 0;
+
+      // Media de proyectos por cliente
+      const projectsByClient = new Map<string, number>();
+      projects.forEach(project => {
+        if (project.client_id) {
+          projectsByClient.set(project.client_id, (projectsByClient.get(project.client_id) || 0) + 1);
+        }
+      });
+      const clientsWithProjects = projectsByClient.size;
+      const avgProjectsPerClient = clientsWithProjects > 0 ? projects.length / clientsWithProjects : 0;
+
+      // Proyectos del mes
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const monthlyNewProjects = projects.filter(p => {
+        const createdDate = new Date(p.created_at);
+        return createdDate >= firstDayOfMonth && createdDate <= lastDayOfMonth;
+      }).length;
+
+      const monthlyCompletedProjects = projects.filter(p => {
+        return p.status === 'COMPLETED';
+      }).length;
+
+      // Valor medio de proyecto (facturación media por proyecto con facturas)
+      const projectsWithInvoices = new Set(projectInvoices.map((inv: any) => inv.project_id));
+      const avgProjectValue = projectsWithInvoices.size > 0 
+        ? totalRevenue / projectsWithInvoices.size 
+        : 0;
+
+      setProjectKPIs({
+        byStatus,
+        totalRevenue,
+        totalCosts,
+        profitability,
+        profitMargin,
+        avgProjectsPerClient,
+        monthlyNewProjects,
+        monthlyCompletedProjects,
+        avgProjectValue,
+        avgQuoteValue,
+        totalQuotesValue
+      });
+    } catch (error) {
+      console.error('Error calculating project KPIs:', error);
+    }
+  };
+
   useEffect(() => {
     fetchProjects();
   }, [debouncedSearchTerm]);
+
+  useEffect(() => {
+    if (projects.length > 0) {
+      calculateProjectKPIs();
+    }
+  }, [projects]);
 
   const handleProjectClick = (projectId: string) => {
     navigate(`/nexo-av/${userId}/projects/${projectId}`);
@@ -184,7 +325,7 @@ const ProjectsPageDesktop = () => {
 
   return (
     <div className="w-full">
-      <div className="w-[95%] max-w-[1900px] mx-auto px-3 md:px-4 pb-4 md:pb-8">
+      <div className="w-full px-3 md:px-4 pb-4 md:pb-8">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Main Content */}
           <div className="flex-1 min-w-0">
@@ -193,8 +334,8 @@ const ProjectsPageDesktop = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              {/* KPIs Cards - Recuento por Estado */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -203,15 +344,14 @@ const ProjectsPageDesktop = () => {
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
-                      <FolderKanban className="h-5 w-5" />
+                      <Clock className="h-5 w-5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Proyectos Activos</span>
+                    <span className="text-muted-foreground text-sm font-medium">Planificados</span>
                   </div>
                   <div className="mt-2">
-                    <span className="text-3xl font-bold text-foreground">
-                      {projects.filter(p => p.status === 'IN_PROGRESS').length}
+                    <span className="text-2xl font-bold text-foreground">
+                      {projectKPIs.byStatus['PLANNED'] || 0}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2">en ejecución</span>
                   </div>
                 </motion.div>
 
@@ -225,13 +365,12 @@ const ProjectsPageDesktop = () => {
                     <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-600">
                       <FolderKanban className="h-5 w-5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Planificados</span>
+                    <span className="text-muted-foreground text-sm font-medium">En Progreso</span>
                   </div>
                   <div className="mt-2">
-                    <span className="text-3xl font-bold text-foreground">
-                      {projects.filter(p => p.status === 'PLANNED').length}
+                    <span className="text-2xl font-bold text-foreground">
+                      {projectKPIs.byStatus['IN_PROGRESS'] || 0}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2">pendientes de inicio</span>
                   </div>
                 </motion.div>
 
@@ -242,16 +381,260 @@ const ProjectsPageDesktop = () => {
                   className="bg-card/50 border border-border rounded-xl p-4"
                 >
                   <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-orange-500/10 rounded-lg text-orange-600">
+                      <AlertCircle className="h-5 w-5" />
+                    </div>
+                    <span className="text-muted-foreground text-sm font-medium">Pausados</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {projectKPIs.byStatus['PAUSED'] || 0}
+                    </span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="bg-card/50 border border-border rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-3 mb-2">
                     <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
-                      <FolderKanban className="h-5 w-5" />
+                      <CheckCircle className="h-5 w-5" />
                     </div>
                     <span className="text-muted-foreground text-sm font-medium">Completados</span>
                   </div>
                   <div className="mt-2">
-                    <span className="text-3xl font-bold text-foreground">
-                      {projects.filter(p => p.status === 'COMPLETED').length}
+                    <span className="text-2xl font-bold text-foreground">
+                      {projectKPIs.byStatus['COMPLETED'] || 0}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2">histórico total</span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="bg-card/50 border border-border rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-red-500/10 rounded-lg text-red-600">
+                      <XCircle className="h-5 w-5" />
+                    </div>
+                    <span className="text-muted-foreground text-sm font-medium">Cancelados</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {projectKPIs.byStatus['CANCELLED'] || 0}
+                    </span>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* KPIs Cards - Métricas Financieras */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="bg-card/50 border border-border rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+                      <Euro className="h-5 w-5" />
+                    </div>
+                    <span className="text-muted-foreground text-sm font-medium">Facturación Total</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {formatCurrency(projectKPIs.totalRevenue)}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                      de proyectos facturados
+                    </span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
+                  className="bg-card/50 border border-border rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-orange-500/10 rounded-lg text-orange-600">
+                      <Euro className="h-5 w-5" />
+                    </div>
+                    <span className="text-muted-foreground text-sm font-medium">Costes Total</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {formatCurrency(projectKPIs.totalCosts)}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                      en compras/gastos
+                    </span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                  className="bg-card/50 border border-border rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={`p-2 rounded-lg ${projectKPIs.profitability >= 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
+                      <TrendingUp className="h-5 w-5" />
+                    </div>
+                    <span className="text-muted-foreground text-sm font-medium">Rentabilidad</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className={`text-2xl font-bold ${projectKPIs.profitability >= 0 ? 'text-foreground' : 'text-red-600'}`}>
+                      {formatCurrency(projectKPIs.profitability)}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                      margen: {projectKPIs.profitMargin.toFixed(1)}%
+                    </span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.9 }}
+                  className="bg-card/50 border border-border rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-purple-500/10 rounded-lg text-purple-600">
+                      <BarChart3 className="h-5 w-5" />
+                    </div>
+                    <span className="text-muted-foreground text-sm font-medium">Facturación Media</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {formatCurrency(projectKPIs.avgProjectValue)}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                      por proyecto facturado
+                    </span>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* KPIs Cards - Presupuestos */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.3 }}
+                  className="bg-card/50 border border-border rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-600">
+                      <Target className="h-5 w-5" />
+                    </div>
+                    <span className="text-muted-foreground text-sm font-medium">Presupuesto Medio</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {formatCurrency(projectKPIs.avgQuoteValue)}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                      por proyecto con presupuesto
+                    </span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.4 }}
+                  className="bg-card/50 border border-border rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-600">
+                      <Euro className="h-5 w-5" />
+                    </div>
+                    <span className="text-muted-foreground text-sm font-medium">Total Presupuestado</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {formatCurrency(projectKPIs.totalQuotesValue)}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                      en presupuestos de proyectos
+                    </span>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* KPIs Cards - Métricas de Productividad */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.0 }}
+                  className="bg-card/50 border border-border rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-600">
+                      <Target className="h-5 w-5" />
+                    </div>
+                    <span className="text-muted-foreground text-sm font-medium">Media Proyectos/Cliente</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {projectKPIs.avgProjectsPerClient.toFixed(1)}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                      proyectos por cliente
+                    </span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.1 }}
+                  className="bg-card/50 border border-border rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
+                      <FolderKanban className="h-5 w-5" />
+                    </div>
+                    <span className="text-muted-foreground text-sm font-medium">Nuevos (Mes)</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {projectKPIs.monthlyNewProjects}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                      proyectos nuevos este mes
+                    </span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2 }}
+                  className="bg-card/50 border border-border rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+                      <CheckCircle className="h-5 w-5" />
+                    </div>
+                    <span className="text-muted-foreground text-sm font-medium">Completados (Total)</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {projectKPIs.byStatus['COMPLETED'] || 0}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                      proyectos completados
+                    </span>
                   </div>
                 </motion.div>
               </div>

@@ -235,7 +235,7 @@ export default function ProductDetailPage() {
 
   return (
     <div className="w-full">
-      <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
+      <div className="w-full px-3 sm:px-4 lg:px-6 py-3 md:py-6">
         {/* Product header */}
         <div className="flex items-center gap-4 mb-8">
           <div className={`p-3 rounded-lg ${isProductType ? 'bg-blue-500/20' : 'bg-purple-500/20'}`}>

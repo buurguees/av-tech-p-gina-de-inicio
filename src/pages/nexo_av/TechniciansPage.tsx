@@ -23,7 +23,11 @@ import {
   Phone,
   Euro,
   MapPin,
-  Star
+  Star,
+  Building2,
+  Briefcase,
+  Users,
+  TrendingUp
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -57,6 +61,7 @@ interface Technician {
   specialties: string[];
   daily_rate: number;
   hourly_rate: number;
+  monthly_salary: number | null;
   rating: number;
   created_at: string;
 }
@@ -73,10 +78,26 @@ const TechniciansPageDesktop = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [monthlyCosts, setMonthlyCosts] = useState({
+    freelancers: 0,
+    companies: 0,
+    employees: 0,
+    totalExternal: 0,
+    totalEmployees: 0,
+    avgFreelancer: 0,
+    avgCompany: 0,
+    avgEmployee: 0
+  });
 
   useEffect(() => {
     fetchTechnicians();
   }, [debouncedSearchQuery, statusFilter, typeFilter]);
+
+  useEffect(() => {
+    if (technicians.length > 0) {
+      calculateMonthlyCosts();
+    }
+  }, [technicians]);
 
   const fetchTechnicians = async () => {
     try {
@@ -104,7 +125,89 @@ const TechniciansPageDesktop = () => {
     return new Intl.NumberFormat("es-ES", {
       style: "currency",
       currency: "EUR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const calculateMonthlyCosts = async () => {
+    try {
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      // Calcular costes de plantilla (suma de monthly_salary)
+      const employees = technicians.filter(t => t.type === 'EMPLOYEE' && t.status === 'ACTIVE');
+      const totalEmployees = employees.reduce((sum, emp) => sum + (emp.monthly_salary || 0), 0);
+      const avgEmployee = employees.length > 0 ? totalEmployees / employees.length : 0;
+
+      // Obtener facturas de compra del mes actual para técnicos freelance/empresas
+      const { data: purchaseInvoicesData, error: invoicesError } = await supabase.rpc('list_purchase_invoices', {
+        p_limit: 10000,
+        p_offset: 0,
+        p_search: null,
+        p_status: null,
+        p_document_type: null
+      });
+
+      if (invoicesError) {
+        console.error('Error fetching purchase invoices:', invoicesError);
+        return;
+      }
+
+      // Filtrar facturas del mes actual para técnicos
+      const purchaseInvoices = (purchaseInvoicesData || []).filter((inv: any) => {
+        if (!inv.technician_id || !inv.issue_date) return false;
+        const invoiceDate = new Date(inv.issue_date);
+        return invoiceDate >= firstDayOfMonth && invoiceDate <= lastDayOfMonth &&
+               (inv.status === 'APPROVED' || inv.status === 'PAID');
+      });
+
+      if (error) {
+        console.error('Error fetching purchase invoices:', error);
+        return;
+      }
+
+      // Separar facturas por tipo de técnico
+      const freelancerIds = technicians
+        .filter(t => t.type === 'FREELANCER' && t.status === 'ACTIVE')
+        .map(t => t.id);
+      
+      const companyIds = technicians
+        .filter(t => t.type === 'COMPANY' && t.status === 'ACTIVE')
+        .map(t => t.id);
+
+      const freelancerInvoices = purchaseInvoices?.filter(inv => 
+        inv.technician_id && freelancerIds.includes(inv.technician_id)
+      ) || [];
+      
+      const companyInvoices = purchaseInvoices?.filter(inv => 
+        inv.technician_id && companyIds.includes(inv.technician_id)
+      ) || [];
+
+      const totalFreelancers = freelancerInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
+      const totalCompanies = companyInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
+      const totalExternal = totalFreelancers + totalCompanies;
+
+      const activeFreelancers = technicians.filter(t => t.type === 'FREELANCER' && t.status === 'ACTIVE');
+      const activeCompanies = technicians.filter(t => t.type === 'COMPANY' && t.status === 'ACTIVE');
+
+      const avgFreelancer = activeFreelancers.length > 0 ? totalFreelancers / activeFreelancers.length : 0;
+      const avgCompany = activeCompanies.length > 0 ? totalCompanies / activeCompanies.length : 0;
+
+      setMonthlyCosts({
+        freelancers: totalFreelancers,
+        companies: totalCompanies,
+        employees: totalEmployees,
+        totalExternal,
+        totalEmployees,
+        avgFreelancer,
+        avgCompany,
+        avgEmployee
+      });
+    } catch (error) {
+      console.error('Error calculating monthly costs:', error);
+    }
   };
 
   const getStatusInfo = (status: string) => {
@@ -121,15 +224,15 @@ const TechniciansPageDesktop = () => {
   };
 
   return (
-    <div className="w-full h-full px-6 py-6">
-      <div className="w-full max-w-none mx-auto">
+    <div className="w-full">
+      <div className="w-full px-3 md:px-4 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Summary Cards - Recuento por tipo */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -137,14 +240,17 @@ const TechniciansPageDesktop = () => {
               className="bg-card/50 border border-border rounded-xl p-4"
             >
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-violet-500/10 rounded-lg text-violet-600">
+                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
                   <UserRound className="h-5 w-5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Total Técnicos</span>
+                <span className="text-muted-foreground text-sm font-medium">Autónomos</span>
               </div>
               <div className="mt-2">
                 <span className="text-3xl font-bold text-foreground">
-                  {technicians.length}
+                  {technicians.filter(t => t.type === 'FREELANCER').length}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2">
+                  {technicians.filter(t => t.type === 'FREELANCER' && t.status === 'ACTIVE').length} activos
                 </span>
               </div>
             </motion.div>
@@ -156,14 +262,17 @@ const TechniciansPageDesktop = () => {
               className="bg-card/50 border border-border rounded-xl p-4"
             >
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
-                  <Star className="h-5 w-5" />
+                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-600">
+                  <Building2 className="h-5 w-5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Freelances</span>
+                <span className="text-muted-foreground text-sm font-medium">Empresas</span>
               </div>
               <div className="mt-2">
                 <span className="text-3xl font-bold text-foreground">
-                  {technicians.filter(t => t.type === 'FREELANCER').length}
+                  {technicians.filter(t => t.type === 'COMPANY').length}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2">
+                  {technicians.filter(t => t.type === 'COMPANY' && t.status === 'ACTIVE').length} activas
                 </span>
               </div>
             </motion.div>
@@ -176,13 +285,109 @@ const TechniciansPageDesktop = () => {
             >
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
-                  <UserRound className="h-5 w-5" />
+                  <Briefcase className="h-5 w-5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Activos</span>
+                <span className="text-muted-foreground text-sm font-medium">Plantilla</span>
               </div>
               <div className="mt-2">
                 <span className="text-3xl font-bold text-foreground">
-                  {technicians.filter(t => t.status === 'ACTIVE').length}
+                  {technicians.filter(t => t.type === 'EMPLOYEE').length}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2">
+                  {technicians.filter(t => t.type === 'EMPLOYEE' && t.status === 'ACTIVE').length} activos
+                </span>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Costes Mensuales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-orange-500/10 rounded-lg text-orange-600">
+                  <Euro className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Coste Mensual Total</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {formatCurrency(monthlyCosts.totalExternal + monthlyCosts.totalEmployees)}
+                </span>
+                <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
+                  <span>Ext: {formatCurrency(monthlyCosts.totalExternal)}</span>
+                  <span>•</span>
+                  <span>Plantilla: {formatCurrency(monthlyCosts.totalEmployees)}</span>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Media Autónomos</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {formatCurrency(monthlyCosts.avgFreelancer)}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                  por técnico/mes
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-600">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Media Empresas</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {formatCurrency(monthlyCosts.avgCompany)}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                  por empresa/mes
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Media Plantilla</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {formatCurrency(monthlyCosts.avgEmployee)}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                  por empleado/mes
                 </span>
               </div>
             </motion.div>
@@ -329,14 +534,20 @@ const TechniciansPageDesktop = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-0.5">
-                            {tech.daily_rate && tech.daily_rate > 0 && (
-                              <span className="text-sm text-white/80 font-medium">{formatCurrency(tech.daily_rate)}/día</span>
-                            )}
-                            {tech.hourly_rate && tech.hourly_rate > 0 && (
-                              <span className="text-xs text-white/60">{formatCurrency(tech.hourly_rate)}/h</span>
-                            )}
-                            {(!tech.daily_rate || tech.daily_rate === 0) && (!tech.hourly_rate || tech.hourly_rate === 0) && (
-                              <span className="text-white/50 text-xs">—</span>
+                            {tech.type === "EMPLOYEE" && tech.monthly_salary && tech.monthly_salary > 0 ? (
+                              <span className="text-sm text-white/80 font-medium">{formatCurrency(tech.monthly_salary)}/mes</span>
+                            ) : (
+                              <>
+                                {tech.daily_rate && tech.daily_rate > 0 && (
+                                  <span className="text-sm text-white/80 font-medium">{formatCurrency(tech.daily_rate)}/día</span>
+                                )}
+                                {tech.hourly_rate && tech.hourly_rate > 0 && (
+                                  <span className="text-xs text-white/60">{formatCurrency(tech.hourly_rate)}/h</span>
+                                )}
+                                {(!tech.daily_rate || tech.daily_rate === 0) && (!tech.hourly_rate || tech.hourly_rate === 0) && (
+                                  <span className="text-white/50 text-xs">—</span>
+                                )}
+                              </>
                             )}
                           </div>
                         </TableCell>

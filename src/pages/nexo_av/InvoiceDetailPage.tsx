@@ -280,7 +280,7 @@ const InvoiceDetailPageDesktop = () => {
 
   return (
     <div className="w-full">
-      <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
+      <div className="w-full px-3 sm:px-4 lg:px-6 py-3 md:py-6">
         {/* Header with Title and Back button */}
         <div className="flex items-center gap-4 mb-6">
           <Button

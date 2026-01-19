@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { SUPPLIER_CATEGORIES } from "@/constants/supplierConstants";
 
 interface CreateSupplierDialogProps {
   open: boolean;
@@ -35,13 +36,16 @@ export default function CreateSupplierDialog({
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     company_name: "",
+    category: "",
     tax_id: "",
     contact_email: "",
     contact_phone: "",
+    address: "",
+    postal_code: "",
     city: "",
     province: "",
+    country: "España",
     payment_terms: "",
-    status: "ACTIVE",
   });
 
   const handleChange = (field: string, value: string) => {
@@ -51,8 +55,29 @@ export default function CreateSupplierDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validaciones
     if (!formData.company_name.trim()) {
       toast.error("El nombre de la empresa es obligatorio");
+      return;
+    }
+
+    if (!formData.tax_id.trim()) {
+      toast.error("El NIF/CIF es obligatorio");
+      return;
+    }
+
+    if (!formData.address.trim()) {
+      toast.error("La dirección de facturación es obligatoria");
+      return;
+    }
+
+    if (!formData.city.trim()) {
+      toast.error("La ciudad es obligatoria");
+      return;
+    }
+
+    if (!formData.postal_code.trim()) {
+      toast.error("El código postal es obligatorio");
       return;
     }
 
@@ -60,29 +85,36 @@ export default function CreateSupplierDialog({
     try {
       const { data, error } = await supabase.rpc("create_supplier", {
         p_company_name: formData.company_name.trim(),
-        p_tax_id: formData.tax_id.trim() || null,
+        p_tax_id: formData.tax_id.trim().toUpperCase(),
+        p_category: formData.category || null,
         p_contact_email: formData.contact_email.trim() || null,
         p_contact_phone: formData.contact_phone.trim() || null,
-        p_city: formData.city.trim() || null,
+        p_address: formData.address.trim(),
+        p_city: formData.city.trim(),
         p_province: formData.province.trim() || null,
+        p_postal_code: formData.postal_code.trim(),
+        p_country: formData.country.trim() || "España",
         p_payment_terms: formData.payment_terms.trim() || null,
       });
 
       if (error) throw error;
 
-      const result = data?.[0];
+      const result = data?.[0] || data;
       toast.success(`Proveedor ${result?.supplier_number || ""} creado correctamente`);
       
       // Reset form
       setFormData({
         company_name: "",
+        category: "",
         tax_id: "",
         contact_email: "",
         contact_phone: "",
+        address: "",
+        postal_code: "",
         city: "",
         province: "",
+        country: "España",
         payment_terms: "",
-        status: "ACTIVE",
       });
       
       onSuccess();
@@ -110,9 +142,11 @@ export default function CreateSupplierDialog({
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               Información básica
             </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 sm:col-span-1">
-                <Label htmlFor="company_name">Nombre de la empresa *</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="col-span-1">
+                <Label htmlFor="company_name">
+                  Nombre de la empresa <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="company_name"
                   value={formData.company_name}
@@ -121,14 +155,98 @@ export default function CreateSupplierDialog({
                   required
                 />
               </div>
-              <div className="col-span-2 sm:col-span-1">
-                <Label htmlFor="tax_id">NIF / CIF</Label>
+              <div className="col-span-1">
+                <Label htmlFor="category">Categoría</Label>
+                <Select value={formData.category || "none"} onValueChange={(value) => handleChange("category", value === "none" ? "" : value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona una categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sin categoría</SelectItem>
+                    {SUPPLIER_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-1">
+                <Label htmlFor="tax_id">
+                  NIF / CIF <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="tax_id"
                   value={formData.tax_id}
                   onChange={(e) => handleChange("tax_id", e.target.value.toUpperCase())}
-                  placeholder="12345678A"
+                  placeholder="B12345678"
+                  required
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Dirección de facturación */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Dirección de facturación <span className="text-destructive">*</span>
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="address">
+                  Dirección completa <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => handleChange("address", e.target.value)}
+                  placeholder="Calle, número, piso, puerta"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="col-span-1">
+                  <Label htmlFor="postal_code">
+                    Código Postal <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="postal_code"
+                    value={formData.postal_code}
+                    onChange={(e) => handleChange("postal_code", e.target.value)}
+                    placeholder="08001"
+                    required
+                  />
+                </div>
+                <div className="col-span-1">
+                  <Label htmlFor="city">
+                    Ciudad <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => handleChange("city", e.target.value)}
+                    placeholder="Barcelona"
+                    required
+                  />
+                </div>
+                <div className="col-span-1">
+                  <Label htmlFor="province">Provincia</Label>
+                  <Input
+                    id="province"
+                    value={formData.province}
+                    onChange={(e) => handleChange("province", e.target.value)}
+                    placeholder="Barcelona"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <Label htmlFor="country">País</Label>
+                  <Input
+                    id="country"
+                    value={formData.country}
+                    onChange={(e) => handleChange("country", e.target.value)}
+                    placeholder="España"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -138,8 +256,8 @@ export default function CreateSupplierDialog({
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               Datos de contacto
             </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 sm:col-span-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="col-span-1">
                 <Label htmlFor="contact_email">Email</Label>
                 <Input
                   id="contact_email"
@@ -149,7 +267,7 @@ export default function CreateSupplierDialog({
                   placeholder="email@ejemplo.com"
                 />
               </div>
-              <div className="col-span-2 sm:col-span-1">
+              <div className="col-span-1">
                 <Label htmlFor="contact_phone">Teléfono</Label>
                 <Input
                   id="contact_phone"
@@ -162,48 +280,19 @@ export default function CreateSupplierDialog({
             </div>
           </div>
 
-          {/* Ubicación */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              Ubicación
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 sm:col-span-1">
-                <Label htmlFor="city">Ciudad</Label>
-                <Input
-                  id="city"
-                  value={formData.city}
-                  onChange={(e) => handleChange("city", e.target.value)}
-                  placeholder="Madrid"
-                />
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <Label htmlFor="province">Provincia</Label>
-                <Input
-                  id="province"
-                  value={formData.province}
-                  onChange={(e) => handleChange("province", e.target.value)}
-                  placeholder="Madrid"
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Facturación */}
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               Facturación
             </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
-                <Label htmlFor="payment_terms">Condiciones de pago</Label>
-                <Input
-                  id="payment_terms"
-                  value={formData.payment_terms}
-                  onChange={(e) => handleChange("payment_terms", e.target.value)}
-                  placeholder="30 días, transferencia..."
-                />
-              </div>
+            <div>
+              <Label htmlFor="payment_terms">Condiciones de pago</Label>
+              <Input
+                id="payment_terms"
+                value={formData.payment_terms}
+                onChange={(e) => handleChange("payment_terms", e.target.value)}
+                placeholder="30 días, transferencia..."
+              />
             </div>
           </div>
 

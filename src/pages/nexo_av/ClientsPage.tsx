@@ -16,7 +16,14 @@ import {
   MoreVertical,
   ChevronUp,
   ChevronDown,
-  Info
+  Info,
+  Euro,
+  FolderKanban,
+  TrendingUp,
+  BarChart3,
+  Target,
+  Award,
+  XCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -96,6 +103,15 @@ const getStageInfo = (stage: string) => {
   return LEAD_STAGES.find(s => s.value === stage) || LEAD_STAGES[0];
 };
 
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
 const ClientsPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
   const isMobile = useIsMobile();
@@ -114,6 +130,16 @@ const ClientsPageDesktop = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [editingClient, setEditingClient] = useState<any | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [clientKPIs, setClientKPIs] = useState({
+    byStage: {} as Record<string, number>,
+    avgProjectsPerClient: 0,
+    avgInvoiceTicket: 0,
+    totalClients: 0,
+    monthlyNewClients: 0,
+    monthlyWonClients: 0,
+    monthlyRevenue: 0,
+    avgRevenuePerClient: 0
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -280,6 +306,116 @@ const ClientsPageDesktop = () => {
     }
   }, [loading, stageFilter, debouncedSearchTerm]);
 
+  useEffect(() => {
+    if (clients.length > 0) {
+      calculateClientKPIs();
+    }
+  }, [clients]);
+
+
+  const calculateClientKPIs = async () => {
+    try {
+      // Contar clientes por estado
+      const byStage: Record<string, number> = {};
+      LEAD_STAGES.forEach(stage => {
+        byStage[stage.value] = clients.filter(c => c.lead_stage === stage.value).length;
+      });
+
+      // Obtener proyectos por cliente
+      const { data: projectsData, error: projectsError } = await supabase
+        .from('projects.projects')
+        .select('client_id');
+
+      if (projectsError) {
+        console.error('Error fetching projects:', projectsError);
+      }
+
+      const projectsByClient = new Map<string, number>();
+      (projectsData || []).forEach((project: any) => {
+        if (project.client_id) {
+          projectsByClient.set(project.client_id, (projectsByClient.get(project.client_id) || 0) + 1);
+        }
+      });
+
+      const totalProjects = Array.from(projectsByClient.values()).reduce((sum, count) => sum + count, 0);
+      const clientsWithProjects = projectsByClient.size;
+      const avgProjectsPerClient = clientsWithProjects > 0 ? totalProjects / clientsWithProjects : 0;
+
+      // Obtener facturas por cliente (mes actual y total)
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const { data: invoicesData, error: invoicesError } = await supabase
+        .from('sales.invoices')
+        .select('client_id, total, issue_date, status');
+
+      if (invoicesError) {
+        console.error('Error fetching invoices:', invoicesError);
+      }
+
+      // Calcular ticket medio por cliente
+      const invoicesByClient = new Map<string, number[]>();
+      (invoicesData || []).forEach((invoice: any) => {
+        if (invoice.client_id && invoice.total && invoice.status !== 'CANCELLED' && invoice.status !== 'DRAFT') {
+          const clientInvoices = invoicesByClient.get(invoice.client_id) || [];
+          clientInvoices.push(invoice.total);
+          invoicesByClient.set(invoice.client_id, clientInvoices);
+        }
+      });
+
+      const allInvoiceTotals: number[] = [];
+      invoicesByClient.forEach((invoices) => {
+        allInvoiceTotals.push(...invoices);
+      });
+
+      const avgInvoiceTicket = allInvoiceTotals.length > 0
+        ? allInvoiceTotals.reduce((sum, total) => sum + total, 0) / allInvoiceTotals.length
+        : 0;
+
+      // Calcular KPIs mensuales
+      const monthlyInvoices = (invoicesData || []).filter((inv: any) => {
+        if (!inv.issue_date) return false;
+        const invoiceDate = new Date(inv.issue_date);
+        return invoiceDate >= firstDayOfMonth && invoiceDate <= lastDayOfMonth &&
+               inv.status !== 'CANCELLED' && inv.status !== 'DRAFT';
+      });
+
+      const monthlyRevenue = monthlyInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+
+      // Clientes nuevos del mes
+      const monthlyNewClients = clients.filter(c => {
+        const createdDate = new Date(c.created_at);
+        return createdDate >= firstDayOfMonth && createdDate <= lastDayOfMonth;
+      }).length;
+
+      // Clientes ganados del mes (cambios de estado a WON o RECURRING)
+      const monthlyWonClients = clients.filter(c => {
+        const createdDate = new Date(c.created_at);
+        return createdDate >= firstDayOfMonth && createdDate <= lastDayOfMonth &&
+               (c.lead_stage === 'WON' || c.lead_stage === 'RECURRING');
+      }).length;
+
+      // Media de facturación por cliente
+      const clientsWithInvoices = invoicesByClient.size;
+      const avgRevenuePerClient = clientsWithInvoices > 0
+        ? monthlyRevenue / clientsWithInvoices
+        : 0;
+
+      setClientKPIs({
+        byStage,
+        avgProjectsPerClient,
+        avgInvoiceTicket,
+        totalClients: clients.length,
+        monthlyNewClients,
+        monthlyWonClients,
+        monthlyRevenue,
+        avgRevenuePerClient
+      });
+    } catch (error) {
+      console.error('Error calculating client KPIs:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -291,12 +427,248 @@ const ClientsPageDesktop = () => {
 
   return (
     <div className="w-full">
-      <div className="w-[90%] max-w-[1800px] mx-auto px-3 md:px-4 pb-4 md:pb-8">
+      <div className="w-full px-3 md:px-4 pb-4 md:pb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
+          {/* KPIs Cards - Recuento por Estado */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-600">
+                  <Award className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Recurrentes</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {clientKPIs.byStage['RECURRING'] || 0}
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+                  <Target className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Ganados</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {clientKPIs.byStage['WON'] || 0}
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
+                  <Users className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Nuevos Leads</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {clientKPIs.byStage['NEW'] || 0}
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-red-500/10 rounded-lg text-red-600">
+                  <XCircle className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Perdidos</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {clientKPIs.byStage['LOST'] || 0}
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-violet-500/10 rounded-lg text-violet-600">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Total</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {clientKPIs.totalClients}
+                </span>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* KPIs Cards - Métricas de Negocio */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-600">
+                  <FolderKanban className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Media Proyectos/Cliente</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {clientKPIs.avgProjectsPerClient.toFixed(1)}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                  proyectos por cliente
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-orange-500/10 rounded-lg text-orange-600">
+                  <Euro className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Ticket Medio Factura</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {formatCurrency(clientKPIs.avgInvoiceTicket)}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                  por factura
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Facturación Mensual</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {formatCurrency(clientKPIs.monthlyRevenue)}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                  este mes
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-600">
+                  <BarChart3 className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Media Facturación/Cliente</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {formatCurrency(clientKPIs.avgRevenuePerClient)}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                  por cliente/mes
+                </span>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* KPIs Cards - Métricas Mensuales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.0 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
+                  <User className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Nuevos Clientes (Mes)</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {clientKPIs.monthlyNewClients}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                  clientes nuevos este mes
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.1 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+                  <Target className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Clientes Ganados (Mes)</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-foreground">
+                  {clientKPIs.monthlyWonClients}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                  ganados este mes
+                </span>
+              </div>
+            </motion.div>
+          </div>
+
           {/* Header - Estilo Holded */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">

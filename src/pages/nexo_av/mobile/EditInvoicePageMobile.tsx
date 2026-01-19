@@ -488,7 +488,7 @@ const EditInvoicePageMobile = () => {
                   <SelectValue placeholder="Sin proyecto" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin proyecto</SelectItem>
+                  <SelectItem value="none">Sin proyecto</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.project_number} - {project.project_name}

@@ -456,15 +456,15 @@ const EditQuotePageMobile = () => {
             <div className="space-y-2">
               <Label htmlFor="project">Proyecto (opcional)</Label>
               <Select
-                value={selectedProjectId}
-                onValueChange={setSelectedProjectId}
+                value={selectedProjectId || "none"}
+                onValueChange={(value) => setSelectedProjectId(value === "none" ? "" : value)}
                 disabled={isLocked}
               >
                 <SelectTrigger className="h-12">
                   <SelectValue placeholder="Sin proyecto" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin proyecto</SelectItem>
+                  <SelectItem value="none">Sin proyecto</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.project_number} - {project.project_name}

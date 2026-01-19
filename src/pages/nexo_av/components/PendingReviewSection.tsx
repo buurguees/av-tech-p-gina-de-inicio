@@ -136,12 +136,29 @@ const PendingReviewSection = ({ onComplete }: PendingReviewSectionProps) => {
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   {thumbnailUrls[inv.id] ? (
-                    <div className="h-16 w-16 rounded-lg overflow-hidden bg-muted shrink-0">
-                      <img
-                        src={thumbnailUrls[inv.id]}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="h-16 w-16 rounded-lg overflow-hidden bg-muted shrink-0 border border-border relative">
+                      {inv.file_name?.toLowerCase().endsWith('.pdf') ? (
+                        <div className="absolute inset-0 overflow-hidden">
+                          <iframe
+                            src={`${thumbnailUrls[inv.id]}#toolbar=0&navpanes=0&scrollbar=0&zoom=50`}
+                            className="pointer-events-none"
+                            title="PDF Preview"
+                            style={{ 
+                              width: '200%', 
+                              height: '200%', 
+                              transform: 'scale(0.5)',
+                              transformOrigin: 'top left',
+                              border: 'none'
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <img
+                          src={thumbnailUrls[inv.id]}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      )}
                     </div>
                   ) : (
                     <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center shrink-0">
@@ -212,12 +229,29 @@ const PendingReviewSection = ({ onComplete }: PendingReviewSectionProps) => {
             <CardContent className="p-4">
               <div className="flex items-start gap-3 mb-3">
                 {thumbnailUrls[inv.id] ? (
-                  <div className="h-20 w-20 rounded-lg overflow-hidden bg-muted shrink-0">
-                    <img
-                      src={thumbnailUrls[inv.id]}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="h-20 w-20 rounded-lg overflow-hidden bg-muted shrink-0 border border-border relative">
+                    {inv.file_name?.toLowerCase().endsWith('.pdf') ? (
+                      <div className="absolute inset-0 overflow-hidden">
+                        <iframe
+                          src={`${thumbnailUrls[inv.id]}#toolbar=0&navpanes=0&scrollbar=0&zoom=50`}
+                          className="pointer-events-none"
+                          title="PDF Preview"
+                          style={{ 
+                            width: '200%', 
+                            height: '200%', 
+                            transform: 'scale(0.5)',
+                            transformOrigin: 'top left',
+                            border: 'none'
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <img
+                        src={thumbnailUrls[inv.id]}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                   </div>
                 ) : (
                   <div className="h-20 w-20 rounded-lg bg-muted flex items-center justify-center shrink-0">

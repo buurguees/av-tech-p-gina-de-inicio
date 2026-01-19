@@ -273,7 +273,7 @@ const NexoAvLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Header - Fijo en la parte superior */}
       <header className="border-b border-border bg-background fixed top-0 left-0 right-0 z-50 shadow-sm h-[3.25rem]">
         <div className="w-full h-full px-4 sm:px-6 lg:px-8">
@@ -331,9 +331,10 @@ const NexoAvLayout = () => {
         
       {/* Contenido principal - Ocupa el espacio restante */}
       <main 
-        className="pt-[3.25rem] ml-0 md:ml-56 w-full"
+        className="pt-[3.25rem] ml-0 md:ml-56 w-full md:w-[calc(100%-14rem)]"
+        style={{ height: 'calc(100vh - 3.25rem)' }}
       >
-        <div className="w-full min-h-[calc(100vh-3.25rem)]">
+        <div className="w-full h-full overflow-x-hidden" style={{ padding: '2.5%' }}>
           <Outlet />
         </div>
       </main>

@@ -410,12 +410,12 @@ const NewPurchaseInvoicePageMobile = () => {
         {/* Client Selection (Optional) */}
         <div className="space-y-2">
           <Label htmlFor="client">Cliente (Opcional)</Label>
-          <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+          <Select value={selectedClientId || "none"} onValueChange={(value) => setSelectedClientId(value === "none" ? "" : value)}>
             <SelectTrigger className="h-12">
               <SelectValue placeholder="Sin cliente" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Sin cliente</SelectItem>
+              <SelectItem value="none">Sin cliente</SelectItem>
               {clients.map((client) => (
                 <SelectItem key={client.id} value={client.id}>
                   {client.company_name}
@@ -430,8 +430,8 @@ const NewPurchaseInvoicePageMobile = () => {
           <div className="space-y-2">
             <Label htmlFor="project">Proyecto (Opcional)</Label>
             <Select
-              value={selectedProjectId}
-              onValueChange={setSelectedProjectId}
+              value={selectedProjectId || "none"}
+              onValueChange={(value) => setSelectedProjectId(value === "none" ? "" : value)}
               disabled={loadingProjects}
             >
               <SelectTrigger className="h-12">
@@ -446,7 +446,7 @@ const NewPurchaseInvoicePageMobile = () => {
                 />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin proyecto</SelectItem>
+                <SelectItem value="none">Sin proyecto</SelectItem>
                 {projects.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.project_name}

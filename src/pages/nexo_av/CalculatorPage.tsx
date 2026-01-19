@@ -12,7 +12,7 @@ const CalculatorPageMobile = lazy(() => import('./mobile/CalculatorPageMobile'))
 const CalculatorPageDesktop = () => {
   return (
     <div className="w-full">
-      <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 py-6">
+      <div className="w-full px-3 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col items-center justify-center py-12 md:py-16 text-center">
           <div className="p-4 rounded-full bg-orange-500/10 mb-4 md:mb-6">
             <Construction className="w-12 h-12 text-orange-500" />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,9 @@ import {
 import { motion } from "motion/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useToast } from "@/hooks/use-toast";
-import DocumentScanner from "../components/DocumentScanner";
 import { cn } from "@/lib/utils";
+
+const DocumentScanner = lazy(() => import("../components/DocumentScanner"));
 
 interface Expense {
   id: string;
@@ -85,29 +86,101 @@ const ExpensesPageMobile = () => {
   };
 
   const handleUpload = async (fileOrBlob: File | Blob) => {
-    if (!userId) return;
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "No se ha identificado al usuario",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setUploading(true);
+
+      // Obtener el auth.uid() del usuario actual para las políticas RLS
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        throw new Error("Usuario no autenticado");
+      }
+      const authUserId = authUser.id;
+
+      // Validar tipo de archivo
       const isFile = fileOrBlob instanceof File;
-      const extension = isFile ? (fileOrBlob as File).name.split('.').pop() : 'jpg';
-      const fileName = `expense_${Date.now()}.${extension}`;
-      const filePath = `${userId}/${fileName}`;
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+      const maxSize = 50 * 1024 * 1024; // 50MB
 
-      const { error: uploadError } = await supabase.storage
+      if (isFile) {
+        const file = fileOrBlob as File;
+        if (!allowedTypes.includes(file.type)) {
+          throw new Error(`Tipo de archivo no permitido. Solo se permiten: PDF, JPEG, PNG, WEBP`);
+        }
+        if (file.size > maxSize) {
+          throw new Error(`El archivo es demasiado grande. Tamaño máximo: 50MB`);
+        }
+      }
+
+      // Generar nombre de archivo único
+      // Usar authUserId para la carpeta (requerido por políticas RLS)
+      const extension = isFile 
+        ? (fileOrBlob as File).name.split('.').pop()?.toLowerCase() || 'pdf'
+        : 'jpg';
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const fileName = `expense_${timestamp}_${randomSuffix}.${extension}`;
+      const filePath = `${authUserId}/${fileName}`;
+
+      // Subir archivo a Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('purchase-documents')
-        .upload(filePath, fileOrBlob);
+        .upload(filePath, fileOrBlob, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Storage upload error:", uploadError);
+        // Si el archivo ya existe, intentar con otro nombre
+        if (uploadError.message.includes('already exists')) {
+          const newFileName = `expense_${timestamp}_${Math.random().toString(36).substring(2, 10)}.${extension}`;
+          const newFilePath = `${authUserId}/${newFileName}`;
+          const { error: retryError } = await supabase.storage
+            .from('purchase-documents')
+            .upload(newFilePath, fileOrBlob);
+          
+          if (retryError) throw retryError;
+          
+          // Usar el nuevo path
+          const { error: dbError } = await supabase.rpc('create_purchase_invoice', {
+            p_invoice_number: `TICKET-${timestamp.toString().slice(-6)}`,
+            p_document_type: 'EXPENSE',
+            p_status: 'PENDING',
+            p_file_path: newFilePath,
+            p_file_name: newFileName
+          });
 
-      const { error: dbError } = await supabase.rpc('create_purchase_invoice', {
-        p_invoice_number: `TICKET-${Date.now().toString().slice(-6)}`,
-        p_document_type: 'EXPENSE',
-        p_status: 'PENDING',
-        p_file_path: filePath,
-        p_file_name: fileName
-      } as any);
+          if (dbError) throw dbError;
+        } else {
+          throw uploadError;
+        }
+      } else {
+        // Crear registro en la base de datos
+        const { error: dbError } = await supabase.rpc('create_purchase_invoice', {
+          p_invoice_number: `TICKET-${timestamp.toString().slice(-6)}`,
+          p_document_type: 'EXPENSE',
+          p_status: 'PENDING',
+          p_file_path: filePath,
+          p_file_name: fileName
+        });
 
-      if (dbError) throw dbError;
+        if (dbError) {
+          // Si falla la creación en BD, eliminar el archivo subido
+          await supabase.storage
+            .from('purchase-documents')
+            .remove([filePath]);
+          throw dbError;
+        }
+      }
 
       toast({
         title: "Éxito",
@@ -117,9 +190,17 @@ const ExpensesPageMobile = () => {
       fetchExpenses();
     } catch (error: any) {
       console.error("Upload error:", error);
+      let errorMessage = "Error al subir el ticket";
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.error) {
+        errorMessage = error.error;
+      }
+
       toast({
         title: "Error",
-        description: "Error al subir el ticket: " + error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -343,11 +424,17 @@ const ExpensesPageMobile = () => {
       </main>
 
       {showScanner && (
-        <DocumentScanner
-          onCapture={handleUpload}
-          onCancel={() => setShowScanner(false)}
-          title="Escanear Ticket de Gasto"
-        />
+        <Suspense fallback={
+          <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-white" />
+          </div>
+        }>
+          <DocumentScanner
+            onCapture={handleUpload}
+            onCancel={() => setShowScanner(false)}
+            title="Escanear Ticket de Gasto"
+          />
+        </Suspense>
       )}
     </div>
   );

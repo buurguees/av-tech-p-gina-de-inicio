@@ -294,7 +294,7 @@ const AuditEventDetailPage = () => {
 
   return (
     <div className="w-full">
-      <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
+      <div className="w-full px-3 sm:px-4 lg:px-6 py-3 md:py-6">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-start justify-between">

@@ -24,7 +24,14 @@ import {
     Building2,
     Mail,
     Phone,
-    MoreVertical
+    MoreVertical,
+    Euro,
+    TrendingUp,
+    BarChart3,
+    AlertCircle,
+    CheckCircle,
+    XCircle,
+    Package
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +45,7 @@ import {
 import { cn } from "@/lib/utils";
 import { createMobilePage } from "./MobilePageWrapper";
 import CreateSupplierDialog from "./components/CreateSupplierDialog";
+import { SUPPLIER_CATEGORIES, getCategoryInfo } from "@/constants/supplierConstants";
 
 const SuppliersPageMobile = lazy(() => import("./mobile/SuppliersPageMobile"));
 
@@ -45,6 +53,7 @@ interface Supplier {
     id: string;
     supplier_number: string;
     company_name: string;
+    category: string | null;
     tax_id: string | null;
     contact_phone: string | null;
     contact_email: string | null;
@@ -65,11 +74,28 @@ const SuppliersPageDesktop = () => {
     const [searchInput, setSearchInput] = useState("");
     const debouncedSearchQuery = useDebounce(searchInput, 500);
     const [statusFilter, setStatusFilter] = useState("all");
+    const [categoryFilter, setCategoryFilter] = useState("all");
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [supplierKPIs, setSupplierKPIs] = useState({
+        byStatus: {} as Record<string, number>,
+        byCategory: {} as Record<string, number>,
+        monthlyCosts: 0,
+        avgInvoicesPerSupplier: 0,
+        avgInvoiceTicket: 0,
+        totalPendingPayments: 0,
+        avgCostPerSupplier: 0,
+        topSuppliersCount: 0
+    });
 
     useEffect(() => {
         fetchSuppliers();
-    }, [debouncedSearchQuery, statusFilter]);
+    }, [debouncedSearchQuery, statusFilter, categoryFilter]);
+
+    useEffect(() => {
+        if (suppliers.length > 0) {
+            calculateSupplierKPIs();
+        }
+    }, [suppliers]);
 
     const fetchSuppliers = async () => {
         try {
@@ -77,6 +103,7 @@ const SuppliersPageDesktop = () => {
             const { data, error } = await supabase.rpc("list_suppliers", {
                 p_search: debouncedSearchQuery || null,
                 p_status: statusFilter === "all" ? null : statusFilter,
+                p_category: categoryFilter === "all" ? null : categoryFilter,
             });
             if (error) throw error;
             setSuppliers(data || []);
@@ -97,6 +124,15 @@ const SuppliersPageDesktop = () => {
         fetchSuppliers();
     };
 
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat("es-ES", {
+            style: "currency",
+            currency: "EUR",
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(amount);
+    };
+
     const getStatusInfo = (status: string) => {
         switch (status) {
             case 'ACTIVE':
@@ -110,16 +146,133 @@ const SuppliersPageDesktop = () => {
         }
     };
 
+    const calculateSupplierKPIs = async () => {
+        try {
+            // Contar proveedores por estado
+            const byStatus: Record<string, number> = {
+                'ACTIVE': suppliers.filter(s => s.status === 'ACTIVE').length,
+                'INACTIVE': suppliers.filter(s => s.status === 'INACTIVE').length,
+                'BLOCKED': suppliers.filter(s => s.status === 'BLOCKED').length
+            };
+
+            // Contar proveedores por categoría
+            const byCategory: Record<string, number> = {};
+            suppliers.forEach(supplier => {
+                const category = supplier.category || 'SIN_CATEGORIA';
+                byCategory[category] = (byCategory[category] || 0) + 1;
+            });
+
+            // Obtener facturas de compra del mes actual
+            const now = new Date();
+            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+            const { data: purchaseInvoicesData, error: invoicesError } = await supabase.rpc('list_purchase_invoices', {
+                p_limit: 10000,
+                p_offset: 0,
+                p_search: null,
+                p_status: null,
+                p_document_type: null
+            });
+
+            if (invoicesError) {
+                console.error('Error fetching purchase invoices:', invoicesError);
+                return;
+            }
+
+            // Filtrar facturas del mes actual y aprobadas/pagadas
+            const monthlyInvoices = (purchaseInvoicesData || []).filter((inv: any) => {
+                if (!inv.issue_date || !inv.provider_id) return false;
+                const invoiceDate = new Date(inv.issue_date);
+                return invoiceDate >= firstDayOfMonth && invoiceDate <= lastDayOfMonth &&
+                       (inv.status === 'APPROVED' || inv.status === 'PAID') &&
+                       inv.entity_type === 'SUPPLIER';
+            });
+
+            const monthlyCosts = monthlyInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+
+            // Calcular facturas por proveedor
+            const invoicesBySupplier = new Map<string, number[]>();
+            (purchaseInvoicesData || []).forEach((inv: any) => {
+                if (inv.provider_id && inv.total && inv.entity_type === 'SUPPLIER' && 
+                    inv.status !== 'CANCELLED' && inv.status !== 'DRAFT') {
+                    const supplierInvoices = invoicesBySupplier.get(inv.provider_id) || [];
+                    supplierInvoices.push(inv.total);
+                    invoicesBySupplier.set(inv.provider_id, supplierInvoices);
+                }
+            });
+
+            // Media de facturas por proveedor
+            const activeSuppliers = suppliers.filter(s => s.status === 'ACTIVE');
+            const suppliersWithInvoices = Array.from(invoicesBySupplier.keys()).length;
+            const avgInvoicesPerSupplier = suppliersWithInvoices > 0 
+                ? invoicesBySupplier.size / suppliersWithInvoices 
+                : 0;
+
+            // Ticket medio de factura
+            const allInvoiceTotals: number[] = [];
+            invoicesBySupplier.forEach((invoices) => {
+                allInvoiceTotals.push(...invoices);
+            });
+
+            const avgInvoiceTicket = allInvoiceTotals.length > 0
+                ? allInvoiceTotals.reduce((sum, total) => sum + total, 0) / allInvoiceTotals.length
+                : 0;
+
+            // Pagos pendientes
+            const pendingInvoices = (purchaseInvoicesData || []).filter((inv: any) => {
+                return inv.entity_type === 'SUPPLIER' && 
+                       (inv.status === 'PENDING_APPROVAL' || inv.status === 'APPROVED') &&
+                       inv.pending_amount && inv.pending_amount > 0;
+            });
+
+            const totalPendingPayments = pendingInvoices.reduce((sum: number, inv: any) => 
+                sum + (inv.pending_amount || 0), 0);
+
+            // Media de coste por proveedor activo
+            const activeSupplierIds = activeSuppliers.map(s => s.id);
+            const activeSupplierInvoices = monthlyInvoices.filter((inv: any) => 
+                activeSupplierIds.includes(inv.provider_id)
+            );
+            const activeSupplierCosts = activeSupplierInvoices.reduce((sum: number, inv: any) => 
+                sum + (inv.total || 0), 0);
+            const avgCostPerSupplier = activeSuppliers.length > 0 
+                ? activeSupplierCosts / activeSuppliers.length 
+                : 0;
+
+            // Top proveedores (proveedores con más facturas)
+            const supplierInvoiceCounts = Array.from(invoicesBySupplier.entries())
+                .map(([id, invoices]) => ({ id, count: invoices.length }))
+                .sort((a, b) => b.count - a.count);
+            const topSuppliersCount = supplierInvoiceCounts.length > 0 
+                ? supplierInvoiceCounts.slice(0, 5).reduce((sum, s) => sum + s.count, 0) 
+                : 0;
+
+            setSupplierKPIs({
+                byStatus,
+                byCategory,
+                monthlyCosts,
+                avgInvoicesPerSupplier,
+                avgInvoiceTicket,
+                totalPendingPayments,
+                avgCostPerSupplier,
+                topSuppliersCount
+            });
+        } catch (error) {
+            console.error('Error calculating supplier KPIs:', error);
+        }
+    };
+
     return (
-        <div className="w-full h-full px-6 py-6">
-            <div className="w-full max-w-none mx-auto">
+        <div className="w-full">
+            <div className="w-full px-3 md:px-4 pb-4 md:pb-8">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    {/* KPIs Cards - Recuento por Estado */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -130,10 +283,10 @@ const SuppliersPageDesktop = () => {
                                 <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
                                     <Building2 className="h-5 w-5" />
                                 </div>
-                                <span className="text-muted-foreground text-sm font-medium">Total Proveedores</span>
+                                <span className="text-muted-foreground text-sm font-medium">Total</span>
                             </div>
                             <div className="mt-2">
-                                <span className="text-3xl font-bold text-foreground">
+                                <span className="text-2xl font-bold text-foreground">
                                     {suppliers.length}
                                 </span>
                             </div>
@@ -147,13 +300,13 @@ const SuppliersPageDesktop = () => {
                         >
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
-                                    <Users className="h-5 w-5" />
+                                    <CheckCircle className="h-5 w-5" />
                                 </div>
                                 <span className="text-muted-foreground text-sm font-medium">Activos</span>
                             </div>
                             <div className="mt-2">
-                                <span className="text-3xl font-bold text-foreground">
-                                    {suppliers.filter(s => s.status === 'ACTIVE').length}
+                                <span className="text-2xl font-bold text-foreground">
+                                    {supplierKPIs.byStatus['ACTIVE'] || 0}
                                 </span>
                             </div>
                         </motion.div>
@@ -166,13 +319,123 @@ const SuppliersPageDesktop = () => {
                         >
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="p-2 bg-zinc-500/10 rounded-lg text-zinc-600">
-                                    <Truck className="h-5 w-5" />
+                                    <XCircle className="h-5 w-5" />
                                 </div>
                                 <span className="text-muted-foreground text-sm font-medium">Inactivos</span>
                             </div>
                             <div className="mt-2">
-                                <span className="text-3xl font-bold text-foreground">
-                                    {suppliers.filter(s => s.status === 'INACTIVE').length}
+                                <span className="text-2xl font-bold text-foreground">
+                                    {supplierKPIs.byStatus['INACTIVE'] || 0}
+                                </span>
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                            className="bg-card/50 border border-border rounded-xl p-4"
+                        >
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-red-500/10 rounded-lg text-red-600">
+                                    <AlertCircle className="h-5 w-5" />
+                                </div>
+                                <span className="text-muted-foreground text-sm font-medium">Bloqueados</span>
+                            </div>
+                            <div className="mt-2">
+                                <span className="text-2xl font-bold text-foreground">
+                                    {supplierKPIs.byStatus['BLOCKED'] || 0}
+                                </span>
+                            </div>
+                        </motion.div>
+                    </div>
+
+                    {/* KPIs Cards - Métricas de Costes */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="bg-card/50 border border-border rounded-xl p-4"
+                        >
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-orange-500/10 rounded-lg text-orange-600">
+                                    <Euro className="h-5 w-5" />
+                                </div>
+                                <span className="text-muted-foreground text-sm font-medium">Costes Mensuales</span>
+                            </div>
+                            <div className="mt-2">
+                                <span className="text-2xl font-bold text-foreground">
+                                    {formatCurrency(supplierKPIs.monthlyCosts)}
+                                </span>
+                                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                                    este mes
+                                </span>
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.6 }}
+                            className="bg-card/50 border border-border rounded-xl p-4"
+                        >
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-600">
+                                    <TrendingUp className="h-5 w-5" />
+                                </div>
+                                <span className="text-muted-foreground text-sm font-medium">Media Coste/Proveedor</span>
+                            </div>
+                            <div className="mt-2">
+                                <span className="text-2xl font-bold text-foreground">
+                                    {formatCurrency(supplierKPIs.avgCostPerSupplier)}
+                                </span>
+                                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                                    por proveedor activo/mes
+                                </span>
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.7 }}
+                            className="bg-card/50 border border-border rounded-xl p-4"
+                        >
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-600">
+                                    <BarChart3 className="h-5 w-5" />
+                                </div>
+                                <span className="text-muted-foreground text-sm font-medium">Ticket Medio Factura</span>
+                            </div>
+                            <div className="mt-2">
+                                <span className="text-2xl font-bold text-foreground">
+                                    {formatCurrency(supplierKPIs.avgInvoiceTicket)}
+                                </span>
+                                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                                    por factura
+                                </span>
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.8 }}
+                            className="bg-card/50 border border-border rounded-xl p-4"
+                        >
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-red-500/10 rounded-lg text-red-600">
+                                    <AlertCircle className="h-5 w-5" />
+                                </div>
+                                <span className="text-muted-foreground text-sm font-medium">Pagos Pendientes</span>
+                            </div>
+                            <div className="mt-2">
+                                <span className="text-2xl font-bold text-foreground">
+                                    {formatCurrency(supplierKPIs.totalPendingPayments)}
+                                </span>
+                                <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                                    pendiente de pago
                                 </span>
                             </div>
                         </motion.div>
@@ -212,7 +475,26 @@ const SuppliersPageDesktop = () => {
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="outline" size="sm" className="h-8">
                                         <Filter className="h-3 w-3 mr-1.5" />
-                                        {statusFilter === "all" ? "Todos" : statusFilter}
+                                        {categoryFilter === "all" ? "Categoría" : SUPPLIER_CATEGORIES.find(c => c.value === categoryFilter)?.label || categoryFilter}
+                                        <ChevronDown className="h-3 w-3 ml-1" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => setCategoryFilter("all")}>
+                                        Todas las categorías
+                                    </DropdownMenuItem>
+                                    {SUPPLIER_CATEGORIES.map((cat) => (
+                                        <DropdownMenuItem key={cat.value} onClick={() => setCategoryFilter(cat.value)}>
+                                            {cat.label}
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" className="h-8">
+                                        <Filter className="h-3 w-3 mr-1.5" />
+                                        {statusFilter === "all" ? "Estado" : statusFilter}
                                         <ChevronDown className="h-3 w-3 ml-1" />
                                     </Button>
                                 </DropdownMenuTrigger>
@@ -253,6 +535,7 @@ const SuppliersPageDesktop = () => {
                                 <TableHeader>
                                     <TableRow className="hover:bg-transparent bg-muted/30">
                                         <TableHead className="text-white/70">Proveedor</TableHead>
+                                        <TableHead className="text-white/70">Categoría</TableHead>
                                         <TableHead className="text-white/70">Contacto</TableHead>
                                         <TableHead className="text-white/70">Localización</TableHead>
                                         <TableHead className="text-white/70">Estado</TableHead>
@@ -279,6 +562,22 @@ const SuppliersPageDesktop = () => {
                                                             {supplier.supplier_number} {supplier.tax_id && `• ${supplier.tax_id}`}
                                                         </span>
                                                     </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {supplier.category ? (
+                                                        (() => {
+                                                            const categoryInfo = getCategoryInfo(supplier.category);
+                                                            return categoryInfo ? (
+                                                                <Badge variant="outline" className={cn(categoryInfo.bgColor, categoryInfo.color, "border text-xs")}>
+                                                                    {categoryInfo.label}
+                                                                </Badge>
+                                                            ) : (
+                                                                <span className="text-white/50 text-xs">—</span>
+                                                            );
+                                                        })()
+                                                    ) : (
+                                                        <span className="text-white/50 text-xs">—</span>
+                                                    )}
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-col gap-1">

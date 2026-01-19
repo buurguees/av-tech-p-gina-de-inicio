@@ -269,7 +269,7 @@ const QuotesPageDesktop = () => {
 
   return (
     <div className="w-full">
-      <div className="w-[90%] max-w-[1800px] mx-auto px-3 sm:px-4 lg:px-6 py-3 md:py-6">
+      <div className="w-full px-3 sm:px-4 lg:px-6 py-3 md:py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -14,12 +14,13 @@ import PaginationControls from "../PaginationControls";
 
 interface Invoice {
   id: string;
-  invoice_number: string;
+  invoice_number: string | null;
+  preliminary_number: string | null;
   client_id: string;
   client_name: string;
   project_name: string | null;
   status: string;
-  issue_date: string;
+  issue_date: string | null;
   due_date: string | null;
   total: number;
 }
@@ -122,7 +123,7 @@ const InvoicesListMobile = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <p className="text-[11px] font-semibold text-foreground truncate">
-                        {invoice.invoice_number}
+                        {invoice.invoice_number || invoice.preliminary_number || 'Sin número'}
                       </p>
                       <Badge className={`${statusInfo.className} text-[10px] px-1.5 py-0 shrink-0`}>
                         {statusInfo.label}

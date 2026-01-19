@@ -204,7 +204,7 @@ const NewInvoicePageMobile = () => {
   };
 
   const handleQuoteChange = async (quoteId: string) => {
-    if (!quoteId) {
+    if (!quoteId || quoteId === "none") {
       setSelectedQuoteId("");
       setLines([]);
       return;
@@ -382,12 +382,12 @@ const NewInvoicePageMobile = () => {
               <FileCheck className="h-4 w-4" />
               Crear desde presupuesto aprobado
             </div>
-            <Select value={selectedQuoteId} onValueChange={handleQuoteChange}>
+            <Select value={selectedQuoteId || "none"} onValueChange={handleQuoteChange}>
               <SelectTrigger className="h-10 bg-background">
                 <SelectValue placeholder="Seleccionar presupuesto..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Factura vacía</SelectItem>
+                <SelectItem value="none">Factura vacía</SelectItem>
                 {approvedQuotes.map((quote) => (
                   <SelectItem key={quote.id} value={quote.id}>
                     {quote.quote_number}
@@ -402,12 +402,12 @@ const NewInvoicePageMobile = () => {
         {projects.length > 0 && (
           <div className="space-y-2">
             <Label htmlFor="project">Proyecto (opcional)</Label>
-            <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+            <Select value={selectedProjectId || "none"} onValueChange={(value) => setSelectedProjectId(value === "none" ? "" : value)}>
               <SelectTrigger className="h-12">
                 <SelectValue placeholder="Sin proyecto" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin proyecto</SelectItem>
+                <SelectItem value="none">Sin proyecto</SelectItem>
                 {projects.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.project_number} - {project.project_name}

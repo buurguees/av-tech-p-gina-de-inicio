@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 import { createMobilePage } from "./MobilePageWrapper";
+import CreatePurchaseInvoiceDialog from "./components/CreatePurchaseInvoiceDialog";
 
 const PurchaseInvoiceDetailPageMobile = lazy(() => import("./mobile/PurchaseInvoiceDetailPageMobile"));
 
@@ -44,25 +45,57 @@ const PurchaseInvoiceDetailPageDesktop = () => {
     const [lines, setLines] = useState<any[]>([]);
     const [provider, setProvider] = useState<any>(null);
     const [project, setProject] = useState<any>(null);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
     const fetchInvoiceData = async () => {
         if (!invoiceId) return;
         try {
             setLoading(true);
-            // Obtener factura usando la nueva RPC list_purchase_invoices pero filtrando por ID (o crear una específica get)
-            const { data: invoiceData, error: invoiceError } = await supabase.rpc("list_purchase_invoices", {
-                p_search: invoiceId, // Usamos el ID como término de búsqueda
-                p_page_size: 1
+            // Intentar obtener factura usando get_purchase_invoice si existe, sino usar list_purchase_invoices
+            let record: any = null;
+            
+            // Primero intentar con get_purchase_invoice
+            const { data: invoiceData, error: invoiceError } = await supabase.rpc("get_purchase_invoice", {
+                p_invoice_id: invoiceId
             });
 
-            if (invoiceError) throw invoiceError;
-            const record = invoiceData?.[0];
+            if (!invoiceError && invoiceData && invoiceData.length > 0) {
+                record = invoiceData[0];
+            } else {
+                // Fallback: usar list_purchase_invoices y buscar por ID
+                const { data: listData, error: listError } = await supabase.rpc("list_purchase_invoices", {
+                    p_search: null,
+                    p_status: null,
+                    p_document_type: null,
+                    p_page_size: 1000
+                });
+
+                if (listError) throw listError;
+                record = listData?.find((inv: any) => inv.id === invoiceId);
+            }
+
             if (!record) {
                 toast.error("Documento no encontrado");
                 navigate(`/nexo-av/${userId}/purchase-invoices`);
                 return;
             }
             setInvoice(record);
+
+            // Obtener URL del PDF si existe
+            if (record.file_path) {
+                try {
+                    const { data: urlData } = await supabase.storage
+                        .from('purchase-documents')
+                        .createSignedUrl(record.file_path, 3600);
+                    if (urlData) {
+                        setPdfUrl(urlData.signedUrl);
+                    }
+                } catch (err) {
+                    console.error("Error getting PDF URL:", err);
+                }
+            }
 
             // Líneas usando RPC
             const { data: linesData, error: linesError } = await supabase
@@ -146,19 +179,44 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                                     <FileText className="h-4 w-4 text-red-400" />
                                     <span className="text-xs font-bold uppercase tracking-widest text-white/60">Documento Adjunto</span>
                                 </div>
-                                {invoice.file_path && (
-                                    <Button variant="ghost" size="sm" className="h-8 text-[10px] font-bold uppercase tracking-widest gap-2 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10">
+                                {pdfUrl && (
+                                    <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="h-8 text-[10px] font-bold uppercase tracking-widest gap-2 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10"
+                                        onClick={() => {
+                                            const link = document.createElement('a');
+                                            link.href = pdfUrl;
+                                            link.download = invoice.file_name || 'documento.pdf';
+                                            link.click();
+                                        }}
+                                    >
                                         <Download className="h-3.5 w-3.5" /> Descargar PDF
                                     </Button>
                                 )}
                             </div>
-                            <div className="aspect-[1.4/1] bg-black/20 flex flex-col items-center justify-center p-12 text-center group">
-                                {invoice.file_path ? (
+                            <div className="aspect-[1.4/1] bg-black/20 flex flex-col items-center justify-center p-4 text-center group">
+                                {pdfUrl ? (
                                     <div className="w-full h-full flex items-center justify-center">
-                                        {/* Aquí iría el visor real, de momento placeholder premium */}
-                                        <div className="bg-white/5 border border-white/10 p-12 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-white/[0.08] transition-all cursor-pointer">
-                                            <Eye className="h-12 w-12 text-white/10" />
-                                            <p className="text-white/40 text-sm font-medium">Click para previsualizar documento</p>
+                                        {invoice.file_name?.toLowerCase().endsWith('.pdf') ? (
+                                            <iframe
+                                                src={`${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1&zoom=page-fit`}
+                                                className="w-full h-full border-0 rounded-lg"
+                                                title="PDF Preview"
+                                            />
+                                        ) : (
+                                            <img
+                                                src={pdfUrl}
+                                                alt="Document Preview"
+                                                className="max-w-full max-h-full object-contain rounded-lg"
+                                            />
+                                        )}
+                                    </div>
+                                ) : invoice.file_path ? (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <div className="bg-white/5 border border-white/10 p-12 rounded-[2rem] flex flex-col items-center gap-4">
+                                            <Loader2 className="h-12 w-12 text-white/20 animate-spin" />
+                                            <p className="text-white/40 text-sm font-medium">Cargando documento...</p>
                                         </div>
                                     </div>
                                 ) : (
@@ -237,8 +295,16 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                                 </div>
                                 <Separator className="bg-white/5" />
                                 <div className="grid grid-cols-2 gap-3">
-                                    <Button className="bg-white text-zinc-950 font-bold rounded-2xl h-11 hover:bg-white/90">Registrar Pago</Button>
-                                    <Button variant="outline" className="border-white/5 bg-white/5 text-white/60 font-bold rounded-2xl h-11 hover:bg-white/10 hover:text-white">Editar Datos</Button>
+                                    {invoice?.status !== 'PENDING' && (
+                                        <Button className="bg-white text-zinc-950 font-bold rounded-2xl h-11 hover:bg-white/90">Registrar Pago</Button>
+                                    )}
+                                    <Button 
+                                        variant="outline" 
+                                        className="border-white/5 bg-white/5 text-white/60 font-bold rounded-2xl h-11 hover:bg-white/10 hover:text-white"
+                                        onClick={() => setIsEditDialogOpen(true)}
+                                    >
+                                        {invoice?.status === 'PENDING' ? 'Completar Datos' : 'Editar Datos'}
+                                    </Button>
                                 </div>
                             </div>
                         </Card>
@@ -311,6 +377,22 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                 </div>
             </div>
         </div>
+        {invoice && (
+            <CreatePurchaseInvoiceDialog
+                open={isEditDialogOpen}
+                onOpenChange={setIsEditDialogOpen}
+                onSuccess={() => {
+                    fetchInvoiceData();
+                    setIsEditDialogOpen(false);
+                }}
+                preselectedDocumentId={invoiceId}
+                preselectedSupplierId={invoice?.supplier_id || (invoice?.provider_id && invoice?.provider_type === 'SUPPLIER' ? invoice.provider_id : undefined)}
+                preselectedTechnicianId={invoice?.technician_id || (invoice?.provider_id && invoice?.provider_type === 'TECHNICIAN' ? invoice.provider_id : undefined)}
+                preselectedClientId={invoice?.client_id}
+                preselectedProjectId={invoice?.project_id}
+                documentType={invoice?.document_type || "INVOICE"}
+            />
+        )}
     );
 };
 

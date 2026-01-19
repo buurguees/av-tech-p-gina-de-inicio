@@ -17,17 +17,18 @@ import { usePagination } from "@/hooks/usePagination";
 import InvoicesListMobile from "../components/mobile/InvoicesListMobile";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { cn } from "@/lib/utils";
-import { INVOICE_STATUSES, getStatusInfo } from "@/constants/invoiceStatuses";
+import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo } from "@/constants/financeStatuses";
 
 interface Invoice {
   id: string;
-  invoice_number: string;
+  invoice_number: string | null;
+  preliminary_number: string | null;
   client_id: string;
   client_name: string;
   project_name: string | null;
   project_id: string | null;
   status: string;
-  issue_date: string;
+  issue_date: string | null;
   due_date: string | null;
   subtotal: number;
   tax_amount: number;
@@ -53,9 +54,9 @@ const InvoicesPageMobile = () => {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc("list_invoices", {
+      const { data, error } = await supabase.rpc("finance_list_invoices", {
         p_search: debouncedSearchQuery || null,
-        p_status: statusFilter,
+        p_status: statusFilter || null,
       });
 
       if (error) throw error;
@@ -133,7 +134,7 @@ const InvoicesPageMobile = () => {
             >
               Todos
             </Button>
-            {INVOICE_STATUSES.map((status) => (
+            {FINANCE_INVOICE_STATUSES.map((status) => (
               <Button
                 key={status.value}
                 variant={statusFilter === status.value ? "secondary" : "outline"}
@@ -181,7 +182,7 @@ const InvoicesPageMobile = () => {
           ) : (
             <InvoicesListMobile
               invoices={paginatedInvoices}
-              getStatusInfo={getStatusInfo}
+              getStatusInfo={getFinanceStatusInfo}
               formatCurrency={formatCurrency}
               onInvoiceClick={handleInvoiceClick}
               loading={loading}
