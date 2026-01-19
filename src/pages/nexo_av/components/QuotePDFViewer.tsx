@@ -361,7 +361,7 @@ const groupTaxesByRate = (lines: QuoteLine[]) => {
 };
 
 // PDF Document Component
-const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<QuotePDFViewerProps, 'fileName'>) => {
+export const QuotePDFDocument = ({ quote, lines, client, company, project }: Omit<QuotePDFViewerProps, 'fileName'>) => {
   const taxes = groupTaxesByRate(lines);
   const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
   const total = lines.reduce((acc, line) => acc + line.total, 0);

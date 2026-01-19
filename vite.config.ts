@@ -28,5 +28,16 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: "build",
     chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Suprimir warnings comunes que no son críticos
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
+          return;
+        }
+        warn(warning);
+      },
+    },
   },
+  // Reducir el nivel de logging para warnings informativos
+  logLevel: mode === 'production' ? 'warn' : 'info',
 }));

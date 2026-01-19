@@ -563,7 +563,7 @@ const EditQuotePageMobile = () => {
                   client_name: clientData.company_name,
                   project_name: projectData?.name || null,
                 }}
-                quoteLines={lines}
+                lines={lines}
                 company={company}
                 client={clientData}
                 project={projectData}

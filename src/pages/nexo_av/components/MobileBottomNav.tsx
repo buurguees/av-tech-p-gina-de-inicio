@@ -85,7 +85,7 @@ const MobileBottomNav = ({ userId, userRoles = [] }: MobileBottomNavProps) => {
   return (
     <>
       <nav 
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-xl border-t border-border/40 shadow-[0_-2px_20px_-2px_rgba(0,0,0,0.1)]"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border/60 shadow-[0_-4px_20px_-2px_rgba(0,0,0,0.15)]"
         style={{
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           paddingLeft: 'env(safe-area-inset-left, 0px)',
@@ -123,9 +123,9 @@ const MobileBottomNav = ({ userId, userRoles = [] }: MobileBottomNavProps) => {
                   isAvailable && 'active:scale-90',
                   !isAvailable && 'opacity-40 cursor-not-allowed',
                   active && !isMenuButton && isAvailable
-                    ? 'text-primary bg-primary/10'
+                    ? 'text-primary bg-primary/15'
                     : isAvailable
-                    ? 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                    ? 'text-foreground/60 hover:bg-accent/50 hover:text-foreground'
                     : 'text-muted-foreground/50'
                 )}
                 aria-label={item.label}
@@ -152,7 +152,7 @@ const MobileBottomNav = ({ userId, userRoles = [] }: MobileBottomNavProps) => {
                   active && !isMenuButton && isAvailable 
                     ? 'text-primary scale-105' 
                     : isAvailable 
-                    ? 'text-muted-foreground' 
+                    ? 'text-foreground/70' 
                     : 'text-muted-foreground/50'
                 )}>
                   {item.label}
