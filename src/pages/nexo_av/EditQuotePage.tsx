@@ -1,5 +1,5 @@
 // EditQuotePage - Quote editing with tax selector
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, lazy } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "./components/ProductSearchInput";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
+import { createMobilePage } from './MobilePageWrapper';
 interface Client {
   id: string;
   company_name: string;
@@ -1283,9 +1284,6 @@ const EditQuotePage = () => {
 };
 
 // Export with mobile version
-import { lazy } from 'react';
-import { createMobilePage } from './MobilePageWrapper';
-
 const EditQuotePageMobile = lazy(() => import('./mobile/EditQuotePageMobile'));
 
 export default createMobilePage({

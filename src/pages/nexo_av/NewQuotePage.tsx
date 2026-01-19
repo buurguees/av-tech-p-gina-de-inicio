@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDow
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "./components/ProductSearchInput";
+import { createMobilePage } from './MobilePageWrapper';
 
 interface Client {
   id: string;
@@ -1034,9 +1035,6 @@ const NewQuotePage = () => {
 };
 
 // Export with mobile version
-import { lazy } from 'react';
-import { createMobilePage } from './MobilePageWrapper';
-
 const NewQuotePageMobile = lazy(() => import('./mobile/NewQuotePageMobile'));
 
 export default createMobilePage({

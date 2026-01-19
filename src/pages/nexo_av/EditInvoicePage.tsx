@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "./components/ProductSearchInput";
 import { LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
 import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
+import { createMobilePage } from './MobilePageWrapper';
 
 interface Client {
   id: string;
@@ -928,9 +929,6 @@ const EditInvoicePage = () => {
 };
 
 // Export with mobile version
-import { lazy } from 'react';
-import { createMobilePage } from './MobilePageWrapper';
-
 const EditInvoicePageMobile = lazy(() => import('./mobile/EditInvoicePageMobile'));
 
 export default createMobilePage({
