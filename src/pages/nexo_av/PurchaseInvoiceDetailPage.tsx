@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -32,8 +32,11 @@ import {
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
+import { createMobilePage } from "./MobilePageWrapper";
 
-const PurchaseInvoiceDetailPage = () => {
+const PurchaseInvoiceDetailPageMobile = lazy(() => import("./mobile/PurchaseInvoiceDetailPageMobile"));
+
+const PurchaseInvoiceDetailPageDesktop = () => {
     const { userId, invoiceId } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
@@ -108,8 +111,8 @@ const PurchaseInvoiceDetailPage = () => {
     }
 
     return (
-        <div className="w-full">
-            <div className="w-[95%] max-w-[1800px] mx-auto px-4 py-8">
+        <div className="w-full h-full px-6 py-6">
+            <div className="w-full max-w-none mx-auto">
                 {/* Navigation */}
                 <div className="flex items-center gap-4 mb-8">
                     <Button
@@ -310,5 +313,10 @@ const PurchaseInvoiceDetailPage = () => {
         </div>
     );
 };
+
+const PurchaseInvoiceDetailPage = createMobilePage({
+  DesktopComponent: PurchaseInvoiceDetailPageDesktop,
+  MobileComponent: PurchaseInvoiceDetailPageMobile,
+});
 
 export default PurchaseInvoiceDetailPage;

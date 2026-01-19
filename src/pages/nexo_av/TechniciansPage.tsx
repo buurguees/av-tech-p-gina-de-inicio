@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ import {
   MapPin,
   Star
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
@@ -35,6 +35,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { createMobilePage } from "./MobilePageWrapper";
+import CreateTechnicianDialog from "./components/CreateTechnicianDialog";
+import { MoreVertical, Info } from "lucide-react";
+
+const TechniciansPageMobile = lazy(() => import("./mobile/TechniciansPageMobile"));
 
 interface Technician {
   id: string;
@@ -56,7 +61,7 @@ interface Technician {
   created_at: string;
 }
 
-const TechniciansPage = () => {
+const TechniciansPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
@@ -67,6 +72,7 @@ const TechniciansPage = () => {
   const debouncedSearchQuery = useDebounce(searchInput, 500);
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchTechnicians();
@@ -101,184 +107,207 @@ const TechniciansPage = () => {
     }).format(amount);
   };
 
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'ACTIVE':
+        return { label: 'Activo', color: 'bg-green-100 text-green-700 border-green-300' };
+      case 'INACTIVE':
+        return { label: 'Inactivo', color: 'bg-zinc-100 text-zinc-700 border-zinc-300' };
+      case 'BLOCKED':
+        return { label: 'Bloqueado', color: 'bg-red-100 text-red-700 border-red-300' };
+      default:
+        return { label: status, color: 'bg-zinc-100 text-zinc-700 border-zinc-300' };
+    }
+  };
+
   return (
-    <div className="w-full">
-      <div className="w-[95%] max-w-[1800px] mx-auto px-4 pb-8">
+    <div className="w-full h-full px-6 py-6">
+      <div className="w-full max-w-none mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-violet-500/10 rounded-2xl border border-violet-500/20">
-                  <UserRound className="h-6 w-6 text-violet-400" />
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-violet-500/10 rounded-lg text-violet-600">
+                  <UserRound className="h-5 w-5" />
                 </div>
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Técnicos</h1>
-                  <p className="text-white/40 text-sm mt-0.5">Freelances y personal externo especializado</p>
+                <span className="text-muted-foreground text-sm font-medium">Total Técnicos</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-3xl font-bold text-foreground">
+                  {technicians.length}
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
+                  <Star className="h-5 w-5" />
                 </div>
+                <span className="text-muted-foreground text-sm font-medium">Freelances</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-3xl font-bold text-foreground">
+                  {technicians.filter(t => t.type === 'FREELANCER').length}
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-card/50 border border-border rounded-xl p-4"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+                  <UserRound className="h-5 w-5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">Activos</span>
+              </div>
+              <div className="mt-2">
+                <span className="text-3xl font-bold text-foreground">
+                  {technicians.filter(t => t.status === 'ACTIVE').length}
+                </span>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Header - Estilo ProjectsPage */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">Técnicos</h1>
+                <Info className="h-4 w-4 text-muted-foreground" />
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Button
-                  onClick={() => { }}
-                  className="bg-violet-600 hover:bg-violet-700 text-white h-10 px-5 rounded-2xl shadow-lg shadow-violet-500/20 gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  onClick={() => setIsDialogOpen(true)}
+                  className="h-9 px-4 text-sm font-medium"
                 >
-                  <Plus className="h-4 w-4" />
-                  Nuevo Técnico
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  Nuevo técnico
                 </Button>
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-sm p-4 rounded-3xl flex items-center gap-4">
-                <div className="p-3 bg-violet-500/10 rounded-2xl">
-                  <Star className="h-5 w-5 text-violet-400" />
-                </div>
-                <div>
-                  <p className="text-white/40 text-xs font-medium uppercase tracking-wider">Total Técnicos</p>
-                  <p className="text-xl font-bold text-white">{technicians.length}</p>
-                </div>
-              </div>
-
-              <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-sm p-4 rounded-3xl flex items-center gap-4">
-                <div className="p-3 bg-blue-500/10 rounded-2xl">
-                  <UserRound className="h-5 w-5 text-blue-400" />
-                </div>
-                <div>
-                  <p className="text-white/40 text-xs font-medium uppercase tracking-wider">Freelances</p>
-                  <p className="text-xl font-bold text-white">
-                    {technicians.filter(t => t.type === 'FREELANCE').length}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Filters Bar */}
-            <div className="flex flex-col md:flex-row items-center gap-3 bg-white/[0.02] border border-white/5 p-3 rounded-[2rem] backdrop-blur-md">
-              <div className="relative flex-1 w-full">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+            {/* Search Bar - Estilo ProjectsPage */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 min-w-[200px] max-w-md">
+                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nombre, especialidad o ciudad..."
+                  placeholder="Buscar técnicos..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="pl-11 h-11 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-violet-500/20 focus:border-violet-500/40 transition-all text-sm"
+                  className="pr-11 h-8 text-xs"
                 />
               </div>
-
-              <div className="flex items-center gap-2 w-full md:w-auto">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="h-11 px-4 bg-white/5 border-white/10 text-white rounded-2xl hover:bg-white/10 gap-2 whitespace-nowrap min-w-[140px]"
-                    >
-                      <Filter className="h-4 w-4 text-white/40" />
-                      {typeFilter === "all" ? "Tipo" : typeFilter}
-                      <ChevronDown className="h-3 w-3 ml-auto opacity-40" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10 rounded-2xl p-1 w-48">
-                    <DropdownMenuItem onClick={() => setTypeFilter("all")} className="text-white rounded-xl focus:bg-white/10">
-                      Todos los tipos
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setTypeFilter("FREELANCE")} className="text-white rounded-xl focus:bg-white/10">
-                      Autónomo / Freelance
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setTypeFilter("COMPANY")} className="text-white rounded-xl focus:bg-white/10">
-                      Empresa Externa
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="h-11 px-4 bg-white/5 border-white/10 text-white rounded-2xl hover:bg-white/10 gap-2 whitespace-nowrap min-w-[140px]"
-                    >
-                      {statusFilter === "all" ? "Estado" : statusFilter}
-                      <ChevronDown className="h-3 w-3 ml-auto opacity-40" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10 rounded-2xl p-1 w-48">
-                    <DropdownMenuItem onClick={() => setStatusFilter("all")} className="text-white rounded-xl focus:bg-white/10">
-                      Cualquier estado
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setStatusFilter("ACTIVE")} className="text-white rounded-xl focus:bg-white/10">
-                      Disponible / Activo
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setStatusFilter("INACTIVE")} className="text-white rounded-xl focus:bg-white/10">
-                      No disponible
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8">
+                    <Filter className="h-3 w-3 mr-1.5" />
+                    {typeFilter === "all" ? "Tipo" : typeFilter}
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setTypeFilter("all")}>
+                    Todos los tipos
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTypeFilter("FREELANCER")}>
+                    Autónomo / Freelance
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTypeFilter("COMPANY")}>
+                    Empresa Externa
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8">
+                    {statusFilter === "all" ? "Estado" : statusFilter}
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setStatusFilter("all")}>
+                    Cualquier estado
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter("ACTIVE")}>
+                    Disponible / Activo
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter("INACTIVE")}>
+                    No disponible
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
           {/* Table */}
-          <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-md rounded-[2.5rem] overflow-hidden">
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-24 gap-4">
-                <Loader2 className="h-10 w-10 text-violet-500 animate-spin" />
-                <p className="text-white/40 font-medium animate-pulse">Cargando base de técnicos...</p>
-              </div>
-            ) : technicians.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
-                <div className="p-6 bg-white/[0.03] rounded-[2.5rem] border border-white/5 mb-6">
-                  <UserRound className="h-12 w-12 text-white/10" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">No hay técnicos registrados</h3>
-                <p className="text-white/40 max-w-sm mb-8">
-                  No hemos encontrado ningún perfil que coincida con la búsqueda actual.
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => { setSearchInput(""); setStatusFilter("all"); setTypeFilter("all"); }}
-                  className="rounded-2xl border-white/10 text-white/60 hover:text-white"
-                >
-                  Limpiar filtros
-                </Button>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-white/[0.02]">
-                    <TableRow className="border-white/5 hover:bg-transparent">
-                      <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] pl-8 h-14">Técnico</TableHead>
-                      <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14">Especialidades</TableHead>
-                      <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14">Tarifas</TableHead>
-                      <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14">Estado</TableHead>
-                      <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14 text-right pr-8">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {technicians.map((tech) => (
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : technicians.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <UserRound className="h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No hay técnicos</p>
+              <p className="text-muted-foreground/70 text-sm mt-1">
+                Crea tu primer técnico para comenzar
+              </p>
+            </div>
+          ) : (
+            <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent bg-muted/30">
+                    <TableHead className="text-white/70">Técnico</TableHead>
+                    <TableHead className="text-white/70">Especialidades</TableHead>
+                    <TableHead className="text-white/70">Tarifas</TableHead>
+                    <TableHead className="text-white/70">Estado</TableHead>
+                    <TableHead className="text-white/70 w-12"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {technicians.map((tech) => {
+                    const statusInfo = getStatusInfo(tech.status);
+                    return (
                       <TableRow
                         key={tech.id}
-                        className="group border-white/[0.03] hover:bg-white/[0.02] cursor-pointer transition-colors h-24"
+                        className={cn(
+                          "border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200"
+                        )}
                         onClick={() => navigate(`/nexo-av/${userId}/technicians/${tech.id}`)}
                       >
-                        <TableCell className="pl-8">
-                          <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400 font-bold">
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-600 font-bold text-sm">
                               {tech.company_name.substring(0, 1).toUpperCase()}
                             </div>
                             <div className="flex flex-col">
-                              <span className="font-bold text-white group-hover:text-violet-400 transition-colors capitalize">
-                                {tech.company_name.toLowerCase()}
+                              <span className="font-medium text-white text-sm">
+                                {tech.company_name}
                               </span>
-                              <div className="flex items-center gap-2 mt-1">
-                                <MapPin className="h-3 w-3 text-white/20" />
-                                <span className="text-[10px] text-white/30 uppercase tracking-wider">
-                                  {tech.city || "Sin ciudad"}
-                                </span>
-                              </div>
+                              {tech.city && (
+                                <span className="text-xs text-white/50 mt-0.5">{tech.city}</span>
+                              )}
                             </div>
                           </div>
                         </TableCell>
@@ -286,66 +315,85 @@ const TechniciansPage = () => {
                           <div className="flex flex-wrap gap-1 max-w-[250px]">
                             {tech.specialties && tech.specialties.length > 0 ? (
                               tech.specialties.slice(0, 3).map((s, i) => (
-                                <Badge key={i} variant="secondary" className="bg-white/5 text-[10px] py-0 px-2 rounded-md border-none text-white/60">
+                                <Badge key={i} variant="secondary" className="text-xs">
                                   {s}
                                 </Badge>
                               ))
                             ) : (
-                              <span className="text-white/20 text-xs italic">No especificadas</span>
+                              <span className="text-white/50 text-xs">—</span>
                             )}
                             {tech.specialties && tech.specialties.length > 3 && (
-                              <span className="text-[10px] text-white/20 ml-1">+{tech.specialties.length - 3}</span>
+                              <span className="text-xs text-white/50">+{tech.specialties.length - 3}</span>
                             )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex flex-col gap-1">
-                            {tech.daily_rate > 0 && (
-                              <div className="flex items-center gap-1.5 font-mono text-xs">
-                                <span className="text-white/40 bg-white/5 px-1 rounded">D</span>
-                                <span className="text-white/80">{formatCurrency(tech.daily_rate)}</span>
-                              </div>
+                          <div className="flex flex-col gap-0.5">
+                            {tech.daily_rate && tech.daily_rate > 0 && (
+                              <span className="text-sm text-white/80 font-medium">{formatCurrency(tech.daily_rate)}/día</span>
                             )}
-                            {tech.hourly_rate > 0 && (
-                              <div className="flex items-center gap-1.5 font-mono text-xs mt-0.5">
-                                <span className="text-white/40 bg-white/5 px-1 rounded">H</span>
-                                <span className="text-white/80">{formatCurrency(tech.hourly_rate)}</span>
-                              </div>
+                            {tech.hourly_rate && tech.hourly_rate > 0 && (
+                              <span className="text-xs text-white/60">{formatCurrency(tech.hourly_rate)}/h</span>
+                            )}
+                            {(!tech.daily_rate || tech.daily_rate === 0) && (!tech.hourly_rate || tech.hourly_rate === 0) && (
+                              <span className="text-white/50 text-xs">—</span>
                             )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border-none",
-                              tech.status === 'ACTIVE' ? "bg-emerald-500/10 text-emerald-400" : "bg-zinc-500/10 text-zinc-400"
-                            )}
-                          >
-                            {tech.status === 'ACTIVE' ? "DISPONIBLE" : "BAJA"}
+                          <Badge variant="outline" className={cn(statusInfo.color, "border text-xs")}>
+                            {statusInfo.label}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right pr-8">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button size="icon" variant="ghost" className="rounded-xl h-9 w-9 text-white/20 hover:text-white hover:bg-white/10">
-                              <Mail className="h-4 w-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="rounded-xl h-9 w-9 text-white/20 hover:text-white hover:bg-white/10">
-                              <Phone className="h-4 w-4" />
-                            </Button>
-                          </div>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                              <DropdownMenuItem
+                                className="text-white hover:bg-white/10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/nexo-av/${userId}/technicians/${tech.id}`);
+                                }}
+                              >
+                                Ver detalle
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </div>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </motion.div>
       </div>
+
+      <CreateTechnicianDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSuccess={() => {
+          setIsDialogOpen(false);
+          fetchTechnicians();
+        }}
+      />
     </div>
   );
 };
+
+const TechniciansPage = createMobilePage({
+  DesktopComponent: TechniciansPageDesktop,
+  MobileComponent: TechniciansPageMobile,
+});
 
 export default TechniciansPage;

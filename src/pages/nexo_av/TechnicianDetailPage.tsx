@@ -39,7 +39,6 @@ import {
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { getTypeInfo, getStatusInfo } from "@/constants/technicianConstants";
 import EditTechnicianDialog from "./components/EditTechnicianDialog";
 import {
@@ -59,6 +58,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { createMobilePage } from "./MobilePageWrapper";
 
 const TechnicianDetailPageMobile = lazy(() => import("./mobile/TechnicianDetailPageMobile"));
 
@@ -822,22 +822,9 @@ function TechnicianDetailPageDesktop() {
   );
 }
 
-export default function TechnicianDetailPage() {
-  const isMobile = useIsMobile();
+const TechnicianDetailPage = createMobilePage({
+  DesktopComponent: TechnicianDetailPageDesktop,
+  MobileComponent: TechnicianDetailPageMobile,
+});
 
-  if (isMobile) {
-    return (
-      <Suspense
-        fallback={
-          <div className="flex items-center justify-center h-full">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
-        }
-      >
-        <TechnicianDetailPageMobile />
-      </Suspense>
-    );
-  }
-
-  return <TechnicianDetailPageDesktop />;
-}
+export default TechnicianDetailPage;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -24,9 +24,9 @@ import {
     Building2,
     Mail,
     Phone,
-    ArrowUpDown
+    MoreVertical
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
@@ -36,24 +36,26 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { createMobilePage } from "./MobilePageWrapper";
+import CreateSupplierDialog from "./components/CreateSupplierDialog";
+
+const SuppliersPageMobile = lazy(() => import("./mobile/SuppliersPageMobile"));
 
 interface Supplier {
     id: string;
     supplier_number: string;
     company_name: string;
-    legal_name: string;
-    tax_id: string;
-    contact_name: string;
-    contact_phone: string;
-    contact_email: string;
-    city: string;
-    province: string;
-    payment_terms: string;
+    tax_id: string | null;
+    contact_phone: string | null;
+    contact_email: string | null;
+    city: string | null;
+    province: string | null;
+    payment_terms: string | null;
     status: string;
     created_at: string;
 }
 
-const SuppliersPage = () => {
+const SuppliersPageDesktop = () => {
     const navigate = useNavigate();
     const { userId } = useParams<{ userId: string }>();
     const { toast } = useToast();
@@ -63,6 +65,7 @@ const SuppliersPage = () => {
     const [searchInput, setSearchInput] = useState("");
     const debouncedSearchQuery = useDebounce(searchInput, 500);
     const [statusFilter, setStatusFilter] = useState("all");
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     useEffect(() => {
         fetchSuppliers();
@@ -89,213 +92,271 @@ const SuppliersPage = () => {
         }
     };
 
+    const handleSupplierCreated = () => {
+        setIsCreateDialogOpen(false);
+        fetchSuppliers();
+    };
+
+    const getStatusInfo = (status: string) => {
+        switch (status) {
+            case 'ACTIVE':
+                return { label: 'Activo', color: 'bg-green-100 text-green-700 border-green-300' };
+            case 'INACTIVE':
+                return { label: 'Inactivo', color: 'bg-zinc-100 text-zinc-700 border-zinc-300' };
+            case 'BLOCKED':
+                return { label: 'Bloqueado', color: 'bg-red-100 text-red-700 border-red-300' };
+            default:
+                return { label: status, color: 'bg-zinc-100 text-zinc-700 border-zinc-300' };
+        }
+    };
+
     return (
-        <div className="w-full">
-            <div className="w-[95%] max-w-[1800px] mx-auto px-4 pb-8">
+        <div className="w-full h-full px-6 py-6">
+            <div className="w-full max-w-none mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    {/* Header */}
-                    <div className="mb-8">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-blue-500/10 rounded-2xl border border-blue-500/20">
-                                    <Truck className="h-6 w-6 text-blue-400" />
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="bg-card/50 border border-border rounded-xl p-4"
+                        >
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
+                                    <Building2 className="h-5 w-5" />
                                 </div>
-                                <div>
-                                    <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Proveedores</h1>
-                                    <p className="text-white/40 text-sm mt-0.5">Gestión de suministros y servicios externos</p>
+                                <span className="text-muted-foreground text-sm font-medium">Total Proveedores</span>
+                            </div>
+                            <div className="mt-2">
+                                <span className="text-3xl font-bold text-foreground">
+                                    {suppliers.length}
+                                </span>
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="bg-card/50 border border-border rounded-xl p-4"
+                        >
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
+                                    <Users className="h-5 w-5" />
                                 </div>
+                                <span className="text-muted-foreground text-sm font-medium">Activos</span>
+                            </div>
+                            <div className="mt-2">
+                                <span className="text-3xl font-bold text-foreground">
+                                    {suppliers.filter(s => s.status === 'ACTIVE').length}
+                                </span>
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="bg-card/50 border border-border rounded-xl p-4"
+                        >
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-zinc-500/10 rounded-lg text-zinc-600">
+                                    <Truck className="h-5 w-5" />
+                                </div>
+                                <span className="text-muted-foreground text-sm font-medium">Inactivos</span>
+                            </div>
+                            <div className="mt-2">
+                                <span className="text-3xl font-bold text-foreground">
+                                    {suppliers.filter(s => s.status === 'INACTIVE').length}
+                                </span>
+                            </div>
+                        </motion.div>
+                    </div>
+
+                    {/* Header - Estilo ProjectsPage */}
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-2xl md:text-3xl font-bold text-foreground">Proveedores</h1>
+                                <Info className="h-4 w-4 text-muted-foreground" />
                             </div>
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
                                 <Button
-                                    onClick={() => { }}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white h-10 px-5 rounded-2xl shadow-lg shadow-blue-500/20 gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                    onClick={() => setIsCreateDialogOpen(true)}
+                                    className="h-9 px-4 text-sm font-medium"
                                 >
-                                    <Plus className="h-4 w-4" />
-                                    Nuevo Proveedor
+                                    <Plus className="h-4 w-4 mr-1.5" />
+                                    Nuevo proveedor
                                 </Button>
                             </div>
                         </div>
 
-                        {/* Quick Stats */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                            <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-sm p-4 rounded-3xl flex items-center gap-4">
-                                <div className="p-3 bg-blue-500/10 rounded-2xl">
-                                    <Building2 className="h-5 w-5 text-blue-400" />
-                                </div>
-                                <div>
-                                    <p className="text-white/40 text-xs font-medium uppercase tracking-wider">Total Proveedores</p>
-                                    <p className="text-xl font-bold text-white">{suppliers.length}</p>
-                                </div>
-                            </div>
-
-                            <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-sm p-4 rounded-3xl flex items-center gap-4">
-                                <div className="p-3 bg-emerald-500/10 rounded-2xl">
-                                    <Users className="h-5 w-5 text-emerald-400" />
-                                </div>
-                                <div>
-                                    <p className="text-white/40 text-xs font-medium uppercase tracking-wider">Activos</p>
-                                    <p className="text-xl font-bold text-white">
-                                        {suppliers.filter(s => s.status === 'ACTIVE').length}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Filters Bar */}
-                        <div className="flex flex-col sm:flex-row items-center gap-3 bg-white/[0.02] border border-white/5 p-3 rounded-[2rem] backdrop-blur-md">
-                            <div className="relative flex-1 w-full">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                        {/* Search Bar - Estilo ProjectsPage */}
+                        <div className="flex items-center gap-2">
+                            <div className="relative flex-1 min-w-[200px] max-w-md">
+                                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="Buscar por nombre, CIF o número..."
+                                    placeholder="Buscar proveedores..."
                                     value={searchInput}
                                     onChange={(e) => setSearchInput(e.target.value)}
-                                    className="pl-11 h-11 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-blue-500/20 focus:border-blue-500/40 transition-all text-sm"
+                                    className="pr-11 h-8 text-xs"
                                 />
                             </div>
-
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            className="h-11 px-4 bg-white/5 border-white/10 text-white rounded-2xl hover:bg-white/10 gap-2 whitespace-nowrap min-w-[140px]"
-                                        >
-                                            <Filter className="h-4 w-4 text-white/40" />
-                                            {statusFilter === "all" ? "Todos los estados" : statusFilter}
-                                            <ChevronDown className="h-3 w-3 ml-auto opacity-40" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10 rounded-2xl p-1 w-56">
-                                        <DropdownMenuItem onClick={() => setStatusFilter("all")} className="text-white rounded-xl focus:bg-white/10">
-                                            Todos los estados
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => setStatusFilter("ACTIVE")} className="text-white rounded-xl focus:bg-white/10">
-                                            Activos
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => setStatusFilter("INACTIVE")} className="text-white rounded-xl focus:bg-white/10">
-                                            Inactivos
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => setStatusFilter("BLOCKED")} className="text-red-400 rounded-xl focus:bg-red-500/10">
-                                            Bloqueados
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" className="h-8">
+                                        <Filter className="h-3 w-3 mr-1.5" />
+                                        {statusFilter === "all" ? "Todos" : statusFilter}
+                                        <ChevronDown className="h-3 w-3 ml-1" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => setStatusFilter("all")}>
+                                        Todos los estados
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setStatusFilter("ACTIVE")}>
+                                        Activos
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setStatusFilter("INACTIVE")}>
+                                        Inactivos
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setStatusFilter("BLOCKED")}>
+                                        Bloqueados
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </div>
 
                     {/* Table */}
-                    <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-md rounded-[2.5rem] overflow-hidden">
-                        {loading ? (
-                            <div className="flex flex-col items-center justify-center py-24 gap-4">
-                                <div className="relative">
-                                    <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
-                                    <div className="absolute inset-0 blur-lg bg-blue-500/20" />
-                                </div>
-                                <p className="text-white/40 font-medium animate-pulse">Cargando base de proveedores...</p>
-                            </div>
-                        ) : suppliers.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
-                                <div className="p-6 bg-white/[0.03] rounded-[2.5rem] border border-white/5 mb-6">
-                                    <Search className="h-12 w-12 text-white/10" />
-                                </div>
-                                <h3 className="text-xl font-semibold text-white mb-2">No hay resultados</h3>
-                                <p className="text-white/40 max-w-sm mb-8">
-                                    No hemos encontrado ningún proveedor que coincida con tus criterios de búsqueda.
-                                </p>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => { setSearchInput(""); setStatusFilter("all"); }}
-                                    className="rounded-2xl border-white/10 text-white/60 hover:text-white"
-                                >
-                                    Limpiar filtros
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <Table>
-                                    <TableHeader className="bg-white/[0.02]">
-                                        <TableRow className="border-white/5 hover:bg-transparent">
-                                            <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] pl-8 h-14">Proveedor</TableHead>
-                                            <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14">Contacto</TableHead>
-                                            <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14">Localización</TableHead>
-                                            <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14">Estado</TableHead>
-                                            <TableHead className="text-white/40 font-bold uppercase tracking-wider text-[10px] h-14 text-right pr-8">Acciones</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {suppliers.map((supplier) => (
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                        </div>
+                    ) : suppliers.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <Truck className="h-16 w-16 text-muted-foreground mb-4" />
+                            <p className="text-muted-foreground">No hay proveedores</p>
+                            <p className="text-muted-foreground/70 text-sm mt-1">
+                                Crea tu primer proveedor para comenzar
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="hover:bg-transparent bg-muted/30">
+                                        <TableHead className="text-white/70">Proveedor</TableHead>
+                                        <TableHead className="text-white/70">Contacto</TableHead>
+                                        <TableHead className="text-white/70">Localización</TableHead>
+                                        <TableHead className="text-white/70">Estado</TableHead>
+                                        <TableHead className="text-white/70 w-12"></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {suppliers.map((supplier) => {
+                                        const statusInfo = getStatusInfo(supplier.status);
+                                        return (
                                             <TableRow
                                                 key={supplier.id}
-                                                className="group border-white/[0.03] hover:bg-white/[0.02] cursor-pointer transition-colors h-20"
+                                                className={cn(
+                                                    "border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200"
+                                                )}
                                                 onClick={() => navigate(`/nexo-av/${userId}/suppliers/${supplier.id}`)}
                                             >
-                                                <TableCell className="pl-8">
+                                                <TableCell>
                                                     <div className="flex flex-col">
-                                                        <span className="font-bold text-white group-hover:text-blue-400 transition-colors">
+                                                        <span className="font-medium text-white text-sm">
                                                             {supplier.company_name}
                                                         </span>
-                                                        <span className="text-xs text-white/30 font-mono mt-1">
-                                                            {supplier.supplier_number} • {supplier.tax_id}
+                                                        <span className="text-xs text-white/50 font-mono mt-0.5">
+                                                            {supplier.supplier_number} {supplier.tax_id && `• ${supplier.tax_id}`}
                                                         </span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <div className="flex items-center gap-2 text-white/60">
-                                                            <Mail className="h-3 w-3 text-blue-500/50" />
-                                                            <span className="text-xs truncate max-w-[180px]">{supplier.contact_email || "—"}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 text-white/60">
-                                                            <Phone className="h-3 w-3 text-emerald-500/50" />
-                                                            <span className="text-xs">{supplier.contact_phone || "—"}</span>
-                                                        </div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-sm text-white/80">{supplier.city || "—"}</span>
-                                                        <span className="text-[10px] text-white/40 uppercase tracking-wide mt-1">{supplier.province || "—"}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge
-                                                        variant="outline"
-                                                        className={cn(
-                                                            "rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border-none",
-                                                            supplier.status === 'ACTIVE' ? "bg-emerald-500/10 text-emerald-400" :
-                                                                supplier.status === 'INACTIVE' ? "bg-zinc-500/10 text-zinc-400" :
-                                                                    "bg-red-500/10 text-red-500"
+                                                    <div className="flex flex-col gap-1">
+                                                        {supplier.contact_email && (
+                                                            <div className="flex items-center gap-1.5 text-white/70 text-xs">
+                                                                <Mail className="h-3 w-3" />
+                                                                <span className="truncate max-w-[200px]">{supplier.contact_email}</span>
+                                                            </div>
                                                         )}
-                                                    >
-                                                        {supplier.status}
+                                                        {supplier.contact_phone && (
+                                                            <div className="flex items-center gap-1.5 text-white/70 text-xs">
+                                                                <Phone className="h-3 w-3" />
+                                                                <span>{supplier.contact_phone}</span>
+                                                            </div>
+                                                        )}
+                                                        {!supplier.contact_email && !supplier.contact_phone && (
+                                                            <span className="text-white/50 text-xs">—</span>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-white/70 text-sm">
+                                                    {supplier.city || supplier.province ? (
+                                                        <span>{[supplier.city, supplier.province].filter(Boolean).join(", ")}</span>
+                                                    ) : (
+                                                        <span>—</span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="outline" className={cn(statusInfo.color, "border text-xs")}>
+                                                        {statusInfo.label}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="text-right pr-8">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="rounded-xl hover:bg-white/10 text-white/20 group-hover:text-white transition-all shadow-none"
-                                                    >
-                                                        <Info className="h-5 w-5" />
-                                                    </Button>
+                                                <TableCell onClick={(e) => e.stopPropagation()}>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                                                            >
+                                                                <MoreVertical className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                                                            <DropdownMenuItem
+                                                                className="text-white hover:bg-white/10"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    navigate(`/nexo-av/${userId}/suppliers/${supplier.id}`);
+                                                                }}
+                                                            >
+                                                                Ver detalle
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </TableCell>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
-                        )}
-                    </div>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )}
                 </motion.div>
             </div>
         </div>
+
+        <CreateSupplierDialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+            onSuccess={handleSupplierCreated}
+        />
     );
 };
+
+const SuppliersPage = createMobilePage({
+  DesktopComponent: SuppliersPageDesktop,
+  MobileComponent: SuppliersPageMobile,
+});
 
 export default SuppliersPage;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DocumentScanner from "./components/DocumentScanner";
 import { cn } from "@/lib/utils";
+import { createMobilePage } from "./MobilePageWrapper";
 
-const ExpensesPage = () => {
+const ExpensesPageMobile = lazy(() => import("./mobile/ExpensesPageMobile"));
+
+const ExpensesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
@@ -112,8 +115,8 @@ const ExpensesPage = () => {
   };
 
   return (
-    <div className="w-full">
-      <div className="w-[95%] max-w-[1800px] mx-auto px-4 pb-8">
+    <div className="w-full h-full px-6 py-6">
+      <div className="w-full max-w-none mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -211,5 +214,10 @@ const ExpensesPage = () => {
     </div>
   );
 };
+
+const ExpensesPage = createMobilePage({
+  DesktopComponent: ExpensesPageDesktop,
+  MobileComponent: ExpensesPageMobile,
+});
 
 export default ExpensesPage;

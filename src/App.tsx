@@ -49,6 +49,7 @@ const NexoReportsPage = lazy(() => import("./pages/nexo_av/ReportsPage"));
 const NexoTechniciansPage = lazy(() => import("./pages/nexo_av/TechniciansPage"));
 const NexoTechnicianDetailPage = lazy(() => import("./pages/nexo_av/TechnicianDetailPage"));
 const NexoSuppliersPage = lazy(() => import("./pages/nexo_av/SuppliersPage"));
+const NexoSupplierDetailPage = lazy(() => import("./pages/nexo_av/SupplierDetailPage"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -104,6 +105,7 @@ const App = () => (
                 <Route path="technicians" element={<NexoTechniciansPage />} />
                 <Route path="technicians/:technicianId" element={<NexoTechnicianDetailPage />} />
                 <Route path="suppliers" element={<NexoSuppliersPage />} />
+                <Route path="suppliers/:supplierId" element={<NexoSupplierDetailPage />} />
                 <Route path="invoices" element={<NexoInvoicesPage />} />
                 <Route path="purchase-invoices" element={<NexoPurchaseInvoicesPage />} />
                 <Route path="expenses" element={<NexoExpensesPage />} />

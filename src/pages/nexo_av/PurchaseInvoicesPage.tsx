@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { createMobilePage } from "./MobilePageWrapper";
+import PendingReviewSection from "./components/PendingReviewSection";
+
+const PurchaseInvoicesPageMobile = lazy(() => import("./mobile/PurchaseInvoicesPageMobile"));
 
 interface PurchaseInvoice {
   id: string;
@@ -70,7 +74,7 @@ interface PurchaseInvoice {
   total_count: number;
 }
 
-const PurchaseInvoicesPage = () => {
+const PurchaseInvoicesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
@@ -171,8 +175,8 @@ const PurchaseInvoicesPage = () => {
   };
 
   return (
-    <div className="w-full">
-      <div className="w-[95%] max-w-[1800px] mx-auto px-4 pb-8">
+    <div className="w-full h-full px-6 py-6">
+      <div className="w-full max-w-none mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -186,7 +190,14 @@ const PurchaseInvoicesPage = () => {
                   <TrendingDown className="h-7 w-7 text-red-400" />
                 </div>
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Compras y Gastos</h1>
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Compras y Gastos</h1>
+                    {invoices.filter(i => i.status === 'PENDING').length > 0 && (
+                      <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs px-3 py-1">
+                        {invoices.filter(i => i.status === 'PENDING').length} Pendientes
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-white/40 text-sm mt-0.5 font-medium flex items-center gap-2">
                     <Building2 className="h-3 w-3" />
                     Facturación de proveedores y tickets de gasto
@@ -271,6 +282,14 @@ const PurchaseInvoicesPage = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-zinc-950 border-white/10 rounded-2xl p-2 w-56 shadow-2xl">
                     <DropdownMenuItem onClick={() => setStatusFilter("all")} className="text-white rounded-xl focus:bg-white/10 py-2.5">Todos los estados</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatusFilter("PENDING")} className="text-blue-400 rounded-xl focus:bg-blue-400/10 py-2.5 flex items-center justify-between">
+                      Pendientes
+                      {invoices.filter(i => i.status === 'PENDING').length > 0 && (
+                        <Badge className="bg-blue-500/20 text-blue-400 text-[9px] px-1.5 py-0 border-none">
+                          {invoices.filter(i => i.status === 'PENDING').length}
+                        </Badge>
+                      )}
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setStatusFilter("REGISTERED")} className="text-white rounded-xl focus:bg-white/10 py-2.5">Registrado</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setStatusFilter("PARTIAL")} className="text-amber-400 rounded-xl focus:bg-amber-400/10 py-2.5">Pago Parcial</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setStatusFilter("PAID")} className="text-emerald-400 rounded-xl focus:bg-emerald-400/10 py-2.5">Pagado</DropdownMenuItem>
@@ -299,6 +318,15 @@ const PurchaseInvoicesPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Pending Review Section */}
+          {invoices.filter(i => i.status === 'PENDING').length > 0 && (
+            <PendingReviewSection
+              onComplete={(invoiceId) => {
+                navigate(`/nexo-av/${userId}/purchase-invoices/${invoiceId}`);
+              }}
+            />
+          )}
 
           {/* Table Container */}
           <div className="bg-zinc-900/40 border border-white/5 backdrop-blur-xl rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/20">
@@ -356,7 +384,14 @@ const PurchaseInvoicesPage = () => {
                               {inv.document_type === 'INVOICE' ? <FileText className="h-6 w-6" /> : <TrendingDown className="h-6 w-6" />}
                             </div>
                             <div className="flex flex-col">
-                              <span className="font-black text-white text-base tracking-tight">{inv.invoice_number}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-black text-white text-base tracking-tight">{inv.invoice_number}</span>
+                                {inv.status === 'PENDING' && (!inv.provider_id || !inv.provider_name) && (
+                                  <Badge className="bg-blue-500/20 text-blue-400 text-[8px] px-1.5 py-0 border-none animate-pulse">
+                                    Pendiente
+                                  </Badge>
+                                )}
+                              </div>
                               <Badge variant="outline" className="w-fit text-[8px] mt-1.5 py-0 px-1.5 rounded-md bg-white/5 border-white/5 text-white/40 font-black uppercase tracking-tighter">
                                 {inv.document_type === 'INVOICE' ? 'Factura' : 'Gasto/Ticket'}
                               </Badge>
@@ -412,10 +447,11 @@ const PurchaseInvoicesPage = () => {
                                 "rounded-xl px-4 py-1.5 text-[10px] font-black uppercase tracking-widest border-2",
                                 inv.status === 'PAID' ? "bg-emerald-500/5 text-emerald-500 border-emerald-500/10 shadow-lg shadow-emerald-500/5" :
                                   inv.status === 'PARTIAL' ? "bg-amber-500/5 text-amber-500 border-amber-500/10 shadow-lg shadow-amber-500/5" :
-                                    "bg-white/5 text-white/40 border-white/5"
+                                    inv.status === 'PENDING' ? "bg-blue-500/5 text-blue-400 border-blue-500/10 shadow-lg shadow-blue-500/5" :
+                                      "bg-white/5 text-white/40 border-white/5"
                               )}
                             >
-                              {inv.status === 'REGISTERED' ? 'REGISTRADO' : inv.status === 'PAID' ? 'PAGADO' : 'PARCIAL'}
+                              {inv.status === 'PENDING' ? 'PENDIENTE' : inv.status === 'REGISTERED' ? 'REGISTRADO' : inv.status === 'PAID' ? 'PAGADO' : 'PARCIAL'}
                             </Badge>
                           </div>
                         </TableCell>
@@ -453,5 +489,10 @@ const PurchaseInvoicesPage = () => {
     </div>
   );
 };
+
+const PurchaseInvoicesPage = createMobilePage({
+  DesktopComponent: PurchaseInvoicesPageDesktop,
+  MobileComponent: PurchaseInvoicesPageMobile,
+});
 
 export default PurchaseInvoicesPage;
