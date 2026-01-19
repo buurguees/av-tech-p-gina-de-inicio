@@ -14,7 +14,8 @@ import {
   Lock,
   Truck,
   FileText,
-  TrendingDown
+  TrendingDown,
+  UserRound
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -58,6 +59,13 @@ const MenuDesplegable = ({ userId, isAdmin, onClose, onLogout }: MenuDesplegable
       label: 'Proveedores',
       icon: Truck,
       path: `/nexo-av/${userId}/suppliers`,
+      available: true,
+    },
+    {
+      id: 'technicians',
+      label: 'Técnicos',
+      icon: UserRound,
+      path: `/nexo-av/${userId}/technicians`,
       available: true,
     },
     {
