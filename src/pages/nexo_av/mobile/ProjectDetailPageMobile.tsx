@@ -40,7 +40,6 @@ import ProjectQuotesTab from "../components/ProjectQuotesTab";
 import ProjectTechniciansTab from "../components/ProjectTechniciansTab";
 import ProjectExpensesTab from "../components/ProjectExpensesTab";
 import CreateProjectDialog from "../components/CreateProjectDialog";
-import MobileBottomNav from "../components/MobileBottomNav";
 import { NexoLogo } from "../components/NexoHeader";
 
 interface ProjectDetail {
@@ -305,9 +304,6 @@ const ProjectDetailPageMobile = () => {
           </DetailTabsMobile>
         </motion.div>
       </main>
-
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav userId={userId || ''} />
 
       {/* Edit Project Dialog */}
       <CreateProjectDialog
