@@ -12,7 +12,9 @@ import {
   Receipt,
   FolderKanban,
   Lock,
-  Truck
+  Truck,
+  FileText,
+  TrendingDown
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -35,6 +37,20 @@ const MenuDesplegable = ({ userId, isAdmin, onClose, onLogout }: MenuDesplegable
       label: 'Facturas',
       icon: Receipt,
       path: `/nexo-av/${userId}/invoices`,
+      available: true,
+    },
+    {
+      id: 'purchase-invoices',
+      label: 'Facturas de Compra',
+      icon: FileText,
+      path: `/nexo-av/${userId}/purchase-invoices`,
+      available: true,
+    },
+    {
+      id: 'expenses',
+      label: 'Gastos',
+      icon: TrendingDown,
+      path: `/nexo-av/${userId}/expenses`,
       available: true,
     },
     {
