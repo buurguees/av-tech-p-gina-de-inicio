@@ -344,13 +344,13 @@ const SuppliersPageDesktop = () => {
                     )}
                 </motion.div>
             </div>
-        </div>
 
-        <CreateSupplierDialog
-            open={isCreateDialogOpen}
-            onOpenChange={setIsCreateDialogOpen}
-            onSuccess={handleSupplierCreated}
-        />
+            <CreateSupplierDialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+                onSuccess={handleSupplierCreated}
+            />
+        </div>
     );
 };
 
