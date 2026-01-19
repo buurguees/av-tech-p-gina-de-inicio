@@ -40,7 +40,6 @@ import ClientProjectsTab from "../components/ClientProjectsTab";
 import ClientQuotesTab from "../components/ClientQuotesTab";
 import ClientInvoicesTab from "../components/ClientInvoicesTab";
 import EditClientDialog from "../components/EditClientDialog";
-import MobileBottomNav from "../components/MobileBottomNav";
 import ClientNotesSection from "../components/mobile/ClientNotesSection";
 import { Loader2 } from "lucide-react";
 
@@ -265,9 +264,9 @@ const ClientDetailPageMobile = () => {
   const hasAdditionalInfo = client.tax_id || client.industry_sector || client.approximate_budget || client.number_of_locations;
 
   return (
-    <div className="flex flex-col h-full pb-20">
+    <div className="flex flex-col min-h-screen">
       {/* Header sticky compacto */}
-      <div className="sticky top-0 z-10 bg-background border-b px-3 py-2.5">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/40 px-3 py-2.5">
         <div className="flex items-center gap-2.5 mb-2">
           <Button
             variant="ghost"
@@ -506,9 +505,6 @@ const ClientDetailPageMobile = () => {
         isAdmin={isAdmin}
         onSuccess={fetchClient}
       />
-
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav userId={userId || ''} />
     </div>
   );
 };
