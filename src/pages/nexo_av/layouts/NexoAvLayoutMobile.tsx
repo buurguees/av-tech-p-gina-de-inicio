@@ -378,21 +378,28 @@ const NexoAvLayoutMobile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-mobile-nav">
-      {/* Header - Fijo en la parte superior */}
-      <header className="border-b border-border bg-background fixed top-0 left-0 right-0 z-50 shadow-sm h-[3.25rem]">
-        <div className="w-full h-full px-4">
+    <div className="min-h-screen bg-background">
+      {/* Header - Fijo en la parte superior con backdrop blur */}
+      <header 
+        className="border-b border-border/40 bg-background/80 backdrop-blur-xl fixed top-0 left-0 right-0 z-50 shadow-sm"
+        style={{
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          height: 'calc(3.25rem + env(safe-area-inset-top, 0px))'
+        }}
+      >
+        <div className="w-full h-[3.25rem] px-4">
           <div className="flex items-center justify-between h-full">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
-                className="cursor-pointer hover:opacity-80 transition-opacity duration-200 flex-shrink-0"
+                className="cursor-pointer hover:opacity-70 active:scale-95 transition-all duration-200 flex-shrink-0 rounded-lg p-1"
                 aria-label="Ir al inicio"
+                style={{ touchAction: 'manipulation' }}
               >
                 <NexoLogo />
               </button>
               <div className="flex flex-col justify-center">
-                <h1 className="text-foreground font-semibold tracking-wide text-sm leading-tight">NEXO AV</h1>
+                <h1 className="text-foreground font-bold tracking-tight text-sm leading-tight">NEXO AV</h1>
               </div>
             </div>
             
@@ -413,9 +420,15 @@ const NexoAvLayoutMobile = () => {
       </header>
 
       {/* Main content - Mobile */}
-      <div className="pt-[3.25rem]" style={{ height: 'calc(100dvh - 3.25rem)' }}>
+      <div 
+        style={{ 
+          paddingTop: 'calc(3.25rem + env(safe-area-inset-top, 0px))',
+          paddingBottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))',
+          minHeight: '100dvh'
+        }}
+      >
         {isDashboardRoute ? (
-          <main className="w-[98%] h-[98%] mx-auto px-3 py-3">
+          <main className="w-full h-full px-3 py-3">
             <Suspense fallback={
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
