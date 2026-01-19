@@ -7,10 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { lazy, Suspense } from "react";
-import Sidebar from "./components/desktop/Sidebar";
-import UserAvatarDropdown from "./components/UserAvatarDropdown";
-import MobileBottomNav from "./components/MobileBottomNav";
-import { useNexoAvTheme } from "./hooks/useNexoAvTheme";
+import NexoAvLayout from "./layouts/NexoAvLayout";
+import NexoAvLayoutMobile from "./layouts/NexoAvLayoutMobile";
 import {
   Users,
   FileText,
@@ -108,9 +106,21 @@ const NexoLogo = () => {
 
 /**
  * Componente principal de navegación para NEXO AV
- * Maneja el layout con header fijo superior y sidebar fijo izquierdo
+ * Redirige al layout correspondiente según el dispositivo (mobile o desktop)
  */
 const NexoAv = () => {
+  const isMobile = useIsMobile();
+  const Layout = isMobile ? NexoAvLayoutMobile : NexoAvLayout;
+  return <Layout />;
+};
+
+export default NexoAv;
+
+/**
+ * Legacy component - kept for reference
+ * @deprecated Use NexoAvLayout or NexoAvLayoutMobile instead
+ */
+const NexoAvLegacy = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const location = useLocation();

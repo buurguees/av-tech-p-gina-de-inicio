@@ -322,36 +322,17 @@ const ClientDetailPageMobile = () => {
 
         {/* Acciones rápidas compactas */}
         <div className="flex items-center gap-1.5">
-          {client.contact_phone && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 h-8 text-xs gap-1.5"
-              asChild
-            >
-              <a href={`tel:${client.contact_phone}`}>
-                <PhoneCall className="h-3.5 w-3.5" />
-                Llamar
-              </a>
-            </Button>
-          )}
-          {client.contact_email && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 h-8 text-xs gap-1.5"
-              asChild
-            >
-              <a href={`mailto:${client.contact_email}`}>
-                <Send className="h-3.5 w-3.5" />
-                Email
-              </a>
-            </Button>
-          )}
           <Button
             variant="outline"
             size="sm"
             className="flex-1 h-8 text-xs gap-1.5"
+            onClick={() => {
+              // Acción futura: crear nueva tarea
+              toast({
+                title: "Próximamente",
+                description: "Esta funcionalidad estará disponible pronto",
+              });
+            }}
           >
             <Plus className="h-3.5 w-3.5" />
             Tarea
@@ -398,22 +379,16 @@ const ClientDetailPageMobile = () => {
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Contacto</p>
                 <div className="space-y-1.5">
                   {client.contact_phone && (
-                    <a
-                      href={`tel:${client.contact_phone}`}
-                      className="flex items-center gap-2 text-primary active:opacity-70 text-xs"
-                    >
-                      <Phone className="h-3.5 w-3.5 shrink-0" />
+                    <div className="flex items-center gap-2 text-foreground text-xs">
+                      <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       <span className="truncate">{client.contact_phone}</span>
-                    </a>
+                    </div>
                   )}
                   {client.contact_email && (
-                    <a
-                      href={`mailto:${client.contact_email}`}
-                      className="flex items-center gap-2 text-primary active:opacity-70 text-xs break-all"
-                    >
-                      <Mail className="h-3.5 w-3.5 shrink-0" />
+                    <div className="flex items-center gap-2 text-foreground text-xs break-all">
+                      <Mail className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       <span className="truncate">{client.contact_email}</span>
-                    </a>
+                    </div>
                   )}
                   {client.website && (
                     <a

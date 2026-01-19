@@ -808,4 +808,13 @@ const NewInvoicePage = () => {
   );
 };
 
-export default NewInvoicePage;
+// Export with mobile version
+import { lazy } from 'react';
+import { createMobilePage } from './MobilePageWrapper';
+
+const NewInvoicePageMobile = lazy(() => import('./mobile/NewInvoicePageMobile'));
+
+export default createMobilePage({
+  DesktopComponent: NewInvoicePage,
+  MobileComponent: NewInvoicePageMobile,
+});

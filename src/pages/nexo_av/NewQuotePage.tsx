@@ -1033,4 +1033,13 @@ const NewQuotePage = () => {
   );
 };
 
-export default NewQuotePage;
+// Export with mobile version
+import { lazy } from 'react';
+import { createMobilePage } from './MobilePageWrapper';
+
+const NewQuotePageMobile = lazy(() => import('./mobile/NewQuotePageMobile'));
+
+export default createMobilePage({
+  DesktopComponent: NewQuotePage,
+  MobileComponent: NewQuotePageMobile,
+});

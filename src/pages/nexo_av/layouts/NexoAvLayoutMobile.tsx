@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { Outlet, useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
-import Sidebar from "../components/desktop/Sidebar";
+import { lazy, Suspense } from "react";
 import UserAvatarDropdown from "../components/UserAvatarDropdown";
+import MobileBottomNav from "../components/MobileBottomNav";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import {
   Users,
@@ -21,6 +22,9 @@ import {
   Receipt,
   MapPin,
 } from "lucide-react";
+
+// Lazy load mobile components
+const DashboardMobile = lazy(() => import("../components/mobile/DashboardMobile"));
 
 interface UserInfo {
   user_id: string;
@@ -52,7 +56,6 @@ const NexoLogo = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Re-check when theme changes
   useEffect(() => {
     setIsLightTheme(document.body.classList.contains('nexo-av-theme'));
   }, [document.body.className]);
@@ -100,9 +103,10 @@ const NexoLogo = () => {
   );
 };
 
-const NexoAvLayout = () => {
+const NexoAvLayoutMobile = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -145,8 +149,21 @@ const NexoAvLayout = () => {
 
         // If no userId in URL, redirect to proper URL with user_id
         if (!userId) {
-          // Desktop siempre va al dashboard
-          const targetPath = `/nexo-av/${currentUserInfo.user_id}/dashboard`;
+          const userRoles = currentUserInfo.roles || [];
+          const isSales = userRoles.includes('sales') || userRoles.includes('comercial');
+          const isAdminUser = userRoles.includes('admin');
+          
+          let targetPath: string;
+          if (isSales) {
+            // Usuario con rol "sales" -> Mapa Comercial
+            targetPath = `/nexo-av/${currentUserInfo.user_id}/lead-map`;
+          } else if (isAdminUser) {
+            // Usuario con rol "admin" -> Mapa de Proyectos
+            targetPath = `/nexo-av/${currentUserInfo.user_id}/project-map`;
+          } else {
+            // Por defecto, Mapa Comercial
+            targetPath = `/nexo-av/${currentUserInfo.user_id}/lead-map`;
+          }
           navigate(targetPath, { replace: true });
           return;
         }
@@ -206,7 +223,29 @@ const NexoAvLayout = () => {
     enabled: !loading && !accessDenied && !!userInfo,
   });
 
-  // Build modules list
+  // Check if we're on dashboard route to show mobile dashboard
+  const isDashboardRoute = location.pathname === `/nexo-av/${userId}/dashboard`;
+  
+  // Redirect mobile users from dashboard to appropriate map based on role
+  useEffect(() => {
+    if (isDashboardRoute && userInfo && !loading && !accessDenied) {
+      const userRoles = userInfo.roles || [];
+      const isSales = userRoles.includes('sales') || userRoles.includes('comercial');
+      const isAdminUser = userRoles.includes('admin');
+      
+      let targetPath: string;
+      if (isSales) {
+        targetPath = `/nexo-av/${userId}/lead-map`;
+      } else if (isAdminUser) {
+        targetPath = `/nexo-av/${userId}/project-map`;
+      } else {
+        targetPath = `/nexo-av/${userId}/lead-map`;
+      }
+      navigate(targetPath, { replace: true });
+    }
+  }, [isDashboardRoute, userId, navigate, userInfo, loading, accessDenied]);
+
+  // Build modules list for DashboardMobile
   const modules = [
     {
       id: 'lead-map',
@@ -339,12 +378,12 @@ const NexoAvLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-mobile-nav">
       {/* Header - Fijo en la parte superior */}
       <header className="border-b border-border bg-background fixed top-0 left-0 right-0 z-50 shadow-sm h-[3.25rem]">
-        <div className="w-full h-full px-4 sm:px-6 lg:px-8">
+        <div className="w-full h-full px-4">
           <div className="flex items-center justify-between h-full">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
                 className="cursor-pointer hover:opacity-80 transition-opacity duration-200 flex-shrink-0"
@@ -353,18 +392,11 @@ const NexoAvLayout = () => {
                 <NexoLogo />
               </button>
               <div className="flex flex-col justify-center">
-                <h1 className="text-foreground font-semibold tracking-wide text-base leading-tight">NEXO AV</h1>
-                <p className="text-muted-foreground text-xs leading-tight">Plataforma de Gestión</p>
+                <h1 className="text-foreground font-semibold tracking-wide text-sm leading-tight">NEXO AV</h1>
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-foreground text-sm font-medium">{userInfo?.full_name}</p>
-                <p className="text-muted-foreground text-xs capitalize">
-                  {userInfo?.roles?.join(', ')}
-                </p>
-              </div>
+            <div className="flex items-center gap-2">
               <UserAvatarDropdown
                 fullName={userInfo?.full_name || ''}
                 email={userInfo?.email || ''}
@@ -380,27 +412,43 @@ const NexoAvLayout = () => {
         </div>
       </header>
 
-      {/* Desktop Main content */}
-      <div className="flex w-full" style={{ height: 'calc(100vh - 3.25rem)' }}>
-        {/* Sidebar para desktop - posición fija, no hace scroll */}
-        <Sidebar 
-          userId={userId}
-          modules={modules}
-          userRole={isAdmin ? 'admin' : undefined}
-        />
-        
-        {/* Contenido principal - tiene scroll independiente */}
-        <main className="flex-1 min-w-0 ml-56 h-full overflow-y-auto" style={{ width: 'calc(100% - 14rem)' }}>
-          <div className="w-[98%] h-[98%] mx-auto flex flex-col" style={{ maxWidth: 'none', padding: '1%' }}>
-            <div className="w-full h-full" style={{ maxWidth: 'none', width: '100%', height: '100%' }}>
-              <Outlet />
-            </div>
-          </div>
-        </main>
+      {/* Main content - Mobile */}
+      <div className="pt-[3.25rem]" style={{ height: 'calc(100dvh - 3.25rem)' }}>
+        {isDashboardRoute ? (
+          <main className="w-[98%] h-[98%] mx-auto px-3 py-3">
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
+              </div>
+            }>
+              <DashboardMobile
+                userInfo={userInfo}
+                modules={modules}
+                isAdmin={isAdmin}
+                isManager={isManager}
+                isSales={hasSalesAccess}
+                isTech={hasTechAccess}
+                userId={userId}
+                navigate={navigate}
+                onNewLead={() => {}}
+              />
+            </Suspense>
+          </main>
+        ) : (
+          <main className="w-full h-full">
+            <Outlet />
+          </main>
+        )}
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav 
+        userId={userId || ''} 
+        userRoles={userInfo?.roles || []}
+      />
     </div>
   );
 };
 
-export default NexoAvLayout;
+export default NexoAvLayoutMobile;
 export { NexoLogo };

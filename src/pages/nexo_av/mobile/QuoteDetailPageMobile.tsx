@@ -34,7 +34,9 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import QuotePDFViewer from "../components/QuotePDFViewer";
+import { QuotePDFDocument } from "../components/QuotePDFViewer";
+import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
+import { Download, Loader2 } from "lucide-react";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import { NexoLogo } from "../components/NexoHeader";
@@ -67,6 +69,33 @@ interface Client {
   tax_id: string | null;
   contact_email: string | null;
   contact_phone: string | null;
+  billing_address: string | null;
+  billing_city: string | null;
+  billing_province: string | null;
+  billing_postal_code: string | null;
+  billing_country: string | null;
+}
+
+interface Company {
+  id: string;
+  name: string;
+  legal_name: string;
+  tax_id: string;
+  address: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  country: string;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  logo_url: string | null;
+}
+
+interface Project {
+  id: string;
+  name: string;
+  description: string | null;
 }
 
 // States that block editing
@@ -99,7 +128,10 @@ const QuoteDetailPageMobile = () => {
 
   const [loading, setLoading] = useState(true);
   const [quote, setQuote] = useState<Quote | null>(null);
+  const [lines, setLines] = useState<any[]>([]);
   const [client, setClient] = useState<Client | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [showPDF, setShowPDF] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -124,6 +156,17 @@ const QuoteDetailPageMobile = () => {
       const quoteInfo = quoteData[0];
       setQuote(quoteInfo);
 
+      // Fetch quote lines
+      const { data: linesData } = await supabase.rpc("get_quote_lines", {
+        p_quote_id: quoteId,
+      });
+      if (linesData) {
+        const sortedLines = (linesData || []).sort((a: any, b: any) => 
+          (a.line_order || 0) - (b.line_order || 0)
+        );
+        setLines(sortedLines);
+      }
+
       // Fetch client details
       if (quoteInfo.client_id) {
         const { data: clientData, error: clientError } = await supabase.rpc("get_client", {
@@ -131,6 +174,28 @@ const QuoteDetailPageMobile = () => {
         });
         if (!clientError && clientData && clientData.length > 0) {
           setClient(clientData[0]);
+        }
+      }
+
+      // Fetch company info
+      const { data: companyData } = await supabase
+        .from("companies")
+        .select("*")
+        .limit(1)
+        .single();
+      if (companyData) {
+        setCompany(companyData);
+      }
+
+      // Fetch project if exists
+      if (quoteInfo.project_id) {
+        const { data: projectData } = await supabase
+          .from("projects")
+          .select("id, name, description")
+          .eq("id", quoteInfo.project_id)
+          .single();
+        if (projectData) {
+          setProject(projectData);
         }
       }
 
@@ -310,17 +375,61 @@ const QuoteDetailPageMobile = () => {
               </div>
             </motion.div>
 
-            {/* PDF Viewer - Temporarily disabled, requires full data fetch */}
-            {showPDF && (
+            {/* PDF Viewer - Implementado */}
+            {showPDF && quote && client && company && lines.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="rounded-xl overflow-hidden border border-white/10 p-4 bg-white/5"
+                className="rounded-xl overflow-hidden border border-white/10 bg-white/5"
               >
-                <p className="text-white/60 text-sm text-center">
-                  Vista previa no disponible en móvil. Usa la versión de escritorio para ver el PDF completo.
-                </p>
+                <div className="flex items-center justify-between px-3 py-2 bg-white/5 border-b border-white/10">
+                  <span className="text-white/60 text-xs">Vista Previa PDF</span>
+                  <PDFDownloadLink
+                    document={
+                      <QuotePDFDocument
+                        quote={quote}
+                        lines={lines}
+                        client={client}
+                        company={company}
+                        project={project}
+                      />
+                    }
+                    fileName={`Presupuesto-${quote.quote_number}.pdf`}
+                  >
+                    {({ loading }) => (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 text-white/60 hover:text-white gap-1.5"
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Download className="h-3.5 w-3.5" />
+                        )}
+                        <span className="text-xs">Descargar</span>
+                      </Button>
+                    )}
+                  </PDFDownloadLink>
+                </div>
+                <div className="h-[500px] bg-zinc-900">
+                  <PDFViewer
+                    width="100%"
+                    height="100%"
+                    showToolbar={false}
+                    className="border-0"
+                  >
+                    <QuotePDFDocument
+                      quote={quote}
+                      lines={lines}
+                      client={client}
+                      company={company}
+                      project={project}
+                    />
+                  </PDFViewer>
+                </div>
               </motion.div>
             )}
 

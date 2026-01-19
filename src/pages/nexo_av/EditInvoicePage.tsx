@@ -927,4 +927,13 @@ const EditInvoicePage = () => {
   );
 };
 
-export default EditInvoicePage;
+// Export with mobile version
+import { lazy } from 'react';
+import { createMobilePage } from './MobilePageWrapper';
+
+const EditInvoicePageMobile = lazy(() => import('./mobile/EditInvoicePageMobile'));
+
+export default createMobilePage({
+  DesktopComponent: EditInvoicePage,
+  MobileComponent: EditInvoicePageMobile,
+});

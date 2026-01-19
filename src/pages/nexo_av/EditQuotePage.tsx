@@ -1282,4 +1282,13 @@ const EditQuotePage = () => {
   );
 };
 
-export default EditQuotePage;
+// Export with mobile version
+import { lazy } from 'react';
+import { createMobilePage } from './MobilePageWrapper';
+
+const EditQuotePageMobile = lazy(() => import('./mobile/EditQuotePageMobile'));
+
+export default createMobilePage({
+  DesktopComponent: EditQuotePage,
+  MobileComponent: EditQuotePageMobile,
+});
