@@ -54,8 +54,10 @@ interface Supplier {
     company_name: string;
     category: string | null;
     tax_id: string | null;
-    contact_phone: string | null;
-    contact_email: string | null;
+    contact_phone?: string | null;
+    contact_email?: string | null;
+    phone?: string | null;
+    email?: string | null;
     city: string | null;
     province: string | null;
     payment_terms: string | null;

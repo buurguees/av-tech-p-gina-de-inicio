@@ -60,7 +60,7 @@ interface Technician {
   specialties: string[];
   daily_rate: number;
   hourly_rate: number;
-  monthly_salary: number | null;
+  monthly_salary?: number | null;
   rating: number;
   created_at: string;
 }
@@ -156,16 +156,11 @@ const TechniciansPageDesktop = () => {
 
       // Filtrar facturas del mes actual para técnicos
       const purchaseInvoices = (purchaseInvoicesData || []).filter((inv: any) => {
-        if (!inv.technician_id || !inv.issue_date) return false;
+        if (!inv.provider_id || inv.provider_type !== 'TECHNICIAN' || !inv.issue_date) return false;
         const invoiceDate = new Date(inv.issue_date);
         return invoiceDate >= firstDayOfMonth && invoiceDate <= lastDayOfMonth &&
-               (inv.status === 'APPROVED' || inv.status === 'PAID');
+               (inv.status === 'APPROVED' || inv.status === 'PAID' || inv.status === 'REGISTERED');
       });
-
-      if (error) {
-        console.error('Error fetching purchase invoices:', error);
-        return;
-      }
 
       // Separar facturas por tipo de técnico
       const freelancerIds = technicians
@@ -176,12 +171,12 @@ const TechniciansPageDesktop = () => {
         .filter(t => t.type === 'COMPANY' && t.status === 'ACTIVE')
         .map(t => t.id);
 
-      const freelancerInvoices = purchaseInvoices?.filter(inv => 
-        inv.technician_id && freelancerIds.includes(inv.technician_id)
+      const freelancerInvoices = purchaseInvoices?.filter((inv: any) => 
+        inv.provider_id && freelancerIds.includes(inv.provider_id)
       ) || [];
       
-      const companyInvoices = purchaseInvoices?.filter(inv => 
-        inv.technician_id && companyIds.includes(inv.technician_id)
+      const companyInvoices = purchaseInvoices?.filter((inv: any) => 
+        inv.provider_id && companyIds.includes(inv.provider_id)
       ) || [];
 
       const totalFreelancers = freelancerInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
