@@ -63,12 +63,12 @@ const NexoLogo = () => {
   if (isLightTheme) {
     return (
       <svg
-        width="20"
-        height="20"
+        width="24"
+        height="24"
         viewBox="0 0 500 500"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-5 h-5"
+        className="w-6 h-6"
       >
         <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="currentColor" />
         <path d="M256.098 250L500 6.09766V90.7789L340.955 250H256.098Z" fill="currentColor" />
@@ -84,12 +84,12 @@ const NexoLogo = () => {
 
   return (
     <svg
-      width="20"
-      height="20"
+      width="24"
+      height="24"
       viewBox="0 0 1000 1000"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="w-5 h-5"
+      className="w-6 h-6"
     >
       <path d="M750 743.902L506.098 500H590.779L750 659.045V743.902Z" fill="white" />
       <path d="M506.098 500L750 256.098V340.779L590.955 500H506.098Z" fill="white" />
@@ -384,26 +384,29 @@ const NexoAvLayoutMobile = () => {
         className="border-b border-border/50 bg-background/95 backdrop-blur-xl fixed top-0 left-0 right-0 z-50 shadow-sm"
         style={{
           paddingTop: 'env(safe-area-inset-top, 0px)',
-          height: 'calc(2.75rem + env(safe-area-inset-top, 0px))'
+          height: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
+          paddingLeft: 'env(safe-area-inset-left, 0px)',
+          paddingRight: 'env(safe-area-inset-right, 0px)'
         }}
       >
-        <div className="w-full h-[2.75rem] px-3">
+        <div className="w-full h-[3.5rem] px-3">
           <div className="flex items-center justify-between h-full">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <button
                 onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
-                className="cursor-pointer hover:opacity-70 active:scale-95 transition-all duration-200 flex-shrink-0 rounded-lg p-0.5"
+                className="cursor-pointer hover:opacity-70 active:scale-95 transition-all duration-200 flex-shrink-0 rounded-lg p-1"
                 aria-label="Ir al inicio"
                 style={{ touchAction: 'manipulation' }}
               >
                 <NexoLogo />
               </button>
-              <div className="flex flex-col justify-center">
-                <h1 className="text-foreground font-bold tracking-tight text-xs leading-tight">NEXO AV</h1>
+              <div className="flex flex-col justify-center min-w-0">
+                <h1 className="text-foreground font-bold tracking-tight text-sm leading-tight truncate">NEXO AV</h1>
+                <p className="text-muted-foreground text-[10px] leading-tight truncate">Plataforma de Gestión</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <UserAvatarDropdown
                 fullName={userInfo?.full_name || ''}
                 email={userInfo?.email || ''}
@@ -422,9 +425,11 @@ const NexoAvLayoutMobile = () => {
       {/* Main content - Mobile */}
       <div 
         style={{ 
-          paddingTop: 'calc(2.75rem + env(safe-area-inset-top, 0px))',
+          paddingTop: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
           paddingBottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))',
-          minHeight: '100dvh'
+          minHeight: '100dvh',
+          paddingLeft: 'env(safe-area-inset-left, 0px)',
+          paddingRight: 'env(safe-area-inset-right, 0px)'
         }}
       >
         {isDashboardRoute ? (

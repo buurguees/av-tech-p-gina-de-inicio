@@ -269,51 +269,37 @@ const QuotesPageDesktop = () => {
 
   return (
     <div className="w-full">
-      <div className="w-full px-3 sm:px-4 lg:px-6 py-3 md:py-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-              className="bg-card/50 border border-white/10 rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-orange-500/10 rounded-lg text-orange-500 uppercase font-bold text-xs tracking-wider">
+      <div className="w-full px-3 sm:px-2 lg:px-6 py-3 md:py-6">
+        <div>
+          {/* Stats Cards - Optimizado */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+            <div className="bg-card/50 border border-white/10 rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-orange-500/10 rounded text-orange-500 text-[10px] font-bold uppercase tracking-wider">
                   Pipeline Activo
                 </div>
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div className="flex items-baseline gap-1">
+                <span className="text-base font-bold text-foreground">
                   {formatCurrency(quotes
                     .filter(q => q.status === 'SENT' || q.status === 'VIEWED' || q.status === 'PENDING')
                     .reduce((sum, q) => sum + (q.total || 0), 0)
                   )}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                  en {quotes.filter(q => q.status === 'SENT' || q.status === 'VIEWED' || q.status === 'PENDING').length} presupuestos
+                <span className="text-[10px] text-muted-foreground">
+                  ({quotes.filter(q => q.status === 'SENT' || q.status === 'VIEWED' || q.status === 'PENDING').length} presup.)
                 </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="bg-card/50 border border-white/10 rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-green-500/10 rounded-lg text-green-500 uppercase font-bold text-xs tracking-wider">
-                  Tasa de Aceptación
+            <div className="bg-card/50 border border-white/10 rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-green-500/10 rounded text-green-500 text-[10px] font-bold uppercase tracking-wider">
+                  Tasa Aceptación
                 </div>
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div className="flex items-baseline gap-1">
+                <span className="text-base font-bold text-foreground">
                   {(() => {
                     const closed = quotes.filter(q => q.status === 'ACCEPTED' || q.status === 'REJECTED');
                     if (closed.length === 0) return '0%';
@@ -321,32 +307,27 @@ const QuotesPageDesktop = () => {
                     return `${Math.round((won / closed.length) * 100)}%`;
                   })()}
                 </span>
-                <span className="text-xs text-muted-foreground">de conversión global</span>
+                <span className="text-[10px] text-muted-foreground">conversión                </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-              className="bg-card/50 border border-white/10 rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-500 uppercase font-bold text-xs tracking-wider">
+            <div className="bg-card/50 border border-white/10 rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-purple-500/10 rounded text-purple-500 text-[10px] font-bold uppercase tracking-wider">
                   Ticket Medio
                 </div>
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div className="flex items-baseline gap-1">
+                <span className="text-base font-bold text-foreground">
                   {formatCurrency(
                     quotes.length > 0
                       ? quotes.reduce((sum, q) => sum + (q.total || 0), 0) / quotes.length
                       : 0
                   )}
                 </span>
-                <span className="text-xs text-muted-foreground">por presupuesto</span>
+                <span className="text-[10px] text-muted-foreground">por presupuesto                </span>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* Header - Estilo Holded */}
@@ -354,7 +335,7 @@ const QuotesPageDesktop = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">Presupuestos</h1>
-                <Info className="h-4 w-4 text-muted-foreground" />
+                <Info className="h-3 w-3 text-muted-foreground" />
               </div>
 
               <div className="flex items-center gap-2">
@@ -362,7 +343,7 @@ const QuotesPageDesktop = () => {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
                       Acciones
-                      <ChevronDown className="h-3 w-3 ml-1" />
+                      <ChevronDown className="h-2.5 w-2.5 ml-1" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -372,120 +353,57 @@ const QuotesPageDesktop = () => {
                     <DropdownMenuItem>
                       Duplicar seleccionados
                     </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      Filtrar por estado
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
                   onClick={handleNewQuote}
-                  className="bg-orange-500 hover:bg-orange-600 text-white h-9 px-4 text-sm font-medium"
+                  className="bg-orange-500 hover:bg-orange-600 text-white h-9 px-2 text-[10px] font-medium"
                 >
-                  <Plus className="h-4 w-4 mr-1.5" />
+                  <Plus className="h-3 w-3 mr-1.5" />
                   Nuevo presupuesto
-                  <span className="ml-2 text-xs opacity-70">N</span>
+                  <span className="ml-2 text-[9px] px-1.5 py-0.5 opacity-70">N</span>
                 </Button>
               </div>
             </div>
 
-            {/* Search and Filters Bar - Estilo Holded */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "h-8 px-3 text-xs border-white/20 text-white/70 hover:bg-white/10",
-                      statusFilter === null && "bg-white/10 text-white"
-                    )}
-                  >
-                    {statusFilter === null ? "Todos" : QUOTE_STATUSES.find(s => s.value === statusFilter)?.label || "Todos"}
-                    <ChevronDown className="h-3 w-3 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-zinc-900 border-white/10">
-                  <DropdownMenuItem
-                    onClick={() => setStatusFilter(null)}
-                    className={cn("text-white hover:bg-white/10", statusFilter === null && "bg-white/10")}
-                  >
-                    Todos
-                  </DropdownMenuItem>
-                  {QUOTE_STATUSES.map((status) => (
-                    <DropdownMenuItem
-                      key={status.value}
-                      onClick={() => setStatusFilter(status.value)}
-                      className={cn("text-white hover:bg-white/10", statusFilter === status.value && "bg-white/10")}
-                    >
-                      {status.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-3 text-xs border-white/20 text-white/70 hover:bg-white/10"
-              >
-                <Filter className="h-3 w-3 mr-1" />
-                Filtro
-              </Button>
-
-              <div className="relative flex-1 min-w-[200px] max-w-md">
-                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-                <Input
-                  placeholder="Buscar presupuestos..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="pr-11 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-8 text-xs"
-                />
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-3 text-xs border-white/20 text-white/70 hover:bg-white/10"
-              >
-                <Calendar className="h-3 w-3 mr-1" />
-                01/12/2025 - 31/12/2025
-              </Button>
-            </div>
+                {/* Search Bar - Estilo Holded */}
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1 min-w-[200px] max-w-md">
+                    <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar presupuestos..."
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      className="pr-11 h-8 text-[9px] px-1.5 py-0.5"
+                    />
+                  </div>
+                </div>
           </div>
 
-          {/* Desktop table view */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white/[0.02] rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm shadow-lg"
-          >
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-white/40" />
-              </div>
-            ) : quotes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <FileText className="h-16 w-16 text-white/20 mb-4" />
-                <h3 className="text-xl font-medium text-white mb-2">No hay presupuestos</h3>
-                <p className="text-white/60 mb-6">
-                  {searchInput || statusFilter
-                    ? "No se encontraron presupuestos con los filtros aplicados"
-                    : "Crea tu primer presupuesto para comenzar"}
-                </p>
-                {!searchInput && !statusFilter && (
-                  <Button
-                    onClick={handleNewQuote}
-                    className="bg-white text-black hover:bg-white/90"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nuevo Presupuesto
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <>
-                <Table>
+          {/* Table */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : quotes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No hay presupuestos</p>
+              <p className="text-muted-foreground/70 text-[10px] mt-1">
+                Crea tu primer presupuesto para comenzar
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table */}
+              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
+                <Table className="w-full">
                   <TableHeader>
-                    <TableRow className="border-white/10 hover:bg-transparent bg-white/[0.03]">
-                      <TableHead className="w-12 px-4">
+                    <TableRow className="hover:bg-transparent bg-muted/30">
+                      <TableHead className="w-10 px-2">
                         <Checkbox
                           checked={selectedQuotes.size === paginatedQuotes.length && paginatedQuotes.length > 0}
                           onCheckedChange={handleSelectAll}
@@ -493,50 +411,50 @@ const QuotesPageDesktop = () => {
                         />
                       </TableHead>
                       <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
                         onClick={() => handleSort("date")}
                       >
                         <div className="flex items-center gap-1">
                           Fecha
                           {sortColumn === "date" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                           )}
                         </div>
                       </TableHead>
                       <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
                         onClick={() => handleSort("number")}
                       >
                         <div className="flex items-center gap-1">
                           Num
                           {sortColumn === "number" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                           )}
                         </div>
                       </TableHead>
                       <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
                         onClick={() => handleSort("client")}
                       >
                         <div className="flex items-center gap-1">
                           Cliente
                           {sortColumn === "client" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                           )}
                         </div>
                       </TableHead>
                       <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
                         onClick={() => handleSort("project")}
                       >
                         <div className="flex items-center gap-1">
                           Proyecto
                           {sortColumn === "project" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                           )}
                         </div>
                       </TableHead>
-                      <TableHead className="text-white/70">Estado</TableHead>
+                      <TableHead className="text-white/70 text-[10px] px-2">Estado</TableHead>
                       <TableHead
                         className="text-white/70 text-right cursor-pointer hover:text-white select-none"
                         onClick={() => handleSort("total")}
@@ -544,11 +462,11 @@ const QuotesPageDesktop = () => {
                         <div className="flex items-center justify-end gap-1">
                           Total
                           {sortColumn === "total" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                           )}
                         </div>
                       </TableHead>
-                      <TableHead className="text-white/70 w-12"></TableHead>
+                      <TableHead className="text-white/70 w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -560,40 +478,40 @@ const QuotesPageDesktop = () => {
                         <TableRow
                           key={quote.id}
                           className={cn(
-                            "border-white/10 hover:bg-white/[0.06] cursor-pointer transition-colors duration-200",
+                            "border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200",
                             isSelected && "bg-white/10"
                           )}
                           onClick={(e) => handleQuoteClick(e, quote.id)}
                         >
-                          <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
+                          <TableCell className="px-2" onClick={(e) => e.stopPropagation()}>
                             <Checkbox
                               checked={isSelected}
                               onCheckedChange={(checked) => handleSelectQuote(quote.id, checked as boolean)}
-                              className="border-white/30 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                              className="border-white/30 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 h-3.5 w-3.5"
                             />
                           </TableCell>
-                          <TableCell className="text-white/80 text-xs">
+                          <TableCell className="text-white text-[10px]">
                             {new Date(quote.created_at).toLocaleDateString('es-ES', {
                               day: '2-digit',
                               month: '2-digit',
                               year: 'numeric'
                             })}
                           </TableCell>
-                          <TableCell className="font-mono text-orange-500 font-medium text-sm">
+                          <TableCell className="font-mono text-white text-[10px]">
                             {quote.quote_number}
                           </TableCell>
-                          <TableCell className="text-white text-sm">
+                          <TableCell className="text-white text-[10px]">
                             {quote.client_name || "-"}
                           </TableCell>
-                          <TableCell className="text-white/70 text-sm">
+                          <TableCell className="text-white/80 text-[10px]">
                             {quote.project_name || "-"}
                           </TableCell>
                           <TableCell>
-                            <Badge className={cn(statusInfo.className, "text-xs")}>
+                            <Badge variant="outline" className={cn(statusInfo.className, "border text-[9px] px-1.5 py-0.5")}>
                               {statusInfo.label}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-white font-medium text-right text-sm">
+                          <TableCell className="text-white text-[10px]">
                             {formatCurrency(quote.total)}
                           </TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
@@ -602,9 +520,9 @@ const QuotesPageDesktop = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                                  className="h-6 w-6 text-white/40 hover:text-white hover:bg-white/10"
                                 >
-                                  <MoreVertical className="h-4 w-4" />
+                                  <MoreVertical className="h-3 w-3" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
@@ -625,7 +543,7 @@ const QuotesPageDesktop = () => {
                                       handleEditClick(e, quote.id);
                                     }}
                                   >
-                                    <Edit className="h-4 w-4 mr-2" />
+                                    <Edit className="h-3 w-3 mr-2" />
                                     Editar
                                   </DropdownMenuItem>
                                 )}
@@ -640,7 +558,7 @@ const QuotesPageDesktop = () => {
                                       handleDeleteClick(e, quote);
                                     }}
                                   >
-                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    <Trash2 className="h-3 w-3 mr-2" />
                                     Eliminar
                                   </DropdownMenuItem>
                                 )}
@@ -652,24 +570,26 @@ const QuotesPageDesktop = () => {
                     })}
                   </TableBody>
                 </Table>
-                {paginatedQuotes.length > 0 && (
-                  <PaginationControls
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    startIndex={startIndex}
-                    endIndex={endIndex}
-                    totalItems={totalItems}
-                    canGoPrev={canGoPrev}
-                    canGoNext={canGoNext}
-                    onPrevPage={prevPage}
-                    onNextPage={nextPage}
-                    onGoToPage={goToPage}
-                  />
-                )}
-              </>
-            )}
-          </motion.div>
-        </motion.div>
+              </div>
+
+              {/* Paginación */}
+              {totalPages > 1 && (
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  startIndex={startIndex}
+                  endIndex={endIndex}
+                  totalItems={totalItems}
+                  canGoPrev={canGoPrev}
+                  canGoNext={canGoNext}
+                  onPrevPage={prevPage}
+                  onNextPage={nextPage}
+                  onGoToPage={goToPage}
+                />
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Delete Confirmation Dialog */}
@@ -696,7 +616,7 @@ const QuotesPageDesktop = () => {
             >
               {deleting ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
                   Eliminando...
                 </>
               ) : (

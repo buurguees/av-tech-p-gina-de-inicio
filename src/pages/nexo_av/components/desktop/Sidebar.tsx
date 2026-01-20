@@ -18,7 +18,8 @@ import {
   Settings,
   Shield,
   Wrench,
-  Truck
+  Truck,
+  BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -198,6 +199,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
 
   // Módulos admin
   const adminModules = [
+    {
+      id: 'accounting',
+      title: 'Contabilidad',
+      icon: BookOpen,
+      path: `/nexo-av/${userId}/accounting`,
+      available: getModule('accounting')?.available || false,
+    },
     {
       id: 'settings',
       title: 'Configuración',

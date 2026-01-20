@@ -20,7 +20,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Plus, Search, FolderKanban, Loader2, MoreVertical, ChevronUp, ChevronDown, Info, Filter, Euro, TrendingUp, BarChart3, Target, CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react";
-import { motion } from "framer-motion";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
 import CreateProjectDialog from "./components/CreateProjectDialog";
@@ -94,8 +93,11 @@ const ProjectsPageDesktop = () => {
     monthlyCompletedProjects: 0,
     avgProjectValue: 0,
     avgQuoteValue: 0,
-    totalQuotesValue: 0
+    totalQuotesValue: 0,
+    avgProfitabilityMargin: 0
   });
+  const [projectProfitability, setProjectProfitability] = useState<Map<string, number>>(new Map());
+  const [loadingProfitability, setLoadingProfitability] = useState(false);
 
   const fetchProjects = async () => {
     try {
@@ -121,44 +123,44 @@ const ProjectsPageDesktop = () => {
         byStatus[status.value] = projects.filter(p => p.status === status.value).length;
       });
 
-      // Obtener presupuestos (quotes) asignados a proyectos
-      const { data: quotesData, error: quotesError } = await supabase
-        .from('quotes.quotes')
-        .select('project_id, total, status');
+      // Obtener presupuestos (quotes) asignados a proyectos usando RPC
+      const { data: quotesData, error: quotesError } = await supabase.rpc('list_quotes', { 
+        p_search: null,
+        p_status: null
+      });
 
       if (quotesError) {
         console.error('Error fetching quotes:', quotesError);
       }
 
-      // Calcular presupuestos totales y medios de proyectos
+      // Calcular presupuestos totales y medios de proyectos (usando subtotales)
       const projectQuotes = (quotesData || []).filter((quote: any) => 
         quote.project_id && quote.status !== 'REJECTED' && quote.status !== 'EXPIRED'
       );
-      const totalQuotesValue = projectQuotes.reduce((sum: number, quote: any) => sum + (quote.total || 0), 0);
+      const totalQuotesValue = projectQuotes.reduce((sum: number, quote: any) => sum + (quote.subtotal || 0), 0);
       const projectsWithQuotes = new Set(projectQuotes.map((q: any) => q.project_id));
       const avgQuoteValue = projectsWithQuotes.size > 0 
         ? totalQuotesValue / projectsWithQuotes.size 
         : 0;
 
-      // Obtener facturas de venta relacionadas con proyectos
-      const { data: invoicesData, error: invoicesError } = await supabase
-        .from('sales.invoices')
-        .select('project_id, total, status');
+      // Obtener facturas de venta relacionadas con proyectos usando RPC
+      const { data: invoicesData, error: invoicesError } = await supabase.rpc('finance_list_invoices', {
+        p_search: null,
+        p_status: null
+      });
 
       if (invoicesError) {
         console.error('Error fetching invoices:', invoicesError);
       }
 
-      // Calcular facturación total de proyectos (solo facturas con project_id asignado)
+      // Calcular facturación total de proyectos (solo facturas con project_id asignado, usando subtotales)
       const projectInvoices = (invoicesData || []).filter((inv: any) => 
         inv.project_id && inv.status !== 'CANCELLED' && inv.status !== 'DRAFT'
       );
-      const totalRevenue = projectInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+      const totalRevenue = projectInvoices.reduce((sum: number, inv: any) => sum + (inv.subtotal || 0), 0);
 
-      // Obtener facturas de compra relacionadas con proyectos
+      // Obtener facturas de compra relacionadas con proyectos usando RPC
       const { data: purchaseInvoicesData, error: purchaseInvoicesError } = await supabase.rpc('list_purchase_invoices', {
-        p_limit: 10000,
-        p_offset: 0,
         p_search: null,
         p_status: null,
         p_document_type: null
@@ -168,11 +170,11 @@ const ProjectsPageDesktop = () => {
         console.error('Error fetching purchase invoices:', purchaseInvoicesError);
       }
 
-      // Calcular costes totales de proyectos (solo facturas de compra con project_id asignado)
+      // Calcular costes totales de proyectos (solo facturas de compra con project_id asignado, usando tax_base/subtotal)
       const projectPurchaseInvoices = (purchaseInvoicesData || []).filter((inv: any) => 
         inv.project_id && (inv.status === 'APPROVED' || inv.status === 'PAID')
       );
-      const totalCosts = projectPurchaseInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+      const totalCosts = projectPurchaseInvoices.reduce((sum: number, inv: any) => sum + (inv.tax_base || 0), 0);
 
       // Calcular rentabilidad
       const profitability = totalRevenue - totalCosts;
@@ -208,6 +210,20 @@ const ProjectsPageDesktop = () => {
         ? totalRevenue / projectsWithInvoices.size 
         : 0;
 
+      // Calcular media de rentabilidad de los proyectos
+      // Usamos los datos ya cargados en projectProfitability si están disponibles
+      let avgProfitabilityMargin = 0;
+      try {
+        if (projectProfitability.size > 0) {
+          const margins = Array.from(projectProfitability.values());
+          if (margins.length > 0) {
+            avgProfitabilityMargin = margins.reduce((sum, margin) => sum + margin, 0) / margins.length;
+          }
+        }
+      } catch (err) {
+        console.error('Error calculating average profitability margin:', err);
+      }
+
       setProjectKPIs({
         byStatus,
         totalRevenue,
@@ -219,10 +235,72 @@ const ProjectsPageDesktop = () => {
         monthlyCompletedProjects,
         avgProjectValue,
         avgQuoteValue,
-        totalQuotesValue
+        totalQuotesValue,
+        avgProfitabilityMargin
       });
     } catch (error) {
       console.error('Error calculating project KPIs:', error);
+    }
+  };
+
+  const fetchProjectProfitability = async (projectIds: string[]) => {
+    if (projectIds.length === 0) {
+      setLoadingProfitability(false);
+      return;
+    }
+
+    try {
+      setLoadingProfitability(true);
+      const profitabilityMap = new Map<string, number>();
+      
+      // Fetch profitability for all projects in parallel (batches of 5 to avoid overwhelming the server)
+      const batchSize = 5;
+      for (let i = 0; i < projectIds.length; i += batchSize) {
+        const batch = projectIds.slice(i, i + batchSize);
+        const promises = batch.map(async (projectId) => {
+          try {
+            const { data: financialData, error: financialError } = await supabase.rpc('get_project_financial_stats', {
+              p_project_id: projectId
+            });
+            
+            if (financialError) {
+              // Silently skip errors for individual projects
+              return { projectId, margin: null };
+            }
+            
+            if (financialData && Array.isArray(financialData) && financialData.length > 0) {
+              const stats = financialData[0];
+              const margin = stats?.margin_percentage;
+              // Only include projects with invoiced amount > 0
+              if (margin !== null && margin !== undefined && !isNaN(margin) && stats?.total_invoiced > 0) {
+                return { projectId, margin };
+              }
+            }
+            return { projectId, margin: null };
+          } catch (err) {
+            // Silently skip errors for individual projects
+            return { projectId, margin: null };
+          }
+        });
+        
+        const results = await Promise.all(promises);
+        results.forEach(({ projectId, margin }) => {
+          if (margin !== null && margin !== undefined) {
+            profitabilityMap.set(projectId, margin);
+          }
+        });
+        
+        // Small delay between batches to avoid overwhelming the server
+        if (i + batchSize < projectIds.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      
+      setProjectProfitability(profitabilityMap);
+    } catch (err) {
+      console.error('Error fetching project profitability:', err);
+    } finally {
+      setLoadingProfitability(false);
     }
   };
 
@@ -233,6 +311,13 @@ const ProjectsPageDesktop = () => {
   useEffect(() => {
     if (projects.length > 0) {
       calculateProjectKPIs();
+    }
+  }, [projects]);
+
+  useEffect(() => {
+    if (projects.length > 0) {
+      // Fetch profitability for all projects separately to avoid blocking KPI calculation
+      fetchProjectProfitability(projects.map(p => p.id));
     }
   }, [projects]);
 
@@ -327,316 +412,238 @@ const ProjectsPageDesktop = () => {
     <div className="w-full">
       <div className="w-full px-3 md:px-4 pb-4 md:pb-8">
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              {/* KPIs Cards - Recuento por Estado */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
-                      <Clock className="h-5 w-5" />
+          {/* Main Content - Ocupa todo el ancho disponible */}
+          <div className="flex-1 min-w-0 w-full">
+            <div>
+              {/* KPIs Cards - Recuento por Estado - Optimizado */}
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-3">
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-blue-500/10 rounded text-blue-600">
+                      <Clock className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Planificados</span>
+                    <span className="text-muted-foreground text-xs font-medium">Planificados</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-lg font-bold text-foreground">
                       {projectKPIs.byStatus['PLANNED'] || 0}
                     </span>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-600">
-                      <FolderKanban className="h-5 w-5" />
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-yellow-500/10 rounded text-yellow-600">
+                      <FolderKanban className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">En Progreso</span>
+                    <span className="text-muted-foreground text-xs font-medium">En Progreso</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-lg font-bold text-foreground">
                       {projectKPIs.byStatus['IN_PROGRESS'] || 0}
                     </span>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-orange-500/10 rounded-lg text-orange-600">
-                      <AlertCircle className="h-5 w-5" />
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-orange-500/10 rounded text-orange-600">
+                      <AlertCircle className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Pausados</span>
+                    <span className="text-muted-foreground text-xs font-medium">Pausados</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-lg font-bold text-foreground">
                       {projectKPIs.byStatus['PAUSED'] || 0}
                     </span>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
-                      <CheckCircle className="h-5 w-5" />
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-green-500/10 rounded text-green-600">
+                      <CheckCircle className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Completados</span>
+                    <span className="text-muted-foreground text-xs font-medium">Completados</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-lg font-bold text-foreground">
                       {projectKPIs.byStatus['COMPLETED'] || 0}
                     </span>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-red-500/10 rounded-lg text-red-600">
-                      <XCircle className="h-5 w-5" />
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-red-500/10 rounded text-red-600">
+                      <XCircle className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Cancelados</span>
+                    <span className="text-muted-foreground text-xs font-medium">Cancelados</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-lg font-bold text-foreground">
                       {projectKPIs.byStatus['CANCELLED'] || 0}
                     </span>
                   </div>
-                </motion.div>
+                </div>
               </div>
 
-              {/* KPIs Cards - Métricas Financieras */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
-                      <Euro className="h-5 w-5" />
+              {/* KPIs Cards - Métricas Financieras - Optimizado */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-green-500/10 rounded text-green-600">
+                      <Euro className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Facturación Total</span>
+                    <span className="text-muted-foreground text-xs font-medium">Facturación Total</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-base font-bold text-foreground">
                       {formatCurrency(projectKPIs.totalRevenue)}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                      de proyectos facturados
+                    <span className="text-[10px] text-muted-foreground ml-1 block">
+                      proyectos facturados
                     </span>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-orange-500/10 rounded-lg text-orange-600">
-                      <Euro className="h-5 w-5" />
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-orange-500/10 rounded text-orange-600">
+                      <Euro className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Costes Total</span>
+                    <span className="text-muted-foreground text-xs font-medium">Costes Total</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-base font-bold text-foreground">
                       {formatCurrency(projectKPIs.totalCosts)}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                      en compras/gastos
+                    <span className="text-[10px] text-muted-foreground ml-1 block">
+                      compras/gastos
                     </span>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className={`p-2 rounded-lg ${projectKPIs.profitability >= 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
-                      <TrendingUp className="h-5 w-5" />
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className={`p-1 rounded ${projectKPIs.profitability >= 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
+                      <TrendingUp className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Rentabilidad</span>
+                    <span className="text-muted-foreground text-xs font-medium">Rentabilidad</span>
                   </div>
-                  <div className="mt-2">
-                    <span className={`text-2xl font-bold ${projectKPIs.profitability >= 0 ? 'text-foreground' : 'text-red-600'}`}>
+                  <div>
+                    <span className={`text-base font-bold ${projectKPIs.profitability >= 0 ? 'text-foreground' : 'text-red-600'}`}>
                       {formatCurrency(projectKPIs.profitability)}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
+                    <span className="text-[10px] text-muted-foreground ml-1 block">
                       margen: {projectKPIs.profitMargin.toFixed(1)}%
                     </span>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.9 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-purple-500/10 rounded-lg text-purple-600">
-                      <BarChart3 className="h-5 w-5" />
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-purple-500/10 rounded text-purple-600">
+                      <BarChart3 className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Facturación Media</span>
+                    <span className="text-muted-foreground text-xs font-medium">Facturación Media</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-base font-bold text-foreground">
                       {formatCurrency(projectKPIs.avgProjectValue)}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                      por proyecto facturado
+                    <span className="text-[10px] text-muted-foreground ml-1 block">
+                      por proyecto
                     </span>
                   </div>
-                </motion.div>
+                </div>
               </div>
 
-              {/* KPIs Cards - Presupuestos */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.3 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-600">
-                      <Target className="h-5 w-5" />
+              {/* KPIs Cards - Presupuestos y Productividad - Optimizado */}
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-3">
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-indigo-500/10 rounded text-indigo-600">
+                      <Target className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Presupuesto Medio</span>
+                    <span className="text-muted-foreground text-xs font-medium">Presup. Medio</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-base font-bold text-foreground">
                       {formatCurrency(projectKPIs.avgQuoteValue)}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                      por proyecto con presupuesto
-                    </span>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.4 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-600">
-                      <Euro className="h-5 w-5" />
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-cyan-500/10 rounded text-cyan-600">
+                      <Euro className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Total Presupuestado</span>
+                    <span className="text-muted-foreground text-xs font-medium">Total Presup.</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-base font-bold text-foreground">
                       {formatCurrency(projectKPIs.totalQuotesValue)}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                      en presupuestos de proyectos
+                  </div>
+                </div>
+
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className={`p-1 rounded ${projectKPIs.avgProfitabilityMargin >= 25 ? 'bg-emerald-500/10 text-emerald-600' : projectKPIs.avgProfitabilityMargin >= 20 ? 'bg-amber-500/10 text-amber-600' : 'bg-red-500/10 text-red-600'}`}>
+                      <TrendingUp className="h-3.5 w-3.5" />
+                    </div>
+                    <span className="text-muted-foreground text-xs font-medium">Media Rentabilidad</span>
+                  </div>
+                  <div>
+                    <span className={`text-base font-bold ${projectKPIs.avgProfitabilityMargin >= 25 ? 'text-emerald-600' : projectKPIs.avgProfitabilityMargin >= 20 ? 'text-amber-600' : 'text-red-600'}`}>
+                      {projectKPIs.avgProfitabilityMargin.toFixed(1)}%
                     </span>
                   </div>
-                </motion.div>
-              </div>
+                </div>
 
-              {/* KPIs Cards - Métricas de Productividad */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.0 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-600">
-                      <Target className="h-5 w-5" />
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-cyan-500/10 rounded text-cyan-600">
+                      <Target className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Media Proyectos/Cliente</span>
+                    <span className="text-muted-foreground text-xs font-medium">Media/Cliente</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-base font-bold text-foreground">
                       {projectKPIs.avgProjectsPerClient.toFixed(1)}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                      proyectos por cliente
-                    </span>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.1 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
-                      <FolderKanban className="h-5 w-5" />
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-blue-500/10 rounded text-blue-600">
+                      <FolderKanban className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Nuevos (Mes)</span>
+                    <span className="text-muted-foreground text-xs font-medium">Nuevos (Mes)</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-base font-bold text-foreground">
                       {projectKPIs.monthlyNewProjects}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                      proyectos nuevos este mes
-                    </span>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.2 }}
-                  className="bg-card/50 border border-border rounded-xl p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
-                      <CheckCircle className="h-5 w-5" />
+                <div className="bg-card/50 border border-border rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="p-1 bg-green-500/10 rounded text-green-600">
+                      <CheckCircle className="h-3.5 w-3.5" />
                     </div>
-                    <span className="text-muted-foreground text-sm font-medium">Completados (Total)</span>
+                    <span className="text-muted-foreground text-xs font-medium">Completados</span>
                   </div>
-                  <div className="mt-2">
-                    <span className="text-2xl font-bold text-foreground">
+                  <div>
+                    <span className="text-base font-bold text-foreground">
                       {projectKPIs.byStatus['COMPLETED'] || 0}
                     </span>
-                    <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                      proyectos completados
-                    </span>
                   </div>
-                </motion.div>
+                </div>
               </div>
 
               {/* Header - Estilo Holded */}
@@ -705,75 +712,76 @@ const ProjectsPageDesktop = () => {
               ) : (
                 <>
                   {/* Desktop Table */}
-                  <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md">
-                    <Table>
+                  <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
+                    <Table className="w-full">
                       <TableHeader>
                         <TableRow className="hover:bg-transparent bg-muted/30">
-                          <TableHead className="w-12 px-4">
+                          <TableHead className="w-10 px-2">
                             <Checkbox
                               checked={selectedProjects.size === paginatedProjects.length && paginatedProjects.length > 0}
                               onCheckedChange={handleSelectAll}
-                              className="border-white/30 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                              className="border-white/30 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 h-3.5 w-3.5"
                             />
                           </TableHead>
                           <TableHead
-                            className="text-white/70 cursor-pointer hover:text-white select-none"
+                            className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
                             onClick={() => handleSort("number")}
                           >
                             <div className="flex items-center gap-1">
                               Nº Proyecto
                               {sortColumn === "number" && (
-                                sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                                sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                               )}
                             </div>
                           </TableHead>
                           <TableHead
-                            className="text-white/70 cursor-pointer hover:text-white select-none"
+                            className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
                             onClick={() => handleSort("client")}
                           >
                             <div className="flex items-center gap-1">
                               Cliente
                               {sortColumn === "client" && (
-                                sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                                sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                               )}
                             </div>
                           </TableHead>
                           <TableHead
-                            className="text-white/70 cursor-pointer hover:text-white select-none"
+                            className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
                             onClick={() => handleSort("name")}
                           >
                             <div className="flex items-center gap-1">
                               Nombre
                               {sortColumn === "name" && (
-                                sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                                sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                               )}
                             </div>
                           </TableHead>
-                          <TableHead className="text-white/70">Pedido</TableHead>
+                          <TableHead className="text-white/70 text-[10px] px-2">Pedido</TableHead>
                           <TableHead
-                            className="text-white/70 cursor-pointer hover:text-white select-none"
+                            className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
                             onClick={() => handleSort("status")}
                           >
                             <div className="flex items-center gap-1">
                               Estado
                               {sortColumn === "status" && (
-                                sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                                sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                               )}
                             </div>
                           </TableHead>
                           <TableHead
-                            className="text-white/70 cursor-pointer hover:text-white select-none"
+                            className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
                             onClick={() => handleSort("city")}
                           >
                             <div className="flex items-center gap-1">
                               Ciudad
                               {sortColumn === "city" && (
-                                sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                                sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                               )}
                             </div>
                           </TableHead>
-                          <TableHead className="text-white/70">Local</TableHead>
-                          <TableHead className="text-white/70 w-12"></TableHead>
+                          <TableHead className="text-white/70 text-[10px] px-2">Local</TableHead>
+                          <TableHead className="text-white/70 text-[10px] px-2">Rentabilidad</TableHead>
+                          <TableHead className="text-white/70 w-10 px-2"></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -789,45 +797,66 @@ const ProjectsPageDesktop = () => {
                               )}
                               onClick={() => handleProjectClick(project.id)}
                             >
-                              <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
+                              <TableCell className="px-2" onClick={(e) => e.stopPropagation()}>
                                 <Checkbox
                                   checked={isSelected}
                                   onCheckedChange={(checked) => handleSelectProject(project.id, checked as boolean)}
-                                  className="border-white/30 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                                  className="border-white/30 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 h-3.5 w-3.5"
                                 />
                               </TableCell>
-                              <TableCell className="font-mono text-white text-sm">
+                              <TableCell className="font-mono text-white text-[10px] px-2">
                                 {project.project_number}
                               </TableCell>
-                              <TableCell className="text-white text-sm">
+                              <TableCell className="text-white text-[10px] px-2">
                                 {project.client_name || '-'}
                               </TableCell>
-                              <TableCell className="text-white/80 text-sm max-w-xs truncate">
+                              <TableCell className="text-white/80 text-[10px] px-2 max-w-xs truncate">
                                 {project.project_name}
                               </TableCell>
-                              <TableCell className="text-white/70 text-sm">
+                              <TableCell className="text-white/70 text-[10px] px-2">
                                 {project.client_order_number || '-'}
                               </TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className={cn(statusInfo.color, "border text-xs")}>
+                              <TableCell className="px-2">
+                                <Badge variant="outline" className={cn(statusInfo.color, "border text-[9px] px-1.5 py-0.5")}>
                                   {statusInfo.label}
                                 </Badge>
                               </TableCell>
-                              <TableCell className="text-white/70 text-sm">
+                              <TableCell className="text-white/70 text-[10px] px-2">
                                 {project.project_city || '-'}
                               </TableCell>
-                              <TableCell className="text-white/70 text-sm">
+                              <TableCell className="text-white/70 text-[10px] px-2">
                                 {project.local_name || '-'}
                               </TableCell>
-                              <TableCell onClick={(e) => e.stopPropagation()}>
+                              <TableCell className="px-2">
+                                {loadingProfitability ? (
+                                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                                ) : projectProfitability.has(project.id) ? (
+                                  <Badge 
+                                    variant="outline" 
+                                    className={cn(
+                                      "text-[9px] px-1.5 py-0.5 border",
+                                      projectProfitability.get(project.id)! >= 25 
+                                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                                        : projectProfitability.get(project.id)! >= 20
+                                        ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                                        : "bg-red-500/10 text-red-400 border-red-500/30"
+                                    )}
+                                  >
+                                    {projectProfitability.get(project.id)!.toFixed(1)}%
+                                  </Badge>
+                                ) : (
+                                  <span className="text-white/40 text-[9px]">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="px-2" onClick={(e) => e.stopPropagation()}>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                                      className="h-6 w-6 text-white/40 hover:text-white hover:bg-white/10"
                                     >
-                                      <MoreVertical className="h-4 w-4" />
+                                      <MoreVertical className="h-3 w-3" />
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
@@ -873,11 +902,11 @@ const ProjectsPageDesktop = () => {
                   )}
                 </>
               )}
-            </motion.div>
+            </div>
           </div>
 
-          {/* Sidebar Column */}
-          <div className="w-full lg:w-[350px] shrink-0 mt-8 lg:mt-0">
+          {/* Sidebar Column - Oculto para maximizar el ancho de la tabla */}
+          <div className="hidden">
             <ProjectsListSidebar />
           </div>
         </div>

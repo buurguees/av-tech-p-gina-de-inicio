@@ -21,6 +21,7 @@ import {
   Shield,
   Receipt,
   MapPin,
+  BookOpen,
 } from "lucide-react";
 
 interface UserInfo {
@@ -240,6 +241,15 @@ const NexoAvLayout = () => {
       borderColor: 'border-red-500/30',
       available: isAdmin,
       path: `/nexo-av/${userId}/audit`,
+    },
+    {
+      id: 'accounting',
+      title: 'Contabilidad',
+      icon: BookOpen,
+      color: 'from-indigo-500/20 to-indigo-600/10',
+      borderColor: 'border-indigo-500/30',
+      available: isAdmin,
+      path: `/nexo-av/${userId}/accounting`,
     },
   ];
 

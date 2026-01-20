@@ -34,7 +34,8 @@ import {
   Upload,
   Info,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  CreditCard
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
@@ -49,8 +50,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { createMobilePage } from "./MobilePageWrapper";
-import PendingReviewSection from "./components/PendingReviewSection";
 import PaginationControls from "./components/PaginationControls";
+import RegisterPurchasePaymentDialog from "./components/RegisterPurchasePaymentDialog";
 
 const PurchaseInvoicesPageMobile = lazy(() => import("./mobile/PurchaseInvoicesPageMobile"));
 const DocumentScanner = lazy(() => import("./components/DocumentScanner"));
@@ -62,7 +63,8 @@ interface PurchaseInvoice {
   issue_date: string;
   due_date: string | null;
   tax_base: number;
-  tax_amount: number;
+  tax_amount: number; // IVA total
+  retention_amount?: number; // IRPF total (retention_amount en la RPC)
   total: number;
   paid_amount: number;
   pending_amount: number;
@@ -75,6 +77,8 @@ interface PurchaseInvoice {
   file_name: string | null;
   project_id: string | null;
   project_name: string | null;
+  project_number: string | null;
+  client_name: string | null;
   expense_category: string | null;
   is_locked: boolean;
   created_at: string;
@@ -347,73 +351,54 @@ const PurchaseInvoicesPageDesktop = () => {
   } = usePagination(sortedInvoices, { pageSize: 50 });
 
   return (
-    <div className="w-full">
-      <div className="w-full px-3 md:px-4 pb-4 md:pb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Summary Metric Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-zinc-900/50 border border-white/10 rounded-xl p-4 flex flex-col justify-between"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-500/10 rounded-lg text-red-500">
-                  <TrendingDown className="h-5 w-5" />
+    <div className="w-full h-full">
+      <div className="w-full px-6 py-6">
+        <div>
+          {/* Summary Metric Cards - Optimizado */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-red-500/10 rounded text-red-500">
+                  <TrendingDown className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-white/60 text-sm font-medium">Gasto Total</span>
+                <span className="text-muted-foreground text-xs font-medium">Gasto Total</span>
               </div>
               <div>
-                <span className="text-2xl font-bold text-white">
+                <span className="text-base font-bold text-foreground">
                   {formatCurrency(invoices.reduce((sum, inv) => sum + (inv.total || 0), 0))}
                 </span>
-                <div className="flex items-center gap-1 mt-1 text-xs text-white/40">
-                  <span>{invoices.length} documentos</span>
-                </div>
+                <span className="text-[10px] text-muted-foreground ml-1">
+                  ({invoices.length} documentos)
+                </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-zinc-900/50 border border-white/10 rounded-xl p-4 flex flex-col justify-between"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
-                  <AlertCircle className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-blue-500/10 rounded text-blue-500">
+                  <AlertCircle className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-white/60 text-sm font-medium">Pendiente de Pago</span>
+                <span className="text-muted-foreground text-xs font-medium">Pendiente de Pago</span>
               </div>
               <div>
-                <span className="text-2xl font-bold text-white">
+                <span className="text-base font-bold text-foreground">
                   {formatCurrency(invoices.reduce((sum, inv) => sum + (inv.pending_amount || 0), 0))}
                 </span>
-                <div className="flex items-center gap-1 mt-1 text-xs text-blue-400">
-                  <span>{invoices.filter(i => i.pending_amount > 0).length} facturas pendientes</span>
-                </div>
+                <span className="text-[10px] text-muted-foreground ml-1">
+                  ({invoices.filter(i => i.pending_amount > 0).length} facturas)
+                </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-zinc-900/50 border border-white/10 rounded-xl p-4 flex flex-col justify-between"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-500/10 rounded-lg text-red-500">
-                  <AlertCircle className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-red-500/10 rounded text-red-500">
+                  <AlertCircle className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-white/60 text-sm font-medium">Vencido</span>
+                <span className="text-muted-foreground text-xs font-medium">Vencido</span>
               </div>
               <div>
-                <span className="text-2xl font-bold text-red-500">
+                <span className="text-base font-bold text-red-500">
                   {formatCurrency(invoices
                     .filter(inv => {
                       if (inv.status === 'PAID' || inv.status === 'DRAFT' || inv.status === 'CANCELLED') return false;
@@ -423,11 +408,11 @@ const PurchaseInvoicesPageDesktop = () => {
                     .reduce((sum, inv) => sum + (inv.total || 0), 0)
                   )}
                 </span>
-                <div className="flex items-center gap-1 mt-1 text-xs text-red-400/80">
-                  <span>Requiere atención inmediata</span>
-                </div>
+                <span className="text-[10px] text-muted-foreground ml-1">
+                  Requiere atención
+                </span>
               </div>
-            </motion.div>
+            </div>
           </div>
           {/* Header - Estilo Holded */}
           <div className="mb-6">
@@ -595,16 +580,6 @@ const PurchaseInvoicesPageDesktop = () => {
             </div>
           </div>
 
-          {/* Pending Review Section */}
-          {invoices.filter(i => i.status === 'PENDING').length > 0 && (
-            <div className="mb-6">
-              <PendingReviewSection
-                onComplete={(invoiceId) => {
-                  navigate(`/nexo-av/${userId}/purchase-invoices/${invoiceId}`);
-                }}
-              />
-            </div>
-          )}
 
           {/* Table */}
           {loading ? (
@@ -623,76 +598,84 @@ const PurchaseInvoicesPageDesktop = () => {
             <>
               {/* Desktop Table */}
               <div className="bg-white/[0.02] rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm shadow-lg">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-white/10 hover:bg-transparent bg-white/[0.03]">
-                      <TableHead className="w-12 px-4">
-                        <Checkbox
-                          checked={selectedInvoices.size === paginatedInvoices.length && paginatedInvoices.length > 0}
-                          onCheckedChange={handleSelectAll}
-                          className="border-white/30 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
-                        />
-                      </TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
-                        onClick={() => handleSort("date")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Emisión
-                          {sortColumn === "date" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
-                        onClick={() => handleSort("number")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Num
-                          {sortColumn === "number" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
-                        onClick={() => handleSort("provider")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Proveedor
-                          {sortColumn === "provider" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
-                        onClick={() => handleSort("project")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Proyecto
-                          {sortColumn === "project" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-white/70 text-right">Subtotal</TableHead>
-                      <TableHead
-                        className="text-white/70 text-right cursor-pointer hover:text-white select-none"
-                        onClick={() => handleSort("total")}
-                      >
-                        <div className="flex items-center justify-end gap-1">
-                          Total
-                          {sortColumn === "total" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-white/70">Estado</TableHead>
-                      <TableHead className="text-white/70 w-12"></TableHead>
-                    </TableRow>
-                  </TableHeader>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-white/10 hover:bg-transparent bg-white/[0.03]">
+                        <TableHead className="w-10 px-2">
+                          <Checkbox
+                            checked={selectedInvoices.size === paginatedInvoices.length && paginatedInvoices.length > 0}
+                            onCheckedChange={handleSelectAll}
+                            className="border-white/30 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 h-3.5 w-3.5"
+                          />
+                        </TableHead>
+                        <TableHead
+                          className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
+                          onClick={() => handleSort("date")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Emisión
+                            {sortColumn === "date" && (
+                              sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead
+                          className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
+                          onClick={() => handleSort("number")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Num
+                            {sortColumn === "number" && (
+                              sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead
+                          className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
+                          onClick={() => handleSort("provider")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Proveedor
+                            {sortColumn === "provider" && (
+                              sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead
+                          className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
+                          onClick={() => handleSort("project")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Proyecto
+                            {sortColumn === "project" && (
+                              sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-white/70 text-right text-[10px] px-2">Subtotal</TableHead>
+                        <TableHead className="text-white/70 text-right text-[10px] px-2">IVA</TableHead>
+                        <TableHead className="text-white/70 text-right text-[10px] px-2">IRPF</TableHead>
+                        <TableHead
+                          className="text-white/70 text-right cursor-pointer hover:text-white select-none text-[10px] px-2"
+                          onClick={() => handleSort("total")}
+                        >
+                          <div className="flex items-center justify-end gap-1">
+                            Total
+                            {sortColumn === "total" && (
+                              sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-white/70 text-[10px] px-2">Estado</TableHead>
+                        <TableHead
+                          className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
+                        >
+                          Vencimiento
+                        </TableHead>
+                        <TableHead className="text-white/70 w-12"></TableHead>
+                      </TableRow>
+                    </TableHeader>
                   <TableBody>
                     {paginatedInvoices.map((invoice) => {
                       const isSelected = selectedInvoices.has(invoice.id);
@@ -705,39 +688,60 @@ const PurchaseInvoicesPageDesktop = () => {
                           )}
                           onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}
                         >
-                          <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
+                          <TableCell className="px-2" onClick={(e) => e.stopPropagation()}>
                             <Checkbox
                               checked={isSelected}
                               onCheckedChange={(checked) => handleSelectInvoice(invoice.id, checked as boolean)}
-                              className="border-white/30 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                              className="border-white/30 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 h-3.5 w-3.5"
                             />
                           </TableCell>
-                          <TableCell className="text-white/80 text-xs">
+                          <TableCell className="text-white/80 text-[10px] px-2">
                             {invoice.issue_date ? formatDate(invoice.issue_date) : "-"}
                           </TableCell>
-                          <TableCell className="font-mono text-emerald-500 font-medium text-sm">
-                            {invoice.invoice_number}
+                          <TableCell className="font-mono text-emerald-500 font-medium text-[10px] px-2">
+                            {invoice.internal_purchase_number || 
+                             invoice.supplier_invoice_number || 
+                             invoice.invoice_number || 
+                             'Sin número'}
                           </TableCell>
-                          <TableCell className="text-white text-sm">
+                          <TableCell className="text-white text-[10px] px-2">
                             {invoice.provider_name || "-"}
-                            {invoice.provider_type === 'TECHNICIAN' && (
-                              <Badge className="ml-2 bg-violet-500/10 text-violet-400 text-[8px] border-none">TÉCNICO</Badge>
+                          </TableCell>
+                          <TableCell className="text-white/70 text-[10px] px-2">
+                            {invoice.project_id ? (
+                              <div className="flex flex-col gap-0.5">
+                                <span className="font-mono text-white/90">
+                                  {invoice.project_number || "-"}
+                                </span>
+                                {invoice.client_name && (
+                                  <span className="text-white/60 text-[9px] truncate max-w-[150px]">
+                                    {invoice.client_name}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              "-"
                             )}
                           </TableCell>
-                          <TableCell className="text-white/70 font-mono text-sm">
-                            {invoice.project_name || "-"}
+                          <TableCell className="text-right text-white/60 text-[10px] px-2">
+                            {formatCurrency(invoice.tax_base || 0)}
                           </TableCell>
-                          <TableCell className="text-right text-white/60 text-sm">
-                            {formatCurrency(invoice.tax_base)}
+                          <TableCell className="text-right text-white/60 text-[10px] px-2">
+                            {invoice.tax_amount > 0 ? formatCurrency(invoice.tax_amount) : "-"}
                           </TableCell>
-                          <TableCell className="text-right text-white font-medium text-sm">
-                            {formatCurrency(invoice.total)}
+                          <TableCell className="text-right text-white/60 text-[10px] px-2">
+                            {invoice.retention_amount && invoice.retention_amount > 0 
+                              ? formatCurrency(invoice.retention_amount) 
+                              : "-"}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="text-right text-white font-medium text-[10px] px-2">
+                            {formatCurrency(invoice.total || 0)}
+                          </TableCell>
+                          <TableCell className="px-2">
                             <Badge
                               variant="outline"
                               className={cn(
-                                "text-xs",
+                                "text-[9px] px-1.5 py-0.5",
                                 invoice.status === 'PAID' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
                                   invoice.status === 'PARTIAL' ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
                                     invoice.status === 'PENDING' ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
@@ -747,38 +751,70 @@ const PurchaseInvoicesPageDesktop = () => {
                               {invoice.status === 'PENDING' ? 'Pendiente' : invoice.status === 'REGISTERED' ? 'Registrado' : invoice.status === 'PAID' ? 'Pagado' : 'Parcial'}
                             </Badge>
                           </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
-                                >
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                                <DropdownMenuItem
-                                  className="text-white hover:bg-white/10"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`);
-                                  }}
-                                >
-                                  Ver detalle
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-white hover:bg-white/10">
-                                  Duplicar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                          <TableCell className="text-white/80 text-[10px] px-2">
+                            {invoice.due_date ? formatDate(invoice.due_date) : "-"}
+                          </TableCell>
+                          <TableCell className="px-2" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-1">
+                              {(() => {
+                                const canRegisterPayment = ["CONFIRMED", "PARTIAL", "PAID"].includes(invoice.status) 
+                                  && !invoice.is_locked 
+                                  && invoice.pending_amount > 0;
+                                
+                                return canRegisterPayment ? (
+                                  <RegisterPurchasePaymentDialog
+                                    invoiceId={invoice.id}
+                                    pendingAmount={invoice.pending_amount}
+                                    onPaymentRegistered={() => {
+                                      fetchInvoices();
+                                    }}
+                                    trigger={
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 px-2 text-[10px] text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <CreditCard className="h-3 w-3 mr-1" />
+                                        Pagar
+                                      </Button>
+                                    }
+                                  />
+                                ) : null;
+                              })()}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-white/40 hover:text-white hover:bg-white/10"
+                                  >
+                                    <MoreVertical className="h-3 w-3" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                                  <DropdownMenuItem
+                                    className="text-white hover:bg-white/10"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`);
+                                    }}
+                                  >
+                                    Ver detalle
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="text-white hover:bg-white/10">
+                                    Duplicar
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
                     })}
                   </TableBody>
-                </Table>
+                  </Table>
+                </div>
               </div>
 
               {/* Paginación */}
@@ -798,7 +834,7 @@ const PurchaseInvoicesPageDesktop = () => {
               )}
             </>
           )}
-        </motion.div>
+        </div>
       </div>
 
       <AnimatePresence>

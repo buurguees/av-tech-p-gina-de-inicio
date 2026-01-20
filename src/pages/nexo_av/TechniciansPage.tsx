@@ -29,7 +29,6 @@ import {
   Users,
   TrendingUp
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
@@ -143,11 +142,11 @@ const TechniciansPageDesktop = () => {
 
       // Obtener facturas de compra del mes actual para técnicos freelance/empresas
       const { data: purchaseInvoicesData, error: invoicesError } = await supabase.rpc('list_purchase_invoices', {
-        p_limit: 10000,
-        p_offset: 0,
         p_search: null,
         p_status: null,
-        p_document_type: null
+        p_document_type: null,
+        p_page: 1,
+        p_page_size: 10000
       });
 
       if (invoicesError) {
@@ -225,172 +224,124 @@ const TechniciansPageDesktop = () => {
 
   return (
     <div className="w-full">
-      <div className="w-full px-3 md:px-4 pb-4 md:pb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Summary Cards - Recuento por tipo */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
-                  <UserRound className="h-5 w-5" />
+      <div className="w-full px-3 md:px-2 pb-4 md:pb-8">
+        <div>
+          {/* Summary Cards - Recuento por tipo - Optimizado */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-blue-500/10 rounded text-blue-600">
+                  <UserRound className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Autónomos</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Autónomos</span>
               </div>
-              <div className="mt-2">
-                <span className="text-3xl font-bold text-foreground">
+              <div>
+                <span className="text-lg font-bold text-foreground">
                   {technicians.filter(t => t.type === 'FREELANCER').length}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2">
-                  {technicians.filter(t => t.type === 'FREELANCER' && t.status === 'ACTIVE').length} activos
+                <span className="text-[10px] text-muted-foreground ml-1">
+                  ({technicians.filter(t => t.type === 'FREELANCER' && t.status === 'ACTIVE').length} activos)
                 </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-600">
-                  <Building2 className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-purple-500/10 rounded text-purple-600">
+                  <Building2 className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Empresas</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Empresas</span>
               </div>
-              <div className="mt-2">
-                <span className="text-3xl font-bold text-foreground">
+              <div>
+                <span className="text-lg font-bold text-foreground">
                   {technicians.filter(t => t.type === 'COMPANY').length}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2">
-                  {technicians.filter(t => t.type === 'COMPANY' && t.status === 'ACTIVE').length} activas
+                <span className="text-[10px] text-muted-foreground ml-1">
+                  ({technicians.filter(t => t.type === 'COMPANY' && t.status === 'ACTIVE').length} activas)
                 </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
-                  <Briefcase className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-green-500/10 rounded text-green-600">
+                  <Briefcase className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Plantilla</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Plantilla</span>
               </div>
-              <div className="mt-2">
-                <span className="text-3xl font-bold text-foreground">
+              <div>
+                <span className="text-lg font-bold text-foreground">
                   {technicians.filter(t => t.type === 'EMPLOYEE').length}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2">
-                  {technicians.filter(t => t.type === 'EMPLOYEE' && t.status === 'ACTIVE').length} activos
+                <span className="text-[10px] text-muted-foreground ml-1">
+                  ({technicians.filter(t => t.type === 'EMPLOYEE' && t.status === 'ACTIVE').length} activos)
                 </span>
               </div>
-            </motion.div>
+            </div>
           </div>
 
-          {/* Costes Mensuales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-orange-500/10 rounded-lg text-orange-600">
-                  <Euro className="h-5 w-5" />
+          {/* Costes Mensuales - Optimizado */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-orange-500/10 rounded text-orange-600">
+                  <Euro className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Coste Mensual Total</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Coste Total/Mes</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-base font-bold text-foreground">
                   {formatCurrency(monthlyCosts.totalExternal + monthlyCosts.totalEmployees)}
                 </span>
-                <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
+                <div className="flex gap-1 mt-0.5 text-[10px] text-muted-foreground">
                   <span>Ext: {formatCurrency(monthlyCosts.totalExternal)}</span>
                   <span>•</span>
-                  <span>Plantilla: {formatCurrency(monthlyCosts.totalEmployees)}</span>
+                  <span>Pl: {formatCurrency(monthlyCosts.totalEmployees)}</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
-                  <TrendingUp className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-blue-500/10 rounded text-blue-600">
+                  <TrendingUp className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Media Autónomos</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Media Autónomos</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-base font-bold text-foreground">
                   {formatCurrency(monthlyCosts.avgFreelancer)}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                  por técnico/mes
-                </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-600">
-                  <TrendingUp className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-purple-500/10 rounded text-purple-600">
+                  <TrendingUp className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Media Empresas</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Media Empresas</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-base font-bold text-foreground">
                   {formatCurrency(monthlyCosts.avgCompany)}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                  por empresa/mes
-                </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
-                  <TrendingUp className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-green-500/10 rounded text-green-600">
+                  <TrendingUp className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Media Plantilla</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Media Plantilla</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-base font-bold text-foreground">
                   {formatCurrency(monthlyCosts.avgEmployee)}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                  por empleado/mes
-                </span>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* Header - Estilo ProjectsPage */}
@@ -398,96 +349,74 @@ const TechniciansPageDesktop = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">Técnicos</h1>
-                <Info className="h-4 w-4 text-muted-foreground" />
+                <Info className="h-3 w-3 text-muted-foreground" />
               </div>
 
               <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      Acciones
+                      <ChevronDown className="h-2.5 w-2.5 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
+                      Exportar seleccionados
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      Filtrar por tipo
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button
                   onClick={() => setIsDialogOpen(true)}
-                  className="h-9 px-4 text-sm font-medium"
+                  className="h-9 px-2 text-[10px] font-medium"
                 >
-                  <Plus className="h-4 w-4 mr-1.5" />
+                  <Plus className="h-3 w-3 mr-1.5" />
                   Nuevo técnico
+                  <span className="ml-2 text-[9px] px-1.5 py-0.5 opacity-70">N</span>
                 </Button>
               </div>
             </div>
 
-            {/* Search Bar - Estilo ProjectsPage */}
+            {/* Search Bar - Estilo Holded */}
             <div className="flex items-center gap-2">
               <div className="relative flex-1 min-w-[200px] max-w-md">
-                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                 <Input
                   placeholder="Buscar técnicos..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="pr-11 h-8 text-xs"
+                  className="pr-11 h-8 text-[9px] px-1.5 py-0.5"
                 />
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8">
-                    <Filter className="h-3 w-3 mr-1.5" />
-                    {typeFilter === "all" ? "Tipo" : typeFilter}
-                    <ChevronDown className="h-3 w-3 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setTypeFilter("all")}>
-                    Todos los tipos
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTypeFilter("FREELANCER")}>
-                    Autónomo / Freelance
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTypeFilter("COMPANY")}>
-                    Empresa Externa
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8">
-                    {statusFilter === "all" ? "Estado" : statusFilter}
-                    <ChevronDown className="h-3 w-3 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setStatusFilter("all")}>
-                    Cualquier estado
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter("ACTIVE")}>
-                    Disponible / Activo
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter("INACTIVE")}>
-                    No disponible
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
 
           {/* Table */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : technicians.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <UserRound className="h-16 w-16 text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No hay técnicos</p>
-              <p className="text-muted-foreground/70 text-sm mt-1">
+              <p className="text-muted-foreground/70 text-[10px] mt-1">
                 Crea tu primer técnico para comenzar
               </p>
             </div>
           ) : (
-            <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md">
-              <Table>
+            <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
+              <Table className="w-full">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent bg-muted/30">
-                    <TableHead className="text-white/70">Técnico</TableHead>
-                    <TableHead className="text-white/70">Especialidades</TableHead>
-                    <TableHead className="text-white/70">Tarifas</TableHead>
-                    <TableHead className="text-white/70">Estado</TableHead>
-                    <TableHead className="text-white/70 w-12"></TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2">Técnico</TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2">Especialidades</TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2">Tarifas</TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2">Estado</TableHead>
+                    <TableHead className="text-white/70 w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -503,15 +432,15 @@ const TechniciansPageDesktop = () => {
                       >
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-600 font-bold text-sm">
+                            <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-600 font-bold text-[10px]">
                               {tech.company_name.substring(0, 1).toUpperCase()}
                             </div>
                             <div className="flex flex-col">
-                              <span className="font-medium text-white text-sm">
+                              <span className="font-medium text-white text-[10px]">
                                 {tech.company_name}
                               </span>
                               {tech.city && (
-                                <span className="text-xs text-white/50 mt-0.5">{tech.city}</span>
+                                <span className="text-[9px] px-1.5 py-0.5 text-white/50 mt-0.5">{tech.city}</span>
                               )}
                             </div>
                           </div>
@@ -520,39 +449,39 @@ const TechniciansPageDesktop = () => {
                           <div className="flex flex-wrap gap-1 max-w-[250px]">
                             {tech.specialties && tech.specialties.length > 0 ? (
                               tech.specialties.slice(0, 3).map((s, i) => (
-                                <Badge key={i} variant="secondary" className="text-xs">
+                                <Badge key={i} variant="secondary" className="text-[9px] px-1.5 py-0.5">
                                   {s}
                                 </Badge>
                               ))
                             ) : (
-                              <span className="text-white/50 text-xs">—</span>
+                              <span className="text-white/50 text-[9px] px-1.5 py-0.5">—</span>
                             )}
                             {tech.specialties && tech.specialties.length > 3 && (
-                              <span className="text-xs text-white/50">+{tech.specialties.length - 3}</span>
+                              <span className="text-[9px] px-1.5 py-0.5 text-white/50">+{tech.specialties.length - 3}</span>
                             )}
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-0.5">
                             {tech.type === "EMPLOYEE" && tech.monthly_salary && tech.monthly_salary > 0 ? (
-                              <span className="text-sm text-white/80 font-medium">{formatCurrency(tech.monthly_salary)}/mes</span>
+                              <span className="text-[10px] text-white/80 font-medium">{formatCurrency(tech.monthly_salary)}/mes</span>
                             ) : (
                               <>
                                 {tech.daily_rate && tech.daily_rate > 0 && (
-                                  <span className="text-sm text-white/80 font-medium">{formatCurrency(tech.daily_rate)}/día</span>
+                                  <span className="text-[10px] text-white/80 font-medium">{formatCurrency(tech.daily_rate)}/día</span>
                                 )}
                                 {tech.hourly_rate && tech.hourly_rate > 0 && (
-                                  <span className="text-xs text-white/60">{formatCurrency(tech.hourly_rate)}/h</span>
+                                  <span className="text-[9px] px-1.5 py-0.5 text-white/60">{formatCurrency(tech.hourly_rate)}/h</span>
                                 )}
                                 {(!tech.daily_rate || tech.daily_rate === 0) && (!tech.hourly_rate || tech.hourly_rate === 0) && (
-                                  <span className="text-white/50 text-xs">—</span>
+                                  <span className="text-white/50 text-[9px] px-1.5 py-0.5">—</span>
                                 )}
                               </>
                             )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={cn(statusInfo.color, "border text-xs")}>
+                          <Badge variant="outline" className={cn(statusInfo.color, "border text-[9px] px-1.5 py-0.5")}>
                             {statusInfo.label}
                           </Badge>
                         </TableCell>
@@ -562,9 +491,9 @@ const TechniciansPageDesktop = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                                className="h-6 w-6 text-white/40 hover:text-white hover:bg-white/10"
                               >
-                                <MoreVertical className="h-4 w-4" />
+                                <MoreVertical className="h-3 w-3" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
@@ -587,7 +516,7 @@ const TechniciansPageDesktop = () => {
               </Table>
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
 
       <CreateTechnicianDialog

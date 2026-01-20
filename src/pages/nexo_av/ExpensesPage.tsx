@@ -32,7 +32,8 @@ import {
   ChevronUp,
   Info,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  CreditCard
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
@@ -48,6 +49,7 @@ import {
 import { cn } from "@/lib/utils";
 import { createMobilePage } from "./MobilePageWrapper";
 import PaginationControls from "./components/PaginationControls";
+import RegisterPurchasePaymentDialog from "./components/RegisterPurchasePaymentDialog";
 
 const ExpensesPageMobile = lazy(() => import("./mobile/ExpensesPageMobile"));
 const DocumentScanner = lazy(() => import("./components/DocumentScanner"));
@@ -672,31 +674,59 @@ const ExpensesPageDesktop = () => {
                             </Badge>
                           </TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
-                                >
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                                <DropdownMenuItem
-                                  className="text-white hover:bg-white/10"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/nexo-av/${userId}/purchase-invoices/${expense.id}`);
-                                  }}
-                                >
-                                  Ver detalle
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-white hover:bg-white/10">
-                                  Duplicar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div className="flex items-center gap-1">
+                              {(() => {
+                                const canRegisterPayment = ["CONFIRMED", "PARTIAL", "PAID"].includes(expense.status) 
+                                  && !expense.is_locked 
+                                  && expense.pending_amount > 0;
+                                
+                                return canRegisterPayment ? (
+                                  <RegisterPurchasePaymentDialog
+                                    invoiceId={expense.id}
+                                    pendingAmount={expense.pending_amount}
+                                    onPaymentRegistered={() => {
+                                      fetchExpenses();
+                                    }}
+                                    trigger={
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 px-2 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <CreditCard className="h-3.5 w-3.5 mr-1" />
+                                        Pagar
+                                      </Button>
+                                    }
+                                  />
+                                ) : null;
+                              })()}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                                  <DropdownMenuItem
+                                    className="text-white hover:bg-white/10"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/nexo-av/${userId}/purchase-invoices/${expense.id}`);
+                                    }}
+                                  >
+                                    Ver detalle
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="text-white hover:bg-white/10">
+                                    Duplicar
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

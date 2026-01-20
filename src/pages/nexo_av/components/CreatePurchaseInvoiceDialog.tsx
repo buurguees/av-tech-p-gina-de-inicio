@@ -20,8 +20,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "./PurchaseInvoiceLinesEditor";
+import SupplierSearchInput from "./SupplierSearchInput";
+import ProjectSearchInput from "./ProjectSearchInput";
+import ProductSearchInput from "./ProductSearchInput";
 
 interface Supplier {
   id: string;
@@ -207,9 +210,11 @@ export default function CreatePurchaseInvoiceDialog({
       if (doc.supplier_id) {
         setEntityType("SUPPLIER");
         setSelectedSupplierId(doc.supplier_id);
+        setSupplierSearchValue(doc.supplier_name || "");
       } else if (doc.technician_id) {
         setEntityType("TECHNICIAN");
         setSelectedTechnicianId(doc.technician_id);
+        setSupplierSearchValue(doc.technician_name || "");
       }
       
       // Set client and project
@@ -218,6 +223,7 @@ export default function CreatePurchaseInvoiceDialog({
         await fetchClientProjects(doc.client_id);
         if (doc.project_id) {
           setSelectedProjectId(doc.project_id);
+          setProjectSearchValue(doc.project_name || "");
         }
       }
 
@@ -395,6 +401,8 @@ export default function CreatePurchaseInvoiceDialog({
     setSelectedTechnicianId(preselectedTechnicianId || "");
     setSelectedClientId(preselectedClientId || "");
     setSelectedProjectId(preselectedProjectId || "");
+    setSupplierSearchValue("");
+    setProjectSearchValue("");
     setLines([]);
     setNotes("");
   };
@@ -498,44 +506,39 @@ export default function CreatePurchaseInvoiceDialog({
                   </Select>
                 </div>
 
-                {entityType === "SUPPLIER" ? (
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier">Proveedor *</Label>
-                    <Select value={selectedSupplierId} onValueChange={setSelectedSupplierId} required>
-                      <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                        <SelectValue placeholder="Selecciona un proveedor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {suppliers.map((supplier) => (
-                          <SelectItem key={supplier.id} value={supplier.id}>
-                            {supplier.company_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="technician">Técnico *</Label>
-                    <Select value={selectedTechnicianId} onValueChange={setSelectedTechnicianId} required>
-                      <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                        <SelectValue placeholder="Selecciona un técnico" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {technicians.map((technician) => (
-                          <SelectItem key={technician.id} value={technician.id}>
-                            {technician.company_name}
-                            {technician.withholding_tax_rate && (
-                              <span className="text-xs text-white/60 ml-2">
-                                (IRPF: {technician.withholding_tax_rate}%)
-                              </span>
-                            )}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label>Proveedor o Técnico *</Label>
+                  <SupplierSearchInput
+                    value={supplierSearchValue}
+                    onChange={setSupplierSearchValue}
+                    onSelectSupplier={(supplier) => {
+                      setSelectedSupplierId(supplier.id);
+                      setSupplierSearchValue(supplier.company_name);
+                      setEntityType("SUPPLIER");
+                    }}
+                    onSelectTechnician={(technician) => {
+                      setSelectedTechnicianId(technician.id);
+                      setSupplierSearchValue(technician.company_name);
+                      setEntityType("TECHNICIAN");
+                    }}
+                    placeholder="Buscar proveedor o técnico... o @buscar"
+                    entityType="BOTH"
+                    className="bg-white/5 border-white/10 text-white"
+                  />
+                  {selectedSupplierId && entityType === "SUPPLIER" && (
+                    <p className="text-xs text-white/40 mt-1">
+                      Proveedor seleccionado: {suppliers.find(s => s.id === selectedSupplierId)?.company_name}
+                    </p>
+                  )}
+                  {selectedTechnicianId && entityType === "TECHNICIAN" && (
+                    <p className="text-xs text-white/40 mt-1">
+                      Técnico seleccionado: {technicians.find(t => t.id === selectedTechnicianId)?.company_name}
+                      {technicians.find(t => t.id === selectedTechnicianId)?.withholding_tax_rate && (
+                        <span className="ml-2">(IRPF: {technicians.find(t => t.id === selectedTechnicianId)?.withholding_tax_rate}%)</span>
+                      )}
+                    </p>
+                  )}
+                </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -557,33 +560,21 @@ export default function CreatePurchaseInvoiceDialog({
 
                   <div className="space-y-2">
                     <Label htmlFor="project">Proyecto (Opcional)</Label>
-                    <Select
-                      value={selectedProjectId}
-                      onValueChange={setSelectedProjectId}
-                      disabled={!selectedClientId || loadingProjects}
-                    >
-                      <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                        <SelectValue
-                          placeholder={
-                            !selectedClientId
-                              ? "Selecciona cliente primero"
-                              : loadingProjects
-                              ? "Cargando..."
-                              : projects.length === 0
-                              ? "Sin proyectos"
-                              : "Selecciona un proyecto"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Ninguno</SelectItem>
-                        {projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id}>
-                            {project.project_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <ProjectSearchInput
+                      value={projectSearchValue}
+                      onChange={setProjectSearchValue}
+                      onSelectProject={(project) => {
+                        setSelectedProjectId(project.id);
+                        setProjectSearchValue(project.project_name);
+                      }}
+                      placeholder="Buscar proyecto... o @buscar"
+                      className="bg-white/5 border-white/10 text-white"
+                    />
+                    {selectedProjectId && (
+                      <p className="text-xs text-white/40 mt-1">
+                        Proyecto seleccionado: {projects.find(p => p.id === selectedProjectId)?.project_name}
+                      </p>
+                    )}
                   </div>
                 </div>
 

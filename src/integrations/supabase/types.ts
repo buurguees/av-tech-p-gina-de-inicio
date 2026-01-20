@@ -441,6 +441,7 @@ export type Database = {
           p_hourly_rate?: number
           p_iban?: string
           p_legal_name?: string
+          p_monthly_salary?: number
           p_notes?: string
           p_payment_terms?: string
           p_postal_code?: string
@@ -448,6 +449,8 @@ export type Database = {
           p_specialties?: string[]
           p_tax_id?: string
           p_type?: string
+          p_vat_rate?: number
+          p_withholding_tax_rate?: number
         }
         Returns: {
           technician_id: string

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
 import {
   Plus,
   Search,
@@ -88,15 +87,15 @@ interface Client {
 }
 
 const LEAD_STAGES = [
-  { value: 'NEW', label: 'Nuevo', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-  { value: 'CONTACTED', label: 'Contactado', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-  { value: 'MEETING', label: 'Reunión', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-  { value: 'PROPOSAL', label: 'Propuesta', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
-  { value: 'NEGOTIATION', label: 'Negociación', color: 'bg-orange-100 text-orange-700 border-orange-300' },
-  { value: 'WON', label: 'Ganado', color: 'bg-green-100 text-green-700 border-green-300' },
-  { value: 'RECURRING', label: 'Recurrente', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
-  { value: 'LOST', label: 'Perdido', color: 'bg-red-100 text-red-700 border-red-300' },
-  { value: 'PAUSED', label: 'Pausado', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+  { value: 'NEW', label: 'Nuevo', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  { value: 'CONTACTED', label: 'Contactado', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
+  { value: 'MEETING', label: 'Reunión', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  { value: 'PROPOSAL', label: 'Propuesta', color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' },
+  { value: 'NEGOTIATION', label: 'Negociación', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+  { value: 'WON', label: 'Ganado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  { value: 'RECURRING', label: 'Recurrente', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+  { value: 'LOST', label: 'Perdido', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+  { value: 'PAUSED', label: 'Pausado', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
 ];
 
 const getStageInfo = (stage: string) => {
@@ -321,10 +320,10 @@ const ClientsPageDesktop = () => {
         byStage[stage.value] = clients.filter(c => c.lead_stage === stage.value).length;
       });
 
-      // Obtener proyectos por cliente
-      const { data: projectsData, error: projectsError } = await supabase
-        .from('projects.projects')
-        .select('client_id');
+      // Obtener proyectos por cliente usando RPC
+      const { data: projectsData, error: projectsError } = await supabase.rpc('list_projects', {
+        p_search: null
+      });
 
       if (projectsError) {
         console.error('Error fetching projects:', projectsError);
@@ -346,20 +345,22 @@ const ClientsPageDesktop = () => {
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-      const { data: invoicesData, error: invoicesError } = await supabase
-        .from('sales.invoices')
-        .select('client_id, total, issue_date, status');
+      // Obtener facturas usando RPC
+      const { data: invoicesData, error: invoicesError } = await supabase.rpc('finance_list_invoices', {
+        p_search: null,
+        p_status: null
+      });
 
       if (invoicesError) {
         console.error('Error fetching invoices:', invoicesError);
       }
 
-      // Calcular ticket medio por cliente
+      // Calcular ticket medio por cliente (usando subtotales)
       const invoicesByClient = new Map<string, number[]>();
       (invoicesData || []).forEach((invoice: any) => {
-        if (invoice.client_id && invoice.total && invoice.status !== 'CANCELLED' && invoice.status !== 'DRAFT') {
+        if (invoice.client_id && invoice.subtotal && invoice.status !== 'CANCELLED' && invoice.status !== 'DRAFT') {
           const clientInvoices = invoicesByClient.get(invoice.client_id) || [];
-          clientInvoices.push(invoice.total);
+          clientInvoices.push(invoice.subtotal);
           invoicesByClient.set(invoice.client_id, clientInvoices);
         }
       });
@@ -381,7 +382,7 @@ const ClientsPageDesktop = () => {
                inv.status !== 'CANCELLED' && inv.status !== 'DRAFT';
       });
 
-      const monthlyRevenue = monthlyInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+      const monthlyRevenue = monthlyInvoices.reduce((sum: number, inv: any) => sum + (inv.subtotal || 0), 0);
 
       // Clientes nuevos del mes
       const monthlyNewClients = clients.filter(c => {
@@ -420,253 +421,176 @@ const ClientsPageDesktop = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
+        <div className="animate-spin rounded-full h-6 w-6 border-2 border-border border-t-primary"></div>
       </div>
     );
   }
 
   return (
     <div className="w-full">
-      <div className="w-full px-3 md:px-4 pb-4 md:pb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* KPIs Cards - Recuento por Estado */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-600">
-                  <Award className="h-5 w-5" />
+      <div className="w-full px-3 md:px-2 pb-4 md:pb-8">
+        <div>
+          {/* KPIs Cards - Recuento por Estado - Optimizado */}
+          <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-3">
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-emerald-500/10 rounded text-emerald-600">
+                  <Award className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Recurrentes</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Recurrentes</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-lg font-bold text-foreground">
                   {clientKPIs.byStage['RECURRING'] || 0}
                 </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
-                  <Target className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-green-500/10 rounded text-green-600">
+                  <Target className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Ganados</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Ganados</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-lg font-bold text-foreground">
                   {clientKPIs.byStage['WON'] || 0}
                 </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
-                  <Users className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-blue-500/10 rounded text-blue-600">
+                  <Users className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Nuevos Leads</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Nuevos Leads</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-lg font-bold text-foreground">
                   {clientKPIs.byStage['NEW'] || 0}
                 </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-500/10 rounded-lg text-red-600">
-                  <XCircle className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-red-500/10 rounded text-red-600">
+                  <XCircle className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Perdidos</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Perdidos</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-lg font-bold text-foreground">
                   {clientKPIs.byStage['LOST'] || 0}
                 </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-violet-500/10 rounded-lg text-violet-600">
-                  <Building2 className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-violet-500/10 rounded text-violet-600">
+                  <Building2 className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Total</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Total</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-lg font-bold text-foreground">
                   {clientKPIs.totalClients}
                 </span>
               </div>
-            </motion.div>
+            </div>
           </div>
 
-          {/* KPIs Cards - Métricas de Negocio */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-600">
-                  <FolderKanban className="h-5 w-5" />
+          {/* KPIs Cards - Métricas de Negocio - Optimizado */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-purple-500/10 rounded text-purple-600">
+                  <FolderKanban className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Media Proyectos/Cliente</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Media Proy./Cliente</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-base font-bold text-foreground">
                   {clientKPIs.avgProjectsPerClient.toFixed(1)}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                  proyectos por cliente
-                </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-orange-500/10 rounded-lg text-orange-600">
-                  <Euro className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-orange-500/10 rounded text-orange-600">
+                  <Euro className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Ticket Medio Factura</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Ticket Medio</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-base font-bold text-foreground">
                   {formatCurrency(clientKPIs.avgInvoiceTicket)}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                  por factura
-                </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
-                  <TrendingUp className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-green-500/10 rounded text-green-600">
+                  <TrendingUp className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Facturación Mensual</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Fact. Mensual</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-base font-bold text-foreground">
                   {formatCurrency(clientKPIs.monthlyRevenue)}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                  este mes
-                </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-600">
-                  <BarChart3 className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-cyan-500/10 rounded text-cyan-600">
+                  <BarChart3 className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Media Facturación/Cliente</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Media Fact./Cliente</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-base font-bold text-foreground">
                   {formatCurrency(clientKPIs.avgRevenuePerClient)}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                  por cliente/mes
-                </span>
               </div>
-            </motion.div>
+            </div>
           </div>
 
-          {/* KPIs Cards - Métricas Mensuales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
-                  <User className="h-5 w-5" />
+          {/* KPIs Cards - Métricas Mensuales - Optimizado */}
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-blue-500/10 rounded text-blue-600">
+                  <User className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Nuevos Clientes (Mes)</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Nuevos (Mes)</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-base font-bold text-foreground">
                   {clientKPIs.monthlyNewClients}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                  clientes nuevos este mes
-                </span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.1 }}
-              className="bg-card/50 border border-border rounded-xl p-4"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
-                  <Target className="h-5 w-5" />
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-green-500/10 rounded text-green-600">
+                  <Target className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-sm font-medium">Clientes Ganados (Mes)</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Ganados (Mes)</span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-foreground">
+              <div>
+                <span className="text-base font-bold text-foreground">
                   {clientKPIs.monthlyWonClients}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                  ganados este mes
-                </span>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* Header - Estilo Holded */}
@@ -674,7 +598,7 @@ const ClientsPageDesktop = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">Clientes</h1>
-                <Info className="h-4 w-4 text-muted-foreground" />
+                <Info className="h-3 w-3 text-muted-foreground" />
               </div>
 
               <div className="flex items-center gap-2">
@@ -682,7 +606,7 @@ const ClientsPageDesktop = () => {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
                       Acciones
-                      <ChevronDown className="h-3 w-3 ml-1" />
+                      <ChevronDown className="h-2.5 w-2.5 ml-1" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -692,100 +616,44 @@ const ClientsPageDesktop = () => {
                     <DropdownMenuItem>
                       Asignar seleccionados
                     </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      Filtrar por etapa
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
                   onClick={() => setShowCreateDialog(true)}
-                  className="h-9 px-4 text-sm font-medium"
+                  className="h-9 px-2 text-[10px] font-medium"
                 >
-                  <Plus className="h-4 w-4 mr-1.5" />
+                  <Plus className="h-3 w-3 mr-1.5" />
                   Nuevo cliente
-                  <span className="ml-2 text-xs opacity-70">N</span>
+                  <span className="ml-2 text-[9px] px-1.5 py-0.5 opacity-70">N</span>
                 </Button>
               </div>
             </div>
 
-            {/* Search and Filters Bar - Estilo Holded */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      "h-8 px-3 text-xs",
-                      stageFilter !== "all" && "bg-accent"
-                    )}
-                  >
-                    {stageFilter === "all" ? "Todos" : LEAD_STAGES.find(s => s.value === stageFilter)?.label || "Todos"}
-                    <ChevronDown className="h-3 w-3 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem
-                    onClick={() => setStageFilter("all")}
-                    className={cn(stageFilter === "all" && "bg-accent")}
-                  >
-                    Todos
-                  </DropdownMenuItem>
-                  {LEAD_STAGES.map((stage) => (
-                    <DropdownMenuItem
-                      key={stage.value}
-                      onClick={() => setStageFilter(stage.value)}
-                      className={cn(stageFilter === stage.value && "bg-accent")}
-                    >
-                      {stage.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-secondary border border-border">
-                <Switch
-                  id="show-mine"
-                  checked={showOnlyMine === true}
-                  onCheckedChange={setShowOnlyMine}
-                />
-                <Label htmlFor="show-mine" className="text-foreground text-xs flex items-center gap-1.5 cursor-pointer">
-                  {showOnlyMine === true ? (
-                    <>
-                      <UserCheck className="h-3 w-3" />
-                      Mis clientes
-                    </>
-                  ) : (
-                    <>
-                      <Users className="h-3 w-3" />
-                      Todos
-                    </>
-                  )}
-                </Label>
-              </div>
-
-              <div className="relative flex-1 min-w-[200px] max-w-md">
-                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar clientes..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="pr-11 h-8 text-xs"
-                />
-              </div>
-            </div>
+                {/* Search Bar - Estilo Holded */}
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1 min-w-[200px] max-w-md">
+                    <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar clientes..."
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      className="pr-11 h-8 text-[9px] px-1.5 py-0.5"
+                    />
+                  </div>
+                </div>
           </div>
 
           {/* Mobile card view */}
           {isMobile ? (
             <Suspense fallback={
               <div className="flex items-center justify-center py-12 md:hidden">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-border border-t-primary"></div>
               </div>
             }>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="md:hidden"
-              >
+              <div className="md:hidden">
                 <ClientsListMobile
                   clients={paginatedClients}
                   getStageInfo={getStageInfo}
@@ -802,31 +670,31 @@ const ClientsPageDesktop = () => {
                   onNextPage={nextPage}
                   onGoToPage={goToPage}
                 />
-              </motion.div>
+              </div>
             </Suspense>
           ) : null}
 
           {/* Table */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-border border-t-primary"></div>
             </div>
           ) : filteredClients.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No hay clientes</p>
-              <p className="text-muted-foreground/70 text-sm mt-1">
+              <p className="text-muted-foreground/70 text-[10px] mt-1">
                 Crea tu primer cliente para comenzar
               </p>
             </div>
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md">
-                <Table>
+              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
+                <Table className="w-full">
                   <TableHeader>
                     <TableRow className="hover:bg-transparent bg-muted/30">
-                      <TableHead className="w-12 px-4">
+                      <TableHead className="w-10 px-2">
                         <UICheckbox
                           checked={selectedClients.size === paginatedClients.length && paginatedClients.length > 0}
                           onCheckedChange={handleSelectAll}
@@ -840,56 +708,56 @@ const ClientsPageDesktop = () => {
                         <div className="flex items-center gap-1">
                           Nº
                           {sortColumn === "number" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                           )}
                         </div>
                       </TableHead>
                       <TableHead
-                        className="text-white/70 cursor-pointer hover:text-foreground select-none"
+                        className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2"
                         onClick={() => handleSort("company")}
                       >
                         <div className="flex items-center gap-1">
                           Empresa
                           {sortColumn === "company" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                           )}
                         </div>
                       </TableHead>
-                      <TableHead className="text-white/70">Contacto</TableHead>
+                      <TableHead className="text-white/70 text-[10px] px-2">Contacto</TableHead>
                       <TableHead
-                        className="text-white/70 cursor-pointer hover:text-foreground select-none"
+                        className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2"
                         onClick={() => handleSort("stage")}
                       >
                         <div className="flex items-center gap-1">
                           Estado
                           {sortColumn === "stage" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                           )}
                         </div>
                       </TableHead>
                       <TableHead
-                        className="text-white/70 cursor-pointer hover:text-foreground select-none"
+                        className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2"
                         onClick={() => handleSort("assigned")}
                       >
                         <div className="flex items-center gap-1">
                           Asignado
                           {sortColumn === "assigned" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                           )}
                         </div>
                       </TableHead>
                       <TableHead
-                        className="text-white/70 cursor-pointer hover:text-foreground select-none"
+                        className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2"
                         onClick={() => handleSort("followup")}
                       >
                         <div className="flex items-center gap-1">
                           Seguimiento
                           {sortColumn === "followup" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
                           )}
                         </div>
                       </TableHead>
-                      <TableHead className="text-white/70 w-12"></TableHead>
+                      <TableHead className="text-white/70 w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -905,25 +773,25 @@ const ClientsPageDesktop = () => {
                           )}
                           onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
                         >
-                          <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
+                          <TableCell className="px-2" onClick={(e) => e.stopPropagation()}>
                             <UICheckbox
                               checked={isSelected}
                               onCheckedChange={(checked) => handleSelectClient(client.id, checked as boolean)}
-                              className="border-white/30 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                              className="border-white/30 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 h-3.5 w-3.5"
                             />
                           </TableCell>
-                          <TableCell className="font-mono text-white/70 text-sm">
+                          <TableCell className="font-mono text-white/70 text-[10px]">
                             {client.client_number ? `#${client.client_number}` : '-'}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <div className="p-2 rounded-lg bg-white/5">
-                                <Building2 className="h-4 w-4 text-white/60" />
+                                <Building2 className="h-3 w-3 text-white/60" />
                               </div>
                               <div>
-                                <p className="text-white font-medium text-sm">{client.company_name}</p>
+                                <p className="text-white font-medium text-[10px]">{client.company_name}</p>
                                 {client.industry_sector && (
-                                  <p className="text-white/40 text-xs">
+                                  <p className="text-white/40 text-[9px] px-1.5 py-0.5">
                                     {client.industry_sector}
                                   </p>
                                 )}
@@ -932,28 +800,28 @@ const ClientsPageDesktop = () => {
                           </TableCell>
                           <TableCell>
                             <div className="space-y-1">
-                              <div className="flex items-center gap-1.5 text-white/60 text-xs">
-                                <Mail className="h-3 w-3" />
+                              <div className="flex items-center gap-1.5 text-white/60 text-[9px] px-1.5 py-0.5">
+                                <Mail className="h-2.5 w-2.5" />
                                 <span className="truncate max-w-[200px]">{client.contact_email}</span>
                               </div>
-                              <div className="flex items-center gap-1.5 text-white/60 text-xs">
-                                <Phone className="h-3 w-3" />
+                              <div className="flex items-center gap-1.5 text-white/60 text-[9px] px-1.5 py-0.5">
+                                <Phone className="h-2.5 w-2.5" />
                                 {client.contact_phone}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={cn(stageInfo.color, "border text-xs")}>
+                            <Badge variant="outline" className={cn(stageInfo.color, "border text-[9px] px-1.5 py-0.5")}>
                               {stageInfo.label}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-white/70 text-sm">
+                          <TableCell className="text-white/70 text-[10px]">
                             {client.assigned_to_name || <span className="text-white/30">Sin asignar</span>}
                           </TableCell>
-                          <TableCell className="text-white/70 text-sm">
+                          <TableCell className="text-white/70 text-[10px]">
                             {client.next_follow_up_date ? (
                               <div className="flex items-center gap-1.5">
-                                <Calendar className="h-3 w-3" />
+                                <Calendar className="h-2.5 w-2.5" />
                                 {new Date(client.next_follow_up_date).toLocaleDateString('es-ES', {
                                   day: '2-digit',
                                   month: '2-digit',
@@ -970,9 +838,9 @@ const ClientsPageDesktop = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-white/40 hover:text-foreground hover:bg-white/10"
+                                  className="h-6 w-6 text-white/40 hover:text-foreground hover:bg-white/10"
                                 >
-                                  <MoreVertical className="h-4 w-4" />
+                                  <MoreVertical className="h-3 w-3" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
@@ -1024,7 +892,7 @@ const ClientsPageDesktop = () => {
               )}
             </>
           )}
-        </motion.div>
+        </div>
       </div>
 
       <CreateClientDialog

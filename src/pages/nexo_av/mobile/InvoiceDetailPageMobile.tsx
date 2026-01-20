@@ -11,13 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { 
   Edit, 
   Building2, 
@@ -35,10 +28,10 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import MobileBottomNav from "../components/MobileBottomNav";
 import InvoicePaymentsSection from "../components/InvoicePaymentsSection";
-import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
+import { getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
 import { NexoLogo } from "../components/NexoHeader";
 import { InvoicePDFDocument } from "../components/InvoicePDFViewer";
-import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
+import { pdf } from "@react-pdf/renderer";
 import { Download, Loader2 } from "lucide-react";
 
 interface Invoice {
@@ -97,25 +90,6 @@ interface Project {
   description: string | null;
 }
 
-const getAvailableStatusTransitions = (currentStatus: string): string[] => {
-  switch (currentStatus) {
-    case "DRAFT":
-      return ["ISSUED", "CANCELLED"];
-    case "ISSUED":
-      return ["CANCELLED"];
-    case "PARTIAL":
-      return ["CANCELLED"];
-    case "PAID":
-      return [];
-    case "OVERDUE":
-      return ["CANCELLED"];
-    case "CANCELLED":
-      return [];
-    default:
-      return [];
-  }
-};
-
 const InvoiceDetailPageMobile = () => {
   const navigate = useNavigate();
   const { userId, invoiceId } = useParams<{ userId: string; invoiceId: string }>();
@@ -128,14 +102,53 @@ const InvoiceDetailPageMobile = () => {
   const [company, setCompany] = useState<Company | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [preferences, setPreferences] = useState<any>(null);
-  const [updatingStatus, setUpdatingStatus] = useState(false);
   const [showPDF, setShowPDF] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (invoiceId) {
       fetchInvoiceData();
     }
   }, [invoiceId]);
+
+  const generatePDFBlob = async () => {
+    if (!invoice || !client || !company || lines.length === 0) return;
+
+    try {
+      const doc = (
+        <InvoicePDFDocument
+          invoice={invoice}
+          lines={lines}
+          client={client}
+          company={company}
+          project={project}
+          preferences={preferences}
+        />
+      );
+      const asBlob = await pdf(doc).toBlob();
+      const url = URL.createObjectURL(asBlob);
+      setPdfBlobUrl(url);
+    } catch (error) {
+      console.error("Error generating PDF blob:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo generar el PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (showPDF && invoice && client && company && lines.length > 0 && preferences !== null) {
+      generatePDFBlob();
+    }
+    return () => {
+      if (pdfBlobUrl) {
+        URL.revokeObjectURL(pdfBlobUrl);
+        setPdfBlobUrl(null);
+      }
+    };
+  }, [showPDF]);
 
   const fetchInvoiceData = async () => {
     try {
@@ -221,51 +234,6 @@ const InvoiceDetailPageMobile = () => {
     }
   };
 
-  const handleStatusChange = async (newStatus: string) => {
-    if (!invoice) return;
-
-    try {
-      setUpdatingStatus(true);
-      
-      // If changing from DRAFT to ISSUED, use the issue function
-      if (invoice.status === "DRAFT" && newStatus === "ISSUED") {
-        const { data, error } = await supabase.rpc("finance_issue_invoice", {
-          p_invoice_id: invoice.id,
-        });
-
-        if (error) throw error;
-        
-        const result = Array.isArray(data) ? data[0] : data;
-        toast({
-          title: "Factura emitida",
-          description: `Número: ${result?.invoice_number}`,
-        });
-      } else {
-        const { error } = await supabase.rpc("finance_update_invoice" as any, {
-          p_invoice_id: invoice.id,
-          p_status: newStatus,
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Estado actualizado",
-          description: `Estado: ${getFinanceStatusInfo(newStatus).label}`,
-        });
-      }
-      
-      await fetchInvoiceData();
-    } catch (error: any) {
-      console.error("Error updating status:", error);
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo actualizar el estado",
-        variant: "destructive",
-      });
-    } finally {
-      setUpdatingStatus(false);
-    }
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-ES", {
@@ -312,7 +280,6 @@ const InvoiceDetailPageMobile = () => {
 
   const statusInfo = getFinanceStatusInfo(invoice.status);
   const isLocked = invoice.is_locked || LOCKED_FINANCE_INVOICE_STATES.includes(invoice.status);
-  const availableTransitions = getAvailableStatusTransitions(invoice.status);
   const displayNumber = invoice.invoice_number || invoice.preliminary_number;
 
   return (
@@ -324,42 +291,16 @@ const InvoiceDetailPageMobile = () => {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-2"
         >
-          {/* Estado Actual */}
+          {/* Estado Actual - Solo visualización */}
           <Card className="bg-white/5 border-white/10">
             <CardContent className="pt-4 pb-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-white/60 text-sm">Estado actual</span>
+              <div className="flex items-center justify-between">
+                <span className="text-white/60 text-sm">Estado</span>
                 <Badge className={statusInfo.className}>
                   {isLocked && <Lock className="w-3 h-3 mr-1" />}
                   {statusInfo.label}
                 </Badge>
               </div>
-
-              {/* Cambiar Estado */}
-              {availableTransitions.length > 0 && (
-                <Select
-                  value={invoice.status}
-                  onValueChange={handleStatusChange}
-                  disabled={updatingStatus}
-                >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-11">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10">
-                    {FINANCE_INVOICE_STATUSES
-                      .filter(s => availableTransitions.includes(s.value))
-                      .map((status) => (
-                        <SelectItem 
-                          key={status.value} 
-                          value={status.value}
-                          className="text-white"
-                        >
-                          {status.label}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              )}
               
               {isLocked && (
                 <div className="flex items-center gap-2 text-white/40 text-xs mt-2">
@@ -393,8 +334,8 @@ const InvoiceDetailPageMobile = () => {
           </div>
         </motion.div>
 
-        {/* PDF Viewer - Bajo demanda */}
-        {showPDF && invoice && client && company && (
+        {/* PDF Viewer - Mejorado para móvil */}
+        {showPDF && invoice && client && company && lines.length > 0 && preferences !== null && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
@@ -403,52 +344,47 @@ const InvoiceDetailPageMobile = () => {
           >
             <div className="flex items-center justify-between px-3 py-2 bg-white/5 border-b border-white/10">
               <span className="text-white/60 text-xs">Vista Previa PDF</span>
-              <PDFDownloadLink
-                document={
-                  <InvoicePDFDocument
-                    invoice={invoice}
-                    lines={lines}
-                    client={client}
-                    company={company}
-                    project={project}
-                    preferences={preferences}
-                  />
-                }
-                fileName={`Factura-${displayNumber}.pdf`}
-              >
-                {({ loading }) => (
+              <div className="flex items-center gap-2">
+                {pdfBlobUrl ? (
                   <Button
                     size="sm"
                     variant="ghost"
                     className="h-8 text-white/60 hover:text-white gap-1.5"
-                    disabled={loading}
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = pdfBlobUrl;
+                      link.download = `Factura-${displayNumber}.pdf`;
+                      link.click();
+                    }}
                   >
-                    {loading ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Download className="h-3.5 w-3.5" />
-                    )}
+                    <Download className="h-3.5 w-3.5" />
                     <span className="text-xs">Descargar</span>
                   </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 text-white/60 gap-1.5"
+                    disabled
+                  >
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span className="text-xs">Generando...</span>
+                  </Button>
                 )}
-              </PDFDownloadLink>
+              </div>
             </div>
             <div className="h-[500px] bg-zinc-900">
-              <PDFViewer
-                width="100%"
-                height="100%"
-                showToolbar={false}
-                className="border-0"
-              >
-                <InvoicePDFDocument
-                  invoice={invoice}
-                  lines={lines}
-                  client={client}
-                  company={company}
-                  project={project}
-                  preferences={preferences}
+              {pdfBlobUrl ? (
+                <iframe
+                  src={pdfBlobUrl}
+                  className="w-full h-full border-0"
+                  title="PDF Preview"
                 />
-              </PDFViewer>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -527,6 +463,33 @@ const InvoiceDetailPageMobile = () => {
                       <span className="truncate">{client.contact_email}</span>
                     </a>
                   )}
+                </div>
+              )}
+
+              {/* Proyecto */}
+              {project ? (
+                <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+                  <FolderOpen className="h-4 w-4 text-white/40 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white/60 text-xs mb-0.5">Proyecto</p>
+                    <p className="text-white font-medium truncate">{project.name}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => navigate(`/nexo-av/${userId}/projects/${invoice.project_id}`)}
+                    className="shrink-0 h-8 px-2"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+                  <FolderOpen className="h-4 w-4 text-white/40 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white/60 text-xs mb-0.5">Proyecto</p>
+                    <p className="text-white/40 text-xs">Sin proyecto asignado</p>
+                  </div>
                 </div>
               )}
 

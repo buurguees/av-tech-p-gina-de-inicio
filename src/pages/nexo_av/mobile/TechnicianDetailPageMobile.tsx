@@ -24,7 +24,9 @@ import {
   Send,
   Plus,
   Building2,
+  Receipt,
 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { getTypeInfo, getStatusInfo } from "@/constants/technicianConstants";
 import EditTechnicianDialog from "../components/EditTechnicianDialog";
@@ -62,12 +64,39 @@ interface TechnicianDetail {
   created_by_name: string | null;
 }
 
+interface PurchaseInvoice {
+  id: string;
+  invoice_number: string;
+  supplier_invoice_number: string | null;
+  internal_purchase_number: string | null;
+  document_type: string;
+  issue_date: string;
+  due_date: string | null;
+  subtotal: number;
+  tax_amount: number;
+  withholding_amount: number;
+  total: number;
+  paid_amount: number;
+  pending_amount: number;
+  status: string;
+  project_id: string | null;
+  project_name: string | null;
+  project_number: string | null;
+  client_name: string | null;
+  file_path: string | null;
+  file_name: string | null;
+  created_at: string;
+}
+
 export default function TechnicianDetailPageMobile() {
   const { userId, technicianId } = useParams<{ userId: string; technicianId: string }>();
   const navigate = useNavigate();
   const [technician, setTechnician] = useState<TechnicianDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [projectsCount, setProjectsCount] = useState<number>(0);
+  const [purchaseInvoices, setPurchaseInvoices] = useState<PurchaseInvoice[]>([]);
+  const [loadingInvoices, setLoadingInvoices] = useState(false);
 
   const fetchTechnician = useCallback(async () => {
     if (!technicianId) return;
@@ -90,9 +119,47 @@ export default function TechnicianDetailPageMobile() {
     }
   }, [technicianId]);
 
+  const fetchProjectsCount = useCallback(async () => {
+    if (!technicianId) return;
+
+    try {
+      const { data, error } = await supabase.rpc("get_technician_projects_count", {
+        p_technician_id: technicianId,
+      });
+
+      if (error) throw error;
+      setProjectsCount(data || 0);
+    } catch (err) {
+      console.error("Error fetching projects count:", err);
+    }
+  }, [technicianId]);
+
+  const fetchPurchaseInvoices = useCallback(async () => {
+    if (!technicianId) return;
+
+    setLoadingInvoices(true);
+    try {
+      const { data, error } = await supabase.rpc("get_provider_purchase_invoices", {
+        p_provider_id: technicianId,
+        p_provider_type: "TECHNICIAN",
+      });
+
+      if (error) throw error;
+      if (data) {
+        setPurchaseInvoices(data as PurchaseInvoice[]);
+      }
+    } catch (err) {
+      console.error("Error fetching purchase invoices:", err);
+    } finally {
+      setLoadingInvoices(false);
+    }
+  }, [technicianId]);
+
   useEffect(() => {
     fetchTechnician();
-  }, [fetchTechnician]);
+    fetchProjectsCount();
+    fetchPurchaseInvoices();
+  }, [fetchTechnician, fetchProjectsCount, fetchPurchaseInvoices]);
 
   if (loading) {
     return (
@@ -225,6 +292,24 @@ export default function TechnicianDetailPageMobile() {
 
       {/* Content scrollable */}
       <div className="flex-1 overflow-auto p-4 space-y-4">
+        {/* KPIs */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card>
+            <CardContent className="p-3">
+              <p className="text-xs text-muted-foreground mb-1">Proyectos trabajados</p>
+              <p className="text-lg font-bold">{projectsCount}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3">
+              <p className="text-xs text-muted-foreground mb-1">Total facturado</p>
+              <p className="text-lg font-bold">
+                {formatCurrency(purchaseInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0))}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Valoración y tarifas destacadas */}
         <Card>
           <CardContent className="p-4">
@@ -349,7 +434,7 @@ export default function TechnicianDetailPageMobile() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
-              Facturación
+              Datos de Facturación
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -377,6 +462,90 @@ export default function TechnicianDetailPageMobile() {
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Condiciones de pago</p>
                 <p className="text-sm font-medium">{technician.payment_terms}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Facturas de compra */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Receipt className="h-4 w-4" />
+              Facturas de Compra
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingInvoices ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : purchaseInvoices.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                Aún no hay facturas de compra registradas.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {purchaseInvoices.map((invoice) => (
+                  <div
+                    key={invoice.id}
+                    className="border rounded-md p-3 active:bg-muted/50"
+                    onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm">
+                          {invoice.supplier_invoice_number || invoice.invoice_number}
+                        </p>
+                        {invoice.internal_purchase_number && (
+                          <p className="text-xs text-muted-foreground">
+                            Interno: {invoice.internal_purchase_number}
+                          </p>
+                        )}
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-xs shrink-0",
+                          invoice.status === "CONFIRMED" && "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+                          invoice.status === "REGISTERED" && "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                        )}
+                      >
+                        {invoice.status === "CONFIRMED" ? "Confirmada" :
+                         invoice.status === "REGISTERED" ? "Registrada" :
+                         invoice.status}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Fecha:</span>
+                        <span>
+                          {new Date(invoice.issue_date).toLocaleDateString("es-ES", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </div>
+                      {invoice.project_number && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Proyecto:</span>
+                          <span>{invoice.project_number}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-semibold pt-1">
+                        <span>Total:</span>
+                        <span>{formatCurrency(invoice.total)}</span>
+                      </div>
+                      {invoice.pending_amount > 0 && (
+                        <div className="flex justify-between text-amber-600">
+                          <span>Pendiente:</span>
+                          <span>{formatCurrency(invoice.pending_amount)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>

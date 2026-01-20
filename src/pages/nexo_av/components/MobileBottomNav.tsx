@@ -123,7 +123,7 @@ const MobileBottomNav = ({ userId, userRoles = [] }: MobileBottomNavProps) => {
                   isAvailable && 'active:scale-90',
                   !isAvailable && 'opacity-40 cursor-not-allowed',
                   active && !isMenuButton && isAvailable
-                    ? 'text-primary bg-primary/15'
+                    ? 'text-primary bg-primary/25 border border-primary/30'
                     : isAvailable
                     ? 'text-foreground/60 hover:bg-accent/50 hover:text-foreground'
                     : 'text-muted-foreground/50'
@@ -134,23 +134,24 @@ const MobileBottomNav = ({ userId, userRoles = [] }: MobileBottomNavProps) => {
               >
                 <div className={cn(
                   'relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300',
-                  active && !isMenuButton && isAvailable && 'bg-primary/15'
+                  active && !isMenuButton && isAvailable && 'bg-primary/30'
                 )}>
                   <item.icon
                     className={cn(
                       'h-6 w-6 transition-all duration-300',
                       active && !isMenuButton && isAvailable && 'scale-110',
-                      active && !isMenuButton && isAvailable ? 'stroke-[2.5]' : 'stroke-[2]'
+                      active && !isMenuButton && isAvailable ? 'stroke-[2.5] text-primary' : 'stroke-[2]',
+                      !active && isAvailable && 'text-foreground/70'
                     )}
                   />
                   {active && !isMenuButton && isAvailable && (
-                    <div className="absolute inset-0 bg-primary/5 rounded-xl animate-pulse" />
+                    <div className="absolute inset-0 bg-primary/10 rounded-xl" />
                   )}
                 </div>
                 <span className={cn(
                   'text-[11px] font-semibold truncate max-w-full transition-all duration-300',
                   active && !isMenuButton && isAvailable 
-                    ? 'text-primary scale-105' 
+                    ? 'text-primary scale-105 font-bold' 
                     : isAvailable 
                     ? 'text-foreground/70' 
                     : 'text-muted-foreground/50'

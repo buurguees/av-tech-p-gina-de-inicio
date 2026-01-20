@@ -5,7 +5,7 @@
  * Diseñada para comerciales con visualización rápida del PDF y cambios de estado.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -30,12 +30,14 @@ import {
   Lock,
   ExternalLink,
   Phone,
-  Mail
+  Mail,
+  Save,
+  Clock
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { QuotePDFDocument } from "../components/QuotePDFViewer";
-import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
+import { PDFViewer, PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import { Download, Loader2 } from "lucide-react";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
@@ -135,12 +137,23 @@ const QuoteDetailPageMobile = () => {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [showPDF, setShowPDF] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [currentNote, setCurrentNote] = useState("");
+  const [savedNotes, setSavedNotes] = useState<any[]>([]);
+  const [loadingNotes, setLoadingNotes] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (quoteId) {
       fetchQuoteData();
+      fetchSavedNotes();
     }
   }, [quoteId]);
+
+  useEffect(() => {
+    if (quote) {
+      setCurrentNote(quote.notes || "");
+    }
+  }, [quote]);
 
   const fetchQuoteData = async () => {
     try {
@@ -243,6 +256,106 @@ const QuoteDetailPageMobile = () => {
   const handleEdit = () => {
     navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`);
   };
+
+  const fetchSavedNotes = async () => {
+    if (!quoteId) return;
+    try {
+      setLoadingNotes(true);
+      const { data, error } = await supabase.rpc("get_quote_notes", {
+        p_quote_id: quoteId,
+      });
+      if (error) throw error;
+      setSavedNotes(data || []);
+    } catch (error: any) {
+      console.error("Error fetching saved notes:", error);
+    } finally {
+      setLoadingNotes(false);
+    }
+  };
+
+  const handleSaveNote = async () => {
+    if (!currentNote.trim() || !quoteId) {
+      toast({
+        title: "Error",
+        description: "La nota no puede estar vacía",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const { error } = await supabase.rpc("create_quote_note", {
+        p_quote_id: quoteId,
+        p_content: currentNote.trim(),
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Nota guardada",
+        description: "La nota se ha registrado correctamente con fecha y hora",
+      });
+
+      // Clear current note and refresh saved notes
+      setCurrentNote("");
+      await fetchSavedNotes();
+
+      // Also update the quote notes field
+      await supabase.rpc("update_quote", {
+        p_quote_id: quoteId,
+        p_notes: "",
+      });
+      await fetchQuoteData();
+    } catch (error: any) {
+      console.error("Error saving note:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo guardar la nota",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const generatePDFBlob = async () => {
+    if (!quote || !client || !company || lines.length === 0) return;
+
+    try {
+      const doc = (
+        <QuotePDFDocument
+          quote={quote}
+          lines={lines}
+          client={client}
+          company={company}
+          project={project}
+        />
+      );
+      const asBlob = await pdf(doc).toBlob();
+      const url = URL.createObjectURL(asBlob);
+      setPdfBlobUrl(url);
+    } catch (error) {
+      console.error("Error generating PDF blob:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo generar el PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (showPDF && quote && client && company && lines.length > 0 && project !== undefined) {
+      generatePDFBlob();
+    }
+    return () => {
+      if (pdfBlobUrl) {
+        URL.revokeObjectURL(pdfBlobUrl);
+        setPdfBlobUrl(null);
+      }
+    };
+  }, [showPDF]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-ES", {
@@ -375,7 +488,7 @@ const QuoteDetailPageMobile = () => {
               </div>
             </motion.div>
 
-            {/* PDF Viewer - Implementado */}
+            {/* PDF Viewer - Mejorado para móvil */}
             {showPDF && quote && client && company && lines.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -385,50 +498,47 @@ const QuoteDetailPageMobile = () => {
               >
                 <div className="flex items-center justify-between px-3 py-2 bg-white/5 border-b border-white/10">
                   <span className="text-white/60 text-xs">Vista Previa PDF</span>
-                  <PDFDownloadLink
-                    document={
-                      <QuotePDFDocument
-                        quote={quote}
-                        lines={lines}
-                        client={client}
-                        company={company}
-                        project={project}
-                      />
-                    }
-                    fileName={`Presupuesto-${quote.quote_number}.pdf`}
-                  >
-                    {({ loading }) => (
+                  <div className="flex items-center gap-2">
+                    {pdfBlobUrl ? (
                       <Button
                         size="sm"
                         variant="ghost"
                         className="h-8 text-white/60 hover:text-white gap-1.5"
-                        disabled={loading}
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = pdfBlobUrl;
+                          link.download = `Presupuesto-${quote.quote_number}.pdf`;
+                          link.click();
+                        }}
                       >
-                        {loading ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Download className="h-3.5 w-3.5" />
-                        )}
+                        <Download className="h-3.5 w-3.5" />
                         <span className="text-xs">Descargar</span>
                       </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 text-white/60 gap-1.5"
+                        disabled
+                      >
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <span className="text-xs">Generando...</span>
+                      </Button>
                     )}
-                  </PDFDownloadLink>
+                  </div>
                 </div>
                 <div className="h-[500px] bg-zinc-900">
-                  <PDFViewer
-                    width="100%"
-                    height="100%"
-                    showToolbar={false}
-                    className="border-0"
-                  >
-                    <QuotePDFDocument
-                      quote={quote}
-                      lines={lines}
-                      client={client}
-                      company={company}
-                      project={project}
+                  {pdfBlobUrl ? (
+                    <iframe
+                      src={pdfBlobUrl}
+                      className="w-full h-full border-0"
+                      title="PDF Preview"
                     />
-                  </PDFViewer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -551,48 +661,90 @@ const QuoteDetailPageMobile = () => {
             </motion.div>
           </TabsContent>
 
-          <TabsContent value="notes" className="mt-0 h-[calc(100vh-140px)]">
-            <Card className="bg-white/5 border-white/10 h-full flex flex-col">
-              <CardContent className="p-4 flex-1 flex flex-col">
-                <div className="flex items-center justify-between mb-3">
+          <TabsContent value="notes" className="mt-0 space-y-3">
+            {/* Editor de Notas - Reducido a la mitad */}
+            <Card className="bg-white/5 border-white/10">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
                   <h3 className="text-white font-medium text-sm flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    Notas del usuario
+                    Nueva Nota
                   </h3>
-                  {saving && <span className="text-xs text-white/40 animate-pulse">Guardando...</span>}
                 </div>
                 <Textarea
-                  value={quote.notes || ""}
-                  onChange={(e) => {
-                    const newNotes = e.target.value;
-                    setQuote(prev => prev ? { ...prev, notes: newNotes } : null);
-
-                    // Debounced save
-                    const timeoutId = setTimeout(async () => {
-                      setSaving(true);
-                      try {
-                        const { error } = await supabase.rpc("update_quote", {
-                          p_quote_id: quoteId!,
-                          p_notes: newNotes
-                        });
-                        if (error) throw error;
-                      } catch (err) {
-                        console.error("Error saving notes:", err);
-                        toast({
-                          title: "Error al guardar notas",
-                          variant: "destructive"
-                        });
-                      } finally {
-                        setSaving(false);
-                      }
-                    }, 1000);
-
-                    // Clear previous timeout
-                    return () => clearTimeout(timeoutId);
-                  }}
-                  className="flex-1 bg-transparent border-0 resize-none focus-visible:ring-0 p-0 text-base text-white/80 placeholder:text-white/20"
-                  placeholder="Escribe aquí las notas..."
+                  value={currentNote}
+                  onChange={(e) => setCurrentNote(e.target.value)}
+                  className="h-32 bg-transparent border border-white/10 resize-none focus-visible:ring-1 focus-visible:ring-white/20 p-2 text-sm text-white/80 placeholder:text-white/20"
+                  placeholder="Escribe aquí la nota..."
                 />
+                <Button
+                  onClick={handleSaveNote}
+                  disabled={!currentNote.trim() || saving}
+                  className="w-full mt-2 bg-primary hover:bg-primary/90 text-white h-9"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Guardar Nota
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Historial de Notas Guardadas */}
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white text-sm flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Notas Guardadas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                {loadingNotes ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-white/40" />
+                  </div>
+                ) : savedNotes.length === 0 ? (
+                  <p className="text-white/40 text-sm text-center py-4">
+                    No hay notas guardadas
+                  </p>
+                ) : (
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                    {savedNotes.map((note) => (
+                      <div
+                        key={note.id}
+                        className="bg-white/5 rounded-lg p-3 border border-white/10"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <User className="h-3.5 w-3.5 text-white/40" />
+                            <span className="text-white/60 text-xs">
+                              {note.created_by_name || "Usuario"}
+                            </span>
+                          </div>
+                          <span className="text-white/40 text-xs">
+                            {new Date(note.created_at).toLocaleString("es-ES", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                        <p className="text-white/80 text-sm whitespace-pre-wrap">
+                          {note.content}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

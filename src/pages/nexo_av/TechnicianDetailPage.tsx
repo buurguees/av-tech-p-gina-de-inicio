@@ -181,12 +181,41 @@ const billingChartConfig: ChartConfig = {
   },
 };
 
+interface PurchaseInvoice {
+  id: string;
+  invoice_number: string;
+  supplier_invoice_number: string | null;
+  internal_purchase_number: string | null;
+  document_type: string;
+  issue_date: string;
+  due_date: string | null;
+  subtotal: number;
+  tax_amount: number;
+  withholding_amount: number;
+  total: number;
+  paid_amount: number;
+  pending_amount: number;
+  status: string;
+  project_id: string | null;
+  project_name: string | null;
+  project_number: string | null;
+  client_name: string | null;
+  file_path: string | null;
+  file_name: string | null;
+  created_at: string;
+}
+
 function TechnicianDetailPageDesktop() {
   const { userId, technicianId } = useParams<{ userId: string; technicianId: string }>();
   const navigate = useNavigate();
   const [technician, setTechnician] = useState<TechnicianDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [projectsCount, setProjectsCount] = useState<number>(0);
+  const [purchaseInvoices, setPurchaseInvoices] = useState<PurchaseInvoice[]>([]);
+  const [loadingInvoices, setLoadingInvoices] = useState(false);
+  const [totalInvoiced, setTotalInvoiced] = useState<number>(0);
+  const [lastCollaboration, setLastCollaboration] = useState<string | null>(null);
 
   const fetchTechnician = useCallback(async () => {
     if (!technicianId) return;
@@ -209,9 +238,74 @@ function TechnicianDetailPageDesktop() {
     }
   }, [technicianId]);
 
+  const fetchProjectsCount = useCallback(async () => {
+    if (!technicianId) return;
+
+    try {
+      const { data, error } = await supabase.rpc("get_technician_projects_count", {
+        p_technician_id: technicianId,
+      });
+
+      if (error) throw error;
+      setProjectsCount(data || 0);
+    } catch (err) {
+      console.error("Error fetching projects count:", err);
+    }
+  }, [technicianId]);
+
+  const fetchPurchaseInvoices = useCallback(async () => {
+    if (!technicianId) return;
+
+    setLoadingInvoices(true);
+    try {
+      const { data, error } = await supabase.rpc("get_provider_purchase_invoices", {
+        p_provider_id: technicianId,
+        p_provider_type: "TECHNICIAN",
+      });
+
+      if (error) throw error;
+      if (data) {
+        setPurchaseInvoices(data as PurchaseInvoice[]);
+        
+        // Calcular total facturado
+        const total = data.reduce((sum: number, inv: PurchaseInvoice) => sum + (inv.total || 0), 0);
+        setTotalInvoiced(total);
+
+        // Obtener última colaboración
+        if (data.length > 0) {
+          const lastInvoice = data[0];
+          const lastDate = new Date(lastInvoice.issue_date || lastInvoice.created_at);
+          const now = new Date();
+          const diffTime = Math.abs(now.getTime() - lastDate.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays === 0) {
+            setLastCollaboration("Hoy");
+          } else if (diffDays === 1) {
+            setLastCollaboration("Ayer");
+          } else if (diffDays < 7) {
+            setLastCollaboration(`Hace ${diffDays} días`);
+          } else if (diffDays < 30) {
+            const weeks = Math.floor(diffDays / 7);
+            setLastCollaboration(`Hace ${weeks} semana${weeks > 1 ? 's' : ''}`);
+          } else {
+            const months = Math.floor(diffDays / 30);
+            setLastCollaboration(`Hace ${months} mes${months > 1 ? 'es' : ''}`);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching purchase invoices:", err);
+    } finally {
+      setLoadingInvoices(false);
+    }
+  }, [technicianId]);
+
   useEffect(() => {
     fetchTechnician();
-  }, [fetchTechnician]);
+    fetchProjectsCount();
+    fetchPurchaseInvoices();
+  }, [fetchTechnician, fetchProjectsCount, fetchPurchaseInvoices]);
 
   if (loading) {
     return (
@@ -388,10 +482,10 @@ function TechnicianDetailPageDesktop() {
                 }}
               >
                 <span className="text-[11px] font-medium" style={{ color: "hsl(var(--status-success-text))" }}>
-                  Proyectos facturados (mock)
+                  Proyectos trabajados
                 </span>
                 <span className="text-sm font-semibold" style={{ color: "hsl(var(--status-success))" }}>
-                  12 este año
+                  {projectsCount}
                 </span>
               </div>
               <div
@@ -402,10 +496,10 @@ function TechnicianDetailPageDesktop() {
                 }}
               >
                 <span className="text-[11px] font-medium" style={{ color: "hsl(var(--status-info-text))" }}>
-                  Importe comprado (mock)
+                  Total facturado
                 </span>
                 <span className="text-sm font-semibold" style={{ color: "hsl(var(--status-info))" }}>
-                  32.400 €
+                  {formatCurrency(totalInvoiced)}
                 </span>
               </div>
               <div
@@ -419,7 +513,7 @@ function TechnicianDetailPageDesktop() {
                   Última colaboración
                 </span>
                 <span className="text-sm font-semibold" style={{ color: "hsl(var(--status-warning))" }}>
-                  Hace 3 semanas
+                  {lastCollaboration || "Sin colaboraciones"}
                 </span>
               </div>
             </div>
@@ -704,6 +798,7 @@ function TechnicianDetailPageDesktop() {
 
               {/* TAB FACTURACIÓN */}
               <TabsContent value="billing" className="space-y-4 mt-0">
+                {/* Datos de facturación */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -741,6 +836,101 @@ function TechnicianDetailPageDesktop() {
                         </p>
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+
+                {/* Facturas de compra */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      <Receipt className="h-4 w-4 text-muted-foreground" />
+                      Facturas de Compra
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingInvoices ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : purchaseInvoices.length === 0 ? (
+                      <div className="py-8 text-center text-sm text-muted-foreground">
+                        Aún no hay facturas de compra registradas para este técnico.
+                      </div>
+                    ) : (
+                      <div className="border rounded-md overflow-hidden">
+                        <Table>
+                          <TableHeader className="bg-muted/60">
+                            <TableRow>
+                              <TableHead className="text-xs">N° Factura</TableHead>
+                              <TableHead className="text-xs">N° Interno</TableHead>
+                              <TableHead className="text-xs">Fecha</TableHead>
+                              <TableHead className="text-xs">Proyecto</TableHead>
+                              <TableHead className="text-xs text-right">Total</TableHead>
+                              <TableHead className="text-xs text-right">Pagado</TableHead>
+                              <TableHead className="text-xs text-right">Pendiente</TableHead>
+                              <TableHead className="text-xs text-center">Estado</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {purchaseInvoices.map((invoice) => (
+                              <TableRow 
+                                key={invoice.id} 
+                                className="text-xs cursor-pointer hover:bg-muted/50"
+                                onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}
+                              >
+                                <TableCell className="font-medium">
+                                  {invoice.supplier_invoice_number || invoice.invoice_number}
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">
+                                  {invoice.internal_purchase_number || "—"}
+                                </TableCell>
+                                <TableCell>
+                                  {new Date(invoice.issue_date).toLocaleDateString("es-ES", {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  })}
+                                </TableCell>
+                                <TableCell>
+                                  {invoice.project_number || "—"}
+                                </TableCell>
+                                <TableCell className="text-right font-semibold">
+                                  {formatCurrency(invoice.total)}
+                                </TableCell>
+                                <TableCell className="text-right text-muted-foreground">
+                                  {formatCurrency(invoice.paid_amount)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {invoice.pending_amount > 0 ? (
+                                    <span className="font-medium text-amber-600">
+                                      {formatCurrency(invoice.pending_amount)}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground">—</span>
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <Badge 
+                                    variant="outline" 
+                                    className={cn(
+                                      "text-xs",
+                                      invoice.status === "CONFIRMED" && "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+                                      invoice.status === "REGISTERED" && "bg-blue-500/10 text-blue-400 border-blue-500/20",
+                                      invoice.status === "CANCELLED" && "bg-red-500/10 text-red-400 border-red-500/20"
+                                    )}
+                                  >
+                                    {invoice.status === "CONFIRMED" ? "Confirmada" :
+                                     invoice.status === "REGISTERED" ? "Registrada" :
+                                     invoice.status === "CANCELLED" ? "Cancelada" :
+                                     invoice.status}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>

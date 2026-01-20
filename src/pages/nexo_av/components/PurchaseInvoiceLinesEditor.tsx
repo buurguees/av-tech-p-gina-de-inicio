@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Trash2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import ProductSearchInput from "./ProductSearchInput";
 
 export interface PurchaseInvoiceLine {
   id?: string;
@@ -133,6 +134,23 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
       ...updatedLines[index],
       [field]: value,
     });
+    onChange(updatedLines);
+  };
+
+  const handleProductSelect = (index: number, item: { id: string; type: string; name: string; code: string; price: number; tax_rate: number; description?: string }) => {
+    const updatedLines = [...lines];
+    const currentQuantity = updatedLines[index].quantity;
+
+    const lineData = {
+      ...updatedLines[index],
+      concept: item.name,
+      description: item.description || null,
+      unit_price: item.price,
+      tax_rate: item.tax_rate || defaultTaxRate,
+      quantity: currentQuantity,
+    };
+
+    updatedLines[index] = calculateLineValues(lineData);
     onChange(updatedLines);
   };
 
@@ -307,10 +325,11 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
               lines.map((line, index) => (
                 <TableRow key={line.tempId || line.id} className="border-b border-white/5">
                   <TableCell>
-                    <Input
+                    <ProductSearchInput
                       value={line.concept}
-                      onChange={(e) => updateLine(index, "concept", e.target.value)}
-                      placeholder="Descripción del concepto"
+                      onChange={(value) => updateLine(index, "concept", value)}
+                      onSelectItem={(item) => handleProductSelect(index, item)}
+                      placeholder="Concepto o @buscar"
                       className="bg-white/5 border-white/10 text-white text-sm h-9"
                     />
                   </TableCell>

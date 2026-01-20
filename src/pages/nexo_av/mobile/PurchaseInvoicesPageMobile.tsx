@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,24 +8,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Search,
   Loader2,
-  Camera,
-  Upload,
   FileText,
   TrendingDown,
   Building2,
   Calendar,
-  ChevronRight,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-const DocumentScanner = lazy(() => import("../components/DocumentScanner"));
-
 interface PurchaseInvoice {
   id: string;
   invoice_number: string;
+  internal_purchase_number: string | null;
+  supplier_invoice_number: string | null;
   document_type: string;
   issue_date: string;
   due_date: string | null;
@@ -43,6 +40,8 @@ interface PurchaseInvoice {
   file_name: string | null;
   project_id: string | null;
   project_name: string | null;
+  project_number: string | null;
+  client_name: string | null;
   expense_category: string | null;
   is_locked: boolean;
   created_at: string;
@@ -57,8 +56,6 @@ const PurchaseInvoicesPageMobile = () => {
   const [invoices, setInvoices] = useState<PurchaseInvoice[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchQuery = useDebounce(searchInput, 500);
-  const [showScanner, setShowScanner] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
@@ -88,128 +85,6 @@ const PurchaseInvoicesPageMobile = () => {
     }
   };
 
-  const handleUpload = async (fileOrBlob: File | Blob) => {
-    if (!userId) {
-      toast({
-        title: "Error",
-        description: "No se ha identificado al usuario",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setUploading(true);
-
-      // Obtener el auth.uid() del usuario actual para las políticas RLS
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) {
-        throw new Error("Usuario no autenticado");
-      }
-      const authUserId = authUser.id;
-
-      // Validar tipo de archivo
-      const isFile = fileOrBlob instanceof File;
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
-      const maxSize = 50 * 1024 * 1024; // 50MB
-
-      if (isFile) {
-        const file = fileOrBlob as File;
-        if (!allowedTypes.includes(file.type)) {
-          throw new Error(`Tipo de archivo no permitido. Solo se permiten: PDF, JPEG, PNG, WEBP`);
-        }
-        if (file.size > maxSize) {
-          throw new Error(`El archivo es demasiado grande. Tamaño máximo: 50MB`);
-        }
-      }
-
-      // Generar nombre de archivo único
-      // Usar authUserId para la carpeta (requerido por políticas RLS)
-      const extension = isFile 
-        ? (fileOrBlob as File).name.split('.').pop()?.toLowerCase() || 'pdf'
-        : 'jpg';
-      const timestamp = Date.now();
-      const randomSuffix = Math.random().toString(36).substring(2, 8);
-      const fileName = `invoice_${timestamp}_${randomSuffix}.${extension}`;
-      const filePath = `${authUserId}/${fileName}`;
-
-      // Subir archivo a Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('purchase-documents')
-        .upload(filePath, fileOrBlob, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) {
-        console.error("Storage upload error:", uploadError);
-        // Si el archivo ya existe, intentar con otro nombre
-        if (uploadError.message.includes('already exists')) {
-          const newFileName = `invoice_${timestamp}_${Math.random().toString(36).substring(2, 10)}.${extension}`;
-          const newFilePath = `${authUserId}/${newFileName}`;
-          const { error: retryError } = await supabase.storage
-            .from('purchase-documents')
-            .upload(newFilePath, fileOrBlob);
-          
-          if (retryError) throw retryError;
-          
-          // Usar el nuevo path
-          const { error: dbError } = await supabase.rpc('create_purchase_invoice', {
-            p_invoice_number: `PENDIENTE-${timestamp.toString().slice(-6)}`,
-            p_document_type: typeFilter === 'EXPENSE' ? 'EXPENSE' : 'INVOICE',
-            p_status: 'PENDING',
-            p_file_path: newFilePath,
-            p_file_name: newFileName
-          });
-
-          if (dbError) throw dbError;
-        } else {
-          throw uploadError;
-        }
-      } else {
-        // Crear registro en la base de datos
-        const { error: dbError } = await supabase.rpc('create_purchase_invoice', {
-          p_invoice_number: `PENDIENTE-${timestamp.toString().slice(-6)}`,
-          p_document_type: typeFilter === 'EXPENSE' ? 'EXPENSE' : 'INVOICE',
-          p_status: 'PENDING',
-          p_file_path: filePath,
-          p_file_name: fileName
-        });
-
-        if (dbError) {
-          // Si falla la creación en BD, eliminar el archivo subido
-          await supabase.storage
-            .from('purchase-documents')
-            .remove([filePath]);
-          throw dbError;
-        }
-      }
-
-      toast({
-        title: "Éxito",
-        description: "Documento subido correctamente. Pendiente de entrada de datos.",
-      });
-      setShowScanner(false);
-      fetchInvoices();
-    } catch (error: any) {
-      console.error("Upload error:", error);
-      let errorMessage = "Error al subir el documento";
-      
-      if (error.message) {
-        errorMessage = error.message;
-      } else if (error.error) {
-        errorMessage = error.error;
-      }
-
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-ES", {
@@ -254,32 +129,17 @@ const PurchaseInvoicesPageMobile = () => {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-3"
         >
-          {/* Header con botón de subida */}
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h1 className="text-lg font-bold">Compras y Gastos</h1>
-              <p className="text-xs text-muted-foreground">
-                {invoices.length} documentos
-                {pendingCount > 0 && (
-                  <span className="ml-2 text-blue-400 font-medium">
-                    • {pendingCount} pendientes
-                  </span>
-                )}
-              </p>
-            </div>
-            <Button
-              onClick={() => setShowScanner(true)}
-              disabled={uploading}
-              size="sm"
-              className="h-10 px-4 gap-2"
-            >
-              {uploading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Camera className="h-4 w-4" />
+          {/* Header */}
+          <div>
+            <h1 className="text-lg font-bold">Compras y Gastos</h1>
+            <p className="text-xs text-muted-foreground">
+              {invoices.length} documentos
+              {pendingCount > 0 && (
+                <span className="ml-2 text-blue-400 font-medium">
+                  • {pendingCount} pendientes
+                </span>
               )}
-              Escanear
-            </Button>
+            </p>
           </div>
 
           {/* Search */}
@@ -414,15 +274,6 @@ const PurchaseInvoicesPageMobile = () => {
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <FileText className="h-12 w-12 text-muted-foreground mb-3" />
               <p className="text-muted-foreground text-sm">No hay documentos registrados</p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-4"
-                onClick={() => setShowScanner(true)}
-              >
-                <Camera className="h-4 w-4 mr-2" />
-                Escanear documento
-              </Button>
             </div>
           ) : (
             <div className="space-y-2">
@@ -441,7 +292,12 @@ const PurchaseInvoicesPageMobile = () => {
                           ) : (
                             <TrendingDown className="h-4 w-4 text-amber-400 shrink-0" />
                           )}
-                          <span className="font-semibold text-sm truncate">{inv.invoice_number}</span>
+                          <span className="font-semibold text-sm truncate">
+                            {inv.internal_purchase_number || 
+                             inv.supplier_invoice_number || 
+                             inv.invoice_number || 
+                             'Sin número'}
+                          </span>
                           {inv.status === 'PENDING' && (
                             <Badge className="bg-blue-500/10 text-blue-400 text-[9px] px-1.5 py-0 border-none">
                               Pendiente
@@ -467,10 +323,17 @@ const PurchaseInvoicesPageMobile = () => {
                         <Calendar className="h-3 w-3" />
                         {formatDate(inv.issue_date)}
                       </div>
-                      {inv.project_name && (
-                        <div className="flex items-center gap-1 truncate">
-                          <Building2 className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{inv.project_name}</span>
+                      {inv.project_id && (
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center gap-1">
+                            <Building2 className="h-3 w-3 shrink-0" />
+                            <span className="font-mono text-white/90">{inv.project_number || "-"}</span>
+                          </div>
+                          {inv.client_name && (
+                            <span className="text-white/60 text-[10px] ml-4 truncate">
+                              {inv.client_name}
+                            </span>
+                          )}
                         </div>
                       )}
                       {inv.pending_amount > 0 && (
@@ -486,20 +349,6 @@ const PurchaseInvoicesPageMobile = () => {
           )}
         </motion.div>
       </main>
-
-      {showScanner && (
-        <Suspense fallback={
-          <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-white" />
-          </div>
-        }>
-          <DocumentScanner
-            onCapture={handleUpload}
-            onCancel={() => setShowScanner(false)}
-            title="Escanear Factura"
-          />
-        </Suspense>
-      )}
     </div>
   );
 };

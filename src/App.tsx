@@ -44,12 +44,14 @@ const NexoClientMapPage = lazy(() => import("./pages/nexo_av/ClientMapPage"));
 const NexoProjectMapPage = lazy(() => import("./pages/nexo_av/ProjectMapPage"));
 const NexoTechMapPage = lazy(() => import("./pages/nexo_av/TechMapPage"));
 const NexoPurchaseInvoicesPage = lazy(() => import("./pages/nexo_av/PurchaseInvoicesPage"));
+const NexoPurchaseInvoiceDetailPage = lazy(() => import("./pages/nexo_av/PurchaseInvoiceDetailPage"));
 const NexoExpensesPage = lazy(() => import("./pages/nexo_av/ExpensesPage"));
 const NexoReportsPage = lazy(() => import("./pages/nexo_av/ReportsPage"));
 const NexoTechniciansPage = lazy(() => import("./pages/nexo_av/TechniciansPage"));
 const NexoTechnicianDetailPage = lazy(() => import("./pages/nexo_av/TechnicianDetailPage"));
 const NexoSuppliersPage = lazy(() => import("./pages/nexo_av/SuppliersPage"));
 const NexoSupplierDetailPage = lazy(() => import("./pages/nexo_av/SupplierDetailPage"));
+const NexoAccountingPage = lazy(() => import("./pages/nexo_av/AccountingPage"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -108,8 +110,11 @@ const App = () => (
                 <Route path="suppliers/:supplierId" element={<NexoSupplierDetailPage />} />
                 <Route path="invoices" element={<NexoInvoicesPage />} />
                 <Route path="purchase-invoices" element={<NexoPurchaseInvoicesPage />} />
+                <Route path="purchase-invoices/:invoiceId" element={<NexoPurchaseInvoiceDetailPage />} />
                 <Route path="expenses" element={<NexoExpensesPage />} />
+                <Route path="expenses/:invoiceId" element={<NexoPurchaseInvoiceDetailPage />} />
                 <Route path="reports" element={<NexoReportsPage />} />
+                <Route path="accounting" element={<NexoAccountingPage />} />
                 <Route path="invoices/new" element={<NexoNewInvoicePage />} />
                 <Route path="invoices/:invoiceId" element={<NexoInvoiceDetailPage />} />
                 <Route path="invoices/:invoiceId/edit" element={<NexoEditInvoicePage />} />

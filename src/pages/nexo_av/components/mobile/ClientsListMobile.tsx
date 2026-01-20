@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Building2, Phone } from "lucide-react";
+import { Building2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PaginationControls from "../PaginationControls";
@@ -8,8 +8,8 @@ interface Client {
   id: string;
   client_number: string | null;
   company_name: string;
-  contact_phone: string;
   contact_email: string;
+  tax_id: string | null;
   lead_stage: string;
   assigned_to_name?: string | null;
 }
@@ -86,28 +86,35 @@ const ClientsListMobile = ({
             onClick={() => onClientClick(client.id)}
             className="w-full p-2.5 bg-card border border-border rounded-lg active:bg-secondary transition-colors text-left"
           >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <p className="text-[11px] font-semibold text-foreground truncate">
-                    {client.company_name}
-                  </p>
-                  <Badge 
-                    variant="outline" 
-                    className={`${stageInfo.color} text-[10px] px-1.5 py-0 shrink-0`}
-                  >
-                    {stageInfo.label}
-                  </Badge>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-[11px] font-semibold text-foreground truncate">
+                  {client.company_name}
+                </p>
+                <Badge 
+                  variant="outline" 
+                  className={`${stageInfo.color} text-[9px] px-1.5 py-0.5 shrink-0 border`}
+                >
+                  {stageInfo.label}
+                </Badge>
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                  {client.client_number && (
+                    <span className="font-mono">#{client.client_number}</span>
+                  )}
+                  {client.tax_id && (
+                    <>
+                      {client.client_number && <span>•</span>}
+                      <span className="font-mono">CIF: {client.tax_id}</span>
+                    </>
+                  )}
                 </div>
-                {client.contact_phone && (
-                  <a 
-                    href={`tel:${client.contact_phone}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-[10px] text-primary flex items-center gap-1"
-                  >
-                    <Phone className="w-3 h-3" />
-                    {client.contact_phone}
-                  </a>
+                {client.assigned_to_name && (
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <User className="w-3 h-3" />
+                    <span>{client.assigned_to_name}</span>
+                  </div>
                 )}
               </div>
             </div>

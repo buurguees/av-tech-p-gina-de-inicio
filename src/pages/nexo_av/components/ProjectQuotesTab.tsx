@@ -43,19 +43,13 @@ const ProjectQuotesTab = ({ projectId, clientId }: ProjectQuotesTabProps) => {
     const fetchQuotes = async () => {
       try {
         setLoading(true);
-        // Pasar ambos parámetros para evitar ambigüedad con funciones sobrecargadas
-        const { data, error } = await supabase.rpc('list_quotes', {
-          p_search: null,
-          p_status: null
-        });
+        // Usar RPC específica para listar quotes del proyecto
+        const { data, error } = await supabase.rpc('list_project_quotes', {
+          p_project_id: projectId
+        } as any);
 
         if (error) throw error;
-        const allQuotes = data || [];
-
-        // Filtrar presupuestos por project_id (vinculación directa)
-        const projectQuotes = allQuotes.filter((q: any) => q.project_id === projectId);
-
-        setQuotes(projectQuotes as Quote[]);
+        setQuotes((data || []) as Quote[]);
       } catch (error) {
         console.error('Error fetching quotes:', error);
       } finally {

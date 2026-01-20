@@ -33,7 +33,6 @@ import {
     XCircle,
     Package
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
@@ -168,11 +167,11 @@ const SuppliersPageDesktop = () => {
             const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
             const { data: purchaseInvoicesData, error: invoicesError } = await supabase.rpc('list_purchase_invoices', {
-                p_limit: 10000,
-                p_offset: 0,
                 p_search: null,
                 p_status: null,
-                p_document_type: null
+                p_document_type: null,
+                p_page: 1,
+                p_page_size: 10000
             });
 
             if (invoicesError) {
@@ -185,8 +184,8 @@ const SuppliersPageDesktop = () => {
                 if (!inv.issue_date || !inv.provider_id) return false;
                 const invoiceDate = new Date(inv.issue_date);
                 return invoiceDate >= firstDayOfMonth && invoiceDate <= lastDayOfMonth &&
-                       (inv.status === 'APPROVED' || inv.status === 'PAID') &&
-                       inv.entity_type === 'SUPPLIER';
+                       (inv.status === 'CONFIRMED' || inv.status === 'PAID' || inv.status === 'REGISTERED') &&
+                       inv.provider_type === 'SUPPLIER';
             });
 
             const monthlyCosts = monthlyInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
@@ -194,8 +193,8 @@ const SuppliersPageDesktop = () => {
             // Calcular facturas por proveedor
             const invoicesBySupplier = new Map<string, number[]>();
             (purchaseInvoicesData || []).forEach((inv: any) => {
-                if (inv.provider_id && inv.total && inv.entity_type === 'SUPPLIER' && 
-                    inv.status !== 'CANCELLED' && inv.status !== 'DRAFT') {
+                if (inv.provider_id && inv.total && inv.provider_type === 'SUPPLIER' && 
+                    inv.status !== 'CANCELLED' && inv.status !== 'PENDING') {
                     const supplierInvoices = invoicesBySupplier.get(inv.provider_id) || [];
                     supplierInvoices.push(inv.total);
                     invoicesBySupplier.set(inv.provider_id, supplierInvoices);
@@ -221,8 +220,8 @@ const SuppliersPageDesktop = () => {
 
             // Pagos pendientes
             const pendingInvoices = (purchaseInvoicesData || []).filter((inv: any) => {
-                return inv.entity_type === 'SUPPLIER' && 
-                       (inv.status === 'PENDING_APPROVAL' || inv.status === 'APPROVED') &&
+                return inv.provider_type === 'SUPPLIER' && 
+                       (inv.status === 'REGISTERED' || inv.status === 'CONFIRMED' || inv.status === 'PARTIAL') &&
                        inv.pending_amount && inv.pending_amount > 0;
             });
 
@@ -265,180 +264,124 @@ const SuppliersPageDesktop = () => {
 
     return (
         <div className="w-full">
-            <div className="w-full px-3 md:px-4 pb-4 md:pb-8">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    {/* KPIs Cards - Recuento por Estado */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="bg-card/50 border border-border rounded-xl p-4"
-                        >
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
-                                    <Building2 className="h-5 w-5" />
+            <div className="w-full px-3 md:px-2 pb-4 md:pb-8">
+                <div>
+                    {/* KPIs Cards - Recuento por Estado - Optimizado */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                        <div className="bg-card/50 border border-border rounded-lg p-2">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="p-1 bg-blue-500/10 rounded text-blue-600">
+                                    <Building2 className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-muted-foreground text-sm font-medium">Total</span>
+                                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Total</span>
                             </div>
-                            <div className="mt-2">
-                                <span className="text-2xl font-bold text-foreground">
+                            <div>
+                                <span className="text-lg font-bold text-foreground">
                                     {suppliers.length}
                                 </span>
                             </div>
-                        </motion.div>
+                        </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="bg-card/50 border border-border rounded-xl p-4"
-                        >
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2 bg-green-500/10 rounded-lg text-green-600">
-                                    <CheckCircle className="h-5 w-5" />
+                        <div className="bg-card/50 border border-border rounded-lg p-2">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="p-1 bg-green-500/10 rounded text-green-600">
+                                    <CheckCircle className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-muted-foreground text-sm font-medium">Activos</span>
+                                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Activos</span>
                             </div>
-                            <div className="mt-2">
-                                <span className="text-2xl font-bold text-foreground">
+                            <div>
+                                <span className="text-lg font-bold text-foreground">
                                     {supplierKPIs.byStatus['ACTIVE'] || 0}
                                 </span>
                             </div>
-                        </motion.div>
+                        </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="bg-card/50 border border-border rounded-xl p-4"
-                        >
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2 bg-zinc-500/10 rounded-lg text-zinc-600">
-                                    <XCircle className="h-5 w-5" />
+                        <div className="bg-card/50 border border-border rounded-lg p-2">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="p-1 bg-zinc-500/10 rounded text-zinc-600">
+                                    <XCircle className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-muted-foreground text-sm font-medium">Inactivos</span>
+                                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Inactivos</span>
                             </div>
-                            <div className="mt-2">
-                                <span className="text-2xl font-bold text-foreground">
+                            <div>
+                                <span className="text-lg font-bold text-foreground">
                                     {supplierKPIs.byStatus['INACTIVE'] || 0}
                                 </span>
                             </div>
-                        </motion.div>
+                        </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                            className="bg-card/50 border border-border rounded-xl p-4"
-                        >
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2 bg-red-500/10 rounded-lg text-red-600">
-                                    <AlertCircle className="h-5 w-5" />
+                        <div className="bg-card/50 border border-border rounded-lg p-2">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="p-1 bg-red-500/10 rounded text-red-600">
+                                    <AlertCircle className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-muted-foreground text-sm font-medium">Bloqueados</span>
+                                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Bloqueados</span>
                             </div>
-                            <div className="mt-2">
-                                <span className="text-2xl font-bold text-foreground">
+                            <div>
+                                <span className="text-lg font-bold text-foreground">
                                     {supplierKPIs.byStatus['BLOCKED'] || 0}
                                 </span>
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
 
-                    {/* KPIs Cards - Métricas de Costes */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                            className="bg-card/50 border border-border rounded-xl p-4"
-                        >
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2 bg-orange-500/10 rounded-lg text-orange-600">
-                                    <Euro className="h-5 w-5" />
+                    {/* KPIs Cards - Métricas de Costes - Optimizado */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                        <div className="bg-card/50 border border-border rounded-lg p-2">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="p-1 bg-orange-500/10 rounded text-orange-600">
+                                    <Euro className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-muted-foreground text-sm font-medium">Costes Mensuales</span>
+                                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Costes Mensuales</span>
                             </div>
-                            <div className="mt-2">
-                                <span className="text-2xl font-bold text-foreground">
+                            <div>
+                                <span className="text-base font-bold text-foreground">
                                     {formatCurrency(supplierKPIs.monthlyCosts)}
                                 </span>
-                                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                                    este mes
-                                </span>
                             </div>
-                        </motion.div>
+                        </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.6 }}
-                            className="bg-card/50 border border-border rounded-xl p-4"
-                        >
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2 bg-purple-500/10 rounded-lg text-purple-600">
-                                    <TrendingUp className="h-5 w-5" />
+                        <div className="bg-card/50 border border-border rounded-lg p-2">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="p-1 bg-purple-500/10 rounded text-purple-600">
+                                    <TrendingUp className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-muted-foreground text-sm font-medium">Media Coste/Proveedor</span>
+                                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Media Coste/Prov.</span>
                             </div>
-                            <div className="mt-2">
-                                <span className="text-2xl font-bold text-foreground">
+                            <div>
+                                <span className="text-base font-bold text-foreground">
                                     {formatCurrency(supplierKPIs.avgCostPerSupplier)}
                                 </span>
-                                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                                    por proveedor activo/mes
-                                </span>
                             </div>
-                        </motion.div>
+                        </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.7 }}
-                            className="bg-card/50 border border-border rounded-xl p-4"
-                        >
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-600">
-                                    <BarChart3 className="h-5 w-5" />
+                        <div className="bg-card/50 border border-border rounded-lg p-2">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="p-1 bg-cyan-500/10 rounded text-cyan-600">
+                                    <BarChart3 className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-muted-foreground text-sm font-medium">Ticket Medio Factura</span>
+                                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Ticket Medio</span>
                             </div>
-                            <div className="mt-2">
-                                <span className="text-2xl font-bold text-foreground">
+                            <div>
+                                <span className="text-base font-bold text-foreground">
                                     {formatCurrency(supplierKPIs.avgInvoiceTicket)}
                                 </span>
-                                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                                    por factura
-                                </span>
                             </div>
-                        </motion.div>
+                        </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.8 }}
-                            className="bg-card/50 border border-border rounded-xl p-4"
-                        >
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2 bg-red-500/10 rounded-lg text-red-600">
-                                    <AlertCircle className="h-5 w-5" />
+                        <div className="bg-card/50 border border-border rounded-lg p-2">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="p-1 bg-red-500/10 rounded text-red-600">
+                                    <AlertCircle className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-muted-foreground text-sm font-medium">Pagos Pendientes</span>
+                                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Pendientes</span>
                             </div>
-                            <div className="mt-2">
-                                <span className="text-2xl font-bold text-foreground">
+                            <div>
+                                <span className="text-base font-bold text-foreground">
                                     {formatCurrency(supplierKPIs.totalPendingPayments)}
                                 </span>
-                                <span className="text-xs text-muted-foreground ml-2 block mt-1">
-                                    pendiente de pago
-                                </span>
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
 
                     {/* Header - Estilo ProjectsPage */}
@@ -446,100 +389,75 @@ const SuppliersPageDesktop = () => {
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
                                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">Proveedores</h1>
-                                <Info className="h-4 w-4 text-muted-foreground" />
+                                <Info className="h-3 w-3 text-muted-foreground" />
                             </div>
 
                             <div className="flex items-center gap-2">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm">
+                                            Acciones
+                                            <ChevronDown className="h-2.5 w-2.5 ml-1" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem>
+                                            Exportar seleccionados
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+                                            Filtrar por categoría
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                                 <Button
                                     onClick={() => setIsCreateDialogOpen(true)}
-                                    className="h-9 px-4 text-sm font-medium"
+                                    className="h-9 px-2 text-[10px] font-medium"
                                 >
-                                    <Plus className="h-4 w-4 mr-1.5" />
+                                    <Plus className="h-3 w-3 mr-1.5" />
                                     Nuevo proveedor
+                                    <span className="ml-2 text-[9px] px-1.5 py-0.5 opacity-70">N</span>
                                 </Button>
                             </div>
                         </div>
 
-                        {/* Search Bar - Estilo ProjectsPage */}
+                        {/* Search Bar - Estilo Holded */}
                         <div className="flex items-center gap-2">
                             <div className="relative flex-1 min-w-[200px] max-w-md">
-                                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                                 <Input
                                     placeholder="Buscar proveedores..."
                                     value={searchInput}
                                     onChange={(e) => setSearchInput(e.target.value)}
-                                    className="pr-11 h-8 text-xs"
+                                    className="pr-11 h-8 text-[9px] px-1.5 py-0.5"
                                 />
                             </div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm" className="h-8">
-                                        <Filter className="h-3 w-3 mr-1.5" />
-                                        {categoryFilter === "all" ? "Categoría" : SUPPLIER_CATEGORIES.find(c => c.value === categoryFilter)?.label || categoryFilter}
-                                        <ChevronDown className="h-3 w-3 ml-1" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => setCategoryFilter("all")}>
-                                        Todas las categorías
-                                    </DropdownMenuItem>
-                                    {SUPPLIER_CATEGORIES.map((cat) => (
-                                        <DropdownMenuItem key={cat.value} onClick={() => setCategoryFilter(cat.value)}>
-                                            {cat.label}
-                                        </DropdownMenuItem>
-                                    ))}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm" className="h-8">
-                                        <Filter className="h-3 w-3 mr-1.5" />
-                                        {statusFilter === "all" ? "Estado" : statusFilter}
-                                        <ChevronDown className="h-3 w-3 ml-1" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => setStatusFilter("all")}>
-                                        Todos los estados
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setStatusFilter("ACTIVE")}>
-                                        Activos
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setStatusFilter("INACTIVE")}>
-                                        Inactivos
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setStatusFilter("BLOCKED")}>
-                                        Bloqueados
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
                         </div>
                     </div>
 
                     {/* Table */}
                     {loading ? (
                         <div className="flex items-center justify-center py-12">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                         </div>
                     ) : suppliers.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12">
                             <Truck className="h-16 w-16 text-muted-foreground mb-4" />
                             <p className="text-muted-foreground">No hay proveedores</p>
-                            <p className="text-muted-foreground/70 text-sm mt-1">
+                            <p className="text-muted-foreground/70 text-[10px] mt-1">
                                 Crea tu primer proveedor para comenzar
                             </p>
                         </div>
                     ) : (
-                        <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md">
-                            <Table>
+                        <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
+                            <Table className="w-full">
                                 <TableHeader>
                                     <TableRow className="hover:bg-transparent bg-muted/30">
-                                        <TableHead className="text-white/70">Proveedor</TableHead>
-                                        <TableHead className="text-white/70">Categoría</TableHead>
-                                        <TableHead className="text-white/70">Contacto</TableHead>
-                                        <TableHead className="text-white/70">Localización</TableHead>
-                                        <TableHead className="text-white/70">Estado</TableHead>
-                                        <TableHead className="text-white/70 w-12"></TableHead>
+                                        <TableHead className="text-white/70 text-[10px] px-2">Proveedor</TableHead>
+                                        <TableHead className="text-white/70 text-[10px] px-2">Categoría</TableHead>
+                                        <TableHead className="text-white/70 text-[10px] px-2">Contacto</TableHead>
+                                        <TableHead className="text-white/70 text-[10px] px-2">Localización</TableHead>
+                                        <TableHead className="text-white/70 text-[10px] px-2">Estado</TableHead>
+                                        <TableHead className="text-white/70 w-10"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -555,10 +473,10 @@ const SuppliersPageDesktop = () => {
                                             >
                                                 <TableCell>
                                                     <div className="flex flex-col">
-                                                        <span className="font-medium text-white text-sm">
+                                                        <span className="font-medium text-white text-[10px]">
                                                             {supplier.company_name}
                                                         </span>
-                                                        <span className="text-xs text-white/50 font-mono mt-0.5">
+                                                        <span className="text-[9px] px-1.5 py-0.5 text-white/50 font-mono mt-0.5">
                                                             {supplier.supplier_number} {supplier.tax_id && `• ${supplier.tax_id}`}
                                                         </span>
                                                     </div>
@@ -568,37 +486,37 @@ const SuppliersPageDesktop = () => {
                                                         (() => {
                                                             const categoryInfo = getCategoryInfo(supplier.category);
                                                             return categoryInfo ? (
-                                                                <Badge variant="outline" className={cn(categoryInfo.bgColor, categoryInfo.color, "border text-xs")}>
+                                                                <Badge variant="outline" className={cn(categoryInfo.bgColor, categoryInfo.color, "border text-[9px] px-1.5 py-0.5")}>
                                                                     {categoryInfo.label}
                                                                 </Badge>
                                                             ) : (
-                                                                <span className="text-white/50 text-xs">—</span>
+                                                                <span className="text-white/50 text-[9px] px-1.5 py-0.5">—</span>
                                                             );
                                                         })()
                                                     ) : (
-                                                        <span className="text-white/50 text-xs">—</span>
+                                                        <span className="text-white/50 text-[9px] px-1.5 py-0.5">—</span>
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-col gap-1">
                                                         {supplier.contact_email && (
-                                                            <div className="flex items-center gap-1.5 text-white/70 text-xs">
-                                                                <Mail className="h-3 w-3" />
+                                                            <div className="flex items-center gap-1.5 text-white/70 text-[9px] px-1.5 py-0.5">
+                                                                <Mail className="h-2.5 w-2.5" />
                                                                 <span className="truncate max-w-[200px]">{supplier.contact_email}</span>
                                                             </div>
                                                         )}
                                                         {supplier.contact_phone && (
-                                                            <div className="flex items-center gap-1.5 text-white/70 text-xs">
-                                                                <Phone className="h-3 w-3" />
+                                                            <div className="flex items-center gap-1.5 text-white/70 text-[9px] px-1.5 py-0.5">
+                                                                <Phone className="h-2.5 w-2.5" />
                                                                 <span>{supplier.contact_phone}</span>
                                                             </div>
                                                         )}
                                                         {!supplier.contact_email && !supplier.contact_phone && (
-                                                            <span className="text-white/50 text-xs">—</span>
+                                                            <span className="text-white/50 text-[9px] px-1.5 py-0.5">—</span>
                                                         )}
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="text-white/70 text-sm">
+                                                <TableCell className="text-white/70 text-[10px]">
                                                     {supplier.city || supplier.province ? (
                                                         <span>{[supplier.city, supplier.province].filter(Boolean).join(", ")}</span>
                                                     ) : (
@@ -606,7 +524,7 @@ const SuppliersPageDesktop = () => {
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Badge variant="outline" className={cn(statusInfo.color, "border text-xs")}>
+                                                    <Badge variant="outline" className={cn(statusInfo.color, "border text-[9px] px-1.5 py-0.5")}>
                                                         {statusInfo.label}
                                                     </Badge>
                                                 </TableCell>
@@ -616,9 +534,9 @@ const SuppliersPageDesktop = () => {
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                                                                className="h-6 w-6 text-white/40 hover:text-white hover:bg-white/10"
                                                             >
-                                                                <MoreVertical className="h-4 w-4" />
+                                                                <MoreVertical className="h-3 w-3" />
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
@@ -641,7 +559,7 @@ const SuppliersPageDesktop = () => {
                             </Table>
                         </div>
                     )}
-                </motion.div>
+                </div>
             </div>
 
             <CreateSupplierDialog

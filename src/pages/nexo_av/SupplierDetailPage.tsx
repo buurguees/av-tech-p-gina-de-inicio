@@ -26,6 +26,7 @@ import {
   PhoneCall,
   Plus,
   Truck,
+  Receipt,
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
@@ -50,9 +51,34 @@ interface SupplierDetail {
 function SupplierDetailPageDesktop() {
   const { userId, supplierId } = useParams<{ userId: string; supplierId: string }>();
   const navigate = useNavigate();
+interface PurchaseInvoice {
+  id: string;
+  invoice_number: string;
+  supplier_invoice_number: string | null;
+  internal_purchase_number: string | null;
+  document_type: string;
+  issue_date: string;
+  due_date: string | null;
+  subtotal: number;
+  tax_amount: number;
+  withholding_amount: number;
+  total: number;
+  paid_amount: number;
+  pending_amount: number;
+  status: string;
+  project_id: string | null;
+  project_name: string | null;
+  project_number: string | null;
+  client_name: string | null;
+  file_path: string | null;
+  file_name: string | null;
+  created_at: string;
+}
+
   const [supplier, setSupplier] = useState<SupplierDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [purchaseInvoices, setPurchaseInvoices] = useState<any[]>([]);
+  const [purchaseInvoices, setPurchaseInvoices] = useState<PurchaseInvoice[]>([]);
+  const [loadingInvoices, setLoadingInvoices] = useState(false);
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -80,17 +106,6 @@ function SupplierDetailPageDesktop() {
       if (data && data.length > 0) {
         setSupplier(data[0]);
       }
-
-      // Fetch purchase invoices for this supplier
-      const { data: invoicesData, error: invoicesError } = await supabase.rpc("list_purchase_invoices", {
-        p_search: null,
-        p_status: null,
-        p_document_type: null,
-      });
-      if (!invoicesError && invoicesData) {
-        const supplierInvoices = invoicesData.filter((inv: any) => inv.provider_id === supplierId);
-        setPurchaseInvoices(supplierInvoices);
-      }
     } catch (err) {
       console.error("Error fetching supplier:", err);
       toast.error("Error al cargar los datos del proveedor");
@@ -99,9 +114,31 @@ function SupplierDetailPageDesktop() {
     }
   }, [supplierId]);
 
+  const fetchPurchaseInvoices = useCallback(async () => {
+    if (!supplierId) return;
+
+    setLoadingInvoices(true);
+    try {
+      const { data, error } = await supabase.rpc("get_provider_purchase_invoices", {
+        p_provider_id: supplierId,
+        p_provider_type: "SUPPLIER",
+      });
+
+      if (error) throw error;
+      if (data) {
+        setPurchaseInvoices(data as PurchaseInvoice[]);
+      }
+    } catch (err) {
+      console.error("Error fetching purchase invoices:", err);
+    } finally {
+      setLoadingInvoices(false);
+    }
+  }, [supplierId]);
+
   useEffect(() => {
     fetchSupplier();
-  }, [fetchSupplier]);
+    fetchPurchaseInvoices();
+  }, [fetchSupplier, fetchPurchaseInvoices]);
 
   if (loading) {
     return (
@@ -333,39 +370,87 @@ function SupplierDetailPageDesktop() {
                 <TabsContent value="invoices" className="space-y-4 mt-0">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-sm font-semibold">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <Receipt className="h-4 w-4 text-muted-foreground" />
                         Facturas de Compra
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {purchaseInvoices.length === 0 ? (
+                      {loadingInvoices ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : purchaseInvoices.length === 0 ? (
                         <div className="py-8 text-center text-sm text-muted-foreground">
-                          Aún no hay facturas registradas para este proveedor.
+                          Aún no hay facturas de compra registradas para este proveedor.
                         </div>
                       ) : (
                         <div className="border rounded-md overflow-hidden">
                           <Table>
                             <TableHeader className="bg-muted/60">
                               <TableRow>
-                                <TableHead className="text-xs">Número</TableHead>
+                                <TableHead className="text-xs">N° Factura</TableHead>
+                                <TableHead className="text-xs">N° Interno</TableHead>
                                 <TableHead className="text-xs">Fecha</TableHead>
+                                <TableHead className="text-xs">Proyecto</TableHead>
                                 <TableHead className="text-xs text-right">Total</TableHead>
+                                <TableHead className="text-xs text-right">Pagado</TableHead>
+                                <TableHead className="text-xs text-right">Pendiente</TableHead>
                                 <TableHead className="text-xs text-center">Estado</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {purchaseInvoices.map((invoice) => (
-                                <TableRow key={invoice.id} className="text-xs cursor-pointer" onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}>
-                                  <TableCell>{invoice.invoice_number}</TableCell>
+                                <TableRow 
+                                  key={invoice.id} 
+                                  className="text-xs cursor-pointer hover:bg-muted/50"
+                                  onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}
+                                >
+                                  <TableCell className="font-medium">
+                                    {invoice.supplier_invoice_number || invoice.invoice_number}
+                                  </TableCell>
+                                  <TableCell className="text-muted-foreground">
+                                    {invoice.internal_purchase_number || "—"}
+                                  </TableCell>
                                   <TableCell>
-                                    {new Date(invoice.issue_date).toLocaleDateString("es-ES")}
+                                    {new Date(invoice.issue_date).toLocaleDateString("es-ES", {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                    })}
+                                  </TableCell>
+                                  <TableCell>
+                                    {invoice.project_number || "—"}
                                   </TableCell>
                                   <TableCell className="text-right font-semibold">
                                     {formatCurrency(invoice.total)}
                                   </TableCell>
+                                  <TableCell className="text-right text-muted-foreground">
+                                    {formatCurrency(invoice.paid_amount)}
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    {invoice.pending_amount > 0 ? (
+                                      <span className="font-medium text-amber-600">
+                                        {formatCurrency(invoice.pending_amount)}
+                                      </span>
+                                    ) : (
+                                      <span className="text-muted-foreground">—</span>
+                                    )}
+                                  </TableCell>
                                   <TableCell className="text-center">
-                                    <Badge variant="outline" className="text-xs">
-                                      {invoice.status}
+                                    <Badge 
+                                      variant="outline" 
+                                      className={cn(
+                                        "text-xs",
+                                        invoice.status === "CONFIRMED" && "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+                                        invoice.status === "REGISTERED" && "bg-blue-500/10 text-blue-400 border-blue-500/20",
+                                        invoice.status === "CANCELLED" && "bg-red-500/10 text-red-400 border-red-500/20"
+                                      )}
+                                    >
+                                      {invoice.status === "CONFIRMED" ? "Confirmada" :
+                                       invoice.status === "REGISTERED" ? "Registrada" :
+                                       invoice.status === "CANCELLED" ? "Cancelada" :
+                                       invoice.status}
                                     </Badge>
                                   </TableCell>
                                 </TableRow>

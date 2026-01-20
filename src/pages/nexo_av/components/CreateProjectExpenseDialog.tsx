@@ -72,16 +72,14 @@ const CreateProjectExpenseDialog = ({
     const onSubmit = async (values: ExpenseFormValues) => {
         try {
             setLoading(true);
-            const { error } = await supabase
-                .from('projects.expenses' as any)
-                .insert({
-                    project_id: projectId,
-                    description: values.description,
-                    amount: Number(values.amount),
-                    category: values.category,
-                    date: values.date,
-                    notes: values.notes,
-                });
+            const { data, error } = await supabase.rpc('add_project_expense', {
+                p_project_id: projectId,
+                p_description: values.description,
+                p_amount: Number(values.amount),
+                p_category: values.category,
+                p_date: values.date,
+                p_notes: values.notes || null
+            } as any);
 
             if (error) throw error;
 

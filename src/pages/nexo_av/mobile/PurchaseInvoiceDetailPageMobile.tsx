@@ -13,9 +13,7 @@ import {
   TrendingDown,
   Download,
   Eye,
-  Euro,
   Info,
-  Edit,
   Loader2,
   Truck,
   UserRound,
@@ -27,6 +25,8 @@ import { cn } from "@/lib/utils";
 interface PurchaseInvoice {
   id: string;
   invoice_number: string;
+  internal_purchase_number: string | null;
+  supplier_invoice_number: string | null;
   document_type: string;
   issue_date: string;
   due_date: string | null;
@@ -69,6 +69,7 @@ const PurchaseInvoiceDetailPageMobile = () => {
   const [invoice, setInvoice] = useState<PurchaseInvoice | null>(null);
   const [lines, setLines] = useState<PurchaseInvoiceLine[]>([]);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [showPDF, setShowPDF] = useState(false);
 
   const fetchInvoiceData = async () => {
     if (!invoiceId) return;
@@ -100,11 +101,32 @@ const PurchaseInvoiceDetailPageMobile = () => {
 
       // Obtener URL del PDF si existe
       if (record.file_path) {
-        const { data: urlData } = await supabase.storage
-          .from('purchase-documents')
-          .createSignedUrl(record.file_path, 3600);
-        if (urlData) {
-          setPdfUrl(urlData.signedUrl);
+        try {
+          // Limpiar el path por si tiene espacios o caracteres especiales
+          const cleanPath = record.file_path.trim();
+          
+          // Intentar crear URL firmada directamente
+          const { data: urlData, error: urlError } = await supabase.storage
+            .from('purchase-documents')
+            .createSignedUrl(cleanPath, 3600);
+          
+          if (urlError) {
+            console.error("Error creating signed URL:", urlError);
+            console.error("File path:", cleanPath);
+            console.error("Error details:", JSON.stringify(urlError, null, 2));
+            
+            // Si el error es 400, puede ser que el archivo no exista o el path sea incorrecto
+            if (urlError.statusCode === 400 || urlError.message?.includes('not found')) {
+              toast.error("El archivo no se encuentra o el path es incorrecto.");
+            } else {
+              toast.error(`Error al cargar la imagen: ${urlError.message || 'Error desconocido'}`);
+            }
+          } else if (urlData) {
+            setPdfUrl(urlData.signedUrl);
+          }
+        } catch (err: any) {
+          console.error("Error getting PDF URL:", err);
+          toast.error(err.message || "Error al cargar el documento");
         }
       }
     } catch (error: any) {
@@ -193,23 +215,17 @@ const PurchaseInvoiceDetailPageMobile = () => {
               </h1>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">{invoice.invoice_number}</span>
+              <span className="text-xs text-muted-foreground">
+                {invoice.internal_purchase_number || 
+                 invoice.supplier_invoice_number || 
+                 invoice.invoice_number || 
+                 'Sin número'}
+              </span>
               <Badge className={cn("text-xs px-2 py-0.5 border", getStatusColor(invoice.status))}>
                 {invoice.status}
               </Badge>
             </div>
           </div>
-          <Button
-            size="icon"
-            variant="outline"
-            className="h-9 w-9"
-            onClick={() => {
-              // TODO: Implementar edición en FASE 2
-              toast.info("Funcionalidad de edición en desarrollo");
-            }}
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
         </div>
 
         {/* Acciones rápidas */}
@@ -219,10 +235,10 @@ const PurchaseInvoiceDetailPageMobile = () => {
               variant="outline"
               size="sm"
               className="flex-1 gap-2"
-              onClick={() => window.open(pdfUrl, '_blank')}
+              onClick={() => setShowPDF(!showPDF)}
             >
               <Eye className="h-4 w-4" />
-              Ver PDF
+              {showPDF ? "Ocultar PDF" : "Ver PDF"}
             </Button>
           )}
           {pdfUrl && (
@@ -243,6 +259,19 @@ const PurchaseInvoiceDetailPageMobile = () => {
           )}
         </div>
       </div>
+
+      {/* PDF Viewer */}
+      {showPDF && pdfUrl && (
+        <div className="border-t border-border bg-background">
+          <div className="h-[500px] bg-zinc-900">
+            <iframe
+              src={pdfUrl}
+              className="w-full h-full border-0"
+              title="PDF Preview"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Content scrollable */}
       <div className="flex-1 overflow-auto p-4 space-y-4">
@@ -399,7 +428,7 @@ const PurchaseInvoiceDetailPageMobile = () => {
           </Card>
         )}
 
-        {/* Document Preview */}
+        {/* Document Info */}
         {pdfUrl && (
           <Card>
             <CardHeader className="pb-3">
@@ -409,20 +438,12 @@ const PurchaseInvoiceDetailPageMobile = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="aspect-[1.4/1] bg-muted rounded-lg flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto" />
-                  <p className="text-xs text-muted-foreground">PDF disponible</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(pdfUrl, '_blank')}
-                    className="mt-2"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Ver documento
-                  </Button>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">{invoice.file_name || 'documento.pdf'}</p>
+                  <p className="text-xs text-muted-foreground mt-1">PDF disponible para consulta</p>
                 </div>
+                <FileText className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>

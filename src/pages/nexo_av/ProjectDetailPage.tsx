@@ -21,7 +21,6 @@ import {
   ChevronDown,
   Edit
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { toast } from "sonner";
 import ProjectDashboardTab from "./components/ProjectDashboardTab";
 import ProjectPlanningTab from "./components/ProjectPlanningTab";
@@ -150,90 +149,61 @@ const ProjectDetailPageDesktop = () => {
 
   return (
     <div className="w-full">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        {/* Project Header Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <Card className="bg-card border-border">
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-secondary">
-                    <FolderKanban className="h-8 w-8 text-foreground" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-3 mb-1 flex-wrap">
-                      <span className="font-mono text-muted-foreground">#{project.project_number}</span>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild disabled={updatingStatus}>
-                          <button 
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border transition-colors hover:opacity-80 ${statusInfo.color} cursor-pointer`}
-                          >
-                            {updatingStatus ? "Actualizando..." : statusInfo.label}
-                            <ChevronDown className="h-3 w-3" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent 
-                          align="start" 
-                          className="min-w-[180px]"
-                        >
-                          {PROJECT_STATUSES.map((status) => (
-                            <DropdownMenuItem
-                              key={status.value}
-                              onClick={() => handleStatusChange(status.value)}
-                              className={`cursor-pointer ${status.value === project.status ? 'bg-accent' : ''}`}
-                            >
-                              <span className={`inline-block w-2 h-2 rounded-full mr-2 ${status.color.split(' ')[0]}`} />
-                              <span>{status.label}</span>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    <h2 className="text-2xl font-bold text-foreground mb-1">{project.project_name}</h2>
-                    <div className="flex flex-wrap gap-4 mt-2 text-sm">
-                      {project.client_name && (
-                        <span className="text-muted-foreground">
-                          Cliente: <span className="text-foreground">{project.client_name}</span>
-                        </span>
-                      )}
-                      {project.project_city && (
-                        <span className="text-muted-foreground">
-                          Ciudad: <span className="text-foreground">{project.project_city}</span>
-                        </span>
-                      )}
-                      {project.local_name && (
-                        <span className="text-muted-foreground">
-                          Local: <span className="text-foreground">{project.local_name}</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {activeTab === "dashboard" && (
-                  <Button 
-                    variant="outline"
-                    onClick={() => setEditDialogOpen(true)}
+      <div className="w-full px-3 md:px-4 pb-8">
+        {/* Header - Estilo Dashboard */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">{project.project_name}</h1>
+                <span className="font-mono text-muted-foreground text-sm">#{project.project_number}</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild disabled={updatingStatus}>
+                    <button 
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors hover:opacity-80 ${statusInfo.color} cursor-pointer`}
+                    >
+                      {updatingStatus ? "Actualizando..." : statusInfo.label}
+                      <ChevronDown className="h-3 w-3" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="start" 
+                    className="min-w-[180px]"
                   >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar Proyecto
-                  </Button>
-                )}
+                    {PROJECT_STATUSES.map((status) => (
+                      <DropdownMenuItem
+                        key={status.value}
+                        onClick={() => handleStatusChange(status.value)}
+                        className={`cursor-pointer ${status.value === project.status ? 'bg-accent' : ''}`}
+                      >
+                        <span className={`inline-block w-2 h-2 rounded-full mr-2 ${status.color.split(' ')[0]}`} />
+                        <span>{status.label}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+              <p className="text-sm text-muted-foreground">
+                {project.client_name && `Cliente: ${project.client_name}`}
+                {project.project_city && ` • ${project.project_city}`}
+                {project.local_name && ` • ${project.local_name}`}
+              </p>
+            </div>
+            {activeTab === "dashboard" && (
+              <Button 
+                variant="outline"
+                onClick={() => setEditDialogOpen(true)}
+                className="rounded-xl"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Editar Proyecto
+              </Button>
+            )}
+          </div>
+        </div>
 
         {/* Tabs Navigation - Desktop only */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="bg-secondary border border-border p-1 h-auto flex-wrap">
               <TabsTrigger 
                 value="dashboard" 
@@ -302,8 +272,7 @@ const ProjectDetailPageDesktop = () => {
             <TabsContent value="invoices" className="mt-6">
               <ProjectInvoicesTab projectId={project.id} clientId={project.client_id || undefined} />
             </TabsContent>
-            </Tabs>
-          </motion.div>
+          </Tabs>
 
         {/* Edit Project Dialog */}
       <CreateProjectDialog

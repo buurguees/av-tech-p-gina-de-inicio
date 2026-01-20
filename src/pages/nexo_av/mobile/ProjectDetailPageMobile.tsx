@@ -22,6 +22,7 @@ import {
   FolderKanban, 
   LayoutDashboard, 
   FileText, 
+  Receipt,
   Wallet,
   Users,
   CalendarDays,
@@ -31,7 +32,7 @@ import {
   ExternalLink,
   Edit
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { toast } from "sonner";
 import DetailTabsMobile from "../components/mobile/DetailTabsMobile";
 import ProjectDashboardTab from "../components/ProjectDashboardTab";
@@ -39,7 +40,9 @@ import ProjectPlanningTab from "../components/ProjectPlanningTab";
 import ProjectQuotesTab from "../components/ProjectQuotesTab";
 import ProjectTechniciansTab from "../components/ProjectTechniciansTab";
 import ProjectExpensesTab from "../components/ProjectExpensesTab";
+import ProjectInvoicesTab from "../components/ProjectInvoicesTab";
 import CreateProjectDialog from "../components/CreateProjectDialog";
+import MobileBottomNav from "../components/MobileBottomNav";
 import { NexoLogo } from "../components/NexoHeader";
 
 interface ProjectDetail {
@@ -94,9 +97,13 @@ const ProjectDetailPageMobile = () => {
       if (error) throw error;
       if (data && data.length > 0) {
         setProject(data[0]);
+      } else {
+        toast.error("Proyecto no encontrado");
+        navigate(`/nexo-av/${userId}/projects`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching project:', error);
+      toast.error(error?.message || "Error al cargar el proyecto");
     } finally {
       setLoading(false);
     }
@@ -162,36 +169,28 @@ const ProjectDetailPageMobile = () => {
   return (
     <div className="min-h-screen bg-background pb-mobile-nav">
       <main className="px-3 py-3 space-y-3">
-        {/* Header Card - Información clave */}
+        {/* Header - Título del Proyecto */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <Card className="bg-white/5 border-white/10">
-            <CardContent className="pt-4 pb-4 space-y-3">
-              {/* Estado y Editar */}
-              <div className="flex items-center justify-between">
-                <span className="text-white/60 text-sm">Estado</span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setEditDialogOpen(true)}
-                    className="h-8 px-2 text-white/80 hover:text-white hover:bg-white/10"
-                  >
-                    <Edit className="h-3.5 w-3.5" />
-                  </Button>
+          <div className="mb-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl font-bold tracking-tight text-foreground truncate">{project.project_name}</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="font-mono text-muted-foreground text-xs">#{project.project_number}</span>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild disabled={updatingStatus}>
                       <button 
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${statusInfo.color}`}
+                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${statusInfo.color}`}
                       >
                         {updatingStatus ? "Actualizando..." : statusInfo.label}
                         <ChevronDown className="h-3 w-3" />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent 
-                      align="end" 
+                      align="start" 
                       className="bg-zinc-900 border-white/10"
                     >
                       {PROJECT_STATUSES.map((status) => (
@@ -207,7 +206,32 @@ const ProjectDetailPageMobile = () => {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {project.client_name && `Cliente: ${project.client_name}`}
+                  {project.project_city && ` • ${project.project_city}`}
+                  {project.local_name && ` • ${project.local_name}`}
+                </p>
               </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setEditDialogOpen(true)}
+                className="h-8 px-2 text-white/80 hover:text-white hover:bg-white/10 shrink-0 ml-2"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Header Card - Información clave */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <Card className="bg-white/5 border-white/10">
+            <CardContent className="pt-4 pb-4 space-y-3">
 
               {/* Cliente */}
               {project.client_name && (
@@ -280,6 +304,7 @@ const ProjectDetailPageMobile = () => {
               { value: "quotes", label: "Presup.", icon: FileText },
               { value: "technicians", label: "Técnicos", icon: Users },
               { value: "expenses", label: "Gastos", icon: Wallet },
+              { value: "invoices", label: "Facturas", icon: Receipt },
             ]}
           >
             <TabsContent value="dashboard" className="mt-3">
@@ -291,7 +316,7 @@ const ProjectDetailPageMobile = () => {
             </TabsContent>
 
             <TabsContent value="quotes" className="mt-3">
-              <ProjectQuotesTab projectId={project.id} />
+              <ProjectQuotesTab projectId={project.id} clientId={project.client_id || undefined} />
             </TabsContent>
 
             <TabsContent value="technicians" className="mt-3">
@@ -300,6 +325,10 @@ const ProjectDetailPageMobile = () => {
 
             <TabsContent value="expenses" className="mt-3">
               <ProjectExpensesTab projectId={project.id} />
+            </TabsContent>
+
+            <TabsContent value="invoices" className="mt-3">
+              <ProjectInvoicesTab projectId={project.id} clientId={project.client_id || undefined} />
             </TabsContent>
           </DetailTabsMobile>
         </motion.div>
@@ -315,6 +344,8 @@ const ProjectDetailPageMobile = () => {
         }}
         project={project}
       />
+
+      <MobileBottomNav userId={userId || ''} />
     </div>
   );
 };

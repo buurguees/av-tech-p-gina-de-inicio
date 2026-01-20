@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock, MessageSquare, Clock, Send, MoreVertical, Share2, ChevronDown } from "lucide-react";
+import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock, MessageSquare, Clock, Send, MoreVertical, Share2, ChevronDown, Save } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import QuotePDFViewer from "./components/QuotePDFViewer";
@@ -156,12 +156,22 @@ const QuoteDetailPageDesktop = () => {
   const [creatingVersion, setCreatingVersion] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [currentNote, setCurrentNote] = useState("");
+  const [savedNotes, setSavedNotes] = useState<any[]>([]);
+  const [loadingNotes, setLoadingNotes] = useState(false);
 
   useEffect(() => {
     if (quoteId) {
       fetchQuoteData();
+      fetchSavedNotes();
     }
   }, [quoteId]);
+
+  useEffect(() => {
+    if (quote) {
+      setCurrentNote(quote.notes || "");
+    }
+  }, [quote]);
 
   const fetchQuoteData = async () => {
     try {
@@ -341,6 +351,68 @@ const QuoteDetailPageDesktop = () => {
       month: "2-digit",
       year: "numeric",
     });
+  };
+
+  const fetchSavedNotes = async () => {
+    if (!quoteId) return;
+    try {
+      setLoadingNotes(true);
+      const { data, error } = await supabase.rpc("get_quote_notes", {
+        p_quote_id: quoteId,
+      });
+      if (error) throw error;
+      setSavedNotes(data || []);
+    } catch (error: any) {
+      console.error("Error fetching saved notes:", error);
+    } finally {
+      setLoadingNotes(false);
+    }
+  };
+
+  const handleSaveNote = async () => {
+    if (!currentNote.trim() || !quoteId) {
+      toast({
+        title: "Error",
+        description: "La nota no puede estar vacía",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const { error } = await supabase.rpc("create_quote_note", {
+        p_quote_id: quoteId,
+        p_content: currentNote.trim(),
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Nota guardada",
+        description: "La nota se ha registrado correctamente con fecha y hora",
+      });
+
+      // Clear current note and refresh saved notes
+      setCurrentNote("");
+      await fetchSavedNotes();
+
+      // Also update the quote notes field
+      await supabase.rpc("update_quote", {
+        p_quote_id: quoteId,
+        p_notes: "",
+      });
+      await fetchQuoteData();
+    } catch (error: any) {
+      console.error("Error saving note:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo guardar la nota",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteQuote = async () => {
@@ -782,47 +854,85 @@ const QuoteDetailPageDesktop = () => {
                     )}
                   </TabsContent>
 
-                  <TabsContent value="notes" className="mt-0 h-full flex flex-col">
-                    <div className="flex-1 bg-white/5 rounded-lg border border-white/10 p-3 flex flex-col">
+                  <TabsContent value="notes" className="mt-0 space-y-3 overflow-y-auto">
+                    {/* Editor de Notas - Reducido a la mitad */}
+                    <div className="bg-white/5 rounded-lg border border-white/10 p-3">
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="text-white font-medium text-sm flex items-center gap-2">
                           <FileText className="h-4 w-4" />
-                          Notas del presupuesto
+                          Nueva Nota
                         </h3>
-                        {saving && <span className="text-xs text-white/40 animate-pulse">Guardando...</span>}
                       </div>
                       <Textarea
-                        value={quote.notes || ""}
-                        onChange={(e) => {
-                          const newNotes = e.target.value;
-                          setQuote(prev => prev ? { ...prev, notes: newNotes } : null);
-
-                          // Debounced save
-                          const timeoutId = setTimeout(async () => {
-                            setSaving(true);
-                            try {
-                              const { error } = await supabase.rpc("update_quote", {
-                                p_quote_id: quoteId!,
-                                p_notes: newNotes
-                              });
-                              if (error) throw error;
-                            } catch (err) {
-                              console.error("Error saving notes:", err);
-                              toast({
-                                title: "Error al guardar notas",
-                                variant: "destructive"
-                              });
-                            } finally {
-                              setSaving(false);
-                            }
-                          }, 1000);
-
-                          // Clear previous timeout
-                          return () => clearTimeout(timeoutId);
-                        }}
-                        className="flex-1 bg-transparent border-0 resize-none focus-visible:ring-0 p-0 text-sm text-white/80 placeholder:text-white/20"
-                        placeholder="Escribe aquí las notas, condiciones especiales o comentarios internos..."
+                        value={currentNote}
+                        onChange={(e) => setCurrentNote(e.target.value)}
+                        className="h-32 bg-transparent border border-white/10 resize-none focus-visible:ring-1 focus-visible:ring-white/20 p-2 text-sm text-white/80 placeholder:text-white/20"
+                        placeholder="Escribe aquí la nota..."
                       />
+                      <Button
+                        onClick={handleSaveNote}
+                        disabled={!currentNote.trim() || saving}
+                        className="w-full mt-2 bg-primary hover:bg-primary/90 text-white h-8 text-xs"
+                      >
+                        {saving ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                            Guardando...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-3.5 w-3.5 mr-2" />
+                            Guardar Nota
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Historial de Notas Guardadas */}
+                    <div className="bg-white/5 rounded-lg border border-white/10 p-3">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Clock className="h-4 w-4 text-white/60" />
+                        <h3 className="text-white font-medium text-sm">Notas Guardadas</h3>
+                      </div>
+                      {loadingNotes ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin text-white/40" />
+                        </div>
+                      ) : savedNotes.length === 0 ? (
+                        <p className="text-white/40 text-sm text-center py-4">
+                          No hay notas guardadas
+                        </p>
+                      ) : (
+                        <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                          {savedNotes.map((note) => (
+                            <div
+                              key={note.id}
+                              className="bg-white/5 rounded-lg p-2.5 border border-white/10"
+                            >
+                              <div className="flex items-start justify-between mb-1.5">
+                                <div className="flex items-center gap-1.5">
+                                  <User className="h-3 w-3 text-white/40" />
+                                  <span className="text-white/60 text-[10px]">
+                                    {note.created_by_name || "Usuario"}
+                                  </span>
+                                </div>
+                                <span className="text-white/40 text-[10px]">
+                                  {new Date(note.created_at).toLocaleString("es-ES", {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
+                              </div>
+                              <p className="text-white/80 text-xs whitespace-pre-wrap">
+                                {note.content}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </TabsContent>
 
