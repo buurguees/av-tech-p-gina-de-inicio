@@ -461,14 +461,17 @@ const AccountingPage = () => {
   const fetchChartOfAccounts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .schema("accounting")
-        .from("chart_of_accounts")
-        .select("*")
-        .eq("is_active", true)
-        .order("account_code");
+      const { data, error } = await supabase.rpc("list_chart_of_accounts", {
+        p_only_active: true,
+      });
       if (error) throw error;
-      setChartOfAccounts(data || []);
+      setChartOfAccounts((data || []).map((item: any) => ({
+        account_code: item.account_code,
+        account_name: item.account_name,
+        account_type: item.account_type,
+        is_active: item.is_active,
+        description: item.description,
+      })));
     } catch (error: any) {
       console.error("Error fetching chart of accounts:", error);
       toast({

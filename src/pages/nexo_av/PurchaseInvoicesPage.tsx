@@ -59,12 +59,14 @@ const DocumentScanner = lazy(() => import("./components/DocumentScanner"));
 interface PurchaseInvoice {
   id: string;
   invoice_number: string;
+  internal_purchase_number?: string;
+  supplier_invoice_number?: string;
   document_type: string;
   issue_date: string;
   due_date: string | null;
   tax_base: number;
-  tax_amount: number; // IVA total
-  retention_amount?: number; // IRPF total (retention_amount en la RPC)
+  tax_amount: number;
+  retention_amount?: number;
   total: number;
   paid_amount: number;
   pending_amount: number;

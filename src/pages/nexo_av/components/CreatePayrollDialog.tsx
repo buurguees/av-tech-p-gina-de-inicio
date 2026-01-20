@@ -61,15 +61,16 @@ export default function CreatePayrollDialog({
   const fetchEmployees = async () => {
     setLoadingEmployees(true);
     try {
-      const { data, error } = await supabase
-        .schema("internal")
-        .from("employees")
-        .select("id, employee_number, full_name")
-        .eq("status", "ACTIVE")
-        .order("full_name");
+      const { data, error } = await supabase.rpc("list_employees", {
+        p_status: "ACTIVE",
+      });
 
       if (error) throw error;
-      setEmployees(data || []);
+      setEmployees((data || []).map((item: any) => ({
+        id: item.id,
+        employee_number: item.employee_number,
+        full_name: item.full_name,
+      })));
     } catch (error: any) {
       console.error("Error fetching employees:", error);
       toast({

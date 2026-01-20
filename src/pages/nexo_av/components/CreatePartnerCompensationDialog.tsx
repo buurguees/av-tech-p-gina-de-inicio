@@ -61,15 +61,16 @@ export default function CreatePartnerCompensationDialog({
   const fetchPartners = async () => {
     setLoadingPartners(true);
     try {
-      const { data, error } = await supabase
-        .schema("internal")
-        .from("partners")
-        .select("id, partner_number, full_name")
-        .eq("status", "ACTIVE")
-        .order("full_name");
+      const { data, error } = await supabase.rpc("list_partners", {
+        p_status: "ACTIVE",
+      });
 
       if (error) throw error;
-      setPartners(data || []);
+      setPartners((data || []).map((item: any) => ({
+        id: item.id,
+        partner_number: item.partner_number,
+        full_name: item.full_name,
+      })));
     } catch (error: any) {
       console.error("Error fetching partners:", error);
       toast({
