@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import MenuDesplegable from './mobile/MenuDesplegable';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useIsNexoAvDarkTheme } from '../hooks/useNexoAvThemeMode';
+import { useIsNexoAvDarkTheme } from '../../hooks/useNexoAvThemeMode';
 
 interface MobileBottomNavProps {
   userId: string;

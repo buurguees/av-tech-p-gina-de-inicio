@@ -1,6 +1,4 @@
 import { useEffect } from 'react';
-// Importar CSS estáticamente para que se procese correctamente
-import '../styles/global.css';
 
 /**
  * Hook para aplicar el tema de NEXO AV (light o dark)

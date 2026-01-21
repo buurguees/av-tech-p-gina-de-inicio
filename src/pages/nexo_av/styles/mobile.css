@@ -1,0 +1,4461 @@
+/* ============================================
+   NEXO AV - Mobile Theme
+   Optimizado para dispositivos móviles
+   Basado en global.css pero con tamaños reducidos
+   ============================================ */
+
+/* Apply theme when body has nexo-av-theme class */
+body.nexo-av-theme {
+  /* ============================================
+     BASE COLORS - Neutral & Professional
+     Using slate tones instead of blue for a cleaner look
+     ============================================ */
+  
+  /* Background - Soft off-white */
+  --background: 210 20% 98% !important;
+  /* Foreground - Deep slate for excellent readability */
+  --foreground: 222 47% 11% !important;
+
+  /* Cards - Pure white */
+  --card: 0 0% 100% !important;
+  --card-foreground: 222 47% 11% !important;
+
+  /* Popovers */
+  --popover: 0 0% 100% !important;
+  --popover-foreground: 222 47% 11% !important;
+
+  /* Primary - Slate/charcoal for professional look (less blue!) */
+  --primary: 220 13% 26% !important;
+  --primary-foreground: 0 0% 100% !important;
+
+  /* Secondary - Light gray */
+  --secondary: 210 20% 96% !important;
+  --secondary-foreground: 222 47% 11% !important;
+
+  /* Muted */
+  --muted: 210 15% 94% !important;
+  --muted-foreground: 215 14% 45% !important;
+
+  /* Accent - Subtle warm gray */
+  --accent: 210 15% 93% !important;
+  --accent-foreground: 222 47% 11% !important;
+
+  /* Destructive */
+  --destructive: 0 72% 51% !important;
+  --destructive-foreground: 0 0% 100% !important;
+
+  /* Borders - Soft but visible */
+  --border: 214 15% 88% !important;
+  /* Inputs */
+  --input: 214 15% 88% !important;
+  /* Ring - Focus states */
+  --ring: 220 13% 40% !important;
+
+  /* ============================================
+     TEXT HIERARCHY - High Contrast
+     ============================================ */
+  --text-primary: 222 47% 11% !important;
+  --text-secondary: 215 14% 40% !important;
+  --text-muted: 215 14% 55% !important;
+
+  /* ============================================
+     SHADOWS - Clean depth
+     ============================================ */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03) !important;
+  
+  /* ============================================
+     SIDEBAR - Clean & Minimal
+     ============================================ */
+  --sidebar-background: 0 0% 100% !important;
+  --sidebar-foreground: 222 47% 11% !important;
+  --sidebar-primary: 220 13% 26% !important;
+  --sidebar-primary-foreground: 0 0% 100% !important;
+  --sidebar-accent: 210 15% 95% !important;
+  --sidebar-accent-foreground: 222 47% 11% !important;
+  --sidebar-border: 214 15% 91% !important;
+  --sidebar-ring: 220 13% 40% !important;
+
+  /* ============================================
+     STATUS COLORS - Traffic Light System
+     Clear, accessible status indicators
+     ============================================ */
+  
+  /* Success / Approved / Paid - Green */
+  --status-success: 152 69% 31%;
+  --status-success-bg: 149 80% 95%;
+  --status-success-border: 149 60% 80%;
+  --status-success-text: 152 69% 24%;
+  
+  /* Warning / Pending / Expired - Amber */
+  --status-warning: 32 95% 44%;
+  --status-warning-bg: 48 100% 96%;
+  --status-warning-border: 40 90% 75%;
+  --status-warning-text: 25 85% 30%;
+  
+  /* Error / Rejected / Overdue - Red */
+  --status-error: 0 72% 51%;
+  --status-error-bg: 0 86% 97%;
+  --status-error-border: 0 60% 85%;
+  --status-error-text: 0 72% 38%;
+  
+  /* Info / Sent / In Progress - Teal/cyan (less blue) */
+  --status-info: 187 70% 36%;
+  --status-info-bg: 187 70% 96%;
+  --status-info-border: 187 60% 82%;
+  --status-info-text: 187 70% 28%;
+  
+  /* Neutral / Draft - Slate gray */
+  --status-neutral: 215 14% 45%;
+  --status-neutral-bg: 210 15% 96%;
+  --status-neutral-border: 210 15% 85%;
+  --status-neutral-text: 215 14% 35%;
+  
+  /* Special / Invoiced / Completed - Purple */
+  --status-special: 270 60% 50%;
+  --status-special-bg: 270 80% 97%;
+  --status-special-border: 270 50% 85%;
+  --status-special-text: 270 60% 38%;
+}
+
+/* ============================================
+   NEXO AV - Dark Theme
+   Pure black background with high contrast
+   ============================================ */
+
+body.nexo-av-theme-dark {
+  /* ====
+     BASE COLORS - Dark Mode
+     ==== */
+  
+  /* Background - Pure black */
+  --background: 0 0% 0% !important;
+  /* Foreground - Pure white for maximum contrast */
+  --foreground: 0 0% 100% !important;
+
+  /* Cards - Dark gray with better contrast */
+  --card: 0 0% 8% !important;
+  --card-foreground: 0 0% 100% !important;
+
+  /* Popovers */
+  --popover: 0 0% 8% !important;
+  --popover-foreground: 0 0% 100% !important;
+
+  /* Primary - Lighter slate for dark mode */
+  --primary: 220 13% 80% !important;
+  --primary-foreground: 0 0% 0% !important;
+
+  /* Secondary - Dark gray with better contrast */
+  --secondary: 0 0% 12% !important;
+  --secondary-foreground: 0 0% 95% !important;
+
+  /* Muted - More visible */
+  --muted: 0 0% 15% !important;
+  --muted-foreground: 0 0% 70% !important;
+
+  /* Accent - More visible dark gray */
+  --accent: 0 0% 18% !important;
+  --accent-foreground: 0 0% 100% !important;
+
+  /* Destructive */
+  --destructive: 0 72% 51% !important;
+  --destructive-foreground: 0 0% 100% !important;
+
+  /* Borders - More visible for better contrast */
+  --border: 0 0% 20% !important;
+  /* Inputs */
+  --input: 0 0% 20% !important;
+  /* Ring - Focus states - more visible */
+  --ring: 220 13% 70% !important;
+
+  /* ====
+     TEXT HIERARCHY - High Contrast Dark
+     ==== */
+  --text-primary: 0 0% 100% !important;
+  --text-secondary: 0 0% 90% !important;
+  --text-muted: 0 0% 70% !important;
+
+  /* ====
+     SHADOWS - Subtle depth for dark mode
+     ==== */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4) !important;
+  
+  /* ====
+     SIDEBAR - Pure Black with better contrast
+     ==== */
+  --sidebar-background: 0 0% 0% !important;
+  --sidebar-foreground: 0 0% 100% !important;
+  --sidebar-primary: 220 13% 80% !important;
+  --sidebar-primary-foreground: 0 0% 0% !important;
+  --sidebar-accent: 0 0% 12% !important;
+  --sidebar-accent-foreground: 0 0% 100% !important;
+  --sidebar-border: 0 0% 18% !important;
+  --sidebar-ring: 220 13% 70% !important;
+
+  /* ====
+     STATUS COLORS - Dark Mode Variants
+     High contrast, vibrant but not blinding
+     ==== */
+  
+  /* Success / Approved / Paid - Green */
+  --status-success: 142 71% 45%;
+  --status-success-bg: 142 50% 12%;
+  --status-success-border: 142 50% 20%;
+  --status-success-text: 142 71% 65%;
+  
+  /* Warning / Pending / Expired - Amber */
+  --status-warning: 38 92% 50%;
+  --status-warning-bg: 38 70% 12%;
+  --status-warning-border: 38 70% 20%;
+  --status-warning-text: 38 92% 65%;
+  
+  /* Error / Rejected / Overdue - Red */
+  --status-error: 0 72% 51%;
+  --status-error-bg: 0 60% 12%;
+  --status-error-border: 0 60% 20%;
+  --status-error-text: 0 72% 65%;
+  
+  /* Info / Sent / In Progress - Cyan */
+  --status-info: 187 85% 45%;
+  --status-info-bg: 187 60% 12%;
+  --status-info-border: 187 60% 20%;
+  --status-info-text: 187 85% 65%;
+  
+  /* Neutral / Draft - Gray */
+  --status-neutral: 0 0% 50%;
+  --status-neutral-bg: 0 0% 12%;
+  --status-neutral-border: 0 0% 20%;
+  --status-neutral-text: 0 0% 70%;
+  
+  /* Special / Invoiced / Completed - Purple */
+  --status-special: 270 70% 55%;
+  --status-special-bg: 270 50% 12%;
+  --status-special-border: 270 50% 20%;
+  --status-special-text: 270 70% 70%;
+}
+
+/* Apply all base styles from light theme to dark theme as well */
+body.nexo-av-theme-dark {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-size: 11px !important; /* Reducido de 13px para móvil */
+  line-height: 1.5 !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* ============================================
+   SHARED STYLES - Apply to both light and dark themes
+   ============================================ */
+
+/* Typography */
+body.nexo-av-theme-dark h1,
+body.nexo-av-theme-dark h2,
+body.nexo-av-theme-dark h3,
+body.nexo-av-theme-dark h4,
+body.nexo-av-theme-dark p {
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme-dark h1 {
+  font-size: 1.125rem !important; /* Reducido de 1.375rem para móvil (~18%) */
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.02em !important;
+}
+
+body.nexo-av-theme-dark h2 {
+  font-size: 0.875rem !important; /* Reducido de 1.0625rem para móvil (~18%) */
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  letter-spacing: -0.015em !important;
+}
+
+body.nexo-av-theme-dark h3 {
+  font-size: 0.78125rem !important; /* Reducido de 0.9375rem para móvil (~17%) */
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+}
+
+body.nexo-av-theme-dark h4 {
+  font-size: 0.6875rem !important; /* Reducido de 0.8125rem para móvil (~15%) */
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+}
+
+body.nexo-av-theme-dark p {
+  font-size: 0.6875rem !important; /* Reducido de 0.8125rem para móvil (~15%) */
+  line-height: 1.55 !important;
+  color: hsl(var(--text-secondary)) !important;
+}
+
+/* Status badges - same structure as light theme */
+body.nexo-av-theme-dark .status-success,
+body.nexo-av-theme-dark [class*="bg-green-500/20"] {
+  background-color: hsl(var(--status-success-bg)) !important;
+  border-color: hsl(var(--status-success-border)) !important;
+  color: hsl(var(--status-success-text)) !important;
+}
+
+body.nexo-av-theme-dark .status-warning,
+body.nexo-av-theme-dark [class*="bg-orange-500/20"],
+body.nexo-av-theme-dark [class*="bg-yellow-500/20"] {
+  background-color: hsl(var(--status-warning-bg)) !important;
+  border-color: hsl(var(--status-warning-border)) !important;
+  color: hsl(var(--status-warning-text)) !important;
+}
+
+body.nexo-av-theme-dark .status-error,
+body.nexo-av-theme-dark [class*="bg-red-500/20"] {
+  background-color: hsl(var(--status-error-bg)) !important;
+  border-color: hsl(var(--status-error-border)) !important;
+  color: hsl(var(--status-error-text)) !important;
+}
+
+body.nexo-av-theme-dark .status-info,
+body.nexo-av-theme-dark [class*="bg-blue-500/20"] {
+  background-color: hsl(var(--status-info-bg)) !important;
+  border-color: hsl(var(--status-info-border)) !important;
+  color: hsl(var(--status-info-text)) !important;
+}
+
+body.nexo-av-theme-dark .status-neutral,
+body.nexo-av-theme-dark [class*="bg-gray-500/20"] {
+  background-color: hsl(var(--status-neutral-bg)) !important;
+  border-color: hsl(var(--status-neutral-border)) !important;
+  color: hsl(var(--status-neutral-text)) !important;
+}
+
+body.nexo-av-theme-dark .status-special,
+body.nexo-av-theme-dark [class*="bg-purple-500/20"] {
+  background-color: hsl(var(--status-special-bg)) !important;
+  border-color: hsl(var(--status-special-border)) !important;
+  color: hsl(var(--status-special-text)) !important;
+}
+
+/* Cards, tables, buttons, inputs - inherit from light theme structure */
+body.nexo-av-theme-dark .card,
+body.nexo-av-theme-dark [class*="rounded-xl"][class*="border"],
+body.nexo-av-theme-dark [class*="bg-card"],
+body.nexo-av-theme-dark [class*="bg-background"][class*="border"] {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  box-shadow: var(--shadow-xs) !important;
+  border-radius: 8px !important;
+}
+
+/* Panels and sidebars - better contrast */
+body.nexo-av-theme-dark [class*="bg-secondary"],
+body.nexo-av-theme-dark [class*="bg-muted"] {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme-dark input,
+body.nexo-av-theme-dark textarea,
+body.nexo-av-theme-dark select {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Tables - better contrast */
+body.nexo-av-theme-dark th {
+  background-color: hsl(var(--card)) !important;
+  border-bottom: 2px solid hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme-dark td {
+  border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme-dark tr:hover td {
+  background-color: hsl(var(--accent)) !important;
+}
+
+body.nexo-av-theme-dark input:focus,
+body.nexo-av-theme-dark textarea:focus,
+body.nexo-av-theme-dark select:focus {
+  border-color: hsl(var(--ring)) !important;
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.12) !important;
+}
+
+/* Sidebar */
+body.nexo-av-theme-dark aside,
+body.nexo-av-theme-dark [class*="bg-sidebar"] {
+  background-color: hsl(var(--sidebar-background)) !important;
+  border-right: 1px solid hsl(var(--sidebar-border)) !important;
+}
+
+/* Scrollbar */
+body.nexo-av-theme-dark ::-webkit-scrollbar-track {
+  background: hsl(var(--secondary));
+}
+
+body.nexo-av-theme-dark ::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+}
+
+body.nexo-av-theme-dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--text-muted));
+}
+
+/* ============================================
+   MAIN CONTENT AREA - Cálculo correcto de márgenes
+   Calcula automáticamente el espacio disponible
+   ============================================ */
+
+/* Main content - MOBILE: Sin sidebar, header fijo arriba */
+body.nexo-av-theme main,
+body.nexo-av-theme-dark main {
+  margin-left: 0 !important; /* Sin sidebar en móvil */
+  margin-top: var(--header-height) !important;
+  width: 100% !important; /* Ancho completo en móvil */
+  height: calc(100vh - var(--header-height)) !important;
+  padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-bottom: 0 !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Contenedor interno del main con padding - MOBILE: Padding reducido */
+body.nexo-av-theme main > div[class*="overflow-y-auto"],
+body.nexo-av-theme-dark main > div[class*="overflow-y-auto"] {
+  width: 100% !important;
+  height: 100% !important;
+  padding-top: 0.75rem !important; /* Reducido de 2rem para móvil */
+  padding-left: 0.75rem !important; /* Reducido de 2rem para móvil */
+  padding-right: 0.75rem !important; /* Reducido de 2rem para móvil */
+  padding-bottom: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Force layout container to use 98% width */
+body.nexo-av-theme main > div[class*="w-[98%]"],
+body.nexo-av-theme-dark main > div[class*="w-[98%]"],
+body.nexo-av-theme main > div[style*="maxWidth"],
+body.nexo-av-theme-dark main > div[style*="maxWidth"] {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 98% !important;
+  max-width: none !important;
+}
+
+/* Allow pages to use full available space from layout */
+body.nexo-av-theme main > div[class*="w-[98%]"] > div,
+body.nexo-av-theme-dark main > div[class*="w-[98%]"] > div {
+  width: 100% !important;
+  height: 100% !important;
+  flex: 1 !important;
+}
+
+/* Override any page-level width restrictions */
+body.nexo-av-theme main > div[class*="w-[98%]"] > div > *,
+body.nexo-av-theme-dark main > div[class*="w-[98%]"] > div > * {
+  max-width: none !important;
+}
+
+/* ============================================
+   MAP LAYOUTS - Ensure proper space distribution
+   ============================================ */
+
+/* LeadMapPage - 60/40 split for map and sidebar */
+body.nexo-av-theme [class*="flex-1"][class*="flex"][class*="gap-4"] {
+  width: 100% !important;
+}
+
+body.nexo-av-theme [style*="width: '60%'"],
+body.nexo-av-theme-dark [style*="width: '60%'"] {
+  width: 60% !important;
+  flex: 0 0 60% !important;
+}
+
+body.nexo-av-theme [style*="width: '40%'"],
+body.nexo-av-theme-dark [style*="width: '40%'"] {
+  width: 40% !important;
+  flex: 0 0 40% !important;
+}
+
+/* Ensure map container uses full height */
+body.nexo-av-theme [class*="LeadMap"],
+body.nexo-av-theme-dark [class*="LeadMap"],
+body.nexo-av-theme div[class*="h-full"][class*="w-full"][class*="relative"],
+body.nexo-av-theme-dark div[class*="h-full"][class*="w-full"][class*="relative"] {
+  height: 100% !important;
+  width: 100% !important;
+  min-height: 500px !important;
+}
+
+/* Force LeadMapPage container to use full space */
+body.nexo-av-theme div[class*="w-full"][class*="flex"][class*="flex-col"],
+body.nexo-av-theme-dark div[class*="w-full"][class*="flex"][class*="flex-col"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Ensure flex containers in map pages use full width and height */
+body.nexo-av-theme div[class*="flex-1"][class*="flex"][class*="gap-4"],
+body.nexo-av-theme-dark div[class*="flex-1"][class*="flex"][class*="gap-4"] {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 500px !important;
+}
+
+/* Ensure MapContainer from Leaflet has proper height */
+body.nexo-av-theme .leaflet-container,
+body.nexo-av-theme-dark .leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  min-height: 500px !important;
+}
+
+/* ============================================
+   LEAD MAP SIDEBAR - Remove shadows
+   ============================================ */
+
+/* Remove shadows from LeadMapSidebar cards */
+body.nexo-av-theme [class*="LeadMapSidebar"] [class*="Card"],
+body.nexo-av-theme-dark [class*="LeadMapSidebar"] [class*="Card"],
+body.nexo-av-theme [class*="LeadMapSidebar"] .card,
+body.nexo-av-theme-dark [class*="LeadMapSidebar"] .card {
+  box-shadow: none !important;
+}
+
+/* Remove shadows from client list buttons in LeadMapSidebar */
+body.nexo-av-theme [class*="LeadMapSidebar"] button[class*="rounded-md"],
+body.nexo-av-theme-dark [class*="LeadMapSidebar"] button[class*="rounded-md"] {
+  box-shadow: none !important;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+body.nexo-av-theme {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-size: 11px !important; /* Reducido de 13px para móvil */
+  line-height: 1.5 !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* ============================================
+   TYPOGRAPHY - Compact & High Contrast
+   ============================================ */
+
+body.nexo-av-theme h1 {
+  font-size: 1.125rem !important; /* Reducido de 1.375rem para móvil (~18%) */
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.02em !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme h2 {
+  font-size: 0.875rem !important; /* Reducido de 1.0625rem para móvil (~18%) */
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  letter-spacing: -0.015em !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme h3 {
+  font-size: 0.78125rem !important; /* Reducido de 0.9375rem para móvil (~17%) */
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme h4 {
+  font-size: 0.6875rem !important; /* Reducido de 0.8125rem para móvil (~15%) */
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme p {
+  font-size: 0.6875rem !important; /* Reducido de 0.8125rem para móvil (~15%) */
+  line-height: 1.55 !important;
+  color: hsl(var(--text-secondary)) !important;
+}
+
+/* ============================================
+   STATUS BADGE SYSTEM
+   ============================================ */
+
+body.nexo-av-theme .status-success,
+body.nexo-av-theme [class*="bg-green-500/20"] {
+  background-color: hsl(var(--status-success-bg)) !important;
+  border-color: hsl(var(--status-success-border)) !important;
+  color: hsl(var(--status-success-text)) !important;
+}
+
+body.nexo-av-theme .status-warning,
+body.nexo-av-theme [class*="bg-orange-500/20"],
+body.nexo-av-theme [class*="bg-yellow-500/20"] {
+  background-color: hsl(var(--status-warning-bg)) !important;
+  border-color: hsl(var(--status-warning-border)) !important;
+  color: hsl(var(--status-warning-text)) !important;
+}
+
+body.nexo-av-theme .status-error,
+body.nexo-av-theme [class*="bg-red-500/20"] {
+  background-color: hsl(var(--status-error-bg)) !important;
+  border-color: hsl(var(--status-error-border)) !important;
+  color: hsl(var(--status-error-text)) !important;
+}
+
+body.nexo-av-theme .status-info,
+body.nexo-av-theme [class*="bg-blue-500/20"] {
+  background-color: hsl(var(--status-info-bg)) !important;
+  border-color: hsl(var(--status-info-border)) !important;
+  color: hsl(var(--status-info-text)) !important;
+}
+
+body.nexo-av-theme .status-neutral,
+body.nexo-av-theme [class*="bg-gray-500/20"] {
+  background-color: hsl(var(--status-neutral-bg)) !important;
+  border-color: hsl(var(--status-neutral-border)) !important;
+  color: hsl(var(--status-neutral-text)) !important;
+}
+
+body.nexo-av-theme .status-special,
+body.nexo-av-theme [class*="bg-purple-500/20"] {
+  background-color: hsl(var(--status-special-bg)) !important;
+  border-color: hsl(var(--status-special-border)) !important;
+  color: hsl(var(--status-special-text)) !important;
+}
+
+/* Status badge base */
+body.nexo-av-theme .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border-radius: 4px;
+  border-width: 1px;
+}
+
+/* Status dot */
+body.nexo-av-theme .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+body.nexo-av-theme .status-dot-success { background-color: hsl(var(--status-success)) !important; }
+body.nexo-av-theme .status-dot-warning { background-color: hsl(var(--status-warning)) !important; }
+body.nexo-av-theme .status-dot-error { background-color: hsl(var(--status-error)) !important; }
+body.nexo-av-theme .status-dot-info { background-color: hsl(var(--status-info)) !important; }
+body.nexo-av-theme .status-dot-neutral { background-color: hsl(var(--status-neutral)) !important; }
+body.nexo-av-theme .status-dot-special { background-color: hsl(var(--status-special)) !important; }
+
+/* ============================================
+   CARDS - Clean with subtle borders
+   ============================================ */
+
+body.nexo-av-theme .card,
+body.nexo-av-theme [class*="rounded-xl"][class*="border"] {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  box-shadow: var(--shadow-xs) !important;
+  border-radius: 8px !important;
+}
+
+body.nexo-av-theme .card:hover,
+body.nexo-av-theme [class*="hover:bg-card/80"]:hover {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+body.nexo-av-theme .card-content,
+body.nexo-av-theme [class*="CardContent"] {
+  padding: 0.625rem !important; /* Reducido de 0.875rem para móvil (~29%) */
+}
+
+/* ============================================
+   TABLES - Compact with clear hierarchy
+   ============================================ */
+
+body.nexo-av-theme table {
+  font-size: 0.6875rem !important; /* Reducido de 0.8125rem para móvil (~15%) */
+}
+
+body.nexo-av-theme th {
+  font-size: 0.5625rem !important; /* Reducido de 0.6875rem para móvil (~18%) */
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  color: hsl(var(--text-muted)) !important;
+  padding: 0.25rem 0.5rem !important; /* Reducido para móvil */
+  background-color: hsl(var(--secondary)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  text-align: left !important; /* Alineado a la izquierda por defecto */
+  vertical-align: middle !important;
+}
+
+/* Solo centrar cuando tenga text-center explícito */
+body.nexo-av-theme th[class*="text-center"],
+body.nexo-av-theme-dark th[class*="text-center"] {
+  text-align: center !important;
+}
+
+body.nexo-av-theme td {
+  padding: 0.25rem 0.5rem !important; /* Reducido para móvil */
+  color: hsl(var(--foreground)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  vertical-align: middle !important;
+}
+
+body.nexo-av-theme tr:hover td {
+  background-color: hsl(var(--accent)) !important;
+}
+
+/* ============================================
+   BUTTONS - Clean, professional
+   ============================================ */
+
+body.nexo-av-theme button {
+  font-size: 0.6875rem !important; /* Reducido de 0.8125rem para móvil (~15%) */
+  font-weight: 500 !important;
+}
+
+body.nexo-av-theme .btn-primary,
+body.nexo-av-theme button[class*="bg-primary"] {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+body.nexo-av-theme .btn-primary:hover,
+body.nexo-av-theme button[class*="bg-primary"]:hover {
+  background-color: hsl(220 13% 20%) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+body.nexo-av-theme .btn-secondary,
+body.nexo-av-theme button[class*="bg-secondary"] {
+  background-color: hsl(var(--secondary)) !important;
+  color: hsl(var(--secondary-foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+/* ============================================
+   INPUTS - Clean & functional
+   ============================================ */
+
+body.nexo-av-theme input,
+body.nexo-av-theme textarea,
+body.nexo-av-theme select {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+  font-size: 0.6875rem !important; /* Reducido de 0.8125rem para móvil (~15%) */
+  border-radius: 6px !important;
+  padding: 0.375rem 0.625rem !important; /* Reducido para móvil */
+}
+
+body.nexo-av-theme input:focus,
+body.nexo-av-theme textarea:focus,
+body.nexo-av-theme select:focus {
+  border-color: hsl(var(--ring)) !important;
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.12) !important;
+  outline: none !important;
+}
+
+body.nexo-av-theme input::placeholder,
+body.nexo-av-theme textarea::placeholder {
+  color: hsl(var(--text-muted)) !important;
+}
+
+body.nexo-av-theme label {
+  font-size: 0.625rem !important; /* Reducido de 0.75rem para móvil (~17%) */
+  font-weight: 500 !important;
+  color: hsl(var(--text-secondary)) !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* ============================================
+   HEADER & SIDEBAR - Unified Design
+   Unificación visual: sin bordes redondos, mismo fondo
+   ============================================ */
+
+/* Variables CSS para dimensiones del layout - MOBILE */
+body.nexo-av-theme,
+body.nexo-av-theme-dark {
+  --header-height: 3.5rem; /* Header móvil más alto para mejor usabilidad táctil */
+  --sidebar-width: 0rem; /* Sin sidebar en móvil */
+}
+
+/* HEADER - Unificado con sidebar */
+body.nexo-av-theme header,
+body.nexo-av-theme-dark header {
+  background-color: hsl(var(--sidebar-background)) !important;
+  border-bottom: 1px solid hsl(var(--sidebar-border)) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  height: var(--header-height) !important;
+  min-height: var(--header-height) !important;
+  max-height: var(--header-height) !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  z-index: 50 !important;
+}
+
+/* Eliminar cualquier border-radius del header, excepto avatar */
+body.nexo-av-theme header *,
+body.nexo-av-theme-dark header * {
+  border-radius: 0 !important;
+}
+
+/* Avatar en header - Permitir border-radius completo (rounded-full) */
+body.nexo-av-theme header button[class*="rounded-full"],
+body.nexo-av-theme header [class*="rounded-full"],
+body.nexo-av-theme header [class*="Avatar"],
+body.nexo-av-theme header [class*="avatar"],
+body.nexo-av-theme-dark header button[class*="rounded-full"],
+body.nexo-av-theme-dark header [class*="rounded-full"],
+body.nexo-av-theme-dark header [class*="Avatar"],
+body.nexo-av-theme-dark header [class*="avatar"] {
+  border-radius: 9999px !important; /* Fully rounded para avatar */
+}
+
+/* Botones del header que no sean avatar - mantener sin border-radius */
+body.nexo-av-theme header button:not([class*="rounded-full"]):not([class*="Avatar"]):not([class*="avatar"]),
+body.nexo-av-theme-dark header button:not([class*="rounded-full"]):not([class*="Avatar"]):not([class*="avatar"]) {
+  border-radius: 0 !important;
+}
+
+/* Logo text - Reducir tamaño */
+body.nexo-av-theme header h1,
+body.nexo-av-theme-dark header h1 {
+  font-size: 0.875rem !important; /* Reducido de tamaño base */
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+body.nexo-av-theme header p[class*="text-xs"],
+body.nexo-av-theme-dark header p[class*="text-xs"] {
+  font-size: 0.625rem !important; /* Reducido de 0.75rem */
+  line-height: 1.2 !important;
+}
+
+/* SIDEBAR - Unificado con header - Solo borde derecho */
+body.nexo-av-theme aside,
+body.nexo-av-theme [class*="bg-sidebar"],
+body.nexo-av-theme [class*="bg-card"][class*="border-r"],
+body.nexo-av-theme-dark aside,
+body.nexo-av-theme-dark [class*="bg-sidebar"],
+body.nexo-av-theme-dark [class*="bg-card"][class*="border-r"] {
+  background-color: hsl(var(--sidebar-background)) !important;
+  border: none !important;
+  border-right: 1px solid hsl(var(--sidebar-border)) !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-radius: 0 !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  position: fixed !important;
+  left: 0 !important;
+  top: var(--header-height) !important;
+  width: var(--sidebar-width) !important;
+  height: calc(100vh - var(--header-height)) !important;
+  z-index: 40 !important;
+}
+
+/* Contenedor del sidebar - Solo borde derecho */
+body.nexo-av-theme div[style*="top: '3.25rem'"],
+body.nexo-av-theme-dark div[style*="top: '3.25rem'"],
+body.nexo-av-theme div[style*="top: 3.25rem"],
+body.nexo-av-theme-dark div[style*="top: 3.25rem"] {
+  top: var(--header-height) !important;
+  height: calc(100vh - var(--header-height)) !important;
+  width: var(--sidebar-width) !important;
+  border-radius: 0 !important;
+  border: none !important;
+  border-right: 1px solid hsl(var(--sidebar-border)) !important;
+}
+
+/* Asegurar que el sidebar solo tenga borde derecho - eliminar otros bordes */
+body.nexo-av-theme aside,
+body.nexo-av-theme-dark aside {
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+}
+
+/* Eliminar border-radius del sidebar contenedor, pero permitir en botones */
+body.nexo-av-theme aside,
+body.nexo-av-theme-dark aside {
+  border-radius: 0 !important;
+}
+
+/* Botones del sidebar - Permitir border-radius */
+body.nexo-av-theme aside button,
+body.nexo-av-theme aside a,
+body.nexo-av-theme-dark aside button,
+body.nexo-av-theme-dark aside a {
+  border-radius: 6px !important; /* Bordes redondos en botones */
+}
+
+/* Botones de navegación del sidebar específicamente */
+body.nexo-av-theme aside nav button,
+body.nexo-av-theme aside nav a,
+body.nexo-av-theme-dark aside nav button,
+body.nexo-av-theme-dark aside nav a {
+  border-radius: 6px !important;
+}
+
+/* Eliminar separación visual entre header y sidebar */
+body.nexo-av-theme header::after,
+body.nexo-av-theme-dark header::after {
+  display: none !important;
+}
+
+/* Asegurar que header y sidebar compartan el mismo fondo */
+body.nexo-av-theme header,
+body.nexo-av-theme-dark header,
+body.nexo-av-theme aside,
+body.nexo-av-theme-dark aside {
+  background-color: hsl(var(--sidebar-background)) !important;
+}
+
+/* Eliminar cualquier sombra o efecto de separación */
+body.nexo-av-theme header,
+body.nexo-av-theme-dark header {
+  box-shadow: none !important;
+}
+
+/* Asegurar que no haya gap entre header y sidebar */
+body.nexo-av-theme header + div[class*="fixed"],
+body.nexo-av-theme-dark header + div[class*="fixed"] {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Asegurar que el contenedor principal no tenga padding que separe el sidebar */
+body.nexo-av-theme > div[class*="min-h-screen"],
+body.nexo-av-theme-dark > div[class*="min-h-screen"] {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* Asegurar que el flex container no tenga padding */
+body.nexo-av-theme div.flex[class*="w-"] {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* Sidebar navigation items - Con border-radius */
+body.nexo-av-theme aside nav button,
+body.nexo-av-theme aside nav a,
+body.nexo-av-theme aside button,
+body.nexo-av-theme aside a,
+body.nexo-av-theme-dark aside nav button,
+body.nexo-av-theme-dark aside nav a,
+body.nexo-av-theme-dark aside button,
+body.nexo-av-theme-dark aside a {
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 0.75rem !important;
+  border-radius: 6px !important; /* Bordes redondos */
+  color: hsl(var(--text-secondary)) !important;
+  transition: all 0.15s ease !important;
+}
+
+body.nexo-av-theme aside nav button:hover,
+body.nexo-av-theme aside nav a:hover {
+  background-color: hsl(var(--sidebar-accent)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Active sidebar item */
+body.nexo-av-theme aside nav button[class*="bg-sidebar-accent"],
+body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"] {
+  background-color: hsl(var(--sidebar-accent)) !important;
+  color: hsl(var(--foreground)) !important;
+  font-weight: 600 !important;
+}
+
+/* Sidebar icon container backgrounds - Sin border-radius */
+body.nexo-av-theme aside nav [class*="p-1.5"],
+body.nexo-av-theme aside [class*="p-1.5"],
+body.nexo-av-theme-dark aside nav [class*="p-1.5"],
+body.nexo-av-theme-dark aside [class*="p-1.5"] {
+  background-color: transparent !important;
+  border-radius: 0 !important;
+}
+
+body.nexo-av-theme aside nav button[class*="bg-sidebar-accent"] [class*="p-1.5"],
+body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"] [class*="p-1.5"],
+body.nexo-av-theme-dark aside nav button[class*="bg-sidebar-accent"] [class*="p-1.5"],
+body.nexo-av-theme-dark aside nav a[class*="bg-sidebar-accent"] [class*="p-1.5"] {
+  background-color: hsl(var(--primary) / 0.1) !important;
+  border-radius: 0 !important;
+}
+
+/* Permitir border-radius en botones del sidebar (ya tienen rounded-md) */
+body.nexo-av-theme aside button[class*="rounded"],
+body.nexo-av-theme aside a[class*="rounded"],
+body.nexo-av-theme-dark aside button[class*="rounded"],
+body.nexo-av-theme-dark aside a[class*="rounded"] {
+  border-radius: 6px !important; /* Mantener bordes redondos en botones */
+}
+
+/* Sidebar icons - small & subtle */
+body.nexo-av-theme aside nav svg {
+  width: 1rem !important;
+  height: 1rem !important;
+  color: inherit !important;
+}
+
+/* Sidebar section divider */
+body.nexo-av-theme aside [class*="h-px"],
+body.nexo-av-theme aside [class*="border-sidebar-border"] {
+  background-color: hsl(var(--sidebar-border)) !important;
+}
+
+/* ============================================
+   ICONS - Reduced sizes
+   ============================================ */
+
+/* Dashboard stat card icon containers */
+body.nexo-av-theme .card [class*="p-3"][class*="rounded-xl"] {
+  padding: 0.5rem !important;
+  border-radius: 6px !important;
+}
+
+body.nexo-av-theme .card [class*="p-3"] svg {
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+/* General icon reduction */
+body.nexo-av-theme svg[class*="h-8"],
+body.nexo-av-theme svg[class*="w-8"] {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+body.nexo-av-theme svg[class*="h-6"],
+body.nexo-av-theme svg[class*="w-6"] {
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+body.nexo-av-theme svg[class*="h-5"],
+body.nexo-av-theme svg[class*="w-5"] {
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+}
+
+body.nexo-av-theme svg[class*="h-4"],
+body.nexo-av-theme svg[class*="w-4"] {
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+}
+
+/* ============================================
+   HEADER - Compact
+   ============================================ */
+
+body.nexo-av-theme header {
+  height: 3.25rem !important;
+  min-height: 3.25rem !important;
+  max-height: 3.25rem !important;
+}
+
+body.nexo-av-theme header > div {
+  height: 100% !important;
+}
+
+body.nexo-av-theme header h1,
+body.nexo-av-theme header [class*="text-xl"] {
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+}
+
+/* ============================================
+   DASHBOARD SPECIFIC
+   ============================================ */
+
+/* Period selector buttons */
+body.nexo-av-theme button[class*="bg-primary"][class*="text-primary-foreground"] {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Stat card values */
+body.nexo-av-theme .card [class*="text-2xl"] {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Stat card amounts */
+body.nexo-av-theme .card [class*="text-sm"][class*="mt-1"] {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+}
+
+/* Period info banner - make it subtle */
+body.nexo-av-theme [class*="bg-accent"][class*="border-primary"] {
+  background-color: hsl(var(--secondary)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+/* ============================================
+   OVERRIDE DARK THEME CLASSES
+   ============================================ */
+
+body.nexo-av-theme div.bg-black,
+body.nexo-av-theme div[class*="bg-black"]:not([class*="hover"]):not([class*="active"]) {
+  background-color: hsl(var(--background)) !important;
+}
+
+body.nexo-av-theme div[class*="bg-gradient-to-br"][class*="from-black"],
+body.nexo-av-theme div[class*="from-black"][class*="via-zinc-900"] {
+  background: hsl(var(--background)) !important;
+  background-image: none !important;
+}
+
+body.nexo-av-theme [class*="bg-zinc-900"] {
+  background-color: hsl(var(--card)) !important;
+}
+
+body.nexo-av-theme [class*="bg-zinc-800"] {
+  background-color: hsl(var(--secondary)) !important;
+}
+
+/* Text overrides */
+body.nexo-av-theme h1.text-white,
+body.nexo-av-theme h2.text-white,
+body.nexo-av-theme h3.text-white,
+body.nexo-av-theme p.text-white,
+body.nexo-av-theme span.text-white,
+body.nexo-av-theme div.text-white,
+body.nexo-av-theme label.text-white,
+body.nexo-av-theme button.text-white {
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme [class*="text-white/60"],
+body.nexo-av-theme [class*="text-white/50"],
+body.nexo-av-theme [class*="text-white/40"],
+body.nexo-av-theme [class*="text-white/30"],
+body.nexo-av-theme [class*="text-white/70"],
+body.nexo-av-theme [class*="text-white/80"] {
+  color: hsl(var(--text-secondary)) !important;
+}
+
+/* Border overrides */
+body.nexo-av-theme [class*="border-white/10"],
+body.nexo-av-theme [class*="border-white/20"],
+body.nexo-av-theme [class*="border-white/30"] {
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Background opacity overrides */
+body.nexo-av-theme [class*="bg-white/5"],
+body.nexo-av-theme [class*="bg-white/\[0.03\]"],
+body.nexo-av-theme [class*="bg-white/\[0\.02\]"] {
+  background-color: hsl(var(--muted)) !important;
+}
+
+body.nexo-av-theme [class*="bg-white/10"]:not([class*="hover"]):not([class*="active"]) {
+  background-color: hsl(var(--secondary)) !important;
+}
+
+/* Disable blur */
+body.nexo-av-theme [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ============================================
+   STAT CARD ICON BACKGROUNDS
+   ============================================ */
+
+body.nexo-av-theme [class*="bg-green-100"] {
+  background-color: hsl(var(--status-success-bg)) !important;
+}
+
+body.nexo-av-theme [class*="bg-blue-100"] {
+  background-color: hsl(var(--status-info-bg)) !important;
+}
+
+body.nexo-av-theme [class*="bg-purple-100"] {
+  background-color: hsl(var(--status-special-bg)) !important;
+}
+
+body.nexo-av-theme [class*="bg-red-100"] {
+  background-color: hsl(var(--status-error-bg)) !important;
+}
+
+body.nexo-av-theme [class*="bg-yellow-100"],
+body.nexo-av-theme [class*="bg-orange-100"] {
+  background-color: hsl(var(--status-warning-bg)) !important;
+}
+
+body.nexo-av-theme [class*="bg-indigo-100"] {
+  background-color: hsl(215 60% 96%) !important;
+}
+
+/* Icon colors */
+body.nexo-av-theme [class*="text-green-600"] {
+  color: hsl(var(--status-success)) !important;
+}
+
+body.nexo-av-theme [class*="text-blue-600"] {
+  color: hsl(var(--status-info)) !important;
+}
+
+body.nexo-av-theme [class*="text-purple-600"] {
+  color: hsl(var(--status-special)) !important;
+}
+
+body.nexo-av-theme [class*="text-red-600"] {
+  color: hsl(var(--status-error)) !important;
+}
+
+body.nexo-av-theme [class*="text-yellow-600"],
+body.nexo-av-theme [class*="text-orange-600"] {
+  color: hsl(var(--status-warning)) !important;
+}
+
+body.nexo-av-theme [class*="text-indigo-600"] {
+  color: hsl(215 60% 45%) !important;
+}
+
+/* ============================================
+   SPACING - Sistema centralizado de espaciado
+   Control completo desde global.css
+   ============================================ */
+
+/* ============================================
+   SPACE-Y - Espaciado vertical entre elementos
+   ============================================ */
+
+body.nexo-av-theme .space-y-1 > * + *,
+body.nexo-av-theme-dark .space-y-1 > * + * {
+  margin-top: 0.25rem !important; /* 0.25rem base */
+}
+
+body.nexo-av-theme .space-y-2 > * + *,
+body.nexo-av-theme-dark .space-y-2 > * + * {
+  margin-top: 0.5rem !important; /* 0.5rem base */
+}
+
+body.nexo-av-theme .space-y-3 > * + *,
+body.nexo-av-theme-dark .space-y-3 > * + * {
+  margin-top: 0.625rem !important; /* 0.75rem * 0.83 */
+}
+
+body.nexo-av-theme .space-y-4 > * + *,
+body.nexo-av-theme-dark .space-y-4 > * + * {
+  margin-top: 0.625rem !important; /* 1rem * 0.625 */
+}
+
+body.nexo-av-theme .space-y-5 > * + *,
+body.nexo-av-theme-dark .space-y-5 > * + * {
+  margin-top: 0.875rem !important; /* 1.25rem * 0.7 */
+}
+
+body.nexo-av-theme .space-y-6 > * + *,
+body.nexo-av-theme-dark .space-y-6 > * + * {
+  margin-top: 0.875rem !important; /* 1.5rem * 0.58 */
+}
+
+body.nexo-av-theme .space-y-8 > * + *,
+body.nexo-av-theme-dark .space-y-8 > * + * {
+  margin-top: 1.25rem !important; /* 2rem * 0.625 */
+}
+
+/* ============================================
+   GAP - Espaciado en flex/grid
+   ============================================ */
+
+body.nexo-av-theme .gap-1,
+body.nexo-av-theme-dark .gap-1 {
+  gap: 0.25rem !important;
+}
+
+body.nexo-av-theme [class*="gap-1.5"],
+body.nexo-av-theme-dark [class*="gap-1.5"] {
+  gap: 0.375rem !important;
+}
+
+body.nexo-av-theme .gap-2,
+body.nexo-av-theme-dark .gap-2 {
+  gap: 0.5rem !important;
+}
+
+body.nexo-av-theme .gap-3,
+body.nexo-av-theme-dark .gap-3 {
+  gap: 0.625rem !important; /* 0.75rem * 0.83 */
+}
+
+body.nexo-av-theme .gap-4,
+body.nexo-av-theme-dark .gap-4 {
+  gap: 0.625rem !important; /* 1rem * 0.625 */
+}
+
+body.nexo-av-theme .gap-5,
+body.nexo-av-theme-dark .gap-5 {
+  gap: 0.875rem !important; /* 1.25rem * 0.7 */
+}
+
+body.nexo-av-theme .gap-6,
+body.nexo-av-theme-dark .gap-6 {
+  gap: 0.875rem !important; /* 1.5rem * 0.58 */
+}
+
+body.nexo-av-theme .gap-8,
+body.nexo-av-theme-dark .gap-8 {
+  gap: 1.25rem !important; /* 2rem * 0.625 */
+}
+
+/* ============================================
+   PADDING - Padding completo
+   ============================================ */
+
+body.nexo-av-theme .p-1,
+body.nexo-av-theme-dark .p-1 {
+  padding: 0.25rem !important;
+}
+
+body.nexo-av-theme .p-2,
+body.nexo-av-theme-dark .p-2 {
+  padding: 0.5rem !important;
+}
+
+body.nexo-av-theme .p-3,
+body.nexo-av-theme-dark .p-3 {
+  padding: 0.625rem !important; /* 0.75rem * 0.83 */
+}
+
+body.nexo-av-theme .p-4,
+body.nexo-av-theme-dark .p-4 {
+  padding: 0.625rem !important; /* 1rem * 0.625 */
+}
+
+body.nexo-av-theme .p-5,
+body.nexo-av-theme-dark .p-5 {
+  padding: 0.875rem !important; /* 1.25rem * 0.7 */
+}
+
+body.nexo-av-theme .p-6,
+body.nexo-av-theme-dark .p-6 {
+  padding: 0.875rem !important; /* 1.5rem * 0.58 */
+}
+
+body.nexo-av-theme .p-8,
+body.nexo-av-theme-dark .p-8 {
+  padding: 1.5rem !important; /* 2rem * 0.75 */
+}
+
+/* ============================================
+   PADDING HORIZONTAL (px)
+   ============================================ */
+
+body.nexo-av-theme .px-1,
+body.nexo-av-theme-dark .px-1 {
+  padding-left: 0.25rem !important;
+  padding-right: 0.25rem !important;
+}
+
+body.nexo-av-theme .px-2,
+body.nexo-av-theme-dark .px-2 {
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+}
+
+body.nexo-av-theme .px-3,
+body.nexo-av-theme-dark .px-3 {
+  padding-left: 0.625rem !important; /* 0.75rem * 0.83 */
+  padding-right: 0.625rem !important;
+}
+
+body.nexo-av-theme .px-4,
+body.nexo-av-theme-dark .px-4 {
+  padding-left: 0.75rem !important; /* 1rem * 0.75 */
+  padding-right: 0.75rem !important;
+}
+
+body.nexo-av-theme .px-5,
+body.nexo-av-theme-dark .px-5 {
+  padding-left: 0.875rem !important; /* 1.25rem * 0.7 */
+  padding-right: 0.875rem !important;
+}
+
+body.nexo-av-theme .px-6,
+body.nexo-av-theme-dark .px-6 {
+  padding-left: 0.875rem !important; /* 1.5rem * 0.58 */
+  padding-right: 0.875rem !important;
+}
+
+body.nexo-av-theme .px-8,
+body.nexo-av-theme-dark .px-8 {
+  padding-left: 1.5rem !important; /* 2rem * 0.75 */
+  padding-right: 1.5rem !important;
+}
+
+/* ============================================
+   PADDING VERTICAL (py)
+   ============================================ */
+
+body.nexo-av-theme .py-1,
+body.nexo-av-theme-dark .py-1 {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+}
+
+body.nexo-av-theme .py-2,
+body.nexo-av-theme-dark .py-2 {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+body.nexo-av-theme .py-3,
+body.nexo-av-theme-dark .py-3 {
+  padding-top: 0.625rem !important; /* 0.75rem * 0.83 */
+  padding-bottom: 0.625rem !important;
+}
+
+body.nexo-av-theme .py-4,
+body.nexo-av-theme-dark .py-4 {
+  padding-top: 0.75rem !important; /* 1rem * 0.75 */
+  padding-bottom: 0.75rem !important;
+}
+
+body.nexo-av-theme .py-5,
+body.nexo-av-theme-dark .py-5 {
+  padding-top: 0.875rem !important; /* 1.25rem * 0.7 */
+  padding-bottom: 0.875rem !important;
+}
+
+body.nexo-av-theme .py-6,
+body.nexo-av-theme-dark .py-6 {
+  padding-top: 0.875rem !important; /* 1.5rem * 0.58 */
+  padding-bottom: 0.875rem !important;
+}
+
+body.nexo-av-theme .py-8,
+body.nexo-av-theme-dark .py-8 {
+  padding-top: 1.5rem !important; /* 2rem * 0.75 */
+  padding-bottom: 1.5rem !important;
+}
+
+/* ============================================
+   MARGIN - Márgenes individuales
+   ============================================ */
+
+/* Margin Top */
+body.nexo-av-theme .mt-1,
+body.nexo-av-theme-dark .mt-1 {
+  margin-top: 0.25rem !important;
+}
+
+body.nexo-av-theme .mt-2,
+body.nexo-av-theme-dark .mt-2 {
+  margin-top: 0.5rem !important;
+}
+
+body.nexo-av-theme .mt-3,
+body.nexo-av-theme-dark .mt-3 {
+  margin-top: 0.625rem !important; /* 0.75rem * 0.83 */
+}
+
+body.nexo-av-theme .mt-4,
+body.nexo-av-theme-dark .mt-4 {
+  margin-top: 0.75rem !important; /* 1rem * 0.75 */
+}
+
+body.nexo-av-theme .mt-5,
+body.nexo-av-theme-dark .mt-5 {
+  margin-top: 0.875rem !important; /* 1.25rem * 0.7 */
+}
+
+body.nexo-av-theme .mt-6,
+body.nexo-av-theme-dark .mt-6 {
+  margin-top: 0.875rem !important; /* 1.5rem * 0.58 */
+}
+
+body.nexo-av-theme .mt-8,
+body.nexo-av-theme-dark .mt-8 {
+  margin-top: 1.5rem !important; /* 2rem * 0.75 */
+}
+
+/* Margin Bottom */
+body.nexo-av-theme .mb-1,
+body.nexo-av-theme-dark .mb-1 {
+  margin-bottom: 0.25rem !important;
+}
+
+body.nexo-av-theme .mb-2,
+body.nexo-av-theme-dark .mb-2 {
+  margin-bottom: 0.5rem !important;
+}
+
+body.nexo-av-theme .mb-3,
+body.nexo-av-theme-dark .mb-3 {
+  margin-bottom: 0.625rem !important; /* 0.75rem * 0.83 */
+}
+
+body.nexo-av-theme .mb-4,
+body.nexo-av-theme-dark .mb-4 {
+  margin-bottom: 0.75rem !important; /* 1rem * 0.75 */
+}
+
+body.nexo-av-theme .mb-5,
+body.nexo-av-theme-dark .mb-5 {
+  margin-bottom: 0.875rem !important; /* 1.25rem * 0.7 */
+}
+
+body.nexo-av-theme .mb-6,
+body.nexo-av-theme-dark .mb-6 {
+  margin-bottom: 0.875rem !important; /* 1.5rem * 0.58 */
+}
+
+body.nexo-av-theme .mb-8,
+body.nexo-av-theme-dark .mb-8 {
+  margin-bottom: 1.5rem !important; /* 2rem * 0.75 */
+}
+
+/* Margin Left */
+body.nexo-av-theme .ml-1,
+body.nexo-av-theme-dark .ml-1 {
+  margin-left: 0.25rem !important;
+}
+
+body.nexo-av-theme .ml-2,
+body.nexo-av-theme-dark .ml-2 {
+  margin-left: 0.5rem !important;
+}
+
+body.nexo-av-theme .ml-3,
+body.nexo-av-theme-dark .ml-3 {
+  margin-left: 0.625rem !important; /* 0.75rem * 0.83 */
+}
+
+body.nexo-av-theme .ml-4,
+body.nexo-av-theme-dark .ml-4 {
+  margin-left: 0.75rem !important; /* 1rem * 0.75 */
+}
+
+/* Margin Right */
+body.nexo-av-theme .mr-1,
+body.nexo-av-theme-dark .mr-1 {
+  margin-right: 0.25rem !important;
+}
+
+body.nexo-av-theme .mr-2,
+body.nexo-av-theme-dark .mr-2 {
+  margin-right: 0.5rem !important;
+}
+
+body.nexo-av-theme .mr-3,
+body.nexo-av-theme-dark .mr-3 {
+  margin-right: 0.625rem !important; /* 0.75rem * 0.83 */
+}
+
+body.nexo-av-theme .mr-4,
+body.nexo-av-theme-dark .mr-4 {
+  margin-right: 0.75rem !important; /* 1rem * 0.75 */
+}
+
+/* ============================================
+   PAGE LAYOUT CONTROL
+   Control centralizado del padding de páginas
+   ============================================ */
+
+/* Padding del contenedor principal de páginas - Ya controlado en MAIN CONTENT AREA */
+/* Este selector es para páginas que usen directamente p-6, px-6, py-6 */
+body.nexo-av-theme main > div[class*="p-6"]:not([class*="overflow-y-auto"]),
+body.nexo-av-theme-dark main > div[class*="p-6"]:not([class*="overflow-y-auto"]) {
+  padding-top: 2rem !important;
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+  padding-bottom: 0 !important;
+}
+
+/* Control de padding en páginas individuales */
+body.nexo-av-theme main > div[class*="px-6"]:not([class*="overflow-y-auto"]),
+body.nexo-av-theme-dark main > div[class*="px-6"]:not([class*="overflow-y-auto"]) {
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+}
+
+body.nexo-av-theme main > div[class*="py-6"]:not([class*="overflow-y-auto"]),
+body.nexo-av-theme-dark main > div[class*="py-6"]:not([class*="overflow-y-auto"]) {
+  padding-top: 2rem !important;
+  padding-bottom: 2rem !important;
+}
+
+/* ============================================
+   MISC
+   ============================================ */
+
+body.nexo-av-theme hr,
+body.nexo-av-theme [class*="border-t"],
+body.nexo-av-theme [class*="border-b"] {
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Scrollbar */
+body.nexo-av-theme ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+body.nexo-av-theme ::-webkit-scrollbar-track {
+  background: hsl(var(--secondary));
+}
+
+body.nexo-av-theme ::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+
+body.nexo-av-theme ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--text-muted));
+}
+
+/* Badge text overrides */
+body.nexo-av-theme [class*="text-green-300"] {
+  color: hsl(var(--status-success-text)) !important;
+}
+
+body.nexo-av-theme [class*="text-blue-300"] {
+  color: hsl(var(--status-info-text)) !important;
+}
+
+body.nexo-av-theme [class*="text-red-300"] {
+  color: hsl(var(--status-error-text)) !important;
+}
+
+body.nexo-av-theme [class*="text-orange-300"] {
+  color: hsl(var(--status-warning-text)) !important;
+}
+
+body.nexo-av-theme [class*="text-gray-300"] {
+  color: hsl(var(--status-neutral-text)) !important;
+}
+
+body.nexo-av-theme [class*="text-purple-300"] {
+  color: hsl(var(--status-special-text)) !important;
+}
+
+/* ============================================
+   RESPONSIVE - Mobile Optimizations
+   Estilos optimizados para dispositivos móviles
+   ============================================ */
+
+/* ============================================
+   LIST PAGES - Estilos unificados para listados
+   Basado en ClientsPage.tsx como referencia
+   ============================================ */
+
+/* ============================================
+   KPI CARDS - Cards de métricas (ProjectsPage Style)
+   Estilos unificados para KPIs compactos
+   ============================================ */
+
+/* Contenedor de KPI Cards Grid */
+body.nexo-av-theme [class*="grid"][class*="grid-cols"][class*="gap-2"][class*="mb-3"],
+body.nexo-av-theme-dark [class*="grid"][class*="grid-cols"][class*="gap-2"][class*="mb-3"] {
+  gap: 0.5rem !important; /* gap-2 */
+  margin-bottom: 0.75rem !important; /* mb-3 */
+}
+
+/* KPI Card individual - Estilo ProjectsPage */
+body.nexo-av-theme [class*="bg-card/50"][class*="border"][class*="rounded-lg"][class*="p-2"],
+body.nexo-av-theme-dark [class*="bg-card/50"][class*="border"][class*="rounded-lg"][class*="p-2"] {
+  background-color: hsl(var(--card) / 0.5) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important; /* rounded-lg */
+  padding: 0.5rem !important; /* p-2 */
+  display: flex !important;
+  flex-direction: column !important;
+  transition: all 0.15s ease !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+body.nexo-av-theme [class*="bg-card/50"][class*="border"][class*="rounded-lg"][class*="p-2"]:hover,
+body.nexo-av-theme-dark [class*="bg-card/50"][class*="border"][class*="rounded-lg"][class*="p-2"]:hover {
+  box-shadow: var(--shadow-sm) !important;
+  border-color: hsl(var(--border) / 1.2) !important;
+  background-color: hsl(var(--card) / 0.6) !important;
+}
+
+/* Header del KPI Card - Icono y etiqueta */
+body.nexo-av-theme [class*="bg-card/50"] [class*="flex"][class*="items-center"][class*="gap-2"][class*="mb-1"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="flex"][class*="items-center"][class*="gap-2"][class*="mb-1"] {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important; /* gap-2 */
+  margin-bottom: 0.25rem !important; /* mb-1 */
+}
+
+/* Contenedor de icono con fondo de color */
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"][class*="bg-"][class*="rounded"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"][class*="bg-"][class*="rounded"] {
+  padding: 0.25rem !important; /* p-1 */
+  border-radius: 0.25rem !important; /* rounded */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+/* Icono dentro de KPI Card */
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"] svg[class*="h-3.5"][class*="w-3.5"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"] svg[class*="h-3.5"][class*="w-3.5"],
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"] svg,
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"] svg {
+  width: 0.875rem !important; /* h-3.5 w-3.5 */
+  height: 0.875rem !important;
+  flex-shrink: 0 !important;
+}
+
+/* Colores de fondo de iconos - Todos los colores comunes */
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"][class*="bg-emerald-500/10"],
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"][class*="bg-green-500/10"],
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"][class*="bg-blue-500/10"],
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"][class*="bg-red-500/10"],
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"][class*="bg-violet-500/10"],
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"][class*="bg-purple-500/10"],
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"][class*="bg-orange-500/10"],
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"][class*="bg-cyan-500/10"],
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"][class*="bg-yellow-500/10"],
+body.nexo-av-theme [class*="bg-card/50"] [class*="p-1"][class*="bg-indigo-500/10"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"][class*="bg-emerald-500/10"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"][class*="bg-green-500/10"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"][class*="bg-blue-500/10"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"][class*="bg-red-500/10"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"][class*="bg-violet-500/10"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"][class*="bg-purple-500/10"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"][class*="bg-orange-500/10"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"][class*="bg-cyan-500/10"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"][class*="bg-yellow-500/10"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="p-1"][class*="bg-indigo-500/10"] {
+  background-color: inherit !important; /* Mantener el color original de Tailwind */
+}
+
+/* Colores de texto de iconos */
+body.nexo-av-theme [class*="bg-card/50"] [class*="text-emerald-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="text-emerald-600"],
+body.nexo-av-theme [class*="bg-card/50"] [class*="text-green-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="text-green-600"] {
+  color: hsl(142 71% 45%) !important;
+}
+
+body.nexo-av-theme [class*="bg-card/50"] [class*="text-blue-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="text-blue-600"] {
+  color: hsl(217 91% 60%) !important;
+}
+
+body.nexo-av-theme [class*="bg-card/50"] [class*="text-red-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="text-red-600"] {
+  color: hsl(0 72% 51%) !important;
+}
+
+body.nexo-av-theme [class*="bg-card/50"] [class*="text-violet-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="text-violet-600"],
+body.nexo-av-theme [class*="bg-card/50"] [class*="text-purple-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="text-purple-600"] {
+  color: hsl(270 60% 50%) !important;
+}
+
+body.nexo-av-theme [class*="bg-card/50"] [class*="text-orange-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="text-orange-600"] {
+  color: hsl(25 95% 53%) !important;
+}
+
+body.nexo-av-theme [class*="bg-card/50"] [class*="text-cyan-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="text-cyan-600"] {
+  color: hsl(187 85% 45%) !important;
+}
+
+body.nexo-av-theme [class*="bg-card/50"] [class*="text-yellow-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="text-yellow-600"] {
+  color: hsl(43 96% 56%) !important;
+}
+
+body.nexo-av-theme [class*="bg-card/50"] [class*="text-indigo-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] [class*="text-indigo-600"] {
+  color: hsl(239 84% 67%) !important;
+}
+
+/* Etiqueta en KPI Card */
+body.nexo-av-theme [class*="bg-card/50"] span[class*="text-muted-foreground"][class*="text-xs"][class*="font-medium"],
+body.nexo-av-theme-dark [class*="bg-card/50"] span[class*="text-muted-foreground"][class*="text-xs"][class*="font-medium"] {
+  font-size: 0.75rem !important; /* text-xs */
+  font-weight: 500 !important;
+  color: hsl(var(--text-muted)) !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+}
+
+/* Contenedor de valor */
+body.nexo-av-theme [class*="bg-card/50"] > div:not([class*="flex"][class*="items-center"]),
+body.nexo-av-theme-dark [class*="bg-card/50"] > div:not([class*="flex"][class*="items-center"]) {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.125rem !important;
+}
+
+/* Valor grande en KPI Card (text-lg) */
+body.nexo-av-theme [class*="bg-card/50"] span[class*="text-lg"][class*="font-bold"],
+body.nexo-av-theme-dark [class*="bg-card/50"] span[class*="text-lg"][class*="font-bold"] {
+  font-size: 1.125rem !important; /* text-lg */
+  font-weight: 700 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
+}
+
+/* Valor mediano en KPI Card (text-base) */
+body.nexo-av-theme [class*="bg-card/50"] span[class*="text-base"][class*="font-bold"],
+body.nexo-av-theme-dark [class*="bg-card/50"] span[class*="text-base"][class*="font-bold"] {
+  font-size: 1rem !important; /* text-base */
+  font-weight: 700 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
+}
+
+/* Valores con color especial */
+body.nexo-av-theme [class*="bg-card/50"] span[class*="text-base"][class*="font-bold"][class*="text-red-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] span[class*="text-base"][class*="font-bold"][class*="text-red-600"],
+body.nexo-av-theme [class*="bg-card/50"] span[class*="text-emerald-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] span[class*="text-emerald-600"],
+body.nexo-av-theme [class*="bg-card/50"] span[class*="text-amber-600"],
+body.nexo-av-theme-dark [class*="bg-card/50"] span[class*="text-amber-600"] {
+  color: inherit !important; /* Mantener el color original */
+}
+
+/* Subtítulo opcional en KPI Card */
+body.nexo-av-theme [class*="bg-card/50"] span[class*="text-[10px]"][class*="text-muted-foreground"],
+body.nexo-av-theme-dark [class*="bg-card/50"] span[class*="text-[10px]"][class*="text-muted-foreground"] {
+  font-size: 0.625rem !important; /* text-[10px] */
+  color: hsl(var(--text-muted)) !important;
+  line-height: 1.3 !important;
+  margin-left: 0.25rem !important; /* ml-1 */
+  display: block !important;
+  margin-top: 0.125rem !important;
+}
+
+/* ============================================
+   LIST HEADER - Encabezado de listados
+   ============================================ */
+
+/* Título principal del listado */
+body.nexo-av-theme h1[class*="text-2xl"][class*="md:text-3xl"],
+body.nexo-av-theme-dark h1[class*="text-2xl"][class*="md:text-3xl"] {
+  font-size: 1.5rem !important; /* text-2xl */
+  font-weight: 700 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+
+/* Botón de acción principal */
+body.nexo-av-theme button[class*="h-9"][class*="px-2"][class*="text-[10px]"],
+body.nexo-av-theme-dark button[class*="h-9"][class*="px-2"][class*="text-[10px]"] {
+  height: 2.25rem !important; /* h-9 */
+  padding-left: 0.5rem !important; /* px-2 */
+  padding-right: 0.5rem !important;
+  font-size: 0.625rem !important; /* text-[10px] */
+  font-weight: 500 !important;
+}
+
+/* Icono dentro de botón de acción */
+body.nexo-av-theme button[class*="h-9"] svg[class*="h-3"][class*="w-3"],
+body.nexo-av-theme-dark button[class*="h-9"] svg[class*="h-3"][class*="w-3"] {
+  width: 0.75rem !important; /* h-3 w-3 */
+  height: 0.75rem !important;
+}
+
+/* Atajo de teclado en botón */
+body.nexo-av-theme button span[class*="text-[9px]"][class*="px-1.5"][class*="py-0.5"][class*="opacity-70"],
+body.nexo-av-theme-dark button span[class*="text-[9px]"][class*="px-1.5"][class*="py-0.5"][class*="opacity-70"] {
+  font-size: 0.5625rem !important; /* text-[9px] */
+  padding: 0.125rem 0.375rem !important; /* px-1.5 py-0.5 */
+  opacity: 0.7 !important;
+}
+
+/* Input de búsqueda */
+body.nexo-av-theme input[class*="h-8"][class*="text-[9px]"],
+body.nexo-av-theme-dark input[class*="h-8"][class*="text-[9px]"] {
+  height: 2rem !important; /* h-8 */
+  font-size: 0.5625rem !important; /* text-[9px] */
+  padding: 0.125rem 0.375rem !important; /* px-1.5 py-0.5 */
+}
+
+/* Icono de búsqueda */
+body.nexo-av-theme [class*="absolute"][class*="right-3"] svg[class*="h-3"][class*="w-3"],
+body.nexo-av-theme-dark [class*="absolute"][class*="right-3"] svg[class*="h-3"][class*="w-3"] {
+  width: 0.75rem !important; /* h-3 w-3 */
+  height: 0.75rem !important;
+}
+
+/* ============================================
+   LIST TABLE - Tabla de listados
+   ============================================ */
+
+/* Contenedor de tabla */
+body.nexo-av-theme [class*="bg-card"][class*="rounded-2xl"][class*="border"][class*="overflow-hidden"][class*="shadow-md"],
+body.nexo-av-theme-dark [class*="bg-card"][class*="rounded-2xl"][class*="border"][class*="overflow-hidden"][class*="shadow-md"] {
+  background-color: hsl(var(--card)) !important;
+  border-radius: 1rem !important; /* rounded-2xl */
+  border: 1px solid hsl(var(--border)) !important;
+  overflow: hidden !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Header row de tabla */
+body.nexo-av-theme [class*="hover:bg-transparent"][class*="bg-muted/30"],
+body.nexo-av-theme-dark [class*="hover:bg-transparent"][class*="bg-muted/30"] {
+  background-color: hsl(var(--muted) / 0.3) !important;
+}
+
+body.nexo-av-theme [class*="hover:bg-transparent"][class*="bg-muted/30"]:hover,
+body.nexo-av-theme-dark [class*="hover:bg-transparent"][class*="bg-muted/30"]:hover {
+  background-color: hsl(var(--muted) / 0.3) !important;
+}
+
+/* TableHead en listados - Alineación por defecto izquierda */
+body.nexo-av-theme [class*="text-white/70"][class*="text-[10px]"]:not([class*="text-center"]),
+body.nexo-av-theme-dark [class*="text-white/70"][class*="text-[10px]"]:not([class*="text-center"]),
+body.nexo-av-theme th:not([class*="text-center"]),
+body.nexo-av-theme-dark th:not([class*="text-center"]),
+body.nexo-av-theme [role="columnheader"]:not([class*="text-center"]),
+body.nexo-av-theme-dark [role="columnheader"]:not([class*="text-center"]) {
+  font-size: 0.625rem !important; /* text-[10px] */
+  color: hsl(var(--text-muted)) !important;
+  padding-left: 0.5rem !important; /* px-2 */
+  padding-right: 0.5rem !important;
+  padding-top: 0.375rem !important; /* Reducido verticalmente */
+  padding-bottom: 0.375rem !important; /* Reducido verticalmente */
+  text-align: left !important; /* Alineado a la izquierda por defecto */
+  vertical-align: middle !important;
+}
+
+/* TableHead centrado solo cuando tiene text-center explícito */
+body.nexo-av-theme th[class*="text-center"],
+body.nexo-av-theme-dark th[class*="text-center"],
+body.nexo-av-theme [role="columnheader"][class*="text-center"],
+body.nexo-av-theme-dark [role="columnheader"][class*="text-center"],
+body.nexo-av-theme [class*="text-white/70"][class*="text-[10px]"][class*="text-center"],
+body.nexo-av-theme-dark [class*="text-white/70"][class*="text-[10px]"][class*="text-center"] {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+/* TableCell centrado cuando tiene text-center */
+body.nexo-av-theme td[class*="text-center"],
+body.nexo-av-theme-dark td[class*="text-center"],
+body.nexo-av-theme [role="cell"][class*="text-center"],
+body.nexo-av-theme-dark [role="cell"][class*="text-center"] {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+/* TableRow con hover y cursor - Altura reducida */
+body.nexo-av-theme [class*="border-white/10"][class*="cursor-pointer"][class*="hover:bg-white/"],
+body.nexo-av-theme-dark [class*="border-white/10"][class*="cursor-pointer"][class*="hover:bg-white/"],
+body.nexo-av-theme tr[role="row"],
+body.nexo-av-theme-dark tr[role="row"] {
+  border-color: hsl(var(--border) / 0.1) !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
+  height: auto !important;
+  min-height: 2rem !important; /* Altura mínima reducida */
+}
+
+body.nexo-av-theme [class*="hover:bg-white/"]:hover,
+body.nexo-av-theme-dark [class*="hover:bg-white/"]:hover,
+body.nexo-av-theme tr[role="row"]:hover,
+body.nexo-av-theme-dark tr[role="row"]:hover {
+  background-color: hsl(var(--accent) / 0.6) !important;
+}
+
+/* TableCell - Altura reducida */
+body.nexo-av-theme td,
+body.nexo-av-theme-dark td,
+body.nexo-av-theme [role="cell"],
+body.nexo-av-theme-dark [role="cell"] {
+  padding-top: 0.375rem !important; /* Reducido */
+  padding-bottom: 0.375rem !important; /* Reducido */
+  vertical-align: middle !important;
+}
+
+/* TableRow seleccionado */
+body.nexo-av-theme [class*="bg-white/10"],
+body.nexo-av-theme-dark [class*="bg-white/10"] {
+  background-color: hsl(var(--accent) / 0.1) !important;
+}
+
+/* TableCell con texto pequeño */
+body.nexo-av-theme [class*="text-white/70"][class*="text-[10px]"]:not(th),
+body.nexo-av-theme [class*="text-white/60"][class*="text-[9px]"],
+body.nexo-av-theme-dark [class*="text-white/70"][class*="text-[10px]"]:not(th),
+body.nexo-av-theme-dark [class*="text-white/60"][class*="text-[9px]"] {
+  font-size: 0.625rem !important; /* text-[10px] */
+  color: hsl(var(--text-secondary)) !important;
+}
+
+body.nexo-av-theme [class*="text-white/60"][class*="text-[9px]"],
+body.nexo-av-theme-dark [class*="text-white/60"][class*="text-[9px]"] {
+  font-size: 0.5625rem !important; /* text-[9px] */
+  color: hsl(var(--text-muted)) !important;
+}
+
+/* Texto en TableCell */
+body.nexo-av-theme [class*="text-white"][class*="font-medium"][class*="text-[10px]"],
+body.nexo-av-theme-dark [class*="text-white"][class*="font-medium"][class*="text-[10px]"] {
+  font-size: 0.625rem !important; /* text-[10px] */
+  font-weight: 500 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme [class*="text-white/40"][class*="text-[9px]"],
+body.nexo-av-theme-dark [class*="text-white/40"][class*="text-[9px]"] {
+  font-size: 0.5625rem !important; /* text-[9px] */
+  color: hsl(var(--text-muted)) !important;
+}
+
+body.nexo-av-theme [class*="text-white/30"],
+body.nexo-av-theme-dark [class*="text-white/30"] {
+  color: hsl(var(--text-muted) / 0.5) !important;
+}
+
+/* Checkbox en tabla */
+body.nexo-av-theme [class*="h-3.5"][class*="w-3.5"],
+body.nexo-av-theme-dark [class*="h-3.5"][class*="w-3.5"] {
+  width: 0.875rem !important; /* h-3.5 w-3.5 */
+  height: 0.875rem !important;
+}
+
+/* Iconos pequeños en tabla */
+body.nexo-av-theme [class*="h-3"][class*="w-3"]:not([class*="h-3.5"]),
+body.nexo-av-theme-dark [class*="h-3"][class*="w-3"]:not([class*="h-3.5"]) {
+  width: 0.75rem !important; /* h-3 w-3 */
+  height: 0.75rem !important;
+}
+
+body.nexo-av-theme [class*="h-2.5"][class*="w-2.5"],
+body.nexo-av-theme-dark [class*="h-2.5"][class*="w-2.5"] {
+  width: 0.625rem !important; /* h-2.5 w-2.5 */
+  height: 0.625rem !important;
+}
+
+/* Botón de acciones en tabla */
+body.nexo-av-theme button[class*="h-6"][class*="w-6"][class*="text-white/40"],
+body.nexo-av-theme-dark button[class*="h-6"][class*="w-6"][class*="text-white/40"] {
+  height: 1.5rem !important; /* h-6 */
+  width: 1.5rem !important; /* w-6 */
+  color: hsl(var(--text-muted)) !important;
+}
+
+body.nexo-av-theme button[class*="h-6"][class*="w-6"]:hover,
+body.nexo-av-theme-dark button[class*="h-6"][class*="w-6"]:hover {
+  color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--accent)) !important;
+}
+
+/* Badge en tabla - Tamaño unificado con ancho fijo */
+body.nexo-av-theme [class*="border"][class*="text-[9px]"][class*="px-1.5"][class*="py-0.5"],
+body.nexo-av-theme-dark [class*="border"][class*="text-[9px]"][class*="px-1.5"][class*="py-0.5"],
+body.nexo-av-theme [class*="Badge"],
+body.nexo-av-theme-dark [class*="Badge"],
+body.nexo-av-theme [class*="badge"],
+body.nexo-av-theme-dark [class*="badge"],
+body.nexo-av-theme [class*="bg-"][class*="text-"][class*="border"],
+body.nexo-av-theme-dark [class*="bg-"][class*="text-"][class*="border"] {
+  font-size: 0.5625rem !important; /* text-[9px] - Tamaño unificado */
+  padding: 0.1875rem 0.5rem !important; /* Tamaño fijo para todos */
+  border-width: 1px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 1.25rem !important; /* Altura mínima unificada */
+  height: 1.25rem !important; /* Altura fija */
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  min-width: 5rem !important; /* Ancho mínimo unificado (w-20) */
+  width: 5rem !important; /* Ancho fijo para todos los badges */
+}
+
+/* ============================================
+   EMPTY STATE - Estado vacío
+   ============================================ */
+
+body.nexo-av-theme [class*="text-muted-foreground/70"][class*="text-[10px]"],
+body.nexo-av-theme-dark [class*="text-muted-foreground/70"][class*="text-[10px]"] {
+  font-size: 0.625rem !important; /* text-[10px] */
+  color: hsl(var(--text-muted) / 0.7) !important;
+}
+
+/* ============================================
+   MOBILE (max-width: 768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+  body.nexo-av-theme h1,
+  body.nexo-av-theme-dark h1 {
+    font-size: 1.125rem !important;
+  }
+  
+  body.nexo-av-theme h2,
+  body.nexo-av-theme-dark h2 {
+    font-size: 0.9375rem !important;
+  }
+  
+  body.nexo-av-theme .card-content,
+  body.nexo-av-theme-dark .card-content {
+    padding: 0.625rem !important;
+  }
+}
+
+/* ============================================
+   DETAIL PAGES - Estilos unificados para páginas de detalle
+   Optimización del UI para todas las páginas de detalle
+   ============================================ */
+
+/* ============================================
+   DETAIL PAGE HEADER - Encabezado de páginas de detalle
+   ============================================ */
+
+/* Header principal de página de detalle */
+body.nexo-av-theme header[class*="flex-shrink-0"][class*="border-b"][class*="bg-card"],
+body.nexo-av-theme-dark header[class*="flex-shrink-0"][class*="border-b"][class*="bg-card"] {
+  background-color: hsl(var(--card)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  padding-top: 0.75rem !important; /* py-3 */
+  padding-bottom: 0.75rem !important;
+  padding-left: 1.5rem !important; /* px-6 */
+  padding-right: 1.5rem !important;
+}
+
+/* Título en header de detalle */
+body.nexo-av-theme header h1[class*="text-base"],
+body.nexo-av-theme-dark header h1[class*="text-base"] {
+  font-size: 0.875rem !important; /* text-base */
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Subtítulo en header de detalle */
+body.nexo-av-theme header p[class*="text-[11px]"],
+body.nexo-av-theme-dark header p[class*="text-[11px]"] {
+  font-size: 0.6875rem !important; /* text-[11px] */
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: hsl(var(--text-muted)) !important;
+}
+
+/* Botón de volver en header */
+body.nexo-av-theme button[class*="h-8"][class*="w-8"]:has(svg[class*="ArrowLeft"]),
+body.nexo-av-theme-dark button[class*="h-8"][class*="w-8"]:has(svg[class*="ArrowLeft"]),
+body.nexo-av-theme button[class*="h-10"][class*="w-10"]:has(svg[class*="ArrowLeft"]),
+body.nexo-av-theme-dark button[class*="h-10"][class*="w-10"]:has(svg[class*="ArrowLeft"]) {
+  height: 2rem !important; /* h-8 */
+  width: 2rem !important; /* w-8 */
+  border-radius: 0.375rem !important;
+  color: hsl(var(--text-secondary)) !important;
+  transition: all 0.15s ease !important;
+}
+
+body.nexo-av-theme button[class*="h-8"][class*="w-8"]:has(svg[class*="ArrowLeft"]):hover,
+body.nexo-av-theme-dark button[class*="h-8"][class*="w-8"]:has(svg[class*="ArrowLeft"]):hover,
+body.nexo-av-theme button[class*="h-10"][class*="w-10"]:has(svg[class*="ArrowLeft"]):hover,
+body.nexo-av-theme-dark button[class*="h-10"][class*="w-10"]:has(svg[class*="ArrowLeft"]):hover {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Icono ArrowLeft */
+body.nexo-av-theme svg[class*="ArrowLeft"],
+body.nexo-av-theme-dark svg[class*="ArrowLeft"] {
+  width: 1rem !important; /* h-4 w-4 */
+  height: 1rem !important;
+}
+
+/* ============================================
+   DETAIL PAGE TITLE SECTION - Sección de título principal
+   ============================================ */
+
+/* Título principal de página de detalle */
+body.nexo-av-theme h1[class*="text-2xl"][class*="font-bold"],
+body.nexo-av-theme-dark h1[class*="text-2xl"][class*="font-bold"] {
+  font-size: 1.5rem !important; /* text-2xl */
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  color: hsl(var(--foreground)) !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* Número de referencia (monospace) */
+body.nexo-av-theme span[class*="font-mono"][class*="text-muted-foreground"],
+body.nexo-av-theme-dark span[class*="font-mono"][class*="text-muted-foreground"],
+body.nexo-av-theme p[class*="font-mono"][class*="text-white/40"],
+body.nexo-av-theme-dark p[class*="font-mono"][class*="text-white/40"] {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
+  font-size: 0.75rem !important; /* text-xs */
+  color: hsl(var(--text-muted)) !important;
+}
+
+/* ============================================
+   DETAIL PAGE CARDS - Cards de información
+   ============================================ */
+
+/* Card en páginas de detalle */
+body.nexo-av-theme [class*="Card"][class*="bg-white/5"],
+body.nexo-av-theme-dark [class*="Card"][class*="bg-white/5"],
+body.nexo-av-theme [class*="Card"][class*="bg-card"],
+body.nexo-av-theme-dark [class*="Card"][class*="bg-card"] {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important; /* rounded-lg */
+  box-shadow: var(--shadow-xs) !important;
+}
+
+/* CardHeader en páginas de detalle */
+body.nexo-av-theme [class*="CardHeader"][class*="pb-3"],
+body.nexo-av-theme-dark [class*="CardHeader"][class*="pb-3"],
+body.nexo-av-theme [class*="CardHeader"][class*="pb-2"],
+body.nexo-av-theme-dark [class*="CardHeader"][class*="pb-2"] {
+  padding-bottom: 0.75rem !important; /* pb-3 */
+  padding-top: 1rem !important; /* pt-4 */
+  padding-left: 1rem !important; /* px-4 */
+  padding-right: 1rem !important;
+  border-bottom: 1px solid hsl(var(--border) / 0.5) !important;
+}
+
+/* CardTitle en páginas de detalle */
+body.nexo-av-theme [class*="CardTitle"][class*="text-lg"],
+body.nexo-av-theme-dark [class*="CardTitle"][class*="text-lg"],
+body.nexo-av-theme [class*="CardTitle"][class*="text-white"][class*="text-lg"],
+body.nexo-av-theme-dark [class*="CardTitle"][class*="text-white"][class*="text-lg"] {
+  font-size: 1rem !important; /* text-lg */
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.4 !important;
+}
+
+body.nexo-av-theme [class*="CardTitle"][class*="text-sm"],
+body.nexo-av-theme-dark [class*="CardTitle"][class*="text-sm"] {
+  font-size: 0.875rem !important; /* text-sm */
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* CardContent en páginas de detalle */
+body.nexo-av-theme [class*="CardContent"][class*="space-y-4"],
+body.nexo-av-theme-dark [class*="CardContent"][class*="space-y-4"],
+body.nexo-av-theme [class*="CardContent"][class*="space-y-2"],
+body.nexo-av-theme-dark [class*="CardContent"][class*="space-y-2"] {
+  padding: 1rem !important; /* p-4 */
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme [class*="CardContent"][class*="p-0"],
+body.nexo-av-theme-dark [class*="CardContent"][class*="p-0"] {
+  padding: 0 !important;
+}
+
+/* ============================================
+   TABS MOBILE - Rediseño Premium (Glassmorphism)
+   ============================================ */
+
+/* Contenedor principal de la lista */
+body.nexo-av-theme [class*="TabsList"],
+body.nexo-av-theme-dark [class*="TabsList"] {
+  display: flex !important;
+  background-color: rgba(255, 255, 255, 0.05) !important; /* Fondo muy sutil */
+  backdrop-filter: blur(12px) !important; /* Efecto cristal */
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  gap: 4px !important;
+  width: 100% !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* TabsList con grid (para 2 o 3 columnas) */
+body.nexo-av-theme [class*="TabsList"][class*="grid"],
+body.nexo-av-theme-dark [class*="TabsList"][class*="grid"] {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+}
+
+body.nexo-av-theme [class*="TabsList"][class*="grid-cols-3"],
+body.nexo-av-theme-dark [class*="TabsList"][class*="grid-cols-3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+/* TabsList sticky (para páginas de edición) */
+body.nexo-av-theme [class*="TabsList"][class*="sticky"],
+body.nexo-av-theme-dark [class*="TabsList"][class*="sticky"] {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0 !important;
+  height: 3rem !important; /* h-12 */
+  padding: 4px !important;
+}
+
+/* Contenedor nexo-tabs-mobile (scroll horizontal) */
+body.nexo-av-theme [class*="nexo-tabs-mobile"],
+body.nexo-av-theme-dark [class*="nexo-tabs-mobile"] {
+  display: flex !important;
+  gap: 0.5rem !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding-bottom: 0.25rem !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+body.nexo-av-theme [class*="nexo-tabs-mobile"]::-webkit-scrollbar,
+body.nexo-av-theme-dark [class*="nexo-tabs-mobile"]::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* TabsTrigger - El botón de la pestaña */
+body.nexo-av-theme [class*="TabsTrigger"],
+body.nexo-av-theme-dark [class*="TabsTrigger"] {
+  position: relative !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  flex: 1 !important;
+  border: none !important;
+  background: transparent !important;
+  z-index: 1 !important;
+}
+
+/* Pestaña ACTIVA - Estilo "Cápsula" flotante */
+body.nexo-av-theme [class*="TabsTrigger"][data-state="active"],
+body.nexo-av-theme-dark [class*="TabsTrigger"][data-state="active"] {
+  background-color: #ffffff !important; /* Blanco puro para que destaque */
+  color: #000000 !important; /* Texto negro para máximo contraste */
+  font-weight: 700 !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+  transform: scale(1.02) !important;
+}
+
+/* Hover / Feedback táctil */
+body.nexo-av-theme [class*="TabsTrigger"]:active,
+body.nexo-av-theme-dark [class*="TabsTrigger"]:active {
+  transform: scale(0.95) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Si usas el modo scroll horizontal (nexo-tabs-mobile) */
+body.nexo-av-theme [class*="nexo-tabs-mobile"] [class*="TabsTrigger"],
+body.nexo-av-theme-dark [class*="nexo-tabs-mobile"] [class*="TabsTrigger"] {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  margin-right: 4px !important;
+}
+
+body.nexo-av-theme [class*="nexo-tabs-mobile"] [class*="TabsTrigger"][data-state="active"],
+body.nexo-av-theme-dark [class*="nexo-tabs-mobile"] [class*="TabsTrigger"][data-state="active"] {
+  background-color: hsl(var(--primary)) !important; /* Aquí usamos tu color corporativo */
+  color: white !important;
+  border: none !important;
+}
+
+/* Corrección de los iconos */
+body.nexo-av-theme [class*="TabsTrigger"] svg,
+body.nexo-av-theme-dark [class*="TabsTrigger"] svg {
+  width: 1.1rem !important;
+  height: 1.1rem !important;
+  opacity: 0.8 !important;
+}
+
+/* Espaciado del contenido para que no se pegue */
+body.nexo-av-theme [class*="TabsContent"],
+body.nexo-av-theme-dark [class*="TabsContent"] {
+  margin-top: 1.5rem !important;
+  animation: fadeIn 0.4s ease-out !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   MOBILE BOTTOM NAV - Navegador inferior (Glassmorphism)
+   Diseño exacto según referencia visual
+   ============================================ */
+
+/* Contenedor principal del navegador inferior - LIGHT MODE */
+body.nexo-av-theme .nexo-bottom-nav,
+body.nexo-av-theme nav.nexo-bottom-nav {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.08) !important;
+  z-index: 40 !important;
+}
+
+/* Contenedor principal del navegador inferior - DARK MODE */
+body.nexo-av-theme-dark .nexo-bottom-nav.nexo-dark,
+body.nexo-av-theme-dark nav.nexo-bottom-nav.nexo-dark,
+body.nexo-av-theme-dark .nexo-bottom-nav,
+body.nexo-av-theme-dark nav.nexo-bottom-nav {
+  background-color: rgba(30, 30, 30, 0.68) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.6) !important;
+  z-index: 40 !important;
+}
+
+/* Contenedor interno del navegador */
+.nexo-nav-container {
+  overflow: visible !important;
+}
+
+/* Botones del navegador inferior */
+.nexo-nav-button {
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  overflow: visible !important;
+  z-index: 1 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: 50% !important;
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  min-width: 3.5rem !important;
+  max-width: 3.5rem !important;
+  min-height: 3.5rem !important;
+  max-height: 3.5rem !important;
+  padding: 0.25rem !important;
+  flex: 1 !important;
+  aspect-ratio: 1 !important;
+}
+
+/* Botón activo del navegador - Estilo iOS moderno - LIGHT */
+body.nexo-av-theme .nexo-nav-button.nexo-nav-active {
+  background: linear-gradient(135deg, #5B7CFF 0%, #4169E1 100%) !important;
+  transform: scale(1.05) !important;
+  z-index: 2 !important;
+  box-shadow: 0 4px 12px rgba(65, 105, 225, 0.35) !important;
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  min-width: 3.5rem !important;
+  max-width: 3.5rem !important;
+  min-height: 3.5rem !important;
+  max-height: 3.5rem !important;
+  border-radius: 50% !important;
+  border: none !important;
+  flex: 0 0 auto !important;
+  aspect-ratio: 1 !important;
+}
+
+/* Botón activo del navegador - Estilo iOS moderno - DARK */
+body.nexo-av-theme-dark .nexo-bottom-nav.nexo-dark .nexo-nav-button.nexo-nav-active,
+body.nexo-av-theme-dark .nexo-bottom-nav .nexo-nav-button.nexo-nav-active,
+body.nexo-av-theme-dark .nexo-nav-button.nexo-nav-active {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%) !important;
+  transform: scale(1.05) !important;
+  z-index: 2 !important;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3) !important;
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  min-width: 3.5rem !important;
+  max-width: 3.5rem !important;
+  min-height: 3.5rem !important;
+  max-height: 3.5rem !important;
+  border-radius: 50% !important;
+  border: none !important;
+  flex: 0 0 auto !important;
+  aspect-ratio: 1 !important;
+}
+
+/* Botón inactivo hover - LIGHT */
+body.nexo-av-theme .nexo-nav-button:not(.nexo-nav-active):not(.opacity-40):hover {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+  transform: scale(0.95) !important;
+}
+
+/* Botón inactivo hover - DARK */
+body.nexo-av-theme-dark .nexo-nav-button:not(.nexo-nav-active):not(.opacity-40):hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  transform: scale(0.95) !important;
+}
+
+/* Contenedor del icono */
+.nexo-icon-container {
+  overflow: visible !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Contenedor del icono activo - Sin fondo porque ahora el fondo está en el botón */
+.nexo-icon-container.nexo-icon-active {
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: scale(1) !important;
+}
+
+/* Contenedor del icono inactivo - Gris claro LIGHT */
+body.nexo-av-theme .nexo-nav-button:not(.nexo-nav-active) .nexo-icon-container {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Contenedor del icono inactivo - Gris oscuro DARK */
+body.nexo-av-theme-dark .nexo-nav-button:not(.nexo-nav-active) .nexo-icon-container {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Iconos del navegador - Base */
+.nexo-nav-icon {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  stroke-width: 2 !important;
+  fill: none !important;
+}
+
+/* Icono activo - Blanco sobre azul - LIGHT */
+body.nexo-av-theme .nexo-nav-button.nexo-nav-active .nexo-nav-icon {
+  color: #ffffff !important;
+  stroke-width: 2.5 !important;
+}
+
+/* Icono activo - Negro sobre blanco - DARK */
+body.nexo-av-theme-dark .nexo-nav-button.nexo-nav-active .nexo-nav-icon {
+  color: #000000 !important;
+  stroke-width: 2.5 !important;
+}
+
+/* Icono en hover - aumentar tamaño (1-2px) */
+body.nexo-av-theme .nexo-nav-button:not(.nexo-nav-active):not(.opacity-40):hover .nexo-nav-icon,
+body.nexo-av-theme-dark .nexo-nav-button:not(.nexo-nav-active):not(.opacity-40):hover .nexo-nav-icon {
+  width: 1.375rem !important; /* +2px desde 1.25rem */
+  height: 1.375rem !important;
+}
+
+/* Icono inactivo - Gris con stroke (outline) - LIGHT */
+body.nexo-av-theme .nexo-nav-button:not(.nexo-nav-active) .nexo-nav-icon {
+  color: rgba(0, 0, 0, 0.45) !important;
+  stroke-width: 2 !important;
+}
+
+/* Icono inactivo - Gris con stroke (outline) - DARK */
+body.nexo-av-theme-dark .nexo-nav-button:not(.nexo-nav-active) .nexo-nav-icon {
+  color: rgba(255, 255, 255, 0.5) !important;
+  stroke-width: 2 !important;
+}
+
+/* Texto del botón - Base */
+.nexo-nav-label {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Texto activo - OCULTO cuando está activo */
+.nexo-nav-button.nexo-nav-active .nexo-nav-label {
+  opacity: 0 !important;
+  transform: scale(0.8) !important;
+  height: 0 !important;
+  margin-top: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Texto en hover - OCULTO en hover */
+body.nexo-av-theme .nexo-nav-button:not(.nexo-nav-active):not(.opacity-40):hover .nexo-nav-label,
+body.nexo-av-theme-dark .nexo-nav-button:not(.nexo-nav-active):not(.opacity-40):hover .nexo-nav-label {
+  opacity: 0 !important;
+  transform: scale(0.8) !important;
+}
+
+/* Texto visible - Solo cuando no está activo ni en hover - LIGHT */
+body.nexo-av-theme .nexo-nav-button:not(.nexo-nav-active):not(:hover) .nexo-nav-label:not(.opacity-40) {
+  color: rgba(0, 0, 0, 0.45) !important;
+  opacity: 1 !important;
+}
+
+/* Texto visible - Solo cuando no está activo ni en hover - DARK */
+body.nexo-av-theme-dark .nexo-nav-button:not(.nexo-nav-active):not(:hover) .nexo-nav-label:not(.opacity-40) {
+  color: rgba(255, 255, 255, 0.5) !important;
+  opacity: 1 !important;
+}
+
+/* ============================================
+   DETAIL PAGE INFO SECTIONS - Secciones de información
+   ============================================ */
+
+/* Etiquetas de información */
+body.nexo-av-theme p[class*="text-white/40"][class*="text-xs"],
+body.nexo-av-theme-dark p[class*="text-white/40"][class*="text-xs"],
+body.nexo-av-theme span[class*="text-white/40"][class*="text-xs"],
+body.nexo-av-theme-dark span[class*="text-white/40"][class*="text-xs"] {
+  font-size: 0.75rem !important; /* text-xs */
+  color: hsl(var(--text-muted)) !important;
+  margin-bottom: 0.25rem !important; /* mb-1 */
+  display: block !important;
+}
+
+/* Valores de información */
+body.nexo-av-theme p[class*="text-white"][class*="font-mono"],
+body.nexo-av-theme-dark p[class*="text-white"][class*="font-mono"],
+body.nexo-av-theme span[class*="text-white"][class*="font-mono"],
+body.nexo-av-theme-dark span[class*="text-white"][class*="font-mono"] {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
+  color: hsl(var(--foreground)) !important;
+  font-weight: 500 !important;
+}
+
+/* Grid de información (2 columnas) */
+body.nexo-av-theme div[class*="grid"][class*="grid-cols-2"][class*="gap-4"],
+body.nexo-av-theme-dark div[class*="grid"][class*="grid-cols-2"][class*="gap-4"] {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 1rem !important; /* gap-4 */
+}
+
+/* Separator en páginas de detalle */
+body.nexo-av-theme [class*="Separator"][class*="bg-white/10"],
+body.nexo-av-theme-dark [class*="Separator"][class*="bg-white/10"] {
+  background-color: hsl(var(--border) / 0.5) !important;
+  height: 1px !important;
+}
+
+/* ============================================
+   DETAIL PAGE ACTION BUTTONS - Botones de acción
+   ============================================ */
+
+/* Botones de acción principales */
+body.nexo-av-theme button[class*="bg-emerald-600"],
+body.nexo-av-theme-dark button[class*="bg-emerald-600"] {
+  background-color: hsl(142 71% 45%) !important;
+  color: hsl(0 0% 100%) !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 0.75rem !important;
+  border-radius: 0.375rem !important;
+  transition: all 0.15s ease !important;
+}
+
+body.nexo-av-theme button[class*="bg-emerald-600"]:hover,
+body.nexo-av-theme-dark button[class*="bg-emerald-600"]:hover {
+  background-color: hsl(142 71% 40%) !important;
+}
+
+/* Botones outline en páginas de detalle */
+body.nexo-av-theme button[class*="variant=outline"][class*="size=sm"],
+body.nexo-av-theme-dark button[class*="variant=outline"][class*="size=sm"] {
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+  background-color: transparent !important;
+  font-size: 0.8125rem !important;
+  padding: 0.375rem 0.75rem !important;
+  border-radius: 0.375rem !important;
+}
+
+body.nexo-av-theme button[class*="variant=outline"]:hover,
+body.nexo-av-theme-dark button[class*="variant=outline"]:hover {
+  background-color: hsl(var(--accent)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+/* ============================================
+   DETAIL PAGE KPI CARDS - Cards de métricas en detalle
+   ============================================ */
+
+/* KPI Cards en páginas de detalle */
+body.nexo-av-theme div[class*="rounded-md"][class*="border"][class*="px-3"][class*="py-2"],
+body.nexo-av-theme-dark div[class*="rounded-md"][class*="border"][class*="px-3"][class*="py-2"] {
+  border-radius: 0.375rem !important; /* rounded-md */
+  border: 1px solid hsl(var(--border)) !important;
+  padding: 0.5rem 0.75rem !important; /* px-3 py-2 */
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.25rem !important; /* gap-1 */
+}
+
+/* Etiqueta en KPI Card */
+body.nexo-av-theme span[class*="text-[11px]"][class*="font-medium"],
+body.nexo-av-theme-dark span[class*="text-[11px]"][class*="font-medium"] {
+  font-size: 0.6875rem !important; /* text-[11px] */
+  font-weight: 500 !important;
+  color: hsl(var(--text-muted)) !important;
+}
+
+/* Valor en KPI Card */
+body.nexo-av-theme span[class*="text-sm"][class*="font-semibold"],
+body.nexo-av-theme-dark span[class*="text-sm"][class*="font-semibold"] {
+  font-size: 0.875rem !important; /* text-sm */
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* ============================================
+   DETAIL PAGE STATUS BADGES - Badges de estado en detalle
+   ============================================ */
+
+/* Badge de estado en páginas de detalle */
+body.nexo-av-theme button[class*="inline-flex"][class*="items-center"][class*="gap-1"][class*="px-2"][class*="py-0.5"][class*="rounded-full"],
+body.nexo-av-theme-dark button[class*="inline-flex"][class*="items-center"][class*="gap-1"][class*="px-2"][class*="py-0.5"][class*="rounded-full"] {
+  font-size: 0.625rem !important; /* text-[10px] */
+  font-weight: 500 !important;
+  padding: 0.125rem 0.5rem !important; /* px-2 py-0.5 */
+  border-radius: 9999px !important; /* rounded-full */
+  border: 1px solid hsl(var(--border)) !important;
+  transition: all 0.15s ease !important;
+}
+
+/* Icono ChevronDown en badge de estado */
+body.nexo-av-theme button[class*="rounded-full"] svg[class*="ChevronDown"],
+body.nexo-av-theme-dark button[class*="rounded-full"] svg[class*="ChevronDown"] {
+  width: 0.75rem !important; /* h-3 w-3 */
+  height: 0.75rem !important;
+}
+
+/* ============================================
+   DETAIL PAGE HERO SECTION - Sección hero
+   ============================================ */
+
+/* Icono en hero section */
+body.nexo-av-theme div[class*="h-9"][class*="w-9"][class*="rounded-md"][class*="flex"][class*="items-center"][class*="justify-center"][class*="border"],
+body.nexo-av-theme-dark div[class*="h-9"][class*="w-9"][class*="rounded-md"][class*="flex"][class*="items-center"][class*="justify-center"][class*="border"] {
+  height: 2.25rem !important; /* h-9 */
+  width: 2.25rem !important; /* w-9 */
+  border-radius: 0.375rem !important; /* rounded-md */
+  border: 1px solid hsl(var(--border)) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Título en hero section */
+body.nexo-av-theme h2[class*="text-base"][class*="font-semibold"],
+body.nexo-av-theme-dark h2[class*="text-base"][class*="font-semibold"] {
+  font-size: 0.875rem !important; /* text-base */
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* ============================================
+   DETAIL PAGE RESPONSIVE - Ajustes responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Header de detalle en móvil */
+  body.nexo-av-theme header[class*="flex-shrink-0"][class*="border-b"][class*="bg-card"],
+  body.nexo-av-theme-dark header[class*="flex-shrink-0"][class*="border-b"][class*="bg-card"] {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  /* Título en móvil */
+  body.nexo-av-theme h1[class*="text-2xl"][class*="font-bold"],
+  body.nexo-av-theme-dark h1[class*="text-2xl"][class*="font-bold"] {
+    font-size: 1.25rem !important;
+  }
+
+  /* Cards en móvil */
+  body.nexo-av-theme [class*="CardContent"],
+  body.nexo-av-theme-dark [class*="CardContent"] {
+    padding: 0.75rem !important;
+  }
+
+}
+
+/* ============================================
+   DETAIL PAGES COLOR OVERRIDES - Overrides de color para tema oscuro
+   ============================================ */
+
+/* Asegurar que los colores usen las variables CSS del tema */
+body.nexo-av-theme [class*="bg-white/5"],
+body.nexo-av-theme-dark [class*="bg-white/5"] {
+  background-color: hsl(var(--card)) !important;
+}
+
+body.nexo-av-theme [class*="bg-white/10"],
+body.nexo-av-theme-dark [class*="bg-white/10"] {
+  background-color: hsl(var(--muted) / 0.5) !important;
+}
+
+body.nexo-av-theme [class*="border-white/10"],
+body.nexo-av-theme-dark [class*="border-white/10"] {
+  border-color: hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme [class*="text-white"],
+body.nexo-av-theme-dark [class*="text-white"] {
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme [class*="text-white/40"],
+body.nexo-av-theme-dark [class*="text-white/40"] {
+  color: hsl(var(--text-muted)) !important;
+}
+
+body.nexo-av-theme [class*="text-white/60"],
+body.nexo-av-theme-dark [class*="text-white/60"] {
+  color: hsl(var(--text-secondary)) !important;
+}
+
+body.nexo-av-theme [class*="text-white/70"],
+body.nexo-av-theme-dark [class*="text-white/70"] {
+  color: hsl(var(--foreground) / 0.7) !important;
+}
+
+/* Hover states */
+body.nexo-av-theme [class*="hover:bg-white/10"],
+body.nexo-av-theme-dark [class*="hover:bg-white/10"]:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+
+body.nexo-av-theme [class*="hover:text-white"],
+body.nexo-av-theme-dark [class*="hover:text-white"]:hover {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* ============================================
+   DETAIL PAGES SPACING - Espaciado consistente
+   ============================================ */
+
+/* Espaciado entre secciones */
+body.nexo-av-theme [class*="space-y-6"],
+body.nexo-av-theme-dark [class*="space-y-6"] {
+  gap: 1.5rem !important; /* space-y-6 */
+}
+
+body.nexo-av-theme [class*="space-y-4"],
+body.nexo-av-theme-dark [class*="space-y-4"] {
+  gap: 1rem !important; /* space-y-4 */
+}
+
+body.nexo-av-theme [class*="space-y-3"],
+body.nexo-av-theme-dark [class*="space-y-3"] {
+  gap: 0.75rem !important; /* space-y-3 */
+}
+
+body.nexo-av-theme [class*="space-y-2"],
+body.nexo-av-theme-dark [class*="space-y-2"] {
+  gap: 0.5rem !important; /* space-y-2 */
+}
+
+/* Margins en páginas de detalle */
+body.nexo-av-theme [class*="mb-6"],
+body.nexo-av-theme-dark [class*="mb-6"] {
+  margin-bottom: 1.5rem !important; /* mb-6 */
+}
+
+body.nexo-av-theme [class*="mb-4"],
+body.nexo-av-theme-dark [class*="mb-4"] {
+  margin-bottom: 1rem !important; /* mb-4 */
+}
+
+body.nexo-av-theme [class*="mt-3"],
+body.nexo-av-theme-dark [class*="mt-3"] {
+  margin-top: 0.75rem !important; /* mt-3 */
+}
+
+/* ============================================
+   DETAIL PAGES GRID LAYOUTS - Layouts de grid
+   ============================================ */
+
+/* Grid de 3 columnas en detalle */
+body.nexo-av-theme [class*="grid"][class*="grid-cols-1"][class*="lg:grid-cols-3"][class*="gap-4"],
+body.nexo-av-theme-dark [class*="grid"][class*="grid-cols-1"][class*="lg:grid-cols-3"][class*="gap-4"] {
+  display: grid !important;
+  grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  gap: 1rem !important;
+}
+
+
+/* Grid de 2 columnas en detalle */
+body.nexo-av-theme [class*="grid"][class*="grid-cols-1"][class*="lg:grid-cols-2"][class*="gap-6"],
+body.nexo-av-theme-dark [class*="grid"][class*="grid-cols-1"][class*="lg:grid-cols-2"][class*="gap-6"] {
+  display: grid !important;
+  grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  gap: 1.5rem !important;
+}
+
+
+/* ============================================
+   DETAIL PAGES TOTALS SECTION - Sección de totales
+   ============================================ */
+
+/* Sección de totales en facturas/presupuestos */
+body.nexo-av-theme div[class*="space-y-2"]:has(span[class*="Total"]),
+body.nexo-av-theme-dark div[class*="space-y-2"]:has(span[class*="Total"]) {
+  padding-top: 0.5rem !important;
+  border-top: 1px solid hsl(var(--border) / 0.5) !important;
+}
+
+/* Total principal */
+body.nexo-av-theme div[class*="flex"][class*="justify-between"][class*="text-white"][class*="font-semibold"][class*="text-lg"],
+body.nexo-av-theme-dark div[class*="flex"][class*="justify-between"][class*="text-white"][class*="font-semibold"][class*="text-lg"] {
+  font-size: 1rem !important; /* text-lg */
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+/* Líneas de totales secundarios */
+body.nexo-av-theme div[class*="flex"][class*="justify-between"][class*="text-white/60"],
+body.nexo-av-theme-dark div[class*="flex"][class*="justify-between"][class*="text-white/60"] {
+  font-size: 0.875rem !important; /* text-sm */
+  color: hsl(var(--text-secondary)) !important;
+  padding: 0.25rem 0 !important;
+}
+
+/* Totales con color especial */
+body.nexo-av-theme div[class*="flex"][class*="justify-between"][class*="text-emerald-400"],
+body.nexo-av-theme-dark div[class*="flex"][class*="justify-between"][class*="text-emerald-400"] {
+  color: hsl(142 71% 60%) !important;
+  font-weight: 500 !important;
+}
+
+body.nexo-av-theme div[class*="flex"][class*="justify-between"][class*="text-amber-500"],
+body.nexo-av-theme-dark div[class*="flex"][class*="justify-between"][class*="text-amber-500"] {
+  color: hsl(43 96% 56%) !important;
+  font-weight: 600 !important;
+}
+
+body.nexo-av-theme div[class*="flex"][class*="justify-between"][class*="text-red-400"],
+body.nexo-av-theme-dark div[class*="flex"][class*="justify-between"][class*="text-red-400"] {
+  color: hsl(0 72% 51%) !important;
+  font-weight: 500 !important;
+}
+
+/* ============================================
+   DASHBOARD KPI BLOCKS - Bloques de KPIs del Dashboard
+   Sistema de tarjetas y gráficos optimizados
+   ============================================ */
+
+/* ============================================
+   KPI CARD SMALL - Tarjeta KPI Pequeña
+   Para métricas compactas (como en listados)
+   ============================================ */
+
+body.nexo-av-theme [class*="kpi-card-small"],
+body.nexo-av-theme-dark [class*="kpi-card-small"],
+body.nexo-av-theme [data-kpi-size="small"],
+body.nexo-av-theme-dark [data-kpi-size="small"] {
+  background-color: hsl(var(--card) / 0.5) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important; /* rounded-lg */
+  padding: 0.5rem !important; /* p-2 */
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.25rem !important; /* gap-1 */
+  transition: all 0.15s ease !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+body.nexo-av-theme [class*="kpi-card-small"]:hover,
+body.nexo-av-theme-dark [class*="kpi-card-small"]:hover,
+body.nexo-av-theme [data-kpi-size="small"]:hover,
+body.nexo-av-theme-dark [data-kpi-size="small"]:hover {
+  box-shadow: var(--shadow-sm) !important;
+  border-color: hsl(var(--border) / 1.2) !important;
+}
+
+/* Icono en KPI Card Small */
+body.nexo-av-theme [class*="kpi-card-small"] [class*="p-1"][class*="bg-"][class*="rounded"],
+body.nexo-av-theme-dark [class*="kpi-card-small"] [class*="p-1"][class*="bg-"][class*="rounded"],
+body.nexo-av-theme [data-kpi-size="small"] [class*="p-1"][class*="bg-"][class*="rounded"],
+body.nexo-av-theme-dark [data-kpi-size="small"] [class*="p-1"][class*="bg-"][class*="rounded"] {
+  padding: 0.25rem !important; /* p-1 */
+  border-radius: 0.25rem !important; /* rounded */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+body.nexo-av-theme [class*="kpi-card-small"] [class*="p-1"] svg,
+body.nexo-av-theme-dark [class*="kpi-card-small"] [class*="p-1"] svg,
+body.nexo-av-theme [data-kpi-size="small"] [class*="p-1"] svg,
+body.nexo-av-theme-dark [data-kpi-size="small"] [class*="p-1"] svg {
+  width: 0.875rem !important; /* h-3.5 w-3.5 */
+  height: 0.875rem !important;
+}
+
+/* Etiqueta en KPI Card Small */
+body.nexo-av-theme [class*="kpi-card-small"] span[class*="text-[9px]"],
+body.nexo-av-theme-dark [class*="kpi-card-small"] span[class*="text-[9px]"],
+body.nexo-av-theme [data-kpi-size="small"] span[class*="text-[9px]"],
+body.nexo-av-theme-dark [data-kpi-size="small"] span[class*="text-[9px]"] {
+  font-size: 0.5625rem !important; /* text-[9px] */
+  font-weight: 500 !important;
+  color: hsl(var(--text-muted)) !important;
+  line-height: 1.2 !important;
+}
+
+/* Valor en KPI Card Small */
+body.nexo-av-theme [class*="kpi-card-small"] span[class*="text-lg"][class*="font-bold"],
+body.nexo-av-theme-dark [class*="kpi-card-small"] span[class*="text-lg"][class*="font-bold"],
+body.nexo-av-theme [data-kpi-size="small"] span[class*="text-lg"][class*="font-bold"],
+body.nexo-av-theme-dark [data-kpi-size="small"] span[class*="text-lg"][class*="font-bold"] {
+  font-size: 1.125rem !important; /* text-lg */
+  font-weight: 700 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.2 !important;
+}
+
+/* ============================================
+   KPI CARD MEDIUM - Tarjeta KPI Mediana
+   Para métricas estándar (Dashboard principal)
+   Optimizado según diseño visual
+   ============================================ */
+
+body.nexo-av-theme [class*="kpi-card-medium"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"],
+body.nexo-av-theme [data-kpi-size="medium"],
+body.nexo-av-theme-dark [data-kpi-size="medium"],
+body.nexo-av-theme [class*="Card"][class*="border"][class*="hover:shadow-md"]:has([class*="text-2xl"][class*="font-bold"]),
+body.nexo-av-theme-dark [class*="Card"][class*="border"][class*="hover:shadow-md"]:has([class*="text-2xl"][class*="font-bold"]) {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border) / 0.6) !important;
+  border-radius: 0.75rem !important; /* rounded-xl */
+  padding: 1.25rem !important; /* p-5 */
+  display: flex !important;
+  flex-direction: column !important;
+  transition: all 0.15s ease !important;
+  box-shadow: var(--shadow-xs) !important;
+  height: 100% !important;
+  min-height: 120px !important;
+}
+
+body.nexo-av-theme [class*="kpi-card-medium"]:hover,
+body.nexo-av-theme-dark [class*="kpi-card-medium"]:hover,
+body.nexo-av-theme [data-kpi-size="medium"]:hover,
+body.nexo-av-theme-dark [data-kpi-size="medium"]:hover,
+body.nexo-av-theme [class*="Card"][class*="hover:shadow-md"]:hover {
+  box-shadow: var(--shadow-md) !important;
+  border-color: hsl(var(--border)) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Contenedor CardContent en KPI Card Medium */
+body.nexo-av-theme [class*="kpi-card-medium"] [class*="CardContent"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] [class*="CardContent"],
+body.nexo-av-theme [data-kpi-size="medium"] [class*="CardContent"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] [class*="CardContent"] {
+  padding: 0 !important; /* El padding ya está en el Card */
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* Si CardContent tiene p-0, asegurar que no tenga padding */
+body.nexo-av-theme [class*="kpi-card-medium"] [class*="CardContent"][class*="p-0"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] [class*="CardContent"][class*="p-0"],
+body.nexo-av-theme [data-kpi-size="medium"] [class*="CardContent"][class*="p-0"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] [class*="CardContent"][class*="p-0"] {
+  padding: 0 !important;
+}
+
+/* Header con iconos en KPI Card Medium */
+body.nexo-av-theme [class*="kpi-card-medium"] [class*="flex"][class*="items-start"][class*="justify-between"][class*="mb-4"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] [class*="flex"][class*="items-start"][class*="justify-between"][class*="mb-4"],
+body.nexo-av-theme [data-kpi-size="medium"] [class*="flex"][class*="items-start"][class*="justify-between"][class*="mb-4"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] [class*="flex"][class*="items-start"][class*="justify-between"][class*="mb-4"] {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  margin-bottom: 1rem !important; /* mb-4 */
+  width: 100% !important;
+}
+
+/* Icono principal en KPI Card Medium (esquina superior izquierda) */
+body.nexo-av-theme [class*="kpi-card-medium"] [class*="p-2.5"][class*="rounded-xl"][class*="bg-"][class*="text-"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] [class*="p-2.5"][class*="rounded-xl"][class*="bg-"][class*="text-"],
+body.nexo-av-theme [data-kpi-size="medium"] [class*="p-2.5"][class*="rounded-xl"][class*="bg-"][class*="text-"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] [class*="p-2.5"][class*="rounded-xl"][class*="bg-"][class*="text-"] {
+  padding: 0.625rem !important; /* p-2.5 */
+  border-radius: 0.75rem !important; /* rounded-xl */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+body.nexo-av-theme [class*="kpi-card-medium"] [class*="p-2.5"] svg,
+body.nexo-av-theme-dark [class*="kpi-card-medium"] [class*="p-2.5"] svg,
+body.nexo-av-theme [data-kpi-size="medium"] [class*="p-2.5"] svg,
+body.nexo-av-theme-dark [data-kpi-size="medium"] [class*="p-2.5"] svg {
+  width: 1.125rem !important; /* size={18} */
+  height: 1.125rem !important;
+  flex-shrink: 0 !important;
+}
+
+/* Icono secundario en KPI Card Medium (esquina superior derecha) */
+body.nexo-av-theme [class*="kpi-card-medium"] svg[class*="text-muted-foreground/40"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] svg[class*="text-muted-foreground/40"],
+body.nexo-av-theme [data-kpi-size="medium"] svg[class*="text-muted-foreground/40"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] svg[class*="text-muted-foreground/40"] {
+  width: 1rem !important; /* size={16} */
+  height: 1rem !important;
+  color: hsl(var(--text-muted) / 0.4) !important;
+  flex-shrink: 0 !important;
+  opacity: 0.4 !important;
+}
+
+/* Contenedor de contenido (etiqueta + valor) */
+body.nexo-av-theme [class*="kpi-card-medium"] [class*="space-y-1"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] [class*="space-y-1"],
+body.nexo-av-theme [data-kpi-size="medium"] [class*="space-y-1"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] [class*="space-y-1"] {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.375rem !important; /* space-y-1.5 - más espacio entre etiqueta y valor */
+  flex: 1 !important;
+  margin-top: 0 !important;
+  justify-content: flex-end !important;
+}
+
+/* Etiqueta en KPI Card Medium */
+body.nexo-av-theme [class*="kpi-card-medium"] p[class*="text-sm"][class*="font-medium"][class*="text-muted-foreground"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] p[class*="text-sm"][class*="font-medium"][class*="text-muted-foreground"],
+body.nexo-av-theme [data-kpi-size="medium"] p[class*="text-sm"][class*="font-medium"][class*="text-muted-foreground"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] p[class*="text-sm"][class*="font-medium"][class*="text-muted-foreground"] {
+  font-size: 0.8125rem !important; /* text-sm ligeramente reducido */
+  font-weight: 500 !important;
+  color: hsl(var(--text-muted)) !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+}
+
+/* Contenedor de valor y badge */
+body.nexo-av-theme [class*="kpi-card-medium"] [class*="flex"][class*="items-baseline"][class*="gap-2"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] [class*="flex"][class*="items-baseline"][class*="gap-2"],
+body.nexo-av-theme [data-kpi-size="medium"] [class*="flex"][class*="items-baseline"][class*="gap-2"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] [class*="flex"][class*="items-baseline"][class*="gap-2"] {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 0.5rem !important; /* gap-2 */
+  flex-wrap: wrap !important;
+}
+
+/* Valor principal en KPI Card Medium */
+body.nexo-av-theme [class*="kpi-card-medium"] p[class*="text-2xl"][class*="font-bold"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] p[class*="text-2xl"][class*="font-bold"],
+body.nexo-av-theme [data-kpi-size="medium"] p[class*="text-2xl"][class*="font-bold"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] p[class*="text-2xl"][class*="font-bold"] {
+  font-size: 1.5rem !important; /* text-2xl */
+  font-weight: 700 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.1 !important;
+  margin: 0 !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Valor con color especial (rojo para pendiente) */
+body.nexo-av-theme [class*="kpi-card-medium"] p[class*="text-2xl"][class*="font-bold"][class*="text-red-600"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] p[class*="text-2xl"][class*="font-bold"][class*="text-red-600"],
+body.nexo-av-theme [data-kpi-size="medium"] p[class*="text-2xl"][class*="font-bold"][class*="text-red-600"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] p[class*="text-2xl"][class*="font-bold"][class*="text-red-600"] {
+  color: hsl(0 72% 51%) !important; /* text-red-600 */
+}
+
+/* Badge de operaciones en KPI Card Medium */
+body.nexo-av-theme [class*="kpi-card-medium"] span[class*="text-xs"][class*="font-medium"][class*="px-1.5"][class*="py-0.5"][class*="rounded-full"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] span[class*="text-xs"][class*="font-medium"][class*="px-1.5"][class*="py-0.5"][class*="rounded-full"],
+body.nexo-av-theme [data-kpi-size="medium"] span[class*="text-xs"][class*="font-medium"][class*="px-1.5"][class*="py-0.5"][class*="rounded-full"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] span[class*="text-xs"][class*="font-medium"][class*="px-1.5"][class*="py-0.5"][class*="rounded-full"] {
+  font-size: 0.6875rem !important; /* text-xs ligeramente reducido */
+  font-weight: 500 !important;
+  padding: 0.125rem 0.375rem !important; /* px-1.5 py-0.5 */
+  border-radius: 9999px !important; /* rounded-full */
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Badge verde (ops) */
+body.nexo-av-theme [class*="kpi-card-medium"] span[class*="text-green-600"][class*="bg-green-500/10"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] span[class*="text-green-600"][class*="bg-green-500/10"],
+body.nexo-av-theme [data-kpi-size="medium"] span[class*="text-green-600"][class*="bg-green-500/10"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] span[class*="text-green-600"][class*="bg-green-500/10"] {
+  color: hsl(142 71% 45%) !important; /* text-green-600 */
+  background-color: hsl(142 71% 45% / 0.1) !important; /* bg-green-500/10 */
+}
+
+/* Badge cyan (ops) */
+body.nexo-av-theme [class*="kpi-card-medium"] span[class*="text-cyan-600"][class*="bg-cyan-500/10"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] span[class*="text-cyan-600"][class*="bg-cyan-500/10"],
+body.nexo-av-theme [data-kpi-size="medium"] span[class*="text-cyan-600"][class*="bg-cyan-500/10"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] span[class*="text-cyan-600"][class*="bg-cyan-500/10"] {
+  color: hsl(187 85% 45%) !important; /* text-cyan-600 */
+  background-color: hsl(187 85% 45% / 0.1) !important; /* bg-cyan-500/10 */
+}
+
+/* Badge rojo (ops) */
+body.nexo-av-theme [class*="kpi-card-medium"] span[class*="text-red-600"][class*="bg-red-500/10"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"] span[class*="text-red-600"][class*="bg-red-500/10"],
+body.nexo-av-theme [data-kpi-size="medium"] span[class*="text-red-600"][class*="bg-red-500/10"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] span[class*="text-red-600"][class*="bg-red-500/10"] {
+  color: hsl(0 72% 51%) !important; /* text-red-600 */
+  background-color: hsl(0 72% 51% / 0.1) !important; /* bg-red-500/10 */
+}
+
+/* Texto secundario pequeño (como "En curso") */
+body.nexo-av-theme [class*="kpi-card-medium"] p[class*="text-xs"][class*="text-muted-foreground"]:not(span),
+body.nexo-av-theme-dark [class*="kpi-card-medium"] p[class*="text-xs"][class*="text-muted-foreground"]:not(span),
+body.nexo-av-theme [data-kpi-size="medium"] p[class*="text-xs"][class*="text-muted-foreground"]:not(span),
+body.nexo-av-theme-dark [data-kpi-size="medium"] p[class*="text-xs"][class*="text-muted-foreground"]:not(span) {
+  font-size: 0.75rem !important; /* text-xs */
+  color: hsl(var(--text-muted)) !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+}
+
+/* ============================================
+   KPI CARD LARGE - Tarjeta KPI Grande
+   Para métricas destacadas
+   ============================================ */
+
+body.nexo-av-theme [class*="kpi-card-large"],
+body.nexo-av-theme-dark [class*="kpi-card-large"],
+body.nexo-av-theme [data-kpi-size="large"],
+body.nexo-av-theme-dark [data-kpi-size="large"] {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 1rem !important; /* rounded-2xl */
+  padding: 1.5rem !important; /* p-6 */
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1rem !important; /* gap-4 */
+  transition: all 0.15s ease !important;
+  box-shadow: var(--shadow-md) !important;
+  height: 100% !important;
+}
+
+body.nexo-av-theme [class*="kpi-card-large"]:hover,
+body.nexo-av-theme-dark [class*="kpi-card-large"]:hover,
+body.nexo-av-theme [data-kpi-size="large"]:hover,
+body.nexo-av-theme-dark [data-kpi-size="large"]:hover {
+  box-shadow: var(--shadow-md) !important;
+  border-color: hsl(var(--primary) / 0.3) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Icono en KPI Card Large */
+body.nexo-av-theme [class*="kpi-card-large"] [class*="p-3"][class*="rounded-xl"],
+body.nexo-av-theme-dark [class*="kpi-card-large"] [class*="p-3"][class*="rounded-xl"],
+body.nexo-av-theme [data-kpi-size="large"] [class*="p-3"][class*="rounded-xl"],
+body.nexo-av-theme-dark [data-kpi-size="large"] [class*="p-3"][class*="rounded-xl"] {
+  padding: 0.75rem !important; /* p-3 */
+  border-radius: 0.75rem !important; /* rounded-xl */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+body.nexo-av-theme [class*="kpi-card-large"] [class*="p-3"] svg,
+body.nexo-av-theme-dark [class*="kpi-card-large"] [class*="p-3"] svg,
+body.nexo-av-theme [data-kpi-size="large"] [class*="p-3"] svg,
+body.nexo-av-theme-dark [data-kpi-size="large"] [class*="p-3"] svg {
+  width: 1.5rem !important; /* h-6 w-6 */
+  height: 1.5rem !important;
+}
+
+/* Etiqueta en KPI Card Large */
+body.nexo-av-theme [class*="kpi-card-large"] p[class*="text-base"][class*="font-medium"],
+body.nexo-av-theme-dark [class*="kpi-card-large"] p[class*="text-base"][class*="font-medium"],
+body.nexo-av-theme [data-kpi-size="large"] p[class*="text-base"][class*="font-medium"],
+body.nexo-av-theme-dark [data-kpi-size="large"] p[class*="text-base"][class*="font-medium"] {
+  font-size: 1rem !important; /* text-base */
+  font-weight: 500 !important;
+  color: hsl(var(--text-muted)) !important;
+  line-height: 1.4 !important;
+}
+
+/* Valor en KPI Card Large */
+body.nexo-av-theme [class*="kpi-card-large"] p[class*="text-3xl"][class*="font-bold"],
+body.nexo-av-theme-dark [class*="kpi-card-large"] p[class*="text-3xl"][class*="font-bold"],
+body.nexo-av-theme [data-kpi-size="large"] p[class*="text-3xl"][class*="font-bold"],
+body.nexo-av-theme-dark [data-kpi-size="large"] p[class*="text-3xl"][class*="font-bold"] {
+  font-size: 1.875rem !important; /* text-3xl */
+  font-weight: 700 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.2 !important;
+}
+
+/* ============================================
+   CHART BLOCK SQUARE - Bloque Cuadrado para Gráficos
+   Para gráficos en formato cuadrado (TaxSummaryWidget, ProfitMarginWidget)
+   ============================================ */
+
+/* Chart Block Square - Solo aplicar estilos si NO contiene DashboardWidget */
+body.nexo-av-theme [class*="chart-block-square"]:not(:has([class*="DashboardWidget"])),
+body.nexo-av-theme-dark [class*="chart-block-square"]:not(:has([class*="DashboardWidget"])),
+body.nexo-av-theme [data-chart-type="square"]:not(:has([class*="DashboardWidget"])),
+body.nexo-av-theme-dark [data-chart-type="square"]:not(:has([class*="DashboardWidget"])) {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.75rem !important; /* rounded-xl */
+  padding: 1rem !important; /* p-4 */
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: all 0.15s ease !important;
+  height: 100% !important;
+  min-height: 250px !important;
+  max-height: 350px !important;
+}
+
+/* Chart Block Square con DashboardWidget - Solo altura y padding mínimo */
+body.nexo-av-theme [class*="chart-block-square"]:has([class*="DashboardWidget"]),
+body.nexo-av-theme-dark [class*="chart-block-square"]:has([class*="DashboardWidget"]),
+body.nexo-av-theme [data-chart-type="square"]:has([class*="DashboardWidget"]),
+body.nexo-av-theme-dark [data-chart-type="square"]:has([class*="DashboardWidget"]) {
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  height: 100% !important;
+  min-height: 250px !important;
+  max-height: 350px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Asegurar que los gráficos horizontales no se superpongan */
+body.nexo-av-theme [class*="chart-block-horizontal"],
+body.nexo-av-theme-dark [class*="chart-block-horizontal"],
+body.nexo-av-theme [data-chart-type="horizontal"],
+body.nexo-av-theme-dark [data-chart-type="horizontal"] {
+  position: relative !important;
+  z-index: 0 !important;
+  margin-bottom: 1.5rem !important; /* mb-6 */
+}
+
+body.nexo-av-theme [class*="chart-block-square"]:hover,
+body.nexo-av-theme-dark [class*="chart-block-square"]:hover,
+body.nexo-av-theme [data-chart-type="square"]:hover,
+body.nexo-av-theme-dark [data-chart-type="square"]:hover {
+  box-shadow: var(--shadow-md) !important;
+  border-color: hsl(var(--border) / 1.2) !important;
+}
+
+/* Título en Chart Block Square */
+body.nexo-av-theme [class*="chart-block-square"] h3,
+body.nexo-av-theme-dark [class*="chart-block-square"] h3,
+body.nexo-av-theme [data-chart-type="square"] h3,
+body.nexo-av-theme-dark [data-chart-type="square"] h3 {
+  font-size: 0.9375rem !important; /* text-base */
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  margin-bottom: 0.25rem !important; /* mb-1 */
+  line-height: 1.3 !important;
+}
+
+/* Subtítulo en Chart Block Square */
+body.nexo-av-theme [class*="chart-block-square"] p[class*="text-sm"][class*="text-muted-foreground"],
+body.nexo-av-theme-dark [class*="chart-block-square"] p[class*="text-sm"][class*="text-muted-foreground"],
+body.nexo-av-theme [data-chart-type="square"] p[class*="text-sm"][class*="text-muted-foreground"],
+body.nexo-av-theme-dark [data-chart-type="square"] p[class*="text-sm"][class*="text-muted-foreground"] {
+  font-size: 0.75rem !important; /* text-sm */
+  color: hsl(var(--text-muted)) !important;
+  margin-bottom: 1rem !important; /* mb-4 */
+  line-height: 1.4 !important;
+}
+
+/* Contenedor de gráfico en Chart Block Square - Solo si NO tiene DashboardWidget */
+body.nexo-av-theme [class*="chart-block-square"]:not(:has([class*="DashboardWidget"])) [class*="flex"][class*="items-center"][class*="justify-center"],
+body.nexo-av-theme-dark [class*="chart-block-square"]:not(:has([class*="DashboardWidget"])) [class*="flex"][class*="items-center"][class*="justify-center"],
+body.nexo-av-theme [data-chart-type="square"]:not(:has([class*="DashboardWidget"])) [class*="flex"][class*="items-center"][class*="justify-center"],
+body.nexo-av-theme-dark [data-chart-type="square"]:not(:has([class*="DashboardWidget"])) [class*="flex"][class*="items-center"][class*="justify-center"] {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* ============================================
+   CHART BLOCK HORIZONTAL - Bloque Rectangular Horizontal para Gráficos
+   Para gráficos en formato horizontal (RevenueChart, CashFlowChart)
+   ============================================ */
+
+body.nexo-av-theme [class*="chart-block-horizontal"],
+body.nexo-av-theme-dark [class*="chart-block-horizontal"],
+body.nexo-av-theme [data-chart-type="horizontal"],
+body.nexo-av-theme-dark [data-chart-type="horizontal"],
+body.nexo-av-theme [class*="h-[350px]"]:has([class*="DashboardWidget"]):not([class*="h-[300px]"]):not([class*="h-[250px]"]),
+body.nexo-av-theme-dark [class*="h-[350px]"]:has([class*="DashboardWidget"]):not([class*="h-[300px]"]):not([class*="h-[250px]"]) {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.75rem !important; /* rounded-xl */
+  padding: 1.25rem !important; /* p-5 */
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: all 0.15s ease !important;
+  height: 100% !important;
+  min-height: 300px !important;
+  max-height: 450px !important;
+}
+
+body.nexo-av-theme [class*="chart-block-horizontal"]:hover,
+body.nexo-av-theme-dark [class*="chart-block-horizontal"]:hover,
+body.nexo-av-theme [data-chart-type="horizontal"]:hover,
+body.nexo-av-theme-dark [data-chart-type="horizontal"]:hover {
+  box-shadow: var(--shadow-md) !important;
+  border-color: hsl(var(--border) / 1.2) !important;
+}
+
+/* Título en Chart Block Horizontal */
+body.nexo-av-theme [class*="chart-block-horizontal"] h3,
+body.nexo-av-theme-dark [class*="chart-block-horizontal"] h3,
+body.nexo-av-theme [data-chart-type="horizontal"] h3,
+body.nexo-av-theme-dark [data-chart-type="horizontal"] h3 {
+  font-size: 1rem !important; /* text-lg */
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  margin-bottom: 0.5rem !important; /* mb-2 */
+  line-height: 1.3 !important;
+}
+
+/* Subtítulo en Chart Block Horizontal */
+body.nexo-av-theme [class*="chart-block-horizontal"] p[class*="text-sm"][class*="text-muted-foreground"],
+body.nexo-av-theme-dark [class*="chart-block-horizontal"] p[class*="text-sm"][class*="text-muted-foreground"],
+body.nexo-av-theme [data-chart-type="horizontal"] p[class*="text-sm"][class*="text-muted-foreground"],
+body.nexo-av-theme-dark [data-chart-type="horizontal"] p[class*="text-sm"][class*="text-muted-foreground"] {
+  font-size: 0.8125rem !important; /* text-sm */
+  color: hsl(var(--text-muted)) !important;
+  margin-bottom: 1.25rem !important; /* mb-5 */
+  line-height: 1.4 !important;
+}
+
+/* Contenedor de gráfico en Chart Block Horizontal */
+body.nexo-av-theme [class*="chart-block-horizontal"] [class*="h-full"],
+body.nexo-av-theme-dark [class*="chart-block-horizontal"] [class*="h-full"],
+body.nexo-av-theme [data-chart-type="horizontal"] [class*="h-full"],
+body.nexo-av-theme-dark [data-chart-type="horizontal"] [class*="h-full"] {
+  flex: 1 !important;
+  min-height: 0 !important;
+  width: 100% !important;
+}
+
+/* ResponsiveContainer en Chart Block Horizontal */
+body.nexo-av-theme [class*="chart-block-horizontal"] [class*="ResponsiveContainer"],
+body.nexo-av-theme-dark [class*="chart-block-horizontal"] [class*="ResponsiveContainer"],
+body.nexo-av-theme [data-chart-type="horizontal"] [class*="ResponsiveContainer"],
+body.nexo-av-theme-dark [data-chart-type="horizontal"] [class*="ResponsiveContainer"] {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 200px !important;
+}
+
+/* ============================================
+   DASHBOARD SUMMARY CARDS - Tarjetas de Resumen
+   Para widgets de resumen (TaxSummaryWidget, ProfitMarginWidget)
+   Estilo similar a KPI Cards pero adaptado para contenido más complejo
+   ============================================ */
+
+/* Widget base DashboardWidget - Estilo como tarjeta de resumen */
+body.nexo-av-theme [class*="DashboardWidget"]:not([class*="bg-primary"]),
+body.nexo-av-theme-dark [class*="DashboardWidget"]:not([class*="bg-primary"]),
+body.nexo-av-theme [class*="chart-block-square"] [class*="DashboardWidget"]:not([class*="bg-primary"]),
+body.nexo-av-theme-dark [class*="chart-block-square"] [class*="DashboardWidget"]:not([class*="bg-primary"]) {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border) / 0.6) !important;
+  border-radius: 0.75rem !important; /* rounded-xl */
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  box-shadow: var(--shadow-xs) !important;
+  transition: all 0.15s ease !important;
+  overflow: hidden !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"]:not([class*="bg-primary"]):hover,
+body.nexo-av-theme-dark [class*="DashboardWidget"]:not([class*="bg-primary"]):hover {
+  box-shadow: var(--shadow-md) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Header del DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="px-6"][class*="py-5"][class*="flex"][class*="items-start"][class*="justify-between"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="px-6"][class*="py-5"][class*="flex"][class*="items-start"][class*="justify-between"] {
+  padding: 1rem 1.25rem !important; /* px-5 py-4 - reducido */
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  border-bottom: 1px solid hsl(var(--border) / 0.3) !important;
+}
+
+/* Contenedor de icono y título en DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="flex"][class*="items-center"][class*="gap-3"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="flex"][class*="items-center"][class*="gap-3"] {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important; /* gap-3 */
+  flex: 1 !important;
+}
+
+/* Icono en DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="p-2.5"][class*="rounded-xl"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="p-2.5"][class*="rounded-xl"] {
+  padding: 0.625rem !important; /* p-2.5 */
+  border-radius: 0.75rem !important; /* rounded-xl */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] [class*="p-2.5"] svg,
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="p-2.5"] svg,
+body.nexo-av-theme [class*="DashboardWidget"] [class*="w-5"][class*="h-5"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="w-5"][class*="h-5"] {
+  width: 1.125rem !important; /* w-5 h-5 reducido */
+  height: 1.125rem !important;
+}
+
+/* Título en DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] h3[class*="font-semibold"][class*="text-lg"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] h3[class*="font-semibold"][class*="text-lg"] {
+  font-size: 0.9375rem !important; /* text-lg reducido */
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Subtítulo en DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] p[class*="text-sm"][class*="mt-0.5"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] p[class*="text-sm"][class*="mt-0.5"] {
+  font-size: 0.75rem !important; /* text-sm */
+  color: hsl(var(--text-muted)) !important;
+  line-height: 1.4 !important;
+  margin-top: 0.125rem !important; /* mt-0.5 */
+  margin-bottom: 0 !important;
+}
+
+/* Contenido del DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="flex-1"][class*="px-6"][class*="pb-6"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="flex-1"][class*="px-6"][class*="pb-6"] {
+  flex: 1 !important;
+  padding: 1rem 1.25rem !important; /* px-5 py-4 - reducido */
+  padding-bottom: 1rem !important; /* pb-4 */
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+
+/* Espaciado en contenido del DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="space-y-6"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="space-y-6"] {
+  gap: 1.25rem !important; /* space-y-5 - reducido */
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] [class*="space-y-6"] > * + *,
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="space-y-6"] > * + * {
+  margin-top: 1.25rem !important;
+}
+
+/* Valores en DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="font-bold"][class*="text-foreground"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="font-bold"][class*="text-foreground"] {
+  font-size: 0.9375rem !important; /* text-base reducido */
+  font-weight: 700 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.2 !important;
+}
+
+/* Valores con color especial en DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="font-semibold"][class*="text-green-600"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="font-semibold"][class*="text-green-600"] {
+  color: hsl(142 71% 45%) !important; /* text-green-600 */
+  font-weight: 600 !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] [class*="font-semibold"][class*="text-red-500"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="font-semibold"][class*="text-red-500"] {
+  color: hsl(0 72% 51%) !important; /* text-red-500 */
+  font-weight: 600 !important;
+}
+
+/* Etiquetas pequeñas en DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="text-xs"][class*="text-muted-foreground"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="text-xs"][class*="text-muted-foreground"] {
+  font-size: 0.6875rem !important; /* text-xs reducido */
+  color: hsl(var(--text-muted)) !important;
+  line-height: 1.3 !important;
+}
+
+/* Cards internos en DashboardWidget (como los de Repercutido/Soportado) */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="p-3"][class*="bg-secondary/30"][class*="rounded-lg"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="p-3"][class*="bg-secondary/30"][class*="rounded-lg"] {
+  padding: 0.75rem !important; /* p-3 */
+  background-color: hsl(var(--secondary) / 0.3) !important;
+  border-radius: 0.5rem !important; /* rounded-lg */
+  border: 1px solid hsl(var(--border) / 0.2) !important;
+}
+
+/* Grid interno en DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="grid"][class*="grid-cols-2"][class*="gap-4"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="grid"][class*="grid-cols-2"][class*="gap-4"] {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 1rem !important; /* gap-4 */
+}
+
+/* Progress bar en DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="Progress"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="Progress"] {
+  height: 0.5rem !important; /* h-2 */
+  border-radius: 9999px !important;
+  background-color: hsl(var(--secondary)) !important;
+  overflow: hidden !important;
+}
+
+/* Gráfico circular en DashboardWidget (ProfitMarginWidget) */
+body.nexo-av-theme [class*="DashboardWidget"] svg[class*="transform"][class*="-rotate-90"][class*="w-24"][class*="h-24"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] svg[class*="transform"][class*="-rotate-90"][class*="w-24"][class*="h-24"],
+body.nexo-av-theme [class*="DashboardWidget"] svg[class*="transform"][class*="-rotate-90"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] svg[class*="transform"][class*="-rotate-90"] {
+  width: 4.5rem !important; /* w-24 reducido */
+  height: 4.5rem !important; /* h-24 reducido */
+  transform: rotate(-90deg) !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] svg[class*="transform"] circle,
+body.nexo-av-theme-dark [class*="DashboardWidget"] svg[class*="transform"] circle {
+  stroke-width: 6 !important; /* strokeWidth reducido */
+  transition: stroke-dashoffset 0.5s ease !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] svg[class*="transform"] circle[class*="text-primary-foreground/20"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] svg[class*="transform"] circle[class*="text-primary-foreground/20"] {
+  stroke: hsl(var(--primary-foreground) / 0.2) !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] svg[class*="transform"] circle[class*="text-white"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] svg[class*="transform"] circle[class*="text-white"] {
+  stroke: hsl(var(--primary-foreground)) !important;
+}
+
+/* Valor en gráfico circular */
+body.nexo-av-theme [class*="DashboardWidget"] span[class*="absolute"][class*="text-2xl"][class*="font-bold"][class*="text-white"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] span[class*="absolute"][class*="text-2xl"][class*="font-bold"][class*="text-white"] {
+  font-size: 1.25rem !important; /* text-2xl reducido */
+  font-weight: 700 !important;
+  color: hsl(var(--primary-foreground)) !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Texto debajo del gráfico circular */
+body.nexo-av-theme [class*="DashboardWidget"] p[class*="text-sm"][class*="text-primary-foreground/80"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] p[class*="text-sm"][class*="text-primary-foreground/80"] {
+  font-size: 0.75rem !important; /* text-sm */
+  color: hsl(var(--primary-foreground) / 0.8) !important;
+  margin-top: 1rem !important; /* mt-4 */
+  line-height: 1.4 !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] p[class*="text-xl"][class*="font-bold"][class*="text-white"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] p[class*="text-xl"][class*="font-bold"][class*="text-white"] {
+  font-size: 1.125rem !important; /* text-xl reducido */
+  font-weight: 700 !important;
+  color: hsl(var(--primary-foreground)) !important;
+  margin-top: 0.25rem !important; /* mt-1 */
+  line-height: 1.2 !important;
+}
+
+/* Contenedor centrado en DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="flex"][class*="flex-col"][class*="items-center"][class*="justify-center"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="flex"][class*="flex-col"][class*="items-center"][class*="justify-center"],
+body.nexo-av-theme [class*="DashboardWidget"] [class*="flex"][class*="flex-col"][class*="items-center"][class*="justify-center"][class*="h-[140px]"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="flex"][class*="flex-col"][class*="items-center"][class*="justify-center"][class*="h-[140px]"] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: auto !important;
+  min-height: 100px !important;
+  flex: 1 !important;
+  text-align: center !important;
+}
+
+/* Contenedor relativo para gráfico circular */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="relative"][class*="inline-flex"][class*="items-center"][class*="justify-center"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="relative"][class*="inline-flex"][class*="items-center"][class*="justify-center"] {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Variante solid del DashboardWidget - Rentabilidad */
+/* Aplicar cuando tiene bg-primary o text-primary-foreground (variant="solid") */
+body.nexo-av-theme [class*="DashboardWidget"][class*="bg-primary"],
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="bg-primary"],
+body.nexo-av-theme [class*="DashboardWidget"][class*="text-primary-foreground"],
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="text-primary-foreground"],
+body.nexo-av-theme div[class*="rounded-2xl"][class*="overflow-hidden"][class*="flex"][class*="flex-col"][class*="h-full"][class*="bg-primary"],
+body.nexo-av-theme-dark div[class*="rounded-2xl"][class*="overflow-hidden"][class*="flex"][class*="flex-col"][class*="h-full"][class*="bg-primary"] {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border: 1px solid hsl(var(--primary) / 0.3) !important;
+  border-radius: 0.75rem !important; /* rounded-xl */
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: all 0.15s ease !important;
+  overflow: hidden !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"][class*="bg-primary"] h3,
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="bg-primary"] h3,
+body.nexo-av-theme [class*="DashboardWidget"][class*="text-primary-foreground"] h3,
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="text-primary-foreground"] h3 {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"][class*="bg-primary"] p,
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="bg-primary"] p,
+body.nexo-av-theme [class*="DashboardWidget"][class*="text-primary-foreground"] p,
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="text-primary-foreground"] p {
+  color: hsl(var(--primary-foreground) / 0.8) !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"][class*="bg-primary"] svg,
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="bg-primary"] svg,
+body.nexo-av-theme [class*="DashboardWidget"][class*="text-primary-foreground"] svg,
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="text-primary-foreground"] svg {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Icono en variant solid */
+body.nexo-av-theme [class*="DashboardWidget"][class*="bg-primary"] [class*="bg-primary-foreground/10"],
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="bg-primary"] [class*="bg-primary-foreground/10"],
+body.nexo-av-theme [class*="DashboardWidget"][class*="text-primary-foreground"] [class*="bg-primary-foreground/10"],
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="text-primary-foreground"] [class*="bg-primary-foreground/10"] {
+  background-color: hsl(var(--primary-foreground) / 0.1) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Todos los elementos dentro de variant solid - NO aplicar color inherit a todos */
+/* Solo aplicar a elementos que no tienen color específico */
+body.nexo-av-theme [class*="DashboardWidget"][class*="bg-primary"] *:not([class*="text-"]):not(svg):not(circle),
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="bg-primary"] *:not([class*="text-"]):not(svg):not(circle),
+body.nexo-av-theme [class*="DashboardWidget"][class*="text-primary-foreground"] *:not([class*="text-"]):not(svg):not(circle),
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="text-primary-foreground"] *:not([class*="text-"]):not(svg):not(circle) {
+  color: inherit !important;
+}
+
+/* Override específico para textos en variant solid */
+body.nexo-av-theme [class*="DashboardWidget"][class*="bg-primary"] [class*="text-white"],
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="bg-primary"] [class*="text-white"],
+body.nexo-av-theme [class*="DashboardWidget"][class*="text-primary-foreground"] [class*="text-white"],
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="text-primary-foreground"] [class*="text-white"] {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"][class*="bg-primary"] [class*="text-primary-foreground/80"],
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="bg-primary"] [class*="text-primary-foreground/80"],
+body.nexo-av-theme [class*="DashboardWidget"][class*="text-primary-foreground"] [class*="text-primary-foreground/80"],
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="text-primary-foreground"] [class*="text-primary-foreground/80"] {
+  color: hsl(var(--primary-foreground) / 0.8) !important;
+}
+
+/* Gráfico circular en variant solid */
+body.nexo-av-theme [class*="DashboardWidget"][class*="bg-primary"] svg[class*="transform"] circle[class*="text-primary-foreground/20"],
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="bg-primary"] svg[class*="transform"] circle[class*="text-primary-foreground/20"],
+body.nexo-av-theme [class*="DashboardWidget"][class*="text-primary-foreground"] svg[class*="transform"] circle[class*="text-primary-foreground/20"],
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="text-primary-foreground"] svg[class*="transform"] circle[class*="text-primary-foreground/20"] {
+  stroke: hsl(var(--primary-foreground) / 0.2) !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"][class*="bg-primary"] svg[class*="transform"] circle[class*="text-white"],
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="bg-primary"] svg[class*="transform"] circle[class*="text-white"],
+body.nexo-av-theme [class*="DashboardWidget"][class*="text-primary-foreground"] svg[class*="transform"] circle[class*="text-white"],
+body.nexo-av-theme-dark [class*="DashboardWidget"][class*="text-primary-foreground"] svg[class*="transform"] circle[class*="text-white"] {
+  stroke: hsl(var(--primary-foreground)) !important;
+}
+
+/* ============================================
+   DASHBOARD WIDGET - Elementos específicos
+   Estilos para Progress, Cards internos, etc.
+   ============================================ */
+
+/* Espaciado en contenido del DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="space-y-6"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="space-y-6"] {
+  gap: 1.25rem !important; /* space-y-5 - reducido */
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] [class*="space-y-6"] > * + *,
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="space-y-6"] > * + * {
+  margin-top: 1.25rem !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] [class*="space-y-6"][class*="mt-2"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="space-y-6"][class*="mt-2"] {
+  margin-top: 0.5rem !important; /* mt-2 */
+}
+
+/* Sección "A pagar (Neto)" en TaxSummaryWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="flex"][class*="justify-between"][class*="text-sm"][class*="mb-2"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="flex"][class*="justify-between"][class*="text-sm"][class*="mb-2"] {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-size: 0.8125rem !important; /* text-sm */
+  margin-bottom: 0.5rem !important; /* mb-2 */
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] [class*="flex"][class*="justify-between"] span[class*="text-muted-foreground"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="flex"][class*="justify-between"] span[class*="text-muted-foreground"] {
+  font-size: 0.8125rem !important; /* text-sm */
+  color: hsl(var(--text-muted)) !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] [class*="flex"][class*="justify-between"] span[class*="font-bold"][class*="text-foreground"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="flex"][class*="justify-between"] span[class*="font-bold"][class*="text-foreground"] {
+  font-size: 0.8125rem !important; /* text-sm */
+  font-weight: 700 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Progress bar en DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="Progress"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="Progress"],
+body.nexo-av-theme [class*="DashboardWidget"] [class*="h-2"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="h-2"] {
+  height: 0.5rem !important; /* h-2 */
+  border-radius: 9999px !important;
+  background-color: hsl(var(--secondary)) !important;
+  overflow: hidden !important;
+  width: 100% !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] [class*="Progress"] > div,
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="Progress"] > div {
+  height: 100% !important;
+  background-color: hsl(var(--primary)) !important;
+  border-radius: 9999px !important;
+  transition: width 0.3s ease !important;
+}
+
+/* Cards internos en DashboardWidget (Repercutido/Soportado) */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="p-3"][class*="bg-secondary/30"][class*="rounded-lg"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="p-3"][class*="bg-secondary/30"][class*="rounded-lg"] {
+  padding: 0.75rem !important; /* p-3 */
+  background-color: hsl(var(--secondary) / 0.3) !important;
+  border-radius: 0.5rem !important; /* rounded-lg */
+  border: 1px solid hsl(var(--border) / 0.2) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.25rem !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] [class*="p-3"][class*="bg-secondary/30"] p[class*="text-xs"][class*="text-muted-foreground"][class*="mb-1"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="p-3"][class*="bg-secondary/30"] p[class*="text-xs"][class*="text-muted-foreground"][class*="mb-1"] {
+  font-size: 0.6875rem !important; /* text-xs reducido */
+  color: hsl(var(--text-muted)) !important;
+  margin-bottom: 0.25rem !important; /* mb-1 */
+  line-height: 1.3 !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] [class*="p-3"][class*="bg-secondary/30"] p[class*="font-semibold"][class*="text-green-600"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="p-3"][class*="bg-secondary/30"] p[class*="font-semibold"][class*="text-green-600"] {
+  font-size: 0.875rem !important; /* text-sm */
+  font-weight: 600 !important;
+  color: hsl(142 71% 45%) !important; /* text-green-600 */
+  line-height: 1.2 !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] [class*="p-3"][class*="bg-secondary/30"] p[class*="font-semibold"][class*="text-red-500"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="p-3"][class*="bg-secondary/30"] p[class*="font-semibold"][class*="text-red-500"] {
+  font-size: 0.875rem !important; /* text-sm */
+  font-weight: 600 !important;
+  color: hsl(0 72% 51%) !important; /* text-red-500 */
+  line-height: 1.2 !important;
+}
+
+/* Grid interno en DashboardWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="grid"][class*="grid-cols-2"][class*="gap-4"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="grid"][class*="grid-cols-2"][class*="gap-4"] {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 1rem !important; /* gap-4 */
+}
+
+/* Gráfico circular en ProfitMarginWidget */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="flex"][class*="flex-col"][class*="items-center"][class*="justify-center"][class*="h-[140px]"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="flex"][class*="flex-col"][class*="items-center"][class*="justify-center"][class*="h-[140px]"] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: auto !important;
+  min-height: 100px !important;
+  flex: 1 !important;
+  text-align: center !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] svg[class*="transform"][class*="-rotate-90"][class*="w-24"][class*="h-24"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] svg[class*="transform"][class*="-rotate-90"][class*="w-24"][class*="h-24"] {
+  width: 4.5rem !important; /* w-24 reducido */
+  height: 4.5rem !important; /* h-24 reducido */
+  transform: rotate(-90deg) !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] svg[class*="transform"] circle,
+body.nexo-av-theme-dark [class*="DashboardWidget"] svg[class*="transform"] circle {
+  stroke-width: 6 !important; /* strokeWidth reducido */
+  transition: stroke-dashoffset 0.5s ease !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] svg[class*="transform"] circle[class*="text-primary-foreground/20"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] svg[class*="transform"] circle[class*="text-primary-foreground/20"] {
+  stroke: hsl(var(--primary-foreground) / 0.2) !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] svg[class*="transform"] circle[class*="text-white"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] svg[class*="transform"] circle[class*="text-white"] {
+  stroke: hsl(var(--primary-foreground)) !important;
+}
+
+/* Valor en gráfico circular */
+body.nexo-av-theme [class*="DashboardWidget"] span[class*="absolute"][class*="text-2xl"][class*="font-bold"][class*="text-white"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] span[class*="absolute"][class*="text-2xl"][class*="font-bold"][class*="text-white"] {
+  font-size: 1.25rem !important; /* text-2xl reducido */
+  font-weight: 700 !important;
+  color: hsl(var(--primary-foreground)) !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Texto debajo del gráfico circular */
+body.nexo-av-theme [class*="DashboardWidget"] p[class*="text-sm"][class*="text-primary-foreground/80"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] p[class*="text-sm"][class*="text-primary-foreground/80"] {
+  font-size: 0.75rem !important; /* text-sm */
+  color: hsl(var(--primary-foreground) / 0.8) !important;
+  margin-top: 1rem !important; /* mt-4 */
+  line-height: 1.4 !important;
+}
+
+body.nexo-av-theme [class*="DashboardWidget"] p[class*="text-xl"][class*="font-bold"][class*="text-white"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] p[class*="text-xl"][class*="font-bold"][class*="text-white"] {
+  font-size: 1.125rem !important; /* text-xl reducido */
+  font-weight: 700 !important;
+  color: hsl(var(--primary-foreground)) !important;
+  margin-top: 0.25rem !important; /* mt-1 */
+  line-height: 1.2 !important;
+}
+
+/* Contenedor relativo para gráfico circular */
+body.nexo-av-theme [class*="DashboardWidget"] [class*="relative"][class*="inline-flex"][class*="items-center"][class*="justify-center"],
+body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="relative"][class*="inline-flex"][class*="items-center"][class*="justify-center"] {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* ============================================
+   DASHBOARD KPI BLOCKS RESPONSIVE - Ajustes responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* KPI Cards en móvil */
+  body.nexo-av-theme [class*="kpi-card-small"],
+  body.nexo-av-theme-dark [class*="kpi-card-small"],
+  body.nexo-av-theme [data-kpi-size="small"],
+  body.nexo-av-theme-dark [data-kpi-size="small"] {
+    padding: 0.375rem !important;
+  }
+
+  body.nexo-av-theme [class*="kpi-card-medium"],
+  body.nexo-av-theme-dark [class*="kpi-card-medium"],
+  body.nexo-av-theme [data-kpi-size="medium"],
+  body.nexo-av-theme-dark [data-kpi-size="medium"] {
+    padding: 1rem !important;
+  }
+
+  body.nexo-av-theme [class*="kpi-card-large"],
+  body.nexo-av-theme-dark [class*="kpi-card-large"],
+  body.nexo-av-theme [data-kpi-size="large"],
+  body.nexo-av-theme-dark [data-kpi-size="large"] {
+    padding: 1.25rem !important;
+  }
+
+  /* Chart Blocks en móvil */
+  body.nexo-av-theme [class*="chart-block-square"],
+  body.nexo-av-theme-dark [class*="chart-block-square"],
+  body.nexo-av-theme [data-chart-type="square"],
+  body.nexo-av-theme-dark [data-chart-type="square"] {
+    min-height: 200px !important;
+    max-height: 300px !important;
+    padding: 0.75rem !important;
+  }
+
+  body.nexo-av-theme [class*="chart-block-horizontal"],
+  body.nexo-av-theme-dark [class*="chart-block-horizontal"],
+  body.nexo-av-theme [data-chart-type="horizontal"],
+  body.nexo-av-theme-dark [data-chart-type="horizontal"] {
+    min-height: 250px !important;
+    max-height: 350px !important;
+    padding: 1rem !important;
+  }
+}
+
+/* ============================================
+   QUOTES PAGE MOBILE - Página de Presupuestos Móvil
+   Estilos específicos para QuotesPageMobile.tsx
+   ============================================ */
+
+/* Contenedor principal de la página */
+body.nexo-av-theme main[class*="px-3"][class*="py-3"][class*="space-y-3"],
+body.nexo-av-theme-dark main[class*="px-3"][class*="py-3"][class*="space-y-3"] {
+  padding: 0.75rem !important; /* px-3 py-3 */
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important; /* space-y-3 */
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Botón principal "Nuevo Presupuesto" */
+body.nexo-av-theme button[class*="w-full"][class*="bg-primary"][class*="h-10"][class*="text-xs"],
+body.nexo-av-theme-dark button[class*="w-full"][class*="bg-primary"][class*="h-10"][class*="text-xs"] {
+  width: 100% !important;
+  height: 2.5rem !important; /* h-10 */
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  font-size: 0.75rem !important; /* text-xs */
+  font-weight: 500 !important;
+  padding: 0.625rem 1rem !important;
+  border-radius: 0.5rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.375rem !important;
+  transition: all 0.15s ease !important;
+  box-shadow: var(--shadow-xs) !important;
+  border: none !important;
+}
+
+body.nexo-av-theme button[class*="w-full"][class*="bg-primary"]:hover,
+body.nexo-av-theme-dark button[class*="w-full"][class*="bg-primary"]:hover {
+  background-color: hsl(220 13% 20%) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transform: translateY(-1px) !important;
+}
+
+body.nexo-av-theme button[class*="w-full"][class*="bg-primary"]:active,
+body.nexo-av-theme-dark button[class*="w-full"][class*="bg-primary"]:active {
+  transform: translateY(0) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+/* Icono dentro del botón principal */
+body.nexo-av-theme button[class*="w-full"][class*="bg-primary"] svg[class*="h-4"][class*="w-4"],
+body.nexo-av-theme-dark button[class*="w-full"][class*="bg-primary"] svg[class*="h-4"][class*="w-4"] {
+  width: 1rem !important; /* h-4 w-4 */
+  height: 1rem !important;
+  flex-shrink: 0 !important;
+}
+
+/* Input de búsqueda */
+body.nexo-av-theme input[class*="pl-11"][class*="bg-card"][class*="h-9"][class*="text-xs"],
+body.nexo-av-theme-dark input[class*="pl-11"][class*="bg-card"][class*="h-9"][class*="text-xs"] {
+  height: 2.25rem !important; /* h-9 */
+  padding-left: 2.75rem !important; /* pl-11 */
+  padding-right: 0.75rem !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+  font-size: 0.75rem !important; /* text-xs */
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  color: hsl(var(--foreground)) !important;
+  width: 100% !important;
+}
+
+body.nexo-av-theme input[class*="pl-11"]::placeholder,
+body.nexo-av-theme-dark input[class*="pl-11"]::placeholder {
+  color: hsl(var(--text-muted)) !important;
+  font-size: 0.75rem !important;
+}
+
+/* Icono de búsqueda dentro del input */
+body.nexo-av-theme [class*="absolute"][class*="left-2.5"] svg[class*="h-3.5"][class*="w-3.5"],
+body.nexo-av-theme-dark [class*="absolute"][class*="left-2.5"] svg[class*="h-3.5"][class*="w-3.5"] {
+  width: 0.875rem !important; /* h-3.5 w-3.5 */
+  height: 0.875rem !important;
+  color: hsl(var(--text-muted)) !important;
+}
+
+/* Contenedor de filtros de estado (scrollable horizontal) */
+body.nexo-av-theme div[class*="flex"][class*="gap-1.5"][class*="overflow-x-auto"],
+body.nexo-av-theme-dark div[class*="flex"][class*="gap-1.5"][class*="overflow-x-auto"] {
+  display: flex !important;
+  gap: 0.375rem !important; /* gap-1.5 */
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding-bottom: 0.25rem !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE/Edge */
+}
+
+body.nexo-av-theme div[class*="flex"][class*="gap-1.5"][class*="overflow-x-auto"]::-webkit-scrollbar,
+body.nexo-av-theme-dark div[class*="flex"][class*="gap-1.5"][class*="overflow-x-auto"]::-webkit-scrollbar {
+  display: none !important; /* Chrome/Safari */
+}
+
+/* Botones de filtro de estado */
+body.nexo-av-theme button[class*="h-8"][class*="px-3"][class*="text-[10px]"][class*="shrink-0"],
+body.nexo-av-theme-dark button[class*="h-8"][class*="px-3"][class*="text-[10px]"][class*="shrink-0"] {
+  height: 2rem !important; /* h-8 */
+  padding-left: 0.75rem !important; /* px-3 */
+  padding-right: 0.75rem !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+  font-size: 0.625rem !important; /* text-[10px] */
+  font-weight: 500 !important;
+  border-radius: 0.375rem !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  transition: all 0.15s ease !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+/* Botón de filtro activo (selected) */
+body.nexo-av-theme button[class*="h-8"][class*="bg-primary"][class*="text-primary-foreground"],
+body.nexo-av-theme-dark button[class*="h-8"][class*="bg-primary"][class*="text-primary-foreground"] {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border-color: hsl(var(--primary)) !important;
+  font-weight: 600 !important;
+}
+
+/* Botón de filtro inactivo */
+body.nexo-av-theme button[class*="h-8"][class*="border-border"][class*="text-muted-foreground"]:not([class*="bg-primary"]),
+body.nexo-av-theme-dark button[class*="h-8"][class*="border-border"][class*="text-muted-foreground"]:not([class*="bg-primary"]) {
+  background-color: transparent !important;
+  color: hsl(var(--text-muted)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme button[class*="h-8"][class*="border-border"]:hover:not([class*="bg-primary"]),
+body.nexo-av-theme-dark button[class*="h-8"][class*="border-border"]:hover:not([class*="bg-primary"]) {
+  background-color: hsl(var(--accent)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Cards de presupuestos en la lista */
+body.nexo-av-theme button[class*="w-full"][class*="p-2.5"][class*="bg-card"][class*="border"][class*="rounded-lg"],
+body.nexo-av-theme-dark button[class*="w-full"][class*="p-2.5"][class*="bg-card"][class*="border"][class*="rounded-lg"] {
+  width: 100% !important;
+  padding: 0.625rem !important; /* p-2.5 */
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important; /* rounded-lg */
+  text-align: left !important;
+  transition: all 0.15s ease !important;
+  box-shadow: var(--shadow-xs) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.125rem !important;
+}
+
+body.nexo-av-theme button[class*="w-full"][class*="p-2.5"][class*="bg-card"]:hover,
+body.nexo-av-theme-dark button[class*="w-full"][class*="p-2.5"][class*="bg-card"]:hover {
+  background-color: hsl(var(--accent)) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transform: translateY(-1px) !important;
+}
+
+body.nexo-av-theme button[class*="w-full"][class*="p-2.5"][class*="bg-card"]:active,
+body.nexo-av-theme-dark button[class*="w-full"][class*="p-2.5"][class*="bg-card"]:active {
+  background-color: hsl(var(--secondary)) !important;
+  transform: translateY(0) !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+/* Contenedor interno del card de presupuesto */
+body.nexo-av-theme button[class*="bg-card"] div[class*="flex"][class*="items-center"][class*="justify-between"][class*="gap-2"],
+body.nexo-av-theme-dark button[class*="bg-card"] div[class*="flex"][class*="items-center"][class*="justify-between"][class*="gap-2"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.5rem !important; /* gap-2 */
+  width: 100% !important;
+}
+
+/* Número de presupuesto */
+body.nexo-av-theme p[class*="text-[11px]"][class*="font-semibold"][class*="text-foreground"],
+body.nexo-av-theme-dark p[class*="text-[11px]"][class*="font-semibold"][class*="text-foreground"] {
+  font-size: 0.6875rem !important; /* text-[11px] */
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+}
+
+/* Nombre del cliente */
+body.nexo-av-theme p[class*="text-[10px]"][class*="text-muted-foreground"],
+body.nexo-av-theme-dark p[class*="text-[10px]"][class*="text-muted-foreground"] {
+  font-size: 0.625rem !important; /* text-[10px] */
+  color: hsl(var(--text-muted)) !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+}
+
+/* Total del presupuesto */
+body.nexo-av-theme p[class*="text-xs"][class*="font-semibold"][class*="text-foreground"],
+body.nexo-av-theme-dark p[class*="text-xs"][class*="font-semibold"][class*="text-foreground"] {
+  font-size: 0.75rem !important; /* text-xs */
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+  text-align: right !important;
+}
+
+/* Badge de estado en card de presupuesto */
+body.nexo-av-theme [class*="Badge"][class*="text-[10px]"][class*="px-1.5"][class*="py-0"],
+body.nexo-av-theme-dark [class*="Badge"][class*="text-[10px]"][class*="px-1.5"][class*="py-0"] {
+  font-size: 0.625rem !important; /* text-[10px] */
+  padding: 0.125rem 0.375rem !important; /* px-1.5 py-0 */
+  border-radius: 0.25rem !important;
+  border-width: 1px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  line-height: 1.2 !important;
+  font-weight: 500 !important;
+}
+
+/* Empty state - Estado vacío */
+body.nexo-av-theme div[class*="flex"][class*="flex-col"][class*="items-center"][class*="justify-center"][class*="py-16"],
+body.nexo-av-theme-dark div[class*="flex"][class*="flex-col"][class*="items-center"][class*="justify-center"][class*="py-16"] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-top: 4rem !important; /* py-16 */
+  padding-bottom: 4rem !important;
+  text-align: center !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+body.nexo-av-theme div[class*="py-16"] svg[class*="h-16"][class*="w-16"],
+body.nexo-av-theme-dark div[class*="py-16"] svg[class*="h-16"][class*="w-16"] {
+  width: 4rem !important; /* h-16 w-16 */
+  height: 4rem !important;
+  color: hsl(var(--text-muted) / 0.3) !important;
+  margin-bottom: 1rem !important;
+}
+
+body.nexo-av-theme div[class*="py-16"] h3[class*="text-lg"][class*="font-medium"],
+body.nexo-av-theme-dark div[class*="py-16"] h3[class*="text-lg"][class*="font-medium"] {
+  font-size: 1.125rem !important; /* text-lg */
+  font-weight: 500 !important;
+  color: hsl(var(--foreground)) !important;
+  margin-bottom: 0.5rem !important;
+  margin-top: 0 !important;
+}
+
+body.nexo-av-theme div[class*="py-16"] p[class*="text-white/60"][class*="text-sm"],
+body.nexo-av-theme-dark div[class*="py-16"] p[class*="text-white/60"][class*="text-sm"] {
+  font-size: 0.875rem !important; /* text-sm */
+  color: hsl(var(--text-secondary)) !important;
+  margin-bottom: 1.5rem !important;
+  line-height: 1.5 !important;
+}
+
+/* Loading state - Spinner */
+body.nexo-av-theme div[class*="animate-spin"][class*="rounded-full"][class*="h-8"][class*="w-8"],
+body.nexo-av-theme-dark div[class*="animate-spin"][class*="rounded-full"][class*="h-8"][class*="w-8"] {
+  width: 2rem !important; /* h-8 w-8 */
+  height: 2rem !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: hsl(var(--border) / 0.3) !important;
+  border-top-color: hsl(var(--primary)) !important;
+  border-radius: 9999px !important;
+  animation: spin 1s linear infinite !important;
+}
+
+/* Paginación - Contenedor */
+body.nexo-av-theme div[class*="flex"][class*="flex-col"][class*="items-center"][class*="justify-between"][class*="gap-3"][class*="py-3"],
+body.nexo-av-theme-dark div[class*="flex"][class*="flex-col"][class*="items-center"][class*="justify-between"][class*="gap-3"][class*="py-3"] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important; /* gap-3 */
+  padding-top: 0.75rem !important; /* py-3 */
+  padding-bottom: 0.75rem !important;
+  padding-left: 0.25rem !important; /* px-1 */
+  padding-right: 0.25rem !important;
+  width: 100% !important;
+}
+
+/* Texto de paginación */
+body.nexo-av-theme p[class*="text-muted-foreground"][class*="text-xs"],
+body.nexo-av-theme-dark p[class*="text-muted-foreground"][class*="text-xs"] {
+  font-size: 0.75rem !important; /* text-xs */
+  color: hsl(var(--text-muted)) !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+/* Contenedor de botones de paginación */
+body.nexo-av-theme div[class*="flex"][class*="items-center"][class*="gap-1"],
+body.nexo-av-theme-dark div[class*="flex"][class*="items-center"][class*="gap-1"] {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important; /* gap-1 */
+}
+
+/* Botones de navegación de paginación (prev/next) */
+body.nexo-av-theme button[class*="h-7"][class*="w-7"][class*="p-0"][class*="border-border"],
+body.nexo-av-theme-dark button[class*="h-7"][class*="w-7"][class*="p-0"][class*="border-border"] {
+  height: 1.75rem !important; /* h-7 */
+  width: 1.75rem !important; /* w-7 */
+  padding: 0 !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.375rem !important;
+  background-color: transparent !important;
+  color: hsl(var(--text-muted)) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
+}
+
+body.nexo-av-theme button[class*="h-7"][class*="w-7"]:hover:not(:disabled),
+body.nexo-av-theme-dark button[class*="h-7"][class*="w-7"]:hover:not(:disabled) {
+  background-color: hsl(var(--accent)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme button[class*="h-7"][class*="w-7"]:disabled,
+body.nexo-av-theme-dark button[class*="h-7"][class*="w-7"]:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
+body.nexo-av-theme button[class*="h-7"][class*="w-7"] svg,
+body.nexo-av-theme-dark button[class*="h-7"][class*="w-7"] svg {
+  width: 0.875rem !important; /* size={14} */
+  height: 0.875rem !important;
+}
+
+/* Botones de número de página */
+body.nexo-av-theme button[class*="h-7"][class*="min-w-[28px]"][class*="px-2"][class*="text-xs"],
+body.nexo-av-theme-dark button[class*="h-7"][class*="min-w-[28px]"][class*="px-2"][class*="text-xs"] {
+  height: 1.75rem !important; /* h-7 */
+  min-width: 1.75rem !important; /* min-w-[28px] */
+  padding-left: 0.5rem !important; /* px-2 */
+  padding-right: 0.5rem !important;
+  font-size: 0.75rem !important; /* text-xs */
+  border-radius: 0.375rem !important;
+  border: 1px solid hsl(var(--border)) !important;
+  transition: all 0.15s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Página activa en paginación */
+body.nexo-av-theme button[class*="bg-primary"][class*="text-primary-foreground"]:not([class*="w-full"]),
+body.nexo-av-theme-dark button[class*="bg-primary"][class*="text-primary-foreground"]:not([class*="w-full"]) {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border-color: hsl(var(--primary)) !important;
+  font-weight: 600 !important;
+}
+
+/* Página inactiva en paginación */
+body.nexo-av-theme button[class*="border-border"][class*="text-muted-foreground"]:not([class*="bg-primary"]):not([class*="w-full"]),
+body.nexo-av-theme-dark button[class*="border-border"][class*="text-muted-foreground"]:not([class*="bg-primary"]):not([class*="w-full"]) {
+  background-color: transparent !important;
+  color: hsl(var(--text-muted)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme button[class*="border-border"][class*="text-muted-foreground"]:hover:not([class*="bg-primary"]):not([class*="w-full"]),
+body.nexo-av-theme-dark button[class*="border-border"][class*="text-muted-foreground"]:hover:not([class*="bg-primary"]):not([class*="w-full"]) {
+  background-color: hsl(var(--accent)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Ellipsis en paginación */
+body.nexo-av-theme span[class*="px-1.5"][class*="text-muted-foreground"][class*="text-xs"],
+body.nexo-av-theme-dark span[class*="px-1.5"][class*="text-muted-foreground"][class*="text-xs"] {
+  padding-left: 0.375rem !important; /* px-1.5 */
+  padding-right: 0.375rem !important;
+  color: hsl(var(--text-muted)) !important;
+  font-size: 0.75rem !important; /* text-xs */
+  line-height: 1.4 !important;
+}
+
+/* Espaciado entre elementos de la lista */
+body.nexo-av-theme div[class*="space-y-2"],
+body.nexo-av-theme-dark div[class*="space-y-2"] {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important; /* space-y-2 */
+}
+
+body.nexo-av-theme div[class*="space-y-2"] > * + *,
+body.nexo-av-theme-dark div[class*="space-y-2"] > * + * {
+  margin-top: 0.5rem !important;
+}
