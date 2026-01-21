@@ -1,4 +1,23 @@
-  const [loading, setLoading] = useState(true);
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Building2, Settings, FileText, Percent, Loader2 } from "lucide-react";
+import { useNexoAvTheme } from "../../hooks/useNexoAvTheme";
+import CompanyDataTab from "../components/settings/CompanyDataTab";
+import PreferencesTab from "../components/settings/PreferencesTab";
+import TemplatesTab from "../components/settings/TemplatesTab";
+import TaxesTab from "../components/settings/TaxesTab";
+
+interface UserInfo {
+  user_id: string;
+  roles: string[];
+}
+
+function SettingsPageDesktop() {
+  const navigate = useNavigate();
+  const { userId } = useParams<{ userId: string }>();
+
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [activeTab, setActiveTab] = useState("company");
 
