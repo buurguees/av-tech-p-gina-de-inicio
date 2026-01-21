@@ -14,7 +14,7 @@ import { Plus, Receipt, Loader2, FileText, ExternalLink, CreditCard } from "luci
 
 import { supabase } from "@/integrations/supabase/client";
 import CreateProjectExpenseDialog from "./CreateProjectExpenseDialog";
-import RegisterPurchasePaymentDialog from "./RegisterPurchasePaymentDialog";
+import RegisterPurchasePaymentDialog from "../purchases/RegisterPurchasePaymentDialog";
 import { toast } from "sonner";
 
 interface Expense {
@@ -41,7 +41,7 @@ interface PurchaseInvoice {
   provider_type: string | null;
   provider_tax_id: string | null;
   file_name: string | null;
-  notes: string | null;
+  notes?: string | null;
 }
 
 interface ProjectExpensesTabProps {

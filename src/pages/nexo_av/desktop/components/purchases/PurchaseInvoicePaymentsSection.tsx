@@ -36,7 +36,7 @@ interface Payment {
   payment_method: string;
   bank_reference: string | null;
   notes: string | null;
-  is_confirmed: boolean;
+  is_confirmed?: boolean;
   registered_by_name: string;
   created_at: string;
   company_bank_account_id?: string;

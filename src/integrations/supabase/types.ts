@@ -1150,9 +1150,7 @@ export type Database = {
       }
       get_irpf_summary: {
         Args: { p_period_end?: string; p_period_start?: string }
-        Returns: {
-          irpf_accumulated: number
-        }[]
+        Returns: number
       }
       get_journal_entry_lines: {
         Args: { p_entry_id: string }
@@ -1523,9 +1521,7 @@ export type Database = {
           account_name: string
           account_type: string
           description: string
-          id: string
           is_active: boolean
-          parent_account_code: string
         }[]
       }
       list_client_notes: {
@@ -1586,12 +1582,14 @@ export type Database = {
       list_employees: {
         Args: { p_status?: string }
         Returns: {
+          created_at: string
           email: string
           employee_number: string
           full_name: string
           id: string
-          monthly_salary: number
+          phone: string
           status: string
+          tax_id: string
         }[]
       }
       list_invoices:
@@ -1682,42 +1680,72 @@ export type Database = {
           updated_at: string
         }[]
       }
-      list_partner_compensation_runs: {
-        Args: {
-          p_limit?: number
-          p_offset?: number
-          p_partner_id?: string
-          p_period_month?: number
-          p_period_year?: number
-          p_status?: string
-        }
-        Returns: {
-          compensation_number: string
-          created_at: string
-          gross_amount: number
-          id: string
-          irpf_amount: number
-          irpf_rate: number
-          journal_entry_id: string
-          journal_entry_number: string
-          net_amount: number
-          partner_id: string
-          partner_name: string
-          partner_number: string
-          period_month: number
-          period_year: number
-          status: string
-        }[]
-      }
+      list_partner_compensation_runs:
+        | {
+            Args: {
+              p_limit?: number
+              p_offset?: number
+              p_partner_id?: string
+              p_period_month?: number
+              p_period_year?: number
+              p_status?: string
+            }
+            Returns: {
+              compensation_number: string
+              created_at: string
+              gross_amount: number
+              id: string
+              irpf_amount: number
+              irpf_rate: number
+              journal_entry_id: string
+              journal_entry_number: string
+              net_amount: number
+              partner_id: string
+              partner_name: string
+              partner_number: string
+              period_month: number
+              period_year: number
+              status: string
+            }[]
+          }
+        | {
+            Args: {
+              p_limit?: number
+              p_offset?: number
+              p_partner_id?: string
+              p_period_month?: number
+              p_period_year?: number
+              p_status?: string
+            }
+            Returns: {
+              compensation_number: string
+              created_at: string
+              gross_amount: number
+              id: string
+              irpf_amount: number
+              irpf_rate: number
+              journal_entry_id: string
+              journal_entry_number: string
+              net_amount: number
+              partner_id: string
+              partner_name: string
+              partner_number: string
+              period_month: number
+              period_year: number
+              status: string
+            }[]
+          }
       list_partners: {
         Args: { p_status?: string }
         Returns: {
+          created_at: string
           email: string
           full_name: string
           id: string
-          ownership_percentage: number
           partner_number: string
+          phone: string
           status: string
+          tax_id: string
         }[]
       }
       list_payroll_payments: {
@@ -1745,33 +1773,61 @@ export type Database = {
           payroll_run_id: string
         }[]
       }
-      list_payroll_runs: {
-        Args: {
-          p_employee_id?: string
-          p_limit?: number
-          p_offset?: number
-          p_period_month?: number
-          p_period_year?: number
-          p_status?: string
-        }
-        Returns: {
-          created_at: string
-          employee_id: string
-          employee_name: string
-          employee_number: string
-          gross_amount: number
-          id: string
-          irpf_amount: number
-          irpf_rate: number
-          journal_entry_id: string
-          journal_entry_number: string
-          net_amount: number
-          payroll_number: string
-          period_month: number
-          period_year: number
-          status: string
-        }[]
-      }
+      list_payroll_runs:
+        | {
+            Args: {
+              p_employee_id?: string
+              p_limit?: number
+              p_offset?: number
+              p_period_month?: number
+              p_period_year?: number
+              p_status?: string
+            }
+            Returns: {
+              created_at: string
+              employee_id: string
+              employee_name: string
+              employee_number: string
+              gross_amount: number
+              id: string
+              irpf_amount: number
+              irpf_rate: number
+              journal_entry_id: string
+              journal_entry_number: string
+              net_amount: number
+              payroll_number: string
+              period_month: number
+              period_year: number
+              status: string
+            }[]
+          }
+        | {
+            Args: {
+              p_employee_id?: string
+              p_limit?: number
+              p_offset?: number
+              p_period_month?: number
+              p_period_year?: number
+              p_status?: string
+            }
+            Returns: {
+              created_at: string
+              employee_id: string
+              employee_name: string
+              employee_number: string
+              gross_amount: number
+              id: string
+              irpf_amount: number
+              irpf_rate: number
+              journal_entry_id: string
+              journal_entry_number: string
+              net_amount: number
+              payroll_number: string
+              period_month: number
+              period_year: number
+              status: string
+            }[]
+          }
       list_product_categories: {
         Args: never
         Returns: {

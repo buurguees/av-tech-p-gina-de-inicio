@@ -22,9 +22,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Plus } from "lucide-react";
 import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "./PurchaseInvoiceLinesEditor";
-import SupplierSearchInput from "./SupplierSearchInput";
-import ProjectSearchInput from "./ProjectSearchInput";
-import ProductSearchInput from "./ProductSearchInput";
+import SupplierSearchInput from "../suppliers/SupplierSearchInput";
+import ProjectSearchInput from "../projects/ProjectSearchInput";
+import ProductSearchInput from "../common/ProductSearchInput";
 
 interface Supplier {
   id: string;
