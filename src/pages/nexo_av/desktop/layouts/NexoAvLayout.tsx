@@ -45,12 +45,12 @@ interface HeaderProps {
   onThemeChange: (theme: 'light' | 'dark') => void;
 }
 
-const Header = ({ 
-  userId, 
-  userInfo, 
-  currentTheme, 
-  onLogout, 
-  onThemeChange 
+const Header = ({
+  userId,
+  userInfo,
+  currentTheme,
+  onLogout,
+  onThemeChange
 }: HeaderProps) => {
   const navigate = useNavigate();
 
@@ -75,7 +75,7 @@ const Header = ({
               </p>
             </div>
           </div>
-          
+
           {userInfo && (
             <div className="flex items-center gap-4">
               <div className="text-right">
@@ -122,7 +122,7 @@ const NexoAvLayout = () => {
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        
+
         if (!session) {
           navigate('/nexo-av');
           return;
@@ -130,7 +130,7 @@ const NexoAvLayout = () => {
 
         // Get user info from internal.authorized_users
         const { data, error } = await supabase.rpc('get_current_user_info');
-        
+
         if (error || !data || data.length === 0) {
           console.error('Error getting user info:', error);
           await supabase.auth.signOut();
@@ -197,7 +197,7 @@ const NexoAvLayout = () => {
     } catch {
       // Ignore localStorage errors
     }
-    
+
     await supabase.auth.signOut();
     toast({
       title: "Sesión cerrada",
@@ -210,7 +210,7 @@ const NexoAvLayout = () => {
   const isManager = userInfo?.roles?.includes('manager');
   const isComercial = userInfo?.roles?.includes('comercial') || userInfo?.roles?.includes('sales');
   const isTech = userInfo?.roles?.includes('tecnico') || userInfo?.roles?.includes('tech');
-  
+
   const hasSalesAccess = isComercial;
   const hasTechAccess = isTech;
 
@@ -341,7 +341,7 @@ const NexoAvLayout = () => {
           <ShieldAlert className="h-16 w-16 text-destructive mx-auto" />
           <h1 className="text-2xl font-bold text-foreground">Acceso Denegado</h1>
           <p className="text-muted-foreground">No tienes permiso para acceder a este recurso.</p>
-          <Button 
+          <Button
             onClick={() => navigate('/nexo-av')}
           >
             Volver al inicio
@@ -365,7 +365,7 @@ const NexoAvLayout = () => {
   return (
     <div className="min-h-screen bg-background overflow-hidden">
       {/* Header - Fijo en la parte superior - NUNCA se mueve */}
-      <Header 
+      <Header
         userId={userId}
         userInfo={userInfo}
         currentTheme={currentTheme}
@@ -375,17 +375,17 @@ const NexoAvLayout = () => {
 
       {/* Sidebar - Fijo a la izquierda debajo del header - NUNCA se mueve */}
       <aside className="fixed left-0 top-[3.25rem] z-40 hidden md:block w-56 h-[calc(100vh-3.25rem)] overflow-hidden">
-        <Sidebar 
+        <Sidebar
           userId={userId}
           modules={modules}
           userRole={isAdmin ? 'admin' : undefined}
         />
       </aside>
-        
-      {/* Contenido principal - Área donde se cargan las páginas dinámicamente */}
-      {/* Respetando márgenes: left-56 (sidebar) y top-[3.25rem] (header) */}
-      <main className="hidden md:block fixed left-56 top-[3.25rem] right-0 bottom-0 overflow-y-auto overflow-x-hidden bg-background">
-        <div className="w-full min-h-full p-4 lg:p-6">
+
+      {/* Contenido principal - Área donde se cargan las páginas dinámicas */}
+      {/* El main empieza justo después del sidebar (left-56 = w-56) */}
+      <main className="hidden md:block fixed left-56 top-[3.25rem] right-0 bottom-0 bg-background p-0 m-0">
+        <div className="w-full h-full overflow-y-auto overflow-x-hidden p-0 m-0">
           {/* Outlet renderiza las páginas hijas según la navegación del sidebar */}
           <Outlet />
         </div>

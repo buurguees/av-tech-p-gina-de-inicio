@@ -7,14 +7,12 @@ import UserManagement from "../components/users/UserManagement";
 
 const UsersPage = () => {
   const { userId } = useParams<{ userId: string }>();
-  
+
   const [loading, setLoading] = useState(false);
 
   return (
-    <div className="w-full">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <UserManagement />
-      </div>
+    <div className="w-full h-full">
+      <UserManagement />
     </div>
   );
 };

@@ -18,11 +18,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { 
-  ArrowLeft, 
-  Receipt, 
-  Loader2, 
-  Save, 
+import {
+  ArrowLeft,
+  Receipt,
+  Loader2,
+  Save,
   Trash2,
   Star,
   ShoppingCart,
@@ -49,7 +49,7 @@ interface Tax {
 export default function TaxDetailPage() {
   const { userId, taxId } = useParams();
   const navigate = useNavigate();
-  
+
   const [tax, setTax] = useState<Tax | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -77,7 +77,7 @@ export default function TaxDetailPage() {
     try {
       const { data, error } = await supabase.rpc('list_taxes');
       if (error) throw error;
-      
+
       const foundTax = data?.find((t: Tax) => t.id === taxId);
       if (foundTax) {
         setTax(foundTax);
@@ -109,7 +109,7 @@ export default function TaxDetailPage() {
 
   const handleSave = async () => {
     if (!tax) return;
-    
+
     if (!formData.name.trim() || !formData.code.trim()) {
       toast.error('Nombre y código son obligatorios');
       return;
@@ -127,9 +127,9 @@ export default function TaxDetailPage() {
         p_is_active: formData.is_active,
         p_display_order: formData.display_order,
       });
-      
+
       if (error) throw error;
-      
+
       toast.success('Impuesto actualizado');
       setHasChanges(false);
       fetchTax();
@@ -149,9 +149,9 @@ export default function TaxDetailPage() {
       const { error } = await supabase.rpc('delete_tax', {
         p_tax_id: tax.id,
       });
-      
+
       if (error) throw error;
-      
+
       toast.success('Impuesto eliminado');
       navigate(`/nexo-av/${userId}/settings`);
     } catch (error: any) {
@@ -195,8 +195,8 @@ export default function TaxDetailPage() {
   const TypeIcon = taxTypeInfo.icon;
 
   return (
-    <div className="w-full">
-      <div className="w-full px-3 sm:px-4 lg:px-6 py-3 md:py-6">
+    <div className="w-full h-full">
+      <div className="w-full h-full">
         {/* Title */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -399,8 +399,8 @@ export default function TaxDetailPage() {
                 </div>
               </CardContent>
             </Card>
-            </motion.div>
-          </div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
