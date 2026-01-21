@@ -1,3 +1,47 @@
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { RefreshCw, Filter, X } from "lucide-react";
+import LeadMap from "../components/leadmap/LeadMap";
+import CanvassingDetailPanel from "../components/leadmap/CanvassingDetailPanel";
+import CanvassingMapSidebar from "../components/leadmap/CanvassingMapSidebar";
+import CanvassingLocationDialog from "../components/leadmap/CanvassingLocationDialog";
+
+export interface CanvassingLocation {
+  id: string;
+  status: string;
+  company_name: string | null;
+  latitude: number;
+  longitude: number;
+  address: string | null;
+  city: string | null;
+  province: string | null;
+  postal_code: string | null;
+  contact_first_name: string | null;
+  contact_last_name: string | null;
+  contact_phone_primary: string | null;
+  contact_email_primary: string | null;
+  priority: string | null;
+  lead_score: number | null;
+  appointment_date: string | null;
+  callback_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CanvassingStats {
+  status: string;
+  count: number;
+}
+
+const LeadMapPageDesktop = () => {
+  const { userId } = useParams<{ userId: string }>();
+  const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   // Canvassing locations state
   const [canvassingLocations, setCanvassingLocations] = useState<CanvassingLocation[]>([]);
@@ -191,7 +235,7 @@
       )}
 
       {/* Main content - 60/40 split: Map gets 60%, Sidebar gets 40% */}
-      <div className="flex-1 flex gap-4 min-h-0 overflow-hidden" style={{ height: '100%', padding: '0 1%' }}>
+      <div className="flex-1 flex gap-4 min-h-0 overflow-hidden" style={{ height: '100%' }}>
         {/* Map - 60% del espacio con márgenes */}
         <div 
           className="rounded-lg overflow-hidden border border-border flex-shrink-0" 

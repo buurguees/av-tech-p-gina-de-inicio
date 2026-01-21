@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import CreateClientDialog from "../components/clients/CreateClientDialog";
-import DashboardView from "../components/desktop/DashboardView";
+import DashboardView from "../components/dashboard/DashboardView";
 
 const Dashboard = () => {
   const { userId } = useParams<{ userId: string }>();

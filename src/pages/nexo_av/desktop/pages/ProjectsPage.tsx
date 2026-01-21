@@ -387,8 +387,8 @@ const ProjectsPageDesktop = () => {
   } = usePagination(sortedProjects, { pageSize: 50 });
 
   return (
-    <div className="w-full">
-      <div className="w-full px-3 md:px-4 pb-4 md:pb-8">
+    <div className="w-full h-full">
+      <div className="w-full h-full">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Main Content - Ocupa todo el ancho disponible */}
           <div className="flex-1 min-w-0 w-full">

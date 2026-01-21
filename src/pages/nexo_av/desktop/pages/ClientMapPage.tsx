@@ -204,7 +204,7 @@ const ClientMapPageDesktop = () => {
       )}
 
       {/* Main content - 60/40 split: Map gets 60%, Sidebar gets 40% */}
-      <div className="flex-1 flex gap-4 min-h-0 overflow-hidden" style={{ height: '100%', padding: '0 1%' }}>
+      <div className="flex-1 flex gap-4 min-h-0 overflow-hidden" style={{ height: '100%' }}>
         {/* Map - 60% del espacio con márgenes */}
         <div 
           className="rounded-lg overflow-hidden border border-border flex-shrink-0" 

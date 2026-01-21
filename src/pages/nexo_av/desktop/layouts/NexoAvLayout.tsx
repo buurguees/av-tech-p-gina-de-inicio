@@ -385,7 +385,7 @@ const NexoAvLayout = () => {
       {/* Contenido principal - Área donde se cargan las páginas dinámicamente */}
       {/* Respetando márgenes: left-56 (sidebar) y top-[3.25rem] (header) */}
       <main className="hidden md:block fixed left-56 top-[3.25rem] right-0 bottom-0 overflow-y-auto overflow-x-hidden bg-background">
-        <div className="w-full min-h-full p-4 sm:p-6 lg:p-8">
+        <div className="w-full min-h-full p-4 lg:p-6">
           {/* Outlet renderiza las páginas hijas según la navegación del sidebar */}
           <Outlet />
         </div>

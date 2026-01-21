@@ -1,3 +1,95 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsNexoAvDarkTheme } from "../../hooks/useNexoAvThemeMode";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { RefreshCw, Loader2, MapPin, Building2, FolderKanban } from "lucide-react";
+
+// Fix for default marker icons
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+interface Project {
+  id: string;
+  project_number: string;
+  project_name: string;
+  status: string;
+  project_city: string | null;
+  client_name: string | null;
+  client_id: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  full_address: string | null;
+  created_at: string;
+}
+
+// Estados de proyectos con colores
+const PROJECT_STATUS_COLORS: Record<string, string> = {
+  PLANNED: "#3B82F6",
+  IN_PROGRESS: "#F59E0B",
+  PAUSED: "#6B7280",
+  COMPLETED: "#10B981",
+  CANCELLED: "#EF4444",
+};
+
+const PROJECT_STATUS_LABELS: Record<string, string> = {
+  PLANNED: "Planificado",
+  IN_PROGRESS: "En Progreso",
+  PAUSED: "Pausado",
+  COMPLETED: "Completado",
+  CANCELLED: "Cancelado",
+};
+
+// Create colored marker icon for projects
+const createProjectMarkerIcon = (status: string) => {
+  const color = PROJECT_STATUS_COLORS[status] || '#6B7280';
+  
+  const svgIcon = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+      <path fill="${color}" stroke="#fff" stroke-width="1" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </svg>
+  `;
+  
+  return L.divIcon({
+    html: svgIcon,
+    className: 'project-marker',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32],
+  });
+};
+
+// Component to handle map center updates
+const MapCenterHandler = ({ selectedProject }: { selectedProject?: Project | null }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (selectedProject && selectedProject.latitude && selectedProject.longitude) {
+      map.setView([selectedProject.latitude, selectedProject.longitude], 15);
+    }
+  }, [selectedProject, map]);
+  
+  return null;
+};
+
+const ProjectMapPageDesktop = () => {
+  const { userId } = useParams<{ userId: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const isDarkTheme = useIsNexoAvDarkTheme();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,7 +226,7 @@
       </div>
 
       {/* Main content - 60/40 split */}
-      <div className="flex-1 flex gap-4 min-h-0 overflow-hidden" style={{ height: '100%', padding: '0 1%' }}>
+      <div className="flex-1 flex gap-4 min-h-0 overflow-hidden" style={{ height: '100%' }}>
         {/* Map - 60% */}
         <div 
           className="rounded-lg overflow-hidden border border-border flex-shrink-0" 

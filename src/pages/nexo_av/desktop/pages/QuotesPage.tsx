@@ -246,8 +246,8 @@ const QuotesPageDesktop = () => {
   } = usePagination(sortedQuotes, { pageSize: 50 });
 
   return (
-    <div className="w-full">
-      <div className="w-full px-3 sm:px-2 lg:px-6 py-3 md:py-6">
+    <div className="w-full h-full">
+      <div className="w-full h-full">
         <div>
           {/* Stats Cards - Optimizado */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">

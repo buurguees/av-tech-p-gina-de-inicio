@@ -1,5 +1,42 @@
-import { lazy, Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  ArrowLeft,
+  Building2,
+  Edit,
+  PhoneCall,
+  Send,
+  Plus,
+  LayoutDashboard,
+  FolderKanban,
+  FileText,
+  Receipt,
+  Phone,
+  Globe,
+  MapPin,
+  Briefcase,
+  Target,
+  ChevronDown,
+  Loader2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import ClientDashboardTab from "../components/clients/ClientDashboardTab";
+import ClientProjectsTab from "../components/clients/ClientProjectsTab";
+import ClientQuotesTab from "../components/clients/ClientQuotesTab";
+import ClientInvoicesTab from "../components/clients/ClientInvoicesTab";
+import EditClientDialog from "../components/clients/EditClientDialog";
 
 
 interface ClientDetail {

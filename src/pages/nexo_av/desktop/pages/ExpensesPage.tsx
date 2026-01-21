@@ -1,3 +1,53 @@
+import { useState, useEffect, Suspense } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useDebounce } from "@/hooks/useDebounce";
+import { usePagination } from "@/hooks/usePagination";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  TrendingDown,
+  AlertCircle,
+  Upload,
+  Camera,
+  Loader2,
+  Search,
+  Filter,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  MoreVertical,
+  CreditCard,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import PaginationControls from "../components/common/PaginationControls";
+import DocumentScanner from "../components/common/DocumentScanner";
+import RegisterPurchasePaymentDialog from "../components/purchases/RegisterPurchasePaymentDialog";
+
+const ExpensesPageDesktop = () => {
+  const { userId } = useParams<{ userId: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -259,8 +309,8 @@
   } = usePagination(sortedExpenses, { pageSize: 50 });
 
   return (
-    <div className="w-full">
-      <div className="w-full px-3 md:px-4 pb-4 md:pb-8">
+    <div className="w-full h-full">
+      <div className="w-full h-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

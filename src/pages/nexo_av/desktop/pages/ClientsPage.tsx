@@ -384,8 +384,8 @@ const ClientsPageDesktop = () => {
   }
 
   return (
-    <div className="w-full">
-      <div className="w-full px-3 md:px-2 pb-4 md:pb-8">
+    <div className="w-full h-full">
+      <div className="w-full h-full">
         <div>
           {/* KPIs Cards - Recuento por Estado - Optimizado */}
           <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-3">
