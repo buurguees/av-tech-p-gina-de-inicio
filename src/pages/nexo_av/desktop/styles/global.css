@@ -799,7 +799,7 @@ body.nexo-av-theme-dark {
 /* HEADER - Unificado con sidebar */
 body.nexo-av-theme header,
 body.nexo-av-theme-dark header {
-  background-color: hsl(var(--sidebar-background)) !important;
+  background-color: #000000 !important;
   border-bottom: 1px solid hsl(var(--sidebar-border)) !important;
   border-radius: 0 !important;
   box-shadow: none !important;
@@ -860,7 +860,7 @@ body.nexo-av-theme [class*="bg-card"][class*="border-r"],
 body.nexo-av-theme-dark aside,
 body.nexo-av-theme-dark [class*="bg-sidebar"],
 body.nexo-av-theme-dark [class*="bg-card"][class*="border-r"] {
-  background-color: hsl(var(--sidebar-background)) !important;
+  background-color: #000000 !important;
   border: none !important;
   border-right: 1px solid hsl(var(--sidebar-border)) !important;
   border-top: none !important;
@@ -949,13 +949,12 @@ body.nexo-av-theme-dark aside {
   border-radius: 0 !important;
 }
 
-/* Botones del sidebar - Permitir border-radius */
+/* Botones del sidebar - SIN border-radius */
 body.nexo-av-theme aside button,
 body.nexo-av-theme aside a,
 body.nexo-av-theme-dark aside button,
 body.nexo-av-theme-dark aside a {
-  border-radius: 6px !important;
-  /* Bordes redondos en botones */
+  border-radius: 0 !important;
 }
 
 /* Botones de navegación del sidebar específicamente */
@@ -963,7 +962,7 @@ body.nexo-av-theme aside nav button,
 body.nexo-av-theme aside nav a,
 body.nexo-av-theme-dark aside nav button,
 body.nexo-av-theme-dark aside nav a {
-  border-radius: 6px !important;
+  border-radius: 0 !important;
 }
 
 /* Eliminar separación visual entre header y sidebar */
@@ -977,7 +976,7 @@ body.nexo-av-theme header,
 body.nexo-av-theme-dark header,
 body.nexo-av-theme aside,
 body.nexo-av-theme-dark aside {
-  background-color: hsl(var(--sidebar-background)) !important;
+  background-color: #000000 !important;
 }
 
 /* Eliminar cualquier sombra o efecto de separación */
@@ -1006,7 +1005,7 @@ body.nexo-av-theme div.flex[class*="w-"] {
   margin-left: 0 !important;
 }
 
-/* Sidebar navigation items - Con border-radius */
+/* Sidebar navigation items - SIN border-radius */
 body.nexo-av-theme aside nav button,
 body.nexo-av-theme aside nav a,
 body.nexo-av-theme aside button,
@@ -1018,24 +1017,39 @@ body.nexo-av-theme-dark aside a {
   font-size: 0.8125rem !important;
   font-weight: 500 !important;
   padding: 0.5rem 0.75rem !important;
-  border-radius: 6px !important;
-  /* Bordes redondos */
+  border-radius: 0 !important;
   color: hsl(var(--text-secondary)) !important;
   transition: all 0.15s ease !important;
 }
 
 body.nexo-av-theme aside nav button:hover,
 body.nexo-av-theme aside nav a:hover {
-  background-color: hsl(var(--sidebar-accent)) !important;
-  color: hsl(var(--foreground)) !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Iconos en hover también en negro */
+body.nexo-av-theme aside nav button:hover svg,
+body.nexo-av-theme aside nav a:hover svg {
+  color: #000000 !important;
 }
 
 /* Active sidebar item */
 body.nexo-av-theme aside nav button[class*="bg-sidebar-accent"],
-body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"] {
-  background-color: hsl(var(--sidebar-accent)) !important;
-  color: hsl(var(--foreground)) !important;
+body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"],
+body.nexo-av-theme aside nav button[class*="bg-primary"],
+body.nexo-av-theme aside nav a[class*="bg-primary"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
   font-weight: 600 !important;
+}
+
+/* Iconos del item activo también en negro */
+body.nexo-av-theme aside nav button[class*="bg-sidebar-accent"] svg,
+body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"] svg,
+body.nexo-av-theme aside nav button[class*="bg-primary"] svg,
+body.nexo-av-theme aside nav a[class*="bg-primary"] svg {
+  color: #000000 !important;
 }
 
 /* Sidebar icon container backgrounds - Sin border-radius */
@@ -1055,13 +1069,12 @@ body.nexo-av-theme-dark aside nav a[class*="bg-sidebar-accent"] [class*="p-1.5"]
   border-radius: 0 !important;
 }
 
-/* Permitir border-radius en botones del sidebar (ya tienen rounded-md) */
+/* ELIMINAR border-radius de botones del sidebar */
 body.nexo-av-theme aside button[class*="rounded"],
 body.nexo-av-theme aside a[class*="rounded"],
 body.nexo-av-theme-dark aside button[class*="rounded"],
 body.nexo-av-theme-dark aside a[class*="rounded"] {
-  border-radius: 6px !important;
-  /* Mantener bordes redondos en botones */
+  border-radius: 0 !important;
 }
 
 /* Sidebar icons - small & subtle */
@@ -1671,6 +1684,14 @@ body.nexo-av-theme-dark .mr-4 {
    PAGE LAYOUT CONTROL
    Control centralizado del padding de páginas
    ============================================ */
+
+/* Padding universal para todas las páginas - Aplicado al contenedor del Outlet */
+body.nexo-av-theme main>div[class*="overflow-y-auto"]>*,
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>* {
+  padding-top: 2rem !important;
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+}
 
 /* Padding del contenedor principal de páginas - Ya controlado en MAIN CONTENT AREA */
 /* Este selector es para páginas que usen directamente p-6, px-6, py-6 */
