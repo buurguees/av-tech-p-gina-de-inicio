@@ -186,20 +186,44 @@
 
 /* ============================================
    MENÚ DROPDOWN
-   Diseño limpio y moderno con fondo sólido
+   Diseño limpio y moderno con fondo oscuro
    ============================================ */
 
-/* El menú dropdown se maneja directamente con las clases de DropdownMenuContent */
-/* No necesitamos estilos adicionales aquí ya que usamos las clases de shadcn/ui */
+.status-selector [role="menu"] {
+  background-color: rgba(24, 24, 27, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(10px);
+  min-width: 14rem !important;
+  padding: 0.5rem !important;
+}
 
+.status-selector [role="menuitem"] {
+  padding: 0.5rem 0.75rem !important;
+  border-radius: 0.375rem !important;
+  transition: background-color 0.15s ease !important;
+  color: white !important;
+}
 
-/* ============================================
-   ITEMS DEL MENÚ
-   Diseño con indicador de color y check
-   ============================================ */
+.status-selector [role="menuitem"]:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
 
-/* Los items del dropdown se manejan directamente con las clases de DropdownMenuItem */
-/* No necesitamos estilos adicionales aquí ya que usamos Badge dentro de los items */
+.status-selector [role="menuitem"][data-highlighted] {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Asegurar que el texto de los items es visible */
+.status-selector [role="menuitem"] span {
+  color: white !important;
+}
+
+/* Los items deben mostrar el badge de estado correctamente */
+.status-selector [role="menuitem"] .badge,
+.status-selector [role="menuitem"] [class*="bg-"] {
+  display: inline-block !important;
+}
 
 /* ============================================
    RESPONSIVE
