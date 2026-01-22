@@ -29,10 +29,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock, MessageSquare, Clock, Send, MoreVertical, Share2, ChevronDown, Save } from "lucide-react";
+import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock, MessageSquare, Clock, Send, MoreVertical, Share2, ChevronDown, Save, LayoutDashboard, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import QuotePDFViewer from "../components/quotes/QuotePDFViewer";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import TabNav, { TabItem } from "../components/navigation/TabNav";
+import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from "../components/detail";
+import StatusSelector from "../components/common/StatusSelector";
+import DocumentPDFViewer from "../components/common/DocumentPDFViewer";
+import { QuotePDFDocument } from "../components/quotes/QuotePDFViewer";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 
 
@@ -156,6 +161,13 @@ const QuoteDetailPageDesktop = () => {
   const [currentNote, setCurrentNote] = useState("");
   const [savedNotes, setSavedNotes] = useState<any[]>([]);
   const [loadingNotes, setLoadingNotes] = useState(false);
+  const [activeTab, setActiveTab] = useState("resumen");
+
+  const tabs: TabItem[] = [
+    { value: "resumen", label: "Resumen", icon: LayoutDashboard },
+    { value: "lineas", label: "Lineas", icon: FileText },
+    { value: "auditoria", label: "Auditoria", icon: Clock },
+  ];
 
   useEffect(() => {
     if (quoteId) {
@@ -499,639 +511,279 @@ const QuoteDetailPageDesktop = () => {
   const pdfFileName = `${quote.quote_number}${quote.project_name ? ` - ${quote.project_name}` : ''}.pdf`;
 
   return (
-    <div className="w-full h-full">
-      <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Header Superior - Estilo Holded */}
-          <div className="hidden md:block mb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-lg font-bold text-white mb-1">
-                  {client?.company_name || quote.client_name} - Presupuesto {displayNumber}
-                </h1>
-                <div className="flex items-center gap-2">
-                  {canChangeStatus ? (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="inline-flex items-center">
-                          <Badge className={`${statusInfo.className} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
-                            {statusInfo.label}
-                            <ChevronDown className="h-3 w-3 ml-1" />
-                          </Badge>
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="bg-zinc-900 border-white/10">
-                        {availableTransitions.map((status) => {
-                          const info = getStatusInfo(status);
-                          return (
-                            <DropdownMenuItem
-                              key={status}
-                              onClick={() => handleStatusChange(status)}
-                              className="text-white hover:bg-white/10"
-                              disabled={updatingStatus}
-                            >
-                              <span className={`${info.className} px-2 py-0.5 rounded text-xs`}>{info.label}</span>
-                            </DropdownMenuItem>
-                          );
-                        })}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  ) : (
-                    <Badge className={`${statusInfo.className} text-xs`}>
+    <div className="w-full h-full flex flex-col">
+      <DetailNavigationBar
+        pageTitle="Detalle de Presupuesto"
+        contextInfo={
+          <div className="flex items-center gap-2">
+            <span>{client?.company_name || quote.client_name} - Presupuesto {displayNumber}</span>
+            {canChangeStatus ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="inline-flex items-center">
+                    <Badge className={`${statusInfo.className} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
                       {statusInfo.label}
+                      <ChevronDown className="h-3 w-3 ml-1" />
                     </Badge>
-                  )}
-                  {isLocked && (
-                    <Badge variant="outline" className="border-white/20 text-white/60 text-xs">
-                      <Lock className="h-3 w-3 mr-1" />
-                      Bloqueado
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white/70 hover:text-white hover:bg-white/10 h-8 text-xs"
-                >
-                  Convertir
-                </Button>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-zinc-900 border-white/10">
+                  {availableTransitions.map((status) => {
+                    const info = getStatusInfo(status);
+                    return (
+                      <DropdownMenuItem
+                        key={status}
+                        onClick={() => handleStatusChange(status)}
+                        className="text-white hover:bg-white/10"
+                        disabled={updatingStatus}
+                      >
+                        <span className={`${info.className} px-2 py-0.5 rounded text-xs`}>{info.label}</span>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Badge className={`${statusInfo.className} text-xs`}>
+                {statusInfo.label}
+              </Badge>
+            )}
+            {isLocked && (
+              <Badge variant="outline" className="border-white/20 text-white/60 text-xs">
+                <Lock className="h-3 w-3 mr-1" />
+                Bloqueado
+              </Badge>
+            )}
+          </div>
+        }
+        backPath={userId ? `/nexo-av/${userId}/quotes` : undefined}
+        tools={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white/70 hover:text-white hover:bg-white/10 h-8 text-xs"
+            >
+              Convertir
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8"
                 >
-                  <Share2 className="h-3.5 w-3.5" />
+                  <MoreVertical className="h-3.5 w-3.5" />
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8"
-                    >
-                      <MoreVertical className="h-3.5 w-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                    {!isLocked && (
-                      <DropdownMenuItem
-                        className="text-white hover:bg-white/10"
-                        onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem className="text-white hover:bg-white/10">
-                      <Copy className="h-4 w-4 mr-2" />
-                      Duplicar
-                    </DropdownMenuItem>
-                    {canDelete && (
-                      <DropdownMenuItem className="text-red-400 hover:bg-red-500/10">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Eliminar
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button
-                  className="bg-orange-500 hover:bg-orange-600 text-white h-8 px-3 text-xs"
-                >
-                  <Send className="h-3.5 w-3.5 mr-1.5" />
-                  Enviar
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Desktop Layout: Side by side */}
-          <div className="hidden md:grid md:grid-cols-3 gap-4 h-[calc(100vh-180px)]">
-            {/* PDF Preview - Left (2/3) */}
-            <div className="md:col-span-2 bg-white/5 rounded-lg border border-white/10 overflow-hidden flex flex-col">
-              <div className="flex items-center justify-between px-3 py-2 border-b border-white/10 shrink-0">
-                <span className="text-white/60 text-xs font-medium">Vista previa</span>
-                <span className="text-white/40 text-[10px] truncate max-w-xs">{pdfFileName}</span>
-              </div>
-              <div className="flex-1 min-h-0">
-                <QuotePDFViewer
-                  quote={quote}
-                  lines={lines}
-                  client={client}
-                  company={company}
-                  project={project}
-                  fileName={pdfFileName}
-                />
-              </div>
-            </div>
-
-            {/* Info Panel - Right (1/3) - Estilo Holded */}
-            <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden flex flex-col">
-              {/* Header del Panel */}
-              <div className="px-3 py-2 border-b border-white/10 shrink-0">
-                <div className="flex items-center justify-between mb-1.5">
-                  <h2 className="text-white font-mono font-bold text-sm">{displayNumber}</h2>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-white/60 hover:text-white hover:bg-white/10 h-7 w-7"
-                    >
-                      <Share2 className="h-3.5 w-3.5" />
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-white/60 hover:text-white hover:bg-white/10 h-7 w-7"
-                        >
-                          <MoreVertical className="h-3.5 w-3.5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                        {!isLocked && (
-                          <DropdownMenuItem
-                            className="text-white hover:bg-white/10"
-                            onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem className="text-white hover:bg-white/10">
-                          <Copy className="h-4 w-4 mr-2" />
-                          Duplicar
-                        </DropdownMenuItem>
-                        {canDelete && (
-                          <DropdownMenuItem className="text-red-400 hover:bg-red-500/10">
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Eliminar
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-                {/* Status badge con dropdown integrado */}
-                {canChangeStatus ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="inline-flex items-center">
-                        <Badge className={`${statusInfo.className} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
-                          {statusInfo.label}
-                          <ChevronDown className="h-3 w-3 ml-1" />
-                        </Badge>
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="bg-zinc-900 border-white/10">
-                      {availableTransitions.map((status) => {
-                        const info = getStatusInfo(status);
-                        return (
-                          <DropdownMenuItem
-                            key={status}
-                            onClick={() => handleStatusChange(status)}
-                            className="text-white hover:bg-white/10"
-                            disabled={updatingStatus}
-                          >
-                            <span className={`${info.className} px-2 py-0.5 rounded text-xs`}>{info.label}</span>
-                          </DropdownMenuItem>
-                        );
-                      })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <Badge className={`${statusInfo.className} text-xs`}>
-                    {statusInfo.label}
-                  </Badge>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                {!isLocked && (
+                  <DropdownMenuItem
+                    className="text-white hover:bg-white/10"
+                    onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </DropdownMenuItem>
                 )}
+                <DropdownMenuItem className="text-white hover:bg-white/10">
+                  <Copy className="h-4 w-4 mr-2" />
+                  Duplicar
+                </DropdownMenuItem>
+                {canDelete && (
+                  <DropdownMenuItem className="text-red-400 hover:bg-red-500/10">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Eliminar
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              className="bg-orange-500 hover:bg-orange-600 text-white h-8 px-3 text-xs"
+            >
+              <Send className="h-3.5 w-3.5 mr-1.5" />
+              Enviar
+            </Button>
+          </div>
+        }
+      />
+      
+      <div className="flex-1 flex overflow-hidden">
+        {/* Columna izquierda - TabNav y contenido */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <TabNav
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          
+          <div className="flex-1 overflow-auto">
+            {activeTab === "resumen" && (
+              <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {/* Desktop Layout: PDF Preview */}
+                  <div className="hidden md:block bg-white/5 border border-white/10 overflow-hidden flex flex-col h-[calc(100vh-180px)]">
+                    <DocumentPDFViewer
+                      document={
+                        <QuotePDFDocument
+                          quote={quote}
+                          lines={lines}
+                          client={client}
+                          company={company}
+                          project={project}
+                        />
+                      }
+                      fileName={pdfFileName.replace('.pdf', '')}
+                      defaultShowPreview={true}
+                      showToolbar={false}
+                      className="h-full"
+                    />
+                  </div>
+                </motion.div>
               </div>
+            )}
+            {activeTab === "lineas" && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Lineas - Se trabajará más adelante</p>
+              </div>
+            )}
+            {activeTab === "auditoria" && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Auditoria - Se trabajará más adelante</p>
+              </div>
+            )}
+          </div>
+        </div>
 
-              {/* Tabs - Estilo Holded */}
-              <Tabs defaultValue="general" className="flex-1 flex flex-col overflow-hidden">
-                <TabsList className="mx-3 mt-2 bg-white/5 border border-white/10 rounded-lg p-0.5 h-8">
-                  <TabsTrigger
-                    value="general"
-                    className="flex-1 text-[11px] data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60 px-2 py-1"
-                  >
-                    General
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="messages"
-                    className="flex-1 text-[11px] data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60 px-2 py-1"
-                  >
-                    Mensajes
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="history"
-                    className="flex-1 text-[11px] data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60 px-2 py-1"
-                  >
-                    Historial
-                  </TabsTrigger>
-                </TabsList>
-
-                <div className="flex-1 overflow-y-auto p-3">
-                  <TabsContent value="general" className="space-y-4 mt-0">
-
-                    {/* Locked message */}
-                    {isLocked && (
-                      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2 flex items-center gap-2 mb-3">
-                        <Lock className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
-                        <p className="text-yellow-300/80 text-[11px]">
-                          {quote.status === "REJECTED"
-                            ? "Este presupuesto ha sido rechazado"
-                            : quote.status === "EXPIRED"
-                              ? "Este presupuesto ha expirado"
-                              : "Este presupuesto está bloqueado para edición"}
-                        </p>
+        {/* Columna derecha - DetailInfoBlock */}
+        <div className="w-[20rem] flex-shrink-0 border-l border-border h-full">
+          <div className="h-full">
+            <DetailInfoBlock
+              header={
+                <DetailInfoHeader
+                  title={quote ? (client?.company_name || quote.client_name) : "Cargando..."}
+                  subtitle={client?.legal_name && client?.company_name !== client?.legal_name ? client.legal_name : undefined}
+                >
+                  <div className="flex flex-col gap-2 mt-2">
+                    {client?.tax_id && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">CIF:</span>
+                        <span className="font-medium">{client.tax_id}</span>
                       </div>
                     )}
-
-                    {/* Action buttons */}
-                    <div className="space-y-1.5 mb-3">
-                      {/* Invoice button for approved quotes */}
-                      {showInvoiceButton && (
-                        <Button
-                          onClick={handleInvoice}
-                          className="w-full bg-purple-500 hover:bg-purple-600 text-white gap-1.5 h-8 text-xs"
-                        >
-                          <Receipt className="h-3.5 w-3.5" />
-                          Facturar
-                        </Button>
-                      )}
-
-                      {/* New version button */}
-                      <Button
-                        variant="outline"
-                        onClick={handleCreateNewVersion}
-                        disabled={creatingVersion}
-                        className="w-full border-white/20 text-white hover:bg-white/10 gap-1.5 h-8 text-xs"
-                      >
-                        {creatingVersion ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Copy className="h-3.5 w-3.5" />
-                        )}
-                        Nueva versión
-                      </Button>
-                    </div>
-
-                    {/* Client */}
-                    <div className="bg-white/5 rounded-lg p-2 mb-2">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Building2 className="h-3.5 w-3.5 text-orange-500" />
-                        <span className="text-white/50 text-[10px] uppercase tracking-wide">Cliente</span>
-                      </div>
-                      <p className="text-white font-medium text-sm">{quote.client_name}</p>
-                      {client?.tax_id && (
-                        <p className="text-white/60 text-xs">{client.tax_id}</p>
-                      )}
-                    </div>
-
-                    {/* Project */}
-                    <div className="bg-white/5 rounded-lg p-2 mb-2">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <FolderOpen className="h-3.5 w-3.5 text-blue-500" />
-                        <span className="text-white/50 text-[10px] uppercase tracking-wide">Proyecto</span>
-                      </div>
-                      <p className="text-white font-medium text-sm">
-                        {project?.project_name || quote.project_name || "Sin proyecto asignado"}
-                      </p>
-                    </div>
-
-                    {/* Created by */}
-                    <div className="bg-white/5 rounded-lg p-2 mb-2">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <User className="h-3.5 w-3.5 text-purple-500" />
-                        <span className="text-white/50 text-[10px] uppercase tracking-wide">Creado por</span>
-                      </div>
-                      <p className="text-white font-medium text-sm">
-                        {quote.created_by_name || "Usuario"}
-                      </p>
-                    </div>
-
-                    {/* Dates */}
-                    <div className="bg-white/5 rounded-lg p-2 mb-2">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Calendar className="h-3.5 w-3.5 text-green-500" />
-                        <span className="text-white/50 text-[10px] uppercase tracking-wide">Fechas</span>
-                      </div>
-                      <div className="space-y-0.5 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-white/60">Creado</span>
-                          <span className="text-white">{formatDate(quote.created_at)}</span>
-                        </div>
-                        {quote.valid_until && (
-                          <div className="flex justify-between">
-                            <span className="text-white/60">Válido hasta</span>
-                            <span className="text-white">{formatDate(quote.valid_until)}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Total */}
-                    <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 mb-2">
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        <FileText className="h-3.5 w-3.5 text-orange-500" />
-                        <span className="text-orange-400 text-[10px] uppercase tracking-wide">Total</span>
-                      </div>
-                      <p className="text-white text-xl font-bold">
-                        {formatCurrency(quote.total)}
-                      </p>
-                      <div className="flex justify-between text-xs mt-1.5 text-white/60">
-                        <span>Base</span>
-                        <span>{formatCurrency(quote.subtotal)}</span>
-                      </div>
-                      <div className="flex justify-between text-xs text-white/60">
-                        <span>Impuestos</span>
-                        <span>{formatCurrency(quote.tax_amount)}</span>
-                      </div>
-                    </div>
-
-                    {/* Notes */}
-                    {quote.notes && (
-                      <div className="bg-white/5 rounded-lg p-2">
-                        <span className="text-white/50 text-[10px] uppercase tracking-wide">Notas</span>
-                        <p className="text-white/80 text-xs mt-1.5">{quote.notes}</p>
+                    {client?.contact_email && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Mail className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Email:</span>
+                        <span className="font-medium">{client.contact_email}</span>
                       </div>
                     )}
-                  </TabsContent>
-
-                  <TabsContent value="notes" className="mt-0 space-y-3 overflow-y-auto">
-                    {/* Editor de Notas - Reducido a la mitad */}
-                    <div className="bg-white/5 rounded-lg border border-white/10 p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-white font-medium text-sm flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          Nueva Nota
-                        </h3>
-                      </div>
-                      <Textarea
-                        value={currentNote}
-                        onChange={(e) => setCurrentNote(e.target.value)}
-                        className="h-32 bg-transparent border border-white/10 resize-none focus-visible:ring-1 focus-visible:ring-white/20 p-2 text-sm text-white/80 placeholder:text-white/20"
-                        placeholder="Escribe aquí la nota..."
+                  </div>
+                  
+                  {/* Estado del Presupuesto */}
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <div className="flex flex-col gap-2">
+                      <span className="text-xs text-muted-foreground uppercase font-medium">Estado del Presupuesto</span>
+                      <StatusSelector
+                        currentStatus={quote?.status || "DRAFT"}
+                        statusOptions={QUOTE_STATUSES.map(status => ({
+                          value: status.value,
+                          label: status.label,
+                          className: status.className,
+                          color: status.color,
+                        }))}
+                        onStatusChange={(newStatus) => {
+                          if (quote && newStatus !== quote.status) {
+                            handleStatusChange(newStatus);
+                          }
+                        }}
+                        size="md"
                       />
-                      <Button
-                        onClick={handleSaveNote}
-                        disabled={!currentNote.trim() || saving}
-                        className="w-full mt-2 bg-primary hover:bg-primary/90 text-white h-8 text-xs"
-                      >
-                        {saving ? (
-                          <>
-                            <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
-                            Guardando...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="h-3.5 w-3.5 mr-2" />
-                            Guardar Nota
-                          </>
-                        )}
-                      </Button>
                     </div>
-
-                    {/* Historial de Notas Guardadas */}
-                    <div className="bg-white/5 rounded-lg border border-white/10 p-3">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Clock className="h-4 w-4 text-white/60" />
-                        <h3 className="text-white font-medium text-sm">Notas Guardadas</h3>
-                      </div>
-                      {loadingNotes ? (
-                        <div className="flex items-center justify-center py-8">
-                          <Loader2 className="h-6 w-6 animate-spin text-white/40" />
-                        </div>
-                      ) : savedNotes.length === 0 ? (
-                        <p className="text-white/40 text-sm text-center py-4">
-                          No hay notas guardadas
+                  </div>
+                </DetailInfoHeader>
+              }
+              summary={
+                <DetailInfoSummary columns={2}>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-start gap-2">
+                      <FolderOpen className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">Nombre del proyecto</p>
+                        <p className="text-sm font-medium">
+                          {project?.project_name || quote?.project_name || "Sin proyecto asignado"}
                         </p>
-                      ) : (
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                          {savedNotes.map((note) => (
-                            <div
-                              key={note.id}
-                              className="bg-white/5 rounded-lg p-2.5 border border-white/10"
-                            >
-                              <div className="flex items-start justify-between mb-1.5">
-                                <div className="flex items-center gap-1.5">
-                                  <User className="h-3 w-3 text-white/40" />
-                                  <span className="text-white/60 text-[10px]">
-                                    {note.created_by_name || "Usuario"}
-                                  </span>
-                                </div>
-                                <span className="text-white/40 text-[10px]">
-                                  {new Date(note.created_at).toLocaleString("es-ES", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </span>
-                              </div>
-                              <p className="text-white/80 text-xs whitespace-pre-wrap">
-                                {note.content}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      </div>
                     </div>
-                  </TabsContent>
-
-                  <TabsContent value="history" className="mt-0">
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
-                        <Clock className="h-4 w-4 text-white/40 mt-0.5 shrink-0" />
+                    
+                    <div className="flex items-start gap-2">
+                      <User className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">Creador del Presupuesto</p>
+                        <p className="text-sm font-medium">
+                          {quote?.created_by_name || "Usuario"}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">Fecha de Creación</p>
+                        <p className="text-sm font-medium">
+                          {quote ? formatDate(quote.created_at) : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {quote?.valid_until && (
+                      <div className="flex items-start gap-2">
+                        <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm font-medium">Presupuesto creado</p>
-                          <p className="text-white/60 text-xs mt-1">
-                            {formatDate(quote.created_at)} por {quote.created_by_name || "Usuario"}
+                          <p className="text-xs text-muted-foreground mb-1">Fecha válida</p>
+                          <p className="text-sm font-medium">
+                            {formatDate(quote.valid_until)}
                           </p>
                         </div>
                       </div>
-                      {quote.updated_at !== quote.created_at && (
-                        <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg">
-                          <Clock className="h-4 w-4 text-white/40 mt-0.5 shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-white text-sm font-medium">Última actualización</p>
-                            <p className="text-white/60 text-xs mt-1">
-                              {formatDate(quote.updated_at)}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </TabsContent>
+                    )}
+                  </div>
+                </DetailInfoSummary>
+              }
+              content={
+                <div className="flex flex-col gap-3">
+                  <MetricCard
+                    title="Subtotal"
+                    value={formatCurrency(quote?.subtotal || 0)}
+                    icon={FileText}
+                  />
+                  <MetricCard
+                    title="Impuestos"
+                    value={formatCurrency(quote?.tax_amount || 0)}
+                    icon={Receipt}
+                  />
+                  <MetricCard
+                    title="Total"
+                    value={formatCurrency(quote?.total || 0)}
+                    icon={Building2}
+                  />
                 </div>
-              </Tabs>
-            </div>
+              }
+            />
           </div>
-
-          {/* Mobile Layout: Stacked */}
-          <div className="md:hidden space-y-3">
-            {/* Compact summary cards - 2x2 grid */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-white/5 rounded-lg border border-white/10 p-2.5">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <Building2 className="h-3 w-3 text-orange-500" />
-                  <span className="text-white/40 text-[9px]">Cliente</span>
-                </div>
-                <p className="text-white text-[11px] font-medium truncate">
-                  {quote.client_name}
-                </p>
-              </div>
-
-              <div className="bg-white/5 rounded-lg border border-white/10 p-2.5">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <FolderOpen className="h-3 w-3 text-blue-500" />
-                  <span className="text-white/40 text-[9px]">Proyecto</span>
-                </div>
-                <p className="text-white text-[11px] font-medium truncate">
-                  {quote.project_name || "Sin proyecto"}
-                </p>
-              </div>
-
-              <div className="bg-white/5 rounded-lg border border-white/10 p-2.5">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <User className="h-3 w-3 text-purple-500" />
-                  <span className="text-white/40 text-[9px]">Creado por</span>
-                </div>
-                <p className="text-white text-[11px] font-medium truncate">
-                  {quote.created_by_name || "Usuario"}
-                </p>
-              </div>
-
-              <div className="bg-orange-500/10 rounded-lg border border-orange-500/30 p-2.5">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <FileText className="h-3 w-3 text-orange-500" />
-                  <span className="text-orange-400/70 text-[9px]">Total</span>
-                </div>
-                <p className="text-white text-sm font-bold">
-                  {formatCurrency(quote.total)}
-                </p>
-              </div>
-            </div>
-
-            {/* Status selector for mobile - compact */}
-            <div className="flex items-center justify-between bg-white/5 rounded-lg border border-white/10 p-2.5">
-              <div className="flex items-center gap-2">
-                <span className="text-white/50 text-[10px] uppercase tracking-wide">Estado:</span>
-                {canChangeStatus ? (
-                  <Select
-                    value={quote.status}
-                    onValueChange={handleStatusChange}
-                    disabled={updatingStatus}
-                  >
-                    <SelectTrigger className={`${statusInfo.className} border h-6 px-2 w-auto min-w-[80px] text-[10px] font-medium rounded`}>
-                      <SelectValue>
-                        <span>{statusInfo.label}</span>
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-white/10 z-50">
-                      {availableTransitions.map((status) => {
-                        const info = getStatusInfo(status);
-                        return (
-                          <SelectItem key={status} value={status} className="text-white text-xs">
-                            <span className={`${info.className} px-2 py-0.5 rounded text-[10px]`}>{info.label}</span>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Badge className={`${statusInfo.className} text-[10px]`}>
-                    {statusInfo.label}
-                  </Badge>
-                )}
-              </div>
-              {isLocked && <Lock className="h-3 w-3 text-white/40" />}
-            </div>
-
-
-
-
-            {/* Actions bar for mobile */}
-            <div className="flex gap-2">
-              {showInvoiceButton && (
-                <Button
-                  size="sm"
-                  onClick={handleInvoice}
-                  className="flex-1 bg-purple-500 hover:bg-purple-600 text-white h-8 text-xs"
-                >
-                  <Receipt className="h-3 w-3 mr-1.5" />
-                  Facturar
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCreateNewVersion}
-                disabled={creatingVersion}
-                className="flex-1 border-white/20 text-white hover:bg-white/10 h-8 text-xs"
-              >
-                {creatingVersion ? (
-                  <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
-                ) : (
-                  <Copy className="h-3 w-3 mr-1.5" />
-                )}
-                Nueva versión
-              </Button>
-              {!isLocked && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
-                  className="flex-1 border-white/20 text-white hover:bg-white/10 h-8 text-xs"
-                >
-                  <Edit className="h-3 w-3 mr-1.5" />
-                  Editar
-                </Button>
-              )}
-              {canDelete && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-red-500/30 text-red-400 hover:bg-red-500/10 h-8 text-xs"
-                >
-                  <Trash2 className="h-3 w-3 mr-1.5" />
-                  Eliminar
-                </Button>
-              )}
-            </div>
-
-            {/* PDF Preview */}
-            <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
-              <div className="flex items-center justify-between px-3 py-2 border-b border-white/10">
-                <span className="text-white/60 text-xs font-medium">Vista previa</span>
-                <span className="text-white/40 text-[10px] truncate max-w-[140px]">{pdfFileName}</span>
-              </div>
-
-              <QuotePDFViewer
-                quote={quote}
-                lines={lines}
-                client={client}
-                company={company}
-                project={project}
-                fileName={pdfFileName}
-              />
-            </div>
-
-            {/* Dates footer */}
-            <div className="flex items-center justify-between text-white/40 text-[10px]">
-              <span>Creado: {formatDate(quote.created_at)}</span>
-              {quote.valid_until && (
-                <span>Válido: {formatDate(quote.valid_until)}</span>
-              )}
-            </div>
-          </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

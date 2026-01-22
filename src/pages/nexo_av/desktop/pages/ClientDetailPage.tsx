@@ -5,7 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,8 +30,12 @@ import {
   ChevronDown,
   Loader2,
   BarChart3,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import TabNav, { TabItem } from "../components/navigation/TabNav";
+import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from "../components/detail";
 import ClientDashboardTab from "../components/clients/ClientDashboardTab";
 import ClientProjectsTab from "../components/clients/ClientProjectsTab";
 import ClientQuotesTab from "../components/clients/ClientQuotesTab";
@@ -93,8 +96,15 @@ const ClientDetailPageDesktop = () => {
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [client, setClient] = useState<ClientDetail | null>(null);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("resumen");
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const tabs: TabItem[] = [
+    { value: "resumen", label: "Resumen", icon: LayoutDashboard },
+    { value: "por-asignar-1", label: "Por asignar", icon: FolderKanban },
+    { value: "por-asignar-2", label: "Por asignar", icon: FileText },
+    { value: "por-asignar-3", label: "Por asignar", icon: Receipt },
+  ];
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -256,165 +266,146 @@ const ClientDetailPageDesktop = () => {
   };
 
   return (
-    <div className="w-full h-full">
-      <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto">
-        <div>
-          {/* Header - Estilo Holded */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => navigate(`/nexo-av/${userId}/clients`)}
+    <div className="w-full h-full flex flex-col">
+      <DetailNavigationBar
+        pageTitle="Detalle de Cliente"
+        contextInfo={
+          <div className="flex items-center gap-2">
+            <span>{client.company_name}</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild disabled={updatingStatus}>
+                <button
+                  className={cn(
+                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors",
+                    stageInfo.color,
+                    updatingStatus && "opacity-50 cursor-not-allowed"
+                  )}
                 >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">{client.company_name}</h1>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild disabled={updatingStatus}>
-                      <button
-                        className={cn(
-                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors",
-                          stageInfo.color,
-                          updatingStatus && "opacity-50 cursor-not-allowed"
-                        )}
-                      >
-                        {updatingStatus ? "Actualizando..." : stageInfo.label}
-                        <ChevronDown className="h-3 w-3" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="min-w-[180px] bg-zinc-900 border-white/10">
-                      {LEAD_STAGES.map((stage) => (
-                        <DropdownMenuItem
-                          key={stage.value}
-                          onClick={() => handleStatusChange(stage.value)}
-                          className={cn(
-                            "cursor-pointer text-white hover:bg-white/10",
-                            stage.value === client.lead_stage && 'bg-accent'
-                          )}
-                        >
-                          <span className={cn("inline-block w-2 h-2 rounded-full mr-2", stage.color.split(' ')[0])} />
-                          <span>{stage.label}</span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 px-2 text-[10px] font-medium gap-2"
-                  onClick={() => setEditDialogOpen(true)}
-                >
-                  <Edit className="h-3 w-3" />
-                  Editar
-                </Button>
-                {client.contact_phone && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 px-2 text-[10px] font-medium gap-2"
-                    asChild
+                  {updatingStatus ? "Actualizando..." : stageInfo.label}
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-[180px] bg-zinc-900 border-white/10">
+                {LEAD_STAGES.map((stage) => (
+                  <DropdownMenuItem
+                    key={stage.value}
+                    onClick={() => handleStatusChange(stage.value)}
+                    className={cn(
+                      "cursor-pointer text-white hover:bg-white/10",
+                      stage.value === client.lead_stage && 'bg-accent'
+                    )}
                   >
-                    <a href={`tel:${client.contact_phone}`}>
-                      <PhoneCall className="h-3 w-3" />
-                      Llamar
-                    </a>
-                  </Button>
-                )}
-                {client.contact_email && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 px-2 text-[10px] font-medium gap-2"
-                    asChild
-                  >
-                    <a href={`mailto:${client.contact_email}`}>
-                      <Send className="h-3 w-3" />
-                      Email
-                    </a>
-                  </Button>
-                )}
-              </div>
-            </div>
+                    <span className={cn("inline-block w-2 h-2 rounded-full mr-2", stage.color.split(' ')[0])} />
+                    <span>{stage.label}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-
-          {/* KPIs Cards - Estilo ClientsPage */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-blue-500/10 rounded text-blue-600">
-                  <FileText className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Presupuestos activos</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">
-                  {summaryLoading ? "..." : `${stats.activeQuotes} activos`}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-green-500/10 rounded text-green-600">
-                  <Receipt className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Total facturado</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">
-                  {summaryLoading ? "..." : formatCurrency(stats.totalInvoiced)}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-purple-500/10 rounded text-purple-600">
-                  <BarChart3 className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Ticket medio</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">
-                  {summaryLoading ? "..." : formatCurrency(stats.averageTicket)}
-                </span>
-              </div>
-            </div>
+        }
+        backPath={userId ? `/nexo-av/${userId}/clients` : undefined}
+        tools={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 px-2 text-[10px] font-medium gap-2"
+              onClick={() => setEditDialogOpen(true)}
+            >
+              <Edit className="h-3 w-3" />
+              Editar
+            </Button>
+            {client.contact_phone && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 px-2 text-[10px] font-medium gap-2"
+                asChild
+              >
+                <a href={`tel:${client.contact_phone}`}>
+                  <PhoneCall className="h-3 w-3" />
+                  Llamar
+                </a>
+              </Button>
+            )}
+            {client.contact_email && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 px-2 text-[10px] font-medium gap-2"
+                asChild
+              >
+                <a href={`mailto:${client.contact_email}`}>
+                  <Send className="h-3 w-3" />
+                  Email
+                </a>
+              </Button>
+            )}
           </div>
+        }
+      />
+      
+      <div className="flex-1 flex overflow-hidden">
+        {/* Columna izquierda - TabNav y contenido */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <TabNav
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          
+          <div className="flex-1 overflow-auto">
+            {activeTab === "resumen" && (
+              <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                {/* KPIs Cards - Estilo ClientsPage */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
+                  <div className="bg-card/50 border border-border rounded-lg p-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1 bg-blue-500/10 rounded text-blue-600">
+                        <FileText className="h-3.5 w-3.5" />
+                      </div>
+                      <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Presupuestos activos</span>
+                    </div>
+                    <div>
+                      <span className="text-lg font-bold text-foreground">
+                        {summaryLoading ? "..." : `${stats.activeQuotes} activos`}
+                      </span>
+                    </div>
+                  </div>
 
-          {/* Tabs Navigation */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-muted/60 mb-4">
-              <TabsTrigger value="dashboard">
-                <LayoutDashboard className="h-3.5 w-3.5 mr-1.5" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger value="projects">
-                <FolderKanban className="h-3.5 w-3.5 mr-1.5" />
-                Proyectos
-              </TabsTrigger>
-              <TabsTrigger value="quotes">
-                <FileText className="h-3.5 w-3.5 mr-1.5" />
-                Presupuestos
-              </TabsTrigger>
-              <TabsTrigger value="invoices">
-                <Receipt className="h-3.5 w-3.5 mr-1.5" />
-                Facturas
-              </TabsTrigger>
-            </TabsList>
+                  <div className="bg-card/50 border border-border rounded-lg p-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1 bg-green-500/10 rounded text-green-600">
+                        <Receipt className="h-3.5 w-3.5" />
+                      </div>
+                      <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Total facturado</span>
+                    </div>
+                    <div>
+                      <span className="text-lg font-bold text-foreground">
+                        {summaryLoading ? "..." : formatCurrency(stats.totalInvoiced)}
+                      </span>
+                    </div>
+                  </div>
 
-            {/* Grid de información principal */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Columna izquierda - Información de contacto y ubicación */}
-              <div className="lg:col-span-1 space-y-3">
+                  <div className="bg-card/50 border border-border rounded-lg p-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1 bg-purple-500/10 rounded text-purple-600">
+                        <BarChart3 className="h-3.5 w-3.5" />
+                      </div>
+                      <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Ticket medio</span>
+                    </div>
+                    <div>
+                      <span className="text-lg font-bold text-foreground">
+                        {summaryLoading ? "..." : formatCurrency(stats.averageTicket)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grid de información principal */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {/* Columna izquierda - Información de contacto y ubicación */}
+                  <div className="lg:col-span-1 space-y-3">
                 {/* Contacto */}
                 {(client.contact_email || client.contact_phone || client.website) && (
                   <Card>
@@ -550,31 +541,113 @@ const ClientDetailPageDesktop = () => {
                 )}
               </div>
 
-              {/* Columna derecha - Contenido de pestañas alineado con la columna izquierda */}
-              <div className="lg:col-span-2">
-                <TabsContent value="dashboard" className="mt-0">
-                  <ClientDashboardTab
-                    client={client}
-                    isAdmin={isAdmin}
-                    currentUserId={currentUserId}
-                    onRefresh={fetchClient}
-                  />
-                </TabsContent>
-
-                <TabsContent value="projects" className="mt-0">
-                  <ClientProjectsTab clientId={client.id} />
-                </TabsContent>
-
-                <TabsContent value="quotes" className="mt-0">
-                  <ClientQuotesTab clientId={client.id} />
-                </TabsContent>
-
-                <TabsContent value="invoices" className="mt-0">
-                  <ClientInvoicesTab clientId={client.id} />
-                </TabsContent>
+                  {/* Columna derecha - Contenido de pestañas alineado con la columna izquierda */}
+                  <div className="lg:col-span-2">
+                    <ClientDashboardTab
+                      client={client}
+                      isAdmin={isAdmin}
+                      currentUserId={currentUserId}
+                      onRefresh={fetchClient}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          </Tabs>
+            )}
+            {activeTab === "por-asignar-1" && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+              </div>
+            )}
+            {activeTab === "por-asignar-2" && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+              </div>
+            )}
+            {activeTab === "por-asignar-3" && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Columna derecha - DetailInfoBlock */}
+        <div className="w-[20rem] flex-shrink-0 border-l border-border h-full">
+          <div className="h-full">
+            <DetailInfoBlock
+              header={
+                <DetailInfoHeader
+                  title={client.company_name}
+                  subtitle={client.legal_name && client.legal_name !== client.company_name ? client.legal_name : undefined}
+                >
+                  <div className="flex flex-col gap-2 mt-2">
+                    {client.tax_id && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">CIF:</span>
+                        <span className="font-medium">{client.tax_id}</span>
+                      </div>
+                    )}
+                    {client.contact_email && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Mail className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Email:</span>
+                        <span className="font-medium">{client.contact_email}</span>
+                      </div>
+                    )}
+                    {client.contact_phone && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Teléfono:</span>
+                        <span className="font-medium">{client.contact_phone}</span>
+                      </div>
+                    )}
+                  </div>
+                </DetailInfoHeader>
+              }
+              summary={
+                <DetailInfoSummary
+                  columns={2}
+                  items={[
+                    {
+                      label: "Presupuestos activos",
+                      value: summaryLoading ? "..." : `${stats.activeQuotes} activos`,
+                      icon: <FileText className="w-4 h-4" />,
+                    },
+                    {
+                      label: "Total facturado",
+                      value: summaryLoading ? "..." : formatCurrency(stats.totalInvoiced),
+                      icon: <Receipt className="w-4 h-4" />,
+                    },
+                    {
+                      label: "Ticket medio",
+                      value: summaryLoading ? "..." : formatCurrency(stats.averageTicket),
+                      icon: <BarChart3 className="w-4 h-4" />,
+                    },
+                  ]}
+                />
+              }
+              content={
+                <div className="flex flex-col gap-3">
+                  <MetricCard
+                    title="Presupuestos activos"
+                    value={summaryLoading ? "Cargando..." : `${stats.activeQuotes} activos`}
+                    icon={FileText}
+                  />
+                  <MetricCard
+                    title="Total facturado"
+                    value={summaryLoading ? "Cargando..." : formatCurrency(stats.totalInvoiced)}
+                    icon={Receipt}
+                  />
+                  <MetricCard
+                    title="Ticket medio"
+                    value={summaryLoading ? "Cargando..." : formatCurrency(stats.averageTicket)}
+                    icon={BarChart3}
+                  />
+                </div>
+              }
+            />
+          </div>
         </div>
       </div>
 

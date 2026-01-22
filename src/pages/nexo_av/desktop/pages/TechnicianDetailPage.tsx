@@ -36,10 +36,14 @@ import {
   Banknote,
   User,
   CheckCircle2,
+  LayoutDashboard,
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { getTypeInfo, getStatusInfo } from "@/constants/technicianConstants";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import TabNav, { TabItem } from "../components/navigation/TabNav";
+import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from "../components/detail";
 import EditTechnicianDialog from "../components/technicians/EditTechnicianDialog";
 import {
   ChartContainer,
@@ -216,6 +220,7 @@ function TechnicianDetailPageDesktop() {
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [totalInvoiced, setTotalInvoiced] = useState<number>(0);
   const [lastCollaboration, setLastCollaboration] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("resumen");
 
   const fetchTechnician = useCallback(async () => {
     if (!technicianId) return;
@@ -359,28 +364,19 @@ function TechnicianDetailPageDesktop() {
   };
 
   return (
-    <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto flex flex-col">
-      {/* Header superior compacto */}
-      <header className="flex-shrink-0 border-b bg-card px-0 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => navigate(`/nexo-av/${userId}/technicians`)}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                CRM · Técnico
-              </p>
-              <h1 className="text-base font-semibold leading-none mt-0.5">
-                {technician.company_name}
-              </h1>
-            </div>
+    <div className="w-full h-full flex flex-col">
+      <DetailNavigationBar
+        pageTitle="Detalle de Técnico"
+        contextInfo={
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              CRM · Técnico
+            </span>
+            <span>{technician.company_name}</span>
           </div>
+        }
+        backPath={userId ? `/nexo-av/${userId}/technicians` : undefined}
+        tools={
           <Button
             variant="outline"
             size="sm"
@@ -390,13 +386,29 @@ function TechnicianDetailPageDesktop() {
             <Edit className="h-3.5 w-3.5" />
             Editar
           </Button>
-        </div>
-      </header>
-
+        }
+      />
+      
       {/* Contenido principal con scroll */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <Tabs defaultValue="summary" className="space-y-4">
+      <div className="flex-1 flex overflow-hidden">
+        {/* Columna izquierda - TabNav y contenido */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <TabNav
+            tabs={[
+              { value: "resumen", label: "Resumen", icon: LayoutDashboard },
+              { value: "por-asignar-1", label: "Por asignar", icon: FileText },
+              { value: "por-asignar-2", label: "Por asignar", icon: Calendar },
+              { value: "por-asignar-3", label: "Por asignar", icon: Receipt },
+            ] as TabItem[]}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          
+          <div className="flex-1 overflow-auto">
+            {activeTab === "resumen" && (
+              <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                <div className="max-w-7xl mx-auto">
+                  <Tabs defaultValue="summary" className="space-y-4">
             {/* Hero Section - Información principal */}
             <div className="mb-4">
               <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
@@ -996,6 +1008,98 @@ function TechnicianDetailPageDesktop() {
             </div>
           </div>
         </Tabs>
+                  </div>
+                </div>
+              </div>
+            )}
+            {activeTab === "por-asignar-1" && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+              </div>
+            )}
+            {activeTab === "por-asignar-2" && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+              </div>
+            )}
+            {activeTab === "por-asignar-3" && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Columna derecha - DetailInfoBlock */}
+        <div className="w-[20rem] flex-shrink-0 border-l border-border h-full">
+          <div className="h-full">
+            <DetailInfoBlock
+              header={
+                <DetailInfoHeader
+                  title={technician ? technician.company_name : "Cargando..."}
+                  subtitle={technician?.legal_name && technician.legal_name !== technician.company_name ? technician.legal_name : undefined}
+                >
+                  <div className="flex flex-col gap-2 mt-2">
+                    {technician?.tax_id && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">NIF/CIF:</span>
+                        <span className="font-medium">{technician.tax_id}</span>
+                      </div>
+                    )}
+                    {technician?.technician_number && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Nº Técnico:</span>
+                        <span className="font-medium font-mono">{technician.technician_number}</span>
+                      </div>
+                    )}
+                  </div>
+                </DetailInfoHeader>
+              }
+              summary={
+                <DetailInfoSummary
+                  columns={2}
+                  items={[
+                    {
+                      label: "Proyectos",
+                      value: `${projectsCount}`,
+                      icon: <Building2 className="w-4 h-4" />,
+                    },
+                    {
+                      label: "Total facturado",
+                      value: formatCurrency(totalInvoiced),
+                      icon: <Receipt className="w-4 h-4" />,
+                    },
+                    {
+                      label: "Última colaboración",
+                      value: lastCollaboration || "Sin colaboraciones",
+                      icon: <Clock className="w-4 h-4" />,
+                    },
+                  ]}
+                />
+              }
+              content={
+                <div className="flex flex-col gap-3">
+                  <MetricCard
+                    title="Proyectos trabajados"
+                    value={`${projectsCount}`}
+                    icon={Building2}
+                  />
+                  <MetricCard
+                    title="Total facturado"
+                    value={formatCurrency(totalInvoiced)}
+                    icon={Receipt}
+                  />
+                  <MetricCard
+                    title="Última colaboración"
+                    value={lastCollaboration || "Sin colaboraciones"}
+                    icon={Clock}
+                  />
+                </div>
+              }
+            />
+          </div>
         </div>
       </div>
 

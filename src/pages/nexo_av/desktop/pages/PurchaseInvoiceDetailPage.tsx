@@ -37,11 +37,16 @@ import {
     X,
     Edit,
     Loader2,
-    GripVertical
+    GripVertical,
+    LayoutDashboard,
+    Receipt,
+    TrendingUp
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from "../components/detail";
 import SupplierSearchInput from "../components/suppliers/SupplierSearchInput";
 import ProjectSearchInput from "../components/projects/ProjectSearchInput";
 import ProductSearchInput from "../components/common/ProductSearchInput";
@@ -668,34 +673,17 @@ const PurchaseInvoiceDetailPageDesktop = () => {
     };
 
     return (
-        <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto">
-            <div className="w-full mx-auto">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-white/60 hover:text-white hover:bg-white/10 rounded-full h-10 w-10 flex-shrink-0"
-                            onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices`)}
-                            title="Volver a Facturas de Compra"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </Button>
-                        <div className="flex flex-col">
-                            <h1 className="text-2xl font-bold text-white tracking-tight">
-                                {invoice.document_type === 'INVOICE' ? 'Factura de Compra' : 'Gasto / Ticket'}
-                            </h1>
-                            <p className="text-white/40 text-xs font-mono">
-                              {invoice.internal_purchase_number || 
-                               invoice.supplier_invoice_number || 
-                               invoice.invoice_number || 
-                               'Sin número'}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
+        <div className="w-full h-full flex flex-col">
+            <DetailNavigationBar
+                pageTitle={invoice.document_type === 'INVOICE' ? 'Factura de Compra' : 'Gasto / Ticket'}
+                contextInfo={
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-muted-foreground">
+                            {invoice.internal_purchase_number || 
+                             invoice.supplier_invoice_number || 
+                             invoice.invoice_number || 
+                             'Sin número'}
+                        </span>
                         <Badge className={cn(
                             invoice.status === 'PAID' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
                                 invoice.status === 'PARTIAL' ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
@@ -710,6 +698,11 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                              invoice.status === 'PAID' ? 'Pagado' : 
                              invoice.status === 'PARTIAL' ? 'Parcial' : invoice.status}
                         </Badge>
+                    </div>
+                }
+                backPath={userId ? `/nexo-av/${userId}/purchase-invoices` : undefined}
+                tools={
+                    <div className="flex items-center gap-3">
                         {!isEditing && !isLocked && (
                             <Button
                                 variant="outline"
@@ -769,7 +762,15 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                             </>
                         )}
                     </div>
-                </div>
+                }
+            />
+            
+            <div className="flex-1 flex overflow-hidden">
+                {/* Columna izquierda - Contenido */}
+                <div className="flex-1 flex flex-col min-w-0">
+                    <div className="flex-1 overflow-auto">
+                        <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                                <div className="w-full mx-auto">
 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                     {/* Left Column - Editing Area (Information + Lines) */}
@@ -1316,6 +1317,97 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                                 )}
                             </CardContent>
                         </Card>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Columna derecha - DetailInfoBlock */}
+                <div className="w-[20rem] flex-shrink-0 border-l border-border h-full">
+                    <div className="h-full">
+                        <DetailInfoBlock
+                            header={
+                                <DetailInfoHeader
+                                    title={invoice ? (invoice.provider_name || "Sin proveedor/técnico") : "Cargando..."}
+                                    subtitle={invoice?.provider_tax_id || undefined}
+                                >
+                                    <div className="flex flex-col gap-2 mt-2">
+                                        {invoice?.internal_purchase_number && (
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <FileText className="w-4 h-4 text-muted-foreground" />
+                                                <span className="text-muted-foreground">Nº Interno:</span>
+                                                <span className="font-medium font-mono">{invoice.internal_purchase_number}</span>
+                                            </div>
+                                        )}
+                                        {invoice?.supplier_invoice_number && (
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <FileText className="w-4 h-4 text-muted-foreground" />
+                                                <span className="text-muted-foreground">Nº Proveedor:</span>
+                                                <span className="font-medium">{invoice.supplier_invoice_number}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </DetailInfoHeader>
+                            }
+                            summary={
+                                <DetailInfoSummary
+                                    columns={2}
+                                    items={[
+                                        {
+                                            label: "Base imponible",
+                                            value: formatCurrency(totals.subtotal),
+                                            icon: <FileText className="w-4 h-4" />,
+                                        },
+                                        {
+                                            label: "Total",
+                                            value: formatCurrency(totals.total),
+                                            icon: <Receipt className="w-4 h-4" />,
+                                        },
+                                        ...(invoice?.status !== "PENDING" ? [
+                                            {
+                                                label: "Pagado",
+                                                value: formatCurrency(invoice?.paid_amount || 0),
+                                                icon: <Calendar className="w-4 h-4" />,
+                                            },
+                                            {
+                                                label: "Pendiente",
+                                                value: formatCurrency(invoice?.pending_amount || 0),
+                                                icon: <Building2 className="w-4 h-4" />,
+                                            },
+                                        ] : []),
+                                    ]}
+                                />
+                            }
+                            content={
+                                <div className="flex flex-col gap-3">
+                                    <MetricCard
+                                        title="Total"
+                                        value={formatCurrency(totals.total)}
+                                        icon={Receipt}
+                                    />
+                                    <MetricCard
+                                        title="Base imponible"
+                                        value={formatCurrency(totals.subtotal)}
+                                        icon={FileText}
+                                    />
+                                    {invoice?.status !== "PENDING" && (
+                                        <>
+                                            <MetricCard
+                                                title="Pagado"
+                                                value={formatCurrency(invoice?.paid_amount || 0)}
+                                                icon={Calendar}
+                                            />
+                                            <MetricCard
+                                                title="Pendiente"
+                                                value={formatCurrency(invoice?.pending_amount || 0)}
+                                                icon={TrendingUp}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+                            }
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     );

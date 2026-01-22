@@ -1,514 +1,663 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import TabNav, { TabItem } from "../components/navigation/TabNav";
+import DetailActionButton, { DetailActionType } from "../components/navigation/DetailActionButton";
+import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from "../components/detail";
+import { DetailDashboard, DetailDashboardKPIs, DetailDashboardProducts, DetailDashboardTasks } from "../components/dashboard";
+import ProjectInvoicesList from "../components/projects/ProjectInvoicesList";
+import ProjectQuotesList from "../components/projects/ProjectQuotesList";
+import ProjectPurchasesList from "../components/projects/ProjectPurchasesList";
+import StatusSelector from "../components/common/StatusSelector";
+import { PROJECT_STATUSES } from "@/constants/projectStatuses";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  ArrowLeft,
+  LayoutDashboard,
   Calendar,
-  MapPin,
-  Building2,
+  Users,
   FileText,
-  MoreVertical,
-  Edit2,
-  Eye,
-  Zap,
+  Receipt,
+  ShoppingCart,
+  Hash,
+  Mail,
+  FileText as FileTextIcon,
+  MapPin,
+  Building,
+  Calendar as CalendarIcon,
+  Package,
   TrendingUp,
-  Clock,
   CheckCircle,
+  Clock,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import ProjectDashboardTab from "../components/projects/ProjectDashboardTab";
-import ProjectPlanningTab from "../components/projects/ProjectPlanningTab";
-import ProjectQuotesTab from "../components/projects/ProjectQuotesTab";
-import ProjectTechniciansTab from "../components/projects/ProjectTechniciansTab";
-import ProjectExpensesTab from "../components/projects/ProjectExpensesTab";
-import ProjectInvoicesTab from "../components/projects/ProjectInvoicesTab";
-import CreateProjectDialog from "../components/projects/CreateProjectDialog";
-import "../styles/components/tabs.css";
-
 
 interface ProjectDetail {
   id: string;
   project_number: string;
-  client_id: string | null;
+  project_name: string;
   client_name: string | null;
+  client_id: string | null;
   status: string;
   project_address: string | null;
   project_city: string | null;
   client_order_number: string | null;
   local_name: string | null;
-  project_name: string;
-  quote_id: string | null;
-  notes: string | null;
-  created_by: string | null;
-  created_by_name: string | null;
-  created_at: string;
-  updated_at: string;
+  installation_start_date?: string | null;
+  delivery_date?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  actual_start_date?: string | null;
+  actual_end_date?: string | null;
 }
 
+interface ClientDetail {
+  id: string;
+  client_number?: string | null;
+  company_name: string;
+  legal_name: string | null;
+  tax_id: string | null;
+  contact_email: string | null;
+}
 
 const ProjectDetailPageDesktop = () => {
-  const { userId, projectId } = useParams();
-  const { toast: toastHook } = useToast();
+  const { userId, projectId } = useParams<{ userId: string; projectId: string }>();
+  const navigate = useNavigate();
   const [project, setProject] = useState<ProjectDetail | null>(null);
+  const [client, setClient] = useState<ClientDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [projectKPIs, setProjectKPIs] = useState({
-    totalBudget: 0,
-    totalInvoiced: 0,
-    totalExpenses: 0,
-    profitability: 0,
-    profitabilityPercentage: 0,
-    quotesCount: 0,
-    invoicesCount: 0,
-    expensesCount: 0,
+  const [activeTab, setActiveTab] = useState("resumen");
+  const [metrics, setMetrics] = useState({
+    quotesTotal: 0,
+    invoicesTotal: 0,
+    purchasesTotal: 0,
+    margin: 0,
   });
-  const [kpisLoading, setKpisLoading] = useState(true);
+  const [loadingMetrics, setLoadingMetrics] = useState(true);
+  const [products, setProducts] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingTasks, setLoadingTasks] = useState(false);
 
-  const fetchProject = async () => {
-    if (!projectId) return;
-    
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.rpc('get_project', {
-        p_project_id: projectId
-      });
-
-      if (error) throw error;
-      if (data && data.length > 0) {
-        setProject(data[0]);
-      }
-    } catch (error) {
-      console.error('Error fetching project:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchProjectKPIs = async () => {
-    if (!projectId) return;
-
-    try {
-      setKpisLoading(true);
-
-      // Fetch Quotes
-      const { data: quotesData } = await supabase.rpc('list_quotes', { p_search: null });
-      const projectQuotes = (quotesData || []).filter((q: any) => q.project_id === projectId);
-      const totalBudget = projectQuotes.reduce((sum: number, q: any) => sum + (q.subtotal || 0), 0);
-
-      // Fetch Invoices
-      const { data: invoicesData } = await supabase.rpc('finance_list_invoices', { 
-        p_search: null, 
-        p_status: null 
-      });
-      const projectInvoices = (invoicesData || []).filter((inv: any) => 
-        inv.project_id === projectId && inv.status !== 'CANCELLED'
-      );
-      const totalInvoiced = projectInvoices.reduce((sum: number, inv: any) => sum + (inv.subtotal || 0), 0);
-
-      // Fetch Expenses (Purchase Invoices)
-      const { data: expensesData } = await supabase.rpc('list_purchase_invoices', {
-        p_search: null,
-        p_status: null,
-        p_document_type: null
-      });
-      const projectExpenses = (expensesData || []).filter((exp: any) => 
-        exp.project_id === projectId && exp.status !== 'CANCELLED'
-      );
-      const totalExpenses = projectExpenses.reduce((sum: number, exp: any) => sum + (exp.tax_base || 0), 0);
-
-      // Calculate profitability
-      const profitability = totalInvoiced - totalExpenses;
-      const profitabilityPercentage = totalInvoiced > 0 ? (profitability / totalInvoiced) * 100 : 0;
-
-      setProjectKPIs({
-        totalBudget,
-        totalInvoiced,
-        totalExpenses,
-        profitability,
-        profitabilityPercentage,
-        quotesCount: projectQuotes.length,
-        invoicesCount: projectInvoices.length,
-        expensesCount: projectExpenses.length,
-      });
-    } catch (error) {
-      console.error('Error fetching project KPIs:', error);
-    } finally {
-      setKpisLoading(false);
-    }
-  };
+  const tabs: TabItem[] = [
+    { value: "resumen", label: "Resumen", icon: LayoutDashboard },
+    { value: "planificacion", label: "Planificación", icon: Calendar },
+    { value: "tecnicos", label: "Técnicos", icon: Users },
+    { value: "presupuestos", label: "Presupuestos", icon: FileText },
+    { value: "facturas", label: "Facturas", icon: Receipt },
+    { value: "compras", label: "Compras", icon: ShoppingCart },
+  ];
 
   useEffect(() => {
+    const fetchProject = async () => {
+      if (!projectId) return;
+      
+      try {
+        setLoading(true);
+        const { data, error } = await supabase.rpc('get_project', {
+          p_project_id: projectId
+        });
+
+        if (error) throw error;
+        if (data && data.length > 0) {
+          const projectData = data[0];
+          setProject(projectData);
+
+          // Fetch client data if client_id exists
+          if (projectData.client_id) {
+            const { data: clientData, error: clientError } = await supabase.rpc('get_client', {
+              p_client_id: projectData.client_id
+            });
+
+            if (!clientError && clientData && clientData.length > 0) {
+              setClient(clientData[0]);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching project:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchProject();
   }, [projectId]);
 
   useEffect(() => {
-    if (project) {
-      fetchProjectKPIs();
+    const fetchMetrics = async () => {
+      if (!projectId) return;
+
+      try {
+        setLoadingMetrics(true);
+
+        // Fetch Quotes
+        const { data: quotesData } = await supabase.rpc('list_quotes', { p_search: null });
+        const projectQuotes = (quotesData || []).filter((q: any) => q.project_id === projectId);
+        const quotesTotal = projectQuotes.reduce((sum: number, q: any) => sum + (q.subtotal || 0), 0);
+
+        // Fetch Invoices
+        const { data: invoicesData } = await supabase.rpc('finance_list_invoices', { 
+          p_search: null, 
+          p_status: null 
+        });
+        const projectInvoices = (invoicesData || []).filter((inv: any) => inv.project_id === projectId);
+        const invoicesTotal = projectInvoices.reduce((sum: number, inv: any) => sum + (inv.subtotal || 0), 0);
+
+        // Fetch Purchase Invoices
+        const { data: purchasesData } = await supabase.rpc('list_purchase_invoices', {
+          p_search: null,
+          p_status: null,
+          p_document_type: null,
+        });
+        const projectPurchases = (purchasesData || []).filter((p: any) => p.project_id === projectId);
+        const purchasesTotal = projectPurchases.reduce((sum: number, p: any) => sum + (p.tax_base || p.subtotal || 0), 0);
+
+        // Calculate margin
+        const margin = invoicesTotal - purchasesTotal;
+
+        setMetrics({
+          quotesTotal,
+          invoicesTotal,
+          purchasesTotal,
+          margin,
+        });
+      } catch (error) {
+        console.error('Error fetching metrics:', error);
+      } finally {
+        setLoadingMetrics(false);
+      }
+    };
+
+    fetchMetrics();
+  }, [projectId]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!projectId) return;
+
+      try {
+        setLoadingProducts(true);
+        // Obtener productos de las líneas de presupuestos y facturas del proyecto
+        const { data: quotesData } = await supabase.rpc('list_quotes', { p_search: null });
+        const projectQuotes = (quotesData || []).filter((q: any) => q.project_id === projectId);
+        
+        const allProducts: any[] = [];
+        
+        // Obtener líneas de presupuestos
+        for (const quote of projectQuotes) {
+          const { data: linesData } = await supabase.rpc('get_quote_lines', {
+            p_quote_id: quote.id
+          });
+          
+          if (linesData) {
+            linesData.forEach((line: any) => {
+              allProducts.push({
+                id: `${quote.id}-${line.id}`,
+                name: line.concept || line.description || 'Producto sin nombre',
+                description: line.description,
+                quantity: line.quantity || 0,
+                unit_price: line.unit_price || 0,
+                total: line.subtotal || 0,
+                source: 'Presupuesto',
+                source_number: quote.quote_number,
+              });
+            });
+          }
+        }
+
+        // Obtener líneas de facturas
+        const { data: invoicesData } = await supabase.rpc('finance_list_invoices', {
+          p_search: null,
+          p_status: null,
+        });
+        const projectInvoices = (invoicesData || []).filter((inv: any) => inv.project_id === projectId);
+
+        for (const invoice of projectInvoices) {
+          const { data: linesData } = await supabase.rpc('finance_get_invoice_lines', {
+            p_invoice_id: invoice.id
+          });
+          
+          if (linesData) {
+            linesData.forEach((line: any) => {
+              allProducts.push({
+                id: `${invoice.id}-${line.id}`,
+                name: line.concept || line.description || 'Producto sin nombre',
+                description: line.description,
+                quantity: line.quantity || 0,
+                unit_price: line.unit_price || 0,
+                total: line.subtotal || 0,
+                source: 'Factura',
+                source_number: invoice.invoice_number || invoice.preliminary_number,
+              });
+            });
+          }
+        }
+
+        setProducts(allProducts);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    if (activeTab === "resumen") {
+      fetchProducts();
     }
-  }, [project]);
+  }, [projectId, activeTab]);
 
-  const handleStatusChange = async (newStatus: string) => {
-    if (!project) return;
+  useEffect(() => {
+    const fetchTasks = async () => {
+      if (!projectId) return;
+
+      try {
+        setLoadingTasks(true);
+        // Por ahora, tareas vacías - se implementará más adelante
+        setTasks([]);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      } finally {
+        setLoadingTasks(false);
+      }
+    };
+
+    if (activeTab === "resumen") {
+      fetchTasks();
+    }
+  }, [projectId, activeTab]);
+
+  // Construir el texto contextual con el nombre del proyecto
+  const getContextInfo = () => {
+    if (loading) return "Cargando...";
+    if (!project) return "Proyecto no encontrado";
     
-    setUpdatingStatus(true);
-    try {
-      const { error } = await supabase.rpc('update_project', {
-        p_project_id: project.id,
-        p_status: newStatus,
-      });
+    return project.project_name || "Sin nombre";
+  };
 
-      if (error) throw error;
+  // Formatear fecha
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return null;
+    return new Date(dateString).toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
-      setProject({ ...project, status: newStatus });
-      
-      const PROJECT_STATUSES = [
-        { value: 'PLANNED', label: 'Planificado' },
-        { value: 'IN_PROGRESS', label: 'En Progreso' },
-        { value: 'PAUSED', label: 'Pausado' },
-        { value: 'COMPLETED', label: 'Completado' },
-        { value: 'CANCELLED', label: 'Cancelado' },
-      ];
-      
-      const statusLabel = PROJECT_STATUSES.find(s => s.value === newStatus)?.label || newStatus;
-      toastHook({
-        title: "Estado actualizado",
-        description: `El proyecto ahora está en "${statusLabel}"`,
-      });
-    } catch (error) {
-      console.error('Error updating status:', error);
-      toastHook({
-        title: "Error",
-        description: "No se pudo actualizar el estado",
-        variant: "destructive",
-      });
-    } finally {
-      setUpdatingStatus(false);
+  // Formatear moneda
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "EUR",
+    }).format(amount);
+  };
+
+  // Formatear porcentaje
+  const formatPercentage = (value: number, total: number) => {
+    if (total === 0) return "0%";
+    return `${((value / total) * 100).toFixed(1)}%`;
+  };
+
+  // Obtener el tipo de acción según el tab activo
+  const getActionType = (): DetailActionType | null => {
+    switch (activeTab) {
+      case "presupuestos":
+        return "quote";
+      case "facturas":
+        return "invoice";
+      case "tecnicos":
+        return "technicians";
+      case "compras":
+        return "purchase";
+      default:
+        return null;
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
-      </div>
-    );
-  }
+  // Manejar la acción del botón
+  const handleActionClick = () => {
+    const actionType = getActionType();
+    if (!actionType || !projectId || !userId || !project) return;
 
-  if (!project) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 py-12">
-        <p className="text-muted-foreground">Proyecto no encontrado</p>
-        <Button
-          variant="link"
-          className="text-primary mt-2"
-          onClick={() => window.history.back()}
-        >
-          Volver
-        </Button>
-      </div>
-    );
-  }
+    // Obtener client_id del proyecto actual
+    const currentClientId = project.client_id;
+    if (!currentClientId) {
+      console.warn("El proyecto no tiene cliente asignado");
+      return;
+    }
+
+    switch (actionType) {
+      case "quote":
+        // Navegar a crear presupuesto con clientId y projectId pre-seleccionados
+        navigate(`/nexo-av/${userId}/quotes/new?clientId=${currentClientId}&projectId=${projectId}`);
+        break;
+      case "invoice":
+        // Navegar a crear factura con clientId y projectId pre-seleccionados
+        navigate(`/nexo-av/${userId}/invoices/new?clientId=${currentClientId}&projectId=${projectId}`);
+        break;
+      case "technicians":
+        // TODO: Abrir diálogo para asignar técnicos
+        console.log("Asignar técnicos al proyecto:", projectId);
+        break;
+      case "purchase":
+        // TODO: Navegar a crear compra con projectId
+        console.log("Crear compra para proyecto:", projectId);
+        // navigate(`/nexo-av/${userId}/purchase-invoices/new?projectId=${projectId}`);
+        break;
+    }
+  };
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden">
-        {/* Top Navigation Bar */}
-        <div className="border-b border-slate-200/80 dark:border-slate-700/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9"
-                onClick={() => navigate(`/nexo-av/${userId}/projects`)}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div className="flex flex-col gap-1">
-                <h1 className="text-lg font-bold text-foreground">{project?.project_name}</h1>
-                <p className="text-xs text-muted-foreground font-mono">#{project?.project_number}</p>
+    <div className="w-full h-full flex flex-col">
+      <DetailNavigationBar
+        pageTitle="Detalle de Proyecto"
+        contextInfo={getContextInfo()}
+        backPath={userId ? `/nexo-av/${userId}/projects` : undefined}
+        tools={
+          getActionType() ? (
+            <DetailActionButton
+              actionType={getActionType()!}
+              onClick={handleActionClick}
+            />
+          ) : undefined
+        }
+      />
+      
+      <div className="flex-1 flex overflow-hidden">
+        {/* Columna izquierda - TabNav y contenido */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <TabNav
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          
+          <div className="flex-1 overflow-auto">
+            {activeTab === "resumen" && (
+              <DetailDashboard
+                kpis={
+                  <DetailDashboardKPIs
+                    title="Métricas del Proyecto"
+                    columns={4}
+                    kpis={[
+                      {
+                        title: "Presupuesto",
+                        value: loadingMetrics ? "..." : formatCurrency(metrics.quotesTotal),
+                        icon: <FileText className="w-5 h-5" />,
+                        subtitle: "Total presupuestado",
+                      },
+                      {
+                        title: "Facturación",
+                        value: loadingMetrics ? "..." : formatCurrency(metrics.invoicesTotal),
+                        icon: <Receipt className="w-5 h-5" />,
+                        subtitle: "Total facturado",
+                      },
+                      {
+                        title: "Compras",
+                        value: loadingMetrics ? "..." : formatCurrency(metrics.purchasesTotal),
+                        icon: <ShoppingCart className="w-5 h-5" />,
+                        subtitle: "Total compras",
+                      },
+                      {
+                        title: "Margen",
+                        value: loadingMetrics 
+                          ? "..." 
+                          : `${formatCurrency(metrics.margin)} (${formatPercentage(metrics.margin, metrics.invoicesTotal || 1)})`,
+                        icon: <TrendingUp className="w-5 h-5" />,
+                        subtitle: "Facturación - Compras",
+                      },
+                    ]}
+                  />
+                }
+                products={
+                  <DetailDashboardProducts
+                    title="Productos del Proyecto"
+                    products={products}
+                    loading={loadingProducts}
+                    emptyMessage="No hay productos asociados a este proyecto"
+                    onProductClick={(product) => {
+                      // Navegar al presupuesto o factura según el source
+                      if (product.source === 'Presupuesto') {
+                        // TODO: Navegar al presupuesto
+                        console.log('Navegar a presupuesto:', product.source_number);
+                      } else if (product.source === 'Factura') {
+                        // TODO: Navegar a factura
+                        console.log('Navegar a factura:', product.source_number);
+                      }
+                    }}
+                    renderProduct={(product) => (
+                      <div className="detail-dashboard-products__item-content">
+                        <div className="detail-dashboard-products__item-main">
+                          <span className="detail-dashboard-products__item-name">{product.name}</span>
+                          {product.description && (
+                            <span className="detail-dashboard-products__item-description">{product.description}</span>
+                          )}
+                          <span className="text-xs text-muted-foreground mt-1">
+                            {product.source}: {product.source_number}
+                          </span>
+                        </div>
+                        <div className="detail-dashboard-products__item-meta">
+                          {product.quantity !== undefined && (
+                            <span className="detail-dashboard-products__item-quantity">
+                              Cant: {product.quantity}
+                            </span>
+                          )}
+                          {product.total !== undefined && (
+                            <span className="detail-dashboard-products__item-total">
+                              {formatCurrency(product.total)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  />
+                }
+                tasks={
+                  <DetailDashboardTasks
+                    title="Tareas del Proyecto"
+                    tasks={tasks}
+                    loading={loadingTasks}
+                    emptyMessage="No hay tareas asociadas a este proyecto"
+                  />
+                }
+              />
+            )}
+            {activeTab === "planificacion" && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Planificación - Se trabajará más adelante</p>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => setEditDialogOpen(true)}
-              >
-                <Edit2 className="h-4 w-4" />
-                Editar
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem>
-                    <Eye className="h-4 w-4 mr-2" />
-                    Ver en mapa
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Zap className="h-4 w-4 mr-2" />
-                    Generar factura
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-red-600 dark:text-red-400">
-                    Archivar proyecto
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            )}
+            {activeTab === "tecnicos" && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Técnicos - Se trabajará más adelante</p>
+              </div>
+            )}
+            {activeTab === "presupuestos" && projectId && (
+              <ProjectQuotesList projectId={projectId} />
+            )}
+            {activeTab === "facturas" && projectId && (
+              <ProjectInvoicesList projectId={projectId} />
+            )}
+            {activeTab === "compras" && projectId && (
+              <ProjectPurchasesList projectId={projectId} />
+            )}
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-4 h-full gap-0">
-            {/* Sidebar - Left Column */}
-            <div className="lg:col-span-1 border-r border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-950/30 backdrop-blur-sm overflow-y-auto">
-              <div className="p-4 sm:p-6 space-y-6">
-                {/* Project Status & Info */}
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Estado</p>
-                    <div className="flex items-center gap-2 rounded-lg bg-slate-100/70 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50 p-2">
-                      <Badge
-                        className={cn(
-                          "px-3 py-1 text-sm font-semibold",
-                          project?.status === "COMPLETED"
-                            ? "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/30 dark:border-green-600/50"
-                            : project?.status === "IN_PROGRESS"
-                            ? "bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30 dark:border-blue-600/50"
-                            : project?.status === "PLANNED"
-                            ? "bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30 dark:border-purple-600/50"
-                            : "bg-slate-500/20 text-slate-700 dark:text-slate-300 border-slate-500/30 dark:border-slate-600/50"
-                        )}
-                      >
-                        {project?.status === "COMPLETED"
-                          ? "Completado"
-                          : project?.status === "IN_PROGRESS"
-                          ? "En Progreso"
-                          : project?.status === "PLANNED"
-                          ? "Planificado"
-                          : project?.status}
-                      </Badge>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild disabled={updatingStatus}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={updatingStatus}
-                            className="h-8 text-xs"
-                          >
-                            Cambiar
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                          <DropdownMenuItem onClick={() => handleStatusChange("PLANNED")}>
-                            Planificado
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleStatusChange("IN_PROGRESS")}>
-                            En Progreso
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleStatusChange("COMPLETED")}>
-                            Completado
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+        {/* Columna derecha - DetailInfoBlock */}
+        <div className="w-[20rem] flex-shrink-0 border-l border-border h-full">
+          <div className="h-full">
+            <DetailInfoBlock
+            header={
+              <DetailInfoHeader
+                title={loading ? "Cargando..." : client?.company_name || client?.legal_name || "Sin cliente"}
+                subtitle={client?.legal_name && client?.company_name !== client?.legal_name ? client.legal_name : undefined}
+              >
+                <div className="flex flex-col gap-2 mt-2">
+                  {client?.client_number && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Hash className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Nº Cliente:</span>
+                      <span className="font-medium">{client.client_number}</span>
                     </div>
-                  </div>
-
-                  {project?.client_name && (
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Cliente</p>
-                      <p className="text-sm font-medium text-foreground">{project.client_name}</p>
+                  )}
+                  {client?.tax_id && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <FileTextIcon className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">CIF:</span>
+                      <span className="font-medium">{client.tax_id}</span>
+                    </div>
+                  )}
+                  {client?.contact_email && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Mail className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Email:</span>
+                      <span className="font-medium">{client.contact_email}</span>
                     </div>
                   )}
                 </div>
-
-                {/* Quick Stats */}
-                <div className="space-y-3">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Resumen</p>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-100/60 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50">
-                      <span className="text-xs text-muted-foreground">Presupuestos</span>
-                      <span className="font-semibold text-foreground">{projectKPIs.quotesCount}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-100/60 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50">
-                      <span className="text-xs text-muted-foreground">Facturas</span>
-                      <span className="font-semibold text-foreground">{projectKPIs.invoicesCount}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-100/60 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50">
-                      <span className="text-xs text-muted-foreground">Gastos</span>
-                      <span className="font-semibold text-foreground">{projectKPIs.expensesCount}</span>
+                
+                {/* Estado del Proyecto */}
+                <div className="mt-4 pt-4 border-t border-border">
+                  <div className="flex flex-col gap-2 items-center">
+                    <span className="text-xs text-muted-foreground uppercase font-medium w-full text-center">Estado del Proyecto</span>
+                    <div className="w-full flex justify-center">
+                      <StatusSelector
+                        currentStatus={project?.status || "PLANNED"}
+                        statusOptions={PROJECT_STATUSES}
+                        onStatusChange={(newStatus) => {
+                          // TODO: Implementar actualización en base de datos
+                          console.log("Cambiar estado del proyecto a:", newStatus);
+                          // Por ahora solo actualizamos el estado local
+                          if (project) {
+                            setProject({ ...project, status: newStatus });
+                          }
+                        }}
+                        size="md"
+                      />
                     </div>
                   </div>
                 </div>
-
-                {/* Location & Details */}
-                <div className="space-y-3 p-3 rounded-lg bg-slate-100/40 dark:bg-slate-800/30 border border-slate-200/50 dark:border-slate-700/50">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Detalles</p>
-                  <div className="space-y-2 text-sm">
-                    {project?.project_city && (
-                      <div className="flex items-start gap-2">
-                        <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
-                        <span className="text-foreground">{project.project_city}</span>
-                      </div>
-                    )}
-                    {project?.project_address && (
-                      <div className="flex items-start gap-2">
-                        <Building2 className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
-                        <span className="text-foreground text-xs">{project.project_address}</span>
-                      </div>
-                    )}
-                    {project?.created_at && (
-                      <div className="flex items-start gap-2">
-                        <Calendar className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
-                        <span className="text-foreground text-xs">
-                          {new Date(project.created_at).toLocaleDateString("es-ES")}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* KPIs Cards */}
-                <div className="space-y-2 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/30 p-3 rounded-lg border border-blue-200/60 dark:border-blue-800/60">
-                    <p className="text-xs text-muted-foreground mb-1">Presupuesto Total</p>
-                    <p className="text-lg font-bold text-foreground">
-                      €{projectKPIs.totalBudget?.toLocaleString("es-ES", { maximumFractionDigits: 0 })}
-                    </p>
-                  </div>
-                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/30 p-3 rounded-lg border border-emerald-200/60 dark:border-emerald-800/60">
-                    <p className="text-xs text-muted-foreground mb-1">Facturado</p>
-                    <p className="text-lg font-bold text-foreground">
-                      €{projectKPIs.totalInvoiced?.toLocaleString("es-ES", { maximumFractionDigits: 0 })}
-                    </p>
-                  </div>
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/40 dark:to-orange-900/30 p-3 rounded-lg border border-orange-200/60 dark:border-orange-800/60">
-                    <p className="text-xs text-muted-foreground mb-1">Margen</p>
-                    <p className="text-lg font-bold text-foreground">
-                      {projectKPIs.profitabilityPercentage?.toFixed(1)}%
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Main Content - Tabs */}
-            <div className="lg:col-span-3 flex flex-col overflow-hidden">
-              <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="w-full h-full flex flex-col"
+              </DetailInfoHeader>
+            }
+            summary={
+              <DetailInfoSummary
+                columns={2}
+                items={[
+                  {
+                    label: "Dirección",
+                    value: project?.project_address 
+                      ? `${project.project_address}${project.project_city ? `, ${project.project_city}` : ""}`
+                      : "Sin dirección",
+                    icon: <MapPin className="w-4 h-4" />,
+                  },
+                  {
+                    label: "Local",
+                    value: project?.local_name || "Sin local",
+                    icon: <Building className="w-4 h-4" />,
+                  },
+                  ...((project?.installation_start_date || project?.actual_start_date || project?.start_date)
+                    ? [
+                        {
+                          label: "Inicio Instalación",
+                          value: formatDate(project.installation_start_date || project.actual_start_date || project.start_date || null) || "-",
+                          icon: <CalendarIcon className="w-4 h-4" />,
+                        },
+                      ]
+                    : []),
+                  ...((project?.delivery_date || project?.actual_end_date || project?.end_date)
+                    ? [
+                        {
+                          label: "Fecha Entrega",
+                          value: formatDate(project.delivery_date || project.actual_end_date || project.end_date || null) || "-",
+                          icon: <Package className="w-4 h-4" />,
+                        },
+                      ]
+                    : []),
+                ]}
               >
-                {/* Tabs List */}
-                <div className="border-b border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-950/30 backdrop-blur-sm px-4 sm:px-6 lg:px-8">
-                  <TabsList className="h-auto bg-transparent border-0 p-0 gap-0">
-                    <TabsTrigger
-                      value="dashboard"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground transition-colors"
-                    >
-                      <TrendingUp className="h-4 w-4 mr-2" />
-                      Dashboard
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="planning"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground transition-colors"
-                    >
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Planificación
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="quotes"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground transition-colors"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Presupuestos
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="technicians"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground transition-colors"
-                    >
-                      <Clock className="h-4 w-4 mr-2" />
-                      Técnicos
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="expenses"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground transition-colors"
-                    >
-                      <TrendingUp className="h-4 w-4 mr-2" />
-                      Gastos
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="invoices"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground transition-colors"
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Facturas
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-
-                {/* Tabs Content */}
-                <div className="flex-1 overflow-auto">
-                  <div className="px-4 sm:px-6 lg:px-8 py-6">
-                    <TabsContent value="dashboard" className="mt-0 data-[state=inactive]:hidden">
-                      <ProjectDashboardTab project={project} />
-                    </TabsContent>
-
-                    <TabsContent value="planning" className="mt-0 data-[state=inactive]:hidden">
-                      <ProjectPlanningTab projectId={project?.id} />
-                    </TabsContent>
-
-                    <TabsContent value="quotes" className="mt-0 data-[state=inactive]:hidden">
-                      <ProjectQuotesTab projectId={project?.id} clientId={project?.client_id || undefined} />
-                    </TabsContent>
-
-                    <TabsContent value="technicians" className="mt-0 data-[state=inactive]:hidden">
-                      <ProjectTechniciansTab projectId={project?.id} />
-                    </TabsContent>
-
-                    <TabsContent value="expenses" className="mt-0 data-[state=inactive]:hidden">
-                      <ProjectExpensesTab projectId={project?.id} />
-                    </TabsContent>
-
-                    <TabsContent value="invoices" className="mt-0 data-[state=inactive]:hidden">
-                      <ProjectInvoicesTab projectId={project?.id} clientId={project?.client_id || undefined} />
-                    </TabsContent>
+                <div className="space-y-2">
+                  {project?.project_address && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <span className="text-muted-foreground text-xs uppercase">Dirección:</span>
+                        <p className="font-medium">
+                          {project.project_address}
+                          {project.project_city && `, ${project.project_city}`}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {project?.local_name && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <Building className="w-4 h-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <span className="text-muted-foreground text-xs uppercase">Local:</span>
+                        <p className="font-medium">{project.local_name}</p>
+                      </div>
+                    </div>
+                  )}
+                  {(project?.installation_start_date || project?.actual_start_date || project?.start_date) && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <CalendarIcon className="w-4 h-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <span className="text-muted-foreground text-xs uppercase">Inicio Instalación:</span>
+                        <p className="font-medium">
+                          {formatDate(project.installation_start_date || project.actual_start_date || project.start_date || null)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {(project?.delivery_date || project?.actual_end_date || project?.end_date) && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <Package className="w-4 h-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <span className="text-muted-foreground text-xs uppercase">Fecha Entrega:</span>
+                        <p className="font-medium">
+                          {formatDate(project.delivery_date || project.actual_end_date || project.end_date || null)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="pt-2 border-t border-border">
+                    <p className="text-xs text-muted-foreground uppercase mb-1">Técnicos asignados</p>
+                    <p className="text-sm text-muted-foreground">Se trabajará más adelante</p>
                   </div>
                 </div>
-              </Tabs>
-            </div>
+              </DetailInfoSummary>
+            }
+            content={
+              <div className="flex flex-col gap-3">
+                <MetricCard
+                  title="Presupuesto"
+                  value={loadingMetrics ? "Cargando..." : formatCurrency(metrics.quotesTotal)}
+                  icon={FileText}
+                />
+                <MetricCard
+                  title="Facturación"
+                  value={loadingMetrics ? "Cargando..." : formatCurrency(metrics.invoicesTotal)}
+                  icon={Receipt}
+                />
+                <MetricCard
+                  title="Compras"
+                  value={loadingMetrics ? "Cargando..." : formatCurrency(metrics.purchasesTotal)}
+                  icon={ShoppingCart}
+                />
+                <MetricCard
+                  title="Margen"
+                  value={
+                    loadingMetrics
+                      ? "Cargando..."
+                      : `${formatCurrency(metrics.margin)} (${formatPercentage(metrics.margin, metrics.invoicesTotal || 1)})`
+                  }
+                  icon={TrendingUp}
+                />
+              </div>
+            }
+            />
           </div>
         </div>
-
-      {/* Edit Project Dialog */}
-      <CreateProjectDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        onSuccess={() => {
-          setEditDialogOpen(false);
-          fetchProject();
-        }}
-        project={project}
-      />
+      </div>
     </div>
   );
 };

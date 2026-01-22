@@ -1,0 +1,270 @@
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { usePagination } from "@/hooks/usePagination";
+import PaginationControls from "../common/PaginationControls";
+import "../../styles/components/projects/project-items-list.css";
+
+interface PurchaseInvoice {
+  id: string;
+  invoice_number: string;
+  internal_purchase_number: string | null;
+  supplier_invoice_number: string | null;
+  document_type: string;
+  issue_date: string;
+  provider_name: string | null;
+  total: number;
+  paid_amount: number;
+  pending_amount: number;
+  status: string;
+}
+
+const STATUS_STYLES: Record<string, string> = {
+  PENDING: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  REGISTERED: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  PARTIAL: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  PAID: "bg-green-500/20 text-green-400 border-green-500/30",
+  CANCELLED: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+  DRAFT: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: "Pendiente",
+  REGISTERED: "Registrado",
+  PARTIAL: "Pago Parcial",
+  PAID: "Pagado",
+  CANCELLED: "Cancelado",
+  DRAFT: "Borrador",
+};
+
+interface ProjectPurchasesListProps {
+  projectId: string;
+}
+
+const ProjectPurchasesList = ({ projectId }: ProjectPurchasesListProps) => {
+  const navigate = useNavigate();
+  const { userId } = useParams<{ userId: string }>();
+  const [loading, setLoading] = useState(true);
+  const [purchases, setPurchases] = useState<PurchaseInvoice[]>([]);
+
+  useEffect(() => {
+    fetchPurchases();
+  }, [projectId]);
+
+  const fetchPurchases = async () => {
+    if (!projectId) return;
+
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.rpc("list_purchase_invoices", {
+        p_search: null,
+        p_status: null,
+        p_document_type: null,
+      });
+
+      if (error) throw error;
+
+      // Filtrar solo las compras del proyecto
+      const projectPurchases = (data || []).filter(
+        (p: any) => p.project_id === projectId
+      );
+
+      setPurchases(projectPurchases);
+    } catch (error: any) {
+      console.error("Error fetching purchases:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "EUR",
+    }).format(amount);
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const {
+    currentPage,
+    totalPages,
+    paginatedData: paginatedPurchases,
+    goToPage,
+    nextPage,
+    prevPage,
+    canGoNext,
+    canGoPrev,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination(purchases, { pageSize: 20 });
+
+  if (loading) {
+    return (
+      <div className="project-items-list project-items-list--loading">
+        <div className="project-items-list__loading">
+          <Loader2 className="project-items-list__loading-icon" />
+          <p className="project-items-list__loading-text">Cargando compras...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (purchases.length === 0) {
+    return (
+      <div className="project-items-list project-items-list--empty">
+        <div className="project-items-list__empty">
+          <p className="project-items-list__empty-text">
+            No hay compras asociadas a este proyecto
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="project-items-list">
+      <div className="project-items-list__container">
+        <div className="project-items-list__table-wrapper">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="project-items-list__header">Fecha</TableHead>
+                <TableHead className="project-items-list__header">Nº Documento</TableHead>
+                <TableHead className="project-items-list__header">Proveedor</TableHead>
+                <TableHead className="project-items-list__header">Tipo</TableHead>
+                <TableHead className="project-items-list__header text-right">Total</TableHead>
+                <TableHead className="project-items-list__header text-right">Pagado</TableHead>
+                <TableHead className="project-items-list__header text-right">Pendiente</TableHead>
+                <TableHead className="project-items-list__header text-center">Estado</TableHead>
+                <TableHead className="project-items-list__header w-10"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedPurchases.map((purchase) => {
+                const statusStyle = STATUS_STYLES[purchase.status] || STATUS_STYLES.PENDING;
+                const statusLabel = STATUS_LABELS[purchase.status] || purchase.status;
+                const displayNumber =
+                  purchase.internal_purchase_number ||
+                  purchase.supplier_invoice_number ||
+                  purchase.invoice_number;
+
+                return (
+                  <TableRow
+                    key={purchase.id}
+                    className="project-items-list__row"
+                    onClick={() =>
+                      navigate(`/nexo-av/${userId}/purchase-invoices/${purchase.id}`)
+                    }
+                  >
+                    <TableCell className="project-items-list__cell">
+                      {formatDate(purchase.issue_date)}
+                    </TableCell>
+                    <TableCell className="project-items-list__cell project-items-list__cell--number">
+                      {displayNumber}
+                    </TableCell>
+                    <TableCell className="project-items-list__cell">
+                      {purchase.provider_name || "Sin proveedor"}
+                    </TableCell>
+                    <TableCell className="project-items-list__cell">
+                      {purchase.document_type}
+                    </TableCell>
+                    <TableCell className="project-items-list__cell text-right">
+                      {formatCurrency(purchase.total)}
+                    </TableCell>
+                    <TableCell className="project-items-list__cell text-right">
+                      {formatCurrency(purchase.paid_amount)}
+                    </TableCell>
+                    <TableCell className="project-items-list__cell text-right">
+                      {formatCurrency(purchase.pending_amount)}
+                    </TableCell>
+                    <TableCell className="project-items-list__cell text-center">
+                      <Badge
+                        variant="outline"
+                        className={cn(statusStyle, "project-items-list__badge")}
+                      >
+                        {statusLabel}
+                      </Badge>
+                    </TableCell>
+                    <TableCell
+                      className="project-items-list__cell"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="project-items-list__menu-button"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(
+                                `/nexo-av/${userId}/purchase-invoices/${purchase.id}`
+                              );
+                            }}
+                          >
+                            Ver detalle
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>Duplicar</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Paginación */}
+        {totalPages > 1 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            startIndex={startIndex}
+            endIndex={endIndex}
+            totalItems={totalItems}
+            canGoPrev={canGoPrev}
+            canGoNext={canGoNext}
+            onPrevPage={prevPage}
+            onNextPage={nextPage}
+            onGoToPage={goToPage}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ProjectPurchasesList;

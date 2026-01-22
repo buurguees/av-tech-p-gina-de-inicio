@@ -1,0 +1,134 @@
+/* ============================================
+   DETAIL ACTION BUTTON
+   Botón reutilizable para acciones en DetailNavigationBar
+   Usa el sistema de diseño de global.css
+   ============================================ */
+
+.detail-action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem !important;
+  font-size: 0.8125rem !important;
+  /* text-sm del sistema */
+  font-weight: 500 !important;
+  line-height: 1.55 !important;
+  border-radius: 0.5rem;
+  transition: all 0.15s ease;
+  height: auto !important;
+}
+
+.detail-action-button__icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.detail-action-button__label {
+  white-space: nowrap;
+}
+
+/* Hover state - Igual que sidebar */
+/* Light theme - hover negro con texto blanco */
+body.nexo-av-theme .detail-action-button:hover:not(:disabled) {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.nexo-av-theme .detail-action-button:hover:not(:disabled) .detail-action-button__icon {
+  color: #ffffff !important;
+}
+
+/* Dark theme - hover blanco con texto negro */
+body.nexo-av-theme-dark .detail-action-button:hover:not(:disabled) {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+body.nexo-av-theme-dark .detail-action-button:hover:not(:disabled) .detail-action-button__icon {
+  color: #000000 !important;
+}
+
+/* Active state - Igual que sidebar */
+/* Light theme - activo negro con texto blanco */
+body.nexo-av-theme .detail-action-button {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.nexo-av-theme .detail-action-button .detail-action-button__icon {
+  color: #ffffff !important;
+}
+
+/* Dark theme - activo blanco con texto negro */
+body.nexo-av-theme-dark .detail-action-button {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+body.nexo-av-theme-dark .detail-action-button .detail-action-button__icon {
+  color: #000000 !important;
+}
+
+/* Disabled state */
+.detail-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .detail-action-button {
+    padding: 0.4375rem 0.875rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .detail-action-button__icon {
+    width: 0.9375rem;
+    height: 0.9375rem;
+  }
+
+  .detail-action-button__label {
+    display: none;
+  }
+
+  /* En mobile, solo mostrar el icono */
+  .detail-action-button {
+    padding: 0.5rem !important;
+    width: 2.5rem;
+    height: 2.5rem;
+    justify-content: center;
+  }
+}
+
+/* Desktop Narrow (1280px - 1439px) - Escalado del sistema */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .detail-action-button {
+    padding: 0.46875rem 0.9375rem !important;
+    font-size: 0.78125rem !important;
+  }
+
+  .detail-action-button__icon {
+    width: 0.96875rem;
+    height: 0.96875rem;
+  }
+}
+
+/* Desktop Compact (1024px - 1279px) - Escalado del sistema */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .detail-action-button {
+    padding: 0.4375rem 0.875rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .detail-action-button__icon {
+    width: 0.9375rem;
+    height: 0.9375rem;
+  }
+}
+
+/* Focus states - Accesibilidad */
+.detail-action-button:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}

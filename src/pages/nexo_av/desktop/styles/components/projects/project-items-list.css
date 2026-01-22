@@ -1,0 +1,183 @@
+/* ============================================
+   PROJECT ITEMS LIST
+   Listado reutilizable para facturas, presupuestos y compras
+   Usa el sistema de diseño de global.css
+   ============================================ */
+
+.project-items-list {
+  width: 100%;
+  padding: 1.5rem;
+}
+
+.project-items-list__container {
+  width: 100%;
+}
+
+.project-items-list__table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  background: hsl(var(--card));
+}
+
+/* Headers */
+.project-items-list__header {
+  font-size: 0.75rem !important;
+  /* text-xs del sistema */
+  font-weight: 600 !important;
+  color: hsl(var(--text-secondary)) !important;
+  line-height: 1.5 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1rem !important;
+  background: hsl(var(--muted) / 0.3);
+}
+
+/* Rows */
+.project-items-list__row {
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-color: hsl(var(--border)) !important;
+}
+
+.project-items-list__row:hover {
+  background: hsl(var(--accent)) !important;
+}
+
+/* Cells */
+.project-items-list__cell {
+  padding: 0.875rem 1rem !important;
+  font-size: 0.8125rem !important;
+  /* text-sm del sistema */
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.55 !important;
+}
+
+.project-items-list__cell--number {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
+  font-weight: 600 !important;
+}
+
+.project-items-list__cell--total {
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Badge */
+.project-items-list__badge {
+  font-size: 0.75rem !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.25rem !important;
+}
+
+/* Menu button */
+.project-items-list__menu-button {
+  height: 2rem !important;
+  width: 2rem !important;
+  color: hsl(var(--text-secondary)) !important;
+}
+
+.project-items-list__menu-button:hover {
+  color: hsl(var(--foreground)) !important;
+  background: hsl(var(--accent)) !important;
+}
+
+/* Loading state */
+.project-items-list--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20rem;
+}
+
+.project-items-list__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.project-items-list__loading-icon {
+  width: 2rem;
+  height: 2rem;
+  color: hsl(var(--text-secondary));
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.project-items-list__loading-text {
+  font-size: 0.8125rem !important;
+  color: hsl(var(--text-secondary)) !important;
+  line-height: 1.55 !important;
+}
+
+/* Empty state */
+.project-items-list--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20rem;
+}
+
+.project-items-list__empty {
+  text-align: center;
+  padding: 2rem;
+}
+
+.project-items-list__empty-text {
+  font-size: 0.8125rem !important;
+  color: hsl(var(--text-secondary)) !important;
+  line-height: 1.55 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .project-items-list {
+    padding: 1rem;
+  }
+
+  .project-items-list__header,
+  .project-items-list__cell {
+    padding: 0.625rem 0.75rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .project-items-list__table-wrapper {
+    font-size: 0.75rem;
+  }
+}
+
+/* Desktop Narrow (1280px - 1439px) - Escalado del sistema */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .project-items-list {
+    padding: 1.375rem;
+  }
+
+  .project-items-list__header,
+  .project-items-list__cell {
+    padding: 0.8125rem 0.9375rem !important;
+    font-size: 0.78125rem !important;
+  }
+}
+
+/* Desktop Compact (1024px - 1279px) - Escalado del sistema */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .project-items-list {
+    padding: 1.25rem;
+  }
+
+  .project-items-list__header,
+  .project-items-list__cell {
+    padding: 0.75rem 0.875rem !important;
+    font-size: 0.75rem !important;
+  }
+}

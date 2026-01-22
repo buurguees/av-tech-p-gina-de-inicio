@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Building2, Calendar, FileText, Edit, Lock, User, Send, Trash2, FolderKanban, Download } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, FileText, Edit, Lock, User, Send, Trash2, FolderKanban, Download, LayoutDashboard, Receipt, Clock } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +25,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import TabNav, { TabItem } from "../components/navigation/TabNav";
+import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from "../components/detail";
 import InvoicePDFViewer from "../components/invoices/InvoicePDFViewer";
 import InvoicePaymentsSection from "../components/invoices/InvoicePaymentsSection";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
@@ -61,6 +64,13 @@ const InvoiceDetailPageDesktop = () => {
   const [preferences, setPreferences] = useState<any>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState("resumen");
+
+  const tabs: TabItem[] = [
+    { value: "resumen", label: "Resumen", icon: LayoutDashboard },
+    { value: "lineas", label: "Lineas", icon: FileText },
+    { value: "auditoria", label: "Auditoria", icon: Clock },
+  ];
 
   const fetchInvoiceData = async () => {
     if (!invoiceId) return;
@@ -278,35 +288,17 @@ const InvoiceDetailPageDesktop = () => {
   const hasPreliminaryNumber = invoice.preliminary_number && invoice.preliminary_number !== invoice.invoice_number;
 
   return (
-    <div className="w-full h-full">
-      <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto">
-        {/* Header with Title and Back button */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 flex-shrink-0"
-            onClick={() => navigate(`/nexo-av/${userId}/invoices`)}
-            title="Volver a Facturas"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex flex-col">
-            <h1 className="text-2xl font-bold tracking-tight">Detalle de Factura</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <p className="text-xs font-mono text-muted-foreground">{displayNumber}</p>
-              {hasPreliminaryNumber && invoice.invoice_number && (
-                <span className="text-xs text-muted-foreground">
-                  (Borrador: {invoice.preliminary_number})
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Header Actions */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
+    <div className="w-full h-full flex flex-col">
+      <DetailNavigationBar
+        pageTitle="Detalle de Factura"
+        contextInfo={
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono text-muted-foreground">{displayNumber}</span>
+            {hasPreliminaryNumber && invoice.invoice_number && (
+              <span className="text-xs text-muted-foreground">
+                (Borrador: {invoice.preliminary_number})
+              </span>
+            )}
             <Badge className={statusInfo.className}>
               {isLocked && <Lock className="w-3 h-3 mr-1" />}
               {statusInfo.label}
@@ -315,7 +307,9 @@ const InvoiceDetailPageDesktop = () => {
               <span className="text-sm text-muted-foreground">(Número preliminar)</span>
             )}
           </div>
-
+        }
+        backPath={userId ? `/nexo-av/${userId}/invoices` : undefined}
+        tools={
           <div className="flex items-center gap-3">
             {invoice.status === "DRAFT" && (
               <>
@@ -413,9 +407,22 @@ const InvoiceDetailPageDesktop = () => {
               </Select>
             )}
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        }
+      />
+      
+      <div className="flex-1 flex overflow-hidden">
+        {/* Columna izquierda - TabNav y contenido */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <TabNav
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          
+          <div className="flex-1 overflow-auto">
+            {activeTab === "resumen" && (
+              <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - PDF Preview */}
           <div className="lg:col-span-2">
             <Card className="bg-white/5 border-white/10 overflow-hidden">
@@ -637,6 +644,108 @@ const InvoiceDetailPageDesktop = () => {
               status={invoice.status}
               isLocked={isLocked}
               onPaymentChange={handlePaymentsChange}
+            />
+          </div>
+        </div>
+              </div>
+            )}
+            {activeTab === "lineas" && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Lineas - Se trabajará más adelante</p>
+              </div>
+            )}
+            {activeTab === "auditoria" && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Auditoria - Se trabajará más adelante</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Columna derecha - DetailInfoBlock */}
+        <div className="w-[20rem] flex-shrink-0 border-l border-border h-full">
+          <div className="h-full">
+            <DetailInfoBlock
+              header={
+                <DetailInfoHeader
+                  title={loading ? "Cargando..." : client?.company_name || client?.legal_name || "Sin cliente"}
+                  subtitle={client?.legal_name && client?.company_name !== client?.legal_name ? client.legal_name : undefined}
+                >
+                  <div className="flex flex-col gap-2 mt-2">
+                    {client?.tax_id && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">CIF:</span>
+                        <span className="font-medium">{client.tax_id}</span>
+                      </div>
+                    )}
+                    {client?.contact_email && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <User className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Email:</span>
+                        <span className="font-medium">{client.contact_email}</span>
+                      </div>
+                    )}
+                  </div>
+                </DetailInfoHeader>
+              }
+              summary={
+                <DetailInfoSummary
+                  columns={2}
+                  items={[
+                    {
+                      label: "Subtotal",
+                      value: formatCurrency(invoice?.subtotal || 0),
+                      icon: <FileText className="w-4 h-4" />,
+                    },
+                    {
+                      label: "Impuestos",
+                      value: formatCurrency(invoice?.tax_amount || 0),
+                      icon: <Receipt className="w-4 h-4" />,
+                    },
+                    {
+                      label: "Total",
+                      value: formatCurrency(invoice?.total || 0),
+                      icon: <Building2 className="w-4 h-4" />,
+                    },
+                    ...(invoice?.status !== "DRAFT" ? [
+                      {
+                        label: "Cobrado",
+                        value: formatCurrency(invoice?.paid_amount || 0),
+                        icon: <Calendar className="w-4 h-4" />,
+                      },
+                      {
+                        label: "Pendiente",
+                        value: formatCurrency(invoice?.pending_amount || 0),
+                        icon: <FolderKanban className="w-4 h-4" />,
+                      },
+                    ] : []),
+                  ]}
+                />
+              }
+              content={
+                <div className="flex flex-col gap-3">
+                  <MetricCard
+                    title="Total"
+                    value={formatCurrency(invoice?.total || 0)}
+                    icon={Receipt}
+                  />
+                  {invoice?.status !== "DRAFT" && (
+                    <>
+                      <MetricCard
+                        title="Cobrado"
+                        value={formatCurrency(invoice?.paid_amount || 0)}
+                        icon={Calendar}
+                      />
+                      <MetricCard
+                        title="Pendiente"
+                        value={formatCurrency(invoice?.pending_amount || 0)}
+                        icon={FolderKanban}
+                      />
+                    </>
+                  )}
+                </div>
+              }
             />
           </div>
         </div>

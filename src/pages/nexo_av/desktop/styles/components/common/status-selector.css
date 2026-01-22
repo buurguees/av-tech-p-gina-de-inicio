@@ -1,0 +1,296 @@
+/* ============================================
+   STATUS SELECTOR - Diseño Reinventado
+   Componente moderno y minimalista integrado con el sistema Nexo AV
+   ============================================ */
+
+/* Contenedor principal */
+.status-selector {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ============================================
+   BOTÓN PRINCIPAL
+   Diseño sólido con color del estado
+   ============================================ */
+
+.status-selector__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: auto;
+  min-width: 10rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: hsl(0 0% 100%);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.status-selector__button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.status-selector__button:hover::before {
+  opacity: 1;
+}
+
+/* Tamaños */
+.status-selector__button--sm {
+  min-width: 8rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.status-selector__button--md {
+  min-width: 10rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
+}
+
+.status-selector__button--lg {
+  min-width: 12rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* Hover state */
+.status-selector__button:hover:not(.status-selector__button--disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.status-selector__button:active:not(.status-selector__button--disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Disabled state */
+.status-selector__button--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Label */
+.status-selector__label {
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Icono */
+.status-selector__icon {
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.9;
+}
+
+[data-state="open"] .status-selector__icon {
+  transform: rotate(180deg);
+}
+
+/* ============================================
+   COLORES DE ESTADO
+   Paleta recomendada por estado
+   ============================================ */
+
+/* 🗓️ Planificado - Azul claro #3B82F6 */
+.status-selector__button.status-color--planned {
+  background-color: #3B82F6;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.status-selector__button.status-color--planned:hover:not(.status-selector__button--disabled) {
+  background-color: #2563EB;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+}
+
+/* 🔄 En progreso - Ámbar/Naranja #F59E0B */
+.status-selector__button.status-color--in-progress {
+  background-color: #F59E0B;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+.status-selector__button.status-color--in-progress:hover:not(.status-selector__button--disabled) {
+  background-color: #D97706;
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4);
+}
+
+/* ⏸️ Pausado - Gris medio #9CA3AF */
+.status-selector__button.status-color--paused {
+  background-color: #9CA3AF;
+  box-shadow: 0 2px 4px rgba(156, 163, 175, 0.3);
+}
+
+.status-selector__button.status-color--paused:hover:not(.status-selector__button--disabled) {
+  background-color: #6B7280;
+  box-shadow: 0 4px 8px rgba(156, 163, 175, 0.4);
+}
+
+/* ✅ Completado - Verde #22C55E */
+.status-selector__button.status-color--completed {
+  background-color: #22C55E;
+  box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
+}
+
+.status-selector__button.status-color--completed:hover:not(.status-selector__button--disabled) {
+  background-color: #16A34A;
+  box-shadow: 0 4px 8px rgba(34, 197, 94, 0.4);
+}
+
+/* 💰 Facturado/Pagada - Verde oscuro/Esmeralda #16A34A */
+.status-selector__button.status-color--invoiced {
+  background-color: #16A34A;
+  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.3);
+}
+
+.status-selector__button.status-color--invoiced:hover:not(.status-selector__button--disabled) {
+  background-color: #15803D;
+  box-shadow: 0 4px 8px rgba(22, 163, 74, 0.4);
+}
+
+/* ❌ Cancelado - Rojo #EF4444 */
+.status-selector__button.status-color--cancelled {
+  background-color: #EF4444;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.status-selector__button.status-color--cancelled:hover:not(.status-selector__button--disabled) {
+  background-color: #DC2626;
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+}
+
+/* ============================================
+   MENÚ DROPDOWN
+   Diseño limpio y moderno con fondo sólido
+   ============================================ */
+
+/* El menú dropdown se maneja directamente con las clases de DropdownMenuContent */
+/* No necesitamos estilos adicionales aquí ya que usamos las clases de shadcn/ui */
+
+
+/* ============================================
+   ITEMS DEL MENÚ
+   Diseño con indicador de color y check
+   ============================================ */
+
+/* Los items del dropdown se manejan directamente con las clases de DropdownMenuItem */
+/* No necesitamos estilos adicionales aquí ya que usamos Badge dentro de los items */
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .status-selector__button {
+    min-width: 8rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .status-selector__menu {
+    min-width: 10rem;
+    max-width: 16rem;
+  }
+
+  .status-selector__item {
+    padding: 0.5rem 0.625rem !important;
+  }
+
+  .status-selector__item-text {
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================
+   DESKTOP NARROW (1024px - 1439px)
+   Escalado proporcional
+   ============================================ */
+
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .status-selector__button {
+    font-size: 0.75rem !important;
+    padding: 0.4375rem 0.8125rem !important;
+    min-width: 9rem !important;
+    min-height: 10.5rem !important;
+  }
+
+  .status-selector__button--sm {
+    font-size: 0.6875rem !important;
+    padding: 0.3125rem 0.6875rem !important;
+    min-width: 7rem !important;
+  }
+
+  .status-selector__button--lg {
+    font-size: 0.8125rem !important;
+    padding: 0.5625rem 0.9375rem !important;
+    min-width: 11rem !important;
+  }
+
+  .status-selector__item-text {
+    font-size: 0.75rem !important;
+  }
+
+  .status-selector__icon {
+    width: 0.8125rem !important;
+    height: 0.8125rem !important;
+  }
+}
+
+/* ============================================
+   DESKTOP COMPACT (1024px - 1279px)
+   Escalado más significativo
+   ============================================ */
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .status-selector__button {
+    font-size: 0.6875rem !important;
+    padding: 0.375rem 0.75rem !important;
+    min-width: 8rem !important;
+  }
+
+  .status-selector__button--sm {
+    font-size: 0.625rem !important;
+    padding: 0.25rem 0.625rem !important;
+    min-width: 6.5rem !important;
+  }
+
+  .status-selector__button--lg {
+    font-size: 0.75rem !important;
+    padding: 0.5rem 0.875rem !important;
+    min-width: 10rem !important;
+  }
+
+  .status-selector__item-text {
+    font-size: 0.6875rem !important;
+  }
+
+  .status-selector__icon {
+    width: 0.75rem !important;
+    height: 0.75rem !important;
+  }
+}

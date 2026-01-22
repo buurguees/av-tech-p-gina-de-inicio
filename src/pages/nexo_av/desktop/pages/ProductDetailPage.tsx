@@ -7,8 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, Loader2, Package, Wrench, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Package, Wrench, ShieldAlert, LayoutDashboard, FileText, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
+import DetailNavigationBar from '../components/navigation/DetailNavigationBar';
+import TabNav, { TabItem } from '../components/navigation/TabNav';
+import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from '../components/detail';
 
 type ProductType = 'product' | 'service';
 
@@ -69,6 +72,14 @@ export default function ProductDetailPage() {
   const [taxRate, setTaxRate] = useState('21');
   const [stock, setStock] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [activeTab, setActiveTab] = useState('resumen');
+
+  const tabs: TabItem[] = [
+    { value: 'resumen', label: 'Resumen', icon: LayoutDashboard },
+    { value: 'por-asignar-1', label: 'Por asignar', icon: FileText },
+    { value: 'por-asignar-2', label: 'Por asignar', icon: Calendar },
+    { value: 'por-asignar-3', label: 'Por asignar', icon: Package },
+  ];
 
   const isAdmin = userInfo?.roles?.includes('admin') || false;
   const isProductType = product?.type === 'product';
@@ -234,31 +245,49 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="w-full h-full">
-      <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto">
-        {/* Product header */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className={`p-3 rounded-lg ${isProductType ? 'bg-blue-500/20' : 'bg-purple-500/20'}`}>
-            {isProductType ? (
-              <Package className={`w-8 h-8 ${isProductType ? 'text-blue-400' : 'text-purple-400'}`} />
-            ) : (
-              <Wrench className="w-8 h-8 text-purple-400" />
-            )}
-          </div>
-          <div>
-            <p className="text-orange-400 font-mono text-sm">{product.product_number}</p>
-            <h1 className="text-2xl font-bold text-white">{product.name}</h1>
-            <p className="text-white/60 text-sm">
+    <div className="w-full h-full flex flex-col">
+      <DetailNavigationBar
+        pageTitle={`Detalle de ${itemLabel}`}
+        contextInfo={
+          <div className="flex items-center gap-2">
+            <span className="text-orange-400 font-mono text-sm">{product.product_number}</span>
+            <span className="text-white/60 text-sm">
               {product.category_name}
               {product.subcategory_name && ` > ${product.subcategory_name}`}
-            </p>
-          </div>
-          <div className="ml-auto">
+            </span>
             <span className={`px-3 py-1 rounded-full text-sm ${product.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
               {product.is_active ? 'Activo' : 'Inactivo'}
             </span>
           </div>
-        </div>
+        }
+        backPath={userId ? `/nexo-av/${userId}/catalog` : undefined}
+      />
+      
+      <div className="flex-1 flex overflow-hidden">
+        {/* Columna izquierda - TabNav y contenido */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <TabNav
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          
+          <div className="flex-1 overflow-auto">
+            {activeTab === 'resumen' && (
+              <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                {/* Product header */}
+                <div className="flex items-center gap-4 mb-8">
+            <div className={`p-3 rounded-lg ${isProductType ? 'bg-blue-500/20' : 'bg-purple-500/20'}`}>
+              {isProductType ? (
+                <Package className={`w-8 h-8 ${isProductType ? 'text-blue-400' : 'text-purple-400'}`} />
+              ) : (
+                <Wrench className="w-8 h-8 text-purple-400" />
+              )}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">{product.name}</h1>
+            </div>
+          </div>
 
         {/* Edit form */}
         <div className="grid gap-6">
@@ -446,6 +475,99 @@ export default function ProductDetailPage() {
               </Button>
             </div>
           )}
+        </div>
+              </div>
+            )}
+            {activeTab === 'por-asignar-1' && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+              </div>
+            )}
+            {activeTab === 'por-asignar-2' && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+              </div>
+            )}
+            {activeTab === 'por-asignar-3' && (
+              <div className="p-6">
+                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Columna derecha - DetailInfoBlock */}
+        <div className="w-[20rem] flex-shrink-0 border-l border-border h-full">
+          <div className="h-full">
+            <DetailInfoBlock
+              header={
+                <DetailInfoHeader
+                  title={product ? product.name : "Cargando..."}
+                  subtitle={product ? `${product.category_name}${product.subcategory_name ? ` > ${product.subcategory_name}` : ''}` : undefined}
+                >
+                  <div className="flex flex-col gap-2 mt-2">
+                    {product?.product_number && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Nº Producto:</span>
+                        <span className="font-medium font-mono">{product.product_number}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-sm">
+                      <Package className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Tipo:</span>
+                      <span className="font-medium">{isProductType ? 'Producto' : 'Servicio'}</span>
+                    </div>
+                  </div>
+                </DetailInfoHeader>
+              }
+              summary={
+                <DetailInfoSummary
+                  columns={2}
+                  items={[
+                    {
+                      label: "Precio base",
+                      value: `${parseFloat(basePrice || '0').toFixed(2)} €`,
+                      icon: <FileText className="w-4 h-4" />,
+                    },
+                    {
+                      label: "PVP",
+                      value: `${priceWithTax.toFixed(2)} €`,
+                      icon: <Calendar className="w-4 h-4" />,
+                    },
+                    ...(isProductType ? [
+                      {
+                        label: "Stock",
+                        value: stock || '0',
+                        icon: <Package className="w-4 h-4" />,
+                      },
+                    ] : []),
+                  ]}
+                />
+              }
+              content={
+                <div className="flex flex-col gap-3">
+                  <MetricCard
+                    title="PVP"
+                    value={`${priceWithTax.toFixed(2)} €`}
+                    icon={Package}
+                  />
+                  <MetricCard
+                    title="Precio base"
+                    value={`${parseFloat(basePrice || '0').toFixed(2)} €`}
+                    icon={FileText}
+                  />
+                  {isProductType && (
+                    <MetricCard
+                      title="Stock"
+                      value={stock || '0'}
+                      icon={Calendar}
+                    />
+                  )}
+                </div>
+              }
+            />
+          </div>
         </div>
       </div>
     </div>

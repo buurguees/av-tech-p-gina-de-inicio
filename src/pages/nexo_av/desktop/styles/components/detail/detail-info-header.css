@@ -1,0 +1,107 @@
+/* ============================================
+   DETAIL INFO HEADER
+   Cabecera del DetailInfoBlock
+   Usa el sistema de diseño de global.css
+   ============================================ */
+
+.detail-info-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.detail-info-header__main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.detail-info-header__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-info-header__title {
+  font-size: 1.25rem !important;
+  /* h1 del sistema */
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.4 !important;
+  letter-spacing: -0.01em !important;
+  margin: 0;
+}
+
+.detail-info-header__subtitle {
+  font-size: 0.8125rem !important;
+  /* text-sm del sistema */
+  font-weight: 400 !important;
+  color: hsl(var(--text-secondary)) !important;
+  line-height: 1.55 !important;
+  margin: 0;
+}
+
+.detail-info-header__badge {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.detail-info-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.detail-info-header__children {
+  width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .detail-info-header__main {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .detail-info-header__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .detail-info-header__title {
+    font-size: 1.125rem !important;
+  }
+}
+
+/* Desktop Narrow (1280px - 1439px) - Escalado del sistema */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .detail-info-header__title {
+    font-size: 1.15rem !important;
+    /* 1.25rem * 0.92 */
+  }
+
+  .detail-info-header__subtitle {
+    font-size: 0.75rem !important;
+    /* 0.8125rem * 0.92 */
+  }
+}
+
+/* Desktop Compact (1024px - 1279px) - Escalado del sistema */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .detail-info-header__title {
+    font-size: 1.0625rem !important;
+    /* 1.25rem * 0.85 */
+  }
+
+  .detail-info-header__subtitle {
+    font-size: 0.6875rem !important;
+    /* 0.8125rem * 0.85 */
+  }
+}

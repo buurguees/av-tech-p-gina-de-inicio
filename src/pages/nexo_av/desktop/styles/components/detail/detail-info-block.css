@@ -1,0 +1,97 @@
+/* ============================================
+   DETAIL INFO BLOCK
+   Bloque vertical reutilizable para mostrar datos
+   en páginas de detalle (proyecto, cliente, factura, etc.)
+   Usa el sistema de diseño de global.css
+   ============================================ */
+
+.detail-info-block {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  /* Ocupa toda la altura disponible */
+  background: hsl(var(--background));
+  border: none;
+  /* Sin borde ya que está dentro de un contenedor con borde */
+  border-radius: 0;
+  /* Sin border-radius para que ocupe todo el espacio */
+  overflow: hidden;
+  /* Usa el sistema de diseño */
+  min-height: 0;
+  /* Necesario para que flex funcione correctamente */
+}
+
+/* Cabecera - Datos importantes */
+.detail-info-block__header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--muted) / 0.3);
+  /* Fondo sutil para destacar la cabecera */
+  flex-shrink: 0;
+  /* No se encoge */
+}
+
+/* Bloque de resumen */
+.detail-info-block__summary {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  flex-shrink: 0;
+  /* No se encoge */
+}
+
+/* Bloque de contenido dinámico */
+.detail-info-block__content {
+  padding: 1.25rem 1.5rem;
+  background: hsl(var(--background));
+  flex: 1;
+  overflow-y: auto;
+  /* Permite scroll interno si el contenido es muy largo */
+  min-height: 0;
+  /* Necesario para que flex funcione correctamente con overflow */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .detail-info-block__header,
+  .detail-info-block__summary,
+  .detail-info-block__content {
+    padding: 1rem 1.25rem;
+  }
+}
+
+/* Desktop Narrow (1280px - 1439px) - Escalado del sistema */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .detail-info-block__header,
+  .detail-info-block__summary,
+  .detail-info-block__content {
+    padding: 1.125rem 1.375rem;
+    /* Reducción del 8-10% */
+  }
+}
+
+/* Desktop Compact (1024px - 1279px) - Escalado del sistema */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .detail-info-block__header,
+  .detail-info-block__summary,
+  .detail-info-block__content {
+    padding: 1rem 1.25rem;
+    /* Reducción del 15-20% */
+  }
+}
+
+/* Dark mode adjustments */
+body.nexo-av-theme-dark .detail-info-block {
+  background: hsl(var(--background));
+  border-color: hsl(var(--border) / 0.8);
+}
+
+body.nexo-av-theme-dark .detail-info-block__header {
+  background: hsl(var(--muted) / 0.2);
+  border-bottom-color: hsl(var(--border) / 0.8);
+}
+
+body.nexo-av-theme-dark .detail-info-block__summary {
+  border-bottom-color: hsl(var(--border) / 0.8);
+}
