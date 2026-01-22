@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, Plugin, ResolvedConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
@@ -23,30 +23,27 @@ const nodeModulesToExternalize = [
 ];
 
 // Plugin para suprimir warnings de módulos externalizados durante el build
-const suppressNodeModuleWarnings = () => {
+const suppressNodeModuleWarnings = (): Plugin => {
   return {
     name: 'suppress-node-module-warnings',
-    configResolved(config) {
-      // Interceptar el logger de Vite para filtrar warnings específicos
+    configResolved(config: ResolvedConfig) {
       const originalWarn = config.logger.warn;
       const originalInfo = config.logger.info;
       
-      config.logger.warn = (msg, options) => {
-        // Suprimir warnings sobre módulos externalizados
+      config.logger.warn = (msg: string, options?) => {
         if (typeof msg === 'string' && 
             msg.includes('has been externalized for browser compatibility') &&
             nodeModulesToExternalize.some(mod => msg.includes(`Module "${mod}"`))) {
-          return; // No mostrar este warning
+          return;
         }
         originalWarn(msg, options);
       };
       
-      // También interceptar mensajes de info que pueden contener estos warnings
-      config.logger.info = (msg, options) => {
+      config.logger.info = (msg: string, options?) => {
         if (typeof msg === 'string' && 
             msg.includes('has been externalized for browser compatibility') &&
             nodeModulesToExternalize.some(mod => msg.includes(`Module "${mod}"`))) {
-          return; // No mostrar este mensaje
+          return;
         }
         originalInfo(msg, options);
       };
@@ -65,7 +62,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === 'development' && componentTagger(),
     suppressNodeModuleWarnings(),
-  ].filter(Boolean),
+  ].filter(Boolean) as Plugin[],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -76,22 +73,19 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: ['buffer'],
-    exclude: ['jscanify'], // Excluir jscanify de la optimización ya que se carga dinámicamente
+    exclude: ['jscanify'],
   },
   build: {
     outDir: "build",
-    chunkSizeWarningLimit: 2000, // Aumentar el límite para evitar warnings innecesarios
+    chunkSizeWarningLimit: 2000,
     commonjsOptions: {
-      // Ignorar módulos de Node.js durante la transformación CommonJS
       ignore: nodeModulesToExternalize,
     },
     rollupOptions: {
       onwarn(warning, warn) {
-        // Suprimir warnings comunes que no son críticos
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
           return;
         }
-        // Suprimir warnings sobre módulos externalizados (son esperados)
         if (warning.code === 'UNRESOLVED_IMPORT' && 
             nodeModulesToExternalize.some(mod => warning.message?.includes(mod))) {
           return;
@@ -99,7 +93,6 @@ export default defineConfig(({ mode }) => ({
         warn(warning);
       },
       external: (id) => {
-        // Externalizar módulos de Node.js que no deberían estar en el bundle
         if (nodeModulesToExternalize.some(mod => id === mod || id.startsWith(`${mod}/`))) {
           return true;
         }
@@ -107,7 +100,6 @@ export default defineConfig(({ mode }) => ({
       },
       output: {
         manualChunks: {
-          // Separar vendor chunks grandes para mejor code splitting
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'ui-vendor': [
             '@radix-ui/react-dialog',
@@ -122,7 +114,5 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-  // Configurar el nivel de logging
-  // Los warnings sobre módulos externalizados son informativos y no afectan el funcionamiento
   logLevel: mode === 'production' ? 'warn' : 'info',
 }));
