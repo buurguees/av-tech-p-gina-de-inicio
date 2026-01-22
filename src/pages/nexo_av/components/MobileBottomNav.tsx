@@ -160,6 +160,8 @@ const MobileBottomNav = ({ userId, userRoles = [] }: MobileBottomNavProps) => {
       {/* Menu Desplegable */}
       {showMenu && (
         <MenuDesplegable
+          open={showMenu}
+          onOpenChange={setShowMenu}
           userId={userId}
           isAdmin={isAdmin}
           onClose={() => setShowMenu(false)}
