@@ -223,8 +223,7 @@ const ProjectDetailPageDesktop = () => {
   }
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-      <div className="w-full h-full flex flex-col overflow-hidden">
+    <div className="w-full h-full flex flex-col overflow-hidden">
         {/* Top Navigation Bar */}
         <div className="border-b border-slate-200/80 dark:border-slate-700/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
@@ -499,7 +498,6 @@ const ProjectDetailPageDesktop = () => {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Edit Project Dialog */}
       <CreateProjectDialog
