@@ -13,6 +13,55 @@
   display: none !important; /* Chrome, Safari and Opera */
 }
 
+/* ============================================
+   NEW UNDERLINE STYLE TABS
+   ============================================ */
+
+/* TabsList with underline style (horizontal tabs) */
+[role="tablist"].tab-underline,
+[class*="TabsList"] {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 0 !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  background: transparent !important;
+}
+
+/* TabsTrigger with underline style */
+[role="tab"],
+[class*="TabsTrigger"] {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  color: hsl(var(--muted-foreground)) !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+  padding: 0.75rem 1rem !important;
+  margin: 0 !important;
+}
+
+/* TabsTrigger hover state */
+[role="tab"]:hover,
+[class*="TabsTrigger"]:hover {
+  color: hsl(var(--foreground)) !important;
+  background: hsl(var(--muted) / 0.3) !important;
+}
+
+/* TabsTrigger active state */
+[role="tab"][data-state="active"],
+[class*="TabsTrigger"][data-state="active"] {
+  color: hsl(var(--primary)) !important;
+  border-bottom-color: hsl(var(--primary)) !important;
+  background: transparent !important;
+}
+
 /* TabsList General - Base styles for all TabsList */
 [role="tablist"],
 [class*="TabsList"] {

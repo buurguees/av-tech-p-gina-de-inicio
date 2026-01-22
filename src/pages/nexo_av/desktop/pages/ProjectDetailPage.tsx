@@ -1,12 +1,32 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import ProjectHeader from "../components/projects/ProjectHeader";
-import ProjectKPIs from "../components/projects/ProjectKPIs";
-import ProjectTabNavigation from "../components/projects/ProjectTabNavigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  Building2,
+  FileText,
+  MoreVertical,
+  Edit2,
+  Eye,
+  Zap,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import ProjectDashboardTab from "../components/projects/ProjectDashboardTab";
 import ProjectPlanningTab from "../components/projects/ProjectPlanningTab";
 import ProjectQuotesTab from "../components/projects/ProjectQuotesTab";
@@ -203,59 +223,282 @@ const ProjectDetailPageDesktop = () => {
   }
 
   return (
-    <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto">
-      <div className="w-full h-full flex flex-col">
-        {/* Header */}
-        <ProjectHeader
-          project={project}
-          updatingStatus={updatingStatus}
-          onStatusChange={handleStatusChange}
-          onEditClick={() => setEditDialogOpen(true)}
-        />
+    <div className="w-full h-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+      <div className="w-full h-full flex flex-col overflow-hidden">
+        {/* Top Navigation Bar */}
+        <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9"
+                onClick={() => navigate(`/nexo-av/${userId}/projects`)}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex flex-col gap-1">
+                <h1 className="text-lg font-bold text-foreground">{project?.project_name}</h1>
+                <p className="text-xs text-muted-foreground font-mono">#{project?.project_number}</p>
+              </div>
+            </div>
 
-        {/* KPIs */}
-        <ProjectKPIs
-          totalBudget={projectKPIs.totalBudget}
-          totalInvoiced={projectKPIs.totalInvoiced}
-          totalExpenses={projectKPIs.totalExpenses}
-          profitability={projectKPIs.profitability}
-          profitabilityPercentage={projectKPIs.profitabilityPercentage}
-          quotesCount={projectKPIs.quotesCount}
-          invoicesCount={projectKPIs.invoicesCount}
-          expensesCount={projectKPIs.expensesCount}
-          loading={kpisLoading}
-        />
-
-        {/* Tabs Navigation */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
-          <ProjectTabNavigation />
-
-          <div className="flex-1 overflow-auto">
-            <TabsContent value="dashboard" className="mt-0 h-full">
-              <ProjectDashboardTab project={project} />
-            </TabsContent>
-
-            <TabsContent value="planning" className="mt-0 h-full">
-              <ProjectPlanningTab projectId={project.id} />
-            </TabsContent>
-
-            <TabsContent value="quotes" className="mt-0 h-full">
-              <ProjectQuotesTab projectId={project.id} clientId={project.client_id || undefined} />
-            </TabsContent>
-
-            <TabsContent value="technicians" className="mt-0 h-full">
-              <ProjectTechniciansTab projectId={project.id} />
-            </TabsContent>
-
-            <TabsContent value="expenses" className="mt-0 h-full">
-              <ProjectExpensesTab projectId={project.id} />
-            </TabsContent>
-
-            <TabsContent value="invoices" className="mt-0 h-full">
-              <ProjectInvoicesTab projectId={project.id} clientId={project.client_id || undefined} />
-            </TabsContent>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => setEditDialogOpen(true)}
+              >
+                <Edit2 className="h-4 w-4" />
+                Editar
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver en mapa
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Zap className="h-4 w-4 mr-2" />
+                    Generar factura
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-red-600 dark:text-red-400">
+                    Archivar proyecto
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-        </Tabs>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-4 h-full gap-0">
+            {/* Sidebar - Left Column */}
+            <div className="lg:col-span-1 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 overflow-y-auto">
+              <div className="p-4 sm:p-6 space-y-6">
+                {/* Project Status & Info */}
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Estado</p>
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        className={cn(
+                          "px-3 py-1 text-sm font-semibold",
+                          project?.status === "COMPLETED"
+                            ? "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30"
+                            : project?.status === "IN_PROGRESS"
+                            ? "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30"
+                            : project?.status === "PLANNED"
+                            ? "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30"
+                            : "bg-slate-500/20 text-slate-700 dark:text-slate-400 border-slate-500/30"
+                        )}
+                      >
+                        {project?.status === "COMPLETED"
+                          ? "Completado"
+                          : project?.status === "IN_PROGRESS"
+                          ? "En Progreso"
+                          : project?.status === "PLANNED"
+                          ? "Planificado"
+                          : project?.status}
+                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild disabled={updatingStatus}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={updatingStatus}
+                            className="h-8 text-xs"
+                          >
+                            Cambiar
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          <DropdownMenuItem onClick={() => handleStatusChange("PLANNED")}>
+                            Planificado
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange("IN_PROGRESS")}>
+                            En Progreso
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange("COMPLETED")}>
+                            Completado
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+
+                  {project?.client_name && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Cliente</p>
+                      <p className="text-sm font-medium text-foreground">{project.client_name}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Stats */}
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Resumen</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-slate-100 dark:bg-slate-900/50">
+                      <span className="text-xs text-muted-foreground">Presupuestos</span>
+                      <span className="font-semibold">{projectKPIs.quotesCount}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-slate-100 dark:bg-slate-900/50">
+                      <span className="text-xs text-muted-foreground">Facturas</span>
+                      <span className="font-semibold">{projectKPIs.invoicesCount}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-slate-100 dark:bg-slate-900/50">
+                      <span className="text-xs text-muted-foreground">Gastos</span>
+                      <span className="font-semibold">{projectKPIs.expensesCount}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location & Details */}
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Detalles</p>
+                  <div className="space-y-2 text-sm">
+                    {project?.project_city && (
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                        <span className="text-foreground">{project.project_city}</span>
+                      </div>
+                    )}
+                    {project?.project_address && (
+                      <div className="flex items-start gap-2">
+                        <Building2 className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                        <span className="text-foreground text-xs">{project.project_address}</span>
+                      </div>
+                    )}
+                    {project?.created_at && (
+                      <div className="flex items-start gap-2">
+                        <Calendar className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                        <span className="text-foreground text-xs">
+                          {new Date(project.created_at).toLocaleDateString("es-ES")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* KPIs Cards */}
+                <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 p-3 rounded-lg border border-blue-200/50 dark:border-blue-800/50">
+                    <p className="text-xs text-muted-foreground mb-1">Presupuesto Total</p>
+                    <p className="text-lg font-bold text-foreground">
+                      €{projectKPIs.totalBudget?.toLocaleString("es-ES", { maximumFractionDigits: 0 })}
+                    </p>
+                  </div>
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 p-3 rounded-lg border border-emerald-200/50 dark:border-emerald-800/50">
+                    <p className="text-xs text-muted-foreground mb-1">Facturado</p>
+                    <p className="text-lg font-bold text-foreground">
+                      €{projectKPIs.totalInvoiced?.toLocaleString("es-ES", { maximumFractionDigits: 0 })}
+                    </p>
+                  </div>
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 p-3 rounded-lg border border-orange-200/50 dark:border-orange-800/50">
+                    <p className="text-xs text-muted-foreground mb-1">Margen</p>
+                    <p className="text-lg font-bold text-foreground">
+                      {projectKPIs.profitabilityPercentage?.toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content - Tabs */}
+            <div className="lg:col-span-3 flex flex-col overflow-hidden">
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full h-full flex flex-col"
+              >
+                {/* Tabs List */}
+                <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 backdrop-blur-sm px-4 sm:px-6 lg:px-8">
+                  <TabsList className="h-auto bg-transparent border-0 p-0 gap-0">
+                    <TabsTrigger
+                      value="dashboard"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm"
+                    >
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="planning"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm"
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Planificación
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="quotes"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Presupuestos
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="technicians"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm"
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      Técnicos
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="expenses"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm"
+                    >
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                      Gastos
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="invoices"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Facturas
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+
+                {/* Tabs Content */}
+                <div className="flex-1 overflow-auto">
+                  <div className="px-4 sm:px-6 lg:px-8 py-6">
+                    <TabsContent value="dashboard" className="mt-0 data-[state=inactive]:hidden">
+                      <ProjectDashboardTab project={project} />
+                    </TabsContent>
+
+                    <TabsContent value="planning" className="mt-0 data-[state=inactive]:hidden">
+                      <ProjectPlanningTab projectId={project?.id} />
+                    </TabsContent>
+
+                    <TabsContent value="quotes" className="mt-0 data-[state=inactive]:hidden">
+                      <ProjectQuotesTab projectId={project?.id} clientId={project?.client_id || undefined} />
+                    </TabsContent>
+
+                    <TabsContent value="technicians" className="mt-0 data-[state=inactive]:hidden">
+                      <ProjectTechniciansTab projectId={project?.id} />
+                    </TabsContent>
+
+                    <TabsContent value="expenses" className="mt-0 data-[state=inactive]:hidden">
+                      <ProjectExpensesTab projectId={project?.id} />
+                    </TabsContent>
+
+                    <TabsContent value="invoices" className="mt-0 data-[state=inactive]:hidden">
+                      <ProjectInvoicesTab projectId={project?.id} clientId={project?.client_id || undefined} />
+                    </TabsContent>
+                  </div>
+                </div>
+              </Tabs>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Edit Project Dialog */}
@@ -264,7 +507,7 @@ const ProjectDetailPageDesktop = () => {
         onOpenChange={setEditDialogOpen}
         onSuccess={() => {
           setEditDialogOpen(false);
-          fetchProject(); // Reload project data
+          fetchProject();
         }}
         project={project}
       />
