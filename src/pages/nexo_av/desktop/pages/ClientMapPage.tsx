@@ -322,7 +322,6 @@ const ClientMapPageDesktop = () => {
                 </CardContent>
               </Card>
             )}
-          </div>
         </div>
       </div>
     </div>

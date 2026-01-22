@@ -1005,10 +1005,7 @@ function TechnicianDetailPageDesktop() {
                   </CardContent>
                 </Card>
               </TabsContent>
-            </div>
-          </div>
-        </Tabs>
-                  </div>
+            </Tabs>
                 </div>
               </div>
             )}

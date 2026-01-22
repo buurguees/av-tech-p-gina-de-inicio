@@ -415,7 +415,6 @@ const ProjectMapPageDesktop = () => {
                 </CardContent>
               </Card>
             )}
-          </div>
         </div>
       </div>
     </div>
