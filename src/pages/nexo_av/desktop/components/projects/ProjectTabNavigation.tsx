@@ -7,36 +7,94 @@ import {
   Wallet,
   Receipt,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const ProjectTabNavigation = () => {
+interface ProjectTabNavigationProps {
+  className?: string;
+}
+
+const ProjectTabNavigation = ({ className }: ProjectTabNavigationProps) => {
+  const tabs = [
+    {
+      value: "dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      value: "planning",
+      label: "Planificación",
+      icon: CalendarDays,
+    },
+    {
+      value: "quotes",
+      label: "Presupuestos",
+      icon: FileText,
+    },
+    {
+      value: "technicians",
+      label: "Técnicos",
+      icon: Users,
+    },
+    {
+      value: "expenses",
+      label: "Gastos",
+      icon: Wallet,
+    },
+    {
+      value: "invoices",
+      label: "Facturas",
+      icon: Receipt,
+    },
+  ];
+
   return (
-    <div className="w-full flex justify-center mb-4 px-2 sm:px-3 md:px-4 lg:px-6">
-      <TabsList className="bg-muted/60 border border-border rounded-lg inline-flex gap-1 p-1">
-        <TabsTrigger value="dashboard" className="text-sm px-3 py-2 rounded-md whitespace-nowrap">
-          <LayoutDashboard className="h-4 w-4 mr-1.5" />
-          Dashboard
-        </TabsTrigger>
-        <TabsTrigger value="planning" className="text-sm px-3 py-2 rounded-md whitespace-nowrap">
-          <CalendarDays className="h-4 w-4 mr-1.5" />
-          Planificación
-        </TabsTrigger>
-        <TabsTrigger value="quotes" className="text-sm px-3 py-2 rounded-md whitespace-nowrap">
-          <FileText className="h-4 w-4 mr-1.5" />
-          Presupuestos
-        </TabsTrigger>
-        <TabsTrigger value="technicians" className="text-sm px-3 py-2 rounded-md whitespace-nowrap">
-          <Users className="h-4 w-4 mr-1.5" />
-          Técnicos
-        </TabsTrigger>
-        <TabsTrigger value="expenses" className="text-sm px-3 py-2 rounded-md whitespace-nowrap">
-          <Wallet className="h-4 w-4 mr-1.5" />
-          Gastos
-        </TabsTrigger>
-        <TabsTrigger value="invoices" className="text-sm px-3 py-2 rounded-md whitespace-nowrap">
-          <Receipt className="h-4 w-4 mr-1.5" />
-          Facturas
-        </TabsTrigger>
-      </TabsList>
+    <div className={cn("w-full mb-6", className)}>
+      <div className="relative">
+        {/* Container con fondo sutil y bordes redondeados */}
+        <TabsList className="relative bg-black/40 backdrop-blur-sm border border-white/10 rounded-2xl p-1.5 inline-flex gap-1 w-full max-w-full overflow-x-auto scrollbar-hide">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className={cn(
+                  "relative flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl",
+                  "text-sm font-medium whitespace-nowrap flex-shrink-0",
+                  "transition-all duration-300 ease-out",
+                  "data-[state=inactive]:text-white/50 data-[state=inactive]:bg-transparent",
+                  "data-[state=inactive]:hover:text-white/80 data-[state=inactive]:hover:bg-white/5",
+                  // Light theme - activo negro con texto blanco
+                  "data-[state=active]:bg-black data-[state=active]:text-white",
+                  "data-[state=active]:shadow-lg data-[state=active]:shadow-black/20",
+                  "data-[state=active]:scale-[1.02] data-[state=active]:font-semibold",
+                  // Dark theme override
+                  "dark:data-[state=active]:bg-white dark:data-[state=active]:text-black",
+                  "dark:data-[state=active]:shadow-white/10",
+                  // Focus states
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
+                  // Smooth transitions
+                  "group"
+                )}
+              >
+                <Icon className="h-4 w-4 transition-transform duration-300 group-data-[state=active]:scale-110" />
+                <span className="relative z-10">{tab.label}</span>
+                
+                {/* Indicador sutil de activo - línea inferior */}
+                <span
+                  className={cn(
+                    "absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5",
+                    "bg-white/60 rounded-full transition-all duration-300",
+                    "group-data-[state=active]:w-3/4",
+                    "dark:group-data-[state=active]:bg-black/60",
+                    "pointer-events-none"
+                  )}
+                />
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+      </div>
     </div>
   );
 };
