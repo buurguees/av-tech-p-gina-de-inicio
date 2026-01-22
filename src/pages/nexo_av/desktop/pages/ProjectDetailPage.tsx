@@ -223,10 +223,10 @@ const ProjectDetailPageDesktop = () => {
   }
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+    <div className="w-full h-full bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       <div className="w-full h-full flex flex-col overflow-hidden">
         {/* Top Navigation Bar */}
-        <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-3">
+        <div className="border-b border-slate-200/80 dark:border-slate-700/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
@@ -281,23 +281,23 @@ const ProjectDetailPageDesktop = () => {
         <div className="flex-1 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-4 h-full gap-0">
             {/* Sidebar - Left Column */}
-            <div className="lg:col-span-1 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 overflow-y-auto">
+            <div className="lg:col-span-1 border-r border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-950/30 backdrop-blur-sm overflow-y-auto">
               <div className="p-4 sm:p-6 space-y-6">
                 {/* Project Status & Info */}
                 <div className="space-y-3">
                   <div className="space-y-2">
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Estado</p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 rounded-lg bg-slate-100/70 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50 p-2">
                       <Badge
                         className={cn(
                           "px-3 py-1 text-sm font-semibold",
                           project?.status === "COMPLETED"
-                            ? "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30"
+                            ? "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/30 dark:border-green-600/50"
                             : project?.status === "IN_PROGRESS"
-                            ? "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30"
+                            ? "bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30 dark:border-blue-600/50"
                             : project?.status === "PLANNED"
-                            ? "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30"
-                            : "bg-slate-500/20 text-slate-700 dark:text-slate-400 border-slate-500/30"
+                            ? "bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30 dark:border-purple-600/50"
+                            : "bg-slate-500/20 text-slate-700 dark:text-slate-300 border-slate-500/30 dark:border-slate-600/50"
                         )}
                       >
                         {project?.status === "COMPLETED"
@@ -346,23 +346,23 @@ const ProjectDetailPageDesktop = () => {
                 <div className="space-y-3">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Resumen</p>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between p-2 rounded-lg bg-slate-100 dark:bg-slate-900/50">
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-100/60 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50">
                       <span className="text-xs text-muted-foreground">Presupuestos</span>
-                      <span className="font-semibold">{projectKPIs.quotesCount}</span>
+                      <span className="font-semibold text-foreground">{projectKPIs.quotesCount}</span>
                     </div>
-                    <div className="flex items-center justify-between p-2 rounded-lg bg-slate-100 dark:bg-slate-900/50">
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-100/60 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50">
                       <span className="text-xs text-muted-foreground">Facturas</span>
-                      <span className="font-semibold">{projectKPIs.invoicesCount}</span>
+                      <span className="font-semibold text-foreground">{projectKPIs.invoicesCount}</span>
                     </div>
-                    <div className="flex items-center justify-between p-2 rounded-lg bg-slate-100 dark:bg-slate-900/50">
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-100/60 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50">
                       <span className="text-xs text-muted-foreground">Gastos</span>
-                      <span className="font-semibold">{projectKPIs.expensesCount}</span>
+                      <span className="font-semibold text-foreground">{projectKPIs.expensesCount}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Location & Details */}
-                <div className="space-y-3">
+                <div className="space-y-3 p-3 rounded-lg bg-slate-100/40 dark:bg-slate-800/30 border border-slate-200/50 dark:border-slate-700/50">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Detalles</p>
                   <div className="space-y-2 text-sm">
                     {project?.project_city && (
@@ -389,20 +389,20 @@ const ProjectDetailPageDesktop = () => {
                 </div>
 
                 {/* KPIs Cards */}
-                <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 p-3 rounded-lg border border-blue-200/50 dark:border-blue-800/50">
+                <div className="space-y-2 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/30 p-3 rounded-lg border border-blue-200/60 dark:border-blue-800/60">
                     <p className="text-xs text-muted-foreground mb-1">Presupuesto Total</p>
                     <p className="text-lg font-bold text-foreground">
                       €{projectKPIs.totalBudget?.toLocaleString("es-ES", { maximumFractionDigits: 0 })}
                     </p>
                   </div>
-                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 p-3 rounded-lg border border-emerald-200/50 dark:border-emerald-800/50">
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/30 p-3 rounded-lg border border-emerald-200/60 dark:border-emerald-800/60">
                     <p className="text-xs text-muted-foreground mb-1">Facturado</p>
                     <p className="text-lg font-bold text-foreground">
                       €{projectKPIs.totalInvoiced?.toLocaleString("es-ES", { maximumFractionDigits: 0 })}
                     </p>
                   </div>
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 p-3 rounded-lg border border-orange-200/50 dark:border-orange-800/50">
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/40 dark:to-orange-900/30 p-3 rounded-lg border border-orange-200/60 dark:border-orange-800/60">
                     <p className="text-xs text-muted-foreground mb-1">Margen</p>
                     <p className="text-lg font-bold text-foreground">
                       {projectKPIs.profitabilityPercentage?.toFixed(1)}%
@@ -420,46 +420,46 @@ const ProjectDetailPageDesktop = () => {
                 className="w-full h-full flex flex-col"
               >
                 {/* Tabs List */}
-                <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/50 backdrop-blur-sm px-4 sm:px-6 lg:px-8">
+                <div className="border-b border-slate-200/80 dark:border-slate-700/80 bg-white/50 dark:bg-slate-950/30 backdrop-blur-sm px-4 sm:px-6 lg:px-8">
                   <TabsList className="h-auto bg-transparent border-0 p-0 gap-0">
                     <TabsTrigger
                       value="dashboard"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground transition-colors"
                     >
                       <TrendingUp className="h-4 w-4 mr-2" />
                       Dashboard
                     </TabsTrigger>
                     <TabsTrigger
                       value="planning"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground transition-colors"
                     >
                       <Calendar className="h-4 w-4 mr-2" />
                       Planificación
                     </TabsTrigger>
                     <TabsTrigger
                       value="quotes"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground transition-colors"
                     >
                       <FileText className="h-4 w-4 mr-2" />
                       Presupuestos
                     </TabsTrigger>
                     <TabsTrigger
                       value="technicians"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground transition-colors"
                     >
                       <Clock className="h-4 w-4 mr-2" />
                       Técnicos
                     </TabsTrigger>
                     <TabsTrigger
                       value="expenses"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground transition-colors"
                     >
                       <TrendingUp className="h-4 w-4 mr-2" />
                       Gastos
                     </TabsTrigger>
                     <TabsTrigger
                       value="invoices"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-4 py-3 font-medium text-sm text-muted-foreground hover:text-foreground data-[state=active]:text-foreground transition-colors"
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Facturas
