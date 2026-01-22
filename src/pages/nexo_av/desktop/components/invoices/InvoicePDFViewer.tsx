@@ -37,7 +37,8 @@ interface InvoiceLine {
 
 interface Invoice {
   id: string;
-  invoice_number: string;
+  invoice_number: string | null;
+  preliminary_number: string | null;
   client_name: string;
   project_name: string | null;
   status: string;
@@ -528,8 +529,15 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
           </View>
           <View style={styles.headerRight}>
             <Text style={styles.documentTitle}>Factura</Text>
-            <Text style={styles.documentNumber}>{invoice.invoice_number}</Text>
+            <Text style={styles.documentNumber}>
+              {invoice.invoice_number || invoice.preliminary_number || "Sin número"}
+            </Text>
             <Text style={styles.documentDate}>Fecha: {formatDate(invoice.issue_date)}</Text>
+            {invoice.status === "DRAFT" && invoice.preliminary_number && (
+              <Text style={[styles.documentDate, { color: "#888", fontStyle: "italic" }]}>
+                (Borrador)
+              </Text>
+            )}
           </View>
         </View>
 

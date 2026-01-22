@@ -340,11 +340,17 @@ body.nexo-av-theme-dark [class*="bg-purple-500/20"] {
 body.nexo-av-theme-dark .card,
 body.nexo-av-theme-dark [class*="rounded-xl"][class*="border"],
 body.nexo-av-theme-dark [class*="bg-card"],
-body.nexo-av-theme-dark [class*="bg-background"][class*="border"] {
+body.nexo-av-theme-dark [class*="bg-background"][class*="border"]:not(header):not(header *) {
   background-color: hsl(var(--card)) !important;
   border: 1px solid hsl(var(--border)) !important;
   box-shadow: var(--shadow-xs) !important;
   border-radius: 8px !important;
+}
+
+/* Excepción: Header siempre debe tener fondo negro */
+body.nexo-av-theme-dark header[class*="bg-background"][class*="border"],
+body.nexo-av-theme header[class*="bg-background"][class*="border"] {
+  background-color: #000000 !important;
 }
 
 /* Panels and sidebars - better contrast */
@@ -798,7 +804,11 @@ body.nexo-av-theme-dark {
 
 /* HEADER - Unificado con sidebar */
 body.nexo-av-theme header,
-body.nexo-av-theme-dark header {
+body.nexo-av-theme-dark header,
+body.nexo-av-theme header[class*="bg-background"],
+body.nexo-av-theme-dark header[class*="bg-background"],
+body.nexo-av-theme header.bg-background,
+body.nexo-av-theme-dark header.bg-background {
   background-color: #000000 !important;
   border-bottom: 1px solid hsl(var(--sidebar-border)) !important;
   border-radius: 0 !important;
@@ -862,10 +872,10 @@ body.nexo-av-theme-dark [class*="bg-sidebar"],
 body.nexo-av-theme-dark [class*="bg-card"][class*="border-r"] {
   background-color: #000000 !important;
   border: none !important;
+  border-left: 1px solid hsl(var(--sidebar-border)) !important;
   border-right: 1px solid hsl(var(--sidebar-border)) !important;
   border-top: none !important;
   border-bottom: none !important;
-  border-left: none !important;
   border-radius: 0 !important;
   margin-left: 0 !important;
   padding-left: 0 !important;
@@ -880,7 +890,7 @@ body.nexo-av-theme-dark [class*="bg-card"][class*="border-r"] {
   /* Asegurar que se muestre en desktop */
 }
 
-/* Contenedor del sidebar - Solo borde derecho - Misma capa que el header */
+/* Contenedor del sidebar - Bordes izquierdo y derecho - Misma capa que el header */
 body.nexo-av-theme div[style*="top: '3.25rem'"],
 body.nexo-av-theme-dark div[style*="top: '3.25rem'"],
 body.nexo-av-theme div[style*="top: 3.25rem"],
@@ -898,6 +908,7 @@ body.nexo-av-theme-dark div[class*="top-\[3\.25rem\]"][class*="fixed"][class*="l
   /* Misma capa que el header */
   border-radius: 0 !important;
   border: none !important;
+  border-left: 1px solid hsl(var(--sidebar-border)) !important;
   border-right: 1px solid hsl(var(--sidebar-border)) !important;
   display: block !important;
   /* Asegurar que el contenedor se muestre en desktop */
@@ -935,12 +946,11 @@ body.nexo-av-theme-dark div[class*="top-\[3\.25rem\]"][class*="fixed"][class*="l
   }
 }
 
-/* Asegurar que el sidebar solo tenga borde derecho - eliminar otros bordes */
+/* Asegurar que el sidebar tenga bordes izquierdo y derecho - eliminar otros bordes */
 body.nexo-av-theme aside,
 body.nexo-av-theme-dark aside {
   border-top: none !important;
   border-bottom: none !important;
-  border-left: none !important;
 }
 
 /* Eliminar border-radius del sidebar contenedor, pero permitir en botones */
@@ -962,7 +972,7 @@ body.nexo-av-theme aside nav button,
 body.nexo-av-theme aside nav a,
 body.nexo-av-theme-dark aside nav button,
 body.nexo-av-theme-dark aside nav a {
-  border-radius: 0 !important;
+  border-radius: 20px !important;
 }
 
 /* Eliminar separación visual entre header y sidebar */
@@ -974,6 +984,10 @@ body.nexo-av-theme-dark header::after {
 /* Asegurar que header y sidebar compartan el mismo fondo */
 body.nexo-av-theme header,
 body.nexo-av-theme-dark header,
+body.nexo-av-theme header[class*="bg-background"],
+body.nexo-av-theme-dark header[class*="bg-background"],
+body.nexo-av-theme header[class*="bg-"],
+body.nexo-av-theme-dark header[class*="bg-"],
 body.nexo-av-theme aside,
 body.nexo-av-theme-dark aside {
   background-color: #000000 !important;
@@ -1005,50 +1019,78 @@ body.nexo-av-theme div.flex[class*="w-"] {
   margin-left: 0 !important;
 }
 
-/* Sidebar navigation items - SIN border-radius */
+/* Sidebar navigation items - Con border-radius 20px */
 body.nexo-av-theme aside nav button,
 body.nexo-av-theme aside nav a,
-body.nexo-av-theme aside button,
-body.nexo-av-theme aside a,
 body.nexo-av-theme-dark aside nav button,
-body.nexo-av-theme-dark aside nav a,
-body.nexo-av-theme-dark aside button,
-body.nexo-av-theme-dark aside a {
+body.nexo-av-theme-dark aside nav a {
   font-size: 0.8125rem !important;
   font-weight: 500 !important;
   padding: 0.5rem 0.75rem !important;
-  border-radius: 0 !important;
+  border-radius: 20px !important;
   color: hsl(var(--text-secondary)) !important;
   transition: all 0.15s ease !important;
 }
 
+/* Light theme - Botón hover/activo negro con texto blanco */
 body.nexo-av-theme aside nav button:hover,
 body.nexo-av-theme aside nav a:hover {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
 }
 
-/* Iconos en hover también en negro */
+/* Iconos en hover también en blanco (light theme) */
 body.nexo-av-theme aside nav button:hover svg,
 body.nexo-av-theme aside nav a:hover svg {
-  color: #000000 !important;
+  color: #ffffff !important;
 }
 
-/* Active sidebar item */
+/* Active sidebar item - Light theme */
 body.nexo-av-theme aside nav button[class*="bg-sidebar-accent"],
 body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"],
 body.nexo-av-theme aside nav button[class*="bg-primary"],
 body.nexo-av-theme aside nav a[class*="bg-primary"] {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* Iconos del item activo también en blanco (light theme) */
+body.nexo-av-theme aside nav button[class*="bg-sidebar-accent"] svg,
+body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"] svg,
+body.nexo-av-theme aside nav button[class*="bg-primary"] svg,
+body.nexo-av-theme aside nav a[class*="bg-primary"] svg {
+  color: #ffffff !important;
+}
+
+/* Dark theme - Botón hover/activo blanco con texto negro */
+body.nexo-av-theme-dark aside nav button:hover,
+body.nexo-av-theme-dark aside nav a:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Iconos en hover también en negro (dark theme) */
+body.nexo-av-theme-dark aside nav button:hover svg,
+body.nexo-av-theme-dark aside nav a:hover svg {
+  color: #000000 !important;
+}
+
+/* Active sidebar item - Dark theme */
+body.nexo-av-theme-dark aside nav button[class*="bg-sidebar-accent"],
+body.nexo-av-theme-dark aside nav a[class*="bg-sidebar-accent"],
+body.nexo-av-theme-dark aside nav button[class*="bg-primary"],
+body.nexo-av-theme-dark aside nav a[class*="bg-primary"] {
   background-color: #ffffff !important;
   color: #000000 !important;
   font-weight: 600 !important;
 }
 
-/* Iconos del item activo también en negro */
-body.nexo-av-theme aside nav button[class*="bg-sidebar-accent"] svg,
-body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"] svg,
-body.nexo-av-theme aside nav button[class*="bg-primary"] svg,
-body.nexo-av-theme aside nav a[class*="bg-primary"] svg {
+/* Iconos del item activo también en negro (dark theme) */
+body.nexo-av-theme-dark aside nav button[class*="bg-sidebar-accent"] svg,
+body.nexo-av-theme-dark aside nav a[class*="bg-sidebar-accent"] svg,
+body.nexo-av-theme-dark aside nav button[class*="bg-primary"] svg,
+body.nexo-av-theme-dark aside nav a[class*="bg-primary"] svg {
   color: #000000 !important;
 }
 
@@ -1069,12 +1111,12 @@ body.nexo-av-theme-dark aside nav a[class*="bg-sidebar-accent"] [class*="p-1.5"]
   border-radius: 0 !important;
 }
 
-/* ELIMINAR border-radius de botones del sidebar */
-body.nexo-av-theme aside button[class*="rounded"],
-body.nexo-av-theme aside a[class*="rounded"],
-body.nexo-av-theme-dark aside button[class*="rounded"],
-body.nexo-av-theme-dark aside a[class*="rounded"] {
-  border-radius: 0 !important;
+/* Botones de navegación del sidebar con border-radius 20px */
+body.nexo-av-theme aside nav button[class*="rounded"],
+body.nexo-av-theme aside nav a[class*="rounded"],
+body.nexo-av-theme-dark aside nav button[class*="rounded"],
+body.nexo-av-theme-dark aside nav a[class*="rounded"] {
+  border-radius: 20px !important;
 }
 
 /* Sidebar icons - small & subtle */
@@ -4103,6 +4145,22 @@ body.nexo-av-theme-dark [class*="grid"][class*="grid-cols-1"][class*="lg:grid-co
   }
 }
 
+/* Grid de 3 columnas en detalle (para InvoiceDetailPage) */
+body.nexo-av-theme [class*="grid"][class*="grid-cols-1"][class*="lg:grid-cols-3"][class*="gap-6"],
+body.nexo-av-theme-dark [class*="grid"][class*="grid-cols-1"][class*="lg:grid-cols-3"][class*="gap-6"] {
+  display: grid !important;
+  grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  gap: 1.5rem !important;
+}
+
+@media (min-width: 1024px) {
+
+  body.nexo-av-theme [class*="grid"][class*="grid-cols-1"][class*="lg:grid-cols-3"][class*="gap-6"],
+  body.nexo-av-theme-dark [class*="grid"][class*="grid-cols-1"][class*="lg:grid-cols-3"][class*="gap-6"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
 /* ============================================
    DETAIL PAGES TOTALS SECTION - Sección de totales
    ============================================ */
@@ -4151,6 +4209,142 @@ body.nexo-av-theme div[class*="flex"][class*="justify-between"][class*="text-red
 body.nexo-av-theme-dark div[class*="flex"][class*="justify-between"][class*="text-red-400"] {
   color: hsl(0 72% 51%) !important;
   font-weight: 500 !important;
+}
+
+/* ============================================
+   INVOICE DETAIL PAGE - Estilos específicos para página de detalle de factura
+   ============================================ */
+
+/* Botón de volver en página de detalle */
+body.nexo-av-theme button:has(svg[class*="ArrowLeft"]),
+body.nexo-av-theme-dark button:has(svg[class*="ArrowLeft"]) {
+  color: hsl(var(--text-muted)) !important;
+  background-color: transparent !important;
+  border: none !important;
+  transition: all 0.15s ease !important;
+}
+
+body.nexo-av-theme button:has(svg[class*="ArrowLeft"]):hover,
+body.nexo-av-theme-dark button:has(svg[class*="ArrowLeft"]):hover {
+  color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--accent)) !important;
+}
+
+/* Icono ArrowLeft */
+body.nexo-av-theme svg[class*="ArrowLeft"],
+body.nexo-av-theme-dark svg[class*="ArrowLeft"] {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+/* Botones de acción en header de detalle */
+body.nexo-av-theme button[class*="bg-emerald-600"],
+body.nexo-av-theme-dark button[class*="bg-emerald-600"] {
+  background-color: hsl(142 71% 45%) !important;
+  color: white !important;
+  border: none !important;
+  transition: all 0.15s ease !important;
+}
+
+body.nexo-av-theme button[class*="bg-emerald-600"]:hover:not(:disabled),
+body.nexo-av-theme-dark button[class*="bg-emerald-600"]:hover:not(:disabled) {
+  background-color: hsl(142 71% 40%) !important;
+}
+
+body.nexo-av-theme button[class*="bg-emerald-600"]:disabled,
+body.nexo-av-theme-dark button[class*="bg-emerald-600"]:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Botón de eliminar (rojo) */
+body.nexo-av-theme button[class*="border-red-500/30"][class*="text-red-400"],
+body.nexo-av-theme-dark button[class*="border-red-500/30"][class*="text-red-400"] {
+  border-color: hsl(0 72% 51% / 0.3) !important;
+  color: hsl(0 72% 51%) !important;
+  background-color: transparent !important;
+}
+
+body.nexo-av-theme button[class*="border-red-500/30"][class*="text-red-400"]:hover:not(:disabled),
+body.nexo-av-theme-dark button[class*="border-red-500/30"][class*="text-red-400"]:hover:not(:disabled) {
+  background-color: hsl(0 72% 51% / 0.1) !important;
+  color: hsl(0 72% 51% / 0.8) !important;
+}
+
+/* Select de cambio de estado */
+body.nexo-av-theme [class*="SelectTrigger"][class*="w-48"],
+body.nexo-av-theme-dark [class*="SelectTrigger"][class*="w-48"] {
+  width: 12rem !important;
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme [class*="SelectTrigger"]:hover,
+body.nexo-av-theme-dark [class*="SelectTrigger"]:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+
+body.nexo-av-theme [class*="SelectContent"],
+body.nexo-av-theme-dark [class*="SelectContent"] {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme [class*="SelectItem"],
+body.nexo-av-theme-dark [class*="SelectItem"] {
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme [class*="SelectItem"]:hover,
+body.nexo-av-theme-dark [class*="SelectItem"]:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+
+body.nexo-av-theme [class*="SelectItem"][class*="disabled"],
+body.nexo-av-theme-dark [class*="SelectItem"][class*="disabled"] {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* AlertDialog en página de detalle */
+body.nexo-av-theme [class*="AlertDialogContent"][class*="bg-zinc-900"],
+body.nexo-av-theme-dark [class*="AlertDialogContent"][class*="bg-zinc-900"] {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme [class*="AlertDialogTitle"],
+body.nexo-av-theme-dark [class*="AlertDialogTitle"] {
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme [class*="AlertDialogDescription"],
+body.nexo-av-theme-dark [class*="AlertDialogDescription"] {
+  color: hsl(var(--text-muted)) !important;
+}
+
+body.nexo-av-theme [class*="AlertDialogCancel"],
+body.nexo-av-theme-dark [class*="AlertDialogCancel"] {
+  background-color: hsl(var(--secondary)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme [class*="AlertDialogCancel"]:hover,
+body.nexo-av-theme-dark [class*="AlertDialogCancel"]:hover {
+  background-color: hsl(var(--accent)) !important;
+}
+
+body.nexo-av-theme [class*="AlertDialogAction"][class*="bg-red-600"],
+body.nexo-av-theme-dark [class*="AlertDialogAction"][class*="bg-red-600"] {
+  background-color: hsl(0 72% 51%) !important;
+  color: white !important;
+}
+
+body.nexo-av-theme [class*="AlertDialogAction"][class*="bg-red-600"]:hover,
+body.nexo-av-theme-dark [class*="AlertDialogAction"][class*="bg-red-600"]:hover {
+  background-color: hsl(0 72% 45%) !important;
 }
 
 /* ============================================

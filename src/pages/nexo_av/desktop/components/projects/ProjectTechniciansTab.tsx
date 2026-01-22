@@ -10,7 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Users, Loader2, FileText, ExternalLink } from "lucide-react";
+import { Plus, Users, Loader2, FileText, ExternalLink, Info } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -89,84 +90,101 @@ const ProjectTechniciansTab = ({ projectId }: ProjectTechniciansTabProps) => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Técnicos del Proyecto</h1>
-          {technicians.length > 0 && (
-            <p className="text-muted-foreground/70 text-[10px] mt-1">
-              {technicians.length} técnico{technicians.length !== 1 ? 's' : ''} trabajando en este proyecto
-            </p>
-          )}
+    <div className="w-full">
+      {/* Header - Estilo Holded */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Técnicos</h1>
+            <Info className="h-3 w-3 text-muted-foreground" />
+            {technicians.length > 0 && (
+              <span className="text-muted-foreground text-xs">
+                {technicians.length} técnico{technicians.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {technicians.length === 0 ? (
-        <div className="text-center py-12 bg-card rounded-2xl border border-border overflow-hidden shadow-md">
-          <Users className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground/70 text-[10px] mb-4">No hay técnicos que hayan trabajado en este proyecto</p>
-          <p className="text-muted-foreground/70 text-[9px]">
-            Los técnicos aparecerán aquí cuando se asignen facturas de compra o gastos al proyecto
-          </p>
+      {/* Table - Siempre muestra cabeceras */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md">
-          <Table>
+        <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
+          <Table className="w-full">
             <TableHeader>
               <TableRow className="hover:bg-transparent bg-muted/30">
-                <TableHead className="text-white/70 text-[10px] px-2">Nº</TableHead>
-                <TableHead className="text-white/70 text-[10px] px-2">Técnico</TableHead>
+                <TableHead className="text-white/70 text-[10px] px-2 text-left">Nº</TableHead>
+                <TableHead className="text-white/70 text-[10px] px-2 text-left">Técnico</TableHead>
                 <TableHead className="text-white/70 text-[10px] px-2 text-center">Tipo</TableHead>
-                <TableHead className="text-white/70 text-[10px] px-2">NIF/CIF</TableHead>
+                <TableHead className="text-white/70 text-[10px] px-2 text-left">NIF/CIF</TableHead>
                 <TableHead className="text-white/70 text-[10px] px-2 text-right">Facturas</TableHead>
                 <TableHead className="text-white/70 text-[10px] px-2 text-right">Total Facturado</TableHead>
-                <TableHead className="text-white/70 text-[10px] px-2">Última Factura</TableHead>
+                <TableHead className="text-white/70 text-[10px] px-2 text-left">Última Factura</TableHead>
                 <TableHead className="text-white/70 text-[10px] px-2 w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {technicians.map((technician) => {
-                const typeInfo = getTypeInfo(technician.technician_type);
-                return (
-                  <TableRow
-                    key={technician.technician_id}
-                    className="border-white/10 cursor-pointer hover:bg-white/"
-                    onClick={() => {
-                      const userId = window.location.pathname.split('/')[2];
-                      navigate(`/nexo-av/${userId}/technicians/${technician.technician_id}`);
-                    }}
-                  >
-                    <TableCell className="font-mono text-white/70 text-[10px] px-2">
-                      {technician.technician_number || '-'}
-                    </TableCell>
-                    <TableCell className="text-white font-medium text-[10px] px-2">
-                      {technician.technician_name}
-                    </TableCell>
-                    <TableCell className="px-2 text-center">
-                      <Badge variant="outline" className="border text-[9px] px-1.5 py-0.5">
-                        {typeInfo.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-mono text-white/60 text-[9px] px-2">
-                      {technician.technician_tax_id || '-'}
-                    </TableCell>
-                    <TableCell className="text-white/70 text-[10px] px-2 text-right">
-                      {technician.invoice_count}
-                    </TableCell>
-                    <TableCell className="text-white font-medium text-[10px] px-2 text-right">
-                      {formatCurrency(parseFloat(technician.total_invoiced?.toString() || '0'))}
-                    </TableCell>
-                    <TableCell className="text-white/60 text-[9px] px-2">
-                      {technician.last_invoice_date 
-                        ? new Date(technician.last_invoice_date).toLocaleDateString('es-ES')
-                        : '-'}
-                    </TableCell>
-                    <TableCell className="px-2" onClick={(e) => e.stopPropagation()}>
-                      <ExternalLink className="h-3 w-3 text-white/40" />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {technicians.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-12">
+                    <div className="flex flex-col items-center justify-center">
+                      <Users className="h-12 w-12 text-muted-foreground mb-3" />
+                      <p className="text-muted-foreground text-sm">No hay técnicos</p>
+                      <p className="text-muted-foreground/70 text-[10px] mt-1">
+                        Los técnicos aparecerán aquí cuando se asignen facturas de compra o gastos al proyecto
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                technicians.map((technician) => {
+                  const typeInfo = getTypeInfo(technician.technician_type);
+                  return (
+                    <TableRow
+                      key={technician.technician_id}
+                      className="border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200"
+                      onClick={() => {
+                        const userId = window.location.pathname.split('/')[2];
+                        navigate(`/nexo-av/${userId}/technicians/${technician.technician_id}`);
+                      }}
+                    >
+                      <TableCell className="font-mono text-white/70 text-[13px] font-semibold px-2">
+                        {technician.technician_number || '-'}
+                      </TableCell>
+                      <TableCell className="text-white font-medium text-[10px] px-2">
+                        {technician.technician_name}
+                      </TableCell>
+                      <TableCell className="px-2 text-center">
+                        <div className="flex justify-center">
+                          <Badge variant="outline" className={cn(typeInfo.color, "border text-[9px] px-1.5 py-0.5")}>
+                            {typeInfo.label}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-white/60 text-[9px] px-2">
+                        {technician.technician_tax_id || '-'}
+                      </TableCell>
+                      <TableCell className="text-white/70 text-[10px] px-2 text-right">
+                        {technician.invoice_count}
+                      </TableCell>
+                      <TableCell className="text-white font-medium text-[10px] px-2 text-right">
+                        {formatCurrency(parseFloat(technician.total_invoiced?.toString() || '0'))}
+                      </TableCell>
+                      <TableCell className="text-white/60 text-[9px] px-2">
+                        {technician.last_invoice_date 
+                          ? new Date(technician.last_invoice_date).toLocaleDateString('es-ES')
+                          : '-'}
+                      </TableCell>
+                      <TableCell className="px-2" onClick={(e) => e.stopPropagation()}>
+                        <ExternalLink className="h-3 w-3 text-white/40" />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
             </TableBody>
           </Table>
         </div>

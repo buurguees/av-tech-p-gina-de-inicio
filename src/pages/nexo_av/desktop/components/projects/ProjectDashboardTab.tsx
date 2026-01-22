@@ -200,118 +200,7 @@ const ProjectDashboardTab = ({ project }: ProjectDashboardTabProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Sección 1: KPIs Principales - Destacados */}
-      {loadingStats ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-24 bg-white/5" />
-          ))}
-        </div>
-      ) : stats && financialStats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Presupuesto Total - KPI Card Medium */}
-          <Card className="kpi-card-medium border hover:shadow-md">
-            <CardContent>
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-600">
-                  <FileTextIcon className="h-[18px] w-[18px]" />
-                </div>
-                {stats.quotesCount > 0 && (
-                  <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30">
-                    {stats.quotesCount} {stats.quotesCount === 1 ? 'presupuesto' : 'presupuestos'}
-                  </span>
-                )}
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Presupuesto Total</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold text-foreground">
-                    {formatCurrency(financialStats.total_budget || stats.quotesTotal || 0)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Facturado - KPI Card Medium */}
-          <Card className="kpi-card-medium border hover:shadow-md">
-            <CardContent>
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-600">
-                  <Receipt className="h-[18px] w-[18px]" />
-                </div>
-                {stats.invoicesCount > 0 && (
-                  <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                    {stats.invoicesCount} {stats.invoicesCount === 1 ? 'factura' : 'facturas'}
-                  </span>
-                )}
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Total Facturado</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold text-foreground">
-                    {formatCurrency(financialStats.total_invoiced || stats.invoicesTotal || 0)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Gastos - KPI Card Medium */}
-          <Card className="kpi-card-medium border hover:shadow-md">
-            <CardContent>
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-2.5 rounded-xl bg-red-500/20 text-red-600">
-                  <Wallet className="h-[18px] w-[18px]" />
-                </div>
-                {stats.expensesCount > 0 && (
-                  <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/30">
-                    {stats.expensesCount} {stats.expensesCount === 1 ? 'gasto' : 'gastos'}
-                  </span>
-                )}
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Total Gastos</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold text-foreground">
-                    {formatCurrency(financialStats.total_expenses || stats.expensesTotal || 0)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Margen Neto - KPI Card Medium */}
-          <Card className="kpi-card-medium border hover:shadow-md">
-            <CardContent>
-              <div className="flex items-start justify-between mb-4">
-                <div className={`p-2.5 rounded-xl ${financialStats && financialStats.margin >= 0 ? 'bg-emerald-500/20 text-emerald-600' : 'bg-red-500/20 text-red-600'}`}>
-                  {financialStats && financialStats.margin >= 0 ? (
-                    <TrendingUp className="h-[18px] w-[18px]" />
-                  ) : (
-                    <TrendingDown className="h-[18px] w-[18px]" />
-                  )}
-                </div>
-                {financialStats && (
-                  <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full border ${financialStats.margin_percentage >= 25 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : financialStats.margin_percentage >= 20 ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30'}`}>
-                    {formatPercentage(financialStats.margin_percentage)}
-                  </span>
-                )}
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Margen Neto</p>
-                <div className="flex items-baseline gap-2">
-                  <p className={`text-2xl font-bold ${financialStats && financialStats.margin >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                    {financialStats ? formatCurrency(financialStats.margin) : formatCurrency(0)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Sección 2: Resumen Financiero Compacto */}
+      {/* Resumen Financiero Compacto */}
       {loadingFinancial ? (
         <Skeleton className="h-32 w-full bg-white/5" />
       ) : financialStats && (
@@ -406,55 +295,55 @@ const ProjectDashboardTab = ({ project }: ProjectDashboardTabProps) => {
         </div>
       )}
 
-      {/* Sección 3: Información del Proyecto - KPI Cards Small */}
+      {/* Sección 3: Información del Proyecto - KPI Cards estilo DashboardView */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-        <div className="kpi-card-small">
+        <div className="bg-card/50 border border-border rounded-lg p-2">
           <div className="flex items-center gap-2 mb-1">
             <div className="p-1 bg-blue-500/10 rounded text-blue-600">
               <Building2 className="h-3.5 w-3.5" />
             </div>
-            <span className="text-[9px] font-medium text-muted-foreground">Cliente</span>
+            <span className="text-muted-foreground text-xs font-medium">Cliente</span>
           </div>
           <div>
-            <p className="text-lg font-bold text-foreground truncate">{project.client_name || '-'}</p>
+            <p className="text-base font-bold text-foreground truncate">{project.client_name || '-'}</p>
           </div>
         </div>
 
-        <div className="kpi-card-small">
+        <div className="bg-card/50 border border-border rounded-lg p-2">
           <div className="flex items-center gap-2 mb-1">
             <div className="p-1 bg-purple-500/10 rounded text-purple-600">
               <MapPin className="h-3.5 w-3.5" />
             </div>
-            <span className="text-[9px] font-medium text-muted-foreground">Ubicación</span>
+            <span className="text-muted-foreground text-xs font-medium">Ubicación</span>
           </div>
           <div>
-            <p className="text-lg font-bold text-foreground truncate">
+            <p className="text-base font-bold text-foreground truncate">
               {project.local_name || project.project_city || '-'}
             </p>
           </div>
         </div>
 
-        <div className="kpi-card-small">
+        <div className="bg-card/50 border border-border rounded-lg p-2">
           <div className="flex items-center gap-2 mb-1">
             <div className="p-1 bg-cyan-500/10 rounded text-cyan-600">
               <FileText className="h-3.5 w-3.5" />
             </div>
-            <span className="text-[9px] font-medium text-muted-foreground">Nº Pedido</span>
+            <span className="text-muted-foreground text-xs font-medium">Nº Pedido</span>
           </div>
           <div>
-            <p className="text-lg font-bold text-foreground truncate">{project.client_order_number || '-'}</p>
+            <p className="text-base font-bold text-foreground truncate">{project.client_order_number || '-'}</p>
           </div>
         </div>
 
-        <div className="kpi-card-small">
+        <div className="bg-card/50 border border-border rounded-lg p-2">
           <div className="flex items-center gap-2 mb-1">
             <div className="p-1 bg-green-500/10 rounded text-green-600">
               <Calendar className="h-3.5 w-3.5" />
             </div>
-            <span className="text-[9px] font-medium text-muted-foreground">Creado</span>
+            <span className="text-muted-foreground text-xs font-medium">Creado</span>
           </div>
           <div>
-            <p className="text-lg font-bold text-foreground">
+            <p className="text-base font-bold text-foreground">
               {new Date(project.created_at).toLocaleDateString('es-ES', {
                 day: 'numeric',
                 month: 'short'
@@ -464,28 +353,28 @@ const ProjectDashboardTab = ({ project }: ProjectDashboardTabProps) => {
         </div>
 
         {project.created_by_name && (
-          <div className="kpi-card-small">
+          <div className="bg-card/50 border border-border rounded-lg p-2">
             <div className="flex items-center gap-2 mb-1">
               <div className="p-1 bg-orange-500/10 rounded text-orange-600">
                 <User className="h-3.5 w-3.5" />
               </div>
-              <span className="text-[9px] font-medium text-muted-foreground">Creado por</span>
+              <span className="text-muted-foreground text-xs font-medium">Creado por</span>
             </div>
             <div>
-              <p className="text-lg font-bold text-foreground truncate">{project.created_by_name}</p>
+              <p className="text-base font-bold text-foreground truncate">{project.created_by_name}</p>
             </div>
           </div>
         )}
 
-        <div className="kpi-card-small">
+        <div className="bg-card/50 border border-border rounded-lg p-2">
           <div className="flex items-center gap-2 mb-1">
             <div className="p-1 bg-violet-500/10 rounded text-violet-600">
               <Hash className="h-3.5 w-3.5" />
             </div>
-            <span className="text-[9px] font-medium text-muted-foreground">Nº Proyecto</span>
+            <span className="text-muted-foreground text-xs font-medium">Nº Proyecto</span>
           </div>
           <div>
-            <p className="text-lg font-bold text-foreground font-mono truncate">{project.project_number}</p>
+            <p className="text-base font-bold text-foreground font-mono truncate">{project.project_number}</p>
           </div>
         </div>
       </div>

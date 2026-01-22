@@ -10,8 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Receipt, Loader2, FileText, ExternalLink, CreditCard } from "lucide-react";
-
+import { Plus, Receipt, Loader2, FileText, ExternalLink, CreditCard, Info } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import CreateProjectExpenseDialog from "./CreateProjectExpenseDialog";
 import RegisterPurchasePaymentDialog from "../purchases/RegisterPurchasePaymentDialog";
@@ -137,62 +137,70 @@ const ProjectExpensesTab = ({ projectId }: ProjectExpensesTabProps) => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Gastos del Proyecto</h1>
-          {hasAnyExpenses && (
-            <p className="text-muted-foreground/70 text-[10px] mt-1">
-              Total: {formatCurrency(totalAll)}
-            </p>
-          )}
+    <div className="w-full">
+      {/* Header - Estilo Holded */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Gastos</h1>
+            <Info className="h-3 w-3 text-muted-foreground" />
+            {hasAnyExpenses && (
+              <span className="text-muted-foreground text-xs">
+                Total: {formatCurrency(totalAll)}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleCreateExpense}
+              className="h-9 px-2 text-[10px] font-medium"
+            >
+              <Plus className="h-3 w-3 mr-1.5" />
+              Añadir Gasto
+              <span className="ml-2 text-[9px] px-1.5 py-0.5 opacity-70">N</span>
+            </Button>
+          </div>
         </div>
-        <Button
-          onClick={handleCreateExpense}
-          className="h-9 px-2 text-[10px]"
-        >
-          <Plus className="h-3 w-3 mr-1.5" />
-          Añadir Gasto
-          <span className="ml-2 text-[9px] px-1.5 py-0.5 opacity-70">N</span>
-        </Button>
       </div>
 
-      {!hasAnyExpenses ? (
-        <div className="text-center py-12 bg-card rounded-2xl border border-border overflow-hidden shadow-md">
-          <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground/70 text-[10px] mb-4">No hay gastos registrados para este proyecto</p>
-          <Button
-            variant="link"
-            className="text-muted-foreground hover:text-foreground"
-            onClick={handleCreateExpense}
-          >
-            Registrar el primer gasto
-          </Button>
+      {/* Tables - Siempre muestra cabeceras */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Facturas de Compra y Gastos */}
-          {purchaseInvoices.length > 0 && (
-            <div>
-              <h4 className="text-sm font-semibold text-white/80 mb-3 flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Facturas de Compra y Gastos ({purchaseInvoices.length})
-              </h4>
-              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent bg-muted/30">
-                      <TableHead className="text-white/70 text-[10px] px-2">Tipo</TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2">Número</TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2">Proveedor/Técnico</TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2 text-right">Importe</TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2">Fecha</TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2 text-center">Estado</TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2 w-10"></TableHead>
+          {/* Facturas de Compra y Gastos - Siempre visible */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Facturas de Compra y Gastos {purchaseInvoices.length > 0 && `(${purchaseInvoices.length})`}
+            </h4>
+            <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent bg-muted/30">
+                    <TableHead className="text-white/70 text-[10px] px-2 text-left">Tipo</TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2 text-left">Número</TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2 text-left">Proveedor/Técnico</TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2 text-right">Importe</TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2 text-left">Fecha</TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2 text-center">Estado</TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2 w-10"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {purchaseInvoices.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-12">
+                        <div className="flex flex-col items-center justify-center">
+                          <FileText className="h-12 w-12 text-muted-foreground mb-3" />
+                          <p className="text-muted-foreground text-sm">No hay facturas de compra</p>
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {purchaseInvoices.map((invoice) => {
+                  ) : (
+                    purchaseInvoices.map((invoice) => {
                       const invoiceNumber = invoice.internal_purchase_number || 
                                           invoice.supplier_invoice_number || 
                                           invoice.invoice_number || 
@@ -203,7 +211,7 @@ const ProjectExpensesTab = ({ projectId }: ProjectExpensesTabProps) => {
                       return (
                         <TableRow
                           key={invoice.id}
-                          className="border-white/10 cursor-pointer hover:bg-white/"
+                          className="border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200"
                           onClick={() => {
                             const userId = window.location.pathname.split('/')[2];
                             const path = invoice.document_type === 'EXPENSE' 
@@ -217,7 +225,7 @@ const ProjectExpensesTab = ({ projectId }: ProjectExpensesTabProps) => {
                               {documentTypeLabel}
                             </Badge>
                           </TableCell>
-                          <TableCell className="font-mono text-white font-medium text-[10px] px-2">
+                          <TableCell className="font-mono text-white/70 text-[13px] font-semibold px-2">
                             {invoiceNumber}
                           </TableCell>
                           <TableCell className="text-white font-medium text-[10px] px-2">
@@ -232,13 +240,15 @@ const ProjectExpensesTab = ({ projectId }: ProjectExpensesTabProps) => {
                               : '-'}
                           </TableCell>
                           <TableCell className="px-2 text-center">
-                            <Badge variant="outline" className="border text-[9px] px-1.5 py-0.5">
-                              {invoice.status === 'PENDING' ? 'Pendiente' :
-                               invoice.status === 'REGISTERED' ? 'Registrado' :
-                               invoice.status === 'CONFIRMED' ? 'Confirmado' :
-                               invoice.status === 'PAID' ? 'Pagado' :
-                               invoice.status}
-                            </Badge>
+                            <div className="flex justify-center">
+                              <Badge variant="outline" className="border text-[9px] px-1.5 py-0.5">
+                                {invoice.status === 'PENDING' ? 'Pendiente' :
+                                 invoice.status === 'REGISTERED' ? 'Registrado' :
+                                 invoice.status === 'CONFIRMED' ? 'Confirmado' :
+                                 invoice.status === 'PAID' ? 'Pagado' :
+                                 invoice.status}
+                              </Badge>
+                            </div>
                           </TableCell>
                           <TableCell className="px-2" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-2">
@@ -270,45 +280,56 @@ const ProjectExpensesTab = ({ projectId }: ProjectExpensesTabProps) => {
                           </TableCell>
                         </TableRow>
                       );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+                    })
+                  )}
+                </TableBody>
+              </Table>
             </div>
-          )}
+          </div>
 
-          {/* Gastos del Proyecto (projects.expenses) */}
-          {expenses.length > 0 && (
-            <div>
-              <h4 className="text-sm font-semibold text-white/80 mb-3 flex items-center gap-2">
-                <Receipt className="h-4 w-4" />
-                Gastos Directos ({expenses.length})
-              </h4>
-              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent bg-muted/30">
-                      <TableHead className="text-white/70 text-[10px] px-2">Descripción</TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2 text-center">Categoría</TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2 text-right">Importe</TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2">Fecha</TableHead>
+          {/* Gastos del Proyecto (projects.expenses) - Siempre visible */}
+          <div>
+            <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Receipt className="h-4 w-4" />
+              Gastos Directos {expenses.length > 0 && `(${expenses.length})`}
+            </h4>
+            <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent bg-muted/30">
+                    <TableHead className="text-white/70 text-[10px] px-2 text-left">Descripción</TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2 text-center">Categoría</TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2 text-right">Importe</TableHead>
+                    <TableHead className="text-white/70 text-[10px] px-2 text-left">Fecha</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {expenses.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-12">
+                        <div className="flex flex-col items-center justify-center">
+                          <Receipt className="h-12 w-12 text-muted-foreground mb-3" />
+                          <p className="text-muted-foreground text-sm">No hay gastos directos</p>
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {expenses.map((expense) => {
+                  ) : (
+                    expenses.map((expense) => {
                       const categoryInfo = getCategoryInfo(expense.category);
                       return (
                         <TableRow
                           key={expense.id}
-                          className="border-white/10 hover:bg-white/"
+                          className="border-white/10 hover:bg-white/[0.06] transition-colors duration-200"
                         >
                           <TableCell className="text-white font-medium text-[10px] px-2">
                             {expense.description}
                           </TableCell>
                           <TableCell className="px-2 text-center">
-                            <Badge variant="outline" className="border text-[9px] px-1.5 py-0.5">
-                              {categoryInfo.label}
-                            </Badge>
+                            <div className="flex justify-center">
+                              <Badge variant="outline" className={cn(categoryInfo.color, "border text-[9px] px-1.5 py-0.5")}>
+                                {categoryInfo.label}
+                              </Badge>
+                            </div>
                           </TableCell>
                           <TableCell className="text-white font-medium text-[10px] px-2 text-right">
                             {formatCurrency(expense.amount || 0)}
@@ -318,12 +339,12 @@ const ProjectExpensesTab = ({ projectId }: ProjectExpensesTabProps) => {
                           </TableCell>
                         </TableRow>
                       );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+                    })
+                  )}
+                </TableBody>
+              </Table>
             </div>
-          )}
+          </div>
         </div>
       )}
 

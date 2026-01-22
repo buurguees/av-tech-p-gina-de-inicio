@@ -162,46 +162,55 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Planning Dates Section */}
-      <Card className="bg-white/5 border-white/10">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-white text-lg flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Fechas Clave
-          </CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-white/20 text-white hover:bg-white/10"
-            onClick={() => setIsAddingCustomDate(true)}
-          >
-            <CalendarPlus className="h-4 w-4 mr-2" />
-            Añadir Fecha
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="w-full">
+      {/* Header - Estilo DashboardView */}
+      <div className="mb-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Planificación</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gestiona fechas clave y contactos del proyecto</p>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {/* Planning Dates Section */}
+        <Card className="bg-card border border-border hover:shadow-md transition-all">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border/50 pb-3 pt-4 px-4">
+            <CardTitle className="text-foreground text-lg font-semibold flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Fechas Clave
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 px-3 text-xs font-medium"
+              onClick={() => setIsAddingCustomDate(true)}
+            >
+              <CalendarPlus className="h-3.5 w-3.5 mr-1.5" />
+              Añadir Fecha
+            </Button>
+          </CardHeader>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* Default planning dates */}
             {planningDates.map((pd) => (
               <div
                 key={pd.id}
-                className="bg-white/5 rounded-lg p-4 border border-white/10"
+                className="bg-card/50 border border-border rounded-lg p-3 hover:shadow-sm transition-all"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <div className={`p-2 rounded-lg ${pd.color.split(' ')[0]}`}>
+                    <div className={`p-1.5 rounded ${pd.color.split(' ')[0]}`}>
                       {pd.icon}
                     </div>
-                    <span className="text-white font-medium">{pd.label}</span>
+                    <span className="text-foreground font-medium text-sm">{pd.label}</span>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-white/60 hover:text-white hover:bg-white/10"
+                    className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground hover:bg-secondary"
                     onClick={() => setEditingDateId(pd.id)}
                   >
-                    <Edit2 className="h-4 w-4" />
+                    <Edit2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
                 {editingDateId === pd.id ? (
@@ -209,20 +218,20 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                     <Input
                       type="date"
                       defaultValue={pd.date || ''}
-                      className="bg-white/5 border-white/10 text-white"
+                      className="bg-background border-border text-foreground h-9"
                       onChange={(e) => handleDateChange(pd.id, e.target.value)}
                     />
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setEditingDateId(null)}
-                      className="text-white/60 hover:text-white"
+                      className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground"
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
                 ) : (
-                  <p className={`text-sm ${pd.date ? 'text-white/80' : 'text-white/40'}`}>
+                  <p className={`text-sm ${pd.date ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {formatDate(pd.date)}
                   </p>
                 )}
@@ -233,31 +242,31 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
             {customDates.map((pd) => (
               <div
                 key={pd.id}
-                className="bg-white/5 rounded-lg p-4 border border-white/10"
+                className="bg-card/50 border border-border rounded-lg p-3 hover:shadow-sm transition-all"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <div className={`p-2 rounded-lg ${pd.color.split(' ')[0]}`}>
+                    <div className={`p-1.5 rounded ${pd.color.split(' ')[0]}`}>
                       {pd.icon}
                     </div>
-                    <span className="text-white font-medium">{pd.label}</span>
+                    <span className="text-foreground font-medium text-sm">{pd.label}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-white/60 hover:text-white hover:bg-white/10"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground hover:bg-secondary"
                       onClick={() => setEditingDateId(pd.id)}
                     >
-                      <Edit2 className="h-4 w-4" />
+                      <Edit2 className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      className="h-7 w-7 p-0 text-red-600 hover:text-red-500 hover:bg-red-500/10"
                       onClick={() => handleRemoveCustomDate(pd.id)}
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
@@ -266,20 +275,20 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                     <Input
                       type="date"
                       defaultValue={pd.date || ''}
-                      className="bg-white/5 border-white/10 text-white"
+                      className="bg-background border-border text-foreground h-9"
                       onChange={(e) => handleCustomDateChange(pd.id, e.target.value)}
                     />
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setEditingDateId(null)}
-                      className="text-white/60 hover:text-white"
+                      className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground"
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
                 ) : (
-                  <p className={`text-sm ${pd.date ? 'text-white/80' : 'text-white/40'}`}>
+                  <p className={`text-sm ${pd.date ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {formatDate(pd.date)}
                   </p>
                 )}
@@ -288,31 +297,31 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
 
             {/* Add custom date form */}
             {isAddingCustomDate && (
-              <div className="bg-white/5 rounded-lg p-4 border border-dashed border-white/20 col-span-1 md:col-span-2">
+              <div className="bg-card/50 border border-dashed border-border rounded-lg p-4 col-span-1 md:col-span-2">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label className="text-white/60 text-sm">Nombre de la fecha</Label>
+                    <Label className="text-muted-foreground text-sm">Nombre de la fecha</Label>
                     <Input
                       placeholder="Ej: Revisión técnica"
                       value={newCustomDate.label}
                       onChange={(e) => setNewCustomDate(prev => ({ ...prev, label: e.target.value }))}
-                      className="bg-white/5 border-white/10 text-white mt-1"
+                      className="bg-background border-border text-foreground mt-1"
                     />
                   </div>
                   <div>
-                    <Label className="text-white/60 text-sm">Fecha</Label>
+                    <Label className="text-muted-foreground text-sm">Fecha</Label>
                     <Input
                       type="date"
                       value={newCustomDate.date}
                       onChange={(e) => setNewCustomDate(prev => ({ ...prev, date: e.target.value }))}
-                      className="bg-white/5 border-white/10 text-white mt-1"
+                      className="bg-background border-border text-foreground mt-1"
                     />
                   </div>
                   <div className="flex items-end gap-2">
                     <Button
                       onClick={handleAddCustomDate}
                       disabled={!newCustomDate.label}
-                      className="bg-white text-black hover:bg-white/90"
+                      className="bg-primary text-primary-foreground hover:opacity-90"
                     >
                       <Save className="h-4 w-4 mr-2" />
                       Guardar
@@ -323,7 +332,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                         setIsAddingCustomDate(false);
                         setNewCustomDate({ label: '', date: '' });
                       }}
-                      className="text-white/60 hover:text-white"
+                      className="text-muted-foreground hover:text-foreground"
                     >
                       Cancelar
                     </Button>
@@ -335,31 +344,31 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
         </CardContent>
       </Card>
 
-      {/* Contacts Section */}
-      <Card className="bg-white/5 border-white/10">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-white text-lg flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Contactos del Proyecto
-          </CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-white/20 text-white hover:bg-white/10"
-            onClick={() => setIsAddingContact(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Añadir Contacto
-          </Button>
-        </CardHeader>
-        <CardContent>
+        {/* Contacts Section */}
+        <Card className="bg-card border border-border hover:shadow-md transition-all">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border/50 pb-3 pt-4 px-4">
+            <CardTitle className="text-foreground text-lg font-semibold flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Contactos del Proyecto
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 px-3 text-xs font-medium"
+              onClick={() => setIsAddingContact(true)}
+            >
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              Añadir Contacto
+            </Button>
+          </CardHeader>
+        <CardContent className="p-4">
           {contacts.length === 0 && !isAddingContact ? (
             <div className="text-center py-8">
-              <User className="h-12 w-12 text-white/20 mx-auto mb-3" />
-              <p className="text-white/40 mb-4">No hay contactos asignados</p>
+              <User className="h-12 w-12 text-muted-foreground/20 mx-auto mb-3" />
+              <p className="text-muted-foreground mb-4">No hay contactos asignados</p>
               <Button
                 variant="link"
-                className="text-white/60 hover:text-white"
+                className="text-primary hover:text-primary/80"
                 onClick={() => setIsAddingContact(true)}
               >
                 Añadir el primer contacto
@@ -368,18 +377,18 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
           ) : (
             <div className="space-y-4">
               {/* Contact list */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {contacts.map((contact) => {
                   const typeInfo = getContactTypeInfo(contact.type);
                   return (
                     <div
                       key={contact.id}
-                      className="bg-white/5 rounded-lg p-4 border border-white/10"
+                      className="bg-card/50 border border-border rounded-lg p-3 hover:shadow-sm transition-all"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h4 className="text-white font-medium">{contact.name}</h4>
-                          <p className="text-white/60 text-sm">{contact.role}</p>
+                          <h4 className="text-foreground font-medium text-sm">{contact.name}</h4>
+                          <p className="text-muted-foreground text-xs">{contact.role}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className={`${typeInfo.color} border text-xs`}>
@@ -388,29 +397,29 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-6 w-6 p-0"
+                            className="text-red-600 hover:text-red-500 hover:bg-red-500/10 h-7 w-7 p-0"
                             onClick={() => handleRemoveContact(contact.id)}
                           >
-                            <X className="h-3 w-3" />
+                            <X className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       </div>
-                      <div className="space-y-1 text-sm">
+                      <div className="space-y-1 text-xs">
                         {contact.phone && (
                           <a
                             href={`tel:${contact.phone}`}
-                            className="flex items-center gap-2 text-white/60 hover:text-white"
+                            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            <Phone className="h-3 w-3" />
+                            <Phone className="h-3.5 w-3.5" />
                             {contact.phone}
                           </a>
                         )}
                         {contact.email && (
                           <a
                             href={`mailto:${contact.email}`}
-                            className="flex items-center gap-2 text-white/60 hover:text-white"
+                            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            <Mail className="h-3 w-3" />
+                            <Mail className="h-3.5 w-3.5" />
                             {contact.email}
                           </a>
                         )}
@@ -422,65 +431,65 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
 
               {/* Add contact form */}
               {isAddingContact && (
-                <div className="bg-white/5 rounded-lg p-4 border border-dashed border-white/20">
-                  <h4 className="text-white font-medium mb-4">Nuevo Contacto</h4>
+                <div className="bg-card/50 border border-dashed border-border rounded-lg p-4">
+                  <h4 className="text-foreground font-medium mb-4 text-sm">Nuevo Contacto</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
-                      <Label className="text-white/60 text-sm">Nombre *</Label>
+                      <Label className="text-muted-foreground text-sm">Nombre *</Label>
                       <Input
                         placeholder="Nombre completo"
                         value={newContact.name}
                         onChange={(e) => setNewContact(prev => ({ ...prev, name: e.target.value }))}
-                        className="bg-white/5 border-white/10 text-white mt-1"
+                        className="bg-background border-border text-foreground mt-1"
                       />
                     </div>
                     <div>
-                      <Label className="text-white/60 text-sm">Rol / Cargo</Label>
+                      <Label className="text-muted-foreground text-sm">Rol / Cargo</Label>
                       <Input
                         placeholder="Ej: Responsable de obra"
                         value={newContact.role}
                         onChange={(e) => setNewContact(prev => ({ ...prev, role: e.target.value }))}
-                        className="bg-white/5 border-white/10 text-white mt-1"
+                        className="bg-background border-border text-foreground mt-1"
                       />
                     </div>
                     <div>
-                      <Label className="text-white/60 text-sm">Tipo</Label>
+                      <Label className="text-muted-foreground text-sm">Tipo</Label>
                       <select
                         value={newContact.type}
                         onChange={(e) => setNewContact(prev => ({ ...prev, type: e.target.value as 'client' | 'project' | 'technician' }))}
-                        className="w-full mt-1 bg-white/5 border border-white/10 text-white rounded-md px-3 py-2 text-sm"
+                        className="w-full mt-1 bg-background border border-border text-foreground rounded-md px-3 py-2 text-sm h-9"
                       >
                         {CONTACT_TYPES.map((ct) => (
-                          <option key={ct.value} value={ct.value} className="bg-zinc-900">
+                          <option key={ct.value} value={ct.value}>
                             {ct.label}
                           </option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <Label className="text-white/60 text-sm">Teléfono</Label>
+                      <Label className="text-muted-foreground text-sm">Teléfono</Label>
                       <Input
                         placeholder="+34 600 000 000"
                         value={newContact.phone}
                         onChange={(e) => setNewContact(prev => ({ ...prev, phone: e.target.value }))}
-                        className="bg-white/5 border-white/10 text-white mt-1"
+                        className="bg-background border-border text-foreground mt-1"
                       />
                     </div>
                     <div>
-                      <Label className="text-white/60 text-sm">Email</Label>
+                      <Label className="text-muted-foreground text-sm">Email</Label>
                       <Input
                         type="email"
                         placeholder="email@ejemplo.com"
                         value={newContact.email}
                         onChange={(e) => setNewContact(prev => ({ ...prev, email: e.target.value }))}
-                        className="bg-white/5 border-white/10 text-white mt-1"
+                        className="bg-background border-border text-foreground mt-1"
                       />
                     </div>
                     <div className="flex items-end gap-2">
                       <Button
                         onClick={handleAddContact}
                         disabled={!newContact.name}
-                        className="bg-white text-black hover:bg-white/90"
+                        className="bg-primary text-primary-foreground hover:opacity-90"
                       >
                         <Save className="h-4 w-4 mr-2" />
                         Guardar
@@ -491,7 +500,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                           setIsAddingContact(false);
                           setNewContact({ name: '', role: '', phone: '', email: '', type: 'client' });
                         }}
-                        className="text-white/60 hover:text-white"
+                        className="text-muted-foreground hover:text-foreground"
                       >
                         Cancelar
                       </Button>
@@ -502,7 +511,8 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
             </div>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };

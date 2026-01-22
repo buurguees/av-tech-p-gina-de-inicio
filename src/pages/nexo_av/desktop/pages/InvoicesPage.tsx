@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -116,7 +116,6 @@ const InvoicesPageDesktop = () => {
       year: "numeric",
     });
   };
-
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -371,23 +370,12 @@ const InvoicesPageDesktop = () => {
                       const statusInfo = getFinanceStatusInfo(invoice.status);
                       const displayNumber = invoice.invoice_number || invoice.preliminary_number;
                       const isDraft = invoice.status === 'DRAFT';
-                      const isSelected = selectedInvoices.has(invoice.id);
                       return (
                         <TableRow
                           key={invoice.id}
-                          className={cn(
-                            "border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200",
-                            isSelected && "bg-white/10"
-                          )}
+                          className="border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200"
                           onClick={() => navigate(`/nexo-av/${userId}/invoices/${invoice.id}`)}
                         >
-                          <TableCell className="px-2" onClick={(e) => e.stopPropagation()}>
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={(checked) => handleSelectInvoice(invoice.id, checked as boolean)}
-                              className="border-white/30 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 h-3.5 w-3.5"
-                            />
-                          </TableCell>
                           <TableCell className="text-white/80 text-[9px] px-1.5 py-0.5">
                             {invoice.issue_date ? formatDate(invoice.issue_date) : "-"}
                           </TableCell>

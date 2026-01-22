@@ -1,28 +1,12 @@
-import { useState, useEffect, lazy } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { 
-  FolderKanban, 
-  LayoutDashboard, 
-  FileText, 
-  Receipt, 
-  Wallet,
-  Users,
-  CalendarDays,
-  ChevronDown,
-  Edit,
-  ArrowLeft
-} from "lucide-react";
-import { toast } from "sonner";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import ProjectHeader from "../components/projects/ProjectHeader";
+import ProjectKPIs from "../components/projects/ProjectKPIs";
+import ProjectTabNavigation from "../components/projects/ProjectTabNavigation";
 import ProjectDashboardTab from "../components/projects/ProjectDashboardTab";
 import ProjectPlanningTab from "../components/projects/ProjectPlanningTab";
 import ProjectQuotesTab from "../components/projects/ProjectQuotesTab";
@@ -30,6 +14,7 @@ import ProjectTechniciansTab from "../components/projects/ProjectTechniciansTab"
 import ProjectExpensesTab from "../components/projects/ProjectExpensesTab";
 import ProjectInvoicesTab from "../components/projects/ProjectInvoicesTab";
 import CreateProjectDialog from "../components/projects/CreateProjectDialog";
+import "../styles/components/tabs.css";
 
 
 interface ProjectDetail {
@@ -51,26 +36,26 @@ interface ProjectDetail {
   updated_at: string;
 }
 
-const PROJECT_STATUSES = [
-  { value: 'PLANNED', label: 'Planificado', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'IN_PROGRESS', label: 'En Progreso', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  { value: 'PAUSED', label: 'Pausado', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  { value: 'COMPLETED', label: 'Completado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'CANCELLED', label: 'Cancelado', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-];
-
-const getStatusInfo = (status: string) => {
-  return PROJECT_STATUSES.find(s => s.value === status) || PROJECT_STATUSES[0];
-};
 
 const ProjectDetailPageDesktop = () => {
   const { userId, projectId } = useParams();
-  const navigate = useNavigate();
+  const { toast: toastHook } = useToast();
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [projectKPIs, setProjectKPIs] = useState({
+    totalBudget: 0,
+    totalInvoiced: 0,
+    totalExpenses: 0,
+    profitability: 0,
+    profitabilityPercentage: 0,
+    quotesCount: 0,
+    invoicesCount: 0,
+    expensesCount: 0,
+  });
+  const [kpisLoading, setKpisLoading] = useState(true);
 
   const fetchProject = async () => {
     if (!projectId) return;
@@ -92,9 +77,68 @@ const ProjectDetailPageDesktop = () => {
     }
   };
 
+  const fetchProjectKPIs = async () => {
+    if (!projectId) return;
+
+    try {
+      setKpisLoading(true);
+
+      // Fetch Quotes
+      const { data: quotesData } = await supabase.rpc('list_quotes', { p_search: null });
+      const projectQuotes = (quotesData || []).filter((q: any) => q.project_id === projectId);
+      const totalBudget = projectQuotes.reduce((sum: number, q: any) => sum + (q.subtotal || 0), 0);
+
+      // Fetch Invoices
+      const { data: invoicesData } = await supabase.rpc('finance_list_invoices', { 
+        p_search: null, 
+        p_status: null 
+      });
+      const projectInvoices = (invoicesData || []).filter((inv: any) => 
+        inv.project_id === projectId && inv.status !== 'CANCELLED'
+      );
+      const totalInvoiced = projectInvoices.reduce((sum: number, inv: any) => sum + (inv.subtotal || 0), 0);
+
+      // Fetch Expenses (Purchase Invoices)
+      const { data: expensesData } = await supabase.rpc('list_purchase_invoices', {
+        p_search: null,
+        p_status: null,
+        p_document_type: null
+      });
+      const projectExpenses = (expensesData || []).filter((exp: any) => 
+        exp.project_id === projectId && exp.status !== 'CANCELLED'
+      );
+      const totalExpenses = projectExpenses.reduce((sum: number, exp: any) => sum + (exp.tax_base || 0), 0);
+
+      // Calculate profitability
+      const profitability = totalInvoiced - totalExpenses;
+      const profitabilityPercentage = totalInvoiced > 0 ? (profitability / totalInvoiced) * 100 : 0;
+
+      setProjectKPIs({
+        totalBudget,
+        totalInvoiced,
+        totalExpenses,
+        profitability,
+        profitabilityPercentage,
+        quotesCount: projectQuotes.length,
+        invoicesCount: projectInvoices.length,
+        expensesCount: projectExpenses.length,
+      });
+    } catch (error) {
+      console.error('Error fetching project KPIs:', error);
+    } finally {
+      setKpisLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchProject();
   }, [projectId]);
+
+  useEffect(() => {
+    if (project) {
+      fetchProjectKPIs();
+    }
+  }, [project]);
 
   const handleStatusChange = async (newStatus: string) => {
     if (!project) return;
@@ -110,11 +154,26 @@ const ProjectDetailPageDesktop = () => {
 
       setProject({ ...project, status: newStatus });
       
+      const PROJECT_STATUSES = [
+        { value: 'PLANNED', label: 'Planificado' },
+        { value: 'IN_PROGRESS', label: 'En Progreso' },
+        { value: 'PAUSED', label: 'Pausado' },
+        { value: 'COMPLETED', label: 'Completado' },
+        { value: 'CANCELLED', label: 'Cancelado' },
+      ];
+      
       const statusLabel = PROJECT_STATUSES.find(s => s.value === newStatus)?.label || newStatus;
-      toast.success(`Estado actualizado a "${statusLabel}"`);
+      toastHook({
+        title: "Estado actualizado",
+        description: `El proyecto ahora está en "${statusLabel}"`,
+      });
     } catch (error) {
       console.error('Error updating status:', error);
-      toast.error("Error al actualizar el estado");
+      toastHook({
+        title: "Error",
+        description: "No se pudo actualizar el estado",
+        variant: "destructive",
+      });
     } finally {
       setUpdatingStatus(false);
     }
@@ -135,132 +194,71 @@ const ProjectDetailPageDesktop = () => {
         <Button
           variant="link"
           className="text-primary mt-2"
-          onClick={() => navigate(`/nexo-av/${userId}/projects`)}
+          onClick={() => window.history.back()}
         >
-          Volver a proyectos
+          Volver
         </Button>
       </div>
     );
   }
 
-  const statusInfo = getStatusInfo(project.status);
-
   return (
-    <div className="w-full">
-      <div className="w-full px-3 md:px-4 pb-8">
-        {/* Header - Estilo Detail Page usando global.css */}
-        <header className="flex-shrink-0 border-b bg-card mb-6 py-3 px-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => navigate(`/nexo-av/${userId}/projects`)}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">PROYECTO</p>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-foreground">{project.project_name}</h1>
-                  <span className="font-mono text-muted-foreground text-xs">#{project.project_number}</span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild disabled={updatingStatus}>
-                      <button 
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors hover:opacity-80 ${statusInfo.color} cursor-pointer`}
-                      >
-                        {updatingStatus ? "Actualizando..." : statusInfo.label}
-                        <ChevronDown className="h-3 w-3" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent 
-                      align="start" 
-                      className="min-w-[180px]"
-                    >
-                      {PROJECT_STATUSES.map((status) => (
-                        <DropdownMenuItem
-                          key={status.value}
-                          onClick={() => handleStatusChange(status.value)}
-                          className={`cursor-pointer ${status.value === project.status ? 'bg-accent' : ''}`}
-                        >
-                          <span className={`inline-block w-2 h-2 rounded-full mr-2 ${status.color.split(' ')[0]}`} />
-                          <span>{status.label}</span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </div>
-            {activeTab === "dashboard" && (
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={() => setEditDialogOpen(true)}
-              >
-                <Edit className="h-3.5 w-3.5 mr-1.5" />
-                Editar Proyecto
-              </Button>
-            )}
-          </div>
-        </header>
+    <div className="w-full h-full flex flex-col">
+      <div className="w-full flex-1 flex flex-col">
+        {/* Header */}
+        <ProjectHeader
+          project={project}
+          updatingStatus={updatingStatus}
+          onStatusChange={handleStatusChange}
+          onEditClick={() => setEditDialogOpen(true)}
+        />
 
-        {/* Tabs Navigation - Desktop only */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-muted/60 border border-border p-1 h-auto flex-wrap">
-              <TabsTrigger value="dashboard">
-                <LayoutDashboard className="h-3.5 w-3.5 mr-1.5" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger value="planning">
-                <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-                Planificación
-              </TabsTrigger>
-              <TabsTrigger value="quotes">
-                <FileText className="h-3.5 w-3.5 mr-1.5" />
-                Presupuestos
-              </TabsTrigger>
-              <TabsTrigger value="technicians">
-                <Users className="h-3.5 w-3.5 mr-1.5" />
-                Técnicos
-              </TabsTrigger>
-              <TabsTrigger value="expenses">
-                <Wallet className="h-3.5 w-3.5 mr-1.5" />
-                Gastos
-              </TabsTrigger>
-              <TabsTrigger value="invoices">
-                <Receipt className="h-3.5 w-3.5 mr-1.5" />
-                Facturas
-              </TabsTrigger>
-            </TabsList>
+        {/* KPIs */}
+        <ProjectKPIs
+          totalBudget={projectKPIs.totalBudget}
+          totalInvoiced={projectKPIs.totalInvoiced}
+          totalExpenses={projectKPIs.totalExpenses}
+          profitability={projectKPIs.profitability}
+          profitabilityPercentage={projectKPIs.profitabilityPercentage}
+          quotesCount={projectKPIs.quotesCount}
+          invoicesCount={projectKPIs.invoicesCount}
+          expensesCount={projectKPIs.expensesCount}
+          loading={kpisLoading}
+        />
 
-            <TabsContent value="dashboard" className="mt-6">
+        {/* Tabs Navigation */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
+          <ProjectTabNavigation />
+
+          <div className="flex-1 overflow-auto">
+            <TabsContent value="dashboard" className="mt-0 h-full">
               <ProjectDashboardTab project={project} />
             </TabsContent>
 
-            <TabsContent value="planning" className="mt-6">
+            <TabsContent value="planning" className="mt-0 h-full">
               <ProjectPlanningTab projectId={project.id} />
             </TabsContent>
 
-            <TabsContent value="quotes" className="mt-6">
+            <TabsContent value="quotes" className="mt-0 h-full">
               <ProjectQuotesTab projectId={project.id} clientId={project.client_id || undefined} />
             </TabsContent>
 
-            <TabsContent value="technicians" className="mt-6">
+            <TabsContent value="technicians" className="mt-0 h-full">
               <ProjectTechniciansTab projectId={project.id} />
             </TabsContent>
 
-            <TabsContent value="expenses" className="mt-6">
+            <TabsContent value="expenses" className="mt-0 h-full">
               <ProjectExpensesTab projectId={project.id} />
             </TabsContent>
 
-            <TabsContent value="invoices" className="mt-6">
+            <TabsContent value="invoices" className="mt-0 h-full">
               <ProjectInvoicesTab projectId={project.id} clientId={project.client_id || undefined} />
             </TabsContent>
-          </Tabs>
+          </div>
+        </Tabs>
+      </div>
 
-        {/* Edit Project Dialog */}
+      {/* Edit Project Dialog */}
       <CreateProjectDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
@@ -270,7 +268,6 @@ const ProjectDetailPageDesktop = () => {
         }}
         project={project}
       />
-      </div>
     </div>
   );
 };

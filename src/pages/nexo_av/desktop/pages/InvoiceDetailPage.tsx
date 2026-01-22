@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Building2, Calendar, FileText, Edit, Lock, User, Send, Trash2 } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, FileText, Edit, Lock, User, Send, Trash2, FolderKanban, Download } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +28,6 @@ import { toast } from "sonner";
 import InvoicePDFViewer from "../components/invoices/InvoicePDFViewer";
 import InvoicePaymentsSection from "../components/invoices/InvoicePaymentsSection";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
-import { lazy } from "react";
 
 
 const getAvailableStatusTransitions = (currentStatus: string): string[] => {
@@ -249,16 +248,16 @@ const InvoiceDetailPageDesktop = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-nexo-bg flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-nexo-accent"></div>
+      <div className="w-full h-full flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (!invoice) {
     return (
-      <div className="min-h-screen bg-nexo-bg flex flex-col items-center justify-center gap-4">
-        <p className="text-white/60">Factura no encontrada</p>
+      <div className="w-full h-full flex flex-col items-center justify-center gap-4 py-12">
+        <p className="text-muted-foreground">Factura no encontrada</p>
         <Button
           variant="outline"
           onClick={() => navigate(`/nexo-av/${userId}/invoices`)}
@@ -273,7 +272,10 @@ const InvoiceDetailPageDesktop = () => {
   const isLocked = invoice.is_locked || LOCKED_FINANCE_INVOICE_STATES.includes(invoice.status);
   const availableTransitions = getAvailableStatusTransitions(invoice.status);
   const canChangeStatus = availableTransitions.length > 0;
-  const displayNumber = invoice.invoice_number || invoice.preliminary_number;
+  // Mostrar número definitivo si existe, sino mostrar el preliminar
+  const displayNumber = invoice.invoice_number || invoice.preliminary_number || "Sin número";
+  const isDraft = invoice.status === "DRAFT";
+  const hasPreliminaryNumber = invoice.preliminary_number && invoice.preliminary_number !== invoice.invoice_number;
 
   return (
     <div className="w-full">
@@ -283,15 +285,22 @@ const InvoiceDetailPageDesktop = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="text-white/60 hover:text-white hover:bg-white/10 rounded-full h-10 w-10 flex-shrink-0"
+            className="h-10 w-10 flex-shrink-0"
             onClick={() => navigate(`/nexo-av/${userId}/invoices`)}
             title="Volver a Facturas"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex flex-col">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Detalle de Factura</h1>
-            <p className="text-white/40 text-xs font-mono">{displayNumber}</p>
+            <h1 className="text-2xl font-bold tracking-tight">Detalle de Factura</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-xs font-mono text-muted-foreground">{displayNumber}</p>
+              {hasPreliminaryNumber && invoice.invoice_number && (
+                <span className="text-xs text-muted-foreground">
+                  (Borrador: {invoice.preliminary_number})
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -303,7 +312,7 @@ const InvoiceDetailPageDesktop = () => {
               {statusInfo.label}
             </Badge>
             {invoice.status === "DRAFT" && (
-              <span className="text-white/40 text-sm">(Número preliminar)</span>
+              <span className="text-sm text-muted-foreground">(Número preliminar)</span>
             )}
           </div>
 
@@ -313,7 +322,7 @@ const InvoiceDetailPageDesktop = () => {
                 <Button
                   onClick={handleIssueInvoice}
                   disabled={updatingStatus || deleting}
-                  className="bg-emerald-600 hover:bg-emerald-700"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
                   <Send className="w-4 h-4 mr-2" />
                   Emitir Factura
@@ -361,13 +370,31 @@ const InvoiceDetailPageDesktop = () => {
               </>
             )}
 
+            {!isDraft && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // El botón de descarga está en el componente InvoicePDFViewer
+                  // Este botón puede servir como acceso rápido
+                  const downloadButton = document.querySelector('.inline-flex.items-center.justify-center.gap-2') as HTMLElement;
+                  if (downloadButton) {
+                    downloadButton.click();
+                  }
+                }}
+                className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Descargar PDF
+              </Button>
+            )}
+
             {canChangeStatus && invoice.status !== "DRAFT" && (
               <Select
                 value={invoice.status}
                 onValueChange={handleStatusChange}
                 disabled={updatingStatus}
               >
-                <SelectTrigger className="w-48 bg-white/5 border-white/10">
+                <SelectTrigger className="w-48">
                   <SelectValue placeholder="Cambiar estado" />
                 </SelectTrigger>
                 <SelectContent>
@@ -411,7 +438,7 @@ const InvoiceDetailPageDesktop = () => {
             {/* Invoice Info */}
             <Card className="bg-white/5 border-white/10">
               <CardHeader className="pb-3">
-                <CardTitle className="text-white text-lg flex items-center gap-2">
+                <CardTitle className="text-lg flex items-center gap-2">
                   <FileText className="w-5 h-5" />
                   Información
                 </CardTitle>
@@ -419,12 +446,22 @@ const InvoiceDetailPageDesktop = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-white/40 text-xs mb-1">Número</p>
-                    <p className="text-white font-mono">{displayNumber}</p>
+                    <p className="text-xs mb-1 text-muted-foreground">Número</p>
+                    <div className="flex flex-col gap-1">
+                      <p className="font-mono font-semibold">{displayNumber}</p>
+                      {hasPreliminaryNumber && invoice.invoice_number && (
+                        <p className="text-xs text-muted-foreground font-mono">
+                          Borrador: {invoice.preliminary_number}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div>
-                    <p className="text-white/40 text-xs mb-1">Estado</p>
-                    <Badge className={statusInfo.className}>{statusInfo.label}</Badge>
+                    <p className="text-xs mb-1 text-muted-foreground">Estado</p>
+                    <Badge className={statusInfo.className}>
+                      {isLocked && <Lock className="w-3 h-3 mr-1" />}
+                      {statusInfo.label}
+                    </Badge>
                   </div>
                 </div>
 
@@ -432,21 +469,21 @@ const InvoiceDetailPageDesktop = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-white/40 text-xs mb-1 flex items-center gap-1">
+                    <p className="text-xs mb-1 flex items-center gap-1 text-muted-foreground">
                       <Calendar className="w-3 h-3" />
                       Emisión
                     </p>
-                    <p className="text-white">{formatDate(invoice.issue_date)}</p>
+                    <p>{formatDate(invoice.issue_date)}</p>
                   </div>
                   <div>
-                    <p className="text-white/40 text-xs mb-1 flex items-center gap-1">
+                    <p className="text-xs mb-1 flex items-center gap-1 text-muted-foreground">
                       <Calendar className="w-3 h-3" />
                       Vencimiento
                     </p>
                     <p className={
                       invoice.status !== "PAID" && invoice.due_date && new Date(invoice.due_date) < new Date()
                         ? "text-red-400"
-                        : "text-white"
+                        : ""
                     }>
                       {formatDate(invoice.due_date)}
                     </p>
@@ -457,22 +494,22 @@ const InvoiceDetailPageDesktop = () => {
 
                 {/* Totals */}
                 <div className="space-y-2">
-                  <div className="flex justify-between text-white/60">
+                  <div className="flex justify-between text-muted-foreground">
                     <span>Subtotal</span>
                     <span>{formatCurrency(invoice.subtotal || 0)}</span>
                   </div>
                   {(invoice.discount_amount || 0) > 0 && (
-                    <div className="flex justify-between text-white/60">
+                    <div className="flex justify-between text-muted-foreground">
                       <span>Descuento</span>
                       <span className="text-red-400">-{formatCurrency(invoice.discount_amount)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-white/60">
+                  <div className="flex justify-between text-muted-foreground">
                     <span>Impuestos</span>
                     <span>{formatCurrency(invoice.tax_amount || 0)}</span>
                   </div>
-                  <Separator className="bg-white/10" />
-                  <div className="flex justify-between text-white font-semibold text-lg">
+                  <Separator />
+                  <div className="flex justify-between font-semibold text-lg">
                     <span>Total</span>
                     <span>{formatCurrency(invoice.total || 0)}</span>
                   </div>
@@ -496,21 +533,38 @@ const InvoiceDetailPageDesktop = () => {
             {client && (
               <Card className="bg-white/5 border-white/10">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-white text-lg flex items-center gap-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
                     <Building2 className="w-5 h-5" />
                     Cliente
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <p className="text-white font-medium">{client.company_name || client.legal_name}</p>
+                <CardContent className="space-y-3">
+                  <div>
+                    <p className="font-medium text-base">{client.company_name || client.legal_name}</p>
+                    {client.legal_name && client.company_name !== client.legal_name && (
+                      <p className="text-sm text-muted-foreground mt-1">{client.legal_name}</p>
+                    )}
+                  </div>
                   {client.contact_name && (
-                    <p className="text-white/60 text-sm flex items-center gap-1">
+                    <div className="flex items-center gap-1 text-muted-foreground">
                       <User className="w-3 h-3" />
-                      {client.contact_name}
-                    </p>
+                      <p className="text-sm">{client.contact_name}</p>
+                    </div>
                   )}
                   {(client.tax_id || client.cif) && (
-                    <p className="text-white/60 text-sm">{client.tax_id || client.cif}</p>
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium">NIF/CIF:</span> {client.tax_id || client.cif}
+                    </p>
+                  )}
+                  {client.contact_email && (
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium">Email:</span> {client.contact_email}
+                    </p>
+                  )}
+                  {client.contact_phone && (
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium">Teléfono:</span> {client.contact_phone}
+                    </p>
                   )}
                   <Button
                     variant="ghost"
@@ -518,7 +572,57 @@ const InvoiceDetailPageDesktop = () => {
                     className="w-full mt-2"
                     onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
                   >
-                    Ver cliente
+                    Ver detalles del cliente
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Project Info */}
+            {project && (
+              <Card className="bg-white/5 border-white/10">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FolderKanban className="w-5 h-5" />
+                    Proyecto
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <p className="font-medium text-base">
+                      {project.project_name || invoice.project_name || "Sin nombre"}
+                    </p>
+                    {project.project_number && (
+                      <p className="text-sm text-muted-foreground mt-1 font-mono">
+                        Nº Proyecto: {project.project_number}
+                      </p>
+                    )}
+                  </div>
+                  {project.client_order_number && (
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium">Nº Pedido Cliente:</span> {project.client_order_number}
+                    </p>
+                  )}
+                  {project.local_name && (
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium">Local:</span> {project.local_name}
+                    </p>
+                  )}
+                  {(project.project_address || project.project_city) && (
+                    <div className="text-sm text-muted-foreground">
+                      {project.project_address && <p>{project.project_address}</p>}
+                      {project.project_city && (
+                        <p>{project.project_city}{project.project_city && project.project_address ? "" : ""}</p>
+                      )}
+                    </div>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full mt-2"
+                    onClick={() => navigate(`/nexo-av/${userId}/projects/${project.id}`)}
+                  >
+                    Ver detalles del proyecto
                   </Button>
                 </CardContent>
               </Card>

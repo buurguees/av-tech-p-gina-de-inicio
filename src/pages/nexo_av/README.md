@@ -4,16 +4,32 @@ Plataforma de gestión empresarial con soporte completo para dispositivos deskto
 
 ## 🎯 Arquitectura Responsive
 
-La plataforma detecta automáticamente el tamaño del dispositivo y carga el layout optimizado correspondiente:
+La plataforma detecta automáticamente el layout apropiado usando una lógica híbrida:
 
-### Desktop (≥ 1024px)
+### Desktop Layout
+**Criterios de detección:**
+1. **Pantallas >= 1440px de ancho**: Siempre Desktop (incluso si height > width)
+   - Ejemplos: 1440x2560, 1920x1080, 2560x1440
+   - Monitores grandes en cualquier orientación
+
+2. **Pantallas < 1440px con orientación horizontal** (width ≥ height)
+   - Aspect Ratios: 4:3, 16:9
+   - Tablets horizontales
+
+**Características:**
 - **Layout**: `desktop/layouts/NexoAvLayout.tsx`
 - **Header**: Fijo en la parte superior (3.25rem)
 - **Sidebar**: Fijo a la izquierda (14rem) con navegación colapsable
 - **Contenido**: Área principal con scroll vertical
 - **Navegación**: A través del Sidebar
 
-### Mobile y Tablet (< 1024px)
+### Mobile Layout
+**Criterios de detección:**
+- **Pantallas < 1440px con orientación vertical** (height > width)
+  - Aspect Ratios: 3:4, 9:16
+  - Tablets verticales, móviles
+
+**Características:**
 - **Layout**: `mobile/layouts/NexoAvLayoutMobile.tsx`
 - **Header**: Fijo en la parte superior con safe area insets
 - **Navegación**: Bottom Navigation fija en la parte inferior
@@ -43,10 +59,15 @@ const { isMobile, isTablet, isDesktop, width, height } = useDeviceDetection();
 Ubicación: `src/pages/nexo_av/layouts/ResponsiveLayout.tsx`
 
 Este componente se encarga de:
-1. Detectar el tamaño del dispositivo en tiempo real
-2. Cargar el layout apropiado (Desktop o Mobile)
+1. Detectar el layout apropiado usando lógica híbrida:
+   - **Ancho >= 1440px**: Siempre Desktop Layout
+   - **Ancho < 1440px**: Basado en orientación (aspect ratio)
+     * Horizontal (width ≥ height): Desktop Layout
+     * Vertical (height > width): Mobile Layout
+2. Cargar el layout apropiado según los criterios
 3. Lazy loading de los layouts para optimizar el bundle
 4. Re-renderizar automáticamente al cambiar el tamaño de ventana o la orientación
+5. Detectar cambios de orientación en tiempo real (especialmente útil en tablets)
 
 ## 🗂️ Estructura de Carpetas
 
@@ -55,7 +76,7 @@ src/pages/nexo_av/
 ├── layouts/
 │   └── ResponsiveLayout.tsx       (Selector automático de layout)
 │
-├── desktop/                        (Versión Desktop ≥ 1024px)
+├── desktop/                        (Versión Desktop - Orientación Horizontal)
 │   ├── layouts/
 │   │   └── NexoAvLayout.tsx       (Layout con Header + Sidebar fijos)
 │   ├── components/                (Componentes organizados por módulo)
