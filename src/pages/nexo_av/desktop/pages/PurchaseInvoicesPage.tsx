@@ -693,7 +693,7 @@ const PurchaseInvoicesPageDesktop = () => {
                   <PaginationControls
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onPageChange={goToPage}
+                    onGoToPage={goToPage}
                     onNextPage={nextPage}
                     onPrevPage={prevPage}
                     canGoNext={canGoNext}

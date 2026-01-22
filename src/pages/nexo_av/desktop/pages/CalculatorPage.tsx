@@ -1,6 +1,4 @@
-import { lazy } from 'react';
-
-
+import { Calculator, Construction } from "lucide-react";
 const CalculatorPageDesktop = () => {
   return (
     <div className="w-full">

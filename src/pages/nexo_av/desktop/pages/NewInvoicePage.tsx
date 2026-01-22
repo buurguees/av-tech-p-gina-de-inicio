@@ -710,4 +710,4 @@ const NewInvoicePage = () => {
   );
 };
 
-export default NewInvoicePageDesktop;
+export default NewInvoicePage;

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Trash2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import ProductSearchInput from "./ProductSearchInput";
+import ProductSearchInput from "../common/ProductSearchInput";
 
 export interface PurchaseInvoiceLine {
   id?: string;
