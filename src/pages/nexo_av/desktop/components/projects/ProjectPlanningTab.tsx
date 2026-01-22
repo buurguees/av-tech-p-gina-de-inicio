@@ -173,8 +173,8 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
 
       <div className="space-y-6">
         {/* Planning Dates Section */}
-        <Card className="bg-card border border-border hover:shadow-md transition-all">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-border/50 pb-3 pt-4 px-4">
+        <Card className="bg-white/50 dark:bg-slate-950/30 border border-slate-200/80 dark:border-slate-700/80 hover:shadow-md transition-all">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-200/50 dark:border-slate-700/50 pb-3 pt-4 px-4">
             <CardTitle className="text-foreground text-lg font-semibold flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               Fechas Clave
@@ -195,7 +195,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
             {planningDates.map((pd) => (
               <div
                 key={pd.id}
-                className="bg-card/50 border border-border rounded-lg p-3 hover:shadow-sm transition-all"
+                className="bg-white/50 dark:bg-slate-900/30 border border-slate-200/80 dark:border-slate-700/80 rounded-lg p-3 hover:shadow-sm transition-all"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -218,7 +218,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                     <Input
                       type="date"
                       defaultValue={pd.date || ''}
-                      className="bg-background border-border text-foreground h-9"
+                      className="bg-background border-slate-200 dark:border-slate-700 text-foreground h-9"
                       onChange={(e) => handleDateChange(pd.id, e.target.value)}
                     />
                     <Button
@@ -242,7 +242,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
             {customDates.map((pd) => (
               <div
                 key={pd.id}
-                className="bg-card/50 border border-border rounded-lg p-3 hover:shadow-sm transition-all"
+                className="bg-white/50 dark:bg-slate-900/30 border border-slate-200/80 dark:border-slate-700/80 rounded-lg p-3 hover:shadow-sm transition-all"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                     <Input
                       type="date"
                       defaultValue={pd.date || ''}
-                      className="bg-background border-border text-foreground h-9"
+                      className="bg-background border-slate-200 dark:border-slate-700 text-foreground h-9"
                       onChange={(e) => handleCustomDateChange(pd.id, e.target.value)}
                     />
                     <Button
@@ -297,7 +297,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
 
             {/* Add custom date form */}
             {isAddingCustomDate && (
-              <div className="bg-card/50 border border-dashed border-border rounded-lg p-4 col-span-1 md:col-span-2">
+              <div className="bg-white/50 dark:bg-slate-900/30 border border-dashed border-slate-200/80 dark:border-slate-700/80 rounded-lg p-4 col-span-1 md:col-span-2">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label className="text-muted-foreground text-sm">Nombre de la fecha</Label>
@@ -305,7 +305,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                       placeholder="Ej: Revisión técnica"
                       value={newCustomDate.label}
                       onChange={(e) => setNewCustomDate(prev => ({ ...prev, label: e.target.value }))}
-                      className="bg-background border-border text-foreground mt-1"
+                      className="bg-background border-slate-200 dark:border-slate-700 text-foreground mt-1"
                     />
                   </div>
                   <div>
@@ -314,7 +314,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                       type="date"
                       value={newCustomDate.date}
                       onChange={(e) => setNewCustomDate(prev => ({ ...prev, date: e.target.value }))}
-                      className="bg-background border-border text-foreground mt-1"
+                      className="bg-background border-slate-200 dark:border-slate-700 text-foreground mt-1"
                     />
                   </div>
                   <div className="flex items-end gap-2">
@@ -345,8 +345,8 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
       </Card>
 
         {/* Contacts Section */}
-        <Card className="bg-card border border-border hover:shadow-md transition-all">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-border/50 pb-3 pt-4 px-4">
+        <Card className="bg-white/50 dark:bg-slate-950/30 border border-slate-200/80 dark:border-slate-700/80 hover:shadow-md transition-all">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-200/50 dark:border-slate-700/50 pb-3 pt-4 px-4">
             <CardTitle className="text-foreground text-lg font-semibold flex items-center gap-2">
               <User className="h-4 w-4" />
               Contactos del Proyecto
@@ -383,7 +383,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                   return (
                     <div
                       key={contact.id}
-                      className="bg-card/50 border border-border rounded-lg p-3 hover:shadow-sm transition-all"
+                      className="bg-white/50 dark:bg-slate-900/30 border border-slate-200/80 dark:border-slate-700/80 rounded-lg p-3 hover:shadow-sm transition-all"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div>
@@ -431,7 +431,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
 
               {/* Add contact form */}
               {isAddingContact && (
-                <div className="bg-card/50 border border-dashed border-border rounded-lg p-4">
+                <div className="bg-white/50 dark:bg-slate-900/30 border border-dashed border-slate-200/80 dark:border-slate-700/80 rounded-lg p-4">
                   <h4 className="text-foreground font-medium mb-4 text-sm">Nuevo Contacto</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
@@ -440,7 +440,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                         placeholder="Nombre completo"
                         value={newContact.name}
                         onChange={(e) => setNewContact(prev => ({ ...prev, name: e.target.value }))}
-                        className="bg-background border-border text-foreground mt-1"
+                        className="bg-background border-slate-200 dark:border-slate-700 text-foreground mt-1"
                       />
                     </div>
                     <div>
@@ -449,7 +449,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                         placeholder="Ej: Responsable de obra"
                         value={newContact.role}
                         onChange={(e) => setNewContact(prev => ({ ...prev, role: e.target.value }))}
-                        className="bg-background border-border text-foreground mt-1"
+                        className="bg-background border-slate-200 dark:border-slate-700 text-foreground mt-1"
                       />
                     </div>
                     <div>
@@ -457,7 +457,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                       <select
                         value={newContact.type}
                         onChange={(e) => setNewContact(prev => ({ ...prev, type: e.target.value as 'client' | 'project' | 'technician' }))}
-                        className="w-full mt-1 bg-background border border-border text-foreground rounded-md px-3 py-2 text-sm h-9"
+                        className="w-full mt-1 bg-background border border-slate-200 dark:border-slate-700 text-foreground rounded-md px-3 py-2 text-sm h-9"
                       >
                         {CONTACT_TYPES.map((ct) => (
                           <option key={ct.value} value={ct.value}>
@@ -472,7 +472,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                         placeholder="+34 600 000 000"
                         value={newContact.phone}
                         onChange={(e) => setNewContact(prev => ({ ...prev, phone: e.target.value }))}
-                        className="bg-background border-border text-foreground mt-1"
+                        className="bg-background border-slate-200 dark:border-slate-700 text-foreground mt-1"
                       />
                     </div>
                     <div>
@@ -482,7 +482,7 @@ const ProjectPlanningTab = ({ projectId }: ProjectPlanningTabProps) => {
                         placeholder="email@ejemplo.com"
                         value={newContact.email}
                         onChange={(e) => setNewContact(prev => ({ ...prev, email: e.target.value }))}
-                        className="bg-background border-border text-foreground mt-1"
+                        className="bg-background border-slate-200 dark:border-slate-700 text-foreground mt-1"
                       />
                     </div>
                     <div className="flex items-end gap-2">
