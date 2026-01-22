@@ -3748,57 +3748,6 @@ body.nexo-av-theme-dark [class*="CardContent"][class*="p-0"] {
 }
 
 /* ============================================
-   DETAIL PAGE TABS - Tabs de navegación
-   ============================================ */
-
-/* TabsList en páginas de detalle */
-body.nexo-av-theme [class*="TabsList"][class*="bg-muted/60"],
-body.nexo-av-theme-dark [class*="TabsList"][class*="bg-muted/60"],
-body.nexo-av-theme [class*="TabsList"][class*="bg-secondary"],
-body.nexo-av-theme-dark [class*="TabsList"][class*="bg-secondary"] {
-  background-color: hsl(var(--muted) / 0.6) !important;
-  border: 1px solid hsl(var(--border)) !important;
-  border-radius: 0.5rem !important;
-  padding: 0.25rem !important;
-  /* p-1 */
-  gap: 0.25rem !important;
-}
-
-/* TabsTrigger en páginas de detalle */
-body.nexo-av-theme [class*="TabsTrigger"],
-body.nexo-av-theme-dark [class*="TabsTrigger"] {
-  font-size: 0.8125rem !important;
-  /* text-sm */
-  font-weight: 500 !important;
-  padding: 0.5rem 0.75rem !important;
-  /* px-3 py-2 */
-  border-radius: 0.375rem !important;
-  color: hsl(var(--text-secondary)) !important;
-  transition: all 0.15s ease !important;
-}
-
-body.nexo-av-theme [class*="TabsTrigger"][class*="data-[state=active]"],
-body.nexo-av-theme-dark [class*="TabsTrigger"][class*="data-[state=active]"],
-body.nexo-av-theme [class*="TabsTrigger"][data-state="active"],
-body.nexo-av-theme-dark [class*="TabsTrigger"][data-state="active"] {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-  font-weight: 600 !important;
-}
-
-/* Iconos en TabsTrigger */
-body.nexo-av-theme [class*="TabsTrigger"] svg[class*="h-3.5"][class*="w-3.5"],
-body.nexo-av-theme-dark [class*="TabsTrigger"] svg[class*="h-3.5"][class*="w-3.5"],
-body.nexo-av-theme [class*="TabsTrigger"] svg[class*="h-4"][class*="w-4"],
-body.nexo-av-theme-dark [class*="TabsTrigger"] svg[class*="h-4"][class*="w-4"] {
-  width: 0.875rem !important;
-  /* h-3.5 w-3.5 */
-  height: 0.875rem !important;
-  margin-right: 0.375rem !important;
-  /* mr-1.5 */
-}
-
-/* ============================================
    DETAIL PAGE INFO SECTIONS - Secciones de información
    ============================================ */
 
