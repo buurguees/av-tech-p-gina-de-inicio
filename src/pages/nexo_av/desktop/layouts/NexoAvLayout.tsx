@@ -363,8 +363,8 @@ const NexoAvLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
-      {/* Header - Fijo en la parte superior - NUNCA se mueve */}
+    <div className="min-h-screen bg-background">
+      {/* Header - Fijo en la parte superior */}
       <Header
         userId={userId}
         userInfo={userInfo}
@@ -373,8 +373,8 @@ const NexoAvLayout = () => {
         onThemeChange={setCurrentTheme}
       />
 
-      {/* Sidebar - Fijo a la izquierda debajo del header - NUNCA se mueve */}
-      <aside className="fixed left-0 top-[3.25rem] z-40 hidden md:block w-56 h-[calc(100vh-3.25rem)] overflow-hidden">
+      {/* Sidebar - Fijo a la izquierda debajo del header */}
+      <aside className="fixed left-0 top-[3.25rem] z-40 w-56 h-[calc(100vh-3.25rem)]">
         <Sidebar
           userId={userId}
           modules={modules}
@@ -382,11 +382,9 @@ const NexoAvLayout = () => {
         />
       </aside>
 
-      {/* Contenido principal - Área donde se cargan las páginas dinámicas */}
-      {/* El main empieza justo después del sidebar (left-56 = w-56) */}
-      <main className="hidden md:block fixed left-56 top-[3.25rem] right-0 bottom-0 bg-background p-0 m-0">
-        <div className="w-full h-full overflow-y-auto overflow-x-hidden p-0 m-0">
-          {/* Outlet renderiza las páginas hijas según la navegación del sidebar */}
+      {/* Contenido principal - Anclado al sidebar con ml-56 */}
+      <main className="ml-56 pt-[3.25rem] min-h-screen bg-background">
+        <div className="h-[calc(100vh-3.25rem)] overflow-y-auto overflow-x-hidden">
           <Outlet />
         </div>
       </main>
