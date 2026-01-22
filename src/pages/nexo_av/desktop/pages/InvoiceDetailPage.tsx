@@ -278,8 +278,8 @@ const InvoiceDetailPageDesktop = () => {
   const hasPreliminaryNumber = invoice.preliminary_number && invoice.preliminary_number !== invoice.invoice_number;
 
   return (
-    <div className="w-full">
-      <div className="w-full px-3 sm:px-4 lg:px-6 py-3 md:py-6">
+    <div className="w-full h-full">
+      <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto">
         {/* Header with Title and Back button */}
         <div className="flex items-center gap-4 mb-6">
           <Button

@@ -17,7 +17,7 @@ import { usePagination } from "@/hooks/usePagination";
 import ClientsListMobile from "../components/mobile/ClientsListMobile";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { cn } from "@/lib/utils";
-import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../LeadMapPage";
+import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../constants/leadStages";
 import CreateClientDialog from "../components/CreateClientDialog";
 
 interface Client {

@@ -38,7 +38,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useToast } from "@/hooks/use-toast";
 import { usePagination } from "@/hooks/usePagination";
 import { cn } from "@/lib/utils";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import PaginationControls from "../components/common/PaginationControls";
 
 const DocumentScanner = lazy(() => import("../components/common/DocumentScanner"));
@@ -94,7 +94,7 @@ const PurchaseInvoicesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<PurchaseInvoice[]>([]);

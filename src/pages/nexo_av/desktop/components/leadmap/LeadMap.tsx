@@ -4,7 +4,7 @@ import { Crosshair, MapPin, Edit } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { LeadClient, LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../LeadMapPage";
+import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../../constants/leadStages";
 import CanvassingTool, { CANVASSING_STATUSES, CanvassingStatus } from "./CanvassingTool";
 import CanvassingLocationDialog from "./CanvassingLocationDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,19 +43,19 @@ interface CanvassingLocation {
 
 interface LeadMapProps {
   canvassingLocations?: CanvassingLocation[];
-  clients?: LeadClient[];
+  clients?: any[];
   selectedLocation?: CanvassingLocation | null;
-  selectedClient?: LeadClient | null;
+  selectedClient?: any | null;
   onLocationSelect?: (location: CanvassingLocation | null) => void;
   onClientSelect?: (client: any) => void; // Usar any para compatibilidad con Client de ClientMapPage
   loading: boolean;
   focusLocation?: CanvassingLocation | null;
-  focusClient?: LeadClient | null;
+  focusClient?: any | null;
   onCanvassingLocationCreate?: (locationId: string) => void;
 }
 
 export interface LeadMapRef {
-  focusOnClient: (client: LeadClient) => void;
+  focusOnClient: (client: any) => void;
 }
 
 // Create colored marker icon for clients
@@ -193,9 +193,9 @@ const MapCenterHandler = ({
   focusLocation,
   userLocation
 }: { 
-  selectedClient?: LeadClient | null;
+  selectedClient?: any | null;
   selectedLocation?: CanvassingLocation | null;
-  focusClient?: LeadClient | null;
+  focusClient?: any | null;
   focusLocation?: CanvassingLocation | null;
   userLocation?: { lat: number; lon: number } | null;
 }) => {
@@ -1029,7 +1029,7 @@ const LeadMap = forwardRef<LeadMapRef, LeadMapProps>(
   }, [loadCanvassingLocations]);
 
   useImperativeHandle(ref, () => ({
-    focusOnClient: (client: LeadClient) => {
+    focusOnClient: (client: any) => {
       if (client.latitude && client.longitude && mapInstanceRef.current) {
         mapInstanceRef.current.setView([client.latitude, client.longitude], 18, {
           animate: true,

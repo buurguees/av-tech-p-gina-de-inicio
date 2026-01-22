@@ -14,7 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LeadClient, LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../LeadMapPage";
+import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../../constants/leadStages";
+import type { LeadClient } from "../../pages/LeadMapPage";
 import { Phone, Mail, MapPin, User, Clock, MessageSquare, RefreshCw, Send, MoreVertical, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";

@@ -94,7 +94,6 @@ const ProjectMapPageDesktop = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const isDarkTheme = useIsNexoAvDarkTheme();
 
   // Barcelona Metropolitan Area center coordinates
   const defaultCenter: [number, number] = [41.3851, 2.1734];

@@ -499,8 +499,8 @@ const QuoteDetailPageDesktop = () => {
   const pdfFileName = `${quote.quote_number}${quote.project_name ? ` - ${quote.project_name}` : ''}.pdf`;
 
   return (
-    <div className="w-full">
-      <div className="w-full px-3 md:px-4 pb-4 md:pb-8">
+    <div className="w-full h-full">
+      <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

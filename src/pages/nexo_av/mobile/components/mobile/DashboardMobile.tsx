@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { NavigateFunction } from "react-router-dom";
-import QuickQuoteDialog from "../QuickQuoteDialog";
+import QuickQuoteDialog from "../../../desktop/components/quotes/QuickQuoteDialog";
 import { useIOS } from "@/hooks/use-mobile";
 
 interface Module {

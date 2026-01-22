@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CanvassingLocation, CanvassingStats } from "../../LeadMapPage";
+import { CanvassingLocation, CanvassingStats } from "../../pages/LeadMapPage";
 import { MapPin, Building2, Phone, Mail, Calendar, ArrowUpDown } from "lucide-react";
 import { CANVASSING_STATUSES } from "./CanvassingTool";
 import {

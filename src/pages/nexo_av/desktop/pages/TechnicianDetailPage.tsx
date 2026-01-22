@@ -359,9 +359,9 @@ function TechnicianDetailPageDesktop() {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto flex flex-col">
       {/* Header superior compacto */}
-      <header className="flex-shrink-0 border-b bg-card px-6 py-3">
+      <header className="flex-shrink-0 border-b bg-card px-0 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button

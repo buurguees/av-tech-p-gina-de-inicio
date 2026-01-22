@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Building2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import PaginationControls from "../PaginationControls";
+import PaginationControls from "../../../desktop/components/common/PaginationControls";
 
 interface Client {
   id: string;

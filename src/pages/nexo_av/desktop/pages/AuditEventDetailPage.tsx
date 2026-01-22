@@ -293,8 +293,8 @@ const AuditEventDetailPage = () => {
   const userAgentInfo = parseUserAgent(event.user_agent);
 
   return (
-    <div className="w-full">
-      <div className="w-full px-3 sm:px-4 lg:px-6 py-3 md:py-6">
+    <div className="w-full h-full">
+      <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-start justify-between">

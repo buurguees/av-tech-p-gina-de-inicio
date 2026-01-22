@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../LeadMapPage";
+import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../../constants/leadStages";
 
 interface LeadMapFiltersProps {
   selectedStages: string[];

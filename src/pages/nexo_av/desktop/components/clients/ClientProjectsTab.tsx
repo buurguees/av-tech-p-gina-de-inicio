@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import CreateProjectDialog from "./CreateProjectDialog";
+import CreateProjectDialog from "../projects/CreateProjectDialog";
 
 interface ClientProjectsTabProps {
   clientId: string;

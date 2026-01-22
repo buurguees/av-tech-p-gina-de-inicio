@@ -15,7 +15,7 @@ import {
   Image,
 } from "@react-pdf/renderer";
 import { supabase } from "@/integrations/supabase/client";
-import { InvoicePDFDocument } from "../InvoicePDFViewer";
+import { InvoicePDFDocument } from "../invoices/InvoicePDFViewer";
 
 // Register font
 Font.register({

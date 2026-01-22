@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { validatePassword } from "@/hooks/usePasswordValidation";
 import PasswordStrengthIndicator from "../components/users/PasswordStrengthIndicator";
-import whiteLogo from "./styles/logos/white_logo.svg";
+import whiteLogo from "../../assets/logos/white_logo.svg";
 import { useNexoAvTheme } from "../../hooks/useNexoAvTheme";
 
 const DEPARTMENTS = [

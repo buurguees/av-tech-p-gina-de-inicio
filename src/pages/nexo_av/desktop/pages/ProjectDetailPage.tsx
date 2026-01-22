@@ -203,8 +203,8 @@ const ProjectDetailPageDesktop = () => {
   }
 
   return (
-    <div className="w-full h-full flex flex-col">
-      <div className="w-full flex-1 flex flex-col">
+    <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto">
+      <div className="w-full h-full flex flex-col">
         {/* Header */}
         <ProjectHeader
           project={project}

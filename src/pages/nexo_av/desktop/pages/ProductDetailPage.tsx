@@ -234,8 +234,8 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="w-full">
-      <div className="w-full px-3 sm:px-4 lg:px-6 py-3 md:py-6">
+    <div className="w-full h-full">
+      <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 overflow-y-auto">
         {/* Product header */}
         <div className="flex items-center gap-4 mb-8">
           <div className={`p-3 rounded-lg ${isProductType ? 'bg-blue-500/20' : 'bg-purple-500/20'}`}>

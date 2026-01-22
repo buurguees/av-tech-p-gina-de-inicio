@@ -5,13 +5,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, Settings2, FileText, Tags, Receipt, Loader2 } from "lucide-react";
 import { useNexoAvTheme } from "../../hooks/useNexoAvTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
-import CompanyDataTab from "../components/settings/CompanyDataTab";
-import PreferencesTab from "../components/settings/PreferencesTab";
-import TemplatesTab from "../components/settings/TemplatesTab";
-import TaxesTab from "../components/settings/TaxesTab";
-import ProductCategoriesTab from "../components/settings/ProductCategoriesTab";
+import { CompanyDataTab } from "../components/settings/CompanyDataTab";
+import { PreferencesTab } from "../components/settings/PreferencesTab";
+import { TemplatesTab } from "../components/settings/TemplatesTab";
+import { TaxesTab } from "../components/settings/TaxesTab";
+import { ProductCategoriesTab } from "../components/settings/ProductCategoriesTab";
 
-const DetailTabsMobile = lazy(() => import("../../mobile/components/DetailTabsMobile"));
+const DetailTabsMobile = lazy(() => import("../../mobile/components/mobile/DetailTabsMobile"));
 
 interface UserInfo {
   user_id: string;
