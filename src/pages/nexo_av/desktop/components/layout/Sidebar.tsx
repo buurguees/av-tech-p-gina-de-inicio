@@ -291,15 +291,15 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           <motion.button
             onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
             className={cn(
-              "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150",
+              "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150 cursor-pointer",
               isActive(`/nexo-av/${userId}/dashboard`)
                 ? "bg-primary text-primary-foreground font-semibold shadow-sm"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground"
             )}
             whileTap={{ scale: 0.98 }}
           >
-            <Home size={16} />
-            <span className="text-sm">Dashboard</span>
+            <Home size={16} className="flex-shrink-0" />
+            <span className="text-sm flex-1">Dashboard</span>
           </motion.button>
 
           {/* Divider */}
@@ -321,19 +321,19 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                   type="button"
                   onClick={() => toggleFolder(folder.id)}
                   className={cn(
-                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150",
+                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150 cursor-pointer",
                     folderActive
                       ? "bg-primary/10 text-foreground font-medium"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                   )}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <FolderIcon size={16} />
+                  <FolderIcon size={16} className="flex-shrink-0" />
                   <span className="text-sm flex-1">{folder.title}</span>
                   <ChevronRight
                     size={14}
                     className={cn(
-                      "transition-transform duration-200",
+                      "transition-transform duration-200 flex-shrink-0 pointer-events-none",
                       isOpen && "transform rotate-90"
                     )}
                   />
@@ -362,15 +362,15 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                                 type="button"
                                 onClick={() => navigate(item.path)}
                                 className={cn(
-                                  "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150",
+                                  "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150 cursor-pointer",
                                   active
                                     ? "bg-primary text-primary-foreground font-semibold shadow-sm"
                                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                                 )}
                                 whileTap={{ scale: 0.98 }}
                               >
-                                <ItemIcon size={14} />
-                                <span className="text-sm">{item.title}</span>
+                                <ItemIcon size={14} className="flex-shrink-0" />
+                                <span className="text-sm flex-1">{item.title}</span>
                               </motion.button>
                             );
                           })}
@@ -394,15 +394,15 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                   key={module.id}
                   onClick={() => navigate(module.path)}
                   className={cn(
-                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150",
+                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150 cursor-pointer",
                     active
                       ? "bg-primary text-primary-foreground font-semibold shadow-sm"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                   )}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Icon size={16} />
-                  <span className="text-sm">{module.title}</span>
+                  <Icon size={16} className="flex-shrink-0" />
+                  <span className="text-sm flex-1">{module.title}</span>
                 </motion.button>
               );
             })}
@@ -424,15 +424,15 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                       key={module.id}
                       onClick={() => navigate(module.path)}
                       className={cn(
-                        "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150",
+                        "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150 cursor-pointer",
                         active
                           ? "bg-primary text-primary-foreground font-semibold shadow-sm"
                           : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                       )}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <Icon size={16} />
-                      <span className="text-sm">{module.title}</span>
+                      <Icon size={16} className="flex-shrink-0" />
+                      <span className="text-sm flex-1">{module.title}</span>
                     </motion.button>
                   );
                 })}

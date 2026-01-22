@@ -182,9 +182,18 @@ const InvoicesPageDesktop = () => {
                   {formatCurrency(invoices
                     .filter(inv => {
                       if (!inv.issue_date) return false;
-                      const d = new Date(inv.issue_date);
+                      const invoiceDate = new Date(inv.issue_date);
                       const now = new Date();
-                      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                      // Calcular primer día del mes actual (día 1)
+                      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                      // Calcular último día del mes actual (día 0 del siguiente mes)
+                      const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                      // Normalizar fechas a medianoche para comparación precisa
+                      firstDayOfMonth.setHours(0, 0, 0, 0);
+                      lastDayOfMonth.setHours(23, 59, 59, 999);
+                      invoiceDate.setHours(0, 0, 0, 0);
+                      // Verificar que la fecha esté dentro del rango del mes (del 1 al último día)
+                      return invoiceDate >= firstDayOfMonth && invoiceDate <= lastDayOfMonth;
                     })
                     .reduce((sum, inv) => sum + (inv.total || 0), 0)
                   )}
