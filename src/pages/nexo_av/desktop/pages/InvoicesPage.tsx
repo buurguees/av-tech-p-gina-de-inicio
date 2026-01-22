@@ -10,7 +10,7 @@ import PaginationControls from "../components/common/PaginationControls";
 import SearchInput from "../components/common/SearchInput";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
-import { getFinanceStatusInfo } from "@/constants/financeStatuses";
+import { getFinanceStatusInfo, FINANCE_INVOICE_STATUSES } from "@/constants/financeStatuses";
 import DataList from "../components/common/DataList";
 
 
