@@ -484,7 +484,7 @@ const ProjectDetailPageDesktop = () => {
         </div>
 
         {/* Columna derecha - DetailInfoBlock */}
-        <div className="w-[20rem] flex-shrink-0 border-l border-border h-full">
+        <div className="w-72 xl:w-80 2xl:w-[20rem] flex-shrink-0 border-l border-border h-full">
           <div className="h-full">
             <DetailInfoBlock
             header={

@@ -24,19 +24,19 @@
   width: 100%;
 }
 
-/* Grid de 2 columnas */
+/* Grid de 2 columnas - autoajuste */
 .detail-dashboard-kpis--cols-2 .detail-dashboard-kpis__grid {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
-/* Grid de 3 columnas */
+/* Grid de 3 columnas - autoajuste */
 .detail-dashboard-kpis--cols-3 .detail-dashboard-kpis__grid {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
-/* Grid de 4 columnas */
+/* Grid de 4 columnas - autoajuste */
 .detail-dashboard-kpis--cols-4 .detail-dashboard-kpis__grid {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .detail-dashboard-kpis__card {
@@ -136,8 +136,8 @@
   line-height: 1.5 !important;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Responsive adjustments - móvil */
+@media (max-width: 640px) {
   .detail-dashboard-kpis--cols-2 .detail-dashboard-kpis__grid,
   .detail-dashboard-kpis--cols-3 .detail-dashboard-kpis__grid,
   .detail-dashboard-kpis--cols-4 .detail-dashboard-kpis__grid {
@@ -157,14 +157,6 @@
 
   .detail-dashboard-kpis__value {
     font-size: 1.25rem !important;
-  }
-}
-
-/* Tablet adjustments */
-@media (min-width: 769px) and (max-width: 1023px) {
-  .detail-dashboard-kpis--cols-3 .detail-dashboard-kpis__grid,
-  .detail-dashboard-kpis--cols-4 .detail-dashboard-kpis__grid {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 
