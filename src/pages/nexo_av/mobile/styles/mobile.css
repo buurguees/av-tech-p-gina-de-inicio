@@ -4459,3 +4459,104 @@ body.nexo-av-theme div[class*="space-y-2"] > * + *,
 body.nexo-av-theme-dark div[class*="space-y-2"] > * + * {
   margin-top: 0.5rem !important;
 }
+
+/* ============================================
+   MOBILE RESPONSIVE OVERRIDES - Estilos específicos para móvil
+   Max-width: 549px (hasta 549px de ancho)
+   ============================================ */
+
+@media (max-width: 549px) {
+
+  /* Headings responsivos */
+  body.nexo-av-theme h1,
+  body.nexo-av-theme-dark h1 {
+    font-size: 1.125rem !important;
+  }
+
+  body.nexo-av-theme h2,
+  body.nexo-av-theme-dark h2 {
+    font-size: 0.9375rem !important;
+  }
+
+  /* Card content padding */
+  body.nexo-av-theme .card-content,
+  body.nexo-av-theme-dark .card-content {
+    padding: 0.625rem !important;
+  }
+
+  /* Detail Page Headers - Header de detalle en móvil */
+  body.nexo-av-theme header[class*="flex-shrink-0"][class*="border-b"][class*="bg-card"],
+  body.nexo-av-theme-dark header[class*="flex-shrink-0"][class*="border-b"][class*="bg-card"] {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  /* Detail Page Titles - Título en móvil */
+  body.nexo-av-theme h1[class*="text-2xl"][class*="font-bold"],
+  body.nexo-av-theme-dark h1[class*="text-2xl"][class*="font-bold"] {
+    font-size: 1.25rem !important;
+  }
+
+  /* Card Content - Cards en móvil */
+  body.nexo-av-theme [class*="CardContent"],
+  body.nexo-av-theme-dark [class*="CardContent"] {
+    padding: 0.75rem !important;
+  }
+
+  /* Tabs Layout - Tabs en móvil */
+  body.nexo-av-theme [class*="TabsList"],
+  body.nexo-av-theme-dark [class*="TabsList"] {
+    flex-wrap: wrap !important;
+    gap: 0.25rem !important;
+  }
+
+  body.nexo-av-theme [class*="TabsTrigger"],
+  body.nexo-av-theme-dark [class*="TabsTrigger"] {
+    font-size: 0.75rem !important;
+    padding: 0.375rem 0.5rem !important;
+  }
+
+  /* KPI Cards en móvil */
+  body.nexo-av-theme [class*="kpi-card-small"],
+  body.nexo-av-theme-dark [class*="kpi-card-small"],
+  body.nexo-av-theme [data-kpi-size="small"],
+  body.nexo-av-theme-dark [data-kpi-size="small"] {
+    padding: 0.375rem !important;
+  }
+
+  body.nexo-av-theme [class*="kpi-card-medium"],
+  body.nexo-av-theme-dark [class*="kpi-card-medium"],
+  body.nexo-av-theme [data-kpi-size="medium"],
+  body.nexo-av-theme-dark [data-kpi-size="medium"] {
+    padding: 1rem !important;
+  }
+
+  body.nexo-av-theme [class*="kpi-card-large"],
+  body.nexo-av-theme-dark [class*="kpi-card-large"],
+  body.nexo-av-theme [data-kpi-size="large"],
+  body.nexo-av-theme-dark [data-kpi-size="large"] {
+    padding: 1.25rem !important;
+  }
+
+  /* Chart Blocks en móvil - Square charts */
+  body.nexo-av-theme [class*="chart-block-square"],
+  body.nexo-av-theme-dark [class*="chart-block-square"],
+  body.nexo-av-theme [data-chart-type="square"],
+  body.nexo-av-theme-dark [data-chart-type="square"] {
+    min-height: 200px !important;
+    max-height: 300px !important;
+    padding: 0.75rem !important;
+  }
+
+  /* Chart Blocks en móvil - Horizontal charts */
+  body.nexo-av-theme [class*="chart-block-horizontal"],
+  body.nexo-av-theme-dark [class*="chart-block-horizontal"],
+  body.nexo-av-theme [data-chart-type="horizontal"],
+  body.nexo-av-theme-dark [data-chart-type="horizontal"] {
+    min-height: 250px !important;
+    max-height: 350px !important;
+    padding: 1rem !important;
+  }
+}

@@ -3562,28 +3562,6 @@ body.nexo-av-theme-dark [class*="text-muted-foreground/70"][class*="text-[10px]"
 }
 
 /* ============================================
-   MOBILE (max-width: 549px)
-   ============================================ */
-
-@media (max-width: 549px) {
-
-  body.nexo-av-theme h1,
-  body.nexo-av-theme-dark h1 {
-    font-size: 1.125rem !important;
-  }
-
-  body.nexo-av-theme h2,
-  body.nexo-av-theme-dark h2 {
-    font-size: 0.9375rem !important;
-  }
-
-  body.nexo-av-theme .card-content,
-  body.nexo-av-theme-dark .card-content {
-    padding: 0.625rem !important;
-  }
-}
-
-/* ============================================
    DETAIL PAGES - Estilos unificados para páginas de detalle
    Optimización del UI para todas las páginas de detalle
    ============================================ */
@@ -3916,47 +3894,6 @@ body.nexo-av-theme-dark h2[class*="text-base"][class*="font-semibold"] {
   font-weight: 600 !important;
   line-height: 1.3 !important;
   color: hsl(var(--foreground)) !important;
-}
-
-/* ============================================
-   DETAIL PAGE RESPONSIVE - Ajustes responsive
-   ============================================ */
-
-@media (max-width: 549px) {
-
-  /* Header de detalle en móvil */
-  body.nexo-av-theme header[class*="flex-shrink-0"][class*="border-b"][class*="bg-card"],
-  body.nexo-av-theme-dark header[class*="flex-shrink-0"][class*="border-b"][class*="bg-card"] {
-    padding-top: 0.5rem !important;
-    padding-bottom: 0.5rem !important;
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
-  }
-
-  /* Título en móvil */
-  body.nexo-av-theme h1[class*="text-2xl"][class*="font-bold"],
-  body.nexo-av-theme-dark h1[class*="text-2xl"][class*="font-bold"] {
-    font-size: 1.25rem !important;
-  }
-
-  /* Cards en móvil */
-  body.nexo-av-theme [class*="CardContent"],
-  body.nexo-av-theme-dark [class*="CardContent"] {
-    padding: 0.75rem !important;
-  }
-
-  /* Tabs en móvil */
-  body.nexo-av-theme [class*="TabsList"],
-  body.nexo-av-theme-dark [class*="TabsList"] {
-    flex-wrap: wrap !important;
-    gap: 0.25rem !important;
-  }
-
-  body.nexo-av-theme [class*="TabsTrigger"],
-  body.nexo-av-theme-dark [class*="TabsTrigger"] {
-    font-size: 0.75rem !important;
-    padding: 0.375rem 0.5rem !important;
-  }
 }
 
 /* ============================================
@@ -5493,54 +5430,6 @@ body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="relative"][class*="i
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-}
-
-/* ============================================
-   DASHBOARD KPI BLOCKS RESPONSIVE - Ajustes responsive
-   ============================================ */
-
-@media (max-width: 549px) {
-
-  /* KPI Cards en móvil */
-  body.nexo-av-theme [class*="kpi-card-small"],
-  body.nexo-av-theme-dark [class*="kpi-card-small"],
-  body.nexo-av-theme [data-kpi-size="small"],
-  body.nexo-av-theme-dark [data-kpi-size="small"] {
-    padding: 0.375rem !important;
-  }
-
-  body.nexo-av-theme [class*="kpi-card-medium"],
-  body.nexo-av-theme-dark [class*="kpi-card-medium"],
-  body.nexo-av-theme [data-kpi-size="medium"],
-  body.nexo-av-theme-dark [data-kpi-size="medium"] {
-    padding: 1rem !important;
-  }
-
-  body.nexo-av-theme [class*="kpi-card-large"],
-  body.nexo-av-theme-dark [class*="kpi-card-large"],
-  body.nexo-av-theme [data-kpi-size="large"],
-  body.nexo-av-theme-dark [data-kpi-size="large"] {
-    padding: 1.25rem !important;
-  }
-
-  /* Chart Blocks en móvil */
-  body.nexo-av-theme [class*="chart-block-square"],
-  body.nexo-av-theme-dark [class*="chart-block-square"],
-  body.nexo-av-theme [data-chart-type="square"],
-  body.nexo-av-theme-dark [data-chart-type="square"] {
-    min-height: 200px !important;
-    max-height: 300px !important;
-    padding: 0.75rem !important;
-  }
-
-  body.nexo-av-theme [class*="chart-block-horizontal"],
-  body.nexo-av-theme-dark [class*="chart-block-horizontal"],
-  body.nexo-av-theme [data-chart-type="horizontal"],
-  body.nexo-av-theme-dark [data-chart-type="horizontal"] {
-    min-height: 250px !important;
-    max-height: 350px !important;
-    padding: 1rem !important;
-  }
 }
 
 /* ============================================
