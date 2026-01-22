@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, Lock, MessageSquare, Clock, Send, MoreVertical, Share2, ChevronDown, Save, LayoutDashboard, Mail } from "lucide-react";
+import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, MessageSquare, Clock, Send, MoreVertical, Share2, Save, LayoutDashboard, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
@@ -37,6 +37,8 @@ import TabNav, { TabItem } from "../components/navigation/TabNav";
 import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from "../components/detail";
 import StatusSelector from "../components/common/StatusSelector";
 import DocumentPDFViewer from "../components/common/DocumentPDFViewer";
+import LockedIndicator from "../components/common/LockedIndicator";
+import DetailActionButton from "../components/navigation/DetailActionButton";
 import { QuotePDFDocument } from "../components/quotes/QuotePDFViewer";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 
@@ -282,36 +284,39 @@ const QuoteDetailPageDesktop = () => {
     }
   };
 
+  const handleSend = async () => {
+    if (!quote || quote.status !== "DRAFT") return;
+
+    setUpdatingStatus(true);
+    try {
+      const { error } = await supabase.rpc("update_quote", {
+        p_quote_id: quoteId!,
+        p_status: "SENT",
+      });
+
+      if (error) throw error;
+
+      // Refetch quote to get updated number
+      await fetchQuoteData();
+
+      toast({
+        title: "Presupuesto enviado",
+        description: "El presupuesto se ha bloqueado y se ha asignado el número definitivo",
+      });
+    } catch (error: any) {
+      console.error("Error sending quote:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo enviar el presupuesto",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
   const handleCreateNewVersion = async () => {
     if (!quote) return;
-
-    // If quote is in DRAFT, first change it to SENT
-    if (quote.status === "DRAFT") {
-      setCreatingVersion(true);
-      try {
-        const { error } = await supabase.rpc("update_quote", {
-          p_quote_id: quoteId!,
-          p_status: "SENT",
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Presupuesto enviado",
-          description: "El presupuesto original se ha bloqueado como 'Enviado'",
-        });
-      } catch (error: any) {
-        console.error("Error updating quote status:", error);
-        toast({
-          title: "Error",
-          description: error.message || "No se pudo actualizar el estado",
-          variant: "destructive",
-        });
-        setCreatingVersion(false);
-        return;
-      }
-      setCreatingVersion(false);
-    }
 
     // Navigate to new quote page with source quote id to copy data from
     navigate(`/nexo-av/${userId}/quotes/new?sourceQuoteId=${quoteId}`);
@@ -508,7 +513,21 @@ const QuoteDetailPageDesktop = () => {
 
   const statusInfo = getStatusInfo(quote.status);
   const displayNumber = hasFinalNumber ? quote.quote_number : `(${quote.quote_number})`;
-  const pdfFileName = `${quote.quote_number}${quote.project_name ? ` - ${quote.project_name}` : ''}.pdf`;
+  
+  // Generar nombre del archivo PDF: "Nombre Empresa - Nº Presupuesto - Nombre Proyecto"
+  // Sanitizar el nombre para evitar caracteres problemáticos en nombres de archivo
+  const sanitizeFileName = (name: string) => {
+    return name.replace(/[<>:"/\\|?*]/g, '').trim();
+  };
+  
+  const companyName = sanitizeFileName(company?.legal_name || company?.commercial_name || 'Empresa');
+  const projectName = project?.project_name || quote.project_name || '';
+  const pdfFileNameParts = [
+    companyName,
+    quote.quote_number,
+    ...(projectName ? [sanitizeFileName(projectName)] : [])
+  ];
+  const pdfFileName = `${pdfFileNameParts.join(' - ')}.pdf`;
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -517,100 +536,59 @@ const QuoteDetailPageDesktop = () => {
         contextInfo={
           <div className="flex items-center gap-2">
             <span>{client?.company_name || quote.client_name} - Presupuesto {displayNumber}</span>
-            {canChangeStatus ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="inline-flex items-center">
-                    <Badge className={`${statusInfo.className} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
-                      {statusInfo.label}
-                      <ChevronDown className="h-3 w-3 ml-1" />
-                    </Badge>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-zinc-900 border-white/10">
-                  {availableTransitions.map((status) => {
-                    const info = getStatusInfo(status);
-                    return (
-                      <DropdownMenuItem
-                        key={status}
-                        onClick={() => handleStatusChange(status)}
-                        className="text-white hover:bg-white/10"
-                        disabled={updatingStatus}
-                      >
-                        <span className={`${info.className} px-2 py-0.5 rounded text-xs`}>{info.label}</span>
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Badge className={`${statusInfo.className} text-xs`}>
-                {statusInfo.label}
-              </Badge>
-            )}
-            {isLocked && (
-              <Badge variant="outline" className="border-white/20 text-white/60 text-xs">
-                <Lock className="h-3 w-3 mr-1" />
-                Bloqueado
-              </Badge>
-            )}
+            <LockedIndicator isLocked={isLocked} />
           </div>
         }
         backPath={userId ? `/nexo-av/${userId}/quotes` : undefined}
         tools={
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-white/70 hover:text-white hover:bg-white/10 h-8 text-xs"
-            >
-              Convertir
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8"
-            >
-              <Share2 className="h-3.5 w-3.5" />
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8"
-                >
-                  <MoreVertical className="h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                {!isLocked && (
-                  <DropdownMenuItem
-                    className="text-white hover:bg-white/10"
-                    onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem className="text-white hover:bg-white/10">
-                  <Copy className="h-4 w-4 mr-2" />
-                  Duplicar
-                </DropdownMenuItem>
-                {canDelete && (
-                  <DropdownMenuItem className="text-red-400 hover:bg-red-500/10">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Eliminar
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button
-              className="bg-orange-500 hover:bg-orange-600 text-white h-8 px-3 text-xs"
-            >
-              <Send className="h-3.5 w-3.5 mr-1.5" />
-              Enviar
-            </Button>
+            {/* Estado DRAFT: mostrar "Editar" y "Enviar" */}
+            {quote?.status === "DRAFT" && (
+              <>
+                <DetailActionButton
+                  actionType="edit"
+                  onClick={() => navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`)}
+                />
+                <DetailActionButton
+                  actionType="send"
+                  onClick={handleSend}
+                  disabled={updatingStatus}
+                />
+              </>
+            )}
+
+            {/* Estado SENT: mostrar "Nueva Versión" y "Facturar" */}
+            {quote?.status === "SENT" && (
+              <>
+                <DetailActionButton
+                  actionType="new_version"
+                  onClick={handleCreateNewVersion}
+                  disabled={creatingVersion}
+                />
+                <DetailActionButton
+                  actionType="invoice"
+                  onClick={handleInvoice}
+                />
+              </>
+            )}
+
+            {/* Estado APPROVED: solo mostrar "Nueva Versión" */}
+            {quote?.status === "APPROVED" && (
+              <DetailActionButton
+                actionType="new_version"
+                onClick={handleCreateNewVersion}
+                disabled={creatingVersion}
+              />
+            )}
+
+            {/* Estado REJECTED: solo mostrar "Nueva Versión" */}
+            {quote?.status === "REJECTED" && (
+              <DetailActionButton
+                actionType="new_version"
+                onClick={handleCreateNewVersion}
+                disabled={creatingVersion}
+              />
+            )}
           </div>
         }
       />

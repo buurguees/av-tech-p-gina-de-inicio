@@ -665,133 +665,8 @@ const NewQuotePage = () => {
             </div>
           </div>
 
-          {/* Mobile Lines - Vertical Cards */}
-          <div className="md:hidden space-y-2 mb-3">
-            {/* Lines Header */}
-            <div className="flex items-center justify-between">
-              <span className="text-white/60 text-[10px] font-medium uppercase tracking-wide">Líneas del presupuesto</span>
-              <span className="text-white/40 text-[9px]">Usa @nombre para buscar</span>
-            </div>
-
-            {lines.map((line, index) => {
-              const isFirst = index === 0;
-              const isLast = index === lines.length - 1;
-              return (
-                <div key={line.tempId || line.id} className="bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 p-3 space-y-2 shadow-xl shadow-black/20">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-col gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => moveLine(index, 'up')}
-                          disabled={isFirst}
-                          className="h-5 w-5 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed p-0"
-                          title="Mover arriba"
-                        >
-                          <ChevronUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => moveLine(index, 'down')}
-                          disabled={isLast}
-                          className="h-5 w-5 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed p-0"
-                          title="Mover abajo"
-                        >
-                          <ChevronDown className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <span className="text-orange-500/70 text-[10px] font-mono">Línea {index + 1}</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeLine(index)}
-                      className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-6 w-6"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-
-                  <ProductSearchInput
-                    value={line.concept}
-                    onChange={(value) => updateLine(index, "concept", value)}
-                    onSelectItem={(item) => handleProductSelect(index, item)}
-                    placeholder="Concepto o @buscar"
-                  />
-
-                  <Input
-                    value={line.description}
-                    onChange={(e) => updateLine(index, "description", e.target.value)}
-                    placeholder="Descripción (opcional)"
-                    className="bg-white/10 backdrop-blur-sm border-white/20 text-white/80 h-8 text-xs rounded-xl transition-all hover:bg-white/15"
-                  />
-
-                  <div className="grid grid-cols-4 gap-2">
-                    <div className="space-y-1">
-                      <Label className="text-white/50 text-[9px]">Cant.</Label>
-                      <Input
-                        type="number"
-                        value={line.quantity}
-                        onChange={(e) => updateLine(index, "quantity", parseFloat(e.target.value) || 0)}
-                        className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
-                        min="0"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-white/50 text-[9px]">Precio</Label>
-                      <Input
-                        type="number"
-                        value={line.unit_price}
-                        onChange={(e) => updateLine(index, "unit_price", parseFloat(e.target.value) || 0)}
-                        className="bg-white/5 border-white/10 text-white h-8 text-xs"
-                        min="0"
-                        step="0.01"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-white/50 text-[9px]">Dto %</Label>
-                      <Input
-                        type="number"
-                        value={line.discount_percent}
-                        onChange={(e) => updateLine(index, "discount_percent", parseFloat(e.target.value) || 0)}
-                        className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
-                        min="0"
-                        max="100"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-white/50 text-[9px]">IVA</Label>
-                      <Select
-                        value={line.tax_rate.toString()}
-                        onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
-                      >
-                        <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 text-xs rounded-xl transition-all hover:bg-white/15">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white/10 backdrop-blur-2xl border-white/20 rounded-2xl shadow-2xl">
-                          {taxOptions.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value.toString()} className="text-white text-xs">
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                    <span className="text-white/50 text-[9px]">Subtotal</span>
-                    <span className="text-white font-medium text-sm">{formatCurrency(line.subtotal)}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Desktop Lines table */}
-          <div className="hidden md:block bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden mb-6 shadow-2xl shadow-black/40">
+          {/* Lines table */}
+          <div className="bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden mb-6 shadow-2xl shadow-black/40">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
               <span className="text-white text-sm font-semibold uppercase tracking-wider">Líneas del presupuesto</span>
               <span className="text-white/50 text-xs font-medium">Escribe @nombre para buscar en el catálogo</span>
@@ -996,18 +871,6 @@ const NewQuotePage = () => {
             </div>
           </div>
 
-          {/* Mobile: Add line button at the end */}
-          <div className="md:hidden mb-3">
-            <Button
-              variant="outline"
-              onClick={addLine}
-              className="w-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/50 backdrop-blur-sm rounded-2xl h-10 text-xs transition-all duration-200"
-            >
-              <Plus className="h-3 w-3 mr-1.5" />
-              Añadir línea
-            </Button>
-          </div>
-
           {/* Totals */}
           <div className="bg-gradient-to-br from-white/[0.12] to-white/[0.06] backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/15 p-5 md:p-6 shadow-2xl shadow-black/40">
             <div className="max-w-sm ml-auto space-y-4">
@@ -1032,7 +895,5 @@ const NewQuotePage = () => {
     </div>
   );
 };
-
-// Export with mobile version
 
 export default NewQuotePageDesktop;

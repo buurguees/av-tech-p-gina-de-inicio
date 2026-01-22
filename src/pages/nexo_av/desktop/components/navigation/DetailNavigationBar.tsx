@@ -36,15 +36,17 @@ const DetailNavigationBar = ({
       <div className="detail-navigation-bar__container">
         {/* Left Section */}
         <div className="detail-navigation-bar__left">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleBack}
-            className="detail-navigation-bar__back-button"
-            aria-label="Volver atrás"
-          >
-            <ArrowLeft className="detail-navigation-bar__back-icon" />
-          </Button>
+          {(backPath || onBack) && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              className="detail-navigation-bar__back-button"
+              aria-label="Volver atrás"
+            >
+              <ArrowLeft className="detail-navigation-bar__back-icon" />
+            </Button>
+          )}
           <h1 className="detail-navigation-bar__page-title">{pageTitle}</h1>
         </div>
 

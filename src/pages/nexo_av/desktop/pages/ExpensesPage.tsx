@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +46,6 @@ const ExpensesPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -424,14 +422,12 @@ const ExpensesPageDesktop = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
-                  onClick={() => isMobile ? setShowScanner(true) : document.getElementById('desktop-upload-expense')?.click()}
+                  onClick={() => document.getElementById('desktop-upload-expense')?.click()}
                   disabled={uploading}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white h-9 px-4 text-sm font-medium"
                 >
                   {uploading ? (
                     <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                  ) : isMobile ? (
-                    <Camera className="h-4 w-4 mr-1.5" />
                   ) : (
                     <Upload className="h-4 w-4 mr-1.5" />
                   )}

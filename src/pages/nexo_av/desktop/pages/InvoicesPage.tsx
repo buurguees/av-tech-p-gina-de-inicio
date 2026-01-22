@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -26,11 +25,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Loader2, FileText, Plus, MoreVertical, ChevronUp, ChevronDown, Info, Calendar, Filter, AlertCircle, CheckCircle } from "lucide-react";
+import { Loader2, FileText, MoreVertical, ChevronUp, ChevronDown, Calendar, Filter, AlertCircle, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../components/common/PaginationControls";
+import SearchInput from "../components/common/SearchInput";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import DetailActionButton from "../components/navigation/DetailActionButton";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo } from "@/constants/financeStatuses";
 
 
@@ -71,8 +72,7 @@ const InvoicesPageDesktop = () => {
 
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearchQuery = useDebounce(searchInput, 500);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -80,6 +80,10 @@ const InvoicesPageDesktop = () => {
   useEffect(() => {
     fetchInvoices();
   }, [debouncedSearchQuery, statusFilter]);
+
+  const handleSearchChange = (searchTerm: string) => {
+    setDebouncedSearchQuery(searchTerm);
+  };
 
   const fetchInvoices = async () => {
     try {
@@ -250,38 +254,24 @@ const InvoicesPageDesktop = () => {
               </div>
             </div>
           </div>
-          {/* Header - Estilo Holded */}
+
+          {/* DetailNavigationBar */}
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground">Facturas</h1>
-                <Info className="h-3 w-3 text-muted-foreground" />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => navigate(`/nexo-av/${userId}/invoices/new`)}
-                  className="h-9 px-2 text-[10px] font-medium"
-                >
-                  <Plus className="h-3 w-3 mr-1.5" />
-                  Nueva factura
-                  <span className="ml-2 text-[9px] px-1.5 py-0.5 opacity-70">N</span>
-                </Button>
-              </div>
-            </div>
-
-            {/* Search Bar - Estilo Holded */}
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1 min-w-[200px] max-w-md">
-                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                <Input
+            <DetailNavigationBar
+              pageTitle="Facturas"
+              contextInfo={
+                <SearchInput
                   placeholder="Buscar facturas..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="pr-11 h-8 text-[9px] px-1.5 py-0.5"
+                  onSearchChange={handleSearchChange}
                 />
-              </div>
-            </div>
+              }
+              tools={
+                <DetailActionButton
+                  actionType="new_invoice"
+                  onClick={() => navigate(`/nexo-av/${userId}/invoices/new`)}
+                />
+              }
+            />
           </div>
 
           {/* Table */}

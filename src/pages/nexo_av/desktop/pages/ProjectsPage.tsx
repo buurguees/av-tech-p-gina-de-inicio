@@ -9,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,11 +17,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, FolderKanban, Loader2, MoreVertical, ChevronUp, ChevronDown, Info, Filter, Euro, TrendingUp, BarChart3, Target, CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react";
-import { useDebounce } from "@/hooks/useDebounce";
+import { FolderKanban, Loader2, MoreVertical, ChevronUp, ChevronDown, Filter, Euro, TrendingUp, BarChart3, Target, CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import CreateProjectDialog from "../components/projects/CreateProjectDialog";
 import PaginationControls from "../components/common/PaginationControls";
+import SearchInput from "../components/common/SearchInput";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import DetailActionButton from "../components/navigation/DetailActionButton";
 import { cn } from "@/lib/utils";
 
 
@@ -72,8 +73,7 @@ const ProjectsPageDesktop = () => {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearchTerm = useDebounce(searchInput, 500);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -302,6 +302,10 @@ const ProjectsPageDesktop = () => {
   useEffect(() => {
     fetchProjects();
   }, [debouncedSearchTerm]);
+
+  const handleSearchChange = (searchTerm: string) => {
+    setDebouncedSearchTerm(searchTerm);
+  };
 
   useEffect(() => {
     if (projects.length > 0) {
@@ -624,38 +628,23 @@ const ProjectsPageDesktop = () => {
                 </div>
               </div>
 
-              {/* Header - Estilo Holded */}
+              {/* DetailNavigationBar */}
               <div className="mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-2xl md:text-3xl font-bold text-foreground">Proyectos</h1>
-                    <Info className="h-4 w-4 text-muted-foreground" />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => setIsCreateDialogOpen(true)}
-                      className="h-9 px-4 text-sm font-medium"
-                    >
-                      <Plus className="h-4 w-4 mr-1.5" />
-                      Nuevo proyecto
-                      <span className="ml-2 text-xs opacity-70">N</span>
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Search Bar - Estilo Holded */}
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1 min-w-[200px] max-w-md">
-                    <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
+                <DetailNavigationBar
+                  pageTitle="Proyectos"
+                  contextInfo={
+                    <SearchInput
                       placeholder="Buscar proyectos..."
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
-                      className="pr-11 h-8 text-xs"
+                      onSearchChange={handleSearchChange}
                     />
-                  </div>
-                </div>
+                  }
+                  tools={
+                    <DetailActionButton
+                      actionType="new_project"
+                      onClick={() => setIsCreateDialogOpen(true)}
+                    />
+                  }
+                />
               </div>
 
               {/* Table */}

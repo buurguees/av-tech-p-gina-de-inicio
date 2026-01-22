@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { RefreshCw, Filter, X } from "lucide-react";
 import LeadMap from "../components/leadmap/LeadMap";
 import CanvassingDetailPanel from "../components/leadmap/CanvassingDetailPanel";
@@ -41,7 +39,6 @@ export interface CanvassingStats {
 const LeadMapPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   // Canvassing locations state
   const [canvassingLocations, setCanvassingLocations] = useState<CanvassingLocation[]>([]);
@@ -264,51 +261,33 @@ const LeadMapPageDesktop = () => {
           />
         </div>
 
-        {/* Sidebar - Desktop only - 40% del espacio */}
-        {!isMobile && (
-          <div 
-            className="flex-shrink-0 overflow-hidden"
-            style={{ 
-              width: '40%', 
-              minWidth: '40%',
-              maxWidth: '40%',
-              flex: '0 0 40%',
-              height: '100%'
-            }}
-          >
-            {selectedLocation ? (
-              <CanvassingDetailPanel
-                location={selectedLocation}
-                onClose={() => setSelectedLocation(null)}
-                onEdit={() => setShowEditDialog(true)}
-                onRefresh={handleRefresh}
-              />
-            ) : (
-              <CanvassingMapSidebar
-                stats={canvassingStats}
-                locations={canvassingLocations}
-                onLocationSelect={handleLocationSelect}
-              />
-            )}
-          </div>
-        )}
+        {/* Sidebar - 40% del espacio */}
+        <div 
+          className="flex-shrink-0 overflow-hidden"
+          style={{ 
+            width: '40%', 
+            minWidth: '40%',
+            maxWidth: '40%',
+            flex: '0 0 40%',
+            height: '100%'
+          }}
+        >
+          {selectedLocation ? (
+            <CanvassingDetailPanel
+              location={selectedLocation}
+              onClose={() => setSelectedLocation(null)}
+              onEdit={() => setShowEditDialog(true)}
+              onRefresh={handleRefresh}
+            />
+          ) : (
+            <CanvassingMapSidebar
+              stats={canvassingStats}
+              locations={canvassingLocations}
+              onLocationSelect={handleLocationSelect}
+            />
+          )}
+        </div>
       </div>
-
-      {/* Mobile detail sheet */}
-      {isMobile && (
-        <Sheet open={!!selectedLocation} onOpenChange={(open) => !open && setSelectedLocation(null)}>
-          <SheetContent side="bottom" className="h-[85vh] p-0">
-            {selectedLocation && (
-              <CanvassingDetailPanel
-                location={selectedLocation}
-                onClose={() => setSelectedLocation(null)}
-                onEdit={() => setShowEditDialog(true)}
-                onRefresh={handleRefresh}
-              />
-            )}
-          </SheetContent>
-        </Sheet>
-      )}
 
       {/* Edit dialog */}
       <CanvassingLocationDialog

@@ -17,15 +17,15 @@ const CalculatorPageDesktop = () => {
           </p>
           
           <div className="mt-6 md:mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
-            <div className="p-4 rounded-lg bg-white/5 border border-white/10 nexo-card-mobile">
+            <div className="p-4 rounded-lg bg-white/5 border border-white/10">
               <Calculator className="w-6 h-6 text-orange-500 mx-auto mb-2" />
               <p className="text-white text-xs font-medium">Precios + IVA</p>
             </div>
-            <div className="p-4 rounded-lg bg-white/5 border border-white/10 nexo-card-mobile">
+            <div className="p-4 rounded-lg bg-white/5 border border-white/10">
               <Calculator className="w-6 h-6 text-orange-500 mx-auto mb-2" />
               <p className="text-white text-xs font-medium">Márgenes</p>
             </div>
-            <div className="p-4 rounded-lg bg-white/5 border border-white/10 nexo-card-mobile">
+            <div className="p-4 rounded-lg bg-white/5 border border-white/10">
               <Calculator className="w-6 h-6 text-orange-500 mx-auto mb-2" />
               <p className="text-white text-xs font-medium">Pantallas LED</p>
             </div>

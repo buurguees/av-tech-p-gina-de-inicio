@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsNexoAvDarkTheme } from "../../hooks/useNexoAvThemeMode";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,7 +87,6 @@ const ProjectMapPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
   const isDarkTheme = useIsNexoAvDarkTheme();
 
   const [projects, setProjects] = useState<Project[]>([]);
@@ -285,18 +283,17 @@ const ProjectMapPageDesktop = () => {
           )}
         </div>
 
-        {/* Sidebar - Desktop only - 40% */}
-        {!isMobile && (
-          <div 
-            className="flex-shrink-0 overflow-hidden flex flex-col gap-4"
-            style={{ 
-              width: '40%', 
-              minWidth: '40%',
-              maxWidth: '40%',
-              flex: '0 0 40%',
-              height: '100%'
-            }}
-          >
+        {/* Sidebar - 40% */}
+        <div 
+          className="flex-shrink-0 overflow-hidden flex flex-col gap-4"
+          style={{ 
+            width: '40%', 
+            minWidth: '40%',
+            maxWidth: '40%',
+            flex: '0 0 40%',
+            height: '100%'
+          }}
+        >
             {/* Stats card */}
             <Card className="shadow-none flex-shrink-0">
               <CardHeader className="pb-2">
@@ -419,7 +416,7 @@ const ProjectMapPageDesktop = () => {
               </Card>
             )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

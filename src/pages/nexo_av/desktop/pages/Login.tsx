@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useNexoAvTheme } from "../../hooks/useNexoAvTheme";
 import NexoLoadingScreen from "../components/layout/NexoLoadingScreen";
 import { Button } from "@/components/ui/button";
@@ -76,7 +75,6 @@ const saveLastLogin = (email: string): void => {
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   // State
   const [email, setEmail] = useState("");
@@ -238,10 +236,7 @@ const Login = () => {
         const { data: userInfo } = await supabase.rpc('get_current_user_info');
 
         if (userInfo && userInfo.length > 0) {
-          // Desktop va al dashboard, Mobile va al lead-map
-          const targetPath = isMobile
-            ? `/nexo-av/${userInfo[0].user_id}/lead-map`
-            : `/nexo-av/${userInfo[0].user_id}/dashboard`;
+          const targetPath = `/nexo-av/${userInfo[0].user_id}/dashboard`;
           navigate(targetPath, { replace: true });
         } else {
           await supabase.auth.signOut();
@@ -251,7 +246,7 @@ const Login = () => {
     };
 
     checkSession();
-  }, [navigate, isMobile]);
+  }, [navigate]);
 
   // Handle credentials submission
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
@@ -331,9 +326,7 @@ const Login = () => {
             title: "Bienvenido",
             description: "Has iniciado sesión correctamente.",
           });
-          const targetPath = isMobile
-            ? `/nexo-av/${userInfo[0].user_id}/lead-map`
-            : `/nexo-av/${userInfo[0].user_id}/dashboard`;
+          const targetPath = `/nexo-av/${userInfo[0].user_id}/dashboard`;
           navigate(targetPath, { replace: true });
           return;
         }
@@ -399,9 +392,7 @@ const Login = () => {
           title: "Bienvenido",
           description: "Has iniciado sesión correctamente.",
         });
-        const targetPath = isMobile
-          ? `/nexo-av/${userInfo[0].user_id}/lead-map`
-          : `/nexo-av/${userInfo[0].user_id}/dashboard`;
+        const targetPath = `/nexo-av/${userInfo[0].user_id}/dashboard`;
         navigate(targetPath, { replace: true });
       }
 

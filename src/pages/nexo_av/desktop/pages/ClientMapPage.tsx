@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -50,7 +49,6 @@ const CLIENT_STAGE_LABELS: Record<string, string> = {
 const ClientMapPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -229,18 +227,17 @@ const ClientMapPageDesktop = () => {
           />
         </div>
 
-        {/* Sidebar - Desktop only - 40% del espacio */}
-        {!isMobile && (
-          <div 
-            className="flex-shrink-0 overflow-y-auto"
-            style={{ 
-              width: '40%', 
-              minWidth: '40%',
-              maxWidth: '40%',
-              flex: '0 0 40%',
-              height: '100%'
-            }}
-          >
+        {/* Sidebar - 40% del espacio */}
+        <div 
+          className="flex-shrink-0 overflow-y-auto"
+          style={{ 
+            width: '40%', 
+            minWidth: '40%',
+            maxWidth: '40%',
+            flex: '0 0 40%',
+            height: '100%'
+          }}
+        >
             {selectedClient ? (
               <Card className="h-full shadow-none">
                 <CardHeader>
@@ -326,7 +323,7 @@ const ClientMapPageDesktop = () => {
               </Card>
             )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

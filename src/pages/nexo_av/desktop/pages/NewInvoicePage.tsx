@@ -539,106 +539,8 @@ const NewInvoicePage = () => {
             </div>
           </div>
 
-          {/* Mobile Lines - Vertical Cards */}
-          <div className="md:hidden space-y-2 mb-3">
-            {/* Lines Header */}
-            <div className="flex items-center justify-between">
-              <span className="text-white/60 text-[10px] font-medium uppercase tracking-wide">Líneas de la factura</span>
-              <span className="text-white/40 text-[9px]">Usa @nombre para buscar</span>
-            </div>
-
-            {lines.map((line, index) => (
-              <div key={line.tempId || line.id} className="bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 p-3 space-y-2 shadow-xl shadow-black/20">
-                <div className="flex items-center justify-between">
-                  <span className="text-orange-500/70 text-[10px] font-mono">Línea {index + 1}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeLine(index)}
-                    className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-6 w-6"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-
-                <ProductSearchInput
-                  value={line.concept}
-                  onChange={(value) => updateLine(index, "concept", value)}
-                  onSelectItem={(item) => handleProductSelect(index, item)}
-                  placeholder="Concepto o @buscar"
-                />
-
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-white/50 text-[9px]">Cant.</Label>
-                    <Input
-                      type="number"
-                      value={line.quantity}
-                      onChange={(e) => updateLine(index, "quantity", parseFloat(e.target.value) || 0)}
-                      className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
-                      min="0"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-white/50 text-[9px]">Precio</Label>
-                    <Input
-                      type="number"
-                      value={line.unit_price}
-                      onChange={(e) => updateLine(index, "unit_price", parseFloat(e.target.value) || 0)}
-                      className="bg-white/5 border-white/10 text-white h-8 text-xs"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-white/50 text-[9px]">Dto %</Label>
-                    <Input
-                      type="number"
-                      value={line.discount_percent}
-                      onChange={(e) => updateLine(index, "discount_percent", parseFloat(e.target.value) || 0)}
-                      className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
-                      min="0"
-                      max="100"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-white/50 text-[9px]">IVA</Label>
-                    <Select
-                      value={line.tax_rate.toString()}
-                      onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
-                    >
-                      <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 text-xs rounded-xl transition-all hover:bg-white/15">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white/10 backdrop-blur-2xl border-white/20 rounded-2xl shadow-2xl">
-                        {taxOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value.toString()} className="text-white text-xs">
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-1 border-t border-white/10">
-                  <span className="text-white font-medium text-xs">{formatCurrency(line.total)}</span>
-                </div>
-              </div>
-            ))}
-
-            <Button
-              variant="outline"
-              onClick={addLine}
-              className="w-full border-white/30 text-white hover:bg-white/15 backdrop-blur-sm rounded-2xl h-9 text-xs transition-all duration-200"
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Añadir línea
-            </Button>
-          </div>
-
-          {/* Desktop Lines table */}
-          <div className="hidden md:block bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden mb-6 shadow-2xl shadow-black/40">
+          {/* Lines table */}
+          <div className="bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden mb-6 shadow-2xl shadow-black/40">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
               <span className="text-white text-sm font-semibold uppercase tracking-wider">Líneas de la factura</span>
               <span className="text-white/50 text-xs font-medium">Escribe @nombre para buscar en el catálogo</span>
@@ -807,7 +709,5 @@ const NewInvoicePage = () => {
     </div>
   );
 };
-
-// Export with mobile version
 
 export default NewInvoicePageDesktop;

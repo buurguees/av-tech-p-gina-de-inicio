@@ -1,0 +1,92 @@
+/* ============================================
+   SEARCH INPUT
+   Componente de búsqueda reutilizable
+   ============================================ */
+
+.search-input {
+  width: 100%;
+  min-width: 300px; /* Ancho mínimo para que no quede muy pequeño */
+}
+
+.search-input__container {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+
+.search-input__icon {
+  pointer-events: none;
+  position: absolute;
+  left: 1rem; /* left-4 */
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1.25rem; /* h-5 */
+  width: 1.25rem; /* w-5 */
+  color: hsl(var(--muted-foreground));
+  z-index: 1;
+}
+
+.search-input__field {
+  padding-left: 3rem !important; /* pl-12 - espacio para el icono - !important para evitar sobrescritura */
+  padding-right: 1rem !important; /* pr-4 */
+  height: 3rem !important; /* h-12 - más grande - !important para evitar sobrescritura */
+  font-size: 0.875rem !important; /* text-sm - !important para evitar sobrescritura */
+  width: 100% !important; /* Ocupa todo el ancho del contenedor */
+  border-radius: 0.5rem !important; /* rounded-lg - !important para evitar sobrescritura */
+  box-sizing: border-box !important; /* Incluye padding en el ancho */
+}
+
+/* Modo oscuro */
+body.nexo-av-theme-dark .search-input__icon {
+  color: hsl(var(--muted-foreground) / 0.7);
+}
+
+body.nexo-av-theme-dark .search-input__field {
+  background-color: hsl(var(--card) / 0.5);
+  border: 1px solid hsl(var(--border) / 0.5);
+  color: hsl(var(--foreground));
+  transition: all 0.2s ease;
+}
+
+body.nexo-av-theme-dark .search-input__field:hover {
+  border-color: hsl(var(--border));
+  background-color: hsl(var(--card) / 0.7);
+}
+
+body.nexo-av-theme-dark .search-input__field::placeholder {
+  color: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Focus states - !important para evitar sobrescritura de global.css */
+.search-input__field:focus {
+  outline: none !important;
+  border-color: hsl(var(--ring)) !important;
+  background-color: hsl(var(--card)) !important;
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .search-input {
+    min-width: 200px; /* Ancho mínimo reducido en móvil */
+  }
+
+  .search-input__container {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .search-input__icon {
+    height: 1rem; /* h-4 */
+    width: 1rem; /* w-4 */
+    left: 0.75rem; /* left-3 */
+  }
+
+  .search-input__field {
+    font-size: 0.875rem !important; /* text-sm */
+    padding-left: 2.5rem !important; /* pl-10 */
+    padding-right: 0.75rem !important; /* pr-3 */
+    height: 2.5rem !important; /* h-10 */
+    width: 100% !important;
+  }
+}

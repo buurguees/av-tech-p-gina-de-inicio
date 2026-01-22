@@ -98,6 +98,7 @@ interface Project {
   id: string;
   name: string;
   description: string | null;
+  client_order_number?: string | null;
 }
 
 // States that block editing
@@ -202,13 +203,16 @@ const QuoteDetailPageMobile = () => {
 
       // Fetch project if exists
       if (quoteInfo.project_id) {
-        const { data: projectData } = await supabase
-          .from("projects")
-          .select("id, name, description")
-          .eq("id", quoteInfo.project_id)
-          .single();
-        if (projectData) {
-          setProject(projectData);
+        const { data: projectData, error: projectError } = await supabase.rpc("get_project", {
+          p_project_id: quoteInfo.project_id,
+        });
+        if (!projectError && projectData && projectData.length > 0) {
+          setProject({
+            id: projectData[0].id,
+            name: projectData[0].project_name,
+            description: projectData[0].project_address,
+            client_order_number: projectData[0].client_order_number,
+          });
         }
       }
 
@@ -505,9 +509,24 @@ const QuoteDetailPageMobile = () => {
                         variant="ghost"
                         className="h-8 text-white/60 hover:text-white gap-1.5"
                         onClick={() => {
+                          // Generar nombre del archivo PDF: "Nombre Empresa - Nº Presupuesto - Nombre Proyecto"
+                          // Sanitizar el nombre para evitar caracteres problemáticos en nombres de archivo
+                          const sanitizeFileName = (name: string) => {
+                            return name.replace(/[<>:"/\\|?*]/g, '').trim();
+                          };
+                          
+                          const companyName = sanitizeFileName(company?.legal_name || company?.name || 'Empresa');
+                          const projectName = project?.name || quote.project_name || '';
+                          const pdfFileNameParts = [
+                            companyName,
+                            quote.quote_number,
+                            ...(projectName ? [sanitizeFileName(projectName)] : [])
+                          ];
+                          const pdfFileName = `${pdfFileNameParts.join(' - ')}.pdf`;
+                          
                           const link = document.createElement('a');
                           link.href = pdfBlobUrl;
-                          link.download = `Presupuesto-${quote.quote_number}.pdf`;
+                          link.download = pdfFileName;
                           link.click();
                         }}
                       >

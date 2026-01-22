@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, Send, Copy, Receipt, Edit } from "lucide-react";
 import "../../styles/components/navigation/detail-action-button.css";
 
-export type DetailActionType = "quote" | "invoice" | "technicians" | "purchase";
+export type DetailActionType = "quote" | "invoice" | "technicians" | "purchase" | "new_version" | "send" | "edit" | "new_invoice" | "new_client" | "new_project";
 
 interface DetailActionButtonProps {
   actionType: DetailActionType;
@@ -26,8 +26,8 @@ const DetailActionButton = ({
         };
       case "invoice":
         return {
-          label: "Crear Factura",
-          icon: <Plus className="detail-action-button__icon" />,
+          label: "Facturar",
+          icon: <Receipt className="detail-action-button__icon" />,
         };
       case "technicians":
         return {
@@ -37,6 +37,36 @@ const DetailActionButton = ({
       case "purchase":
         return {
           label: "Subir Factura de Compra",
+          icon: <Plus className="detail-action-button__icon" />,
+        };
+      case "new_version":
+        return {
+          label: "Nueva Versión",
+          icon: <Copy className="detail-action-button__icon" />,
+        };
+      case "send":
+        return {
+          label: "Enviar",
+          icon: <Send className="detail-action-button__icon" />,
+        };
+      case "edit":
+        return {
+          label: "Editar",
+          icon: <Edit className="detail-action-button__icon" />,
+        };
+      case "new_invoice":
+        return {
+          label: "Nueva Factura",
+          icon: <Plus className="detail-action-button__icon" />,
+        };
+      case "new_client":
+        return {
+          label: "Nuevo Cliente",
+          icon: <Plus className="detail-action-button__icon" />,
+        };
+      case "new_project":
+        return {
+          label: "Nuevo Proyecto",
           icon: <Plus className="detail-action-button__icon" />,
         };
       default:

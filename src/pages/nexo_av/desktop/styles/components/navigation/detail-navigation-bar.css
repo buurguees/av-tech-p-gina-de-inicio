@@ -84,21 +84,22 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  max-width: calc(100% - 2rem);
+  /* Aumentar el ancho máximo para dar más espacio al buscador */
+  /* El centro debe ser más ancho que los laterales: máximo 800px o 50% del ancho total */
+  max-width: min(800px, calc(50% - 2rem));
+  width: 100%;
   z-index: 1;
   pointer-events: none;
 }
 
 .detail-navigation-bar__context-info {
   pointer-events: auto;
-}
-
-.detail-navigation-bar__context-info {
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 0;
   max-width: 100%;
+  width: 100%;
 }
 
 /* Context Text - Usa estilo text-sm del sistema */
@@ -151,6 +152,8 @@
   .detail-navigation-bar__center {
     padding: 0 0.5rem;
     max-width: calc(100% - 1.5rem);
+    min-width: 200px; /* Reducir en móvil */
+    width: 100%;
   }
 
   .detail-navigation-bar__context-text {

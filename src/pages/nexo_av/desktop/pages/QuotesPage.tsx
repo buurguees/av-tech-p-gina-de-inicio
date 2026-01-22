@@ -2,7 +2,6 @@ import { useState, useEffect, lazy } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -18,11 +17,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, FileText, Loader2, Edit, MoreVertical, ChevronUp, ChevronDown, Info, Calendar, Filter, Trash2 } from "lucide-react";
+import { FileText, Loader2, Edit, MoreVertical, ChevronUp, ChevronDown, Calendar, Filter, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../components/common/PaginationControls";
+import SearchInput from "../components/common/SearchInput";
 import { cn } from "@/lib/utils";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import {
@@ -36,6 +35,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import DetailActionButton from "../components/navigation/DetailActionButton";
 
 
 interface Quote {
@@ -62,8 +63,7 @@ const QuotesPageDesktop = () => {
 
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearchQuery = useDebounce(searchInput, 500);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -74,6 +74,10 @@ const QuotesPageDesktop = () => {
   useEffect(() => {
     fetchQuotes();
   }, [statusFilter, debouncedSearchQuery]);
+
+  const handleSearchChange = (searchTerm: string) => {
+    setDebouncedSearchQuery(searchTerm);
+  };
 
   const fetchQuotes = async () => {
     try {
@@ -308,38 +312,25 @@ const QuotesPageDesktop = () => {
             </div>
           </div>
 
-          {/* Header - Estilo Holded */}
+          {/* DetailNavigationBar */}
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground">Presupuestos</h1>
-                <Info className="h-3 w-3 text-muted-foreground" />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
+            <DetailNavigationBar
+              pageTitle="Presupuestos"
+              tools={
+                <DetailActionButton
+                  actionType="quote"
                   onClick={handleNewQuote}
-                  className="bg-orange-500 hover:bg-orange-600 text-white h-9 px-2 text-[10px] font-medium"
-                >
-                  <Plus className="h-3 w-3 mr-1.5" />
-                  Nuevo presupuesto
-                  <span className="ml-2 text-[9px] px-1.5 py-0.5 opacity-70">N</span>
-                </Button>
-              </div>
-            </div>
+                />
+              }
+            />
+          </div>
 
-                {/* Search Bar - Estilo Holded */}
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1 min-w-[200px] max-w-md">
-                    <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar presupuestos..."
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
-                      className="pr-11 h-8 text-[9px] px-1.5 py-0.5"
-                    />
-                  </div>
-                </div>
+          {/* Search Input */}
+          <div className="mb-6">
+            <SearchInput
+              placeholder="Buscar presupuestos..."
+              onSearchChange={handleSearchChange}
+            />
           </div>
 
           {/* Table */}

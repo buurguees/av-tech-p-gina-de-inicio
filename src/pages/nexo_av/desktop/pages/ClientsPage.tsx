@@ -1,8 +1,7 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -29,9 +28,7 @@ import {
   TrendingUp,
   BarChart3,
   User,
-  Plus,
   Search,
-  Info,
   Mail,
   Phone,
   ChevronUp,
@@ -41,13 +38,13 @@ import {
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import PaginationControls from "../components/common/PaginationControls";
+import SearchInput from "../components/common/SearchInput";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import DetailActionButton from "../components/navigation/DetailActionButton";
 import CreateClientDialog from "../components/clients/CreateClientDialog";
 import EditClientDialog from "../components/clients/EditClientDialog";
-
-const ClientsListMobile = lazy(() => import("../../mobile/components/mobile/ClientsListMobile"));
 
 interface Client {
   id: string;
@@ -91,12 +88,10 @@ const ClientsPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   const [loading, setLoading] = useState(true);
   const [clients, setClients] = useState<Client[]>([]);
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearchTerm = useDebounce(searchInput, 500);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [showOnlyMine, setShowOnlyMine] = useState<boolean | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -259,6 +254,10 @@ const ClientsPageDesktop = () => {
       fetchClients();
     }
   }, [loading, stageFilter, debouncedSearchTerm]);
+
+  const handleSearchChange = (searchTerm: string) => {
+    setDebouncedSearchTerm(searchTerm);
+  };
 
   useEffect(() => {
     if (clients.length > 0) {
@@ -550,67 +549,24 @@ const ClientsPageDesktop = () => {
             </div>
           </div>
 
-          {/* Header - Estilo Holded */}
+          {/* DetailNavigationBar */}
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground">Clientes</h1>
-                <Info className="h-3 w-3 text-muted-foreground" />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => setShowCreateDialog(true)}
-                  className="h-9 px-2 text-[10px] font-medium"
-                >
-                  <Plus className="h-3 w-3 mr-1.5" />
-                  Nuevo cliente
-                  <span className="ml-2 text-[9px] px-1.5 py-0.5 opacity-70">N</span>
-                </Button>
-              </div>
-            </div>
-
-                {/* Search Bar - Estilo Holded */}
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1 min-w-[200px] max-w-md">
-                    <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar clientes..."
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
-                      className="pr-11 h-8 text-[9px] px-1.5 py-0.5"
-                    />
-                  </div>
-                </div>
-          </div>
-
-          {/* Mobile card view */}
-          {isMobile ? (
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-12 md:hidden">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-border border-t-primary"></div>
-              </div>
-            }>
-              <div className="md:hidden">
-                <ClientsListMobile
-                  clients={paginatedClients}
-                  getStageInfo={getStageInfo}
-                  onClientClick={(clientId) => navigate(`/nexo-av/${userId}/clients/${clientId}`)}
-                  onCreateClick={() => setShowCreateDialog(true)}
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  startIndex={startIndex}
-                  endIndex={endIndex}
-                  totalItems={totalItems}
-                  canGoPrev={canGoPrev}
-                  canGoNext={canGoNext}
-                  onPrevPage={prevPage}
-                  onNextPage={nextPage}
-                  onGoToPage={goToPage}
+            <DetailNavigationBar
+              pageTitle="Clientes"
+              contextInfo={
+                <SearchInput
+                  placeholder="Buscar clientes..."
+                  onSearchChange={handleSearchChange}
                 />
-              </div>
-            </Suspense>
-          ) : null}
+              }
+              tools={
+                <DetailActionButton
+                  actionType="new_client"
+                  onClick={() => setShowCreateDialog(true)}
+                />
+              }
+            />
+          </div>
 
           {/* Table */}
           {loading ? (

@@ -28,6 +28,10 @@ import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "../components/common/ProductSearchInput";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import { useNexoAvTheme } from "../../hooks/useNexoAvTheme";
+
+// Estados que bloquean la edición
+const LOCKED_STATES = ["SENT", "APPROVED", "REJECTED", "EXPIRED", "INVOICED"];
+
 interface Client {
   id: string;
   company_name: string;
@@ -75,7 +79,7 @@ interface Quote {
   created_at: string;
 }
 
-const EditQuotePage = () => {
+const EditQuotePageDesktop = () => {
   const navigate = useNavigate();
   const { userId, quoteId } = useParams<{ userId: string; quoteId: string }>();
   const { toast } = useToast();
@@ -155,6 +159,18 @@ const EditQuotePage = () => {
       if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
 
       const quoteInfo = quoteData[0];
+
+      // Verificar si el presupuesto está bloqueado
+      const isLocked = LOCKED_STATES.includes(quoteInfo.status);
+      if (isLocked) {
+        toast({
+          title: "Presupuesto bloqueado",
+          description: `El presupuesto está en estado "${getStatusInfo(quoteInfo.status).label}" y no puede ser editado.`,
+          variant: "destructive",
+        });
+        navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
+        return;
+      }
 
       // Set quote con todos los datos incluyendo project_id
       setQuote(quoteInfo);
@@ -566,6 +582,17 @@ const EditQuotePage = () => {
   };
 
   const handleSave = async () => {
+    // Verificar que el presupuesto no esté bloqueado
+    if (quote && LOCKED_STATES.includes(quote.status)) {
+      toast({
+        title: "Presupuesto bloqueado",
+        description: "No se pueden guardar cambios en un presupuesto bloqueado",
+        variant: "destructive",
+      });
+      navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
+      return;
+    }
+
     if (!selectedClientId) {
       toast({
         title: "Error",
@@ -892,143 +919,8 @@ const EditQuotePage = () => {
             </div>
           </div>
 
-          {/* Mobile Lines - Vertical Cards (same as NewQuotePage) */}
-          <div className="md:hidden space-y-2 mb-3">
-            {/* Lines Header */}
-            <div className="flex items-center justify-between">
-              <span className="text-white/60 text-[10px] font-medium uppercase tracking-wide">Líneas del presupuesto</span>
-              <span className="text-white/40 text-[9px]">Usa @nombre para buscar</span>
-            </div>
-
-            {lines.filter(l => !l.isDeleted).map((line, displayIndex) => {
-              const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
-              const activeLines = lines.filter(l => !l.isDeleted);
-              const isFirst = displayIndex === 0;
-              const isLast = displayIndex === activeLines.length - 1;
-              return (
-                <div key={line.tempId || line.id} className="bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/20 p-3 space-y-2 shadow-xl shadow-black/20">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-col gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => moveLine(actualIndex, 'up')}
-                          disabled={isFirst}
-                          className="h-5 w-5 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed p-0"
-                          title="Mover arriba"
-                        >
-                          <ChevronUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => moveLine(actualIndex, 'down')}
-                          disabled={isLast}
-                          className="h-5 w-5 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed p-0"
-                          title="Mover abajo"
-                        >
-                          <ChevronDown className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <span className="text-orange-500/70 text-[10px] font-mono">Línea {displayIndex + 1}</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeLine(actualIndex)}
-                      className="text-white/40 hover:text-red-400 hover:bg-red-500/10 h-6 w-6"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-
-                  <Input
-                    value={line.group_name || ''}
-                    onChange={(e) => updateLine(actualIndex, "group_name", e.target.value)}
-                    placeholder="Grupo (opcional)"
-                    className="bg-white/5 border-white/10 text-white/60 h-7 text-[10px] mb-2"
-                  />
-
-                  <ProductSearchInput
-                    value={line.concept}
-                    onChange={(value) => updateLine(actualIndex, "concept", value)}
-                    onSelectItem={(item) => handleProductSelect(actualIndex, item)}
-                    placeholder="Concepto o @buscar"
-                  />
-
-                  <Input
-                    value={line.description}
-                    onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
-                    placeholder="Descripción (opcional)"
-                    className="bg-white/5 border-white/10 text-white/80 h-8 text-xs"
-                  />
-
-                  <div className="grid grid-cols-4 gap-2">
-                    <div className="space-y-1">
-                      <Label className="text-white/50 text-[9px]">Cant.</Label>
-                      <Input
-                        type="number"
-                        value={line.quantity}
-                        onChange={(e) => updateLine(actualIndex, "quantity", parseFloat(e.target.value) || 0)}
-                        className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
-                        min="0"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-white/50 text-[9px]">Precio</Label>
-                      <Input
-                        type="number"
-                        value={line.unit_price}
-                        onChange={(e) => updateLine(actualIndex, "unit_price", parseFloat(e.target.value) || 0)}
-                        className="bg-white/5 border-white/10 text-white h-8 text-xs"
-                        min="0"
-                        step="0.01"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-white/50 text-[9px]">Dto %</Label>
-                      <Input
-                        type="number"
-                        value={line.discount_percent}
-                        onChange={(e) => updateLine(actualIndex, "discount_percent", parseFloat(e.target.value) || 0)}
-                        className="bg-white/5 border-white/10 text-white h-8 text-xs text-center"
-                        min="0"
-                        max="100"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-white/50 text-[9px]">IVA</Label>
-                      <Select
-                        value={line.tax_rate.toString()}
-                        onValueChange={(v) => updateLine(actualIndex, "tax_rate", parseFloat(v))}
-                      >
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-zinc-900 border-white/10 z-50">
-                          {taxOptions.map((tax) => (
-                            <SelectItem key={tax.value} value={tax.value.toString()} className="text-white text-xs">
-                              {tax.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                    <span className="text-white/50 text-[9px]">Subtotal</span>
-                    <span className="text-white font-medium text-sm">{formatCurrency(line.subtotal)}</span>
-                  </div>
-                </div>
-              );
-            })}
-
-          </div>
-
-          {/* Desktop Lines Table (same structure as NewQuotePage) */}
-          <div className="hidden md:block bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden mb-6 shadow-2xl shadow-black/40">
+          {/* Lines Table */}
+          <div className="bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden mb-6 shadow-2xl shadow-black/40">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
               <span className="text-white text-sm font-semibold uppercase tracking-wider">Líneas del presupuesto</span>
               <span className="text-white/50 text-xs font-medium">Escribe @nombre para buscar en el catálogo</span>
@@ -1244,19 +1136,6 @@ const EditQuotePage = () => {
             </div>
           </div>
 
-
-          {/* Mobile: Add line button at the end */}
-          <div className="md:hidden mb-3">
-            <Button
-              variant="outline"
-              onClick={addLine}
-              className="w-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/50 backdrop-blur-sm rounded-2xl h-10 text-xs transition-all duration-200"
-            >
-              <Plus className="h-3 w-3 mr-1.5" />
-              Añadir línea
-            </Button>
-          </div>
-
           {/* Totals */}
           <div className="bg-gradient-to-br from-white/[0.12] to-white/[0.06] backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/15 p-5 md:p-6 shadow-2xl shadow-black/40">
             <div className="max-w-sm ml-auto space-y-4">
@@ -1281,7 +1160,5 @@ const EditQuotePage = () => {
     </div>
   );
 };
-
-// Export with mobile version
 
 export default EditQuotePageDesktop;

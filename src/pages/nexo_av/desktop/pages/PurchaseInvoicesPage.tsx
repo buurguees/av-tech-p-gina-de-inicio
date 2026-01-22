@@ -38,7 +38,6 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useToast } from "@/hooks/use-toast";
 import { usePagination } from "@/hooks/usePagination";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
 import PaginationControls from "../components/common/PaginationControls";
 
 const DocumentScanner = lazy(() => import("../components/common/DocumentScanner"));
@@ -94,7 +93,6 @@ const PurchaseInvoicesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<PurchaseInvoice[]>([]);
@@ -408,14 +406,12 @@ const PurchaseInvoicesPageDesktop = () => {
                   onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
                 />
                 <Button
-                  onClick={() => isMobile ? setShowScanner(true) : document.getElementById('desktop-upload')?.click()}
+                  onClick={() => document.getElementById('desktop-upload')?.click()}
                   disabled={uploading}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white h-9 px-4 text-sm font-medium"
                 >
                   {uploading ? (
                     <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                  ) : isMobile ? (
-                    <Camera className="h-4 w-4 mr-1.5" />
                   ) : (
                     <Upload className="h-4 w-4 mr-1.5" />
                   )}
