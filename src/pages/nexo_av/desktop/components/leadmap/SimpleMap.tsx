@@ -4,7 +4,7 @@ import { Crosshair, MapPin } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useIsNexoAvDarkTheme } from "../../../hooks/useNexoAvThemeMode";
+import { useIsNexoAvDarkTheme } from "../../hooks/useNexoAvThemeMode";
 
 // Fix for default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;

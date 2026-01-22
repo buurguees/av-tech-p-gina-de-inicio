@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useNexoAvTheme } from "../../hooks/useNexoAvTheme";
+import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import NexoLoadingScreen from "../components/layout/NexoLoadingScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

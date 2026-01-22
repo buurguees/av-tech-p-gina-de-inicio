@@ -4,12 +4,12 @@ import { Crosshair, MapPin, Edit } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../../constants/leadStages";
+import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../constants/leadStages";
 import CanvassingTool, { CANVASSING_STATUSES, CanvassingStatus } from "./CanvassingTool";
 import CanvassingLocationDialog from "./CanvassingLocationDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useIsNexoAvDarkTheme } from "../../../hooks/useNexoAvThemeMode";
+import { useIsNexoAvDarkTheme } from "../../hooks/useNexoAvThemeMode";
 
 // Fix for default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
