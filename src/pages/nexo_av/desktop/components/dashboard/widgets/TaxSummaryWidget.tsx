@@ -60,7 +60,7 @@ const TaxSummaryWidget = ({ data: externalData, period = 'quarter' }: TaxSummary
                 });
                 
                 if (irpfError) throw irpfError;
-                setIrpfAmount(typeof irpfData === 'number' ? irpfData : (irpfData?.[0]?.irpf_accumulated || 0));
+                setIrpfAmount(typeof irpfData === 'number' ? irpfData : 0);
 
                 // Fetch Corporate Tax (IS)
                 const { data: corporateTaxData, error: corporateTaxError } = await supabase.rpc("get_corporate_tax_summary", {

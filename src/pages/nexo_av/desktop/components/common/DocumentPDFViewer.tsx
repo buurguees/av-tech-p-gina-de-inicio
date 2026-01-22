@@ -1,5 +1,5 @@
 import { useState, ReactElement } from "react";
-import { PDFDownloadLink, PDFViewer, Document } from "@react-pdf/renderer";
+import { PDFDownloadLink, PDFViewer, DocumentProps } from "@react-pdf/renderer";
 import { Button } from "@/components/ui/button";
 import { Loader2, Eye, EyeOff, Download } from "lucide-react";
 import "../../styles/components/common/document-pdf-viewer.css";
@@ -9,7 +9,7 @@ interface DocumentPDFViewerProps {
    * El documento PDF generado con @react-pdf/renderer
    * Debe ser un componente Document de react-pdf
    */
-  document: ReactElement<typeof Document>;
+  document: ReactElement<DocumentProps>;
   
   /**
    * Nombre del archivo para la descarga (sin extensión .pdf)

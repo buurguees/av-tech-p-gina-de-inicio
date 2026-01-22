@@ -402,7 +402,7 @@ const AccountingPage = () => {
       });
       if (error) throw error;
       // get_irpf_summary devuelve un número directamente, no un objeto
-      setIrpfSummary(typeof data === 'number' ? data : (data?.[0]?.irpf_accumulated || 0));
+      setIrpfSummary(typeof data === 'number' ? data : 0);
     } catch (error: any) {
       console.error("Error fetching IRPF summary:", error);
       toast({
