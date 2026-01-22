@@ -1,0 +1,90 @@
+/* ============================================
+   ICONS - Component Styles
+   Icon sizing and styling across components
+   ============================================ */
+
+/* General icon reduction */
+body.nexo-av-theme svg[class*="h-8"],
+body.nexo-av-theme svg[class*="w-8"] {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+body.nexo-av-theme svg[class*="h-6"],
+body.nexo-av-theme svg[class*="w-6"] {
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+body.nexo-av-theme svg[class*="h-5"],
+body.nexo-av-theme svg[class*="w-5"] {
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+}
+
+body.nexo-av-theme svg[class*="h-4"],
+body.nexo-av-theme svg[class*="w-4"] {
+  width: 0.875rem !important;
+  height: 0.875rem !important;
+}
+
+/* Sidebar icon styling */
+body.nexo-av-theme aside nav svg {
+  width: 1rem !important;
+  height: 1rem !important;
+  color: inherit !important;
+}
+
+/* Sidebar icon container backgrounds */
+body.nexo-av-theme aside nav [class*="p-1.5"],
+body.nexo-av-theme aside [class*="p-1.5"],
+body.nexo-av-theme-dark aside nav [class*="p-1.5"],
+body.nexo-av-theme-dark aside [class*="p-1.5"] {
+  background-color: transparent !important;
+  border-radius: 0 !important;
+}
+
+body.nexo-av-theme aside nav button[class*="bg-sidebar-accent"] [class*="p-1.5"],
+body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"] [class*="p-1.5"],
+body.nexo-av-theme-dark aside nav button[class*="bg-sidebar-accent"] [class*="p-1.5"],
+body.nexo-av-theme-dark aside nav a[class*="bg-sidebar-accent"] [class*="p-1.5"] {
+  background-color: hsl(var(--primary) / 0.1) !important;
+  border-radius: 0 !important;
+}
+
+/* Stat card icon containers */
+body.nexo-av-theme .card [class*="p-3"][class*="rounded-xl"] {
+  padding: 0.5rem !important;
+  border-radius: 6px !important;
+}
+
+body.nexo-av-theme .card [class*="p-3"] svg {
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+/* Icon color system */
+body.nexo-av-theme [class*="text-green-600"] {
+  color: hsl(var(--status-success)) !important;
+}
+
+body.nexo-av-theme [class*="text-blue-600"] {
+  color: hsl(var(--status-info)) !important;
+}
+
+body.nexo-av-theme [class*="text-purple-600"] {
+  color: hsl(var(--status-special)) !important;
+}
+
+body.nexo-av-theme [class*="text-red-600"] {
+  color: hsl(var(--status-error)) !important;
+}
+
+body.nexo-av-theme [class*="text-yellow-600"],
+body.nexo-av-theme [class*="text-orange-600"] {
+  color: hsl(var(--status-warning)) !important;
+}
+
+body.nexo-av-theme [class*="text-indigo-600"] {
+  color: hsl(215 60% 45%) !important;
+}

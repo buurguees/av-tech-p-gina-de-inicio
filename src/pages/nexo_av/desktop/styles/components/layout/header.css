@@ -1,0 +1,93 @@
+/* ============================================
+   HEADER - Component Styles
+   Top navigation header layout and styling
+   ============================================ */
+
+/* HEADER - Unificado con sidebar */
+body.nexo-av-theme header,
+body.nexo-av-theme-dark header,
+body.nexo-av-theme header[class*="bg-background"],
+body.nexo-av-theme-dark header[class*="bg-background"],
+body.nexo-av-theme header.bg-background,
+body.nexo-av-theme-dark header.bg-background {
+  background-color: #000000 !important;
+  border-bottom: 1px solid hsl(var(--sidebar-border)) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  height: var(--header-height) !important;
+  min-height: var(--header-height) !important;
+  max-height: var(--header-height) !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  z-index: 50 !important;
+}
+
+/* Eliminar cualquier border-radius del header, excepto avatar */
+body.nexo-av-theme header *,
+body.nexo-av-theme-dark header * {
+  border-radius: 0 !important;
+}
+
+/* Avatar en header - Permitir border-radius completo (rounded-full) */
+body.nexo-av-theme header button[class*="rounded-full"],
+body.nexo-av-theme header [class*="rounded-full"],
+body.nexo-av-theme header [class*="Avatar"],
+body.nexo-av-theme header [class*="avatar"],
+body.nexo-av-theme-dark header button[class*="rounded-full"],
+body.nexo-av-theme-dark header [class*="rounded-full"],
+body.nexo-av-theme-dark header [class*="Avatar"],
+body.nexo-av-theme-dark header [class*="avatar"] {
+  border-radius: 9999px !important;
+}
+
+/* Botones del header que no sean avatar - mantener sin border-radius */
+body.nexo-av-theme header button:not([class*="rounded-full"]):not([class*="Avatar"]):not([class*="avatar"]),
+body.nexo-av-theme-dark header button:not([class*="rounded-full"]):not([class*="Avatar"]):not([class*="avatar"]) {
+  border-radius: 0 !important;
+}
+
+/* Logo text - Reducir tamaño */
+body.nexo-av-theme header h1,
+body.nexo-av-theme-dark header h1 {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+body.nexo-av-theme header p[class*="text-xs"],
+body.nexo-av-theme-dark header p[class*="text-xs"] {
+  font-size: 0.625rem !important;
+  line-height: 1.2 !important;
+}
+
+/* Eliminar separación visual entre header y sidebar */
+body.nexo-av-theme header::after,
+body.nexo-av-theme-dark header::after {
+  display: none !important;
+}
+
+/* Asegurar que header y sidebar compartan el mismo fondo */
+body.nexo-av-theme header,
+body.nexo-av-theme-dark header,
+body.nexo-av-theme header[class*="bg-background"],
+body.nexo-av-theme-dark header[class*="bg-background"],
+body.nexo-av-theme header[class*="bg-"],
+body.nexo-av-theme-dark header[class*="bg-"],
+body.nexo-av-theme aside,
+body.nexo-av-theme-dark aside {
+  background-color: #000000 !important;
+}
+
+/* Eliminar cualquier sombra o efecto de separación */
+body.nexo-av-theme header,
+body.nexo-av-theme-dark header {
+  box-shadow: none !important;
+}
+
+/* Asegurar que no haya gap entre header y sidebar */
+body.nexo-av-theme header+div[class*="fixed"],
+body.nexo-av-theme-dark header+div[class*="fixed"] {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}

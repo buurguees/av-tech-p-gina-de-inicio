@@ -1,0 +1,32 @@
+/* ============================================
+   TABLES - Component Styles
+   Table and data display styling
+   ============================================ */
+
+body.nexo-av-theme table {
+  font-size: 0.8125rem !important;
+}
+
+body.nexo-av-theme th {
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  padding: 0.625rem !important;
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--muted-foreground)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme td {
+  padding: 0.5rem !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
+body.nexo-av-theme tr:hover {
+  background-color: hsl(var(--muted)) !important;
+}
+
+body.nexo-av-theme tbody tr:last-child td {
+  border-bottom: none !important;
+}

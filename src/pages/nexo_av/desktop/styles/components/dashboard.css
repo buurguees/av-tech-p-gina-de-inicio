@@ -1,0 +1,64 @@
+/* ============================================
+   DASHBOARD - Component Styles
+   Dashboard-specific styling and layouts
+   ============================================ */
+
+/* Period selector buttons */
+body.nexo-av-theme button[class*="bg-primary"][class*="text-primary-foreground"] {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Period info banner - make it subtle */
+body.nexo-av-theme [class*="bg-accent"][class*="border-primary"] {
+  background-color: hsl(var(--secondary)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Dashboard stat card styling */
+body.nexo-av-theme [class*="dashboard-stat"] {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 8px !important;
+  padding: 1rem !important;
+  box-shadow: var(--shadow-xs) !important;
+  transition: box-shadow 0.2s ease !important;
+}
+
+body.nexo-av-theme [class*="dashboard-stat"]:hover {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* Dashboard grid layout */
+body.nexo-av-theme [class*="dashboard-grid"] {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+  gap: 1rem !important;
+  width: 100% !important;
+}
+
+/* Stat icon backgrounds */
+body.nexo-av-theme [class*="bg-green-100"] {
+  background-color: hsl(var(--status-success-bg)) !important;
+}
+
+body.nexo-av-theme [class*="bg-blue-100"] {
+  background-color: hsl(var(--status-info-bg)) !important;
+}
+
+body.nexo-av-theme [class*="bg-purple-100"] {
+  background-color: hsl(var(--status-special-bg)) !important;
+}
+
+body.nexo-av-theme [class*="bg-red-100"] {
+  background-color: hsl(var(--status-error-bg)) !important;
+}
+
+body.nexo-av-theme [class*="bg-yellow-100"],
+body.nexo-av-theme [class*="bg-orange-100"] {
+  background-color: hsl(var(--status-warning-bg)) !important;
+}
+
+body.nexo-av-theme [class*="bg-indigo-100"] {
+  background-color: hsl(215 60% 96%) !important;
+}

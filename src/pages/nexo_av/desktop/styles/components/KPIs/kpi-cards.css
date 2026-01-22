@@ -1,0 +1,105 @@
+/* ============================================
+   KPI CARDS - Component Styles
+   Key Performance Indicator card styling
+   ============================================ */
+
+/* KPI card base styling */
+body.nexo-av-theme [class*="kpi-card"],
+body.nexo-av-theme-dark [class*="kpi-card"] {
+  background-color: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-xs) !important;
+  transition: box-shadow 0.2s ease !important;
+}
+
+body.nexo-av-theme [class*="kpi-card"]:hover,
+body.nexo-av-theme-dark [class*="kpi-card"]:hover {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* KPI card sizes */
+body.nexo-av-theme [class*="kpi-card-small"],
+body.nexo-av-theme-dark [class*="kpi-card-small"],
+body.nexo-av-theme [data-kpi-size="small"],
+body.nexo-av-theme-dark [data-kpi-size="small"] {
+  padding: 0.75rem !important;
+  min-height: 80px !important;
+}
+
+body.nexo-av-theme [class*="kpi-card-medium"],
+body.nexo-av-theme-dark [class*="kpi-card-medium"],
+body.nexo-av-theme [data-kpi-size="medium"],
+body.nexo-av-theme-dark [data-kpi-size="medium"] {
+  padding: 1rem !important;
+  min-height: 120px !important;
+}
+
+body.nexo-av-theme [class*="kpi-card-large"],
+body.nexo-av-theme-dark [class*="kpi-card-large"],
+body.nexo-av-theme [data-kpi-size="large"],
+body.nexo-av-theme-dark [data-kpi-size="large"] {
+  padding: 1.25rem !important;
+  min-height: 150px !important;
+}
+
+/* KPI value text */
+body.nexo-av-theme [class*="kpi-value"],
+body.nexo-av-theme-dark [class*="kpi-value"] {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* KPI label text */
+body.nexo-av-theme [class*="kpi-label"],
+body.nexo-av-theme-dark [class*="kpi-label"] {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: hsl(var(--muted-foreground)) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* KPI icon styling */
+body.nexo-av-theme [class*="kpi-icon"],
+body.nexo-av-theme-dark [class*="kpi-icon"] {
+  width: 2rem !important;
+  height: 2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+}
+
+body.nexo-av-theme [class*="kpi-icon"] svg,
+body.nexo-av-theme-dark [class*="kpi-icon"] svg {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
+/* KPI trend indicator */
+body.nexo-av-theme [class*="kpi-trend"],
+body.nexo-av-theme-dark [class*="kpi-trend"] {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  margin-top: 0.5rem !important;
+}
+
+body.nexo-av-theme [class*="kpi-trend-up"],
+body.nexo-av-theme-dark [class*="kpi-trend-up"] {
+  color: hsl(var(--status-success)) !important;
+}
+
+body.nexo-av-theme [class*="kpi-trend-down"],
+body.nexo-av-theme-dark [class*="kpi-trend-down"] {
+  color: hsl(var(--status-error)) !important;
+}
+
+body.nexo-av-theme [class*="kpi-trend-neutral"],
+body.nexo-av-theme-dark [class*="kpi-trend-neutral"] {
+  color: hsl(var(--muted-foreground)) !important;
+}

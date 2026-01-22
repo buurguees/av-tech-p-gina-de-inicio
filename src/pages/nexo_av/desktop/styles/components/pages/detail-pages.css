@@ -1,0 +1,96 @@
+/* ============================================
+   DETAIL PAGES - Page-Specific Styles
+   ProjectDetailPage, ClientDetailPage, etc.
+   ============================================ */
+
+/* LeadMapPage - 60/40 split for map and sidebar */
+body.nexo-av-theme [class*="flex-1"][class*="flex"][class*="gap-4"] {
+  width: 100% !important;
+}
+
+body.nexo-av-theme [style*="width: '60%'"],
+body.nexo-av-theme-dark [style*="width: '60%'"] {
+  width: 60% !important;
+  flex: 0 0 60% !important;
+}
+
+body.nexo-av-theme [style*="width: '40%'"],
+body.nexo-av-theme-dark [style*="width: '40%'"] {
+  width: 40% !important;
+  flex: 0 0 40% !important;
+}
+
+/* Ensure map container uses full height */
+body.nexo-av-theme [class*="LeadMap"],
+body.nexo-av-theme-dark [class*="LeadMap"],
+body.nexo-av-theme div[class*="h-full"][class*="w-full"][class*="relative"],
+body.nexo-av-theme-dark div[class*="h-full"][class*="w-full"][class*="relative"] {
+  height: 100% !important;
+  width: 100% !important;
+  min-height: 500px !important;
+}
+
+/* Force LeadMapPage container to use full space */
+body.nexo-av-theme div[class*="w-full"][class*="flex"][class*="flex-col"],
+body.nexo-av-theme-dark div[class*="w-full"][class*="flex"][class*="flex-col"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Ensure flex containers in map pages use full width and height */
+body.nexo-av-theme div[class*="flex-1"][class*="flex"][class*="gap-4"],
+body.nexo-av-theme-dark div[class*="flex-1"][class*="flex"][class*="gap-4"] {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 500px !important;
+}
+
+/* Ensure MapContainer from Leaflet has proper height */
+body.nexo-av-theme .leaflet-container,
+body.nexo-av-theme-dark .leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  min-height: 500px !important;
+}
+
+/* ============================================
+   LEAD MAP SIDEBAR - Remove shadows
+   ============================================ */
+
+/* Remove shadows from LeadMapSidebar cards */
+body.nexo-av-theme [class*="LeadMapSidebar"] [class*="Card"],
+body.nexo-av-theme-dark [class*="LeadMapSidebar"] [class*="Card"],
+body.nexo-av-theme [class*="LeadMapSidebar"] .card,
+body.nexo-av-theme-dark [class*="LeadMapSidebar"] .card {
+  box-shadow: none !important;
+}
+
+/* Remove shadows from client list buttons in LeadMapSidebar */
+body.nexo-av-theme [class*="LeadMapSidebar"] button[class*="rounded-md"],
+body.nexo-av-theme-dark [class*="LeadMapSidebar"] button[class*="rounded-md"] {
+  box-shadow: none !important;
+}
+
+/* Main content container - Forzar visualización en desktop */
+@media (min-width: 550px) {
+  body.nexo-av-theme main[class*="hidden"][class*="md:block"],
+  body.nexo-av-theme-dark main[class*="hidden"][class*="md:block"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Asegurar que el contenedor principal no tenga padding que separe el sidebar */
+body.nexo-av-theme>div[class*="min-h-screen"],
+body.nexo-av-theme-dark>div[class*="min-h-screen"] {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* Asegurar que el flex container no tenga padding */
+body.nexo-av-theme div.flex[class*="w-"] {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}

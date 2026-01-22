@@ -1,0 +1,14 @@
+/* ============================================
+   COMPONENT STYLES INDEX
+   Import all component-specific CSS files
+   This file ensures all component styles are loaded
+   ============================================ */
+
+@import './layout/header.css';
+@import './layout/sidebar.css';
+@import './cards/card.css';
+@import './tables/table.css';
+@import './KPIs/kpi-cards.css';
+@import './icons.css';
+@import './dashboard.css';
+@import './pages/detail-pages.css';

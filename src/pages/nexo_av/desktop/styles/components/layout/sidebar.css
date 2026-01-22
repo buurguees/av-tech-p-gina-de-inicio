@@ -1,0 +1,185 @@
+/* ============================================
+   SIDEBAR - Component Styles
+   Navigation sidebar layout and styling
+   ============================================ */
+
+/* SIDEBAR - Unificado con header - Misma capa que el header */
+body.nexo-av-theme aside,
+body.nexo-av-theme [class*="bg-sidebar"],
+body.nexo-av-theme [class*="bg-card"][class*="border-r"],
+body.nexo-av-theme-dark aside,
+body.nexo-av-theme-dark [class*="bg-sidebar"],
+body.nexo-av-theme-dark [class*="bg-card"][class*="border-r"] {
+  background-color: #000000 !important;
+  border: none !important;
+  border-left: 1px solid hsl(var(--sidebar-border)) !important;
+  border-right: 1px solid hsl(var(--sidebar-border)) !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-radius: 0 !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  position: fixed !important;
+  left: 0 !important;
+  top: var(--header-height) !important;
+  width: var(--sidebar-width) !important;
+  height: calc(100vh - var(--header-height)) !important;
+  z-index: 50 !important;
+  display: flex !important;
+}
+
+/* Contenedor del sidebar - Bordes izquierdo y derecho - Misma capa que el header */
+body.nexo-av-theme div[style*="top: '3.25rem'"],
+body.nexo-av-theme-dark div[style*="top: '3.25rem'"],
+body.nexo-av-theme div[style*="top: 3.25rem"],
+body.nexo-av-theme-dark div[style*="top: 3.25rem"],
+body.nexo-av-theme div[class*="fixed"][class*="left-0"][class*="z-40"][class*="hidden"][class*="md:block"],
+body.nexo-av-theme-dark div[class*="fixed"][class*="left-0"][class*="z-40"][class*="hidden"][class*="md:block"],
+body.nexo-av-theme div[class*="fixed"][class*="left-0"][class*="z-50"][class*="hidden"][class*="md:block"],
+body.nexo-av-theme-dark div[class*="fixed"][class*="left-0"][class*="z-50"][class*="hidden"][class*="md:block"],
+body.nexo-av-theme div[class*="top-\[3\.25rem\]"][class*="fixed"][class*="left-0"],
+body.nexo-av-theme-dark div[class*="top-\[3\.25rem\]"][class*="fixed"][class*="left-0"] {
+  top: var(--header-height) !important;
+  height: calc(100vh - var(--header-height)) !important;
+  width: var(--sidebar-width) !important;
+  z-index: 50 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  border-left: 1px solid hsl(var(--sidebar-border)) !important;
+  border-right: 1px solid hsl(var(--sidebar-border)) !important;
+  display: block !important;
+  background-color: hsl(var(--sidebar-background)) !important;
+}
+
+/* Asegurar que el sidebar se muestre SIEMPRE en desktop */
+@media (min-width: 550px) {
+  /* Sidebar contenedor - Forzar visualización en desktop */
+  body.nexo-av-theme div[class*="fixed"][class*="left-0"][class*="z-40"][class*="hidden"][class*="md:block"],
+  body.nexo-av-theme-dark div[class*="fixed"][class*="left-0"][class*="z-40"][class*="hidden"][class*="md:block"],
+  body.nexo-av-theme div[class*="fixed"][class*="left-0"][class*="z-50"][class*="hidden"][class*="md:block"],
+  body.nexo-av-theme-dark div[class*="fixed"][class*="left-0"][class*="z-50"][class*="hidden"][class*="md:block"],
+  body.nexo-av-theme div[class*="top-\[3\.25rem\]"][class*="fixed"][class*="left-0"],
+  body.nexo-av-theme-dark div[class*="top-\[3\.25rem\]"][class*="fixed"][class*="left-0"] {
+    display: block !important;
+    z-index: 50 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  body.nexo-av-theme aside[class*="hidden"][class*="md:flex"],
+  body.nexo-av-theme-dark aside[class*="hidden"][class*="md:flex"] {
+    display: flex !important;
+  }
+}
+
+/* Asegurar que el sidebar tenga bordes izquierdo y derecho - eliminar otros bordes */
+body.nexo-av-theme aside,
+body.nexo-av-theme-dark aside {
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+/* Eliminar border-radius del sidebar contenedor, pero permitir en botones */
+body.nexo-av-theme aside,
+body.nexo-av-theme-dark aside {
+  border-radius: 0 !important;
+}
+
+/* Botones del sidebar - SIN border-radius por defecto */
+body.nexo-av-theme aside button,
+body.nexo-av-theme aside a,
+body.nexo-av-theme-dark aside button,
+body.nexo-av-theme-dark aside a {
+  border-radius: 0 !important;
+}
+
+/* Botones de navegación del sidebar específicamente - CON border-radius 20px */
+body.nexo-av-theme aside nav button,
+body.nexo-av-theme aside nav a,
+body.nexo-av-theme-dark aside nav button,
+body.nexo-av-theme-dark aside nav a {
+  border-radius: 20px !important;
+}
+
+/* Sidebar navigation items styling */
+body.nexo-av-theme aside nav button,
+body.nexo-av-theme aside nav a,
+body.nexo-av-theme-dark aside nav button,
+body.nexo-av-theme-dark aside nav a {
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 0.75rem !important;
+  border-radius: 20px !important;
+  color: hsl(var(--text-secondary)) !important;
+  transition: all 0.15s ease !important;
+}
+
+/* Light theme - Botón hover/activo negro con texto blanco */
+body.nexo-av-theme aside nav button:hover,
+body.nexo-av-theme aside nav a:hover {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Iconos en hover - light theme */
+body.nexo-av-theme aside nav button:hover svg,
+body.nexo-av-theme aside nav a:hover svg {
+  color: #ffffff !important;
+}
+
+/* Active sidebar item - Light theme */
+body.nexo-av-theme aside nav button[class*="bg-sidebar-accent"],
+body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"],
+body.nexo-av-theme aside nav button[class*="bg-primary"],
+body.nexo-av-theme aside nav a[class*="bg-primary"] {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* Iconos del item activo - light theme */
+body.nexo-av-theme aside nav button[class*="bg-sidebar-accent"] svg,
+body.nexo-av-theme aside nav a[class*="bg-sidebar-accent"] svg,
+body.nexo-av-theme aside nav button[class*="bg-primary"] svg,
+body.nexo-av-theme aside nav a[class*="bg-primary"] svg {
+  color: #ffffff !important;
+}
+
+/* Dark theme - Botón hover/activo blanco con texto negro */
+body.nexo-av-theme-dark aside nav button:hover,
+body.nexo-av-theme-dark aside nav a:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Iconos en hover - dark theme */
+body.nexo-av-theme-dark aside nav button:hover svg,
+body.nexo-av-theme-dark aside nav a:hover svg {
+  color: #000000 !important;
+}
+
+/* Active sidebar item - Dark theme */
+body.nexo-av-theme-dark aside nav button[class*="bg-sidebar-accent"],
+body.nexo-av-theme-dark aside nav a[class*="bg-sidebar-accent"],
+body.nexo-av-theme-dark aside nav button[class*="bg-primary"],
+body.nexo-av-theme-dark aside nav a[class*="bg-primary"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+/* Iconos del item activo - dark theme */
+body.nexo-av-theme-dark aside nav button[class*="bg-sidebar-accent"] svg,
+body.nexo-av-theme-dark aside nav a[class*="bg-sidebar-accent"] svg,
+body.nexo-av-theme-dark aside nav button[class*="bg-primary"] svg,
+body.nexo-av-theme-dark aside nav a[class*="bg-primary"] svg {
+  color: #000000 !important;
+}
+
+/* Sidebar icon container backgrounds */
+body.nexo-av-theme aside nav [class*="p-1.5"],
+body.nexo-av-theme aside [class*="p-1.5"],
+body.nexo-av-theme-dark aside nav [class*="p-1.5"],
+body.nexo-av-theme-dark aside [class*="p-1.5"] {
+  border-radius: 0 !important;
+}
