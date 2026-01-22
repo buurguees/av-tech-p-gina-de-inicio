@@ -1,11 +1,5 @@
+import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import "../../styles/components/common/status-selector.css";
 
@@ -33,68 +27,118 @@ const StatusSelector = ({
   className,
   size = "md",
 }: StatusSelectorProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
   const currentStatusInfo = statusOptions.find(
     (s) => s.value === currentStatus
   ) || statusOptions[0];
+
+  // Cerrar el dropdown cuando hacemos click fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        !triggerRef.current?.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   const handleStatusSelect = (newStatus: string) => {
     if (newStatus !== currentStatus && onStatusChange) {
       onStatusChange(newStatus);
     }
+    setIsOpen(false);
   };
 
+  // Calcular si necesita scroll (más de 7 estados)
+  const needsScroll = statusOptions.length > 7;
+  
+  // Calcular altura dinámica usando rem (2.75rem por item, base 16px = 44px)
+  const itemHeightRem = 2.75; // rem
+  const maxVisibleItems = 7;
+  const dropdownHeightRem = Math.min(
+    statusOptions.length * itemHeightRem,
+    maxVisibleItems * itemHeightRem
+  );
+
+  if (disabled || !onStatusChange) {
+    return (
+      <div className="inline-flex items-center px-3 py-2 rounded-lg border border-white/10 bg-white/5">
+        <span className={cn(
+          currentStatusInfo.className,
+          "px-2 py-0.5 rounded text-xs font-medium text-white"
+        )}>
+          {currentStatusInfo.label}
+        </span>
+      </div>
+    );
+  }
+
   return (
-    <div className={cn("status-selector", className)}>
-      {onStatusChange && !disabled ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200 hover:border-white/20">
-              <div className="flex items-center gap-1.5 flex-1">
+    <div className={cn("status-selector-container", className)} ref={dropdownRef}>
+      <button
+        ref={triggerRef}
+        onClick={() => setIsOpen(!isOpen)}
+        className="status-selector-trigger"
+      >
+        <span className={cn(
+          currentStatusInfo.className,
+          "px-2 py-0.5 rounded text-xs font-medium text-white"
+        )}>
+          {currentStatusInfo.label}
+        </span>
+        <ChevronDown className={cn(
+          "status-selector-chevron",
+          isOpen && "status-selector-chevron--open"
+        )} />
+      </button>
+
+      {isOpen && (
+        <div 
+          className="status-selector-dropdown"
+          style={{
+            maxHeight: `${dropdownHeightRem + 0.5}rem`,
+            overflowY: needsScroll ? "auto" : "visible",
+          }}
+        >
+          {statusOptions.map((status, index) => {
+            const statusInfo = statusOptions.find(s => s.value === status.value) || status;
+            const isSelected = status.value === currentStatus;
+            
+            return (
+              <button
+                key={status.value}
+                onClick={() => handleStatusSelect(status.value)}
+                className={cn(
+                  "status-selector-item",
+                  isSelected && "status-selector-item--selected"
+                )}
+              >
                 <span className={cn(
-                  currentStatusInfo.className,
-                  "px-2 py-0.5 rounded text-xs font-medium text-white"
+                  statusInfo.className,
+                  "px-2 py-0.5 rounded text-xs font-medium inline-block"
                 )}>
-                  {currentStatusInfo.label}
+                  {statusInfo.label}
                 </span>
-              </div>
-              <ChevronDown className="h-4 w-4 text-white/60 transition-transform duration-200" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56 bg-zinc-900/95 border border-white/10 backdrop-blur-sm">
-            {statusOptions.map((status) => {
-              const statusInfo = statusOptions.find(s => s.value === status.value) || status;
-              const isSelected = status.value === currentStatus;
-              return (
-                <DropdownMenuItem
-                  key={status.value}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleStatusSelect(status.value);
-                  }}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-2.5 text-white cursor-pointer transition-colors duration-150",
-                    isSelected ? "bg-white/15" : "hover:bg-white/10"
-                  )}
-                  disabled={disabled}
-                >
-                  <div className="flex-1">
-                    <span className={cn(statusInfo.className, "px-2 py-0.5 rounded text-xs font-medium inline-block")}>
-                      {statusInfo.label}
-                    </span>
-                  </div>
-                  {isSelected && (
-                    <div className="w-2 h-2 rounded-full bg-white/60"></div>
-                  )}
-                </DropdownMenuItem>
-              );
-            })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : (
-        <div className="inline-flex items-center px-3 py-2 rounded-lg border border-white/10 bg-white/5">
-          <Badge className={cn(currentStatusInfo.className, "text-xs")}>
-            {currentStatusInfo.label}
-          </Badge>
+                {isSelected && (
+                  <div className="status-selector-item-indicator"></div>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
