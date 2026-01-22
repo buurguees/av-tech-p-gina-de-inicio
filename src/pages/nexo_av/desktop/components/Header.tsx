@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import UserAvatarDropdown from "./UserAvatarDropdown";
-import { NexoLogo } from "./NexoHeader";
+import { NexoLogo } from "./layout/NexoHeader";
 
 interface HeaderProps {
   userId: string | undefined;

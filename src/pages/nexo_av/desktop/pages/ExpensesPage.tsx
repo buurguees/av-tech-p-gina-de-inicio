@@ -36,6 +36,7 @@ import {
   ChevronUp,
   MoreVertical,
   CreditCard,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PaginationControls from "../components/common/PaginationControls";

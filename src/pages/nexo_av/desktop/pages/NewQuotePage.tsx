@@ -896,4 +896,4 @@ const NewQuotePage = () => {
   );
 };
 
-export default NewQuotePageDesktop;
+export default NewQuotePage;

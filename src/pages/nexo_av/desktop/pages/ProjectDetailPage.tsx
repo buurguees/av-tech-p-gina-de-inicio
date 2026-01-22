@@ -523,7 +523,7 @@ const ProjectDetailPageDesktop = () => {
                     <div className="w-full flex justify-center">
                       <StatusSelector
                         currentStatus={project?.status || "PLANNED"}
-                        statusOptions={PROJECT_STATUSES}
+                        statusOptions={[...PROJECT_STATUSES]}
                         onStatusChange={(newStatus) => {
                           // TODO: Implementar actualización en base de datos
                           console.log("Cambiar estado del proyecto a:", newStatus);

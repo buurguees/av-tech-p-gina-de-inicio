@@ -1,7 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../../constants/leadStages";
-import type { LeadClient } from "../../pages/LeadMapPage";
+import type { CanvassingLocation as LeadClient } from "../../pages/LeadMapPage";
 import { MapPin, Users, Mail, Phone } from "lucide-react";
 
 interface LeadStats {
