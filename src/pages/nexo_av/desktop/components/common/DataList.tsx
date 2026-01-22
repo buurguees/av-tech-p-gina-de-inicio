@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import "../styles/common/data-list.css";
+import "../../styles/components/common/data-list.css";
 
 export interface DataListColumn<T = any> {
   key: string;
