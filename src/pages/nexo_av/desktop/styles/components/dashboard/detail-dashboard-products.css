@@ -9,8 +9,8 @@
 }
 
 .detail-dashboard-products__title {
-  font-size: 1.25rem !important;
-  /* h1 del sistema */
+  font-size: clamp(1rem, 0.8rem + 0.5vw, 1.25rem) !important;
+  /* Escala proporcional: min 1rem, max 1.25rem */
   font-weight: 600 !important;
   color: hsl(var(--foreground)) !important;
   line-height: 1.4 !important;

@@ -43,10 +43,10 @@ body.nexo-av-theme-dark [data-kpi-size="large"] {
   min-height: 150px !important;
 }
 
-/* KPI value text */
+/* KPI value text - escala proporcional */
 body.nexo-av-theme [class*="kpi-value"],
 body.nexo-av-theme-dark [class*="kpi-value"] {
-  font-size: 1.5rem !important;
+  font-size: clamp(1.25rem, 1rem + 0.6vw, 1.5rem) !important;
   font-weight: 700 !important;
   color: hsl(var(--foreground)) !important;
 }
