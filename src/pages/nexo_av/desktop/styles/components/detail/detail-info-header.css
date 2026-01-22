@@ -38,8 +38,8 @@
 }
 
 .detail-info-header__subtitle {
-  font-size: 0.8125rem !important;
-  /* text-sm del sistema */
+  font-size: clamp(0.6875rem, 0.8125rem, 0.9375rem) !important;
+  /* text-sm del sistema - autoajuste fluido */
   font-weight: 400 !important;
   color: hsl(var(--text-secondary)) !important;
   line-height: 1.55 !important;
@@ -73,35 +73,5 @@
   .detail-info-header__actions {
     width: 100%;
     justify-content: flex-end;
-  }
-
-  .detail-info-header__title {
-    font-size: 1.125rem !important;
-  }
-}
-
-/* Desktop Narrow (1280px - 1439px) - Escalado del sistema */
-@media (min-width: 1024px) and (max-width: 1439px) {
-  .detail-info-header__title {
-    font-size: 1.15rem !important;
-    /* 1.25rem * 0.92 */
-  }
-
-  .detail-info-header__subtitle {
-    font-size: 0.75rem !important;
-    /* 0.8125rem * 0.92 */
-  }
-}
-
-/* Desktop Compact (1024px - 1279px) - Escalado del sistema */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .detail-info-header__title {
-    font-size: 1.0625rem !important;
-    /* 1.25rem * 0.85 */
-  }
-
-  .detail-info-header__subtitle {
-    font-size: 0.6875rem !important;
-    /* 0.8125rem * 0.85 */
   }
 }

@@ -20,9 +20,9 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  height: 3.5rem;
-  padding: 0 1rem;
-  gap: 1rem;
+  height: clamp(3rem, 3.5rem, 4rem);
+  padding: 0 clamp(0.75rem, 1rem, 1.25rem);
+  gap: clamp(0.75rem, 1rem, 1.25rem);
   position: relative;
 }
 
@@ -37,8 +37,8 @@
 }
 
 .detail-navigation-bar__back-button {
-  height: 2.25rem;
-  width: 2.25rem;
+  height: clamp(2rem, 2.25rem, 2.5rem);
+  width: clamp(2rem, 2.25rem, 2.5rem);
   flex-shrink: 0;
   border-radius: 0.5rem;
   transition: all 0.15s ease;
@@ -61,8 +61,8 @@
 
 /* Page Title - Usa estilo h2 del sistema */
 .detail-navigation-bar__page-title {
-  font-size: 1.0625rem !important;
-  /* h2 del sistema */
+  font-size: clamp(0.875rem, 1.0625rem, 1.25rem) !important;
+  /* h2 del sistema - autoajuste fluido */
   font-weight: 600 !important;
   line-height: 1.35 !important;
   letter-spacing: -0.015em !important;
@@ -104,8 +104,8 @@
 
 /* Context Text - Usa estilo text-sm del sistema */
 .detail-navigation-bar__context-text {
-  font-size: 0.8125rem !important;
-  /* text-sm del sistema (p) */
+  font-size: clamp(0.6875rem, 0.8125rem, 0.9375rem) !important;
+  /* text-sm del sistema (p) - autoajuste fluido */
   line-height: 1.55 !important;
   font-weight: 500;
   color: hsl(var(--text-secondary)) !important;
@@ -135,18 +135,8 @@
 
 /* Responsive adjustments - Usa valores del sistema */
 @media (max-width: 768px) {
-  .detail-navigation-bar__container {
-    padding: 0 0.75rem;
-    gap: 0.75rem;
-  }
-
   .detail-navigation-bar__left {
     gap: 0.5rem;
-  }
-
-  .detail-navigation-bar__page-title {
-    font-size: 0.96875rem !important;
-    /* h2 reducido proporcionalmente */
   }
 
   .detail-navigation-bar__center {
@@ -154,11 +144,6 @@
     max-width: calc(100% - 1.5rem);
     min-width: 200px; /* Reducir en móvil */
     width: 100%;
-  }
-
-  .detail-navigation-bar__context-text {
-    font-size: 0.75rem !important;
-    /* text-sm reducido proporcionalmente */
   }
 }
 
@@ -191,28 +176,3 @@ body.nexo-av-theme-dark .detail-navigation-bar__back-button:hover .detail-naviga
   transform: translateX(-50%);
 }
 
-/* Desktop Narrow (1280px - 1439px) - Escalado del sistema */
-@media (min-width: 1024px) and (max-width: 1439px) {
-  .detail-navigation-bar__page-title {
-    font-size: 0.96875rem !important;
-    /* 1.0625rem * 0.91 */
-  }
-
-  .detail-navigation-bar__context-text {
-    font-size: 0.75rem !important;
-    /* 0.8125rem * 0.92 */
-  }
-}
-
-/* Desktop Compact (1024px - 1279px) - Escalado del sistema */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .detail-navigation-bar__page-title {
-    font-size: 0.875rem !important;
-    /* 1.0625rem * 0.82 */
-  }
-
-  .detail-navigation-bar__context-text {
-    font-size: 0.6875rem !important;
-    /* 0.8125rem * 0.85 */
-  }
-}

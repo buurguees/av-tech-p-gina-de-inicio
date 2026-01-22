@@ -1,22 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Award,
   Target,
@@ -28,14 +13,9 @@ import {
   TrendingUp,
   BarChart3,
   User,
-  Search,
   Mail,
   Phone,
-  ChevronUp,
-  ChevronDown,
-  MoreVertical,
 } from "lucide-react";
-import { useDebounce } from "@/hooks/useDebounce";
 import { usePagination } from "@/hooks/usePagination";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -45,6 +25,7 @@ import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import CreateClientDialog from "../components/clients/CreateClientDialog";
 import EditClientDialog from "../components/clients/EditClientDialog";
+import DataList, { DataListColumn, DataListAction } from "../components/common/DataList";
 
 interface Client {
   id: string;
@@ -568,187 +549,140 @@ const ClientsPageDesktop = () => {
             />
           </div>
 
-          {/* Table */}
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-6 w-6 border-2 border-border border-t-primary"></div>
-            </div>
-          ) : filteredClients.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No hay clientes</p>
-              <p className="text-muted-foreground/70 text-[10px] mt-1">
-                Crea tu primer cliente para comenzar
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table */}
-              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
-                <Table className="w-full">
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent bg-muted/30">
-                      <TableHead
-                        className="text-muted-foreground cursor-pointer hover:text-foreground select-none text-left"
-                        onClick={() => handleSort("number")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Nº
-                          {sortColumn === "number" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2 text-left"
-                        onClick={() => handleSort("company")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Empresa
-                          {sortColumn === "company" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2 text-left">Email</TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2 text-left">Teléfono</TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2 text-center">Proyectos</TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2 text-center"
-                        onClick={() => handleSort("stage")}
-                      >
-                        <div className="flex items-center justify-center gap-1">
-                          Estado
-                          {sortColumn === "stage" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2 text-left"
-                        onClick={() => handleSort("assigned")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Asignado
-                          {sortColumn === "assigned" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-white/70 w-10 text-left"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedClients.map((client) => {
-                      const stageInfo = getStageInfo(client.lead_stage);
-                      return (
-                        <TableRow
-                          key={client.id}
-                          className="border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200"
-                          onClick={() => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
-                        >
-                          <TableCell className="font-mono text-white/70 text-[13px] font-semibold">
-                            {client.client_number || '-'}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-lg bg-white/5">
-                                <Building2 className="h-3 w-3 text-white/60" />
-                              </div>
-                              <div>
-                                <p className="text-white font-medium text-[10px]">{client.company_name}</p>
-                                {client.industry_sector && (
-                                  <p className="text-white/40 text-[9px] px-1.5 py-0.5">
-                                    {client.industry_sector}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1.5 text-white/60 text-[9px]">
-                              <Mail className="h-2.5 w-2.5" />
-                              <span className="truncate max-w-[200px]">{client.contact_email}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1.5 text-white/60 text-[9px]">
-                              <Phone className="h-2.5 w-2.5" />
-                              {client.contact_phone}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-white/70 text-[10px] text-center">
-                            {projectsByClient.get(client.id) || 0}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center">
-                              <Badge variant="outline" className={cn(stageInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
-                                {stageInfo.label}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-white/70 text-[10px]">
-                            {client.assigned_to_name || <span className="text-white/30">Sin asignar</span>}
-                          </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 text-white/40 hover:text-foreground hover:bg-white/10"
-                                >
-                                  <MoreVertical className="h-3 w-3" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                                <DropdownMenuItem
-                                  className="text-white hover:bg-white/10"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/nexo-av/${userId}/clients/${client.id}`);
-                                  }}
-                                >
-                                  Ver detalle
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-white hover:bg-white/10"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditClient(client.id);
-                                  }}
-                                >
-                                  Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-white hover:bg-white/10">
-                                  Duplicar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+          {/* DataList */}
+          <DataList
+            data={paginatedClients}
+            columns={[
+              {
+                key: "client_number",
+                label: "Nº",
+                sortable: true,
+                align: "left",
+                render: (client) => (
+                  <span className="font-mono text-[13px] font-semibold">
+                    {client.client_number || '-'}
+                  </span>
+                ),
+              },
+              {
+                key: "company_name",
+                label: "Empresa",
+                sortable: true,
+                align: "left",
+                render: (client) => (
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-white/5">
+                      <Building2 className="h-3 w-3 text-white/60" />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium text-[10px]">{client.company_name}</p>
+                      {client.industry_sector && (
+                        <p className="text-white/40 text-[9px] px-1.5 py-0.5">
+                          {client.industry_sector}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                key: "contact_email",
+                label: "Email",
+                align: "left",
+                render: (client) => (
+                  <div className="flex items-center gap-1.5 text-white/60 text-[9px]">
+                    <Mail className="h-2.5 w-2.5" />
+                    <span className="truncate max-w-[200px]">{client.contact_email}</span>
+                  </div>
+                ),
+              },
+              {
+                key: "contact_phone",
+                label: "Teléfono",
+                align: "left",
+                render: (client) => (
+                  <div className="flex items-center gap-1.5 text-white/60 text-[9px]">
+                    <Phone className="h-2.5 w-2.5" />
+                    {client.contact_phone || '-'}
+                  </div>
+                ),
+              },
+              {
+                key: "projects",
+                label: "Proyectos",
+                align: "center",
+                render: (client) => (
+                  <span className="text-white/70 text-[10px]">
+                    {projectsByClient.get(client.id) || 0}
+                  </span>
+                ),
+              },
+              {
+                key: "lead_stage",
+                label: "Estado",
+                sortable: true,
+                align: "center",
+                render: (client) => {
+                  const stageInfo = getStageInfo(client.lead_stage);
+                  return (
+                    <div className="flex justify-center">
+                      <Badge variant="outline" className={cn(stageInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                        {stageInfo.label}
+                      </Badge>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: "assigned_to_name",
+                label: "Asignado",
+                sortable: true,
+                align: "left",
+                render: (client) => (
+                  <span className="text-white/70 text-[10px]">
+                    {client.assigned_to_name || <span className="text-white/30">Sin asignar</span>}
+                  </span>
+                ),
+              },
+            ]}
+            actions={[
+              {
+                label: "Ver detalle",
+                onClick: (client) => navigate(`/nexo-av/${userId}/clients/${client.id}`),
+              },
+              {
+                label: "Editar",
+                onClick: (client) => handleEditClient(client.id),
+              },
+              {
+                label: "Duplicar",
+                onClick: () => {},
+              },
+            ]}
+            onItemClick={(client) => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            loading={loading}
+            emptyMessage="No hay clientes"
+            emptyIcon={<Building2 className="h-16 w-16 text-muted-foreground" />}
+            getItemId={(client) => client.id}
+          />
 
-              {/* Paginación */}
-              {totalPages > 1 && (
-                <PaginationControls
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  startIndex={startIndex}
-                  endIndex={endIndex}
-                  totalItems={totalItems}
-                  canGoPrev={canGoPrev}
-                  canGoNext={canGoNext}
-                  onPrevPage={prevPage}
-                  onNextPage={nextPage}
-                  onGoToPage={goToPage}
-                />
-              )}
-            </>
+          {/* Paginación */}
+          {!loading && filteredClients.length > 0 && totalPages > 1 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              totalItems={totalItems}
+              canGoPrev={canGoPrev}
+              canGoNext={canGoNext}
+              onPrevPage={prevPage}
+              onNextPage={nextPage}
+              onGoToPage={goToPage}
+            />
           )}
         </div>
       </div>

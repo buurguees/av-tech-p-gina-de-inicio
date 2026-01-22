@@ -7,10 +7,10 @@
 .detail-action-button {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem !important;
-  font-size: 0.8125rem !important;
-  /* text-sm del sistema */
+  gap: clamp(0.4375rem, 0.5rem, 0.625rem);
+  padding: clamp(0.4375rem, 0.5rem, 0.625rem) clamp(0.875rem, 1rem, 1.25rem) !important;
+  font-size: clamp(0.6875rem, 0.8125rem, 0.9375rem) !important;
+  /* text-sm del sistema - autoajuste fluido */
   font-weight: 500 !important;
   line-height: 1.55 !important;
   border-radius: 0.5rem;
@@ -19,8 +19,8 @@
 }
 
 .detail-action-button__icon {
-  width: 1rem;
-  height: 1rem;
+  width: clamp(0.875rem, 1rem, 1.125rem);
+  height: clamp(0.875rem, 1rem, 1.125rem);
   flex-shrink: 0;
 }
 
@@ -78,52 +78,16 @@ body.nexo-av-theme-dark .detail-action-button .detail-action-button__icon {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .detail-action-button {
-    padding: 0.4375rem 0.875rem !important;
-    font-size: 0.75rem !important;
-  }
-
-  .detail-action-button__icon {
-    width: 0.9375rem;
-    height: 0.9375rem;
-  }
-
   .detail-action-button__label {
     display: none;
   }
 
   /* En mobile, solo mostrar el icono */
   .detail-action-button {
-    padding: 0.5rem !important;
-    width: 2.5rem;
-    height: 2.5rem;
+    padding: clamp(0.4375rem, 0.5rem, 0.625rem) !important;
+    width: clamp(2.25rem, 2.5rem, 2.75rem);
+    height: clamp(2.25rem, 2.5rem, 2.75rem);
     justify-content: center;
-  }
-}
-
-/* Desktop Narrow (1280px - 1439px) - Escalado del sistema */
-@media (min-width: 1024px) and (max-width: 1439px) {
-  .detail-action-button {
-    padding: 0.46875rem 0.9375rem !important;
-    font-size: 0.78125rem !important;
-  }
-
-  .detail-action-button__icon {
-    width: 0.96875rem;
-    height: 0.96875rem;
-  }
-}
-
-/* Desktop Compact (1024px - 1279px) - Escalado del sistema */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .detail-action-button {
-    padding: 0.4375rem 0.875rem !important;
-    font-size: 0.75rem !important;
-  }
-
-  .detail-action-button__icon {
-    width: 0.9375rem;
-    height: 0.9375rem;
   }
 }
 

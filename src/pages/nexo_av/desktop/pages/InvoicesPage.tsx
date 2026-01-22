@@ -1,38 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Loader2, FileText, MoreVertical, ChevronUp, ChevronDown, Calendar, Filter, AlertCircle, CheckCircle } from "lucide-react";
+import { FileText, AlertCircle, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../components/common/PaginationControls";
 import SearchInput from "../components/common/SearchInput";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
-import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo } from "@/constants/financeStatuses";
+import { getFinanceStatusInfo } from "@/constants/financeStatuses";
+import DataList from "../components/common/DataList";
 
 
 interface Invoice {
@@ -274,181 +253,144 @@ const InvoicesPageDesktop = () => {
             />
           </div>
 
-          {/* Table */}
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : invoices.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <FileText className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No hay facturas</p>
-              <p className="text-muted-foreground/70 text-[10px] mt-1">
-                Las facturas se generan desde presupuestos aprobados
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table */}
-              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
-                <Table className="w-full">
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent bg-muted/30">
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
-                        onClick={() => handleSort("date")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Emisión
-                          {sortColumn === "date" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
-                        onClick={() => handleSort("number")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Num
-                          {sortColumn === "number" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
-                        onClick={() => handleSort("client")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Cliente
-                          {sortColumn === "client" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
-                        onClick={() => handleSort("project")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Proyecto
-                          {sortColumn === "project" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2 text-left">Pedido</TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2 text-right">Subtotal</TableHead>
-                      <TableHead
-                        className="text-white/70 text-[10px] px-2 text-right cursor-pointer hover:text-foreground select-none"
-                        onClick={() => handleSort("total")}
-                      >
-                        <div className="flex items-center justify-end gap-1">
-                          Total
-                          {sortColumn === "total" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2 text-center">Estado</TableHead>
-                      <TableHead className="text-white/70 w-10"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedInvoices.map((invoice) => {
-                      const statusInfo = getFinanceStatusInfo(invoice.status);
-                      const displayNumber = invoice.invoice_number || invoice.preliminary_number;
-                      const isDraft = invoice.status === 'DRAFT';
-                      return (
-                        <TableRow
-                          key={invoice.id}
-                          className="border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200"
-                          onClick={() => navigate(`/nexo-av/${userId}/invoices/${invoice.id}`)}
-                        >
-                          <TableCell className="text-white/80 text-[9px] px-1.5 py-0.5">
-                            {invoice.issue_date ? formatDate(invoice.issue_date) : "-"}
-                          </TableCell>
-                          <TableCell className="font-mono text-white/70 text-[13px] font-semibold">
-                            {displayNumber}
-                          </TableCell>
-                          <TableCell className="text-white text-[10px]">
-                            {invoice.client_name}
-                          </TableCell>
-                          <TableCell className="text-white/80 text-[10px]">
-                            {invoice.project_number || "-"}
-                          </TableCell>
-                          <TableCell className="text-white/70 text-[10px]">
-                            {invoice.client_order_number || "-"}
-                          </TableCell>
-                          <TableCell className="text-white/70 text-[10px]">
-                            {formatCurrency(invoice.subtotal)}
-                          </TableCell>
-                          <TableCell className="text-white text-[10px]">
-                            {formatCurrency(invoice.total)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center">
-                              <Badge variant="outline" className={cn(statusInfo.className, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
-                                {statusInfo.label}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 text-white/40 hover:text-white hover:bg-white/10"
-                                >
-                                  <MoreVertical className="h-3 w-3" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                                <DropdownMenuItem
-                                  className="text-white hover:bg-white/10"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/nexo-av/${userId}/invoices/${invoice.id}`);
-                                  }}
-                                >
-                                  Ver detalle
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-white hover:bg-white/10">
-                                  Duplicar
-                                </DropdownMenuItem>
-                                {isDraft && (
-                                  <DropdownMenuItem className="text-red-400 hover:bg-red-500/10">
-                                    Eliminar
-                                  </DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+          {/* DataList */}
+          <DataList
+            data={paginatedInvoices}
+            columns={[
+              {
+                key: "issue_date",
+                label: "Emisión",
+                sortable: true,
+                align: "left",
+                render: (invoice) => (
+                  <span className="text-white/80 text-[9px]">
+                    {invoice.issue_date ? formatDate(invoice.issue_date) : "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "invoice_number",
+                label: "Num",
+                sortable: true,
+                align: "left",
+                render: (invoice) => {
+                  const displayNumber = invoice.invoice_number || invoice.preliminary_number;
+                  return (
+                    <span className="font-mono text-[13px] font-semibold">
+                      {displayNumber}
+                    </span>
+                  );
+                },
+              },
+              {
+                key: "client_name",
+                label: "Cliente",
+                sortable: true,
+                align: "left",
+                render: (invoice) => (
+                  <span className="text-white text-[10px]">
+                    {invoice.client_name}
+                  </span>
+                ),
+              },
+              {
+                key: "project_number",
+                label: "Proyecto",
+                sortable: true,
+                align: "left",
+                render: (invoice) => (
+                  <span className="text-white/80 text-[10px]">
+                    {invoice.project_number || "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "client_order_number",
+                label: "Pedido",
+                align: "left",
+                render: (invoice) => (
+                  <span className="text-white/70 text-[10px]">
+                    {invoice.client_order_number || "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "subtotal",
+                label: "Subtotal",
+                align: "right",
+                render: (invoice) => (
+                  <span className="text-white/70 text-[10px]">
+                    {formatCurrency(invoice.subtotal)}
+                  </span>
+                ),
+              },
+              {
+                key: "total",
+                label: "Total",
+                sortable: true,
+                align: "right",
+                render: (invoice) => (
+                  <span className="text-white text-[10px]">
+                    {formatCurrency(invoice.total)}
+                  </span>
+                ),
+              },
+              {
+                key: "status",
+                label: "Estado",
+                align: "center",
+                render: (invoice) => {
+                  const statusInfo = getFinanceStatusInfo(invoice.status);
+                  return (
+                    <div className="flex justify-center">
+                      <Badge variant="outline" className={cn(statusInfo.className, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                        {statusInfo.label}
+                      </Badge>
+                    </div>
+                  );
+                },
+              },
+            ]}
+            actions={[
+              {
+                label: "Ver detalle",
+                onClick: (invoice) => navigate(`/nexo-av/${userId}/invoices/${invoice.id}`),
+              },
+              {
+                label: "Duplicar",
+                onClick: () => {},
+              },
+              {
+                label: "Eliminar",
+                variant: "destructive",
+                onClick: () => {},
+                condition: (invoice) => invoice.status === 'DRAFT',
+              },
+            ]}
+            onItemClick={(invoice) => navigate(`/nexo-av/${userId}/invoices/${invoice.id}`)}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            loading={loading}
+            emptyMessage="No hay facturas"
+            emptyIcon={<FileText className="h-16 w-16 text-muted-foreground" />}
+            getItemId={(invoice) => invoice.id}
+          />
 
-              {/* Paginación */}
-              {totalPages > 1 && (
-                <PaginationControls
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  startIndex={startIndex}
-                  endIndex={endIndex}
-                  totalItems={totalItems}
-                  canGoPrev={canGoPrev}
-                  canGoNext={canGoNext}
-                  onPrevPage={prevPage}
-                  onNextPage={nextPage}
-                  onGoToPage={goToPage}
-                />
-              )}
-            </>
+          {/* Paginación */}
+          {!loading && invoices.length > 0 && totalPages > 1 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              totalItems={totalItems}
+              canGoPrev={canGoPrev}
+              canGoNext={canGoNext}
+              onPrevPage={prevPage}
+              onNextPage={nextPage}
+              onGoToPage={goToPage}
+            />
           )}
         </div>
       </div>

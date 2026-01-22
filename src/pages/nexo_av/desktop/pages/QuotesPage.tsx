@@ -1,29 +1,13 @@
-import { useState, useEffect, lazy } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { FileText, Loader2, Edit, MoreVertical, ChevronUp, ChevronDown, Calendar, Filter, Trash2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { FileText, Edit, Trash2, Loader2 } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../components/common/PaginationControls";
 import SearchInput from "../components/common/SearchInput";
 import { cn } from "@/lib/utils";
-import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
+import { getStatusInfo } from "@/constants/quoteStatuses";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +21,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
+import DataList, { DataListAction } from "../components/common/DataList";
 
 
 interface Quote {
@@ -333,195 +318,143 @@ const QuotesPageDesktop = () => {
             />
           </div>
 
-          {/* Table */}
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : quotes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <FileText className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No hay presupuestos</p>
-              <p className="text-muted-foreground/70 text-[10px] mt-1">
-                Crea tu primer presupuesto para comenzar
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table */}
-              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
-                <Table className="w-full">
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent bg-muted/30">
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2 text-left"
-                        onClick={() => handleSort("date")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Fecha
-                          {sortColumn === "date" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2 text-left"
-                        onClick={() => handleSort("number")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Num
-                          {sortColumn === "number" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2 text-left"
-                        onClick={() => handleSort("client")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Cliente
-                          {sortColumn === "client" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2 text-left"
-                        onClick={() => handleSort("project")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Proyecto
-                          {sortColumn === "project" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-white/70 text-[10px] px-2 text-center">Estado</TableHead>
-                      <TableHead
-                        className="text-white/70 text-[10px] px-2 text-right cursor-pointer hover:text-foreground select-none"
-                        onClick={() => handleSort("total")}
-                      >
-                        <div className="flex items-center justify-end gap-1">
-                          Total
-                          {sortColumn === "total" && (
-                            sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-white/70 w-10"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedQuotes.map((quote) => {
-                      const statusInfo = getStatusInfo(quote.status);
-                      const isDraft = quote.status === "DRAFT";
-                      return (
-                        <TableRow
-                          key={quote.id}
-                          className="border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200"
-                          onClick={(e) => handleQuoteClick(e, quote.id)}
-                        >
-                          <TableCell className="text-white text-[10px]">
-                            {new Date(quote.created_at).toLocaleDateString('es-ES', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric'
-                            })}
-                          </TableCell>
-                          <TableCell className="font-mono text-white/70 text-[13px] font-semibold">
-                            {quote.quote_number}
-                          </TableCell>
-                          <TableCell className="text-white text-[10px]">
-                            {quote.client_name || "-"}
-                          </TableCell>
-                          <TableCell className="text-white/80 text-[10px]">
-                            {quote.project_name || "-"}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center">
-                              <Badge variant="outline" className={cn(statusInfo.className, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
-                                {statusInfo.label}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-white text-[10px]">
-                            {formatCurrency(quote.total)}
-                          </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 text-white/40 hover:text-white hover:bg-white/10"
-                                >
-                                  <MoreVertical className="h-3 w-3" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                                <DropdownMenuItem
-                                  className="text-white hover:bg-white/10"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/nexo-av/${userId}/quotes/${quote.id}`);
-                                  }}
-                                >
-                                  Ver detalle
-                                </DropdownMenuItem>
-                                {isDraft && (
-                                  <DropdownMenuItem
-                                    className="text-white hover:bg-white/10"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditClick(e, quote.id);
-                                    }}
-                                  >
-                                    <Edit className="h-3 w-3 mr-2" />
-                                    Editar
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem className="text-white hover:bg-white/10">
-                                  Duplicar
-                                </DropdownMenuItem>
-                                {isDraft && (
-                                  <DropdownMenuItem
-                                    className="text-red-400 hover:bg-red-500/10"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteClick(e, quote);
-                                    }}
-                                  >
-                                    <Trash2 className="h-3 w-3 mr-2" />
-                                    Eliminar
-                                  </DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      );
+          {/* DataList */}
+          <DataList
+            data={paginatedQuotes}
+            columns={[
+              {
+                key: "created_at",
+                label: "Fecha",
+                sortable: true,
+                align: "left",
+                render: (quote) => (
+                  <span className="text-white text-[10px]">
+                    {new Date(quote.created_at).toLocaleDateString('es-ES', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric'
                     })}
-                  </TableBody>
-                </Table>
-              </div>
+                  </span>
+                ),
+              },
+              {
+                key: "quote_number",
+                label: "Num",
+                sortable: true,
+                align: "left",
+                render: (quote) => (
+                  <span className="font-mono text-[13px] font-semibold">
+                    {quote.quote_number}
+                  </span>
+                ),
+              },
+              {
+                key: "client_name",
+                label: "Cliente",
+                sortable: true,
+                align: "left",
+                render: (quote) => (
+                  <span className="text-white text-[10px]">
+                    {quote.client_name || "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "project_name",
+                label: "Proyecto",
+                sortable: true,
+                align: "left",
+                render: (quote) => (
+                  <span className="text-white/80 text-[10px]">
+                    {quote.project_name || "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "status",
+                label: "Estado",
+                align: "center",
+                render: (quote) => {
+                  const statusInfo = getStatusInfo(quote.status);
+                  return (
+                    <div className="flex justify-center">
+                      <Badge variant="outline" className={cn(statusInfo.className, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                        {statusInfo.label}
+                      </Badge>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: "total",
+                label: "Total",
+                sortable: true,
+                align: "right",
+                render: (quote) => (
+                  <span className="text-white text-[10px]">
+                    {formatCurrency(quote.total)}
+                  </span>
+                ),
+              },
+            ]}
+            actions={[
+              {
+                label: "Ver detalle",
+                onClick: (quote) => navigate(`/nexo-av/${userId}/quotes/${quote.id}`),
+              },
+              {
+                label: "Editar",
+                icon: <Edit className="h-3 w-3" />,
+                onClick: (quote) => navigate(`/nexo-av/${userId}/quotes/${quote.id}/edit`),
+                condition: (quote) => quote.status === "DRAFT",
+              },
+              {
+                label: "Duplicar",
+                onClick: () => {},
+              },
+              {
+                label: "Eliminar",
+                icon: <Trash2 className="h-3 w-3" />,
+                variant: "destructive",
+                onClick: (quote) => {
+                  if (quote.status !== "DRAFT") {
+                    toast({
+                      title: "Error",
+                      description: "Solo se pueden eliminar presupuestos en estado borrador",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  setQuoteToDelete(quote);
+                  setDeleteDialogOpen(true);
+                },
+                condition: (quote) => quote.status === "DRAFT",
+              },
+            ]}
+            onItemClick={(quote) => navigate(`/nexo-av/${userId}/quotes/${quote.id}`)}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            loading={loading}
+            emptyMessage="No hay presupuestos"
+            emptyIcon={<FileText className="h-16 w-16 text-muted-foreground" />}
+            getItemId={(quote) => quote.id}
+          />
 
-              {/* Paginación */}
-              {totalPages > 1 && (
-                <PaginationControls
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  startIndex={startIndex}
-                  endIndex={endIndex}
-                  totalItems={totalItems}
-                  canGoPrev={canGoPrev}
-                  canGoNext={canGoNext}
-                  onPrevPage={prevPage}
-                  onNextPage={nextPage}
-                  onGoToPage={goToPage}
-                />
-              )}
-            </>
+          {/* Paginación */}
+          {!loading && quotes.length > 0 && totalPages > 1 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              totalItems={totalItems}
+              canGoPrev={canGoPrev}
+              canGoNext={canGoNext}
+              onPrevPage={prevPage}
+              onNextPage={nextPage}
+              onGoToPage={goToPage}
+            />
           )}
         </div>
       </div>

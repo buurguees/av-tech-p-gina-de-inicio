@@ -19,9 +19,9 @@
   justify-content: center;
   width: 100%;
   max-width: 100%;
-  gap: 0.25rem;
-  padding: 0.375rem 1rem;
-  /* Padding reducido para ocupar menos espacio vertical */
+  gap: clamp(0.25rem, 0.375rem, 0.5rem);
+  padding: clamp(0.3125rem, 0.375rem, 0.5rem) clamp(0.875rem, 1rem, 1.25rem);
+  /* Padding reducido para ocupar menos espacio vertical - autoajuste fluido */
 }
 
 /* Botón de tab - Autoajuste según número de tabs */
@@ -30,17 +30,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  /* Padding reducido para ocupar menos espacio */
+  gap: clamp(0.4375rem, 0.5rem, 0.625rem);
+  padding: clamp(0.3125rem, 0.375rem, 0.5rem) clamp(0.625rem, 0.75rem, 0.875rem);
+  /* Padding reducido para ocupar menos espacio - autoajuste fluido */
   border: none;
   border-bottom: 2px solid transparent;
   background: transparent;
   cursor: pointer;
   transition: all 0.15s ease;
   position: relative;
-  font-size: 0.8125rem !important;
-  /* text-sm del sistema */
+  font-size: clamp(0.6875rem, 0.8125rem, 0.9375rem) !important;
+  /* text-sm del sistema - autoajuste fluido */
   font-weight: 500 !important;
   color: hsl(var(--text-secondary)) !important;
   line-height: 1.55 !important;
@@ -48,8 +48,8 @@
   min-width: 0;
   border-radius: 20px !important;
   /* Igual que sidebar */
-  margin: 0.125rem;
-  /* Pequeño margen para que se vea el border-radius */
+  margin: clamp(0.0625rem, 0.125rem, 0.1875rem);
+  /* Pequeño margen para que se vea el border-radius - autoajuste fluido */
 }
 
 /* Hover state - Igual que sidebar */
@@ -102,8 +102,8 @@ body.nexo-av-theme-dark .tab-nav__button--active .tab-nav__icon {
 
 /* Icono */
 .tab-nav__icon {
-  width: 1rem;
-  height: 1rem;
+  width: clamp(0.875rem, 1rem, 1.125rem);
+  height: clamp(0.875rem, 1rem, 1.125rem);
   flex-shrink: 0;
   transition: transform 0.15s ease;
 }
@@ -139,8 +139,6 @@ body.nexo-av-theme-dark .tab-nav__button--active .tab-nav__icon {
   .tab-nav__button {
     flex: 0 0 auto;
     min-width: fit-content;
-    padding: 0.625rem 0.875rem;
-    font-size: 0.75rem !important;
   }
 
   /* En mobile, no limitar el ancho */
@@ -157,37 +155,6 @@ body.nexo-av-theme-dark .tab-nav {
   border-bottom-color: hsl(var(--border) / 0.8);
 }
 
-/* Desktop Narrow (1280px - 1439px) - Escalado del sistema */
-@media (min-width: 1024px) and (max-width: 1439px) {
-  .tab-nav__button {
-    font-size: 0.75rem !important;
-    /* 0.8125rem * 0.92 */
-    padding: 0.65625rem 0.875rem;
-    /* py-3 px-4 reducido */
-  }
-
-  .tab-nav__icon {
-    width: 0.9375rem;
-    /* 1rem * 0.94 */
-    height: 0.9375rem;
-  }
-}
-
-/* Desktop Compact (1024px - 1279px) - Escalado del sistema */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .tab-nav__button {
-    font-size: 0.6875rem !important;
-    /* 0.8125rem * 0.85 */
-    padding: 0.5625rem 0.75rem;
-    /* py-2.5 px-3 reducido */
-  }
-
-  .tab-nav__icon {
-    width: 0.875rem;
-    /* 1rem * 0.875 */
-    height: 0.875rem;
-  }
-}
 
 /* Focus states - Accesibilidad */
 .tab-nav__button:focus-visible {

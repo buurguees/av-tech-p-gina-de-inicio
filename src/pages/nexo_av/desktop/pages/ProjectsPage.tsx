@@ -1,23 +1,8 @@
 import { useState, useEffect, lazy } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { FolderKanban, Loader2, MoreVertical, ChevronUp, ChevronDown, Filter, Euro, TrendingUp, BarChart3, Target, CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react";
+import { FolderKanban, Loader2, Euro, TrendingUp, BarChart3, Target, CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import CreateProjectDialog from "../components/projects/CreateProjectDialog";
 import PaginationControls from "../components/common/PaginationControls";
@@ -25,6 +10,7 @@ import SearchInput from "../components/common/SearchInput";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import { cn } from "@/lib/utils";
+import DataList, { DataListColumn } from "../components/common/DataList";
 
 
 interface Project {
@@ -647,195 +633,158 @@ const ProjectsPageDesktop = () => {
                 />
               </div>
 
-              {/* Table */}
-              {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
-              ) : projects.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <FolderKanban className="h-16 w-16 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No hay proyectos</p>
-                  <p className="text-muted-foreground/70 text-sm mt-1">
-                    Crea tu primer proyecto para comenzar
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {/* Desktop Table */}
-                  <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
-                    <Table className="w-full">
-                      <TableHeader>
-                        <TableRow className="hover:bg-transparent bg-muted/30">
-                          <TableHead
-                            className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2 text-left"
-                            onClick={() => handleSort("number")}
+              {/* DataList */}
+              <DataList
+                data={paginatedProjects}
+                columns={[
+                  {
+                    key: "project_number",
+                    label: "Nº Proyecto",
+                    sortable: true,
+                    align: "left",
+                    render: (project) => (
+                      <span className="font-mono text-[13px] font-semibold">
+                        {project.project_number}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "client_name",
+                    label: "Cliente",
+                    sortable: true,
+                    align: "left",
+                    render: (project) => (
+                      <span className="text-white text-[10px]">
+                        {project.client_name || '-'}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "project_name",
+                    label: "Nombre del Proyecto",
+                    sortable: true,
+                    align: "left",
+                    render: (project) => (
+                      <span className="text-white/80 text-[10px] max-w-xs truncate">
+                        {project.project_name}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "client_order_number",
+                    label: "Pedido",
+                    align: "left",
+                    render: (project) => (
+                      <span className="text-white/70 text-[10px]">
+                        {project.client_order_number || '-'}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "status",
+                    label: "Estado",
+                    sortable: true,
+                    align: "center",
+                    render: (project) => {
+                      const statusInfo = getStatusInfo(project.status);
+                      return (
+                        <div className="flex justify-center">
+                          <Badge variant="outline" className={cn(statusInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                            {statusInfo.label}
+                          </Badge>
+                        </div>
+                      );
+                    },
+                  },
+                  {
+                    key: "project_city",
+                    label: "Ciudad",
+                    sortable: true,
+                    align: "left",
+                    render: (project) => (
+                      <span className="text-white/70 text-[10px]">
+                        {project.project_city || '-'}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "local_name",
+                    label: "Local",
+                    align: "left",
+                    render: (project) => (
+                      <span className="text-white/70 text-[10px]">
+                        {project.local_name || '-'}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "profitability",
+                    label: "Rentabilidad",
+                    align: "left",
+                    render: (project) => {
+                      if (loadingProfitability) {
+                        return <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />;
+                      }
+                      if (projectProfitability.has(project.id)) {
+                        const margin = projectProfitability.get(project.id)!;
+                        return (
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "text-[9px] px-1.5 py-0.5 border",
+                              margin >= 25 
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                                : margin >= 20
+                                ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                                : "bg-red-500/10 text-red-400 border-red-500/30"
+                            )}
                           >
-                            <div className="flex items-center gap-1">
-                              Nº Proyecto
-                              {sortColumn === "number" && (
-                                sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                              )}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
-                            onClick={() => handleSort("client")}
-                          >
-                            <div className="flex items-center gap-1">
-                              Cliente
-                              {sortColumn === "client" && (
-                                sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                              )}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="text-white/70 cursor-pointer hover:text-white select-none text-[10px] px-2"
-                            onClick={() => handleSort("name")}
-                          >
-                            <div className="flex items-center gap-1">
-                              Nombre del Proyecto
-                              {sortColumn === "name" && (
-                                sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                              )}
-                            </div>
-                          </TableHead>
-                          <TableHead className="text-white/70 text-[10px] px-2 text-left">Pedido</TableHead>
-                          <TableHead
-                            className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2 text-center"
-                            onClick={() => handleSort("status")}
-                          >
-                            <div className="flex items-center justify-center gap-1">
-                              Estado
-                              {sortColumn === "status" && (
-                                sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                              )}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="text-white/70 cursor-pointer hover:text-foreground select-none text-[10px] px-2 text-left"
-                            onClick={() => handleSort("city")}
-                          >
-                            <div className="flex items-center gap-1">
-                              Ciudad
-                              {sortColumn === "city" && (
-                                sortDirection === "asc" ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />
-                              )}
-                            </div>
-                          </TableHead>
-                          <TableHead className="text-white/70 text-[10px] px-2 text-left">Local</TableHead>
-                          <TableHead className="text-white/70 text-[10px] px-2 text-left">Rentabilidad</TableHead>
-                          <TableHead className="text-white/70 w-10 px-2"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {paginatedProjects.map((project) => {
-                          const statusInfo = getStatusInfo(project.status);
-                          return (
-                            <TableRow
-                              key={project.id}
-                              className="border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200"
-                              onClick={() => handleProjectClick(project.id)}
-                            >
-                              <TableCell className="font-mono text-white/70 text-[13px] font-semibold px-2">
-                                {project.project_number}
-                              </TableCell>
-                              <TableCell className="text-white text-[10px] px-2">
-                                {project.client_name || '-'}
-                              </TableCell>
-                              <TableCell className="text-white/80 text-[10px] px-2 max-w-xs truncate">
-                                {project.project_name}
-                              </TableCell>
-                              <TableCell className="text-white/70 text-[10px] px-2">
-                                {project.client_order_number || '-'}
-                              </TableCell>
-                              <TableCell className="text-center px-2">
-                                <div className="flex justify-center">
-                                  <Badge variant="outline" className={cn(statusInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
-                                    {statusInfo.label}
-                                  </Badge>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-white/70 text-[10px] px-2">
-                                {project.project_city || '-'}
-                              </TableCell>
-                              <TableCell className="text-white/70 text-[10px] px-2">
-                                {project.local_name || '-'}
-                              </TableCell>
-                              <TableCell className="px-2">
-                                {loadingProfitability ? (
-                                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                                ) : projectProfitability.has(project.id) ? (
-                                  <Badge 
-                                    variant="outline" 
-                                    className={cn(
-                                      "text-[9px] px-1.5 py-0.5 border",
-                                      projectProfitability.get(project.id)! >= 25 
-                                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                                        : projectProfitability.get(project.id)! >= 20
-                                        ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
-                                        : "bg-red-500/10 text-red-400 border-red-500/30"
-                                    )}
-                                  >
-                                    {projectProfitability.get(project.id)!.toFixed(1)}%
-                                  </Badge>
-                                ) : (
-                                  <span className="text-white/40 text-[9px]">-</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="px-2" onClick={(e) => e.stopPropagation()}>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-6 w-6 text-white/40 hover:text-white hover:bg-white/10"
-                                    >
-                                      <MoreVertical className="h-3 w-3" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                                    <DropdownMenuItem
-                                      className="text-white hover:bg-white/10"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleProjectClick(project.id);
-                                      }}
-                                    >
-                                      Ver detalle
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="text-white hover:bg-white/10">
-                                      Editar
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="text-white hover:bg-white/10">
-                                      Duplicar
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
+                            {margin.toFixed(1)}%
+                          </Badge>
+                        );
+                      }
+                      return <span className="text-white/40 text-[9px]">-</span>;
+                    },
+                  },
+                ]}
+                actions={[
+                  {
+                    label: "Ver detalle",
+                    onClick: (project) => handleProjectClick(project.id),
+                  },
+                  {
+                    label: "Editar",
+                    onClick: () => {},
+                  },
+                  {
+                    label: "Duplicar",
+                    onClick: () => {},
+                  },
+                ]}
+                onItemClick={(project) => handleProjectClick(project.id)}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                loading={loading}
+                emptyMessage="No hay proyectos"
+                emptyIcon={<FolderKanban className="h-16 w-16 text-muted-foreground" />}
+                getItemId={(project) => project.id}
+              />
 
-                  {/* Paginación */}
-                  {totalPages > 1 && (
-                    <PaginationControls
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      startIndex={startIndex}
-                      endIndex={endIndex}
-                      totalItems={totalItems}
-                      canGoPrev={canGoPrev}
-                      canGoNext={canGoNext}
-                      onPrevPage={prevPage}
-                      onNextPage={nextPage}
-                      onGoToPage={goToPage}
-                    />
-                  )}
-                </>
+              {/* Paginación */}
+              {!loading && projects.length > 0 && totalPages > 1 && (
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  startIndex={startIndex}
+                  endIndex={endIndex}
+                  totalItems={totalItems}
+                  canGoPrev={canGoPrev}
+                  canGoNext={canGoNext}
+                  onPrevPage={prevPage}
+                  onNextPage={nextPage}
+                  onGoToPage={goToPage}
+                />
               )}
             </div>
           </div>

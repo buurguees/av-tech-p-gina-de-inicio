@@ -7,10 +7,10 @@
 .metric-card {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  /* gap-2 - reducido a la mitad */
-  padding: 0.375rem 0.875rem;
-  /* py-1.5 px-3.5 - altura reducida a la mitad */
+  gap: clamp(0.4375rem, 0.5rem, 0.625rem);
+  /* gap-2 - reducido a la mitad - autoajuste fluido */
+  padding: clamp(0.3125rem, 0.375rem, 0.5rem) clamp(0.75rem, 0.875rem, 1rem);
+  /* py-1.5 px-3.5 - altura reducida a la mitad - autoajuste fluido */
   background: hsl(var(--muted) / 0.3);
   border: 1px solid hsl(var(--border));
   border-radius: 0.5rem;
@@ -28,9 +28,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.125rem;
-  /* Reducido a la mitad: 2.25rem / 2 */
-  height: 1.125rem;
+  width: clamp(1rem, 1.125rem, 1.25rem);
+  /* Reducido a la mitad: 2.25rem / 2 - autoajuste fluido */
+  height: clamp(1rem, 1.125rem, 1.25rem);
   flex-shrink: 0;
   background: hsl(var(--accent));
   border-radius: 0.375rem;
@@ -38,9 +38,9 @@
 }
 
 .metric-card__icon-svg {
-  width: 0.75rem;
-  /* Reducido a la mitad: 1.25rem / 2 */
-  height: 0.75rem;
+  width: clamp(0.625rem, 0.75rem, 0.875rem);
+  /* Reducido a la mitad: 1.25rem / 2 - autoajuste fluido */
+  height: clamp(0.625rem, 0.75rem, 0.875rem);
   color: hsl(var(--foreground));
 }
 
@@ -54,8 +54,8 @@
 }
 
 .metric-card__title {
-  font-size: 0.625rem !important;
-  /* Más pequeño que text-xs (0.75rem) */
+  font-size: clamp(0.5625rem, 0.625rem, 0.75rem) !important;
+  /* Más pequeño que text-xs (0.75rem) - autoajuste fluido */
   font-weight: 500 !important;
   color: hsl(var(--text-secondary)) !important;
   line-height: 1.4 !important;
@@ -64,93 +64,13 @@
 }
 
 .metric-card__value {
-  font-size: 0.8125rem !important;
-  /* text-sm del sistema - más pequeño que text-base */
+  font-size: clamp(0.75rem, 0.8125rem, 0.9375rem) !important;
+  /* text-sm del sistema - más pequeño que text-base - autoajuste fluido */
   font-weight: 600 !important;
   color: hsl(var(--foreground)) !important;
   line-height: 1.4 !important;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .metric-card {
-    padding: 0.3125rem 0.75rem;
-    /* Reducido proporcionalmente */
-    gap: 0.4375rem;
-  }
-
-  .metric-card__icon {
-    width: 1rem;
-    height: 1rem;
-  }
-
-  .metric-card__icon-svg {
-    width: 0.625rem;
-    height: 0.625rem;
-  }
-
-  .metric-card__title {
-    font-size: 0.5625rem !important;
-  }
-
-  .metric-card__value {
-    font-size: 0.75rem !important;
-  }
-}
-
-/* Desktop Narrow (1280px - 1439px) - Escalado del sistema */
-@media (min-width: 1024px) and (max-width: 1439px) {
-  .metric-card {
-    padding: 0.34375rem 0.8125rem;
-    /* Reducido proporcionalmente */
-    gap: 0.46875rem;
-  }
-
-  .metric-card__icon {
-    width: 1.0625rem;
-    height: 1.0625rem;
-  }
-
-  .metric-card__icon-svg {
-    width: 0.71875rem;
-    height: 0.71875rem;
-  }
-
-  .metric-card__title {
-    font-size: 0.59375rem !important;
-  }
-
-  .metric-card__value {
-    font-size: 0.78125rem !important;
-  }
-}
-
-/* Desktop Compact (1024px - 1279px) - Escalado del sistema */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .metric-card {
-    padding: 0.3125rem 0.75rem;
-    /* Reducido proporcionalmente */
-    gap: 0.4375rem;
-  }
-
-  .metric-card__icon {
-    width: 1rem;
-    height: 1rem;
-  }
-
-  .metric-card__icon-svg {
-    width: 0.625rem;
-    height: 0.625rem;
-  }
-
-  .metric-card__title {
-    font-size: 0.5625rem !important;
-  }
-
-  .metric-card__value {
-    font-size: 0.75rem !important;
-  }
-}
 
 /* Dark mode adjustments */
 body.nexo-av-theme-dark .metric-card {
