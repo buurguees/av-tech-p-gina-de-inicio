@@ -69,7 +69,7 @@
 │ window.innerWidth                   │
 │   ↓                                 │
 │ < 768px    → isMobile = true        │
-│ 768-1023px → isTablet = true        │
+│ 550-1023px → isTablet = true        │
 │ ≥ 1024px   → isDesktop = true       │
 └─────────────────────────────────────┘
 

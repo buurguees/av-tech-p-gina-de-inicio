@@ -11,8 +11,8 @@ interface DeviceInfo {
 /**
  * Hook para detectar el tipo de dispositivo basado en el tamaño de la pantalla
  * Breakpoints:
- * - Mobile: < 768px
- * - Tablet: 768px - 1023px
+ * - Mobile: < 550px
+ * - Tablet: 550px - 1023px (considerado desktop en layouts)
  * - Desktop: >= 1024px
  */
 export const useDeviceDetection = (): DeviceInfo => {
@@ -31,8 +31,8 @@ export const useDeviceDetection = (): DeviceInfo => {
     const height = window.innerHeight;
     
     return {
-      isMobile: width < 768,
-      isTablet: width >= 768 && width < 1024,
+      isMobile: width < 550,
+      isTablet: width >= 550 && width < 1024,
       isDesktop: width >= 1024,
       width,
       height,
@@ -45,8 +45,8 @@ export const useDeviceDetection = (): DeviceInfo => {
       const height = window.innerHeight;
       
       setDeviceInfo({
-        isMobile: width < 768,
-        isTablet: width >= 768 && width < 1024,
+        isMobile: width < 550,
+        isTablet: width >= 550 && width < 1024,
         isDesktop: width >= 1024,
         width,
         height,

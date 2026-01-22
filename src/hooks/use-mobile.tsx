@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const MOBILE_BREAKPOINT = 768;
+const MOBILE_BREAKPOINT = 550; // Ajustado para incluir tablets en horizontal como desktop
 
 interface DeviceInfo {
   isMobile: boolean;

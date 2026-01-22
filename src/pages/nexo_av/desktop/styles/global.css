@@ -905,7 +905,7 @@ body.nexo-av-theme-dark div[class*="top-\[3\.25rem\]"][class*="fixed"][class*="l
 }
 
 /* Asegurar que el sidebar se muestre SIEMPRE en desktop */
-@media (min-width: 768px) {
+@media (min-width: 550px) {
 
   /* Sidebar contenedor - Forzar visualización en desktop */
   body.nexo-av-theme div[class*="fixed"][class*="left-0"][class*="z-40"][class*="hidden"][class*="md:block"],
@@ -3237,7 +3237,7 @@ body.nexo-av-theme-dark h1[class*="text-2xl"][class*="md:text-3xl"] {
   color: hsl(var(--foreground)) !important;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 550px) {
 
   body.nexo-av-theme h1[class*="text-2xl"][class*="md:text-3xl"],
   body.nexo-av-theme-dark h1[class*="text-2xl"][class*="md:text-3xl"] {
@@ -3520,10 +3520,10 @@ body.nexo-av-theme-dark [class*="text-muted-foreground/70"][class*="text-[10px]"
 }
 
 /* ============================================
-   MOBILE (max-width: 768px)
+   MOBILE (max-width: 549px)
    ============================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 549px) {
 
   body.nexo-av-theme h1,
   body.nexo-av-theme-dark h1 {
@@ -3931,7 +3931,7 @@ body.nexo-av-theme-dark h2[class*="text-base"][class*="font-semibold"] {
    DETAIL PAGE RESPONSIVE - Ajustes responsive
    ============================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 549px) {
 
   /* Header de detalle en móvil */
   body.nexo-av-theme header[class*="flex-shrink-0"][class*="border-b"][class*="bg-card"],
@@ -5333,7 +5333,7 @@ body.nexo-av-theme-dark [class*="DashboardWidget"] [class*="relative"][class*="i
    DASHBOARD KPI BLOCKS RESPONSIVE - Ajustes responsive
    ============================================ */
 
-@media (max-width: 768px) {
+@media (max-width: 549px) {
 
   /* KPI Cards en móvil */
   body.nexo-av-theme [class*="kpi-card-small"],
