@@ -34,4 +34,3 @@ export function useIsNexoAvDarkTheme(): boolean {
 
   return isDark;
 }
-

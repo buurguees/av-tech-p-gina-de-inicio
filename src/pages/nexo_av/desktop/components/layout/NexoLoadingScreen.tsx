@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import whiteLogo from "../../../assets/logos/white_logo.svg";
-import { useNexoAvTheme } from "../../../hooks/useNexoAvTheme";
+import { useNexoAvTheme } from "../../hooks/useNexoAvTheme";
 
 interface NexoLoadingScreenProps {
   onLoadingComplete: () => void;

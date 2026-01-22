@@ -8,7 +8,7 @@ import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 import Sidebar from "../components/layout/Sidebar";
 import UserAvatarDropdown from "../components/layout/UserAvatarDropdown";
 import { NexoLogo } from "../components/layout/NexoHeader";
-import { useNexoAvTheme } from "../../hooks/useNexoAvTheme";
+import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import "../styles/global.css";
 import {
   Users,

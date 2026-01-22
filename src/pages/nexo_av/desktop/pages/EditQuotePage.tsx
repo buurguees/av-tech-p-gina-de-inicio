@@ -27,7 +27,7 @@ import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "../components/common/ProductSearchInput";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
-import { useNexoAvTheme } from "../../hooks/useNexoAvTheme";
+import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 
 // Estados que bloquean la edición
 const LOCKED_STATES = ["SENT", "APPROVED", "REJECTED", "EXPIRED", "INVOICED"];

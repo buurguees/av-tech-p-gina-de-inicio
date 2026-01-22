@@ -21,7 +21,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../../constants/leadStages";
+import { LEAD_STAGE_COLORS, LEAD_STAGE_LABELS } from "../../constants/leadStages";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 

@@ -23,7 +23,7 @@ import { ArrowLeft, Plus, Trash2, Save, Loader2, GripVertical, FileText } from "
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "../components/common/ProductSearchInput";
-import { useNexoAvTheme } from "../../hooks/useNexoAvTheme";
+import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 
 interface Client {
   id: string;

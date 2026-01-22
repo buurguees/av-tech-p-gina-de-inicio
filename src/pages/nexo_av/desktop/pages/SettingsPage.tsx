@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, Settings2, FileText, Tags, Receipt, Loader2 } from "lucide-react";
-import { useNexoAvTheme } from "../../hooks/useNexoAvTheme";
+import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import { CompanyDataTab } from "../components/settings/CompanyDataTab";
 import { PreferencesTab } from "../components/settings/PreferencesTab";
 import { TemplatesTab } from "../components/settings/TemplatesTab";
