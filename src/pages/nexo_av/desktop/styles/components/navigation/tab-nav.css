@@ -138,29 +138,22 @@ body.nexo-av-theme-dark .tab-nav__button--active .tab-nav__icon {
 /* El contenedor está centrado y los botones se ajustan automáticamente */
 
 /* Responsive - Reducir tamaño de botones progresivamente */
-/* Nivel 1: Reducir padding y tamaño a partir de 1200px */
-@media (max-width: 1200px) {
-  .tab-nav__button {
-    padding: clamp(0.25rem, 0.3125rem, 0.375rem) clamp(0.5rem, 0.625rem, 0.75rem);
-    font-size: clamp(0.625rem, 0.75rem, 0.875rem) !important;
-    gap: clamp(0.3125rem, 0.375rem, 0.5rem);
-  }
-  
-  .tab-nav__icon {
-    width: clamp(0.75rem, 0.875rem, 1rem);
-    height: clamp(0.75rem, 0.875rem, 1rem);
-  }
-}
-
-/* Nivel 2: Ocultar iconos antes de cortar texto a partir de 1000px */
-@media (max-width: 1000px) {
+/* Nivel 1: Ocultar iconos PRIMERO a partir de 1400px para preservar el texto */
+@media (max-width: 1400px) {
   .tab-nav__icon {
     display: none;
   }
   
   .tab-nav__button {
     gap: 0;
-    padding: clamp(0.25rem, 0.3125rem, 0.375rem) clamp(0.5rem, 0.625rem, 0.75rem);
+  }
+}
+
+/* Nivel 2: Reducir padding a partir de 1200px */
+@media (max-width: 1200px) {
+  .tab-nav__button {
+    padding: clamp(0.25rem, 0.3125rem, 0.375rem) clamp(0.4rem, 0.5rem, 0.625rem);
+    font-size: clamp(0.625rem, 0.75rem, 0.8125rem) !important;
   }
 }
 
