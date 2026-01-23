@@ -24,9 +24,12 @@ const formSchema = z.object({
   status: z.string().default("PLANNED"),
   project_address: z.string().optional(),
   project_city: z.string().optional(),
+  postal_code: z.string().optional(),
+  province: z.string().optional(),
+  country: z.string().optional(),
   local_name: z.string().optional(),
   client_order_number: z.string().optional(),
-  notes: z.string().optional(),
+  notes: z.string().max(1000, "Las notas no pueden superar los 1000 caracteres").optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -62,6 +65,9 @@ const CreateProjectDialog = ({
       status: "PLANNED",
       project_address: "",
       project_city: "",
+      postal_code: "",
+      province: "",
+      country: "España",
       local_name: "",
       client_order_number: "",
       notes: "",
@@ -156,6 +162,9 @@ const CreateProjectDialog = ({
         status: "PLANNED",
         project_address: "",
         project_city: "",
+        postal_code: "",
+        province: "",
+        country: "España",
         local_name: "",
         client_order_number: "",
         notes: "",
@@ -261,6 +270,7 @@ const CreateProjectDialog = ({
               icon={<MapPin className="h-4 w-4" />}
               columns={1}
             >
+              {/* Dirección - ancho completo */}
               <TextInput
                 label="Dirección"
                 placeholder="Calle, número..."
@@ -270,6 +280,8 @@ const CreateProjectDialog = ({
                 }}
                 size="sm"
               />
+              
+              {/* Fila: Ciudad, Código Postal */}
               <div className="grid grid-cols-2 gap-3">
                 <TextInput
                   label="Ciudad"
@@ -277,6 +289,57 @@ const CreateProjectDialog = ({
                   value={form.watch("project_city") || ""}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     form.setValue("project_city", e.target.value);
+                  }}
+                  size="sm"
+                />
+                <TextInput
+                  label="Código Postal"
+                  placeholder="08000"
+                  value={form.watch("postal_code") || ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    form.setValue("postal_code", e.target.value);
+                  }}
+                  size="sm"
+                />
+              </div>
+
+              {/* Fila: Provincia, País */}
+              <div className="grid grid-cols-2 gap-3">
+                <TextInput
+                  label="Provincia"
+                  placeholder="Provincia"
+                  value={form.watch("province") || ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    form.setValue("province", e.target.value);
+                  }}
+                  size="sm"
+                />
+                <TextInput
+                  label="País"
+                  placeholder="País"
+                  value={form.watch("country") || ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    form.setValue("country", e.target.value);
+                  }}
+                  size="sm"
+                />
+              </div>
+            </FormSection>
+
+            {/* Sección: Información del Proyecto */}
+            <FormSection
+              title="Información del Proyecto"
+              icon={<FileText className="h-4 w-4" />}
+              columns={1}
+            >
+              {/* Fila: Nº Pedido Cliente, Nombre del Local */}
+              <div className="grid grid-cols-2 gap-3">
+                <TextInput
+                  label="Nº Pedido Cliente"
+                  placeholder="Referencia del cliente"
+                  value={form.watch("client_order_number") || ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    form.setValue("client_order_number", e.target.value);
                   }}
                   size="sm"
                 />
@@ -290,24 +353,8 @@ const CreateProjectDialog = ({
                   size="sm"
                 />
               </div>
-            </FormSection>
 
-            {/* Sección: Información Adicional */}
-            <FormSection
-              title="Información Adicional"
-              icon={<FileText className="h-4 w-4" />}
-              columns={1}
-            >
-              <TextInput
-                label="Nº Pedido Cliente"
-                placeholder="Referencia del cliente"
-                value={form.watch("client_order_number") || ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  form.setValue("client_order_number", e.target.value);
-                }}
-                size="sm"
-              />
-
+              {/* Notas - ancho completo */}
               <TextInput
                 type="textarea"
                 label="Notas"
