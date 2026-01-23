@@ -365,7 +365,7 @@ const NexoAvLayout = () => {
       </aside>
 
       {/* Contenido principal - Anclado al sidebar con ml-56 */}
-      <main className="ml-56 pt-[3.25rem] min-h-screen bg-background w-full">
+      <main className="ml-56 min-h-screen bg-background w-full h-full">
         <div className="h-[calc(100vh-3.25rem)] overflow-y-auto overflow-x-hidden w-full">
           <Outlet />
         </div>

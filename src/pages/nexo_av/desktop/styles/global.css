@@ -414,6 +414,13 @@ body.nexo-av-theme-dark ::-webkit-scrollbar-thumb:hover {
    NO añadir margins aquí
    ============================================ */
 
+/* Main element - Asegurar width y height 100% sin padding-top */
+body.nexo-av-theme main.ml-56,
+body.nexo-av-theme-dark main.ml-56 {
+  width: 100% !important;
+  height: 100% !important;
+  padding-top: 0 !important;
+}
 
 /* Contenedor interno del main: Los márgenes se controlan ÚNICAMENTE desde NexoAvLayout.tsx
    NO añadir reglas aquí que sobrescriban el padding del layout */
