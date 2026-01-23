@@ -158,9 +158,29 @@ const CreateProjectDialog = ({
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
           <div className="px-6 py-5 space-y-5">
-            {/* Sección: Asignación */}
+            {/* Sección: Información del Proyecto */}
             <FormSection
               title="Información del Proyecto"
+              icon={<Building2 className="h-4 w-4" />}
+              columns={1}
+            >
+              <TextInput
+                label="Nombre del Proyecto"
+                placeholder="Ej: Instalación LED Centro Comercial"
+                value={form.watch("project_name") || ""}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  form.setValue("project_name", e.target.value);
+                }}
+                size="sm"
+                required
+                error={!!form.formState.errors.project_name}
+                errorMessage={form.formState.errors.project_name?.message}
+              />
+            </FormSection>
+
+            {/* Sección: Asignación */}
+            <FormSection
+              title="Asignación"
               icon={<Users className="h-4 w-4" />}
               columns={2}
             >
