@@ -1,6 +1,7 @@
 /* ============================================
    FORM DIALOG
    Componente reutilizable de formulario en popup
+   Reestructurado basado en referencia visual moderna
    Usa clamp() para autoajustarse según el tamaño de pantalla
    ============================================ */
 
@@ -11,9 +12,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 9998;
   animation: fadeIn 0.2s ease;
 }
@@ -27,35 +28,49 @@
   }
 }
 
+/* Diálogo base */
 .form-dialog {
   max-width: 100%;
+  background: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: clamp(0.75rem, 1rem, 1.25rem) !important;
+  padding: 0 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
 }
 
 /* Tamaños del diálogo */
 .form-dialog--sm {
-  max-width: clamp(20rem, 25rem, 30rem);
+  max-width: clamp(24rem, 30rem, 36rem);
 }
 
 .form-dialog--md {
-  max-width: clamp(28rem, 35rem, 42rem);
+  max-width: clamp(32rem, 40rem, 48rem);
 }
 
 .form-dialog--lg {
-  max-width: clamp(36rem, 45rem, 54rem);
+  max-width: clamp(40rem, 50rem, 60rem);
 }
 
 .form-dialog--xl {
-  max-width: clamp(44rem, 55rem, 66rem);
+  max-width: clamp(48rem, 60rem, 72rem);
+}
+
+/* Header */
+.form-dialog__header {
+  padding: clamp(1.25rem, 1.5rem, 1.75rem) clamp(1.25rem, 1.5rem, 1.75rem) clamp(0.75rem, 1rem, 1.25rem) !important;
+  border-bottom: 1px solid hsl(var(--border));
+  margin: 0 !important;
 }
 
 /* Título */
 .form-dialog__title {
-  font-size: clamp(1.125rem, 1.25rem, 1.375rem) !important;
+  font-size: clamp(1.25rem, 1.5rem, 1.75rem) !important;
   font-weight: 600 !important;
   color: hsl(var(--foreground)) !important;
-  line-height: 1.4 !important;
-  letter-spacing: -0.01em !important;
-  margin: 0;
+  line-height: 1.3 !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Descripción */
@@ -63,116 +78,150 @@
   font-size: clamp(0.8125rem, 0.875rem, 0.9375rem) !important;
   color: hsl(var(--muted-foreground)) !important;
   line-height: 1.5 !important;
-  margin-top: clamp(0.25rem, 0.375rem, 0.5rem) !important;
+  margin-top: clamp(0.375rem, 0.5rem, 0.625rem) !important;
+  padding: 0 !important;
 }
 
 /* Formulario */
 .form-dialog__form {
   display: flex;
   flex-direction: column;
-  gap: clamp(1rem, 1.25rem, 1.5rem);
+  padding: clamp(1.25rem, 1.5rem, 1.75rem);
+  gap: clamp(1.25rem, 1.5rem, 1.75rem);
+  max-height: clamp(32rem, 40rem, 48rem);
+  overflow-y: auto;
 }
 
-/* Contenedor de campos */
+/* Contenedor de campos - Layout de una columna */
 .form-dialog__fields {
   display: flex;
   flex-direction: column;
-  gap: clamp(1rem, 1.25rem, 1.5rem);
-  max-height: clamp(20rem, 25rem, 30rem);
-  overflow-y: auto;
-  padding-right: clamp(0.25rem, 0.5rem, 0.75rem);
+  gap: clamp(1.25rem, 1.5rem, 1.75rem);
+}
+
+/* Layout de dos columnas */
+.form-dialog__fields--two-column {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(1rem, 1.25rem, 1.5rem) clamp(1rem, 1.25rem, 1.5rem);
 }
 
 /* Scrollbar personalizado */
-.form-dialog__fields::-webkit-scrollbar {
+.form-dialog__form::-webkit-scrollbar {
   width: clamp(0.375rem, 0.5rem, 0.625rem);
 }
 
-.form-dialog__fields::-webkit-scrollbar-track {
+.form-dialog__form::-webkit-scrollbar-track {
   background: hsl(var(--muted) / 0.3);
   border-radius: clamp(0.25rem, 0.375rem, 0.5rem);
 }
 
-.form-dialog__fields::-webkit-scrollbar-thumb {
+.form-dialog__form::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground) / 0.4);
   border-radius: clamp(0.25rem, 0.375rem, 0.5rem);
 }
 
-.form-dialog__fields::-webkit-scrollbar-thumb:hover {
+.form-dialog__form::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.6);
+}
+
+/* Sección */
+.form-dialog__section {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 1rem, 1.25rem);
+}
+
+/* Título de sección */
+.form-dialog__section-title {
+  font-size: clamp(0.9375rem, 1rem, 1.125rem) !important;
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  margin-bottom: clamp(0.25rem, 0.5rem, 0.75rem) !important;
+}
+
+/* Campos de sección */
+.form-dialog__section-fields {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 1.25rem, 1.5rem);
+}
+
+.form-dialog__section-fields--two-column {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(1rem, 1.25rem, 1.5rem) clamp(1rem, 1.25rem, 1.5rem);
 }
 
 /* Campo individual */
 .form-dialog__field {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.375rem, 0.5rem, 0.625rem);
+  gap: clamp(0.5rem, 0.625rem, 0.75rem);
   min-width: 0;
 }
 
-/* Label */
-.form-dialog__label {
-  font-size: clamp(0.8125rem, 0.875rem, 0.9375rem) !important;
-  font-weight: 500 !important;
-  color: hsl(var(--foreground)) !important;
-  line-height: 1.4 !important;
-}
-
-/* Indicador de campo requerido */
-.form-dialog__required {
-  color: hsl(var(--destructive)) !important;
-  margin-left: clamp(0.125rem, 0.25rem, 0.375rem);
-}
-
-/* Input */
-.form-dialog__input {
-  font-size: clamp(0.875rem, 0.9375rem, 1rem) !important;
-  padding: clamp(0.625rem, 0.75rem, 0.875rem) clamp(0.75rem, 0.875rem, 1rem) !important;
-  border-radius: clamp(0.5rem, 0.625rem, 0.75rem) !important;
-  transition: all 0.15s ease !important;
-}
-
-.form-dialog__input:focus {
-  outline: none;
-  ring: 2px;
-  ring-color: hsl(var(--ring));
-  ring-offset: 2px;
-}
-
-/* Input con error */
-.form-dialog__input--error {
-  border-color: hsl(var(--destructive)) !important;
-}
-
-.form-dialog__input--error:focus {
-  ring-color: hsl(var(--destructive)) !important;
-}
-
-/* Mensaje de error */
-.form-dialog__error {
-  font-size: clamp(0.75rem, 0.8125rem, 0.875rem) !important;
-  color: hsl(var(--destructive)) !important;
-  line-height: 1.4 !important;
-  margin-top: clamp(0.125rem, 0.25rem, 0.375rem);
+/* Campo de ancho completo en layout de dos columnas */
+.form-dialog__field--full-width {
+  grid-column: 1 / -1;
 }
 
 /* Footer */
 .form-dialog__footer {
   display: flex;
-  gap: clamp(0.5rem, 0.75rem, 1rem);
+  justify-content: flex-end;
+  gap: clamp(0.75rem, 1rem, 1.25rem);
   margin-top: clamp(0.5rem, 0.75rem, 1rem);
-  padding-top: clamp(0.75rem, 1rem, 1.25rem);
+  padding-top: clamp(1rem, 1.25rem, 1.5rem);
   border-top: 1px solid hsl(var(--border));
 }
 
 /* Botones */
 .form-dialog__button {
-  font-size: clamp(0.8125rem, 0.875rem, 0.9375rem) !important;
-  padding: clamp(0.5rem, 0.625rem, 0.75rem) clamp(1rem, 1.25rem, 1.5rem) !important;
+  font-size: clamp(0.875rem, 0.9375rem, 1rem) !important;
+  padding: clamp(0.625rem, 0.75rem, 0.875rem) clamp(1.25rem, 1.5rem, 1.75rem) !important;
   border-radius: clamp(0.5rem, 0.625rem, 0.75rem) !important;
   font-weight: 500 !important;
-  transition: all 0.15s ease !important;
+  transition: all 0.2s ease !important;
   min-width: clamp(5rem, 6rem, 7rem);
+  height: clamp(2.5rem, 2.75rem, 3rem);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.form-dialog__button--cancel {
+  background: transparent !important;
+  color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.form-dialog__button--cancel:hover:not(:disabled) {
+  background: hsl(var(--muted) / 0.5) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.form-dialog__button--submit {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border-color: hsl(var(--primary)) !important;
+}
+
+.form-dialog__button--submit:hover:not(:disabled) {
+  background: hsl(var(--primary) / 0.9) !important;
+  border-color: hsl(var(--primary)) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.form-dialog__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Botón de submit personalizado */
@@ -181,29 +230,11 @@
   align-items: center;
 }
 
-.form-dialog__button--cancel {
-  background: hsl(var(--secondary)) !important;
-  color: hsl(var(--secondary-foreground)) !important;
-}
-
-.form-dialog__button--cancel:hover:not(:disabled) {
-  background: hsl(var(--secondary) / 0.8) !important;
-}
-
-.form-dialog__button--submit {
-  background: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-}
-
-.form-dialog__button--submit:hover:not(:disabled) {
-  background: hsl(var(--primary) / 0.9) !important;
-}
-
 /* Spinner de carga */
 .form-dialog__spinner {
-  width: clamp(0.875rem, 1rem, 1.125rem);
-  height: clamp(0.875rem, 1rem, 1.125rem);
-  margin-right: clamp(0.375rem, 0.5rem, 0.625rem);
+  width: clamp(1rem, 1.125rem, 1.25rem);
+  height: clamp(1rem, 1.125rem, 1.25rem);
+  margin-right: clamp(0.5rem, 0.625rem, 0.75rem);
   animation: spin 1s linear infinite;
 }
 
@@ -216,19 +247,20 @@
   }
 }
 
-/* Theme adjustments - Light theme */
-body.nexo-av-theme .form-dialog__fields,
-body.nexo-av-theme-light .form-dialog__fields {
-  scrollbar-color: hsl(var(--muted-foreground) / 0.4) hsl(var(--muted) / 0.3);
+/* Theme adjustments */
+body.nexo-av-theme .form-dialog,
+body.nexo-av-theme-light .form-dialog {
+  background: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
 }
 
-/* Theme adjustments - Dark theme */
-body.nexo-av-theme-dark .form-dialog__fields {
-  scrollbar-color: hsl(var(--muted-foreground) / 0.4) hsl(var(--muted) / 0.3);
+body.nexo-av-theme-dark .form-dialog {
+  background: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
 }
 
 /* Responsive */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .form-dialog--sm,
   .form-dialog--md,
   .form-dialog--lg,
@@ -236,8 +268,15 @@ body.nexo-av-theme-dark .form-dialog__fields {
     max-width: calc(100vw - clamp(1rem, 1.5rem, 2rem));
   }
 
-  .form-dialog__fields {
-    max-height: clamp(15rem, 20rem, 25rem);
+  .form-dialog__form {
+    max-height: clamp(24rem, 30rem, 36rem);
+    padding: clamp(1rem, 1.25rem, 1.5rem);
+  }
+
+  .form-dialog__fields--two-column,
+  .form-dialog__section-fields--two-column {
+    grid-template-columns: 1fr;
+    gap: clamp(1rem, 1.25rem, 1.5rem);
   }
 
   .form-dialog__footer {
@@ -246,5 +285,15 @@ body.nexo-av-theme-dark .form-dialog__fields {
 
   .form-dialog__button {
     width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .form-dialog__header {
+    padding: clamp(1rem, 1.25rem, 1.5rem) clamp(1rem, 1.25rem, 1.5rem) clamp(0.75rem, 1rem, 1.25rem) !important;
+  }
+
+  .form-dialog__title {
+    font-size: clamp(1.125rem, 1.25rem, 1.5rem) !important;
   }
 }

@@ -35,6 +35,12 @@ export interface FormField {
   rows?: number; // Para tipo "textarea"
   validation?: (value: any) => string | null; // Función de validación personalizada
   className?: string;
+  colSpan?: 1 | 2; // Para controlar el ancho en layout de dos columnas (1 = media columna, 2 = ancho completo)
+}
+
+export interface FormSection {
+  title?: string;
+  fields: FormField[];
 }
 
 export interface FormDialogProps {
@@ -43,7 +49,8 @@ export interface FormDialogProps {
   onSubmit: (data: Record<string, any>) => Promise<void> | void;
   title: string;
   description?: string;
-  fields: FormField[];
+  fields?: FormField[]; // Campos simples (sin secciones)
+  sections?: FormSection[]; // Secciones con campos agrupados (prioridad sobre fields)
   submitLabel?: string;
   cancelLabel?: string;
   loading?: boolean;
@@ -52,6 +59,7 @@ export interface FormDialogProps {
   size?: "sm" | "md" | "lg" | "xl";
   submitActionType?: DetailActionType; // Tipo de acción para DetailActionButton
   useCustomSubmitButton?: boolean; // Si true, usa DetailActionButton en lugar del botón estándar
+  twoColumnLayout?: boolean; // Si true, usa layout de dos columnas
 }
 
 export default function FormDialog({
@@ -60,7 +68,8 @@ export default function FormDialog({
   onSubmit,
   title,
   description,
-  fields,
+  fields = [],
+  sections,
   submitLabel = "Guardar",
   cancelLabel = "Cancelar",
   loading = false,
@@ -69,22 +78,28 @@ export default function FormDialog({
   size = "md",
   submitActionType,
   useCustomSubmitButton = false,
+  twoColumnLayout = true,
 }: FormDialogProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Normalizar campos: si hay sections, usar esos; si no, usar fields
+  const allFields = sections 
+    ? sections.flatMap(section => section.fields)
+    : fields;
+
   // Inicializar formData con valores por defecto
   useEffect(() => {
     if (open) {
       const initialData: Record<string, any> = {};
-      fields.forEach((field) => {
+      allFields.forEach((field) => {
         initialData[field.name] = defaultValues[field.name] ?? field.defaultValue ?? "";
       });
       setFormData(initialData);
       setErrors({});
     }
-  }, [open, fields, defaultValues]);
+  }, [open, allFields, defaultValues]);
 
   const handleChange = (name: string, value: any) => {
     setFormData((prev) => ({
@@ -140,7 +155,7 @@ export default function FormDialog({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
     
-    fields.forEach((field) => {
+    allFields.forEach((field) => {
       const error = validateField(field, formData[field.name]);
       if (error) {
         newErrors[field.name] = error;
@@ -164,7 +179,7 @@ export default function FormDialog({
       onOpenChange(false);
       // Resetear formulario después de enviar exitosamente
       const initialData: Record<string, any> = {};
-      fields.forEach((field) => {
+      allFields.forEach((field) => {
         initialData[field.name] = field.defaultValue ?? "";
       });
       setFormData(initialData);
@@ -180,7 +195,7 @@ export default function FormDialog({
     onOpenChange(false);
     // Resetear formulario al cancelar
     const initialData: Record<string, any> = {};
-    fields.forEach((field) => {
+    allFields.forEach((field) => {
       initialData[field.name] = field.defaultValue ?? "";
     });
     setFormData(initialData);
@@ -190,10 +205,18 @@ export default function FormDialog({
   const renderField = (field: FormField): ReactNode => {
     const hasError = !!errors[field.name];
     const fieldValue = formData[field.name] ?? "";
+    const colSpan = field.colSpan || 1;
 
     if (field.type === "select") {
       return (
-        <div key={field.name} className={cn("form-dialog__field", field.className)}>
+        <div 
+          key={field.name} 
+          className={cn(
+            "form-dialog__field", 
+            colSpan === 2 && "form-dialog__field--full-width",
+            field.className
+          )}
+        >
           <TextInput
             type="select"
             label={field.label}
@@ -214,7 +237,14 @@ export default function FormDialog({
     }
 
     return (
-      <div key={field.name} className={cn("form-dialog__field", field.className)}>
+      <div 
+        key={field.name} 
+        className={cn(
+          "form-dialog__field",
+          colSpan === 2 && "form-dialog__field--full-width",
+          field.className
+        )}
+      >
         <TextInput
           type={field.type}
           label={field.label}
@@ -244,7 +274,7 @@ export default function FormDialog({
       {open && <div className="form-dialog__backdrop" />}
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className={cn("form-dialog", `form-dialog--${size}`, className)}>
-        <DialogHeader>
+        <DialogHeader className="form-dialog__header">
           <DialogTitle className="form-dialog__title">{title}</DialogTitle>
           {description && (
             <DialogDescription className="form-dialog__description">
@@ -254,8 +284,21 @@ export default function FormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="form-dialog__form">
-          <div className="form-dialog__fields">
-            {fields.map((field) => renderField(field))}
+          <div className={cn("form-dialog__fields", twoColumnLayout && "form-dialog__fields--two-column")}>
+            {sections ? (
+              sections.map((section, sectionIndex) => (
+                <div key={sectionIndex} className="form-dialog__section">
+                  {section.title && (
+                    <h3 className="form-dialog__section-title">{section.title}</h3>
+                  )}
+                  <div className={cn("form-dialog__section-fields", twoColumnLayout && "form-dialog__section-fields--two-column")}>
+                    {section.fields.map((field) => renderField(field))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              fields.map((field) => renderField(field))
+            )}
           </div>
 
           <DialogFooter className="form-dialog__footer">

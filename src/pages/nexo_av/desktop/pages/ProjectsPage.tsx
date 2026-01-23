@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { FolderKanban, Loader2, Euro, TrendingUp, BarChart3, Target, CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
-import FormDialog, { FormField } from "../components/common/FormDialog";
+import FormDialog, { FormField, FormSection } from "../components/common/FormDialog";
 import PaginationControls from "../components/common/PaginationControls";
 import { useDebounce } from "@/hooks/useDebounce";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
@@ -349,65 +349,88 @@ const ProjectsPageDesktop = () => {
     fetchClients();
   }, [isCreateDialogOpen]);
 
-  // Configuración de campos del formulario
-  const projectFormFields: FormField[] = [
+  // Configuración de campos del formulario con secciones
+  const projectFormSections: FormSection[] = [
     {
-      name: "project_name",
-      label: "Nombre del Proyecto",
-      type: "text",
-      placeholder: "Ej: Instalación LED Oficinas Centrales",
-      required: true,
+      title: "Información del Proyecto",
+      fields: [
+        {
+          name: "project_name",
+          label: "Nombre del Proyecto",
+          type: "text",
+          placeholder: "Ej: Instalación LED Oficinas Centrales",
+          required: true,
+          colSpan: 2,
+        },
+        {
+          name: "client_id",
+          label: "Cliente",
+          type: "select",
+          required: true,
+          options: clients.map((client) => ({
+            value: client.id,
+            label: client.company_name,
+          })),
+          colSpan: 1,
+        },
+        {
+          name: "status",
+          label: "Estado inicial",
+          type: "select",
+          defaultValue: "PLANNED",
+          options: PROJECT_STATUSES.map((status) => ({
+            value: status.value,
+            label: status.label,
+          })),
+          colSpan: 1,
+        },
+      ],
     },
     {
-      name: "client_id",
-      label: "Cliente",
-      type: "select",
-      required: true,
-      options: clients.map((client) => ({
-        value: client.id,
-        label: client.company_name,
-      })),
+      title: "Ubicación",
+      fields: [
+        {
+          name: "project_address",
+          label: "Dirección",
+          type: "text",
+          placeholder: "Calle, número...",
+          colSpan: 2,
+        },
+        {
+          name: "project_city",
+          label: "Ciudad",
+          type: "text",
+          placeholder: "Ciudad",
+          colSpan: 1,
+        },
+        {
+          name: "local_name",
+          label: "Nombre del Local",
+          type: "text",
+          placeholder: "Ej: Tienda Centro",
+          colSpan: 1,
+        },
+      ],
     },
     {
-      name: "status",
-      label: "Estado inicial",
-      type: "select",
-      defaultValue: "PLANNED",
-      options: PROJECT_STATUSES.map((status) => ({
-        value: status.value,
-        label: status.label,
-      })),
-    },
-    {
-      name: "project_address",
-      label: "Dirección",
-      type: "text",
-      placeholder: "Calle, número...",
-    },
-    {
-      name: "project_city",
-      label: "Ciudad",
-      type: "text",
-      placeholder: "Ciudad",
-    },
-    {
-      name: "local_name",
-      label: "Nombre del Local",
-      type: "text",
-      placeholder: "Ej: Tienda Centro",
-    },
-    {
-      name: "client_order_number",
-      label: "Nº Pedido Cliente",
-      type: "text",
-      placeholder: "Referencia del cliente",
-    },
-    {
-      name: "notes",
-      label: "Notas",
-      type: "textarea",
-      placeholder: "Notas adicionales sobre el proyecto...",
-      rows: 4,
+      title: "Información Adicional",
+      fields: [
+        {
+          name: "client_order_number",
+          label: "Nº Pedido Cliente",
+          type: "text",
+          placeholder: "Referencia del cliente",
+          colSpan: 1,
+        },
+        {
+          name: "notes",
+          label: "Notas",
+          type: "textarea",
+          placeholder: "Notas adicionales sobre el proyecto...",
+          rows: 4,
+          colSpan: 2,
+        },
+      ],
     },
   ];
 
@@ -962,12 +985,14 @@ const ProjectsPageDesktop = () => {
         onOpenChange={setIsCreateDialogOpen}
         onSubmit={handleCreateProject}
         title="Crear Nuevo Proyecto"
-        description="Completa la información para crear un nuevo proyecto."
-        fields={projectFormFields}
+        sections={projectFormSections}
         size="lg"
+        twoColumnLayout={true}
         useCustomSubmitButton={true}
         submitActionType="new_project"
         loading={loadingClients}
+        submitLabel="Crear Proyecto"
+        cancelLabel="Cancelar"
       />
     </div>
   );
