@@ -51,7 +51,7 @@ const DetailActionButton = ({
         };
       case "edit":
         return {
-          label: "Editar",
+          label: "Editar Proyecto",
           icon: <Edit className="detail-action-button__icon" />,
         };
       case "new_invoice":
