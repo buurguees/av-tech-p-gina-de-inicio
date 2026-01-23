@@ -1,0 +1,207 @@
+/* ============================================
+   TEXT INPUT
+   Componente reutilizable de entrada de texto
+   Usa clamp() para autoajustarse según el tamaño de pantalla
+   ============================================ */
+
+.text-input {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.375rem, 0.5rem, 0.625rem);
+  width: 100%;
+}
+
+/* Label */
+.text-input__label {
+  font-size: clamp(0.875rem, 0.9375rem, 1rem) !important;
+  font-weight: 500 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.4 !important;
+  margin: 0;
+}
+
+.text-input__label--error {
+  color: hsl(var(--destructive)) !important;
+}
+
+/* Wrapper */
+.text-input__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* Campo de entrada */
+.text-input__field {
+  width: 100%;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border-radius: clamp(0.5rem, 0.625rem, 0.75rem);
+  transition: all 0.15s ease;
+  font-family: inherit;
+  outline: none;
+}
+
+.text-input__field:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: hsl(var(--ring));
+  ring-offset: 2px;
+  border-color: hsl(var(--ring));
+}
+
+.text-input__field:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background-color: hsl(var(--muted));
+}
+
+.text-input__field::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.7;
+}
+
+/* Tamaños */
+.text-input__field--sm {
+  font-size: clamp(0.8125rem, 0.875rem, 0.9375rem) !important;
+  padding: clamp(0.5rem, 0.625rem, 0.75rem) clamp(0.75rem, 0.875rem, 1rem) !important;
+  min-height: clamp(2.25rem, 2.5rem, 2.75rem);
+}
+
+.text-input__field--md {
+  font-size: clamp(0.9375rem, 1rem, 1.125rem) !important;
+  padding: clamp(0.625rem, 0.75rem, 0.875rem) clamp(0.875rem, 1rem, 1.25rem) !important;
+  min-height: clamp(2.75rem, 3rem, 3.25rem);
+}
+
+.text-input__field--lg {
+  font-size: clamp(1rem, 1.125rem, 1.25rem) !important;
+  padding: clamp(0.75rem, 0.875rem, 1rem) clamp(1rem, 1.25rem, 1.5rem) !important;
+  min-height: clamp(3.25rem, 3.5rem, 3.75rem);
+}
+
+/* Variantes */
+.text-input__field--default {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+}
+
+.text-input__field--outline {
+  background-color: transparent;
+  border-color: hsl(var(--border));
+  border-width: 2px;
+}
+
+.text-input__field--filled {
+  background-color: hsl(var(--muted) / 0.5);
+  border-color: hsl(var(--border) / 0.5);
+}
+
+/* Textarea */
+.text-input__field--textarea {
+  resize: vertical;
+  min-height: clamp(4rem, 5rem, 6rem);
+  line-height: 1.5;
+}
+
+.text-input__field--textarea.text-input__field--sm {
+  min-height: clamp(3rem, 3.5rem, 4rem);
+}
+
+.text-input__field--textarea.text-input__field--md {
+  min-height: clamp(4rem, 5rem, 6rem);
+}
+
+.text-input__field--textarea.text-input__field--lg {
+  min-height: clamp(5rem, 6rem, 7rem);
+}
+
+/* Estado de error */
+.text-input__field--error {
+  border-color: hsl(var(--destructive)) !important;
+}
+
+.text-input__field--error:focus {
+  ring-color: hsl(var(--destructive)) !important;
+  border-color: hsl(var(--destructive)) !important;
+}
+
+/* Iconos */
+.text-input__icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+
+.text-input__icon--left {
+  left: clamp(0.75rem, 0.875rem, 1rem);
+}
+
+.text-input__icon--right {
+  right: clamp(0.75rem, 0.875rem, 1rem);
+}
+
+.text-input__icon svg {
+  width: clamp(1rem, 1.125rem, 1.25rem);
+  height: clamp(1rem, 1.125rem, 1.25rem);
+}
+
+/* Campos con iconos */
+.text-input__field--with-left-icon {
+  padding-left: clamp(2.5rem, 2.75rem, 3rem) !important;
+}
+
+.text-input__field--with-right-icon {
+  padding-right: clamp(2.5rem, 2.75rem, 3rem) !important;
+}
+
+/* Mensajes de error y helper */
+.text-input__error {
+  font-size: clamp(0.75rem, 0.8125rem, 0.875rem) !important;
+  color: hsl(var(--destructive)) !important;
+  line-height: 1.4;
+  margin-top: clamp(0.125rem, 0.25rem, 0.375rem);
+}
+
+.text-input__helper {
+  font-size: clamp(0.75rem, 0.8125rem, 0.875rem) !important;
+  color: hsl(var(--muted-foreground)) !important;
+  line-height: 1.4;
+  margin-top: clamp(0.125rem, 0.25rem, 0.375rem);
+}
+
+/* Theme adjustments */
+body.nexo-av-theme .text-input__field,
+body.nexo-av-theme-light .text-input__field {
+  background-color: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+body.nexo-av-theme-dark .text-input__field {
+  background-color: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Select específico */
+.text-input__wrapper .text-input__field[role="combobox"] {
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .text-input__field--sm,
+  .text-input__field--md,
+  .text-input__field--lg {
+    font-size: clamp(0.875rem, 0.9375rem, 1rem) !important;
+    padding: clamp(0.625rem, 0.75rem, 0.875rem) clamp(0.875rem, 1rem, 1.25rem) !important;
+    min-height: clamp(2.5rem, 2.75rem, 3rem);
+  }
+}

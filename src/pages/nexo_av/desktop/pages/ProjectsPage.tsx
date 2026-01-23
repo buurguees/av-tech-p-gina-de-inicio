@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { FolderKanban, Loader2, Euro, TrendingUp, BarChart3, Target, CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
-import CreateProjectDialog from "../components/projects/CreateProjectDialog";
+import FormDialog, { FormField } from "../components/common/FormDialog";
 import PaginationControls from "../components/common/PaginationControls";
 import { useDebounce } from "@/hooks/useDebounce";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
@@ -12,6 +12,7 @@ import DetailActionButton from "../components/navigation/DetailActionButton";
 import { cn } from "@/lib/utils";
 import DataList, { DataListColumn } from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
+import { useToast } from "@/hooks/use-toast";
 
 
 interface Project {
@@ -54,15 +55,17 @@ const formatCurrency = (amount: number) => {
 import ProjectsListSidebar from "../components/projects/ProjectsListSidebar";
 
 const ProjectsPageDesktop = () => {
-  // ... rest of imports/logic ...
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchTerm = useDebounce(searchInput, 500);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [clients, setClients] = useState<Array<{ id: string; company_name: string }>>([]);
+  const [loadingClients, setLoadingClients] = useState(false);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [projectKPIs, setProjectKPIs] = useState({
@@ -323,6 +326,121 @@ const ProjectsPageDesktop = () => {
   const handleProjectCreated = () => {
     setIsCreateDialogOpen(false);
     fetchProjects();
+  };
+
+  // Cargar clientes cuando se abre el diálogo
+  useEffect(() => {
+    const fetchClients = async () => {
+      if (isCreateDialogOpen) {
+        try {
+          setLoadingClients(true);
+          const { data, error } = await supabase.rpc("list_clients", {
+            p_search: null,
+          });
+          if (error) throw error;
+          setClients(data || []);
+        } catch (error) {
+          console.error("Error fetching clients:", error);
+        } finally {
+          setLoadingClients(false);
+        }
+      }
+    };
+    fetchClients();
+  }, [isCreateDialogOpen]);
+
+  // Configuración de campos del formulario
+  const projectFormFields: FormField[] = [
+    {
+      name: "project_name",
+      label: "Nombre del Proyecto",
+      type: "text",
+      placeholder: "Ej: Instalación LED Oficinas Centrales",
+      required: true,
+    },
+    {
+      name: "client_id",
+      label: "Cliente",
+      type: "select",
+      required: true,
+      options: clients.map((client) => ({
+        value: client.id,
+        label: client.company_name,
+      })),
+    },
+    {
+      name: "status",
+      label: "Estado inicial",
+      type: "select",
+      defaultValue: "PLANNED",
+      options: PROJECT_STATUSES.map((status) => ({
+        value: status.value,
+        label: status.label,
+      })),
+    },
+    {
+      name: "project_address",
+      label: "Dirección",
+      type: "text",
+      placeholder: "Calle, número...",
+    },
+    {
+      name: "project_city",
+      label: "Ciudad",
+      type: "text",
+      placeholder: "Ciudad",
+    },
+    {
+      name: "local_name",
+      label: "Nombre del Local",
+      type: "text",
+      placeholder: "Ej: Tienda Centro",
+    },
+    {
+      name: "client_order_number",
+      label: "Nº Pedido Cliente",
+      type: "text",
+      placeholder: "Referencia del cliente",
+    },
+    {
+      name: "notes",
+      label: "Notas",
+      type: "textarea",
+      placeholder: "Notas adicionales sobre el proyecto...",
+      rows: 4,
+    },
+  ];
+
+  // Handler para guardar el proyecto
+  const handleCreateProject = async (data: Record<string, any>) => {
+    try {
+      const { data: result, error } = await supabase.rpc("create_project", {
+        p_project_name: data.project_name,
+        p_client_id: data.client_id,
+        p_status: data.status || "PLANNED",
+        p_project_address: data.project_address || null,
+        p_project_city: data.project_city || null,
+        p_local_name: data.local_name || null,
+        p_client_order_number: data.client_order_number || null,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Proyecto creado",
+        description: "El proyecto se ha creado correctamente.",
+      });
+
+      handleProjectCreated();
+    } catch (error: any) {
+      console.error("Error creating project:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo crear el proyecto",
+        variant: "destructive",
+      });
+      throw error; // Re-lanzar para que FormDialog maneje el estado
+    }
   };
 
 
@@ -839,10 +957,17 @@ const ProjectsPageDesktop = () => {
         </div>
       </div>
 
-      <CreateProjectDialog
+      <FormDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
-        onSuccess={handleProjectCreated}
+        onSubmit={handleCreateProject}
+        title="Crear Nuevo Proyecto"
+        description="Completa la información para crear un nuevo proyecto."
+        fields={projectFormFields}
+        size="lg"
+        useCustomSubmitButton={true}
+        submitActionType="new_project"
+        loading={loadingClients}
       />
     </div>
   );

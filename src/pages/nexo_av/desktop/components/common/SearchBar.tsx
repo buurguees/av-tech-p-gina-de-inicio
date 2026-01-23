@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { Input } from '@/components/ui/input';
+import TextInput from './TextInput';
 import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsNexoAvDarkTheme } from '../../hooks/useNexoAvThemeMode';
@@ -254,8 +254,9 @@ export default function SearchBar<T = any>({
           {showSearchIcon && (
             <Search className="search-bar__icon" />
           )}
-          <Input
+          <TextInput
             ref={inputRef}
+            type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -263,6 +264,8 @@ export default function SearchBar<T = any>({
             onBlur={handleBlur}
             placeholder={placeholder}
             disabled={disabled}
+            size="md"
+            variant="default"
             className={cn("search-bar__input", inputClassName)}
           />
           {showClearButton && value && (
