@@ -574,7 +574,7 @@ const ClientsPageDesktop = () => {
                 align: "left",
                 priority: 1, // Prioridad: Nº documento
                 render: (client) => (
-                  <span className="font-mono text-[11px] font-semibold">
+                  <span className="text-foreground/80 text-[10px]">
                     {client.client_number || '-'}
                   </span>
                 ),

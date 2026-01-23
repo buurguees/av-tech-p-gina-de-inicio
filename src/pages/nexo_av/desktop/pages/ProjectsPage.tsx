@@ -647,7 +647,7 @@ const ProjectsPageDesktop = () => {
                     align: "left",
                     priority: 1, // Prioridad: Nº documento
                     render: (project) => (
-                      <span className="font-mono text-[11px] font-semibold">
+                      <span className="text-foreground/80 text-[10px]">
                         {project.project_number}
                       </span>
                     ),
@@ -659,7 +659,7 @@ const ProjectsPageDesktop = () => {
                     align: "left",
                     priority: 2, // Prioridad mínima: Fecha de creación
                     render: (project) => (
-                      <span className="text-white/70 text-[10px]">
+                      <span className="text-muted-foreground text-[10px]">
                         {project.created_at 
                           ? new Date(project.created_at).toLocaleDateString('es-ES', {
                               day: '2-digit',
@@ -677,7 +677,7 @@ const ProjectsPageDesktop = () => {
                     align: "left",
                     priority: 2, // Prioridad mínima: Nº pedido cliente
                     render: (project) => (
-                      <span className="text-white/80 text-[10px]">
+                      <span className="text-foreground/80 text-[10px]">
                         {project.client_order_number || '-'}
                       </span>
                     ),
@@ -689,7 +689,7 @@ const ProjectsPageDesktop = () => {
                     align: "left",
                     priority: 7, // Columna adicional: Cliente
                     render: (project) => (
-                      <span className="text-white text-[10px]">
+                      <span className="text-foreground text-[10px]">
                         {project.client_name || '-'}
                       </span>
                     ),
@@ -701,7 +701,7 @@ const ProjectsPageDesktop = () => {
                     align: "left",
                     priority: 8, // Columna adicional: Nombre del proyecto
                     render: (project) => (
-                      <span className="text-white/80 text-[10px]">
+                      <span className="text-foreground/80 text-[10px]">
                         {project.project_name}
                       </span>
                     ),

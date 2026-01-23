@@ -297,7 +297,7 @@ const InvoicesPageDesktop = () => {
                 render: (invoice) => {
                   const displayNumber = invoice.invoice_number || invoice.preliminary_number;
                   return (
-                    <span className="font-mono text-[11px] font-semibold">
+                    <span className="text-foreground/80 text-[10px]">
                       {displayNumber}
                     </span>
                   );

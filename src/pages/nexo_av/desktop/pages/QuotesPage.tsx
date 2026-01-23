@@ -341,7 +341,7 @@ const QuotesPageDesktop = () => {
                 align: "left",
                 priority: 1, // Prioridad: Nº documento
                 render: (quote) => (
-                  <span className="font-mono text-[11px] font-semibold">
+                  <span className="text-foreground/80 text-[10px]">
                     {quote.quote_number}
                   </span>
                 ),
