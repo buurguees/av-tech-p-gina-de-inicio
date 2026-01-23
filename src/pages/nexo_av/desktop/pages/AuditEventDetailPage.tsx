@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { NexoLogo } from "../components/layout/NexoHeader";
+import PlatformBrand from "../components/common/PlatformBrand";
 
 interface AuditEvent {
   id: string;
@@ -262,7 +262,7 @@ const AuditEventDetailPage = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse">
-          <NexoLogo />
+          <PlatformBrand logoOnly={true} />
         </div>
       </div>
     );

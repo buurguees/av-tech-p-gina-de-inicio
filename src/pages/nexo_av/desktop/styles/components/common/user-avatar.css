@@ -1,0 +1,280 @@
+/* ============================================
+   USER AVATAR
+   Componente reutilizable de avatar de usuario con autoajuste
+   Usa clamp() para autoajustarse según el tamaño de pantalla
+   ============================================ */
+
+/* Avatar Button */
+.user-avatar__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(2.25rem, 2.5rem, 2.75rem);
+  height: clamp(2.25rem, 2.5rem, 2.75rem);
+  border-radius: 50%;
+  background: hsl(var(--secondary));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  font-size: clamp(0.75rem, 0.875rem, 1rem);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.user-avatar__button:hover {
+  background: hsl(var(--secondary) / 0.8);
+  transform: scale(1.05);
+}
+
+.user-avatar__button:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: hsl(var(--ring));
+}
+
+/* Avatar Initials */
+.user-avatar__initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  color: white;
+  font-weight: 600;
+  font-size: clamp(0.75rem, 0.875rem, 1rem);
+  letter-spacing: 0.025em;
+}
+
+/* Dropdown Menu */
+.user-avatar__dropdown {
+  width: clamp(14rem, 18rem, 20rem);
+  z-index: 100;
+  padding: 0;
+}
+
+/* User Info Header */
+.user-avatar__info-header {
+  padding: clamp(0.75rem, 1rem, 1.25rem);
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.user-avatar__name {
+  font-size: clamp(0.8125rem, 0.9375rem, 1.0625rem);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  line-height: 1.4;
+  margin: 0 0 clamp(0.25rem, 0.375rem, 0.5rem) 0;
+}
+
+.user-avatar__email {
+  font-size: clamp(0.6875rem, 0.75rem, 0.875rem);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+  margin: 0;
+}
+
+.user-avatar__position {
+  font-size: clamp(0.6875rem, 0.75rem, 0.875rem);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+  margin: clamp(0.25rem, 0.375rem, 0.5rem) 0 0 0;
+  text-transform: capitalize;
+}
+
+.user-avatar__phone {
+  font-size: clamp(0.6875rem, 0.75rem, 0.875rem);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+  margin: clamp(0.125rem, 0.25rem, 0.375rem) 0 0 0;
+}
+
+/* Menu Items */
+.user-avatar__menu-item {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 0.625rem, 0.75rem);
+  padding: clamp(0.5rem, 0.625rem, 0.75rem) clamp(0.75rem, 1rem, 1.25rem);
+  font-size: clamp(0.8125rem, 0.9375rem, 1.0625rem);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.user-avatar__menu-item:hover {
+  background: hsl(var(--accent) / 0.1);
+}
+
+.user-avatar__menu-item--destructive {
+  color: hsl(var(--destructive));
+}
+
+.user-avatar__menu-item--destructive:hover {
+  background: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--destructive));
+}
+
+.user-avatar__menu-icon {
+  width: clamp(0.875rem, 1rem, 1.125rem);
+  height: clamp(0.875rem, 1rem, 1.125rem);
+  flex-shrink: 0;
+}
+
+/* Theme Section */
+.user-avatar__theme-section {
+  padding: clamp(0.5rem, 0.625rem, 0.75rem) clamp(0.75rem, 1rem, 1.25rem);
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.user-avatar__theme-label {
+  display: block;
+  font-size: clamp(0.6875rem, 0.75rem, 0.875rem);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: clamp(0.5rem, 0.625rem, 0.75rem);
+}
+
+.user-avatar__theme-buttons {
+  display: flex;
+  gap: clamp(0.25rem, 0.375rem, 0.5rem);
+}
+
+.user-avatar__theme-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.5rem, 0.625rem, 0.75rem);
+  padding: clamp(0.5rem, 0.625rem, 0.75rem) clamp(0.75rem, 1rem, 1.25rem);
+  border-radius: clamp(0.375rem, 0.5rem, 0.625rem);
+  font-size: clamp(0.8125rem, 0.9375rem, 1.0625rem);
+  font-weight: 500;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+.user-avatar__theme-button:hover {
+  background: hsl(var(--muted) / 0.8);
+}
+
+.user-avatar__theme-button--active {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+.user-avatar__theme-icon {
+  width: clamp(0.875rem, 1rem, 1.125rem);
+  height: clamp(0.875rem, 1rem, 1.125rem);
+  flex-shrink: 0;
+}
+
+/* Dialog Styles */
+.user-avatar__dialog {
+  max-width: clamp(20rem, 28rem, 32rem);
+}
+
+.user-avatar__dialog-title {
+  font-size: clamp(1.0625rem, 1.25rem, 1.375rem);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  line-height: 1.4;
+}
+
+.user-avatar__dialog-description {
+  font-size: clamp(0.8125rem, 0.9375rem, 1.0625rem);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  margin-top: clamp(0.25rem, 0.375rem, 0.5rem);
+}
+
+/* Form Fields */
+.user-avatar__form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 1.25rem, 1.5rem);
+  padding: clamp(1rem, 1.25rem, 1.5rem) 0;
+}
+
+.user-avatar__form-field {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.375rem, 0.5rem, 0.625rem);
+}
+
+.user-avatar__input {
+  font-size: clamp(0.8125rem, 0.9375rem, 1.0625rem);
+  padding: clamp(0.5rem, 0.625rem, 0.75rem) clamp(0.75rem, 1rem, 1.25rem);
+  height: auto;
+}
+
+.user-avatar__input--password {
+  padding-right: clamp(2.5rem, 3rem, 3.5rem);
+}
+
+.user-avatar__field-hint {
+  font-size: clamp(0.6875rem, 0.75rem, 0.875rem);
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+/* Password Wrapper */
+.user-avatar__password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar__password-toggle {
+  position: absolute;
+  right: clamp(0.75rem, 1rem, 1.25rem);
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  padding: clamp(0.25rem, 0.375rem, 0.5rem);
+  transition: color 0.15s ease;
+}
+
+.user-avatar__password-toggle:hover {
+  color: hsl(var(--foreground));
+}
+
+.user-avatar__password-icon {
+  width: clamp(0.875rem, 1rem, 1.125rem);
+  height: clamp(0.875rem, 1rem, 1.125rem);
+}
+
+/* Dialog Footer */
+.user-avatar__dialog-footer {
+  display: flex;
+  gap: clamp(0.5rem, 0.75rem, 1rem);
+  padding-top: clamp(0.75rem, 1rem, 1.25rem);
+}
+
+.user-avatar__button-cancel,
+.user-avatar__button-submit {
+  font-size: clamp(0.8125rem, 0.9375rem, 1.0625rem);
+  padding: clamp(0.5rem, 0.625rem, 0.75rem) clamp(1rem, 1.25rem, 1.5rem);
+  height: auto;
+}
+
+/* Dark mode adjustments */
+body.nexo-av-theme-dark .user-avatar__button {
+  border-color: hsl(var(--border) / 0.8);
+}
+
+body.nexo-av-theme-dark .user-avatar__info-header {
+  border-bottom-color: hsl(var(--border) / 0.8);
+}
+
+body.nexo-av-theme-dark .user-avatar__theme-section {
+  border-bottom-color: hsl(var(--border) / 0.8);
+}

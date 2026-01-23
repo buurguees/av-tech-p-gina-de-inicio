@@ -22,6 +22,7 @@ import {
   BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import "../../styles/components/layout/sidebar.css";
 
 interface Module {
   id: string;
@@ -283,27 +284,25 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
   }, [location.pathname, userId]);
 
   return (
-    <aside className="flex flex-col w-56 bg-card border-r border-border h-full flex-shrink-0">
-      <nav className="flex-1 overflow-y-auto flex flex-col py-2">
+    <aside className="nexo-sidebar">
+      <nav className="nexo-sidebar__nav">
         {/* Sección Principal - Scrollable */}
-        <div className="flex-1 px-2 space-y-0.5">
+        <div className="nexo-sidebar__main">
           {/* Dashboard Home - Fijo */}
           <motion.button
             onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
             className={cn(
-              "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150 cursor-pointer",
-              isActive(`/nexo-av/${userId}/dashboard`)
-                ? "bg-primary text-primary-foreground font-semibold shadow-sm"
-                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              "nexo-sidebar__item",
+              isActive(`/nexo-av/${userId}/dashboard`) && "nexo-sidebar__item--active"
             )}
             whileTap={{ scale: 0.98 }}
           >
-            <Home size={16} className="flex-shrink-0" />
-            <span className="text-sm flex-1">Dashboard</span>
+            <Home className="nexo-sidebar__icon" />
+            <span className="nexo-sidebar__text">Dashboard</span>
           </motion.button>
 
           {/* Divider */}
-          <div className="h-px bg-border my-2" />
+          <div className="nexo-sidebar__divider" />
 
           {/* Carpetas */}
           {folders.map((folder) => {
@@ -315,26 +314,23 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
             const FolderIcon = folder.icon;
 
             return (
-              <div key={folder.id} className="space-y-0.5">
+              <div key={folder.id} className="nexo-sidebar__folder">
                 {/* Botón de carpeta */}
                 <motion.button
                   type="button"
                   onClick={() => toggleFolder(folder.id)}
                   className={cn(
-                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150 cursor-pointer",
-                    folderActive
-                      ? "bg-primary/10 text-foreground font-medium"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    "nexo-sidebar__item nexo-sidebar__item--folder",
+                    folderActive && "nexo-sidebar__item--folder-active"
                   )}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <FolderIcon size={16} className="flex-shrink-0" />
-                  <span className="text-sm flex-1">{folder.title}</span>
+                  <FolderIcon className="nexo-sidebar__icon" />
+                  <span className="nexo-sidebar__text">{folder.title}</span>
                   <ChevronRight
-                    size={14}
                     className={cn(
-                      "transition-transform duration-200 flex-shrink-0 pointer-events-none",
-                      isOpen && "transform rotate-90"
+                      "nexo-sidebar__chevron",
+                      isOpen && "nexo-sidebar__chevron--open"
                     )}
                   />
                 </motion.button>
@@ -349,7 +345,7 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <div className="pl-4 space-y-0.5">
+                      <div className="nexo-sidebar__folder-items">
                         {folder.items
                           .filter(item => item.available)
                           .map((item) => {
@@ -362,15 +358,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                                 type="button"
                                 onClick={() => navigate(item.path)}
                                 className={cn(
-                                  "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150 cursor-pointer",
-                                  active
-                                    ? "bg-primary text-primary-foreground font-semibold shadow-sm"
-                                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                                  "nexo-sidebar__item nexo-sidebar__item--nested",
+                                  active && "nexo-sidebar__item--active"
                                 )}
                                 whileTap={{ scale: 0.98 }}
                               >
-                                <ItemIcon size={14} className="flex-shrink-0" />
-                                <span className="text-sm flex-1">{item.title}</span>
+                                <ItemIcon className="nexo-sidebar__icon nexo-sidebar__icon--nested" />
+                                <span className="nexo-sidebar__text">{item.title}</span>
                               </motion.button>
                             );
                           })}
@@ -394,15 +388,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                   key={module.id}
                   onClick={() => navigate(module.path)}
                   className={cn(
-                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150 cursor-pointer",
-                    active
-                      ? "bg-primary text-primary-foreground font-semibold shadow-sm"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    "nexo-sidebar__item",
+                    active && "nexo-sidebar__item--active"
                   )}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Icon size={16} className="flex-shrink-0" />
-                  <span className="text-sm flex-1">{module.title}</span>
+                  <Icon className="nexo-sidebar__icon" />
+                  <span className="nexo-sidebar__text">{module.title}</span>
                 </motion.button>
               );
             })}
@@ -411,8 +403,8 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
         {/* Separador Visual y Sección Admin - Fija en la parte inferior */}
         {isAdmin && adminModules.some(m => m.available) && (
           <>
-            <hr className="my-2 border-border mx-2" />
-            <div className="px-2 pb-2 space-y-0.5">
+            <hr className="nexo-sidebar__divider" />
+            <div className="nexo-sidebar__admin">
               {adminModules
                 .filter(m => m.available)
                 .map((module) => {
@@ -424,15 +416,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                       key={module.id}
                       onClick={() => navigate(module.path)}
                       className={cn(
-                        "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left transition-all duration-150 cursor-pointer",
-                        active
-                          ? "bg-primary text-primary-foreground font-semibold shadow-sm"
-                          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        "nexo-sidebar__item",
+                        active && "nexo-sidebar__item--active"
                       )}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <Icon size={16} className="flex-shrink-0" />
-                      <span className="text-sm flex-1">{module.title}</span>
+                      <Icon className="nexo-sidebar__icon" />
+                      <span className="nexo-sidebar__text">{module.title}</span>
                     </motion.button>
                   );
                 })}

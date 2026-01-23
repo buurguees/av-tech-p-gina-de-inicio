@@ -350,11 +350,7 @@ body.nexo-av-theme-dark [class*="bg-background"][class*="border"]:not(header):no
   border-radius: 8px !important;
 }
 
-/* Excepción: Header siempre debe tener fondo negro */
-body.nexo-av-theme-dark header[class*="bg-background"][class*="border"],
-body.nexo-av-theme header[class*="bg-background"][class*="border"] {
-  background-color: #000000 !important;
-}
+/* Header usa variables CSS del sistema - estilos en components/layout/header.css */
 
 /* Panels and sidebars - better contrast */
 body.nexo-av-theme-dark [class*="bg-secondary"],

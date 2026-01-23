@@ -1,6 +1,8 @@
-import { useNavigate } from "react-router-dom";
-import UserAvatarDropdown from "./UserAvatarDropdown";
-import { NexoLogo } from "./layout/NexoHeader";
+import { cn } from "@/lib/utils";
+import UserAvatar from "./common/UserAvatar";
+import UserInfo from "./common/UserInfo";
+import PlatformBrand from "./common/PlatformBrand";
+import "../../styles/components/layout/header.css";
 
 interface HeaderProps {
   userId: string | undefined;
@@ -24,41 +26,22 @@ export function Header({
   onLogout, 
   onThemeChange 
 }: HeaderProps) {
-  const navigate = useNavigate();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-      <div className="w-full h-[3.25rem] px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-full">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
-              className="cursor-pointer hover:opacity-80 transition-opacity duration-200 flex-shrink-0"
-              aria-label="Ir al inicio"
-            >
-              <NexoLogo />
-            </button>
-            <div className="flex flex-col justify-center">
-              <h1 className="text-foreground font-semibold tracking-wide leading-tight">
-                NEXO AV
-              </h1>
-              <p className="text-muted-foreground text-xs leading-tight">
-                Plataforma de Gestión
-              </p>
-            </div>
-          </div>
+    <header className="nexo-header">
+      <div className="nexo-header__container">
+        <div className="nexo-header__content">
+          <PlatformBrand userId={userId} />
           
           {userInfo && (
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-foreground text-sm font-medium">
-                  {userInfo.full_name}
-                </p>
-                <p className="text-muted-foreground text-xs capitalize">
-                  {userInfo.roles?.join(', ')}
-                </p>
-              </div>
-              <UserAvatarDropdown
+            <div className="nexo-header__user-section">
+              <UserInfo
+                name={userInfo.full_name}
+                role={userInfo.roles}
+                align="right"
+                className="nexo-header__user-info"
+              />
+              <UserAvatar
                 fullName={userInfo.full_name}
                 email={userInfo.email}
                 userId={userInfo.user_id}

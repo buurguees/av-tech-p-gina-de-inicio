@@ -4,74 +4,9 @@ import { ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import UserAvatarDropdown from "./UserAvatarDropdown";
-
-const NexoLogo = () => {
-  const [isLightTheme, setIsLightTheme] = useState(false);
-
-  useEffect(() => {
-    // Verificar si el body tiene la clase nexo-av-theme
-    const checkTheme = () => {
-      setIsLightTheme(document.body.classList.contains('nexo-av-theme'));
-    };
-
-    // Verificar al montar
-    checkTheme();
-
-    // Observar cambios en las clases del body
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Si está en modo light, usar el SVG con fill black
-  if (isLightTheme) {
-    return (
-      <svg
-        width="32"
-        height="32"
-        viewBox="0 0 500 500"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="w-8 h-8"
-      >
-        <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="currentColor" />
-        <path d="M256.098 250L500 6.09766V90.7789L340.955 250H256.098Z" fill="currentColor" />
-        <path d="M250 243.902L6.09753 -7.62939e-05H90.7788L250 159.045V243.902Z" fill="currentColor" />
-        <path d="M493.902 -0.000106812L250 243.902V159.221L409.045 -0.000106812H493.902Z" fill="currentColor" />
-        <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="currentColor" />
-        <path d="M6.09753 500L250 256.098V340.779L90.9553 500H6.09753Z" fill="currentColor" />
-        <path d="M3.05176e-05 6.09766L243.902 250H159.221L3.05176e-05 90.9554V6.09766Z" fill="currentColor" />
-        <path d="M243.902 250L4.57764e-05 493.902V409.221L159.045 250H243.902Z" fill="currentColor" />
-      </svg>
-    );
-  }
-
-  // Si está en modo dark, usar el SVG original
-  return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 1000 1000"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-8 h-8"
-    >
-      <path d="M750 743.902L506.098 500H590.779L750 659.045V743.902Z" fill="white" />
-      <path d="M506.098 500L750 256.098V340.779L590.955 500H506.098Z" fill="white" />
-      <path d="M500 493.902L256.098 250H340.779L500 409.045V493.902Z" fill="white" />
-      <path d="M743.902 250L500 493.902V409.221L659.045 250H743.902Z" fill="white" />
-      <path d="M500 506.098L743.902 750H659.221L500 590.955V506.098Z" fill="white" />
-      <path d="M256.098 750L500 506.098V590.779L340.955 750H256.098Z" fill="white" />
-      <path d="M250 256.098L493.902 500H409.221L250 340.955V256.098Z" fill="white" />
-      <path d="M493.902 500L250 743.902V659.221L409.045 500H493.902Z" fill="white" />
-    </svg>
-  );
-};
+import UserAvatar from "../common/UserAvatar";
+import UserInfo from "../common/UserInfo";
+import PlatformBrand from "../common/PlatformBrand";
 
 interface UserInfo {
   user_id: string;
@@ -190,31 +125,25 @@ const NexoHeader = ({
                 <Home className="h-5 w-5" />
               </Button>
             )}
-            <button
+            <PlatformBrand
+              title={customTitle ? (typeof customTitle === 'string' ? customTitle : title) : title}
+              subtitle={subtitle}
+              userId={userId}
               onClick={handleLogoClick}
-              className="cursor-pointer hover:opacity-80 transition-opacity duration-200"
-              aria-label="Ir al inicio"
-            >
-              <NexoLogo />
-            </button>
-            <div>
-              {customTitle ? (
-                <h1 className="text-foreground font-semibold tracking-wide">{customTitle}</h1>
-              ) : (
-                <h1 className="text-foreground font-semibold tracking-wide">{title}</h1>
-              )}
-              <p className="text-muted-foreground text-xs">{subtitle}</p>
-            </div>
+            />
           </div>
 
           {/* User Menu */}
           {showUserMenu && userInfo && (
             <div className="flex items-center gap-4">
-              <div className="text-right hidden sm:block">
-                <p className="text-foreground text-sm font-medium">{userInfo.full_name}</p>
-                <p className="text-muted-foreground text-xs">{userInfo.email}</p>
+              <div className="hidden sm:block">
+                <UserInfo
+                  name={userInfo.full_name}
+                  role={userInfo.job_position || userInfo.email}
+                  align="right"
+                />
               </div>
-              <UserAvatarDropdown
+              <UserAvatar
                 fullName={userInfo.full_name || ''}
                 email={userInfo.email || ''}
                 userId={userInfo.user_id || ''}
@@ -233,4 +162,3 @@ const NexoHeader = ({
 };
 
 export default NexoHeader;
-export { NexoLogo };

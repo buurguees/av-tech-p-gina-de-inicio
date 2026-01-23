@@ -6,8 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 import Sidebar from "../components/layout/Sidebar";
-import UserAvatarDropdown from "../components/layout/UserAvatarDropdown";
-import { NexoLogo } from "../components/layout/NexoHeader";
+import UserAvatar from "../components/common/UserAvatar";
+import UserInfo from "../components/common/UserInfo";
+import PlatformBrand from "../components/common/PlatformBrand";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import "../styles/global.css";
 import {
@@ -58,35 +59,16 @@ const Header = ({
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
       <div className="w-full h-[3.25rem] px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-full">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
-              className="cursor-pointer hover:opacity-80 transition-opacity duration-200 flex-shrink-0"
-              aria-label="Ir al inicio"
-            >
-              <NexoLogo />
-            </button>
-            <div className="flex flex-col justify-center">
-              <h1 className="text-foreground font-semibold tracking-wide leading-tight">
-                NEXO AV
-              </h1>
-              <p className="text-muted-foreground text-xs leading-tight">
-                Plataforma de Gestión
-              </p>
-            </div>
-          </div>
+          <PlatformBrand userId={userId} />
 
           {userInfo && (
             <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-foreground text-sm font-medium">
-                  {userInfo.full_name}
-                </p>
-                <p className="text-muted-foreground text-xs capitalize">
-                  {userInfo.roles?.join(', ')}
-                </p>
-              </div>
-              <UserAvatarDropdown
+              <UserInfo
+                name={userInfo.full_name}
+                role={userInfo.roles}
+                align="right"
+              />
+              <UserAvatar
                 fullName={userInfo.full_name}
                 email={userInfo.email}
                 userId={userInfo.user_id}
@@ -355,8 +337,8 @@ const NexoAvLayout = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-foreground">
-          <NexoLogo />
+        <div className="animate-pulse">
+          <PlatformBrand logoOnly={true} />
         </div>
       </div>
     );
