@@ -58,7 +58,7 @@ const Header = ({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
       <div className="w-full h-[3.25rem] px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-full">
+        <div className="flex items-center justify-between h-full w-full">
           <PlatformBrand userId={userId} />
 
           {userInfo && (
@@ -365,8 +365,8 @@ const NexoAvLayout = () => {
       </aside>
 
       {/* Contenido principal - Anclado al sidebar con ml-56 */}
-      <main className="ml-56 pt-[3.25rem] min-h-screen bg-background">
-        <div className="h-[calc(100vh-3.25rem)] overflow-y-auto overflow-x-hidden">
+      <main className="ml-56 pt-[3.25rem] min-h-screen bg-background w-full">
+        <div className="h-[calc(100vh-3.25rem)] overflow-y-auto overflow-x-hidden w-full">
           <Outlet />
         </div>
       </main>
