@@ -356,7 +356,7 @@ const NexoAvLayout = () => {
       />
 
       {/* Sidebar - Fijo a la izquierda debajo del header */}
-      <aside className="fixed left-0 top-[3.25rem] z-40 w-fit h-full">
+      <aside className="fixed left-0 top-[3.25rem] z-40 h-[calc(100vh-3.25rem)]" style={{ width: 'var(--sidebar-width, 14rem)' }}>
         <Sidebar
           userId={userId}
           modules={modules}
@@ -364,9 +364,9 @@ const NexoAvLayout = () => {
         />
       </aside>
 
-      {/* Contenido principal - Anclado al sidebar con ml-56 */}
-      <main className="ml-56 min-h-screen bg-background w-full h-full">
-        <div className="h-[calc(100vh-3.25rem)] overflow-y-auto overflow-x-hidden w-full">
+      {/* Contenido principal - Anclado al sidebar */}
+      <main className="min-h-screen bg-background" style={{ marginLeft: 'var(--sidebar-width, 14rem)' }}>
+        <div className="h-[calc(100vh-3.25rem)] overflow-y-auto overflow-x-hidden">
           <Outlet />
         </div>
       </main>
