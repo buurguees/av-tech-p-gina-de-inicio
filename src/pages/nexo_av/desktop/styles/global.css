@@ -1189,6 +1189,16 @@ body.nexo-av-theme-dark .mr-4 {
    Control centralizado del padding de páginas
    ============================================ */
 
+/* Contenedor principal sin padding */
+body.nexo-av-theme main>div[class*="overflow-y-auto"],
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"] {
+  padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* Padding universal para todas las páginas - Aplicado al contenedor del Outlet */
 body.nexo-av-theme main>div[class*="overflow-y-auto"]>*,
 body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>* {
@@ -1816,10 +1826,11 @@ body.nexo-av-theme [class*="text-purple-300"] {
   /* Contenedor interno del main */
   body.nexo-av-theme main>div[class*="overflow-y-auto"],
   body.nexo-av-theme-dark main>div[class*="overflow-y-auto"] {
-    padding-top: 1.75rem !important;
-    /* 2rem * 0.875 */
-    padding-left: 1.75rem !important;
-    padding-right: 1.75rem !important;
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
   }
 
   /* Escalar alturas fijas comunes */
@@ -2440,10 +2451,11 @@ body.nexo-av-theme [class*="text-purple-300"] {
   /* Contenedor interno del main */
   body.nexo-av-theme main>div[class*="overflow-y-auto"],
   body.nexo-av-theme-dark main>div[class*="overflow-y-auto"] {
-    padding-top: 1.5rem !important;
-    /* 2rem * 0.75 */
-    padding-left: 1.5rem !important;
-    padding-right: 1.5rem !important;
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
   }
 
   /* Escalar alturas fijas comunes - reducción más significativa */
