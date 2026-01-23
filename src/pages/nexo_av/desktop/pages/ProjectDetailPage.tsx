@@ -5,7 +5,7 @@ import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import TabNav, { TabItem } from "../components/navigation/TabNav";
 import DetailActionButton, { DetailActionType } from "../components/navigation/DetailActionButton";
 import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from "../components/detail";
-import { DetailDashboard, DetailDashboardKPIs, DetailDashboardProducts, DetailDashboardTasks } from "../components/dashboard";
+import { DetailDashboard, DetailDashboardKPIs, DetailDashboardTasks } from "../components/dashboard";
 import ProjectInvoicesList from "../components/projects/ProjectInvoicesList";
 import ProjectQuotesList from "../components/projects/ProjectQuotesList";
 import ProjectPurchasesList from "../components/projects/ProjectPurchasesList";
@@ -74,9 +74,7 @@ const ProjectDetailPageDesktop = () => {
     margin: 0,
   });
   const [loadingMetrics, setLoadingMetrics] = useState(true);
-  const [products, setProducts] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(false);
   const [loadingTasks, setLoadingTasks] = useState(false);
 
   const tabs: TabItem[] = [
@@ -172,81 +170,6 @@ const ProjectDetailPageDesktop = () => {
 
     fetchMetrics();
   }, [projectId]);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      if (!projectId) return;
-
-      try {
-        setLoadingProducts(true);
-        // Obtener productos de las líneas de presupuestos y facturas del proyecto
-        const { data: quotesData } = await supabase.rpc('list_quotes', { p_search: null });
-        const projectQuotes = (quotesData || []).filter((q: any) => q.project_id === projectId);
-        
-        const allProducts: any[] = [];
-        
-        // Obtener líneas de presupuestos
-        for (const quote of projectQuotes) {
-          const { data: linesData } = await supabase.rpc('get_quote_lines', {
-            p_quote_id: quote.id
-          });
-          
-          if (linesData) {
-            linesData.forEach((line: any) => {
-              allProducts.push({
-                id: `${quote.id}-${line.id}`,
-                name: line.concept || line.description || 'Producto sin nombre',
-                description: line.description,
-                quantity: line.quantity || 0,
-                unit_price: line.unit_price || 0,
-                total: line.subtotal || 0,
-                source: 'Presupuesto',
-                source_number: quote.quote_number,
-              });
-            });
-          }
-        }
-
-        // Obtener líneas de facturas
-        const { data: invoicesData } = await supabase.rpc('finance_list_invoices', {
-          p_search: null,
-          p_status: null,
-        });
-        const projectInvoices = (invoicesData || []).filter((inv: any) => inv.project_id === projectId);
-
-        for (const invoice of projectInvoices) {
-          const { data: linesData } = await supabase.rpc('finance_get_invoice_lines', {
-            p_invoice_id: invoice.id
-          });
-          
-          if (linesData) {
-            linesData.forEach((line: any) => {
-              allProducts.push({
-                id: `${invoice.id}-${line.id}`,
-                name: line.concept || line.description || 'Producto sin nombre',
-                description: line.description,
-                quantity: line.quantity || 0,
-                unit_price: line.unit_price || 0,
-                total: line.subtotal || 0,
-                source: 'Factura',
-                source_number: invoice.invoice_number || invoice.preliminary_number,
-              });
-            });
-          }
-        }
-
-        setProducts(allProducts);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoadingProducts(false);
-      }
-    };
-
-    if (activeTab === "resumen") {
-      fetchProducts();
-    }
-  }, [projectId, activeTab]);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -409,49 +332,6 @@ const ProjectDetailPageDesktop = () => {
                         subtitle: "Facturación - Compras",
                       },
                     ]}
-                  />
-                }
-                products={
-                  <DetailDashboardProducts
-                    title="Productos del Proyecto"
-                    products={products}
-                    loading={loadingProducts}
-                    emptyMessage="No hay productos asociados a este proyecto"
-                    onProductClick={(product) => {
-                      // Navegar al presupuesto o factura según el source
-                      if (product.source === 'Presupuesto') {
-                        // TODO: Navegar al presupuesto
-                        console.log('Navegar a presupuesto:', product.source_number);
-                      } else if (product.source === 'Factura') {
-                        // TODO: Navegar a factura
-                        console.log('Navegar a factura:', product.source_number);
-                      }
-                    }}
-                    renderProduct={(product) => (
-                      <div className="detail-dashboard-products__item-content">
-                        <div className="detail-dashboard-products__item-main">
-                          <span className="detail-dashboard-products__item-name">{product.name}</span>
-                          {product.description && (
-                            <span className="detail-dashboard-products__item-description">{product.description}</span>
-                          )}
-                          <span className="text-xs text-muted-foreground mt-1">
-                            {product.source}: {product.source_number}
-                          </span>
-                        </div>
-                        <div className="detail-dashboard-products__item-meta">
-                          {product.quantity !== undefined && (
-                            <span className="detail-dashboard-products__item-quantity">
-                              Cant: {product.quantity}
-                            </span>
-                          )}
-                          {product.total !== undefined && (
-                            <span className="detail-dashboard-products__item-total">
-                              {formatCurrency(product.total)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
                   />
                 }
                 tasks={
