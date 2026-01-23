@@ -6,11 +6,12 @@ import { FolderKanban, Loader2, Euro, TrendingUp, BarChart3, Target, CheckCircle
 import { usePagination } from "@/hooks/usePagination";
 import CreateProjectDialog from "../components/projects/CreateProjectDialog";
 import PaginationControls from "../components/common/PaginationControls";
-import SearchInput from "../components/common/SearchInput";
+import { useDebounce } from "@/hooks/useDebounce";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import { cn } from "@/lib/utils";
 import DataList, { DataListColumn } from "../components/common/DataList";
+import SearchBar from "../components/common/SearchBar";
 
 
 interface Project {
@@ -24,6 +25,8 @@ interface Project {
   client_order_number: string | null;
   local_name: string | null;
   project_name: string;
+  start_date: string | null;
+  end_date: string | null;
   created_by: string | null;
   created_by_name: string | null;
   created_at: string;
@@ -59,7 +62,8 @@ const ProjectsPageDesktop = () => {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearchTerm = useDebounce(searchInput, 500);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -79,6 +83,7 @@ const ProjectsPageDesktop = () => {
   });
   const [projectProfitability, setProjectProfitability] = useState<Map<string, number>>(new Map());
   const [loadingProfitability, setLoadingProfitability] = useState(false);
+  const [projectTotals, setProjectTotals] = useState<Map<string, number>>(new Map());
 
   const fetchProjects = async () => {
     try {
@@ -139,6 +144,16 @@ const ProjectsPageDesktop = () => {
         inv.project_id && inv.status !== 'CANCELLED' && inv.status !== 'DRAFT'
       );
       const totalRevenue = projectInvoices.reduce((sum: number, inv: any) => sum + (inv.subtotal || 0), 0);
+      
+      // Calcular total facturado por proyecto
+      const totalsMap = new Map<string, number>();
+      projectInvoices.forEach((inv: any) => {
+        if (inv.project_id) {
+          const currentTotal = totalsMap.get(inv.project_id) || 0;
+          totalsMap.set(inv.project_id, currentTotal + (inv.total || 0));
+        }
+      });
+      setProjectTotals(totalsMap);
 
       // Obtener facturas de compra relacionadas con proyectos usando RPC
       const { data: purchaseInvoicesData, error: purchaseInvoicesError } = await supabase.rpc('list_purchase_invoices', {
@@ -289,9 +304,6 @@ const ProjectsPageDesktop = () => {
     fetchProjects();
   }, [debouncedSearchTerm]);
 
-  const handleSearchChange = (searchTerm: string) => {
-    setDebouncedSearchTerm(searchTerm);
-  };
 
   useEffect(() => {
     if (projects.length > 0) {
@@ -618,12 +630,6 @@ const ProjectsPageDesktop = () => {
               <div className="mb-6">
                 <DetailNavigationBar
                   pageTitle="Proyectos"
-                  contextInfo={
-                    <SearchInput
-                      placeholder="Buscar proyectos..."
-                      onSearchChange={handleSearchChange}
-                    />
-                  }
                   tools={
                     <DetailActionButton
                       actionType="new_project"
@@ -642,9 +648,58 @@ const ProjectsPageDesktop = () => {
                     label: "Nº Proyecto",
                     sortable: true,
                     align: "left",
+                    priority: 1, // Prioridad: Nº documento
                     render: (project) => (
-                      <span className="font-mono text-[13px] font-semibold">
+                      <span className="font-mono text-[11px] font-semibold">
                         {project.project_number}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "start_date",
+                    label: "F. Inicio",
+                    sortable: true,
+                    align: "left",
+                    priority: 2, // Prioridad mínima: Fecha de inicio (equivalente a fecha de emisión)
+                    render: (project) => (
+                      <span className="text-white/70 text-[10px]">
+                        {project.start_date 
+                          ? new Date(project.start_date).toLocaleDateString('es-ES', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric'
+                            })
+                          : '-'}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "end_date",
+                    label: "F. Final",
+                    sortable: true,
+                    align: "left",
+                    priority: 6, // Columna adicional: Fecha final
+                    render: (project) => (
+                      <span className="text-white/70 text-[10px]">
+                        {project.end_date 
+                          ? new Date(project.end_date).toLocaleDateString('es-ES', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric'
+                            })
+                          : '-'}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "client_order_number",
+                    label: "Nº Pedido Cliente",
+                    sortable: true,
+                    align: "left",
+                    priority: 2, // Prioridad mínima: Nº pedido cliente
+                    render: (project) => (
+                      <span className="text-white/80 text-[10px]">
+                        {project.client_order_number || '-'}
                       </span>
                     ),
                   },
@@ -653,6 +708,7 @@ const ProjectsPageDesktop = () => {
                     label: "Cliente",
                     sortable: true,
                     align: "left",
+                    priority: 7, // Columna adicional: Cliente
                     render: (project) => (
                       <span className="text-white text-[10px]">
                         {project.client_name || '-'}
@@ -664,19 +720,10 @@ const ProjectsPageDesktop = () => {
                     label: "Nombre del Proyecto",
                     sortable: true,
                     align: "left",
+                    priority: 8, // Columna adicional: Nombre del proyecto
                     render: (project) => (
-                      <span className="text-white/80 text-[10px] max-w-xs truncate">
+                      <span className="text-white/80 text-[10px]">
                         {project.project_name}
-                      </span>
-                    ),
-                  },
-                  {
-                    key: "client_order_number",
-                    label: "Pedido",
-                    align: "left",
-                    render: (project) => (
-                      <span className="text-white/70 text-[10px]">
-                        {project.client_order_number || '-'}
                       </span>
                     ),
                   },
@@ -685,6 +732,7 @@ const ProjectsPageDesktop = () => {
                     label: "Estado",
                     sortable: true,
                     align: "center",
+                    priority: 3, // Prioridad mínima: Estado
                     render: (project) => {
                       const statusInfo = getStatusInfo(project.status);
                       return (
@@ -693,6 +741,21 @@ const ProjectsPageDesktop = () => {
                             {statusInfo.label}
                           </Badge>
                         </div>
+                      );
+                    },
+                  },
+                  {
+                    key: "total",
+                    label: "Total",
+                    sortable: true,
+                    align: "right",
+                    priority: 4, // Prioridad mínima: Total
+                    render: (project) => {
+                      const total = projectTotals.get(project.id) || 0;
+                      return (
+                        <span className="text-white text-[10px]">
+                          {formatCurrency(total)}
+                        </span>
                       );
                     },
                   },

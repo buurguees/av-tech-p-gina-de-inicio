@@ -3,15 +3,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { FileText, AlertCircle, CheckCircle } from "lucide-react";
+import { FileText, AlertCircle, CheckCircle, Receipt } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../components/common/PaginationControls";
-import SearchInput from "../components/common/SearchInput";
+import { useDebounce } from "@/hooks/useDebounce";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import { getFinanceStatusInfo, FINANCE_INVOICE_STATUSES } from "@/constants/financeStatuses";
 import DataList from "../components/common/DataList";
+import SearchBar from "../components/common/SearchBar";
 
 
 interface Invoice {
@@ -32,6 +33,8 @@ interface Invoice {
   subtotal: number;
   tax_amount: number;
   total: number;
+  paid_amount: number;
+  pending_amount: number;
   is_locked: boolean;
   created_by: string | null;
   created_by_name: string | null;
@@ -51,7 +54,8 @@ const InvoicesPageDesktop = () => {
 
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearchQuery = useDebounce(searchInput, 500);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -60,9 +64,6 @@ const InvoicesPageDesktop = () => {
     fetchInvoices();
   }, [debouncedSearchQuery, statusFilter]);
 
-  const handleSearchChange = (searchTerm: string) => {
-    setDebouncedSearchQuery(searchTerm);
-  };
 
   const fetchInvoices = async () => {
     try {
@@ -248,9 +249,30 @@ const InvoicesPageDesktop = () => {
             <DetailNavigationBar
               pageTitle="Facturas"
               contextInfo={
-                <SearchInput
+                <SearchBar
+                  value={searchInput}
+                  onChange={setSearchInput}
+                  items={invoices}
+                  getSearchText={(invoice) => {
+                    const displayNumber = invoice.invoice_number || invoice.preliminary_number || '';
+                    return `${displayNumber} ${invoice.client_name || ''} ${invoice.project_number || ''} ${invoice.client_order_number || ''}`;
+                  }}
+                  renderResult={(invoice) => {
+                    const displayNumber = invoice.invoice_number || invoice.preliminary_number || '';
+                    return {
+                      id: invoice.id,
+                      label: displayNumber,
+                      subtitle: `${invoice.client_name || 'Sin cliente'} - ${formatCurrency(invoice.total)}`,
+                      icon: <Receipt className="h-4 w-4" />,
+                      data: invoice,
+                    };
+                  }}
+                  onSelectResult={(result) => {
+                    navigate(`/nexo-av/${userId}/invoices/${result.data.id}`);
+                  }}
                   placeholder="Buscar facturas..."
-                  onSearchChange={handleSearchChange}
+                  maxResults={8}
+                  debounceMs={300}
                 />
               }
               tools={
@@ -267,46 +289,38 @@ const InvoicesPageDesktop = () => {
             data={paginatedInvoices}
             columns={[
               {
-                key: "issue_date",
-                label: "Emisión",
-                sortable: true,
-                align: "left",
-                render: (invoice) => (
-                  <span className="text-white/80 text-[9px]">
-                    {invoice.issue_date ? formatDate(invoice.issue_date) : "-"}
-                  </span>
-                ),
-              },
-              {
                 key: "invoice_number",
                 label: "Num",
                 sortable: true,
                 align: "left",
+                priority: 1, // Prioridad: Nº documento
                 render: (invoice) => {
                   const displayNumber = invoice.invoice_number || invoice.preliminary_number;
                   return (
-                    <span className="font-mono text-[13px] font-semibold">
+                    <span className="font-mono text-[11px] font-semibold">
                       {displayNumber}
                     </span>
                   );
                 },
               },
               {
-                key: "client_name",
-                label: "Cliente",
+                key: "issue_date",
+                label: "F. Emisión",
                 sortable: true,
                 align: "left",
+                priority: 2, // Prioridad: Fecha de emisión
                 render: (invoice) => (
-                  <span className="text-white text-[10px]">
-                    {invoice.client_name}
+                  <span className="text-white/70 text-[10px]">
+                    {invoice.issue_date ? formatDate(invoice.issue_date) : "-"}
                   </span>
                 ),
               },
               {
                 key: "project_number",
-                label: "Proyecto",
+                label: "Nº Proyecto",
                 sortable: true,
                 align: "left",
+                priority: 3, // Prioridad: Nº proyecto
                 render: (invoice) => (
                   <span className="text-white/80 text-[10px]">
                     {invoice.project_number || "-"}
@@ -315,8 +329,9 @@ const InvoicesPageDesktop = () => {
               },
               {
                 key: "client_order_number",
-                label: "Pedido",
+                label: "Nº Pedido Cliente",
                 align: "left",
+                priority: 6, // Columna adicional: Nº pedido cliente (viene del proyecto)
                 render: (invoice) => (
                   <span className="text-white/70 text-[10px]">
                     {invoice.client_order_number || "-"}
@@ -324,9 +339,27 @@ const InvoicesPageDesktop = () => {
                 ),
               },
               {
+                key: "status",
+                label: "Estado",
+                align: "center",
+                priority: 4, // Prioridad mínima: Estado
+                render: (invoice) => {
+                  const statusInfo = getFinanceStatusInfo(invoice.status);
+                  return (
+                    <div className="flex justify-center">
+                      <Badge variant="outline" className={cn(statusInfo.className, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                        {statusInfo.label}
+                      </Badge>
+                    </div>
+                  );
+                },
+              },
+              {
                 key: "subtotal",
                 label: "Subtotal",
+                sortable: true,
                 align: "right",
+                priority: 7, // Columna adicional: Subtotal
                 render: (invoice) => (
                   <span className="text-white/70 text-[10px]">
                     {formatCurrency(invoice.subtotal)}
@@ -338,6 +371,7 @@ const InvoicesPageDesktop = () => {
                 label: "Total",
                 sortable: true,
                 align: "right",
+                priority: 5, // Prioridad mínima: Total
                 render: (invoice) => (
                   <span className="text-white text-[10px]">
                     {formatCurrency(invoice.total)}
@@ -345,19 +379,16 @@ const InvoicesPageDesktop = () => {
                 ),
               },
               {
-                key: "status",
-                label: "Estado",
-                align: "center",
-                render: (invoice) => {
-                  const statusInfo = getFinanceStatusInfo(invoice.status);
-                  return (
-                    <div className="flex justify-center">
-                      <Badge variant="outline" className={cn(statusInfo.className, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
-                        {statusInfo.label}
-                      </Badge>
-                    </div>
-                  );
-                },
+                key: "paid_amount",
+                label: "Cantidad Pagada",
+                sortable: true,
+                align: "right",
+                priority: 8, // Columna adicional: Cantidad pagada
+                render: (invoice) => (
+                  <span className="text-white/70 text-[10px]">
+                    {formatCurrency(invoice.paid_amount || 0)}
+                  </span>
+                ),
               },
             ]}
             actions={[

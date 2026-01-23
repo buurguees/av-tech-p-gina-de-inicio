@@ -28,11 +28,77 @@
   align-items: center;
 }
 
+/* Columnas ocultables según tamaño de pantalla */
+/* IMPORTANTE: Las columnas con prioridad 1-5 (mínimas) SIEMPRE se muestran en desktop */
+/* La columna de acciones (data-priority="0") SIEMPRE se muestra */
+/* Solo se ocultan columnas adicionales (prioridad >= 6) o sin prioridad */
+
+/* En pantallas medianas (max-width: 1600px), ocultar columnas sin prioridad */
+@media (max-width: 1600px) {
+  .data-list__header-cell--hideable,
+  .data-list__cell--hideable {
+    display: none !important;
+  }
+  
+  /* Asegurar que acciones siempre se muestren */
+  .data-list__header-cell--actions,
+  .data-list__cell--actions {
+    display: flex !important;
+  }
+}
+
+/* En pantallas pequeñas (max-width: 1400px), ocultar columnas con prioridad 8 */
+@media (max-width: 1400px) {
+  .data-list__header-cell[data-priority="8"],
+  .data-list__cell[data-priority="8"] {
+    display: none !important;
+  }
+}
+
+/* En pantallas más pequeñas (max-width: 1200px), ocultar columnas con prioridad 7 y 8 */
+/* Esto oculta F. Final (prioridad 7) primero */
+@media (max-width: 1200px) {
+  .data-list__header-cell[data-priority="7"],
+  .data-list__cell[data-priority="7"],
+  .data-list__header-cell[data-priority="8"],
+  .data-list__cell[data-priority="8"] {
+    display: none !important;
+  }
+}
+
+/* En pantallas muy pequeñas (max-width: 1000px), ocultar columnas con prioridad 6, 7 y 8 */
+/* Esto oculta F. Inicio (prioridad 6) también */
+/* Las columnas mínimas (prioridad 1-4) siguen visibles */
+@media (max-width: 1000px) {
+  .data-list__header-cell[data-priority="6"],
+  .data-list__cell[data-priority="6"],
+  .data-list__header-cell[data-priority="7"],
+  .data-list__cell[data-priority="7"],
+  .data-list__header-cell[data-priority="8"],
+  .data-list__cell[data-priority="8"] {
+    display: none !important;
+  }
+}
+
+/* En móviles (max-width: 768px), mostrar solo una columna */
 @media (max-width: 768px) {
   .data-list__header {
     gap: clamp(0.5rem, 0.625rem, 0.75rem);
     padding: clamp(0.625rem, 0.75rem, 1rem);
     grid-template-columns: 1fr !important;
+  }
+  
+  .data-list__header-cell,
+  .data-list__cell {
+    display: none;
+  }
+  
+  /* Solo mostrar la primera columna prioritaria y acciones en móvil */
+  .data-list__header-cell[data-priority="1"]:first-of-type,
+  .data-list__cell[data-priority="1"]:first-of-type,
+  .data-list__header-cell--actions,
+  .data-list__cell--actions {
+    display: flex !important;
   }
 }
 
@@ -45,6 +111,11 @@
   color: hsl(var(--text-secondary)) !important;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  min-width: 0;
+}
+
+.data-list__header-cell--priority {
+  min-width: clamp(80px, 100px, 120px);
 }
 
 .data-list__header-cell--sortable {
@@ -120,13 +191,7 @@
   background: hsl(var(--accent) / 0.1);
 }
 
-@media (max-width: 768px) {
-  .data-list__row {
-    gap: clamp(0.5rem, 0.625rem, 0.75rem);
-    padding: clamp(0.625rem, 0.75rem, 1rem);
-    grid-template-columns: 1fr !important;
-  }
-}
+/* Ajustar grid cuando se ocultan columnas - el grid se ajusta automáticamente */
 
 .data-list__cell {
   display: flex;
@@ -156,6 +221,15 @@
   flex-shrink: 0;
   width: auto;
   min-width: clamp(2rem, 2.5rem, 3rem);
+  max-width: clamp(2rem, 2.5rem, 3rem);
+}
+
+.data-list__header-cell--actions {
+  justify-content: flex-end;
+  flex-shrink: 0;
+  width: auto;
+  min-width: clamp(2rem, 2.5rem, 3rem);
+  max-width: clamp(2rem, 2.5rem, 3rem);
 }
 
 .data-list__cell-content {

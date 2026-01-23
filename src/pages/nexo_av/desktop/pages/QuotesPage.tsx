@@ -5,9 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Edit, Trash2, Loader2 } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../components/common/PaginationControls";
-import SearchInput from "../components/common/SearchInput";
+import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
 import { getStatusInfo } from "@/constants/quoteStatuses";
+import SearchBar from "../components/common/SearchBar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,7 +49,8 @@ const QuotesPageDesktop = () => {
 
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearchQuery = useDebounce(searchInput, 500);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -60,9 +62,6 @@ const QuotesPageDesktop = () => {
     fetchQuotes();
   }, [statusFilter, debouncedSearchQuery]);
 
-  const handleSearchChange = (searchTerm: string) => {
-    setDebouncedSearchQuery(searchTerm);
-  };
 
   const fetchQuotes = async () => {
     try {
@@ -301,6 +300,27 @@ const QuotesPageDesktop = () => {
           <div className="mb-6">
             <DetailNavigationBar
               pageTitle="Presupuestos"
+              contextInfo={
+                <SearchBar
+                  value={searchInput}
+                  onChange={setSearchInput}
+                  items={quotes}
+                  getSearchText={(quote) => `${quote.quote_number} ${quote.client_name || ''} ${quote.project_name || ''} ${quote.order_number || ''}`}
+                  renderResult={(quote) => ({
+                    id: quote.id,
+                    label: quote.quote_number,
+                    subtitle: `${quote.client_name || 'Sin cliente'} - ${formatCurrency(quote.total)}`,
+                    icon: <FileText className="h-4 w-4" />,
+                    data: quote,
+                  })}
+                  onSelectResult={(result) => {
+                    navigate(`/nexo-av/${userId}/quotes/${result.data.id}`);
+                  }}
+                  placeholder="Buscar presupuestos..."
+                  maxResults={8}
+                  debounceMs={300}
+                />
+              }
               tools={
                 <DetailActionButton
                   actionType="quote"
@@ -310,41 +330,55 @@ const QuotesPageDesktop = () => {
             />
           </div>
 
-          {/* Search Input */}
-          <div className="mb-6">
-            <SearchInput
-              placeholder="Buscar presupuestos..."
-              onSearchChange={handleSearchChange}
-            />
-          </div>
-
           {/* DataList */}
           <DataList
             data={paginatedQuotes}
             columns={[
               {
-                key: "created_at",
-                label: "Fecha",
-                sortable: true,
-                align: "left",
-                render: (quote) => (
-                  <span className="text-white text-[10px]">
-                    {new Date(quote.created_at).toLocaleDateString('es-ES', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric'
-                    })}
-                  </span>
-                ),
-              },
-              {
                 key: "quote_number",
                 label: "Num",
                 sortable: true,
                 align: "left",
+                priority: 1, // Prioridad: Nº documento
                 render: (quote) => (
-                  <span className="font-mono text-[13px] font-semibold">
+                  <span className="font-mono text-[11px] font-semibold">
                     {quote.quote_number}
+                  </span>
+                ),
+              },
+              {
+                key: "created_at",
+                label: "F. Emisión",
+                sortable: true,
+                align: "left",
+                priority: 2, // Prioridad mínima: Fecha de emisión
+                render: (quote) => (
+                  <span className="text-white/70 text-[10px]">
+                    {quote.created_at 
+                      ? new Date(quote.created_at).toLocaleDateString('es-ES', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })
+                      : '-'}
+                  </span>
+                ),
+              },
+              {
+                key: "valid_until",
+                label: "F. Vencimiento",
+                sortable: true,
+                align: "left",
+                priority: 6, // Columna adicional: Fecha de vencimiento
+                render: (quote) => (
+                  <span className="text-white/70 text-[10px]">
+                    {quote.valid_until 
+                      ? new Date(quote.valid_until).toLocaleDateString('es-ES', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })
+                      : '-'}
                   </span>
                 ),
               },
@@ -353,6 +387,7 @@ const QuotesPageDesktop = () => {
                 label: "Cliente",
                 sortable: true,
                 align: "left",
+                priority: 7, // Columna adicional: Cliente
                 render: (quote) => (
                   <span className="text-white text-[10px]">
                     {quote.client_name || "-"}
@@ -364,6 +399,7 @@ const QuotesPageDesktop = () => {
                 label: "Proyecto",
                 sortable: true,
                 align: "left",
+                priority: 3, // Prioridad mínima: Nº proyecto
                 render: (quote) => (
                   <span className="text-white/80 text-[10px]">
                     {quote.project_name || "-"}
@@ -374,6 +410,7 @@ const QuotesPageDesktop = () => {
                 key: "status",
                 label: "Estado",
                 align: "center",
+                priority: 4, // Prioridad mínima: Estado
                 render: (quote) => {
                   const statusInfo = getStatusInfo(quote.status);
                   return (
@@ -386,10 +423,23 @@ const QuotesPageDesktop = () => {
                 },
               },
               {
+                key: "subtotal",
+                label: "Subtotal",
+                sortable: true,
+                align: "right",
+                priority: 8, // Columna adicional: Subtotal
+                render: (quote) => (
+                  <span className="text-white/70 text-[10px]">
+                    {formatCurrency(quote.subtotal)}
+                  </span>
+                ),
+              },
+              {
                 key: "total",
                 label: "Total",
                 sortable: true,
                 align: "right",
+                priority: 5, // Prioridad mínima: Total
                 render: (quote) => (
                   <span className="text-white text-[10px]">
                     {formatCurrency(quote.total)}

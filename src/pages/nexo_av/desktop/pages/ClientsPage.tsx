@@ -20,12 +20,13 @@ import { usePagination } from "@/hooks/usePagination";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import PaginationControls from "../components/common/PaginationControls";
-import SearchInput from "../components/common/SearchInput";
+import { useDebounce } from "@/hooks/useDebounce";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import CreateClientDialog from "../components/clients/CreateClientDialog";
 import EditClientDialog from "../components/clients/EditClientDialog";
 import DataList, { DataListColumn, DataListAction } from "../components/common/DataList";
+import SearchBar, { SearchResult } from "../components/common/SearchBar";
 
 interface Client {
   id: string;
@@ -72,7 +73,8 @@ const ClientsPageDesktop = () => {
 
   const [loading, setLoading] = useState(true);
   const [clients, setClients] = useState<Client[]>([]);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearchTerm = useDebounce(searchInput, 500);
   const [stageFilter, setStageFilter] = useState<string>("all");
   const [showOnlyMine, setShowOnlyMine] = useState<boolean | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -236,9 +238,6 @@ const ClientsPageDesktop = () => {
     }
   }, [loading, stageFilter, debouncedSearchTerm]);
 
-  const handleSearchChange = (searchTerm: string) => {
-    setDebouncedSearchTerm(searchTerm);
-  };
 
   useEffect(() => {
     if (clients.length > 0) {
@@ -535,9 +534,24 @@ const ClientsPageDesktop = () => {
             <DetailNavigationBar
               pageTitle="Clientes"
               contextInfo={
-                <SearchInput
+                <SearchBar
+                  value={searchInput}
+                  onChange={setSearchInput}
+                  items={clients}
+                  getSearchText={(client) => `${client.company_name} ${client.contact_email} ${client.contact_phone || ''} ${client.client_number || ''}`}
+                  renderResult={(client) => ({
+                    id: client.id,
+                    label: client.company_name,
+                    subtitle: client.contact_email,
+                    icon: <Building2 className="h-4 w-4" />,
+                    data: client,
+                  })}
+                  onSelectResult={(result) => {
+                    navigate(`/nexo-av/${userId}/clients/${result.data.id}`);
+                  }}
                   placeholder="Buscar clientes..."
-                  onSearchChange={handleSearchChange}
+                  maxResults={8}
+                  debounceMs={300}
                 />
               }
               tools={
@@ -558,8 +572,9 @@ const ClientsPageDesktop = () => {
                 label: "Nº",
                 sortable: true,
                 align: "left",
+                priority: 1, // Prioridad: Nº documento
                 render: (client) => (
-                  <span className="font-mono text-[13px] font-semibold">
+                  <span className="font-mono text-[11px] font-semibold">
                     {client.client_number || '-'}
                   </span>
                 ),
@@ -622,6 +637,7 @@ const ClientsPageDesktop = () => {
                 label: "Estado",
                 sortable: true,
                 align: "center",
+                priority: 3, // Prioridad: Estado
                 render: (client) => {
                   const stageInfo = getStageInfo(client.lead_stage);
                   return (

@@ -19,6 +19,7 @@ export interface DataListColumn<T = any> {
   width?: string; // CSS width (ej: "200px", "1fr", "auto")
   render?: (item: T, index: number) => ReactNode;
   className?: string;
+  priority?: number; // Menor número = mayor prioridad. Las columnas con priority siempre se muestran
 }
 
 export interface DataListAction<T = any> {
@@ -76,21 +77,71 @@ export default function DataList<T = any>({
     );
   }
 
-  const totalColumns = columns.length + (actions && actions.length > 0 ? 1 : 0);
-  // Calcular el ancho mínimo dinámico basado en el número de columnas
-  const minColumnWidth = totalColumns > 6 
-    ? 'clamp(80px, 120px, 160px)' 
-    : totalColumns > 4 
-    ? 'clamp(100px, 150px, 200px)' 
-    : 'clamp(120px, 180px, 250px)';
-  const gridTemplateColumns = `repeat(${totalColumns}, minmax(${minColumnWidth}, 1fr))`;
+  // Calcular grid-template-columns con anchos fijos y predecibles
+  // Las columnas mínimas (prioridad 1-5) siempre tienen anchos fijos
+  // Las columnas adicionales usan espacio flexible
+  const gridColumns = columns.map(col => {
+    // Si la columna tiene un width definido, usarlo
+    if (col.width) return col.width;
+    
+    // Columnas mínimas (prioridad 1-5): anchos fijos
+    if (col.priority !== undefined && col.priority <= 5) {
+      // Nº documento (prioridad 1): ancho fijo medio
+      if (col.priority === 1) {
+        return 'clamp(140px, 160px, 180px)';
+      }
+      // Fecha de emisión (prioridad 2): ancho fijo pequeño
+      if (col.priority === 2) {
+        return 'clamp(110px, 120px, 130px)';
+      }
+      // Nº proyecto/pedido (prioridad 3): ancho fijo medio
+      if (col.priority === 3) {
+        return 'clamp(120px, 140px, 160px)';
+      }
+      // Nº pedido cliente (prioridad 4): ancho fijo medio
+      if (col.priority === 4) {
+        return 'clamp(130px, 150px, 170px)';
+      }
+      // Estado (prioridad 5): ancho fijo pequeño
+      if (col.priority === 5) {
+        return 'clamp(100px, 120px, 140px)';
+      }
+    }
+    
+    // Columnas de fecha: ancho fijo pequeño
+    if (col.key.includes('date') || col.key.includes('fecha') || col.label.includes('F.')) {
+      return 'clamp(110px, 120px, 130px)';
+    }
+    // Columnas de estado/badge: ancho fijo pequeño
+    if (col.key === 'status' || col.key === 'lead_stage' || col.align === 'center') {
+      return 'clamp(100px, 120px, 140px)';
+    }
+    // Columnas monetarias (total): ancho fijo medio
+    if (col.key === 'total' || col.label === 'Total') {
+      return 'clamp(110px, 130px, 150px)';
+    }
+    // Columnas monetarias (subtotal, paid_amount, etc.): ancho fijo medio
+    if (col.key.includes('subtotal') || col.key.includes('paid_amount') || col.key.includes('amount') || col.label.includes('Subtotal') || col.label.includes('Pagada')) {
+      return 'clamp(110px, 130px, 150px)';
+    }
+    // Columnas numéricas/códigos: ancho fijo medio
+    if (col.key.includes('number') || col.key.includes('numero') || col.key.includes('_number')) {
+      return 'clamp(120px, 150px, 180px)';
+    }
+    // Nombre del proyecto/cliente: más ancho y flexible
+    if (col.key === 'project_name' || col.key === 'company_name' || col.key === 'client_name') {
+      return 'minmax(clamp(180px, 220px, 280px), 1.5fr)';
+    }
+    // Por defecto: ancho fijo medio
+    return 'clamp(120px, 150px, 180px)';
+  }).join(' ') + (actions && actions.length > 0 ? ' clamp(2.5rem, 3rem, 3.5rem)' : '');
 
   return (
     <div className={cn("data-list", className)}>
       {/* Header */}
-      <div
+      <div 
         className="data-list__header"
-        style={{ gridTemplateColumns } as React.CSSProperties}
+        style={{ gridTemplateColumns: gridColumns } as React.CSSProperties}
       >
         {columns.map((column) => (
           <div
@@ -99,8 +150,10 @@ export default function DataList<T = any>({
               "data-list__header-cell",
               column.sortable && "data-list__header-cell--sortable",
               `data-list__header-cell--${column.align || "left"}`,
+              column.priority === undefined && "data-list__header-cell--hideable",
               column.className
             )}
+            data-priority={column.priority}
             style={column.width ? { width: column.width } : undefined}
             onClick={() => column.sortable && onSort?.(column.key)}
           >
@@ -117,7 +170,7 @@ export default function DataList<T = any>({
           </div>
         ))}
         {actions && actions.length > 0 && (
-          <div className="data-list__header-cell data-list__header-cell--actions"></div>
+          <div className="data-list__header-cell data-list__header-cell--actions data-list__header-cell--priority" data-priority={0}></div>
         )}
       </div>
 
@@ -136,7 +189,7 @@ export default function DataList<T = any>({
                 "data-list__row",
                 onItemClick && "data-list__row--clickable"
               )}
-              style={{ gridTemplateColumns } as React.CSSProperties}
+              style={{ gridTemplateColumns: gridColumns } as React.CSSProperties}
               onClick={() => onItemClick?.(item)}
             >
               {columns.map((column) => (
@@ -145,8 +198,10 @@ export default function DataList<T = any>({
                   className={cn(
                     "data-list__cell",
                     `data-list__cell--${column.align || "left"}`,
+                    column.priority === undefined && "data-list__cell--hideable",
                     column.className
                   )}
+                  data-priority={column.priority}
                   style={column.width ? { width: column.width } : undefined}
                 >
                   {column.render ? (
@@ -160,7 +215,8 @@ export default function DataList<T = any>({
               ))}
               {visibleActions && visibleActions.length > 0 && (
                 <div
-                  className="data-list__cell data-list__cell--actions"
+                  className="data-list__cell data-list__cell--actions data-list__cell--priority"
+                  data-priority={0}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <DropdownMenu>
