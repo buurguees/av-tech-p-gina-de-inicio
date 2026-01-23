@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, MessageSquare, Clock, Send, MoreVertical, Share2, Save, LayoutDashboard, Mail, CheckCircle2, FolderKanban, TrendingUp } from "lucide-react";
+import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, MessageSquare, Clock, Send, MoreVertical, Share2, Save, LayoutDashboard, Mail, CheckCircle2, FolderKanban, TrendingUp, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
@@ -42,6 +42,7 @@ import DetailActionButton from "../components/navigation/DetailActionButton";
 import { InvoicePDFDocument } from "../components/invoices/InvoicePDFViewer";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
+import InvoicePaymentsSection from "../components/invoices/InvoicePaymentsSection";
 
 
 interface Invoice {
@@ -176,6 +177,7 @@ const InvoiceDetailPageDesktop = () => {
 
   const tabs: TabItem[] = [
     { value: "resumen", label: "Resumen", icon: LayoutDashboard },
+    { value: "pagos", label: "Pagos", icon: CreditCard },
     { value: "lineas", label: "Lineas", icon: FileText },
     { value: "auditoria", label: "Auditoria", icon: Clock },
   ];
@@ -583,6 +585,19 @@ const InvoiceDetailPageDesktop = () => {
                     />
                   </div>
                 </motion.div>
+              </div>
+            )}
+            {activeTab === "pagos" && invoice && (
+              <div className="p-6">
+                <InvoicePaymentsSection
+                  invoiceId={invoice.id}
+                  total={invoice.total}
+                  paidAmount={invoice.paid_amount}
+                  pendingAmount={invoice.pending_amount}
+                  status={invoice.status}
+                  isLocked={isLocked}
+                  onPaymentChange={fetchInvoiceData}
+                />
               </div>
             )}
             {activeTab === "lineas" && (
