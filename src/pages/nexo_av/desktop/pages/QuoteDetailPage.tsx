@@ -41,6 +41,7 @@ import LockedIndicator from "../components/common/LockedIndicator";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import { QuotePDFDocument } from "../components/quotes/QuotePDFViewer";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
+import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 
 
 interface Quote {
@@ -164,6 +165,7 @@ const QuoteDetailPageDesktop = () => {
   const [savedNotes, setSavedNotes] = useState<any[]>([]);
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [activeTab, setActiveTab] = useState("resumen");
+  const [showSendConfirm, setShowSendConfirm] = useState(false);
 
   const tabs: TabItem[] = [
     { value: "resumen", label: "Resumen", icon: LayoutDashboard },
@@ -551,11 +553,23 @@ const QuoteDetailPageDesktop = () => {
                 />
                 <DetailActionButton
                   actionType="send"
-                  onClick={handleSend}
+                  onClick={() => setShowSendConfirm(true)}
                   disabled={updatingStatus}
                 />
               </>
             )}
+
+            {/* Diálogo de confirmación para enviar presupuesto */}
+            <ConfirmActionDialog
+              open={showSendConfirm}
+              onOpenChange={setShowSendConfirm}
+              onConfirm={() => {
+                setShowSendConfirm(false);
+                handleSend();
+              }}
+              actionType="send_quote"
+              loading={updatingStatus}
+            />
 
             {/* Estado SENT: mostrar "Nueva Versión" y "Facturar" */}
             {quote?.status === "SENT" && (
