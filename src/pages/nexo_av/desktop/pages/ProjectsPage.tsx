@@ -25,8 +25,6 @@ interface Project {
   client_order_number: string | null;
   local_name: string | null;
   project_name: string;
-  start_date: string | null;
-  end_date: string | null;
   created_by: string | null;
   created_by_name: string | null;
   created_at: string;
@@ -656,33 +654,15 @@ const ProjectsPageDesktop = () => {
                     ),
                   },
                   {
-                    key: "start_date",
-                    label: "F. Inicio",
+                    key: "created_at",
+                    label: "F. Creación",
                     sortable: true,
                     align: "left",
-                    priority: 2, // Prioridad mínima: Fecha de inicio (equivalente a fecha de emisión)
+                    priority: 2, // Prioridad mínima: Fecha de creación
                     render: (project) => (
                       <span className="text-white/70 text-[10px]">
-                        {project.start_date 
-                          ? new Date(project.start_date).toLocaleDateString('es-ES', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric'
-                            })
-                          : '-'}
-                      </span>
-                    ),
-                  },
-                  {
-                    key: "end_date",
-                    label: "F. Final",
-                    sortable: true,
-                    align: "left",
-                    priority: 6, // Columna adicional: Fecha final
-                    render: (project) => (
-                      <span className="text-white/70 text-[10px]">
-                        {project.end_date 
-                          ? new Date(project.end_date).toLocaleDateString('es-ES', {
+                        {project.created_at 
+                          ? new Date(project.created_at).toLocaleDateString('es-ES', {
                               day: '2-digit',
                               month: '2-digit',
                               year: 'numeric'

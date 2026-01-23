@@ -399,10 +399,22 @@ const QuotesPageDesktop = () => {
                 label: "Proyecto",
                 sortable: true,
                 align: "left",
-                priority: 3, // Prioridad mínima: Nº proyecto
+                priority: 3, // Prioridad: Proyecto
                 render: (quote) => (
                   <span className="text-white/80 text-[10px]">
                     {quote.project_name || "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "order_number",
+                label: "Nº Pedido",
+                sortable: true,
+                align: "left",
+                priority: 6, // Columna adicional: Nº Pedido Cliente
+                render: (quote) => (
+                  <span className="text-white/70 text-[10px]">
+                    {quote.order_number || "-"}
                   </span>
                 ),
               },

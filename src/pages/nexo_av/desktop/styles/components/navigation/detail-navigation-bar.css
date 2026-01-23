@@ -22,8 +22,7 @@
   width: 100%;
   height: clamp(3rem, 3.5rem, 4rem);
   padding: 0 clamp(0.75rem, 1rem, 1.25rem);
-  gap: clamp(0.75rem, 1rem, 1.25rem);
-  position: relative;
+  gap: clamp(1rem, 1.5rem, 2rem);
 }
 
 /* Left Section */
@@ -78,27 +77,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  justify-self: center;
+  flex: 1;
   min-width: 0;
   padding: 0 1rem;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  /* Aumentar el ancho máximo para dar más espacio al buscador */
-  /* El centro debe ser más ancho que los laterales: máximo 800px o 50% del ancho total */
-  max-width: min(800px, calc(50% - 2rem));
-  width: 100%;
-  z-index: 1;
-  pointer-events: none;
+  max-width: clamp(300px, 50vw, 600px);
+  margin: 0 auto;
 }
 
 .detail-navigation-bar__context-info {
-  pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 0;
-  max-width: 100%;
   width: 100%;
 }
 
@@ -123,8 +113,6 @@
   justify-content: flex-end;
   flex-shrink: 0;
   min-width: 0;
-  z-index: 2;
-  margin-left: auto;
 }
 
 .detail-navigation-bar__tools {
@@ -133,7 +121,7 @@
   gap: 0.5rem;
 }
 
-/* Responsive adjustments - Usa valores del sistema */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .detail-navigation-bar__left {
     gap: 0.5rem;
@@ -141,9 +129,7 @@
 
   .detail-navigation-bar__center {
     padding: 0 0.5rem;
-    max-width: calc(100% - 1.5rem);
-    min-width: 200px; /* Reducir en móvil */
-    width: 100%;
+    max-width: 100%;
   }
 }
 
@@ -153,7 +139,6 @@ body.nexo-av-theme-dark .detail-navigation-bar {
   border-bottom-color: hsl(var(--border) / 0.8);
 }
 
-/* Asegurar que los colores usen las variables del sistema en dark mode */
 body.nexo-av-theme-dark .detail-navigation-bar__page-title {
   color: hsl(var(--foreground)) !important;
 }
@@ -168,11 +153,5 @@ body.nexo-av-theme-dark .detail-navigation-bar__back-icon {
 
 body.nexo-av-theme-dark .detail-navigation-bar__back-button:hover .detail-navigation-bar__back-icon {
   color: hsl(var(--foreground)) !important;
-}
-
-/* Asegurar que el centro siempre esté centrado independientemente del contenido */
-.detail-navigation-bar__center {
-  left: 50%;
-  transform: translateX(-50%);
 }
 
