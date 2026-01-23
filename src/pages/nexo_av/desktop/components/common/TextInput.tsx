@@ -132,12 +132,11 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
               rows={rows}
               value={props.value}
               onChange={props.onChange as (e: React.ChangeEvent<HTMLTextAreaElement>) => void}
-              onKeyDown={props.onKeyDown}
-              onFocus={props.onFocus}
-              onBlur={props.onBlur}
+              onKeyDown={props.onKeyDown as React.KeyboardEventHandler<HTMLTextAreaElement>}
+              onFocus={props.onFocus as React.FocusEventHandler<HTMLTextAreaElement>}
+              onBlur={props.onBlur as React.FocusEventHandler<HTMLTextAreaElement>}
               placeholder={props.placeholder}
               disabled={props.disabled}
-              {...(props as Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "onChange" | "value" | "onKeyDown" | "onFocus" | "onBlur">)}
             />
             {rightIcon && <div className="text-input__icon text-input__icon--right">{rightIcon}</div>}
           </div>
