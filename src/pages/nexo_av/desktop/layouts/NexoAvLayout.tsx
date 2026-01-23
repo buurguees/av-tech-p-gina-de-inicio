@@ -365,7 +365,10 @@ const NexoAvLayout = () => {
       </aside>
 
       {/* Contenido principal - Anclado al sidebar */}
-      <main className="min-h-screen bg-background" style={{ marginLeft: 'var(--sidebar-width, 14rem)' }}>
+      <main 
+        className="bg-background pt-[3.25rem]" 
+        style={{ marginLeft: 'var(--sidebar-width, 14rem)' }}
+      >
         <div className="h-[calc(100vh-3.25rem)] overflow-y-auto overflow-x-hidden">
           <Outlet />
         </div>
