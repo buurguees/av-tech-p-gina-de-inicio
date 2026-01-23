@@ -272,12 +272,12 @@ export default function FormDialog({
               <div className="form-dialog__custom-submit">
                 <DetailActionButton
                   actionType={submitActionType}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  onClick={() => {
                     // Validar y enviar el formulario
                     if (validateForm()) {
-                      handleSubmit(e as any);
+                      // Crear un evento sintético para handleSubmit
+                      const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
+                      handleSubmit(syntheticEvent);
                     }
                   }}
                   disabled={loading || isSubmitting}

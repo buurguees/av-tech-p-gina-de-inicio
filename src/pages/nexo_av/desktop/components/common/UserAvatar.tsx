@@ -212,7 +212,7 @@ export default function UserAvatar({
       });
 
       setIsEditDialogOpen(false);
-      setOpen(false);
+      setSelectedOption(undefined);
       window.location.reload();
     } catch (error: any) {
       toast({

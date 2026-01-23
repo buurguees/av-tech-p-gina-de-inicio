@@ -39,7 +39,8 @@ export default function DropDown({
 }: DropDownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement | HTMLDivElement>(null);
+  const buttonTriggerRef = useRef<HTMLButtonElement>(null);
+  const divTriggerRef = useRef<HTMLDivElement>(null);
 
   // Validar que tenga entre 2 y 7 opciones
   const validOptions = options.filter(opt => !opt.disabled);
@@ -50,10 +51,12 @@ export default function DropDown({
   // Cerrar el dropdown cuando hacemos click fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const triggerElement = buttonTriggerRef.current || divTriggerRef.current;
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !triggerRef.current?.contains(event.target as Node)
+        !dropdownRef.current.contains(target) &&
+        !triggerElement?.contains(target)
       ) {
         setIsOpen(false);
       }
@@ -104,7 +107,7 @@ export default function DropDown({
     <div className={cn("dropdown", className)} ref={dropdownRef}>
       {trigger ? (
         <div
-          ref={triggerRef as React.RefObject<HTMLDivElement>}
+          ref={divTriggerRef}
           onClick={() => !disabled && setIsOpen(!isOpen)}
           className={cn(
             "dropdown__trigger-wrapper",
@@ -116,7 +119,7 @@ export default function DropDown({
         </div>
       ) : (
         <button
-          ref={triggerRef}
+          ref={buttonTriggerRef}
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
           className={cn(
