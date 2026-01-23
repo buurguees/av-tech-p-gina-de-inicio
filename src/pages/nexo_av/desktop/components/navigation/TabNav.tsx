@@ -6,6 +6,7 @@ export interface TabItem {
   value: string;
   label: string;
   icon?: LucideIcon;
+  align?: "left" | "right";
 }
 
 interface TabNavProps {
@@ -16,32 +17,45 @@ interface TabNavProps {
 }
 
 const TabNav = ({ tabs, activeTab, onTabChange, className }: TabNavProps) => {
-  if (tabs.length < 4 || tabs.length > 6) {
-    console.warn(`TabNav: Se recomienda entre 4 y 6 tabs. Actualmente hay ${tabs.length}`);
+  if (tabs.length < 4 || tabs.length > 7) {
+    console.warn(`TabNav: Se recomienda entre 4 y 7 tabs. Actualmente hay ${tabs.length}`);
   }
+
+  // Separar tabs por alineación
+  const leftTabs = tabs.filter((tab) => tab.align !== "right");
+  const rightTabs = tabs.filter((tab) => tab.align === "right");
+
+  const renderTab = (tab: TabItem) => {
+    const Icon = tab.icon;
+    const isActive = activeTab === tab.value;
+
+    return (
+      <button
+        key={tab.value}
+        type="button"
+        className={`tab-nav__button ${isActive ? "tab-nav__button--active" : ""}`}
+        onClick={() => onTabChange(tab.value)}
+        aria-label={tab.label}
+        aria-selected={isActive}
+        role="tab"
+      >
+        {Icon && <Icon className="tab-nav__icon" />}
+        <span className="tab-nav__label">{tab.label}</span>
+      </button>
+    );
+  };
 
   return (
     <nav className={`tab-nav ${className || ""}`}>
       <div className="tab-nav__container">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.value;
-
-          return (
-            <button
-              key={tab.value}
-              type="button"
-              className={`tab-nav__button ${isActive ? "tab-nav__button--active" : ""}`}
-              onClick={() => onTabChange(tab.value)}
-              aria-label={tab.label}
-              aria-selected={isActive}
-              role="tab"
-            >
-              {Icon && <Icon className="tab-nav__icon" />}
-              <span className="tab-nav__label">{tab.label}</span>
-            </button>
-          );
-        })}
+        <div className="tab-nav__left">
+          {leftTabs.map(renderTab)}
+        </div>
+        {rightTabs.length > 0 && (
+          <div className="tab-nav__right">
+            {rightTabs.map(renderTab)}
+          </div>
+        )}
       </div>
     </nav>
   );

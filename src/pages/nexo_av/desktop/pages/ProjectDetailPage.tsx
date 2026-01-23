@@ -9,6 +9,7 @@ import { DetailDashboard, DetailDashboardKPIs, DetailDashboardProducts, DetailDa
 import ProjectInvoicesList from "../components/projects/ProjectInvoicesList";
 import ProjectQuotesList from "../components/projects/ProjectQuotesList";
 import ProjectPurchasesList from "../components/projects/ProjectPurchasesList";
+import ProjectHistoryTab from "../components/projects/ProjectHistoryTab";
 import StatusSelector from "../components/common/StatusSelector";
 import { PROJECT_STATUSES } from "@/constants/projectStatuses";
 import {
@@ -28,6 +29,7 @@ import {
   TrendingUp,
   CheckCircle,
   Clock,
+  History,
 } from "lucide-react";
 
 interface ProjectDetail {
@@ -84,6 +86,7 @@ const ProjectDetailPageDesktop = () => {
     { value: "presupuestos", label: "Presupuestos", icon: FileText },
     { value: "facturas", label: "Facturas", icon: Receipt },
     { value: "compras", label: "Compras", icon: ShoppingCart },
+    { value: "historico", label: "Histórico", icon: History, align: "right" },
   ];
 
   useEffect(() => {
@@ -479,6 +482,9 @@ const ProjectDetailPageDesktop = () => {
             )}
             {activeTab === "compras" && projectId && (
               <ProjectPurchasesList projectId={projectId} />
+            )}
+            {activeTab === "historico" && projectId && (
+              <ProjectHistoryTab projectId={projectId} />
             )}
           </div>
         </div>

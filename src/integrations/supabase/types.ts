@@ -1245,6 +1245,23 @@ export type Database = {
           total_invoiced: number
         }[]
       }
+      get_project_history: {
+        Args: { p_project_id: string }
+        Returns: {
+          action: string
+          created_at: string
+          description: string
+          details: Json
+          event_category: string
+          event_type: string
+          id: string
+          resource_id: string
+          resource_type: string
+          severity: string
+          user_email: string
+          user_name: string
+        }[]
+      }
       get_projects_portfolio_summary: {
         Args: never
         Returns: {
