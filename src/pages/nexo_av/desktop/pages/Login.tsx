@@ -38,10 +38,13 @@ interface PendingSession {
   password: string;
 }
 
-// Helper functions for OTP skip logic
+// Helper functions for OTP skip logic - only ask OTP once per calendar day
 const LAST_LOGIN_KEY = 'nexo_av_last_login';
-const OTP_SKIP_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
 
+/**
+ * Check if OTP can be skipped for this user today.
+ * OTP is only required the first login of each calendar day.
+ */
 const canSkipOtp = (email: string): boolean => {
   try {
     const lastLoginData = localStorage.getItem(LAST_LOGIN_KEY);
@@ -51,16 +54,25 @@ const canSkipOtp = (email: string): boolean => {
     const userData = data[email];
     if (!userData) return false;
 
-    const lastLoginTime = new Date(userData.timestamp).getTime();
-    const now = Date.now();
-    const timeSinceLogin = now - lastLoginTime;
+    const lastLoginDate = new Date(userData.timestamp);
+    const today = new Date();
 
-    return timeSinceLogin < OTP_SKIP_DURATION;
+    // Check if last login was on the same calendar day
+    const isSameDay = 
+      lastLoginDate.getFullYear() === today.getFullYear() &&
+      lastLoginDate.getMonth() === today.getMonth() &&
+      lastLoginDate.getDate() === today.getDate();
+
+    return isSameDay;
   } catch {
     return false;
   }
 };
 
+/**
+ * Save the timestamp of a successful OTP-verified login.
+ * This allows skipping OTP for the rest of the day.
+ */
 const saveLastLogin = (email: string): void => {
   try {
     const lastLoginData = localStorage.getItem(LAST_LOGIN_KEY);
@@ -316,7 +328,7 @@ const Login = () => {
           return;
         }
 
-        // Check if we can skip OTP (last login was less than 1 hour ago)
+        // Check if we can skip OTP (user already verified OTP today)
         if (canSkipOtp(email)) {
           // Skip OTP - direct login
           await recordAttempt(email, true);
