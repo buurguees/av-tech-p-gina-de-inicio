@@ -67,6 +67,7 @@ const ProjectDetailPageDesktop = () => {
   const [client, setClient] = useState<ClientDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("resumen");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [metrics, setMetrics] = useState({
     quotesTotal: 0,
     invoicesTotal: 0,
@@ -226,6 +227,8 @@ const ProjectDetailPageDesktop = () => {
   // Obtener el tipo de acción según el tab activo
   const getActionType = (): DetailActionType | null => {
     switch (activeTab) {
+      case "resumen":
+        return "edit";
       case "presupuestos":
         return "quote";
       case "facturas":
@@ -252,6 +255,10 @@ const ProjectDetailPageDesktop = () => {
     }
 
     switch (actionType) {
+      case "edit":
+        // TODO: Abrir diálogo para editar proyecto
+        setEditDialogOpen(true);
+        break;
       case "quote":
         // Navegar a crear presupuesto con clientId y projectId pre-seleccionados
         navigate(`/nexo-av/${userId}/quotes/new?clientId=${currentClientId}&projectId=${projectId}`);
@@ -461,28 +468,32 @@ const ProjectDetailPageDesktop = () => {
                     : []),
                 ]}
               >
-                <div className="space-y-2">
-                  {project?.project_address && (
-                    <div className="flex items-start gap-2 text-sm">
-                      <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-                      <div>
-                        <span className="text-muted-foreground text-xs uppercase">Dirección:</span>
-                        <p className="font-medium">
-                          {project.project_address}
-                          {project.project_city && `, ${project.project_city}`}
+                <div className="space-y-3">
+                  {/* Dirección y Local en layout horizontal */}
+                  <div className="flex items-start gap-4">
+                    {/* Dirección */}
+                    <div className="flex items-start gap-2 text-sm flex-1">
+                      <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <span className="text-muted-foreground text-xs uppercase block">Dirección</span>
+                        <p className="font-medium truncate">
+                          {project?.project_address 
+                            ? `${project.project_address}${project.project_city ? `, ${project.project_city}` : ""}`
+                            : "Sin dirección"}
                         </p>
                       </div>
                     </div>
-                  )}
-                  {project?.local_name && (
-                    <div className="flex items-start gap-2 text-sm">
+                    {/* Local */}
+                    <div className="flex items-start gap-2 text-sm flex-shrink-0">
                       <Building className="w-4 h-4 text-muted-foreground mt-0.5" />
                       <div>
-                        <span className="text-muted-foreground text-xs uppercase">Local:</span>
-                        <p className="font-medium">{project.local_name}</p>
+                        <span className="text-muted-foreground text-xs uppercase block">Local</span>
+                        <p className="font-medium">{project?.local_name || "Sin local"}</p>
                       </div>
                     </div>
-                  )}
+                  </div>
+                  
+                  {/* Fechas */}
                   {(project?.installation_start_date || project?.actual_start_date || project?.start_date) && (
                     <div className="flex items-start gap-2 text-sm">
                       <CalendarIcon className="w-4 h-4 text-muted-foreground mt-0.5" />
