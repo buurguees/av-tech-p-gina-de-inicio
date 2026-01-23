@@ -252,7 +252,10 @@ export default function SearchBar<T = any>({
       <div ref={containerRef} className={cn("search-bar", className)}>
         <div className="search-bar__container">
           {showSearchIcon && (
-            <Search className="search-bar__icon" />
+            <>
+              <Search className="search-bar__icon" />
+              <span className="search-bar__separator">|</span>
+            </>
           )}
           <TextInput
             ref={inputRef}

@@ -34,7 +34,7 @@ const DetailNavigationBar = ({
   return (
     <nav className="detail-navigation-bar">
       <div className="detail-navigation-bar__container">
-        {/* Left Section */}
+        {/* Left Section - Nombre de la página */}
         <div className="detail-navigation-bar__left">
           {(backPath || onBack) && (
             <Button
@@ -50,9 +50,9 @@ const DetailNavigationBar = ({
           <h1 className="detail-navigation-bar__page-title">{pageTitle}</h1>
         </div>
 
-        {/* Center Section */}
-        {contextInfo && (
-          <div className="detail-navigation-bar__center">
+        {/* Center Section - Buscador */}
+        <div className="detail-navigation-bar__center">
+          {contextInfo && (
             <div className="detail-navigation-bar__context-info">
               {typeof contextInfo === "string" ? (
                 <span className="detail-navigation-bar__context-text">
@@ -62,15 +62,15 @@ const DetailNavigationBar = ({
                 contextInfo
               )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Right Section */}
-        {tools && (
-          <div className="detail-navigation-bar__right">
+        {/* Right Section - Herramientas */}
+        <div className="detail-navigation-bar__right">
+          {tools && (
             <div className="detail-navigation-bar__tools">{tools}</div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </nav>
   );

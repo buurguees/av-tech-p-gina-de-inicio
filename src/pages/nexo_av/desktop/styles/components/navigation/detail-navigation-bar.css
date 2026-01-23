@@ -16,23 +16,27 @@
 }
 
 .detail-navigation-bar__container {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(1, 1fr);
   align-items: center;
-  justify-content: space-between;
   width: 100%;
-  height: clamp(3rem, 3.5rem, 4rem);
-  padding: 0 clamp(0.75rem, 1rem, 1.25rem);
-  gap: clamp(1rem, 1.5rem, 2rem);
+  height: 100%;
+  padding: 5px 0;
+  column-gap: 10px;
+  row-gap: 10px;
 }
 
-/* Left Section */
+/* Left Section - Nombre de la página */
 .detail-navigation-bar__left {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  flex-shrink: 0;
   min-width: 0;
   z-index: 2;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 .detail-navigation-bar__back-button {
@@ -70,18 +74,20 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
 }
 
-/* Center Section */
+/* Center Section - Buscador */
 .detail-navigation-bar__center {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
   min-width: 0;
-  padding: 0 1rem;
-  max-width: clamp(300px, 50vw, 600px);
-  margin: 0 auto;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .detail-navigation-bar__context-info {
@@ -90,6 +96,7 @@
   justify-content: center;
   min-width: 0;
   width: 100%;
+  height: 100%;
 }
 
 /* Context Text - Usa estilo text-sm del sistema */
@@ -106,19 +113,24 @@
   max-width: 100%;
 }
 
-/* Right Section */
+/* Right Section - Herramientas */
 .detail-navigation-bar__right {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  flex-shrink: 0;
   min-width: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .detail-navigation-bar__tools {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.5rem;
+  width: 100%;
+  height: 100%;
 }
 
 /* Responsive adjustments */
