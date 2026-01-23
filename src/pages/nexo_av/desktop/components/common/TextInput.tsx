@@ -10,7 +10,7 @@ export interface TextInputOption {
   label: string;
 }
 
-export interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "onChange"> {
+export interface TextInputProps {
   type?: TextInputType;
   size?: "sm" | "md" | "lg";
   variant?: "default" | "outline" | "filled";
@@ -25,13 +25,23 @@ export interface TextInputProps extends Omit<React.InputHTMLAttributes<HTMLInput
   placeholder?: string;
   // Para tipo textarea
   rows?: number;
-  // Manejo de onChange unificado
-  onChange?: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((value: string) => void);
+  // Valores y eventos
   value?: string | number;
-  // Eventos adicionales
+  onChange?: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((value: string) => void);
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onFocus?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  // Props comunes
+  id?: string;
+  name?: string;
+  disabled?: boolean;
+  required?: boolean;
+  autoComplete?: string;
+  autoFocus?: boolean;
+  min?: number | string;
+  max?: number | string;
+  step?: number | string;
+  className?: string;
 }
 
 const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputProps>(
@@ -47,12 +57,37 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
       leftIcon,
       rightIcon,
       options,
-      className,
+      placeholder,
       rows = 4,
-      ...props
+      value,
+      onChange,
+      onKeyDown,
+      onFocus,
+      onBlur,
+      id,
+      name,
+      disabled,
+      required,
+      autoComplete,
+      autoFocus,
+      min,
+      max,
+      step,
+      className,
     },
     ref
   ) => {
+    const fieldClasses = cn(
+      "text-input__field",
+      `text-input__field--${size}`,
+      `text-input__field--${variant}`,
+      error && "text-input__field--error",
+      leftIcon && "text-input__field--with-left-icon",
+      rightIcon && "text-input__field--with-right-icon",
+      type === "textarea" && "text-input__field--textarea",
+      className
+    );
+
     // Si es tipo select
     if (type === "select") {
       return (
@@ -60,32 +95,22 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
           {label && (
             <label className={cn("text-input__label", error && "text-input__label--error")}>
               {label}
+              {required && <span className="text-destructive ml-1">*</span>}
             </label>
           )}
           <div className="text-input__wrapper">
             {leftIcon && <div className="text-input__icon text-input__icon--left">{leftIcon}</div>}
             <Select
-              value={props.value as string}
-              onValueChange={(value) => {
-                if (props.onChange && typeof props.onChange === 'function') {
-                  // Si onChange es una función que acepta string directamente (para select)
-                  (props.onChange as (value: string) => void)(value);
+              value={value as string}
+              onValueChange={(val) => {
+                if (onChange && typeof onChange === 'function') {
+                  (onChange as (value: string) => void)(val);
                 }
               }}
-              disabled={props.disabled}
+              disabled={disabled}
             >
-              <SelectTrigger
-                className={cn(
-                  "text-input__field",
-                  `text-input__field--${size}`,
-                  `text-input__field--${variant}`,
-                  error && "text-input__field--error",
-                  leftIcon && "text-input__field--with-left-icon",
-                  rightIcon && "text-input__field--with-right-icon",
-                  className
-                )}
-              >
-                <SelectValue placeholder={props.placeholder || "Seleccionar..."} />
+              <SelectTrigger className={fieldClasses}>
+                <SelectValue placeholder={placeholder || "Seleccionar..."} />
               </SelectTrigger>
               <SelectContent>
                 {options?.map((option) => (
@@ -114,29 +139,27 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
           {label && (
             <label className={cn("text-input__label", error && "text-input__label--error")}>
               {label}
+              {required && <span className="text-destructive ml-1">*</span>}
             </label>
           )}
           <div className="text-input__wrapper">
             {leftIcon && <div className="text-input__icon text-input__icon--left">{leftIcon}</div>}
             <textarea
               ref={ref as React.Ref<HTMLTextAreaElement>}
-              className={cn(
-                "text-input__field text-input__field--textarea",
-                `text-input__field--${size}`,
-                `text-input__field--${variant}`,
-                error && "text-input__field--error",
-                leftIcon && "text-input__field--with-left-icon",
-                rightIcon && "text-input__field--with-right-icon",
-                className
-              )}
+              id={id}
+              name={name}
+              className={fieldClasses}
               rows={rows}
-              value={props.value}
-              onChange={props.onChange as (e: React.ChangeEvent<HTMLTextAreaElement>) => void}
-              onKeyDown={props.onKeyDown as React.KeyboardEventHandler<HTMLTextAreaElement>}
-              onFocus={props.onFocus as React.FocusEventHandler<HTMLTextAreaElement>}
-              onBlur={props.onBlur as React.FocusEventHandler<HTMLTextAreaElement>}
-              placeholder={props.placeholder}
-              disabled={props.disabled}
+              value={value}
+              onChange={onChange as React.ChangeEventHandler<HTMLTextAreaElement>}
+              onKeyDown={onKeyDown as React.KeyboardEventHandler<HTMLTextAreaElement>}
+              onFocus={onFocus as React.FocusEventHandler<HTMLTextAreaElement>}
+              onBlur={onBlur as React.FocusEventHandler<HTMLTextAreaElement>}
+              placeholder={placeholder}
+              disabled={disabled}
+              required={required}
+              autoComplete={autoComplete}
+              autoFocus={autoFocus}
             />
             {rightIcon && <div className="text-input__icon text-input__icon--right">{rightIcon}</div>}
           </div>
@@ -156,6 +179,7 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
         {label && (
           <label className={cn("text-input__label", error && "text-input__label--error")}>
             {label}
+            {required && <span className="text-destructive ml-1">*</span>}
           </label>
         )}
         <div className="text-input__wrapper">
@@ -163,25 +187,22 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
           <input
             ref={ref as React.Ref<HTMLInputElement>}
             type={type}
-            className={cn(
-              "text-input__field",
-              `text-input__field--${size}`,
-              `text-input__field--${variant}`,
-              error && "text-input__field--error",
-              leftIcon && "text-input__field--with-left-icon",
-              rightIcon && "text-input__field--with-right-icon",
-              className
-            )}
-            value={props.value}
-            onChange={props.onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
-            onKeyDown={props.onKeyDown}
-            onFocus={props.onFocus}
-            onBlur={props.onBlur}
-            placeholder={props.placeholder}
-            disabled={props.disabled}
-            min={props.min}
-            max={props.max}
-            {...(props as Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "size" | "onKeyDown" | "onFocus" | "onBlur">)}
+            id={id}
+            name={name}
+            className={fieldClasses}
+            value={value}
+            onChange={onChange as React.ChangeEventHandler<HTMLInputElement>}
+            onKeyDown={onKeyDown as React.KeyboardEventHandler<HTMLInputElement>}
+            onFocus={onFocus as React.FocusEventHandler<HTMLInputElement>}
+            onBlur={onBlur as React.FocusEventHandler<HTMLInputElement>}
+            placeholder={placeholder}
+            disabled={disabled}
+            required={required}
+            autoComplete={autoComplete}
+            autoFocus={autoFocus}
+            min={min}
+            max={max}
+            step={step}
           />
           {rightIcon && <div className="text-input__icon text-input__icon--right">{rightIcon}</div>}
         </div>

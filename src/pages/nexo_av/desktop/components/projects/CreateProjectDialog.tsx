@@ -13,9 +13,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -23,8 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Building2, MapPin, FileText } from "lucide-react";
+import { Loader2, Building2, MapPin, FileText, Users } from "lucide-react";
 import { PROJECT_STATUSES } from "@/constants/projectStatuses";
+import TextInput from "../common/TextInput";
+import FormSection from "../common/FormSection";
 
 const formSchema = z.object({
   project_name: z.string().min(1, "El nombre del proyecto es obligatorio"),
@@ -151,10 +150,10 @@ const CreateProjectDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-background border-border">
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto bg-background border-border">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <Building2 className="h-5 w-5 text-primary" />
             Crear Nuevo Proyecto
           </DialogTitle>
           <DialogDescription>
@@ -162,135 +161,153 @@ const CreateProjectDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {/* Nombre del proyecto */}
-          <div className="space-y-2">
-            <Label htmlFor="project_name">
-              Nombre del Proyecto <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="project_name"
-              placeholder="Ej: Instalación LED Oficinas Centrales"
-              {...form.register("project_name")}
-              className="bg-muted/50"
-            />
-            {form.formState.errors.project_name && (
-              <p className="text-xs text-destructive">
-                {form.formState.errors.project_name.message}
-              </p>
-            )}
-          </div>
-
-          {/* Cliente */}
-          <div className="space-y-2">
-            <Label htmlFor="client_id">
-              Cliente <span className="text-destructive">*</span>
-            </Label>
-            <Select
-              value={form.watch("client_id")}
-              onValueChange={(value) => form.setValue("client_id", value)}
-              disabled={!!preselectedClientId || loadingClients}
-            >
-              <SelectTrigger className="bg-muted/50">
-                <SelectValue placeholder="Seleccionar cliente..." />
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.company_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {form.formState.errors.client_id && (
-              <p className="text-xs text-destructive">
-                {form.formState.errors.client_id.message}
-              </p>
-            )}
-          </div>
-
-          {/* Estado */}
-          <div className="space-y-2">
-            <Label htmlFor="status">Estado inicial</Label>
-            <Select
-              value={form.watch("status")}
-              onValueChange={(value) => form.setValue("status", value)}
-            >
-              <SelectTrigger className="bg-muted/50">
-                <SelectValue placeholder="Seleccionar estado..." />
-              </SelectTrigger>
-              <SelectContent>
-                {PROJECT_STATUSES.map((status) => (
-                  <SelectItem key={status.value} value={status.value}>
-                    {status.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Dirección del proyecto */}
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2">
+          {/* Sección: Cliente */}
+          <FormSection
+            title="Asignación de Cliente"
+            icon={<Users className="h-4 w-4" />}
+          >
             <div className="space-y-2">
-              <Label htmlFor="project_address" className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" />
-                Dirección
-              </Label>
-              <Input
-                id="project_address"
+              <label className="text-sm font-medium text-foreground">
+                Cliente <span className="text-destructive">*</span>
+              </label>
+              <Select
+                value={form.watch("client_id")}
+                onValueChange={(value) => form.setValue("client_id", value)}
+                disabled={!!preselectedClientId || loadingClients}
+              >
+                <SelectTrigger className="w-full bg-background border-border">
+                  <SelectValue placeholder={loadingClients ? "Cargando clientes..." : "Seleccionar cliente..."} />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.company_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.client_id && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.client_id.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Estado inicial
+              </label>
+              <Select
+                value={form.watch("status")}
+                onValueChange={(value) => form.setValue("status", value)}
+              >
+                <SelectTrigger className="w-full bg-background border-border">
+                  <SelectValue placeholder="Seleccionar estado..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROJECT_STATUSES.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </FormSection>
+
+          {/* Sección: Ubicación */}
+          <FormSection
+            title="Ubicación del Proyecto"
+            icon={<MapPin className="h-4 w-4" />}
+          >
+            <div className="grid grid-cols-2 gap-4">
+              <TextInput
+                label="Dirección"
                 placeholder="Calle, número..."
-                {...form.register("project_address")}
-                className="bg-muted/50"
+                value={form.watch("project_address") || ""}
+                onChange={(e) => {
+                  if (typeof e === 'object' && 'target' in e) {
+                    form.setValue("project_address", e.target.value);
+                  }
+                }}
+                size="md"
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="project_city">Ciudad</Label>
-              <Input
-                id="project_city"
+              <TextInput
+                label="Ciudad"
                 placeholder="Ciudad"
-                {...form.register("project_city")}
-                className="bg-muted/50"
+                value={form.watch("project_city") || ""}
+                onChange={(e) => {
+                  if (typeof e === 'object' && 'target' in e) {
+                    form.setValue("project_city", e.target.value);
+                  }
+                }}
+                size="md"
               />
             </div>
-          </div>
+          </FormSection>
 
-          {/* Local y número de pedido */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="local_name">Nombre del Local</Label>
-              <Input
-                id="local_name"
-                placeholder="Ej: Tienda Centro"
-                {...form.register("local_name")}
-                className="bg-muted/50"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="client_order_number" className="flex items-center gap-1.5">
-                <FileText className="h-3.5 w-3.5" />
-                Nº Pedido Cliente
-              </Label>
-              <Input
-                id="client_order_number"
-                placeholder="Referencia del cliente"
-                {...form.register("client_order_number")}
-                className="bg-muted/50"
-              />
-            </div>
-          </div>
-
-          {/* Notas */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notas</Label>
-            <Textarea
-              id="notes"
-              placeholder="Notas adicionales sobre el proyecto..."
-              {...form.register("notes")}
-              className="bg-muted/50 min-h-[80px]"
+          {/* Sección: Información del Proyecto */}
+          <FormSection
+            title="Información del Proyecto"
+            icon={<FileText className="h-4 w-4" />}
+          >
+            <TextInput
+              label="Nombre del Proyecto"
+              placeholder="Ej: Instalación LED Oficinas Centrales"
+              value={form.watch("project_name") || ""}
+              onChange={(e) => {
+                if (typeof e === 'object' && 'target' in e) {
+                  form.setValue("project_name", e.target.value);
+                }
+              }}
+              required
+              error={!!form.formState.errors.project_name}
+              errorMessage={form.formState.errors.project_name?.message}
+              size="md"
             />
-          </div>
 
-          <DialogFooter className="pt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <TextInput
+                label="Nombre del Local"
+                placeholder="Ej: Tienda Centro"
+                value={form.watch("local_name") || ""}
+                onChange={(e) => {
+                  if (typeof e === 'object' && 'target' in e) {
+                    form.setValue("local_name", e.target.value);
+                  }
+                }}
+                size="md"
+              />
+              <TextInput
+                label="Nº Pedido Cliente"
+                placeholder="Referencia del cliente"
+                value={form.watch("client_order_number") || ""}
+                onChange={(e) => {
+                  if (typeof e === 'object' && 'target' in e) {
+                    form.setValue("client_order_number", e.target.value);
+                  }
+                }}
+                size="md"
+              />
+            </div>
+
+            <TextInput
+              type="textarea"
+              label="Notas"
+              placeholder="Notas adicionales sobre el proyecto..."
+              value={form.watch("notes") || ""}
+              onChange={(e) => {
+                if (typeof e === 'object' && 'target' in e) {
+                  form.setValue("notes", e.target.value);
+                }
+              }}
+              rows={3}
+              size="md"
+            />
+          </FormSection>
+
+          <DialogFooter className="pt-4 gap-2">
             <Button
               type="button"
               variant="outline"
@@ -306,7 +323,10 @@ const CreateProjectDialog = ({
                   Creando...
                 </>
               ) : (
-                "Crear Proyecto"
+                <>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Crear Proyecto
+                </>
               )}
             </Button>
           </DialogFooter>
