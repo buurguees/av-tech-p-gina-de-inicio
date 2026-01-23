@@ -290,10 +290,10 @@ const InvoicesPageDesktop = () => {
             columns={[
               {
                 key: "invoice_number",
-                label: "Num",
+                label: "Nº",
                 sortable: true,
                 align: "left",
-                priority: 1, // Prioridad: Nº documento
+                priority: 1,
                 render: (invoice) => {
                   const displayNumber = invoice.invoice_number || invoice.preliminary_number;
                   return (
@@ -304,37 +304,14 @@ const InvoicesPageDesktop = () => {
                 },
               },
               {
-                key: "issue_date",
-                label: "F. Emisión",
-                sortable: true,
-                align: "left",
-                priority: 2, // Prioridad: Fecha de emisión
-                render: (invoice) => (
-                  <span className="text-white/70 text-[10px]">
-                    {invoice.issue_date ? formatDate(invoice.issue_date) : "-"}
-                  </span>
-                ),
-              },
-              {
                 key: "project_number",
-                label: "Nº Proyecto",
+                label: "Proyecto",
                 sortable: true,
                 align: "left",
-                priority: 3, // Prioridad: Nº proyecto
+                priority: 3,
                 render: (invoice) => (
-                  <span className="text-white/80 text-[10px]">
+                  <span className="text-foreground text-[10px] font-medium">
                     {invoice.project_number || "-"}
-                  </span>
-                ),
-              },
-              {
-                key: "client_order_number",
-                label: "Nº Pedido Cliente",
-                align: "left",
-                priority: 6, // Columna adicional: Nº pedido cliente (viene del proyecto)
-                render: (invoice) => (
-                  <span className="text-white/70 text-[10px]">
-                    {invoice.client_order_number || "-"}
                   </span>
                 ),
               },
@@ -342,7 +319,7 @@ const InvoicesPageDesktop = () => {
                 key: "status",
                 label: "Estado",
                 align: "center",
-                priority: 4, // Prioridad mínima: Estado
+                priority: 2,
                 render: (invoice) => {
                   const statusInfo = getFinanceStatusInfo(invoice.status);
                   return (
@@ -355,37 +332,60 @@ const InvoicesPageDesktop = () => {
                 },
               },
               {
-                key: "subtotal",
-                label: "Subtotal",
-                sortable: true,
-                align: "right",
-                priority: 7, // Columna adicional: Subtotal
-                render: (invoice) => (
-                  <span className="text-white/70 text-[10px]">
-                    {formatCurrency(invoice.subtotal)}
-                  </span>
-                ),
-              },
-              {
                 key: "total",
                 label: "Total",
                 sortable: true,
                 align: "right",
-                priority: 5, // Prioridad mínima: Total
+                priority: 4,
                 render: (invoice) => (
-                  <span className="text-white text-[10px]">
+                  <span className="text-foreground font-medium text-[10px]">
                     {formatCurrency(invoice.total)}
                   </span>
                 ),
               },
               {
-                key: "paid_amount",
-                label: "Cantidad Pagada",
+                key: "issue_date",
+                label: "Emisión",
+                sortable: true,
+                align: "left",
+                priority: 5,
+                render: (invoice) => (
+                  <span className="text-muted-foreground text-[10px]">
+                    {invoice.issue_date ? formatDate(invoice.issue_date) : "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "client_order_number",
+                label: "Nº Pedido",
+                align: "left",
+                priority: 6,
+                render: (invoice) => (
+                  <span className="text-muted-foreground text-[10px]">
+                    {invoice.client_order_number || "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "subtotal",
+                label: "Subtotal",
                 sortable: true,
                 align: "right",
-                priority: 8, // Columna adicional: Cantidad pagada
+                priority: 7,
                 render: (invoice) => (
-                  <span className="text-white/70 text-[10px]">
+                  <span className="text-muted-foreground text-[10px]">
+                    {formatCurrency(invoice.subtotal)}
+                  </span>
+                ),
+              },
+              {
+                key: "paid_amount",
+                label: "Pagado",
+                sortable: true,
+                align: "right",
+                priority: 8,
+                render: (invoice) => (
+                  <span className="text-muted-foreground text-[10px]">
                     {formatCurrency(invoice.paid_amount || 0)}
                   </span>
                 ),

@@ -52,30 +52,37 @@ function useResponsiveColumns<T>(columns: DataListColumn<T>[]): DataListColumn<T
   const updateColumns = useCallback(() => {
     const width = window.innerWidth;
     
-    // Filter columns based on priority and screen width
-    // Priority 1-5: always visible
-    // Priority 6: hidden below 1000px
-    // Priority 7: hidden below 1200px
-    // Priority 8: hidden below 1400px
-    // No priority (undefined): hidden below 1600px
+    // Priority system for responsive columns:
+    // Priority 1: Always visible (document number - most important identifier)
+    // Priority 2: Always visible (status - critical for quick scanning)
+    // Priority 3: Always visible (main entity name - client/project)
+    // Priority 4: Always visible (total/amount - key financial info)
+    // Priority 5: Visible >= 900px (secondary date/info)
+    // Priority 6: Visible >= 1100px (additional reference numbers)
+    // Priority 7: Visible >= 1300px (secondary amounts/details)
+    // Priority 8: Visible >= 1500px (extra metadata)
+    // No priority: Visible >= 1700px (optional info)
     
     const filtered = columns.filter(col => {
       const priority = col.priority;
       
-      // Priority 1-5 always visible
-      if (priority !== undefined && priority <= 5) return true;
+      // Priority 1-4 always visible
+      if (priority !== undefined && priority <= 4) return true;
       
-      // No priority - hide below 1600px
-      if (priority === undefined) return width >= 1600;
+      // Priority 5 - hide below 900px
+      if (priority === 5) return width >= 900;
       
-      // Priority 6 - hide below 1000px
-      if (priority === 6) return width >= 1000;
+      // Priority 6 - hide below 1100px
+      if (priority === 6) return width >= 1100;
       
-      // Priority 7 - hide below 1200px  
-      if (priority === 7) return width >= 1200;
+      // Priority 7 - hide below 1300px  
+      if (priority === 7) return width >= 1300;
       
-      // Priority 8 - hide below 1400px
-      if (priority === 8) return width >= 1400;
+      // Priority 8 - hide below 1500px
+      if (priority === 8) return width >= 1500;
+      
+      // No priority - hide below 1700px
+      if (priority === undefined) return width >= 1700;
       
       return true;
     });

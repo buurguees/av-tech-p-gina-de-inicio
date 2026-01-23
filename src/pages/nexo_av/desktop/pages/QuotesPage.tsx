@@ -336,61 +336,13 @@ const QuotesPageDesktop = () => {
             columns={[
               {
                 key: "quote_number",
-                label: "Num",
+                label: "Nº",
                 sortable: true,
                 align: "left",
-                priority: 1, // Prioridad: Nº documento
+                priority: 1,
                 render: (quote) => (
                   <span className="text-foreground/80 text-[10px]">
                     {quote.quote_number}
-                  </span>
-                ),
-              },
-              {
-                key: "created_at",
-                label: "F. Emisión",
-                sortable: true,
-                align: "left",
-                priority: 2, // Prioridad mínima: Fecha de emisión
-                render: (quote) => (
-                  <span className="text-white/70 text-[10px]">
-                    {quote.created_at 
-                      ? new Date(quote.created_at).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })
-                      : '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "valid_until",
-                label: "F. Vencimiento",
-                sortable: true,
-                align: "left",
-                priority: 6, // Columna adicional: Fecha de vencimiento
-                render: (quote) => (
-                  <span className="text-white/70 text-[10px]">
-                    {quote.valid_until 
-                      ? new Date(quote.valid_until).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })
-                      : '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "client_name",
-                label: "Cliente",
-                sortable: true,
-                align: "left",
-                priority: 7, // Columna adicional: Cliente
-                render: (quote) => (
-                  <span className="text-white text-[10px]">
-                    {quote.client_name || "-"}
                   </span>
                 ),
               },
@@ -399,22 +351,22 @@ const QuotesPageDesktop = () => {
                 label: "Proyecto",
                 sortable: true,
                 align: "left",
-                priority: 3, // Prioridad: Proyecto
+                priority: 3,
                 render: (quote) => (
-                  <span className="text-white/80 text-[10px]">
+                  <span className="text-foreground text-[10px] font-medium">
                     {quote.project_name || "-"}
                   </span>
                 ),
               },
               {
-                key: "order_number",
-                label: "Nº Pedido",
+                key: "client_name",
+                label: "Cliente",
                 sortable: true,
                 align: "left",
-                priority: 6, // Columna adicional: Nº Pedido Cliente
+                priority: 5,
                 render: (quote) => (
-                  <span className="text-white/70 text-[10px]">
-                    {quote.order_number || "-"}
+                  <span className="text-foreground/80 text-[10px]">
+                    {quote.client_name || "-"}
                   </span>
                 ),
               },
@@ -422,7 +374,7 @@ const QuotesPageDesktop = () => {
                 key: "status",
                 label: "Estado",
                 align: "center",
-                priority: 4, // Prioridad mínima: Estado
+                priority: 2,
                 render: (quote) => {
                   const statusInfo = getStatusInfo(quote.status);
                   return (
@@ -435,26 +387,74 @@ const QuotesPageDesktop = () => {
                 },
               },
               {
-                key: "subtotal",
-                label: "Subtotal",
-                sortable: true,
-                align: "right",
-                priority: 8, // Columna adicional: Subtotal
-                render: (quote) => (
-                  <span className="text-white/70 text-[10px]">
-                    {formatCurrency(quote.subtotal)}
-                  </span>
-                ),
-              },
-              {
                 key: "total",
                 label: "Total",
                 sortable: true,
                 align: "right",
-                priority: 5, // Prioridad mínima: Total
+                priority: 4,
                 render: (quote) => (
-                  <span className="text-white text-[10px]">
+                  <span className="text-foreground font-medium text-[10px]">
                     {formatCurrency(quote.total)}
+                  </span>
+                ),
+              },
+              {
+                key: "created_at",
+                label: "F. Emisión",
+                sortable: true,
+                align: "left",
+                priority: 6,
+                render: (quote) => (
+                  <span className="text-muted-foreground text-[10px]">
+                    {quote.created_at 
+                      ? new Date(quote.created_at).toLocaleDateString('es-ES', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })
+                      : '-'}
+                  </span>
+                ),
+              },
+              {
+                key: "valid_until",
+                label: "Vencimiento",
+                sortable: true,
+                align: "left",
+                priority: 7,
+                render: (quote) => (
+                  <span className="text-muted-foreground text-[10px]">
+                    {quote.valid_until 
+                      ? new Date(quote.valid_until).toLocaleDateString('es-ES', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })
+                      : '-'}
+                  </span>
+                ),
+              },
+              {
+                key: "order_number",
+                label: "Nº Pedido",
+                sortable: true,
+                align: "left",
+                priority: 8,
+                render: (quote) => (
+                  <span className="text-muted-foreground text-[10px]">
+                    {quote.order_number || "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "subtotal",
+                label: "Subtotal",
+                sortable: true,
+                align: "right",
+                priority: 8,
+                render: (quote) => (
+                  <span className="text-muted-foreground text-[10px]">
+                    {formatCurrency(quote.subtotal)}
                   </span>
                 ),
               },
