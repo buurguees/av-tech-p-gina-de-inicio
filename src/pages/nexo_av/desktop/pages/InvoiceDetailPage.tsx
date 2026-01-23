@@ -41,6 +41,7 @@ import LockedIndicator from "../components/common/LockedIndicator";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import { InvoicePDFDocument } from "../components/invoices/InvoicePDFViewer";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
+import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 
 
 interface Invoice {
@@ -171,6 +172,7 @@ const InvoiceDetailPageDesktop = () => {
   const [savedNotes, setSavedNotes] = useState<any[]>([]);
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [activeTab, setActiveTab] = useState("resumen");
+  const [showIssueConfirm, setShowIssueConfirm] = useState(false);
 
   const tabs: TabItem[] = [
     { value: "resumen", label: "Resumen", icon: LayoutDashboard },
@@ -516,11 +518,23 @@ const InvoiceDetailPageDesktop = () => {
                 />
                 <DetailActionButton
                   actionType="send"
-                  onClick={handleIssueInvoice}
+                  onClick={() => setShowIssueConfirm(true)}
                   disabled={updatingStatus}
                 />
               </>
             )}
+
+            {/* Diálogo de confirmación para emitir factura */}
+            <ConfirmActionDialog
+              open={showIssueConfirm}
+              onOpenChange={setShowIssueConfirm}
+              onConfirm={() => {
+                setShowIssueConfirm(false);
+                handleIssueInvoice();
+              }}
+              actionType="issue_invoice"
+              loading={updatingStatus}
+            />
 
             {/* Estado ISSUED: mostrar acciones según necesidad */}
             {invoice?.status === "ISSUED" && (
