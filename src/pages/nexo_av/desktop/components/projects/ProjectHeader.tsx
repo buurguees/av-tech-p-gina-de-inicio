@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, ChevronDown, Edit, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PROJECT_STATUSES, getProjectStatusInfo } from "@/constants/projectStatuses";
 
 interface ProjectDetail {
   id: string;
@@ -25,22 +26,10 @@ interface ProjectHeaderProps {
   onEditClick: () => void;
 }
 
-const PROJECT_STATUSES = [
-  { value: 'PLANNED', label: 'Planificado', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'IN_PROGRESS', label: 'En Progreso', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  { value: 'PAUSED', label: 'Pausado', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  { value: 'COMPLETED', label: 'Completado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'CANCELLED', label: 'Cancelado', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-];
-
-const getStatusInfo = (status: string) => {
-  return PROJECT_STATUSES.find(s => s.value === status) || PROJECT_STATUSES[0];
-};
-
 const ProjectHeader = ({ project, updatingStatus, onStatusChange, onEditClick }: ProjectHeaderProps) => {
   const { userId } = useParams();
   const navigate = useNavigate();
-  const statusInfo = getStatusInfo(project.status);
+  const statusInfo = getProjectStatusInfo(project.status);
 
   return (
     <div className="mb-6">
@@ -73,7 +62,7 @@ const ProjectHeader = ({ project, updatingStatus, onStatusChange, onEditClick }:
               <button 
                 className={cn(
                   "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors",
-                  statusInfo.color,
+                  statusInfo.className,
                   updatingStatus && "opacity-50 cursor-not-allowed"
                 )}
               >
@@ -94,7 +83,7 @@ const ProjectHeader = ({ project, updatingStatus, onStatusChange, onEditClick }:
                     status.value === project.status && 'bg-accent'
                   )}
                 >
-                  <span className={cn("inline-block w-2 h-2 rounded-full mr-2", status.color.split(' ')[0])} />
+                  <span className={cn("inline-block w-2 h-2 rounded-full mr-2", status.className.split(' ')[0])} />
                   <span>{status.label}</span>
                 </DropdownMenuItem>
               ))}

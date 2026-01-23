@@ -44,11 +44,25 @@ export const PROJECT_STATUSES = [
     priority: 3
   },
   { 
+    value: "INVOICED", 
+    label: "Facturado", 
+    color: "status-invoiced",
+    className: "bg-teal-500/20 text-teal-300 border border-teal-500/30",
+    priority: 4
+  },
+  { 
+    value: "CLOSED", 
+    label: "Cerrado", 
+    color: "status-closed",
+    className: "bg-slate-500/20 text-slate-300 border border-slate-500/30",
+    priority: 5
+  },
+  { 
     value: "CANCELLED", 
     label: "Cancelado", 
     color: "status-error",
     className: "bg-red-500/20 text-red-300 border border-red-500/30",
-    priority: 4
+    priority: 6
   },
 ] as const;
 

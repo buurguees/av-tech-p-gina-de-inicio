@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import CreateProjectDialog from "../projects/CreateProjectDialog";
+import { getProjectStatusInfo } from "@/constants/projectStatuses";
 
 interface ClientProjectsTabProps {
   clientId: string;
@@ -29,18 +30,6 @@ interface Project {
   client_order_number: string | null;
   created_at: string;
 }
-
-const PROJECT_STATUSES = [
-  { value: 'PLANNED', label: 'Planificado', color: 'status-info' },
-  { value: 'IN_PROGRESS', label: 'En Progreso', color: 'status-warning' },
-  { value: 'PAUSED', label: 'Pausado', color: 'status-neutral' },
-  { value: 'COMPLETED', label: 'Completado', color: 'status-success' },
-  { value: 'CANCELLED', label: 'Cancelado', color: 'status-error' },
-];
-
-const getStatusInfo = (status: string) => {
-  return PROJECT_STATUSES.find(s => s.value === status) || PROJECT_STATUSES[0];
-};
 
 const ClientProjectsTab = ({ clientId }: ClientProjectsTabProps) => {
   const { userId } = useParams();
@@ -135,7 +124,7 @@ const ClientProjectsTab = ({ clientId }: ClientProjectsTabProps) => {
               </TableRow>
             ) : (
               projects.map((project) => {
-                const statusInfo = getStatusInfo(project.status);
+                const statusInfo = getProjectStatusInfo(project.status);
                 return (
                   <TableRow 
                     key={project.id} 

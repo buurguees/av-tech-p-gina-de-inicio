@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import DashboardWidget from "../DashboardWidget";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { getProjectStatusInfo } from "@/constants/projectStatuses";
 
 interface Project {
     id: string;
@@ -51,16 +52,6 @@ const ProjectsWidget = ({ userId }: { userId: string | undefined }) => {
         }
     };
 
-    const statusColors: Record<string, string> = {
-        'IN_PROGRESS': 'bg-blue-500/10 text-blue-600',
-        'PLANNED': 'bg-orange-500/10 text-orange-600',
-    };
-
-    const statusLabels: Record<string, string> = {
-        'IN_PROGRESS': 'En Progreso',
-        'PLANNED': 'Planificado',
-    };
-
     return (
         <DashboardWidget
             title="Proyectos Activos"
@@ -100,8 +91,8 @@ const ProjectsWidget = ({ userId }: { userId: string | undefined }) => {
                                     </span>
                                 </p>
                             </div>
-                            <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[project.status] || 'bg-gray-100 text-gray-600'}`}>
-                                {statusLabels[project.status] || project.status}
+                            <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${getProjectStatusInfo(project.status).className}`}>
+                                {getProjectStatusInfo(project.status).label}
                             </div>
                         </div>
                     ))}
