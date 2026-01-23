@@ -356,7 +356,7 @@ const NexoAvLayout = () => {
       />
 
       {/* Sidebar - Fijo a la izquierda debajo del header */}
-      <aside className="fixed left-0 top-[3.25rem] z-40 w-56 h-[calc(100vh-3.25rem)]">
+      <aside className="fixed left-0 top-[3.25rem] z-40 w-fit h-full">
         <Sidebar
           userId={userId}
           modules={modules}
