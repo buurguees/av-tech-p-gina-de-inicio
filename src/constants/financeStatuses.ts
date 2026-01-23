@@ -2,13 +2,13 @@
  * Finance Invoice status constants (Enterprise)
  * Defines all possible invoice statuses and their display properties
  * 
- * Traffic Light System:
- * - Green (success): PAID
- * - Blue (info): ISSUED
- * - Amber (warning): PARTIAL
- * - Red (error): OVERDUE
- * - Orange (warning): CANCELLED
- * - Gray (neutral): DRAFT
+ * Traffic Light System (uses global.css status classes):
+ * - status-neutral: DRAFT
+ * - status-info: ISSUED
+ * - status-warning: PARTIAL
+ * - status-success: PAID
+ * - status-error: OVERDUE
+ * - status-error: CANCELLED
  */
 
 export const FINANCE_INVOICE_STATUSES = [
@@ -16,7 +16,7 @@ export const FINANCE_INVOICE_STATUSES = [
     value: "DRAFT", 
     label: "Borrador", 
     color: "status-neutral",
-    className: "bg-gray-500/20 text-gray-300 border border-gray-500/30",
+    className: "status-neutral",
     description: "Número preliminar, editable",
     priority: 0
   },
@@ -24,7 +24,7 @@ export const FINANCE_INVOICE_STATUSES = [
     value: "ISSUED", 
     label: "Emitida", 
     color: "status-info",
-    className: "bg-blue-500/20 text-blue-300 border border-blue-500/30",
+    className: "status-info",
     description: "Número definitivo, bloqueada",
     priority: 1
   },
@@ -32,7 +32,7 @@ export const FINANCE_INVOICE_STATUSES = [
     value: "PARTIAL", 
     label: "Cobro Parcial", 
     color: "status-warning",
-    className: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
+    className: "status-warning",
     description: "Pagos parciales recibidos",
     priority: 2
   },
@@ -40,7 +40,7 @@ export const FINANCE_INVOICE_STATUSES = [
     value: "PAID", 
     label: "Cobrada", 
     color: "status-success",
-    className: "bg-green-500/20 text-green-300 border border-green-500/30",
+    className: "status-success",
     description: "100% pagada",
     priority: 3
   },
@@ -48,15 +48,15 @@ export const FINANCE_INVOICE_STATUSES = [
     value: "OVERDUE", 
     label: "Vencida", 
     color: "status-error",
-    className: "bg-red-500/20 text-red-300 border border-red-500/30",
+    className: "status-error",
     description: "Fecha vencimiento superada",
     priority: 4
   },
   { 
     value: "CANCELLED", 
     label: "Cancelada", 
-    color: "status-warning",
-    className: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
+    color: "status-error",
+    className: "status-error",
     description: "Anulada",
     priority: 5
   },

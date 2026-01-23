@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import DataList, { DataListColumn } from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
 import { useToast } from "@/hooks/use-toast";
+import { PROJECT_STATUSES, getProjectStatusInfo } from "@/constants/projectStatuses";
 
 
 interface Project {
@@ -30,18 +31,6 @@ interface Project {
   created_by_name: string | null;
   created_at: string;
 }
-
-const PROJECT_STATUSES = [
-  { value: 'PLANNED', label: 'Planificado', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-  { value: 'IN_PROGRESS', label: 'En Progreso', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-  { value: 'PAUSED', label: 'Pausado', color: 'bg-orange-100 text-orange-700 border-orange-300' },
-  { value: 'COMPLETED', label: 'Completado', color: 'bg-green-100 text-green-700 border-green-300' },
-  { value: 'CANCELLED', label: 'Cancelado', color: 'bg-red-100 text-red-700 border-red-300' },
-];
-
-const getStatusInfo = (status: string) => {
-  return PROJECT_STATUSES.find(s => s.value === status) || PROJECT_STATUSES[0];
-};
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("es-ES", {
@@ -683,10 +672,10 @@ const ProjectsPageDesktop = () => {
                 align: "center",
                 priority: 2,
                 render: (project) => {
-                  const statusInfo = getStatusInfo(project.status);
+                  const statusInfo = getProjectStatusInfo(project.status);
                   return (
                     <div className="flex justify-center">
-                      <Badge variant="outline" className={cn(statusInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                      <Badge variant="outline" className={cn(statusInfo.className, "text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
                         {statusInfo.label}
                       </Badge>
                     </div>
@@ -760,35 +749,34 @@ const ProjectsPageDesktop = () => {
                   </span>
                 ),
                   },
-                  {
-                    key: "profitability",
-                    label: "Rentabilidad",
-                    align: "left",
-                    render: (project) => {
-                      if (loadingProfitability) {
-                        return <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />;
-                      }
-                      if (projectProfitability.has(project.id)) {
-                        const margin = projectProfitability.get(project.id)!;
-                        return (
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "text-[9px] px-1.5 py-0.5 border",
-                              margin >= 25 
-                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                                : margin >= 20
-                                ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
-                                : "bg-red-500/10 text-red-400 border-red-500/30"
-                            )}
-                          >
-                            {margin.toFixed(1)}%
-                          </Badge>
-                        );
-                      }
-                      return <span className="text-white/40 text-[9px]">-</span>;
-                    },
-                  },
+              {
+                key: "profitability",
+                label: "Rentabilidad",
+                align: "right",
+                priority: 3,
+                render: (project) => {
+                  if (loadingProfitability) {
+                    return <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />;
+                  }
+                  if (projectProfitability.has(project.id)) {
+                    const margin = projectProfitability.get(project.id)!;
+                    const profitClass = margin >= 25 
+                      ? "profit-high"
+                      : margin >= 20
+                      ? "profit-medium"
+                      : "profit-low";
+                    return (
+                      <Badge 
+                        variant="outline" 
+                        className={cn(profitClass, "text-[9px] px-1.5 py-0.5")}
+                      >
+                        {margin.toFixed(1)}%
+                      </Badge>
+                    );
+                  }
+                  return <span className="text-muted-foreground text-[9px]">-</span>;
+                },
+              },
                 ]}
                 actions={[
                   {

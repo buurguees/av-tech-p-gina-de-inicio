@@ -6,12 +6,14 @@
  * 
  * Enum en DB: projects.project_status ('PLANNED', 'IN_PROGRESS', 'PAUSED', 'COMPLETED', 'CANCELLED')
  * 
- * Traffic Light System:
- * - Blue (info): PLANNED
- * - Green (success): IN_PROGRESS
- * - Orange (warning): PAUSED
- * - Purple (success): COMPLETED
- * - Red (error): CANCELLED
+ * Traffic Light System (uses global.css status classes):
+ * - status-info: PLANNED
+ * - status-progress: IN_PROGRESS
+ * - status-warning: PAUSED
+ * - status-special: COMPLETED
+ * - status-invoiced: INVOICED
+ * - status-closed: CLOSED
+ * - status-error: CANCELLED
  */
 
 export const PROJECT_STATUSES = [
@@ -19,49 +21,49 @@ export const PROJECT_STATUSES = [
     value: "PLANNED", 
     label: "Planificado", 
     color: "status-info",
-    className: "bg-blue-500/20 text-blue-300 border border-blue-500/30",
+    className: "status-info",
     priority: 0
   },
   { 
     value: "IN_PROGRESS", 
     label: "En Progreso", 
-    color: "status-success",
-    className: "bg-green-500/20 text-green-300 border border-green-500/30",
+    color: "status-progress",
+    className: "status-progress",
     priority: 1
   },
   { 
     value: "PAUSED", 
     label: "Pausado", 
     color: "status-warning",
-    className: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
+    className: "status-warning",
     priority: 2
   },
   { 
     value: "COMPLETED", 
     label: "Completado", 
     color: "status-special",
-    className: "bg-purple-500/20 text-purple-300 border border-purple-500/30",
+    className: "status-special",
     priority: 3
   },
   { 
     value: "INVOICED", 
     label: "Facturado", 
     color: "status-invoiced",
-    className: "bg-teal-500/20 text-teal-300 border border-teal-500/30",
+    className: "status-invoiced",
     priority: 4
   },
   { 
     value: "CLOSED", 
     label: "Cerrado", 
     color: "status-closed",
-    className: "bg-slate-500/20 text-slate-300 border border-slate-500/30",
+    className: "status-closed",
     priority: 5
   },
   { 
     value: "CANCELLED", 
     label: "Cancelado", 
     color: "status-error",
-    className: "bg-red-500/20 text-red-300 border border-red-500/30",
+    className: "status-error",
     priority: 6
   },
 ] as const;
