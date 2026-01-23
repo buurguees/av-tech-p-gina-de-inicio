@@ -353,7 +353,7 @@ const QuotesPageDesktop = () => {
                 align: "left",
                 priority: 3,
                 render: (quote) => (
-                  <span className="text-foreground text-[10px] font-medium">
+                  <span className="text-foreground text-[10px] font-medium truncate block max-w-[200px]">
                     {quote.project_name || "-"}
                   </span>
                 ),
