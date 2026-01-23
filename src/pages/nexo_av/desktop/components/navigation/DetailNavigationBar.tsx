@@ -65,11 +65,9 @@ const DetailNavigationBar = ({
           )}
         </div>
 
-        {/* Right Section - Herramientas */}
+        {/* Right Section - Herramientas (siempre visible para mantener centrado) */}
         <div className="detail-navigation-bar__right">
-          {tools && (
-            <div className="detail-navigation-bar__tools">{tools}</div>
-          )}
+          <div className="detail-navigation-bar__tools">{tools}</div>
         </div>
       </div>
     </nav>
