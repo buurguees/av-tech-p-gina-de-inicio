@@ -8,8 +8,8 @@ export interface FormSectionProps {
   icon?: ReactNode;
   children: ReactNode;
   className?: string;
-  variant?: "default" | "compact" | "flat";
-  grid?: 1 | 2 | 3;
+  variant?: "default" | "bordered" | "compact" | "flat";
+  columns?: 1 | 2 | 3;
 }
 
 export default function FormSection({
@@ -19,7 +19,7 @@ export default function FormSection({
   children,
   className,
   variant = "default",
-  grid,
+  columns,
 }: FormSectionProps) {
   return (
     <div
@@ -43,12 +43,21 @@ export default function FormSection({
       <div
         className={cn(
           "form-section__content",
-          grid && "form-section__grid",
-          grid && grid > 1 && `form-section__grid--${grid}`
+          columns && columns > 1 && "form-section__grid",
+          columns && columns > 1 && `form-section__grid--${columns}`
         )}
       >
         {children}
       </div>
+    </div>
+  );
+}
+
+// Helper component for full-width items in grid
+export function FormSectionFullWidth({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={cn("form-section__full-width", className)}>
+      {children}
     </div>
   );
 }

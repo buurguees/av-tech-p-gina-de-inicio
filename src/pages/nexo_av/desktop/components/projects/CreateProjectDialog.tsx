@@ -9,7 +9,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -75,7 +74,6 @@ const CreateProjectDialog = ({
     },
   });
 
-  // Fetch clients on mount
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -97,7 +95,6 @@ const CreateProjectDialog = ({
     }
   }, [open]);
 
-  // Reset form when dialog opens with preselected client
   useEffect(() => {
     if (open) {
       form.reset({
@@ -117,7 +114,7 @@ const CreateProjectDialog = ({
     try {
       setLoading(true);
 
-      const { data: result, error } = await supabase.rpc("create_project", {
+      const { error } = await supabase.rpc("create_project", {
         p_project_name: data.project_name,
         p_client_id: data.client_id,
         p_status: data.status,
@@ -150,78 +147,77 @@ const CreateProjectDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto bg-background border-border">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg">
+      <DialogContent className="sm:max-w-[560px] max-h-[85vh] overflow-y-auto bg-background border-border p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/50">
+          <DialogTitle className="flex items-center gap-2 text-base font-semibold">
             <Building2 className="h-5 w-5 text-primary" />
             Crear Nuevo Proyecto
           </DialogTitle>
-          <DialogDescription>
-            Completa la información para crear un nuevo proyecto.
-          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2">
-          {/* Sección: Cliente */}
-          <FormSection
-            title="Asignación de Cliente"
-            icon={<Users className="h-4 w-4" />}
-          >
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Cliente <span className="text-destructive">*</span>
-              </label>
-              <Select
-                value={form.watch("client_id")}
-                onValueChange={(value) => form.setValue("client_id", value)}
-                disabled={!!preselectedClientId || loadingClients}
-              >
-                <SelectTrigger className="w-full bg-background border-border">
-                  <SelectValue placeholder={loadingClients ? "Cargando clientes..." : "Seleccionar cliente..."} />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.company_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {form.formState.errors.client_id && (
-                <p className="text-xs text-destructive">
-                  {form.formState.errors.client_id.message}
-                </p>
-              )}
-            </div>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
+          <div className="px-6 py-5 space-y-6">
+            {/* Sección: Cliente */}
+            <FormSection
+              title="Asignación"
+              icon={<Users className="h-4 w-4" />}
+              columns={2}
+            >
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Cliente <span className="text-destructive">*</span>
+                </label>
+                <Select
+                  value={form.watch("client_id")}
+                  onValueChange={(value) => form.setValue("client_id", value)}
+                  disabled={!!preselectedClientId || loadingClients}
+                >
+                  <SelectTrigger className="h-9 text-sm bg-background border-border">
+                    <SelectValue placeholder={loadingClients ? "Cargando..." : "Seleccionar cliente"} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border">
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.company_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.client_id && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.client_id.message}
+                  </p>
+                )}
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Estado inicial
-              </label>
-              <Select
-                value={form.watch("status")}
-                onValueChange={(value) => form.setValue("status", value)}
-              >
-                <SelectTrigger className="w-full bg-background border-border">
-                  <SelectValue placeholder="Seleccionar estado..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROJECT_STATUSES.map((status) => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </FormSection>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Estado inicial
+                </label>
+                <Select
+                  value={form.watch("status")}
+                  onValueChange={(value) => form.setValue("status", value)}
+                >
+                  <SelectTrigger className="h-9 text-sm bg-background border-border">
+                    <SelectValue placeholder="Seleccionar estado" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border">
+                    {PROJECT_STATUSES.map((status) => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </FormSection>
 
-          {/* Sección: Ubicación */}
-          <FormSection
-            title="Ubicación del Proyecto"
-            icon={<MapPin className="h-4 w-4" />}
-          >
-            <div className="grid grid-cols-2 gap-4">
+            {/* Sección: Ubicación */}
+            <FormSection
+              title="Ubicación"
+              icon={<MapPin className="h-4 w-4" />}
+              columns={2}
+            >
               <TextInput
                 label="Dirección"
                 placeholder="Calle, número..."
@@ -231,7 +227,7 @@ const CreateProjectDialog = ({
                     form.setValue("project_address", e.target.value);
                   }
                 }}
-                size="md"
+                size="sm"
               />
               <TextInput
                 label="Ciudad"
@@ -242,32 +238,32 @@ const CreateProjectDialog = ({
                     form.setValue("project_city", e.target.value);
                   }
                 }}
-                size="md"
+                size="sm"
               />
-            </div>
-          </FormSection>
+            </FormSection>
 
-          {/* Sección: Información del Proyecto */}
-          <FormSection
-            title="Información del Proyecto"
-            icon={<FileText className="h-4 w-4" />}
-          >
-            <TextInput
-              label="Nombre del Proyecto"
-              placeholder="Ej: Instalación LED Oficinas Centrales"
-              value={form.watch("project_name") || ""}
-              onChange={(e) => {
-                if (typeof e === 'object' && 'target' in e) {
-                  form.setValue("project_name", e.target.value);
-                }
-              }}
-              required
-              error={!!form.formState.errors.project_name}
-              errorMessage={form.formState.errors.project_name?.message}
-              size="md"
-            />
+            {/* Sección: Información */}
+            <FormSection
+              title="Información"
+              icon={<FileText className="h-4 w-4" />}
+              columns={2}
+            >
+              <TextInput
+                label="Nombre del Proyecto"
+                placeholder="Ej: Instalación LED Oficinas"
+                value={form.watch("project_name") || ""}
+                onChange={(e) => {
+                  if (typeof e === 'object' && 'target' in e) {
+                    form.setValue("project_name", e.target.value);
+                  }
+                }}
+                required
+                error={!!form.formState.errors.project_name}
+                errorMessage={form.formState.errors.project_name?.message}
+                size="sm"
+                className="col-span-2"
+              />
 
-            <div className="grid grid-cols-2 gap-4">
               <TextInput
                 label="Nombre del Local"
                 placeholder="Ej: Tienda Centro"
@@ -277,56 +273,56 @@ const CreateProjectDialog = ({
                     form.setValue("local_name", e.target.value);
                   }
                 }}
-                size="md"
+                size="sm"
               />
+
               <TextInput
                 label="Nº Pedido Cliente"
-                placeholder="Referencia del cliente"
+                placeholder="Referencia"
                 value={form.watch("client_order_number") || ""}
                 onChange={(e) => {
                   if (typeof e === 'object' && 'target' in e) {
                     form.setValue("client_order_number", e.target.value);
                   }
                 }}
-                size="md"
+                size="sm"
               />
-            </div>
 
-            <TextInput
-              type="textarea"
-              label="Notas"
-              placeholder="Notas adicionales sobre el proyecto..."
-              value={form.watch("notes") || ""}
-              onChange={(e) => {
-                if (typeof e === 'object' && 'target' in e) {
-                  form.setValue("notes", e.target.value);
-                }
-              }}
-              rows={3}
-              size="md"
-            />
-          </FormSection>
+              <TextInput
+                type="textarea"
+                label="Notas"
+                placeholder="Notas adicionales..."
+                value={form.watch("notes") || ""}
+                onChange={(e) => {
+                  if (typeof e === 'object' && 'target' in e) {
+                    form.setValue("notes", e.target.value);
+                  }
+                }}
+                rows={2}
+                size="sm"
+                className="col-span-2"
+              />
+            </FormSection>
+          </div>
 
-          <DialogFooter className="pt-4 gap-2">
+          <DialogFooter className="px-6 py-4 border-t border-border/50 bg-muted/30">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={() => onOpenChange(false)}
               disabled={loading}
+              className="h-9"
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="h-9">
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Creando...
                 </>
               ) : (
-                <>
-                  <Building2 className="mr-2 h-4 w-4" />
-                  Crear Proyecto
-                </>
+                "Crear Proyecto"
               )}
             </Button>
           </DialogFooter>
