@@ -42,7 +42,8 @@ import DetailActionButton from "../components/navigation/DetailActionButton";
 import { InvoicePDFDocument } from "../components/invoices/InvoicePDFViewer";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
-import InvoicePaymentsSection from "../components/invoices/InvoicePaymentsSection";
+import PaymentsTab from "../components/common/PaymentsTab";
+import RegisterPaymentDialog from "../components/invoices/RegisterPaymentDialog";
 
 
 interface Invoice {
@@ -589,14 +590,30 @@ const InvoiceDetailPageDesktop = () => {
             )}
             {activeTab === "pagos" && invoice && (
               <div className="p-6">
-                <InvoicePaymentsSection
-                  invoiceId={invoice.id}
+                <PaymentsTab
+                  entityId={invoice.id}
                   total={invoice.total}
                   paidAmount={invoice.paid_amount}
                   pendingAmount={invoice.pending_amount}
                   status={invoice.status}
                   isLocked={isLocked}
                   onPaymentChange={fetchInvoiceData}
+                  fetchPaymentsRpc="finance_get_invoice_payments"
+                  fetchPaymentsParam="p_invoice_id"
+                  deletePaymentRpc="finance_delete_payment"
+                  deletePaymentParam="p_payment_id"
+                  allowedPaymentStatuses={["ISSUED", "PARTIAL", "OVERDUE"]}
+                  entityLabel="factura"
+                  draftWarningMessage="Debes emitir la factura antes de poder registrar pagos oficiales. Por ahora puedes editar las líneas y el cliente."
+                  registerPaymentDialog={({ entityId, pendingAmount, onPaymentRegistered, trigger, payment }) => (
+                    <RegisterPaymentDialog
+                      invoiceId={entityId}
+                      pendingAmount={pendingAmount}
+                      onPaymentRegistered={onPaymentRegistered}
+                      trigger={trigger}
+                      payment={payment}
+                    />
+                  )}
                 />
               </div>
             )}
