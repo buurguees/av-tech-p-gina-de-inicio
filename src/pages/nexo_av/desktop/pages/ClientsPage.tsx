@@ -572,7 +572,7 @@ const ClientsPageDesktop = () => {
                 label: "Nº",
                 sortable: true,
                 align: "left",
-                priority: 1, // Prioridad: Nº documento
+                priority: 1,
                 render: (client) => (
                   <span className="text-foreground/80 text-[10px]">
                     {client.client_number || '-'}
@@ -584,15 +584,16 @@ const ClientsPageDesktop = () => {
                 label: "Empresa",
                 sortable: true,
                 align: "left",
+                priority: 3,
                 render: (client) => (
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-white/5">
-                      <Building2 className="h-3 w-3 text-white/60" />
+                    <div className="p-2 rounded-lg bg-muted/30">
+                      <Building2 className="h-3 w-3 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-white font-medium text-[10px]">{client.company_name}</p>
+                      <p className="text-foreground font-medium text-[10px]">{client.company_name}</p>
                       {client.industry_sector && (
-                        <p className="text-white/40 text-[9px] px-1.5 py-0.5">
+                        <p className="text-muted-foreground text-[9px]">
                           {client.industry_sector}
                         </p>
                       )}
@@ -601,43 +602,11 @@ const ClientsPageDesktop = () => {
                 ),
               },
               {
-                key: "contact_email",
-                label: "Email",
-                align: "left",
-                render: (client) => (
-                  <div className="flex items-center gap-1.5 text-white/60 text-[9px]">
-                    <Mail className="h-2.5 w-2.5" />
-                    <span className="truncate max-w-[200px]">{client.contact_email}</span>
-                  </div>
-                ),
-              },
-              {
-                key: "contact_phone",
-                label: "Teléfono",
-                align: "left",
-                render: (client) => (
-                  <div className="flex items-center gap-1.5 text-white/60 text-[9px]">
-                    <Phone className="h-2.5 w-2.5" />
-                    {client.contact_phone || '-'}
-                  </div>
-                ),
-              },
-              {
-                key: "projects",
-                label: "Proyectos",
-                align: "center",
-                render: (client) => (
-                  <span className="text-white/70 text-[10px]">
-                    {projectsByClient.get(client.id) || 0}
-                  </span>
-                ),
-              },
-              {
                 key: "lead_stage",
                 label: "Estado",
                 sortable: true,
                 align: "center",
-                priority: 3, // Prioridad: Estado
+                priority: 2,
                 render: (client) => {
                   const stageInfo = getStageInfo(client.lead_stage);
                   return (
@@ -650,13 +619,49 @@ const ClientsPageDesktop = () => {
                 },
               },
               {
+                key: "projects",
+                label: "Proyectos",
+                align: "center",
+                priority: 4,
+                render: (client) => (
+                  <span className="text-foreground font-medium text-[10px]">
+                    {projectsByClient.get(client.id) || 0}
+                  </span>
+                ),
+              },
+              {
+                key: "contact_email",
+                label: "Email",
+                align: "left",
+                priority: 5,
+                render: (client) => (
+                  <div className="flex items-center gap-1.5 text-muted-foreground text-[9px]">
+                    <Mail className="h-2.5 w-2.5" />
+                    <span className="truncate max-w-[200px]">{client.contact_email}</span>
+                  </div>
+                ),
+              },
+              {
+                key: "contact_phone",
+                label: "Teléfono",
+                align: "left",
+                priority: 6,
+                render: (client) => (
+                  <div className="flex items-center gap-1.5 text-muted-foreground text-[9px]">
+                    <Phone className="h-2.5 w-2.5" />
+                    {client.contact_phone || '-'}
+                  </div>
+                ),
+              },
+              {
                 key: "assigned_to_name",
                 label: "Asignado",
                 sortable: true,
                 align: "left",
+                priority: 7,
                 render: (client) => (
-                  <span className="text-white/70 text-[10px]">
-                    {client.assigned_to_name || <span className="text-white/30">Sin asignar</span>}
+                  <span className="text-muted-foreground text-[10px]">
+                    {client.assigned_to_name || <span className="text-muted-foreground/50">Sin asignar</span>}
                   </span>
                 ),
               },

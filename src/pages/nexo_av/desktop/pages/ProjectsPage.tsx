@@ -639,125 +639,126 @@ const ProjectsPageDesktop = () => {
               {/* DataList */}
               <DataList
                 data={paginatedProjects}
-                columns={[
-                  {
-                    key: "project_number",
-                    label: "Nº Proyecto",
-                    sortable: true,
-                    align: "left",
-                    priority: 1, // Prioridad: Nº documento
-                    render: (project) => (
-                      <span className="text-foreground/80 text-[10px]">
-                        {project.project_number}
-                      </span>
-                    ),
-                  },
-                  {
-                    key: "created_at",
-                    label: "F. Creación",
-                    sortable: true,
-                    align: "left",
-                    priority: 2, // Prioridad mínima: Fecha de creación
-                    render: (project) => (
-                      <span className="text-muted-foreground text-[10px]">
-                        {project.created_at 
-                          ? new Date(project.created_at).toLocaleDateString('es-ES', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric'
-                            })
-                          : '-'}
-                      </span>
-                    ),
-                  },
-                  {
-                    key: "client_order_number",
-                    label: "Nº Pedido Cliente",
-                    sortable: true,
-                    align: "left",
-                    priority: 2, // Prioridad mínima: Nº pedido cliente
-                    render: (project) => (
-                      <span className="text-foreground/80 text-[10px]">
-                        {project.client_order_number || '-'}
-                      </span>
-                    ),
-                  },
-                  {
-                    key: "client_name",
-                    label: "Cliente",
-                    sortable: true,
-                    align: "left",
-                    priority: 7, // Columna adicional: Cliente
-                    render: (project) => (
-                      <span className="text-foreground text-[10px]">
-                        {project.client_name || '-'}
-                      </span>
-                    ),
-                  },
-                  {
-                    key: "project_name",
-                    label: "Nombre del Proyecto",
-                    sortable: true,
-                    align: "left",
-                    priority: 8, // Columna adicional: Nombre del proyecto
-                    render: (project) => (
-                      <span className="text-foreground/80 text-[10px]">
-                        {project.project_name}
-                      </span>
-                    ),
-                  },
-                  {
-                    key: "status",
-                    label: "Estado",
-                    sortable: true,
-                    align: "center",
-                    priority: 3, // Prioridad mínima: Estado
-                    render: (project) => {
-                      const statusInfo = getStatusInfo(project.status);
-                      return (
-                        <div className="flex justify-center">
-                          <Badge variant="outline" className={cn(statusInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
-                            {statusInfo.label}
-                          </Badge>
-                        </div>
-                      );
-                    },
-                  },
-                  {
-                    key: "total",
-                    label: "Total",
-                    sortable: true,
-                    align: "right",
-                    priority: 4, // Prioridad mínima: Total
-                    render: (project) => {
-                      const total = projectTotals.get(project.id) || 0;
-                      return (
-                        <span className="text-white text-[10px]">
-                          {formatCurrency(total)}
-                        </span>
-                      );
-                    },
-                  },
-                  {
-                    key: "project_city",
-                    label: "Ciudad",
-                    sortable: true,
-                    align: "left",
-                    render: (project) => (
-                      <span className="text-white/70 text-[10px]">
-                        {project.project_city || '-'}
-                      </span>
-                    ),
-                  },
-                  {
-                    key: "local_name",
-                    label: "Local",
-                    align: "left",
-                    render: (project) => (
-                      <span className="text-white/70 text-[10px]">
-                        {project.local_name || '-'}
-                      </span>
-                    ),
+            columns={[
+              {
+                key: "project_number",
+                label: "Nº",
+                sortable: true,
+                align: "left",
+                priority: 1,
+                render: (project) => (
+                  <span className="text-foreground/80 text-[10px]">
+                    {project.project_number}
+                  </span>
+                ),
+              },
+              {
+                key: "project_name",
+                label: "Proyecto",
+                sortable: true,
+                align: "left",
+                priority: 3,
+                render: (project) => (
+                  <span className="text-foreground text-[10px] font-medium">
+                    {project.project_name}
+                  </span>
+                ),
+              },
+              {
+                key: "client_name",
+                label: "Cliente",
+                sortable: true,
+                align: "left",
+                priority: 5,
+                render: (project) => (
+                  <span className="text-foreground/80 text-[10px]">
+                    {project.client_name || '-'}
+                  </span>
+                ),
+              },
+              {
+                key: "status",
+                label: "Estado",
+                sortable: true,
+                align: "center",
+                priority: 2,
+                render: (project) => {
+                  const statusInfo = getStatusInfo(project.status);
+                  return (
+                    <div className="flex justify-center">
+                      <Badge variant="outline" className={cn(statusInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                        {statusInfo.label}
+                      </Badge>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: "total",
+                label: "Total",
+                sortable: true,
+                align: "right",
+                priority: 4,
+                render: (project) => {
+                  const total = projectTotals.get(project.id) || 0;
+                  return (
+                    <span className="text-foreground font-medium text-[10px]">
+                      {formatCurrency(total)}
+                    </span>
+                  );
+                },
+              },
+              {
+                key: "created_at",
+                label: "Creación",
+                sortable: true,
+                align: "left",
+                priority: 6,
+                render: (project) => (
+                  <span className="text-muted-foreground text-[10px]">
+                    {project.created_at 
+                      ? new Date(project.created_at).toLocaleDateString('es-ES', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })
+                      : '-'}
+                  </span>
+                ),
+              },
+              {
+                key: "client_order_number",
+                label: "Nº Pedido",
+                sortable: true,
+                align: "left",
+                priority: 7,
+                render: (project) => (
+                  <span className="text-muted-foreground text-[10px]">
+                    {project.client_order_number || '-'}
+                  </span>
+                ),
+              },
+              {
+                key: "project_city",
+                label: "Ciudad",
+                sortable: true,
+                align: "left",
+                priority: 8,
+                render: (project) => (
+                  <span className="text-muted-foreground text-[10px]">
+                    {project.project_city || '-'}
+                  </span>
+                ),
+              },
+              {
+                key: "local_name",
+                label: "Local",
+                align: "left",
+                render: (project) => (
+                  <span className="text-muted-foreground text-[10px]">
+                    {project.local_name || '-'}
+                  </span>
+                ),
                   },
                   {
                     key: "profitability",
