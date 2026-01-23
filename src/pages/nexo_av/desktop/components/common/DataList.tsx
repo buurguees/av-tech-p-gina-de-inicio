@@ -1,7 +1,6 @@
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect, useCallback } from "react";
 import { ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,10 +15,10 @@ export interface DataListColumn<T = any> {
   label: string;
   sortable?: boolean;
   align?: "left" | "center" | "right";
-  width?: string; // CSS width (ej: "200px", "1fr", "auto")
+  width?: string;
   render?: (item: T, index: number) => ReactNode;
   className?: string;
-  priority?: number; // Menor número = mayor prioridad. Las columnas con priority siempre se muestran
+  priority?: number; // 1-5 = always visible, 6+ = hide on smaller screens
 }
 
 export interface DataListAction<T = any> {
@@ -28,7 +27,7 @@ export interface DataListAction<T = any> {
   onClick: (item: T) => void;
   className?: string;
   variant?: "default" | "destructive";
-  condition?: (item: T) => boolean; // Solo mostrar si se cumple la condición
+  condition?: (item: T) => boolean;
 }
 
 export interface DataListProps<T = any> {
@@ -46,6 +45,94 @@ export interface DataListProps<T = any> {
   className?: string;
 }
 
+// Hook to detect screen breakpoint and filter columns accordingly
+function useResponsiveColumns<T>(columns: DataListColumn<T>[]): DataListColumn<T>[] {
+  const [visibleColumns, setVisibleColumns] = useState<DataListColumn<T>[]>(columns);
+
+  const updateColumns = useCallback(() => {
+    const width = window.innerWidth;
+    
+    // Filter columns based on priority and screen width
+    // Priority 1-5: always visible
+    // Priority 6: hidden below 1000px
+    // Priority 7: hidden below 1200px
+    // Priority 8: hidden below 1400px
+    // No priority (undefined): hidden below 1600px
+    
+    const filtered = columns.filter(col => {
+      const priority = col.priority;
+      
+      // Priority 1-5 always visible
+      if (priority !== undefined && priority <= 5) return true;
+      
+      // No priority - hide below 1600px
+      if (priority === undefined) return width >= 1600;
+      
+      // Priority 6 - hide below 1000px
+      if (priority === 6) return width >= 1000;
+      
+      // Priority 7 - hide below 1200px  
+      if (priority === 7) return width >= 1200;
+      
+      // Priority 8 - hide below 1400px
+      if (priority === 8) return width >= 1400;
+      
+      return true;
+    });
+    
+    setVisibleColumns(filtered);
+  }, [columns]);
+
+  useEffect(() => {
+    updateColumns();
+    
+    const handleResize = () => {
+      updateColumns();
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [updateColumns]);
+
+  return visibleColumns;
+}
+
+// Get column width based on content type
+function getColumnWidth(col: DataListColumn<any>): string {
+  if (col.width) return col.width;
+  
+  // Priority-based widths
+  if (col.priority !== undefined && col.priority <= 5) {
+    if (col.priority === 1) return '140px'; // Document number
+    if (col.priority === 2) return '100px'; // Date
+    if (col.priority === 3) return '120px'; // Project
+    if (col.priority === 4) return '100px'; // Status
+    if (col.priority === 5) return '100px'; // Total
+  }
+  
+  // Key-based widths
+  if (col.key.includes('date') || col.key.includes('fecha') || col.label.includes('F.')) {
+    return '100px';
+  }
+  if (col.key === 'status' || col.key === 'lead_stage') {
+    return '100px';
+  }
+  if (col.key === 'total' || col.label === 'Total') {
+    return '100px';
+  }
+  if (col.key.includes('subtotal') || col.key.includes('amount')) {
+    return '110px';
+  }
+  if (col.key.includes('number') || col.key.includes('_number')) {
+    return '130px';
+  }
+  if (col.key === 'project_name' || col.key === 'company_name' || col.key === 'client_name') {
+    return 'minmax(150px, 1fr)';
+  }
+  
+  return '120px';
+}
+
 export default function DataList<T = any>({
   data,
   columns,
@@ -60,6 +147,9 @@ export default function DataList<T = any>({
   getItemId,
   className,
 }: DataListProps<T>) {
+  // Filter columns based on screen size
+  const visibleColumns = useResponsiveColumns(columns);
+  
   if (loading) {
     return (
       <div className="data-list__loading">
@@ -77,84 +167,27 @@ export default function DataList<T = any>({
     );
   }
 
-  // Calcular grid-template-columns con anchos fijos y predecibles
-  // Las columnas mínimas (prioridad 1-5) siempre tienen anchos fijos
-  // Las columnas adicionales usan espacio flexible
-  const gridColumns = columns.map(col => {
-    // Si la columna tiene un width definido, usarlo
-    if (col.width) return col.width;
-    
-    // Columnas mínimas (prioridad 1-5): anchos fijos
-    if (col.priority !== undefined && col.priority <= 5) {
-      // Nº documento (prioridad 1): ancho fijo medio
-      if (col.priority === 1) {
-        return 'clamp(140px, 160px, 180px)';
-      }
-      // Fecha de emisión (prioridad 2): ancho fijo pequeño
-      if (col.priority === 2) {
-        return 'clamp(110px, 120px, 130px)';
-      }
-      // Nº proyecto/pedido (prioridad 3): ancho fijo medio
-      if (col.priority === 3) {
-        return 'clamp(120px, 140px, 160px)';
-      }
-      // Nº pedido cliente (prioridad 4): ancho fijo medio
-      if (col.priority === 4) {
-        return 'clamp(130px, 150px, 170px)';
-      }
-      // Estado (prioridad 5): ancho fijo pequeño
-      if (col.priority === 5) {
-        return 'clamp(100px, 120px, 140px)';
-      }
-    }
-    
-    // Columnas de fecha: ancho fijo pequeño
-    if (col.key.includes('date') || col.key.includes('fecha') || col.label.includes('F.')) {
-      return 'clamp(110px, 120px, 130px)';
-    }
-    // Columnas de estado/badge: ancho fijo pequeño
-    if (col.key === 'status' || col.key === 'lead_stage' || col.align === 'center') {
-      return 'clamp(100px, 120px, 140px)';
-    }
-    // Columnas monetarias (total): ancho fijo medio
-    if (col.key === 'total' || col.label === 'Total') {
-      return 'clamp(110px, 130px, 150px)';
-    }
-    // Columnas monetarias (subtotal, paid_amount, etc.): ancho fijo medio
-    if (col.key.includes('subtotal') || col.key.includes('paid_amount') || col.key.includes('amount') || col.label.includes('Subtotal') || col.label.includes('Pagada')) {
-      return 'clamp(110px, 130px, 150px)';
-    }
-    // Columnas numéricas/códigos: ancho fijo medio
-    if (col.key.includes('number') || col.key.includes('numero') || col.key.includes('_number')) {
-      return 'clamp(120px, 150px, 180px)';
-    }
-    // Nombre del proyecto/cliente: más ancho y flexible
-    if (col.key === 'project_name' || col.key === 'company_name' || col.key === 'client_name') {
-      return 'minmax(clamp(180px, 220px, 280px), 1.5fr)';
-    }
-    // Por defecto: ancho fijo medio
-    return 'clamp(120px, 150px, 180px)';
-  }).join(' ') + (actions && actions.length > 0 ? ' clamp(2.5rem, 3rem, 3.5rem)' : '');
+  // Calculate grid columns ONLY for visible columns
+  const gridColumns = visibleColumns
+    .map(col => getColumnWidth(col))
+    .join(' ') + (actions && actions.length > 0 ? ' 40px' : '');
 
   return (
     <div className={cn("data-list", className)}>
       {/* Header */}
       <div 
         className="data-list__header"
-        style={{ gridTemplateColumns: gridColumns } as React.CSSProperties}
+        style={{ gridTemplateColumns: gridColumns }}
       >
-        {columns.map((column) => (
+        {visibleColumns.map((column) => (
           <div
             key={column.key}
             className={cn(
               "data-list__header-cell",
               column.sortable && "data-list__header-cell--sortable",
               `data-list__header-cell--${column.align || "left"}`,
-              column.priority === undefined && "data-list__header-cell--hideable",
               column.className
             )}
-            data-priority={column.priority}
-            style={column.width ? { width: column.width } : undefined}
             onClick={() => column.sortable && onSort?.(column.key)}
           >
             <span className="data-list__header-label">{column.label}</span>
@@ -170,7 +203,7 @@ export default function DataList<T = any>({
           </div>
         ))}
         {actions && actions.length > 0 && (
-          <div className="data-list__header-cell data-list__header-cell--actions data-list__header-cell--priority" data-priority={0}></div>
+          <div className="data-list__header-cell data-list__header-cell--actions"></div>
         )}
       </div>
 
@@ -189,20 +222,17 @@ export default function DataList<T = any>({
                 "data-list__row",
                 onItemClick && "data-list__row--clickable"
               )}
-              style={{ gridTemplateColumns: gridColumns } as React.CSSProperties}
+              style={{ gridTemplateColumns: gridColumns }}
               onClick={() => onItemClick?.(item)}
             >
-              {columns.map((column) => (
+              {visibleColumns.map((column) => (
                 <div
                   key={column.key}
                   className={cn(
                     "data-list__cell",
                     `data-list__cell--${column.align || "left"}`,
-                    column.priority === undefined && "data-list__cell--hideable",
                     column.className
                   )}
-                  data-priority={column.priority}
-                  style={column.width ? { width: column.width } : undefined}
                 >
                   {column.render ? (
                     column.render(item, index)
@@ -215,8 +245,7 @@ export default function DataList<T = any>({
               ))}
               {visibleActions && visibleActions.length > 0 && (
                 <div
-                  className="data-list__cell data-list__cell--actions data-list__cell--priority"
-                  data-priority={0}
+                  className="data-list__cell data-list__cell--actions"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <DropdownMenu>

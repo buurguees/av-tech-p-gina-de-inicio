@@ -1966,12 +1966,14 @@ export type Database = {
           created_at: string
           created_by: string
           created_by_name: string
+          end_date: string
           id: string
           local_name: string
           project_address: string
           project_city: string
           project_name: string
           project_number: string
+          start_date: string
           status: string
         }[]
       }
