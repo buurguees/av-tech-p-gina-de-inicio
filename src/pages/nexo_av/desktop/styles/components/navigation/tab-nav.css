@@ -118,7 +118,7 @@ body.nexo-av-theme-dark .tab-nav__button--active .tab-nav__icon {
   width: clamp(0.875rem, 1rem, 1.125rem);
   height: clamp(0.875rem, 1rem, 1.125rem);
   flex-shrink: 0;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 .tab-nav__button:hover .tab-nav__icon {
@@ -137,7 +137,34 @@ body.nexo-av-theme-dark .tab-nav__button--active .tab-nav__icon {
 /* Los botones se distribuyen uniformemente con flex: 1 */
 /* El contenedor está centrado y los botones se ajustan automáticamente */
 
-/* Responsive - En pantallas pequeñas, permitir scroll horizontal */
+/* Responsive - Reducir tamaño de botones progresivamente */
+/* Nivel 1: Reducir padding y tamaño a partir de 1200px */
+@media (max-width: 1200px) {
+  .tab-nav__button {
+    padding: clamp(0.25rem, 0.3125rem, 0.375rem) clamp(0.5rem, 0.625rem, 0.75rem);
+    font-size: clamp(0.625rem, 0.75rem, 0.875rem) !important;
+    gap: clamp(0.3125rem, 0.375rem, 0.5rem);
+  }
+  
+  .tab-nav__icon {
+    width: clamp(0.75rem, 0.875rem, 1rem);
+    height: clamp(0.75rem, 0.875rem, 1rem);
+  }
+}
+
+/* Nivel 2: Ocultar iconos antes de cortar texto a partir de 1000px */
+@media (max-width: 1000px) {
+  .tab-nav__icon {
+    display: none;
+  }
+  
+  .tab-nav__button {
+    gap: 0;
+    padding: clamp(0.25rem, 0.3125rem, 0.375rem) clamp(0.5rem, 0.625rem, 0.75rem);
+  }
+}
+
+/* Nivel 3: En pantallas pequeñas, permitir scroll horizontal */
 @media (max-width: 768px) {
   .tab-nav__container {
     overflow-x: auto;
