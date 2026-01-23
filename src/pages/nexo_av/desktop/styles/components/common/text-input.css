@@ -36,13 +36,12 @@
 
 /* Campo de entrada */
 .text-input__field {
-  width: fit-content;
-  min-width: 350px;
-  max-width: 500px;
+  width: 100%;
+  min-width: 0;
   border: 1px solid hsl(var(--border) / 0.7);
   background-color: hsl(var(--muted) / 0.2);
   color: hsl(var(--foreground));
-  border-radius: clamp(0.375rem, 0.5rem, 0.625rem);
+  border-radius: 0.5rem;
   transition: all 0.15s ease;
   font-family: inherit;
   outline: none;
@@ -94,20 +93,16 @@
 .text-input__field--default {
   width: 100%;
   min-width: 0;
-  max-width: 100%;
   background-color: hsl(var(--muted) / 0.2);
   border-color: hsl(var(--border) / 0.7);
-  height: fit-content;
-  border-radius: 20px;
-  padding-left: 20px;
-  padding-right: 20px;
-  gap: 0;
-  overflow: visible;
 }
 
 /* Solo aplicar display: flex cuando está dentro de SearchBar */
 .search-bar .text-input__field--default {
   display: flex;
+  border-radius: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .text-input__field--outline {
@@ -133,14 +128,12 @@
 /* Textarea */
 .text-input__field--textarea {
   width: 100%;
-  min-width: 350px;
-  max-width: 500px;
+  min-width: 0;
   resize: vertical;
-  min-height: clamp(3rem, 3.5rem, 4rem);
+  min-height: 4rem;
   line-height: 1.5;
-  border-radius: 20px;
-  padding-left: 15px;
-  padding-right: 15px;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
 }
 
 .text-input__field--textarea.text-input__field--sm {

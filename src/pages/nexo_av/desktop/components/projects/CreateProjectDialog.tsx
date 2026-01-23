@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -147,8 +148,8 @@ const CreateProjectDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px] max-h-[85vh] overflow-y-auto bg-background border-border p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/50">
+      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto bg-background border-border p-0">
+        <DialogHeader className="px-6 pt-5 pb-4 border-b border-border/50">
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
             <Building2 className="h-5 w-5 text-primary" />
             Crear Nuevo Proyecto
@@ -156,10 +157,10 @@ const CreateProjectDialog = ({
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
-          <div className="px-6 py-5 space-y-6">
-            {/* Sección: Cliente */}
+          <div className="px-6 py-5 space-y-5">
+            {/* Sección: Asignación */}
             <FormSection
-              title="Asignación"
+              title="Información del Proyecto"
               icon={<Users className="h-4 w-4" />}
               columns={2}
             >
@@ -172,10 +173,10 @@ const CreateProjectDialog = ({
                   onValueChange={(value) => form.setValue("client_id", value)}
                   disabled={!!preselectedClientId || loadingClients}
                 >
-                  <SelectTrigger className="h-9 text-sm bg-background border-border">
-                    <SelectValue placeholder={loadingClients ? "Cargando..." : "Seleccionar cliente"} />
+                  <SelectTrigger className="h-9 text-sm bg-muted/20 border-border/70 hover:bg-muted/30 focus:ring-2 focus:ring-primary/20">
+                    <SelectValue placeholder={loadingClients ? "Cargando..." : "Seleccionar cliente..."} />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover border-border">
+                  <SelectContent className="bg-popover border-border z-50">
                     {clients.map((client) => (
                       <SelectItem key={client.id} value={client.id}>
                         {client.company_name}
@@ -198,13 +199,27 @@ const CreateProjectDialog = ({
                   value={form.watch("status")}
                   onValueChange={(value) => form.setValue("status", value)}
                 >
-                  <SelectTrigger className="h-9 text-sm bg-background border-border">
+                  <SelectTrigger 
+                    className={cn(
+                      "h-9 text-sm border-border/70 hover:opacity-80 focus:ring-2 focus:ring-primary/20",
+                      PROJECT_STATUSES.find(s => s.value === form.watch("status"))?.className
+                    )}
+                  >
                     <SelectValue placeholder="Seleccionar estado" />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover border-border">
+                  <SelectContent className="bg-popover border-border z-50">
                     {PROJECT_STATUSES.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.label}
+                      <SelectItem 
+                        key={status.value} 
+                        value={status.value}
+                        className="cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span 
+                            className={cn("w-2 h-2 rounded-full", status.className.split(' ')[0].replace('/20', ''))} 
+                          />
+                          {status.label}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -216,99 +231,98 @@ const CreateProjectDialog = ({
             <FormSection
               title="Ubicación"
               icon={<MapPin className="h-4 w-4" />}
-              columns={2}
+              columns={1}
             >
               <TextInput
                 label="Dirección"
                 placeholder="Calle, número..."
                 value={form.watch("project_address") || ""}
-                onChange={(e) => {
-                  if (typeof e === 'object' && 'target' in e) {
-                    form.setValue("project_address", e.target.value);
-                  }
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  form.setValue("project_address", e.target.value);
                 }}
                 size="sm"
               />
-              <TextInput
-                label="Ciudad"
-                placeholder="Ciudad"
-                value={form.watch("project_city") || ""}
-                onChange={(e) => {
-                  if (typeof e === 'object' && 'target' in e) {
+              <div className="grid grid-cols-4 gap-3">
+                <TextInput
+                  label="Código Postal"
+                  placeholder="Ej: 08001"
+                  value=""
+                  onChange={() => {}}
+                  size="sm"
+                />
+                <TextInput
+                  label="Ciudad"
+                  placeholder="Ciudad"
+                  value={form.watch("project_city") || ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     form.setValue("project_city", e.target.value);
-                  }
-                }}
-                size="sm"
-              />
+                  }}
+                  size="sm"
+                />
+                <TextInput
+                  label="Provincia"
+                  placeholder="Provincia"
+                  value=""
+                  onChange={() => {}}
+                  size="sm"
+                />
+                <TextInput
+                  label="País"
+                  placeholder="España"
+                  value="España"
+                  onChange={() => {}}
+                  size="sm"
+                  disabled
+                />
+              </div>
             </FormSection>
 
-            {/* Sección: Información */}
+            {/* Sección: Información Adicional */}
             <FormSection
-              title="Información"
+              title="Información Adicional"
               icon={<FileText className="h-4 w-4" />}
               columns={2}
             >
               <TextInput
-                label="Nombre del Proyecto"
-                placeholder="Ej: Instalación LED Oficinas"
-                value={form.watch("project_name") || ""}
-                onChange={(e) => {
-                  if (typeof e === 'object' && 'target' in e) {
-                    form.setValue("project_name", e.target.value);
-                  }
-                }}
-                required
-                error={!!form.formState.errors.project_name}
-                errorMessage={form.formState.errors.project_name?.message}
-                size="sm"
-                className="col-span-2"
-              />
-
-              <TextInput
                 label="Nombre del Local"
                 placeholder="Ej: Tienda Centro"
                 value={form.watch("local_name") || ""}
-                onChange={(e) => {
-                  if (typeof e === 'object' && 'target' in e) {
-                    form.setValue("local_name", e.target.value);
-                  }
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  form.setValue("local_name", e.target.value);
                 }}
                 size="sm"
               />
 
               <TextInput
                 label="Nº Pedido Cliente"
-                placeholder="Referencia"
+                placeholder="Referencia del cliente"
                 value={form.watch("client_order_number") || ""}
-                onChange={(e) => {
-                  if (typeof e === 'object' && 'target' in e) {
-                    form.setValue("client_order_number", e.target.value);
-                  }
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  form.setValue("client_order_number", e.target.value);
                 }}
                 size="sm"
               />
 
-              <TextInput
-                type="textarea"
-                label="Notas"
-                placeholder="Notas adicionales..."
-                value={form.watch("notes") || ""}
-                onChange={(e) => {
-                  if (typeof e === 'object' && 'target' in e) {
+              <div className="col-span-2">
+                <TextInput
+                  type="textarea"
+                  label="Notas"
+                  placeholder="Notas adicionales sobre el proyecto..."
+                  value={form.watch("notes") || ""}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                     form.setValue("notes", e.target.value);
-                  }
-                }}
-                rows={2}
-                size="sm"
-                className="col-span-2"
-              />
+                  }}
+                  rows={3}
+                  size="sm"
+                />
+              </div>
             </FormSection>
           </div>
 
-          <DialogFooter className="px-6 py-4 border-t border-border/50 bg-muted/30">
+          <DialogFooter className="px-6 py-4 border-t border-border/50 bg-muted/20 gap-2">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
               className="h-9"
@@ -322,7 +336,10 @@ const CreateProjectDialog = ({
                   Creando...
                 </>
               ) : (
-                "Crear Proyecto"
+                <>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Nuevo Proyecto
+                </>
               )}
             </Button>
           </DialogFooter>
