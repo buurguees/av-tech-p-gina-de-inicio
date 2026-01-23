@@ -295,48 +295,77 @@ body.nexo-av-theme-dark p {
   color: hsl(var(--text-secondary)) !important;
 }
 
-/* Status badges - same structure as light theme */
-body.nexo-av-theme-dark .status-success,
-body.nexo-av-theme-dark [class*="bg-green-500/20"] {
+/* Status badges - Dark theme */
+body.nexo-av-theme-dark .status-success {
   background-color: hsl(var(--status-success-bg)) !important;
-  border-color: hsl(var(--status-success-border)) !important;
+  border: 1px solid hsl(var(--status-success-border)) !important;
   color: hsl(var(--status-success-text)) !important;
 }
 
-body.nexo-av-theme-dark .status-warning,
-body.nexo-av-theme-dark [class*="bg-orange-500/20"],
-body.nexo-av-theme-dark [class*="bg-yellow-500/20"] {
+body.nexo-av-theme-dark .status-warning {
   background-color: hsl(var(--status-warning-bg)) !important;
-  border-color: hsl(var(--status-warning-border)) !important;
+  border: 1px solid hsl(var(--status-warning-border)) !important;
   color: hsl(var(--status-warning-text)) !important;
 }
 
-body.nexo-av-theme-dark .status-error,
-body.nexo-av-theme-dark [class*="bg-red-500/20"] {
+body.nexo-av-theme-dark .status-error {
   background-color: hsl(var(--status-error-bg)) !important;
-  border-color: hsl(var(--status-error-border)) !important;
+  border: 1px solid hsl(var(--status-error-border)) !important;
   color: hsl(var(--status-error-text)) !important;
 }
 
-body.nexo-av-theme-dark .status-info,
-body.nexo-av-theme-dark [class*="bg-blue-500/20"] {
+body.nexo-av-theme-dark .status-info {
   background-color: hsl(var(--status-info-bg)) !important;
-  border-color: hsl(var(--status-info-border)) !important;
+  border: 1px solid hsl(var(--status-info-border)) !important;
   color: hsl(var(--status-info-text)) !important;
 }
 
-body.nexo-av-theme-dark .status-neutral,
-body.nexo-av-theme-dark [class*="bg-gray-500/20"] {
+body.nexo-av-theme-dark .status-neutral {
   background-color: hsl(var(--status-neutral-bg)) !important;
-  border-color: hsl(var(--status-neutral-border)) !important;
+  border: 1px solid hsl(var(--status-neutral-border)) !important;
   color: hsl(var(--status-neutral-text)) !important;
 }
 
-body.nexo-av-theme-dark .status-special,
-body.nexo-av-theme-dark [class*="bg-purple-500/20"] {
+body.nexo-av-theme-dark .status-special {
   background-color: hsl(var(--status-special-bg)) !important;
-  border-color: hsl(var(--status-special-border)) !important;
+  border: 1px solid hsl(var(--status-special-border)) !important;
   color: hsl(var(--status-special-text)) !important;
+}
+
+body.nexo-av-theme-dark .status-invoiced {
+  background-color: hsl(175 50% 12%) !important;
+  border: 1px solid hsl(175 50% 25%) !important;
+  color: hsl(175 70% 60%) !important;
+}
+
+body.nexo-av-theme-dark .status-closed {
+  background-color: hsl(215 15% 15%) !important;
+  border: 1px solid hsl(215 15% 25%) !important;
+  color: hsl(215 15% 65%) !important;
+}
+
+body.nexo-av-theme-dark .status-progress {
+  background-color: hsl(45 70% 12%) !important;
+  border: 1px solid hsl(45 70% 25%) !important;
+  color: hsl(45 95% 60%) !important;
+}
+
+body.nexo-av-theme-dark .profit-high {
+  background-color: hsl(142 50% 12%) !important;
+  border: 1px solid hsl(142 50% 25%) !important;
+  color: hsl(142 70% 60%) !important;
+}
+
+body.nexo-av-theme-dark .profit-medium {
+  background-color: hsl(45 70% 12%) !important;
+  border: 1px solid hsl(45 70% 25%) !important;
+  color: hsl(45 95% 60%) !important;
+}
+
+body.nexo-av-theme-dark .profit-low {
+  background-color: hsl(0 60% 12%) !important;
+  border: 1px solid hsl(0 60% 25%) !important;
+  color: hsl(0 72% 60%) !important;
 }
 
 /* Cards, tables, buttons, inputs - inherit from light theme structure */
@@ -506,50 +535,90 @@ body.nexo-av-theme p {
 }
 
 /* ============================================
-   STATUS BADGE SYSTEM
+   STATUS BADGE SYSTEM - Unified Platform Colors
+   Used for projects, invoices, quotes, and all status indicators
    ============================================ */
 
-body.nexo-av-theme .status-success,
-body.nexo-av-theme [class*="bg-green-500/20"] {
+/* --- SUCCESS: Paid, Completed, Approved, Active --- */
+body.nexo-av-theme .status-success {
   background-color: hsl(var(--status-success-bg)) !important;
-  border-color: hsl(var(--status-success-border)) !important;
+  border: 1px solid hsl(var(--status-success-border)) !important;
   color: hsl(var(--status-success-text)) !important;
 }
 
-body.nexo-av-theme .status-warning,
-body.nexo-av-theme [class*="bg-orange-500/20"],
-body.nexo-av-theme [class*="bg-yellow-500/20"] {
+/* --- WARNING: Pending, Paused, Partial, Expired --- */
+body.nexo-av-theme .status-warning {
   background-color: hsl(var(--status-warning-bg)) !important;
-  border-color: hsl(var(--status-warning-border)) !important;
+  border: 1px solid hsl(var(--status-warning-border)) !important;
   color: hsl(var(--status-warning-text)) !important;
 }
 
-body.nexo-av-theme .status-error,
-body.nexo-av-theme [class*="bg-red-500/20"] {
+/* --- ERROR: Rejected, Cancelled, Overdue --- */
+body.nexo-av-theme .status-error {
   background-color: hsl(var(--status-error-bg)) !important;
-  border-color: hsl(var(--status-error-border)) !important;
+  border: 1px solid hsl(var(--status-error-border)) !important;
   color: hsl(var(--status-error-text)) !important;
 }
 
-body.nexo-av-theme .status-info,
-body.nexo-av-theme [class*="bg-blue-500/20"] {
+/* --- INFO: Sent, Issued, In Progress, Planned --- */
+body.nexo-av-theme .status-info {
   background-color: hsl(var(--status-info-bg)) !important;
-  border-color: hsl(var(--status-info-border)) !important;
+  border: 1px solid hsl(var(--status-info-border)) !important;
   color: hsl(var(--status-info-text)) !important;
 }
 
-body.nexo-av-theme .status-neutral,
-body.nexo-av-theme [class*="bg-gray-500/20"] {
+/* --- NEUTRAL: Draft, Pending --- */
+body.nexo-av-theme .status-neutral {
   background-color: hsl(var(--status-neutral-bg)) !important;
-  border-color: hsl(var(--status-neutral-border)) !important;
+  border: 1px solid hsl(var(--status-neutral-border)) !important;
   color: hsl(var(--status-neutral-text)) !important;
 }
 
-body.nexo-av-theme .status-special,
-body.nexo-av-theme [class*="bg-purple-500/20"] {
+/* --- SPECIAL: Completed (Projects), Invoiced (Quotes) --- */
+body.nexo-av-theme .status-special {
   background-color: hsl(var(--status-special-bg)) !important;
-  border-color: hsl(var(--status-special-border)) !important;
+  border: 1px solid hsl(var(--status-special-border)) !important;
   color: hsl(var(--status-special-text)) !important;
+}
+
+/* --- INVOICED: Teal for invoiced projects/quotes --- */
+body.nexo-av-theme .status-invoiced {
+  background-color: hsl(175 60% 95%) !important;
+  border: 1px solid hsl(175 50% 75%) !important;
+  color: hsl(175 70% 30%) !important;
+}
+
+/* --- CLOSED: Slate for closed/archived projects --- */
+body.nexo-av-theme .status-closed {
+  background-color: hsl(215 15% 94%) !important;
+  border: 1px solid hsl(215 15% 80%) !important;
+  color: hsl(215 15% 40%) !important;
+}
+
+/* --- PROGRESS: Yellow/Amber for in-progress items --- */
+body.nexo-av-theme .status-progress {
+  background-color: hsl(45 100% 94%) !important;
+  border: 1px solid hsl(45 90% 70%) !important;
+  color: hsl(35 85% 30%) !important;
+}
+
+/* --- PROFITABILITY BADGES --- */
+body.nexo-av-theme .profit-high {
+  background-color: hsl(142 50% 92%) !important;
+  border: 1px solid hsl(142 50% 75%) !important;
+  color: hsl(142 70% 28%) !important;
+}
+
+body.nexo-av-theme .profit-medium {
+  background-color: hsl(45 100% 94%) !important;
+  border: 1px solid hsl(45 90% 70%) !important;
+  color: hsl(35 85% 30%) !important;
+}
+
+body.nexo-av-theme .profit-low {
+  background-color: hsl(0 86% 97%) !important;
+  border: 1px solid hsl(0 60% 85%) !important;
+  color: hsl(0 72% 38%) !important;
 }
 
 /* Status badge base */
@@ -562,39 +631,24 @@ body.nexo-av-theme .status-badge {
   font-weight: 500;
   letter-spacing: 0.02em;
   border-radius: 4px;
-  border-width: 1px;
 }
 
-/* Status dot */
+/* Status dot indicators */
 body.nexo-av-theme .status-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
 }
 
-body.nexo-av-theme .status-dot-success {
-  background-color: hsl(var(--status-success)) !important;
-}
-
-body.nexo-av-theme .status-dot-warning {
-  background-color: hsl(var(--status-warning)) !important;
-}
-
-body.nexo-av-theme .status-dot-error {
-  background-color: hsl(var(--status-error)) !important;
-}
-
-body.nexo-av-theme .status-dot-info {
-  background-color: hsl(var(--status-info)) !important;
-}
-
-body.nexo-av-theme .status-dot-neutral {
-  background-color: hsl(var(--status-neutral)) !important;
-}
-
-body.nexo-av-theme .status-dot-special {
-  background-color: hsl(var(--status-special)) !important;
-}
+body.nexo-av-theme .status-dot-success { background-color: hsl(var(--status-success)) !important; }
+body.nexo-av-theme .status-dot-warning { background-color: hsl(var(--status-warning)) !important; }
+body.nexo-av-theme .status-dot-error { background-color: hsl(var(--status-error)) !important; }
+body.nexo-av-theme .status-dot-info { background-color: hsl(var(--status-info)) !important; }
+body.nexo-av-theme .status-dot-neutral { background-color: hsl(var(--status-neutral)) !important; }
+body.nexo-av-theme .status-dot-special { background-color: hsl(var(--status-special)) !important; }
+body.nexo-av-theme .status-dot-invoiced { background-color: hsl(175 70% 36%) !important; }
+body.nexo-av-theme .status-dot-closed { background-color: hsl(215 15% 45%) !important; }
+body.nexo-av-theme .status-dot-progress { background-color: hsl(45 95% 45%) !important; }
 
 /* CARDS - Styling moved to components/cards/card.css */
 
