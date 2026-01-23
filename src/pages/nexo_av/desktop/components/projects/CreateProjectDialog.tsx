@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -13,17 +12,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Loader2, Building2, MapPin, FileText, Users } from "lucide-react";
 import { PROJECT_STATUSES } from "@/constants/projectStatuses";
 import TextInput from "../common/TextInput";
 import FormSection from "../common/FormSection";
+import DropDown, { DropDownOption } from "../common/DropDown";
+import StatusSelector, { StatusOption } from "../common/StatusSelector";
 
 const formSchema = z.object({
   client_id: z.string().min(1, "El cliente es obligatorio"),
@@ -116,6 +110,23 @@ const CreateProjectDialog = ({
     
     return parts.join(" - ");
   }, [selectedClient, clientOrderNumber, projectCity, localName]);
+
+  // Convert clients to DropDown options
+  const clientOptions: DropDownOption[] = useMemo(() => {
+    return availableClients.map((client) => ({
+      value: client.id,
+      label: client.company_name,
+    }));
+  }, [availableClients]);
+
+  // Convert PROJECT_STATUSES to StatusSelector options
+  const statusOptions: StatusOption[] = useMemo(() => {
+    return PROJECT_STATUSES.map((status) => ({
+      value: status.value,
+      label: status.label,
+      className: status.className,
+    }));
+  }, []);
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -218,22 +229,13 @@ const CreateProjectDialog = ({
                 <label className="text-xs font-medium text-muted-foreground">
                   Cliente <span className="text-destructive">*</span>
                 </label>
-                <Select
+                <DropDown
+                  options={clientOptions}
                   value={form.watch("client_id")}
-                  onValueChange={(value) => form.setValue("client_id", value, { shouldValidate: true })}
+                  onSelect={(value) => form.setValue("client_id", value, { shouldValidate: true })}
+                  placeholder={loadingClients ? "Cargando..." : "Seleccionar cliente..."}
                   disabled={!!preselectedClientId || loadingClients}
-                >
-                  <SelectTrigger className="h-9 text-sm bg-muted/20 border-border/70 hover:bg-muted/30 focus:ring-2 focus:ring-primary/20">
-                    <SelectValue placeholder={loadingClients ? "Cargando..." : "Seleccionar cliente..."} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border z-[100]">
-                    {availableClients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.company_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                />
                 {form.formState.errors.client_id && (
                   <p className="text-xs text-destructive">
                     {form.formState.errors.client_id.message}
@@ -245,35 +247,11 @@ const CreateProjectDialog = ({
                 <label className="text-xs font-medium text-muted-foreground">
                   Estado inicial
                 </label>
-                <Select
-                  value={form.watch("status")}
-                  onValueChange={(value) => form.setValue("status", value)}
-                >
-                  <SelectTrigger 
-                    className={cn(
-                      "h-9 text-sm border-border/70 hover:opacity-80 focus:ring-2 focus:ring-primary/20",
-                      PROJECT_STATUSES.find(s => s.value === form.watch("status"))?.className
-                    )}
-                  >
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border z-[100]">
-                    {PROJECT_STATUSES.map((status) => (
-                      <SelectItem 
-                        key={status.value} 
-                        value={status.value}
-                        className="cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span 
-                            className={cn("w-2 h-2 rounded-full", status.className.split(' ')[0].replace('/20', ''))} 
-                          />
-                          {status.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <StatusSelector
+                  currentStatus={form.watch("status")}
+                  statusOptions={statusOptions}
+                  onStatusChange={(value) => form.setValue("status", value)}
+                />
               </div>
             </FormSection>
 
