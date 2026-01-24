@@ -40,19 +40,33 @@ interface Client {
   lead_stage?: string;
 }
 
-export interface CreateProjectDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
-  preselectedClientId?: string;
+interface ProjectDetail {
+  id: string;
+  project_number: string;
+  project_name: string;
+  client_id: string | null;
+  client_name: string | null;
+  status: string;
+  project_address: string | null;
+  project_city: string | null;
+  client_order_number: string | null;
+  local_name: string | null;
+  notes: string | null;
 }
 
-const CreateProjectDialog = ({
+export interface EditProjectDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  project: ProjectDetail;
+  onSuccess: () => void;
+}
+
+const EditProjectDialog = ({
   open,
   onOpenChange,
+  project,
   onSuccess,
-  preselectedClientId,
-}: CreateProjectDialogProps) => {
+}: EditProjectDialogProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
@@ -61,16 +75,16 @@ const CreateProjectDialog = ({
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      client_id: preselectedClientId || "",
-      status: "PLANNED",
-      project_address: "",
-      project_city: "",
+      client_id: project.client_id || "",
+      status: project.status || "PLANNED",
+      project_address: project.project_address || "",
+      project_city: project.project_city || "",
       postal_code: "",
       province: "",
       country: "España",
-      local_name: "",
-      client_order_number: "",
-      notes: "",
+      local_name: project.local_name || "",
+      client_order_number: project.client_order_number || "",
+      notes: project.notes || "",
     },
   });
 
@@ -90,13 +104,20 @@ const CreateProjectDialog = ({
     return availableClients.find(c => c.id === clientId);
   }, [availableClients, clientId]);
 
-  // Generate project name automatically
+  // Generate project name automatically (same logic as CreateProjectDialog)
   const generatedProjectName = useMemo(() => {
     const parts: string[] = [];
+    
+    // Add project number
+    if (project.project_number) {
+      parts.push(project.project_number);
+    }
     
     // Add client name
     if (selectedClient?.company_name) {
       parts.push(selectedClient.company_name);
+    } else if (project.client_name) {
+      parts.push(project.client_name);
     }
     
     // Add client order number
@@ -115,7 +136,7 @@ const CreateProjectDialog = ({
     }
     
     return parts.join(" - ");
-  }, [selectedClient, clientOrderNumber, projectCity, localName]);
+  }, [project.project_number, project.client_name, selectedClient, clientOrderNumber, projectCity, localName]);
 
   // Convert clients to DropDown options
   const clientOptions: DropDownOption[] = useMemo(() => {
@@ -155,60 +176,161 @@ const CreateProjectDialog = ({
     }
   }, [open]);
 
-  useEffect(() => {
-    if (open) {
-      form.reset({
-        client_id: preselectedClientId || "",
-        status: "PLANNED",
-        project_address: "",
-        project_city: "",
-        postal_code: "",
+  // Function to parse address and separate components
+  const parseAddress = (fullAddress: string | null) => {
+    if (!fullAddress) {
+      return {
+        street: "",
+        city: "",
+        postalCode: "",
         province: "",
         country: "España",
-        local_name: "",
-        client_order_number: "",
-        notes: "",
+      };
+    }
+
+    // Split by comma
+    const parts = fullAddress.split(",").map((p) => p.trim()).filter((p) => p.length > 0);
+    
+    let street = "";
+    let city = "";
+    let postalCode = "";
+    let province = "";
+    let country = "España";
+
+    if (parts.length === 0) {
+      return { street: fullAddress, city, postalCode, province, country };
+    }
+
+    // Pattern: "Dirección, Ciudad, Código Postal, Provincia/Ciudad, País"
+    // Or: "Dirección, Ciudad, Código Postal, Ciudad (repetida)"
+    
+    // First part is usually the street address
+    street = parts[0];
+
+    // Try to find postal code (usually 5 digits)
+    const postalCodeIndex = parts.findIndex((p) => /^\d{5}$/.test(p));
+    if (postalCodeIndex !== -1) {
+      postalCode = parts[postalCodeIndex];
+      
+      // City is usually before postal code
+      if (postalCodeIndex > 0) {
+        city = parts[postalCodeIndex - 1];
+      }
+      
+      // Province or additional info after postal code
+      if (postalCodeIndex < parts.length - 1) {
+        const nextPart = parts[postalCodeIndex + 1];
+        // If it's the same as city, it's probably a duplicate, otherwise it's province
+        if (nextPart.toLowerCase() !== city.toLowerCase()) {
+          province = nextPart;
+        }
+      }
+      
+      // Country might be the last part if it's not a duplicate
+      if (parts.length > postalCodeIndex + 2) {
+        const lastPart = parts[parts.length - 1];
+        if (lastPart.toLowerCase() !== city.toLowerCase() && lastPart.toLowerCase() !== province.toLowerCase()) {
+          country = lastPart;
+        }
+      }
+    } else {
+      // No postal code found, try simpler parsing
+      if (parts.length >= 1) {
+        street = parts[0];
+      }
+      if (parts.length >= 2) {
+        city = parts[1];
+      }
+      if (parts.length >= 3) {
+        // Could be postal code or province
+        const thirdPart = parts[2];
+        if (/^\d{5}$/.test(thirdPart)) {
+          postalCode = thirdPart;
+        } else {
+          province = thirdPart;
+        }
+      }
+      if (parts.length >= 4) {
+        const fourthPart = parts[3];
+        if (!postalCode && /^\d{5}$/.test(fourthPart)) {
+          postalCode = fourthPart;
+        } else if (!province) {
+          province = fourthPart;
+        }
+      }
+    }
+
+    // If we have project_city from DB, use it
+    if (project.project_city && !city) {
+      city = project.project_city;
+    }
+
+    return { street, city, postalCode, province, country };
+  };
+
+  useEffect(() => {
+    if (open) {
+      const parsedAddress = parseAddress(project.project_address);
+      
+      form.reset({
+        client_id: project.client_id || "",
+        status: project.status || "PLANNED",
+        project_address: parsedAddress.street,
+        project_city: parsedAddress.city || project.project_city || "",
+        postal_code: parsedAddress.postalCode,
+        province: parsedAddress.province,
+        country: parsedAddress.country,
+        local_name: project.local_name || "",
+        client_order_number: project.client_order_number || "",
+        notes: project.notes || "",
       });
     }
-  }, [open, preselectedClientId, form]);
+  }, [open, project, form]);
 
   const onSubmit = async (data: FormData) => {
-    if (!generatedProjectName.trim()) {
-      toast({
-        title: "Error",
-        description: "No se puede crear un proyecto sin nombre. Selecciona un cliente.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       setLoading(true);
 
-      const { error } = await supabase.rpc("create_project", {
-        p_project_name: generatedProjectName,
-        p_client_id: data.client_id,
-        p_status: data.status,
-        p_project_address: data.project_address || null,
-        p_project_city: data.project_city || null,
-        p_local_name: data.local_name || null,
-        p_client_order_number: data.client_order_number || null,
-      });
+      // Get current form values to ensure we have all the data
+      const formValues = form.getValues();
 
-      if (error) throw error;
+      const updateData = {
+        p_project_id: project.id,
+        p_status: formValues.status || data.status || project.status,
+        p_project_address: (formValues.project_address || data.project_address || "").trim() || null,
+        p_project_city: (formValues.project_city || data.project_city || "").trim() || null,
+        p_local_name: (formValues.local_name || data.local_name || "").trim() || null,
+        p_client_order_number: (formValues.client_order_number || data.client_order_number || "").trim() || null,
+        p_notes: (formValues.notes || data.notes || "").trim() || null,
+      };
+
+      console.log("Updating project with data:", updateData);
+
+      const { error, data: result } = await supabase.rpc("update_project", updateData);
+
+      if (error) {
+        console.error("RPC Error:", error);
+        throw error;
+      }
+
+      console.log("Update result:", result);
+
+      if (result === false) {
+        throw new Error("No se pudo actualizar el proyecto. Verifica que el proyecto exista.");
+      }
 
       toast({
-        title: "Proyecto creado",
-        description: "El proyecto se ha creado correctamente.",
+        title: "Proyecto actualizado",
+        description: "El proyecto se ha actualizado correctamente.",
       });
 
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
-      console.error("Error creating project:", error);
+      console.error("Error updating project:", error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo crear el proyecto",
+        description: error.message || "No se pudo actualizar el proyecto",
         variant: "destructive",
       });
     } finally {
@@ -222,7 +344,7 @@ const CreateProjectDialog = ({
         <DialogHeader className="px-6 pt-5 pb-4 border-b border-border/50">
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
             <Building2 className="h-5 w-5 text-primary" />
-            Crear Nuevo Proyecto
+            Editar Proyecto
           </DialogTitle>
         </DialogHeader>
 
@@ -243,7 +365,7 @@ const CreateProjectDialog = ({
                   value={form.watch("client_id")}
                   onSelect={(value) => form.setValue("client_id", value, { shouldValidate: true })}
                   placeholder={loadingClients ? "Cargando..." : "Seleccionar cliente..."}
-                  disabled={!!preselectedClientId || loadingClients}
+                  disabled={true} // Client ID cannot be changed after creation
                 />
                 {form.formState.errors.client_id && (
                   <p className="text-xs text-destructive">
@@ -254,7 +376,7 @@ const CreateProjectDialog = ({
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">
-                  Estado inicial
+                  Estado
                 </label>
                 <StatusSelector
                   currentStatus={form.watch("status")}
@@ -276,7 +398,7 @@ const CreateProjectDialog = ({
                 placeholder="Calle y número del local"
                 value={form.watch("project_address") || ""}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  form.setValue("project_address", e.target.value);
+                  form.setValue("project_address", e.target.value, { shouldValidate: true });
                 }}
                 size="sm"
               />
@@ -287,7 +409,7 @@ const CreateProjectDialog = ({
                 placeholder="Ciudad"
                 value={form.watch("project_city") || ""}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  form.setValue("project_city", e.target.value);
+                  form.setValue("project_city", e.target.value, { shouldValidate: true });
                 }}
                 size="sm"
               />
@@ -298,7 +420,7 @@ const CreateProjectDialog = ({
                 placeholder="08000"
                 value={form.watch("postal_code") || ""}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  form.setValue("postal_code", e.target.value);
+                  form.setValue("postal_code", e.target.value, { shouldValidate: true });
                 }}
                 size="sm"
               />
@@ -309,7 +431,7 @@ const CreateProjectDialog = ({
                 placeholder="Provincia"
                 value={form.watch("province") || ""}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  form.setValue("province", e.target.value);
+                  form.setValue("province", e.target.value, { shouldValidate: true });
                 }}
                 size="sm"
               />
@@ -320,7 +442,7 @@ const CreateProjectDialog = ({
                 placeholder="País"
                 value={form.watch("country") || ""}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  form.setValue("country", e.target.value);
+                  form.setValue("country", e.target.value, { shouldValidate: true });
                 }}
                 size="sm"
               />
@@ -339,7 +461,7 @@ const CreateProjectDialog = ({
                   placeholder="Referencia del cliente"
                   value={form.watch("client_order_number") || ""}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    form.setValue("client_order_number", e.target.value);
+                    form.setValue("client_order_number", e.target.value, { shouldValidate: true });
                   }}
                   size="sm"
                 />
@@ -348,7 +470,7 @@ const CreateProjectDialog = ({
                   placeholder="Ej: Tienda Centro"
                   value={form.watch("local_name") || ""}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    form.setValue("local_name", e.target.value);
+                    form.setValue("local_name", e.target.value, { shouldValidate: true });
                   }}
                   size="sm"
                 />
@@ -361,7 +483,7 @@ const CreateProjectDialog = ({
                 placeholder="Notas adicionales sobre el proyecto..."
                 value={form.watch("notes") || ""}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                  form.setValue("notes", e.target.value);
+                  form.setValue("notes", e.target.value, { shouldValidate: true });
                 }}
                 rows={3}
                 size="sm"
@@ -376,7 +498,7 @@ const CreateProjectDialog = ({
               <div className="text-sm font-medium text-foreground min-h-[24px]">
                 {generatedProjectName || (
                   <span className="text-muted-foreground/60 italic">
-                    Selecciona un cliente para generar el nombre...
+                    El nombre se generará automáticamente...
                   </span>
                 )}
               </div>
@@ -393,16 +515,16 @@ const CreateProjectDialog = ({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading || !clientId} className="h-9">
+            <Button type="submit" disabled={loading} className="h-9">
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creando...
+                  Guardando...
                 </>
               ) : (
                 <>
                   <Building2 className="mr-2 h-4 w-4" />
-                  Nuevo Proyecto
+                  Guardar Cambios
                 </>
               )}
             </Button>
@@ -413,4 +535,4 @@ const CreateProjectDialog = ({
   );
 };
 
-export default CreateProjectDialog;
+export default EditProjectDialog;

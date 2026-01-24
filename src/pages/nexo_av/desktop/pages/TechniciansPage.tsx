@@ -1,46 +1,28 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Search,
-  Loader2,
-  Plus,
-  ChevronDown,
-  Filter,
   UserRound,
-  Mail,
-  Phone,
-  Euro,
-  MapPin,
-  Star,
   Building2,
   Briefcase,
-  Users,
-  TrendingUp
+  Euro,
+  TrendingUp,
+  Mail,
+  Phone,
+  MapPin,
+  Star,
 } from "lucide-react";
+import { usePagination } from "@/hooks/usePagination";
 import { useToast } from "@/hooks/use-toast";
-import { useDebounce } from "@/hooks/useDebounce";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import PaginationControls from "../components/common/PaginationControls";
+import { useDebounce } from "@/hooks/useDebounce";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import DetailActionButton from "../components/navigation/DetailActionButton";
 import CreateTechnicianDialog from "../components/technicians/CreateTechnicianDialog";
-import { MoreVertical, Info } from "lucide-react";
-
+import DataList, { DataListColumn } from "../components/common/DataList";
+import SearchBar from "../components/common/SearchBar";
 
 interface Technician {
   id: string;
@@ -63,54 +45,141 @@ interface Technician {
   created_at: string;
 }
 
+const TECHNICIAN_TYPES = [
+  { value: 'FREELANCER', label: 'Autónomo', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  { value: 'COMPANY', label: 'Empresa', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  { value: 'EMPLOYEE', label: 'Plantilla', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+];
+
+const TECHNICIAN_STATUSES = [
+  { value: 'ACTIVE', label: 'Activo', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  { value: 'INACTIVE', label: 'Inactivo', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
+  { value: 'BLOCKED', label: 'Bloqueado', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+];
+
+const getTypeInfo = (type: string) => {
+  return TECHNICIAN_TYPES.find(t => t.value === type) || TECHNICIAN_TYPES[0];
+};
+
+const getStatusInfo = (status: string) => {
+  return TECHNICIAN_STATUSES.find(s => s.value === status) || TECHNICIAN_STATUSES[1];
+};
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
 const TechniciansPageDesktop = () => {
-  const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [searchInput, setSearchInput] = useState("");
-  const debouncedSearchQuery = useDebounce(searchInput, 500);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [monthlyCosts, setMonthlyCosts] = useState({
-    freelancers: 0,
-    companies: 0,
-    employees: 0,
-    totalExternal: 0,
-    totalEmployees: 0,
-    avgFreelancer: 0,
-    avgCompany: 0,
-    avgEmployee: 0
+  const debouncedSearchTerm = useDebounce(searchInput, 500);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [technicianKPIs, setTechnicianKPIs] = useState({
+    byType: {} as Record<string, number>,
+    byStatus: {} as Record<string, number>,
+    totalTechnicians: 0,
+    monthlyCosts: {
+      freelancers: 0,
+      companies: 0,
+      employees: 0,
+      totalExternal: 0,
+      totalEmployees: 0,
+      avgFreelancer: 0,
+      avgCompany: 0,
+      avgEmployee: 0
+    }
   });
 
-  useEffect(() => {
-    fetchTechnicians();
-  }, [debouncedSearchQuery, statusFilter, typeFilter]);
-
-  useEffect(() => {
-    if (technicians.length > 0) {
-      calculateMonthlyCosts();
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
     }
-  }, [technicians]);
+  };
+
+  const sortedTechnicians = [...technicians].sort((a, b) => {
+    if (!sortColumn) return 0;
+
+    let aValue: any;
+    let bValue: any;
+
+    switch (sortColumn) {
+      case "number":
+        aValue = a.technician_number || "";
+        bValue = b.technician_number || "";
+        break;
+      case "company":
+        aValue = a.company_name || "";
+        bValue = b.company_name || "";
+        break;
+      case "type":
+        aValue = a.type;
+        bValue = b.type;
+        break;
+      case "status":
+        aValue = a.status;
+        bValue = b.status;
+        break;
+      case "city":
+        aValue = a.city || "";
+        bValue = b.city || "";
+        break;
+      default:
+        return 0;
+    }
+
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  // Pagination hook must be called unconditionally at the top level
+  const {
+    currentPage,
+    totalPages,
+    paginatedData: paginatedTechnicians,
+    goToPage,
+    nextPage,
+    prevPage,
+    canGoNext,
+    canGoPrev,
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination(sortedTechnicians, { pageSize: 50 });
 
   const fetchTechnicians = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase.rpc("list_technicians", {
-        p_search: debouncedSearchQuery || null,
+        p_search: debouncedSearchTerm || null,
         p_status: statusFilter === "all" ? null : statusFilter,
         p_type: typeFilter === "all" ? null : typeFilter,
       });
+
       if (error) throw error;
       setTechnicians(data || []);
-    } catch (error: any) {
-      console.error("Error fetching technicians:", error);
+    } catch (err: any) {
+      console.error('Error fetching technicians:', err);
       toast({
         title: "Error",
-        description: error.message || "No se pudieron cargar los técnicos",
+        description: err.message || "No se pudieron cargar los técnicos",
         variant: "destructive",
       });
     } finally {
@@ -118,17 +187,32 @@ const TechniciansPageDesktop = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-ES", {
-      style: "currency",
-      currency: "EUR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  useEffect(() => {
+    fetchTechnicians();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm, statusFilter, typeFilter]);
 
-  const calculateMonthlyCosts = async () => {
+  useEffect(() => {
+    if (technicians.length > 0) {
+      calculateTechnicianKPIs();
+    }
+  }, [technicians]);
+
+  const calculateTechnicianKPIs = async () => {
     try {
+      // Contar técnicos por tipo
+      const byType: Record<string, number> = {};
+      TECHNICIAN_TYPES.forEach(type => {
+        byType[type.value] = technicians.filter(t => t.type === type.value).length;
+      });
+
+      // Contar técnicos por estado
+      const byStatus: Record<string, number> = {};
+      TECHNICIAN_STATUSES.forEach(status => {
+        byStatus[status.value] = technicians.filter(t => t.status === status.value).length;
+      });
+
+      // Calcular costes mensuales
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -149,7 +233,6 @@ const TechniciansPageDesktop = () => {
 
       if (invoicesError) {
         console.error('Error fetching purchase invoices:', invoicesError);
-        return;
       }
 
       // Filtrar facturas del mes actual para técnicos
@@ -187,40 +270,40 @@ const TechniciansPageDesktop = () => {
       const avgFreelancer = activeFreelancers.length > 0 ? totalFreelancers / activeFreelancers.length : 0;
       const avgCompany = activeCompanies.length > 0 ? totalCompanies / activeCompanies.length : 0;
 
-      setMonthlyCosts({
-        freelancers: totalFreelancers,
-        companies: totalCompanies,
-        employees: totalEmployees,
-        totalExternal,
-        totalEmployees,
-        avgFreelancer,
-        avgCompany,
-        avgEmployee
+      setTechnicianKPIs({
+        byType,
+        byStatus,
+        totalTechnicians: technicians.length,
+        monthlyCosts: {
+          freelancers: totalFreelancers,
+          companies: totalCompanies,
+          employees: totalEmployees,
+          totalExternal,
+          totalEmployees,
+          avgFreelancer,
+          avgCompany,
+          avgEmployee
+        }
       });
     } catch (error) {
-      console.error('Error calculating monthly costs:', error);
+      console.error('Error calculating technician KPIs:', error);
     }
   };
 
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return { label: 'Activo', color: 'bg-green-100 text-green-700 border-green-300' };
-      case 'INACTIVE':
-        return { label: 'Inactivo', color: 'bg-zinc-100 text-zinc-700 border-zinc-300' };
-      case 'BLOCKED':
-        return { label: 'Bloqueado', color: 'bg-red-100 text-red-700 border-red-300' };
-      default:
-        return { label: status, color: 'bg-zinc-100 text-zinc-700 border-zinc-300' };
-    }
-  };
+  if (loading && technicians.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-6 w-6 border-2 border-border border-t-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full">
-      <div className="w-full px-3 md:px-2 pb-4 md:pb-8">
+    <div className="w-full h-full">
+      <div className="w-full h-full">
         <div>
-          {/* Summary Cards - Recuento por tipo - Optimizado */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+          {/* KPIs Cards - Recuento por Tipo - Optimizado */}
+          <div className="grid grid-cols-3 gap-2 mb-3">
             <div className="bg-card/50 border border-border rounded-lg p-2">
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-blue-500/10 rounded text-blue-600">
@@ -230,7 +313,7 @@ const TechniciansPageDesktop = () => {
               </div>
               <div>
                 <span className="text-lg font-bold text-foreground">
-                  {technicians.filter(t => t.type === 'FREELANCER').length}
+                  {technicianKPIs.byType['FREELANCER'] || 0}
                 </span>
                 <span className="text-[10px] text-muted-foreground ml-1">
                   ({technicians.filter(t => t.type === 'FREELANCER' && t.status === 'ACTIVE').length} activos)
@@ -247,7 +330,7 @@ const TechniciansPageDesktop = () => {
               </div>
               <div>
                 <span className="text-lg font-bold text-foreground">
-                  {technicians.filter(t => t.type === 'COMPANY').length}
+                  {technicianKPIs.byType['COMPANY'] || 0}
                 </span>
                 <span className="text-[10px] text-muted-foreground ml-1">
                   ({technicians.filter(t => t.type === 'COMPANY' && t.status === 'ACTIVE').length} activas)
@@ -264,7 +347,7 @@ const TechniciansPageDesktop = () => {
               </div>
               <div>
                 <span className="text-lg font-bold text-foreground">
-                  {technicians.filter(t => t.type === 'EMPLOYEE').length}
+                  {technicianKPIs.byType['EMPLOYEE'] || 0}
                 </span>
                 <span className="text-[10px] text-muted-foreground ml-1">
                   ({technicians.filter(t => t.type === 'EMPLOYEE' && t.status === 'ACTIVE').length} activos)
@@ -273,7 +356,7 @@ const TechniciansPageDesktop = () => {
             </div>
           </div>
 
-          {/* Costes Mensuales - Optimizado */}
+          {/* KPIs Cards - Costes Mensuales - Optimizado */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
             <div className="bg-card/50 border border-border rounded-lg p-2">
               <div className="flex items-center gap-2 mb-1">
@@ -284,12 +367,12 @@ const TechniciansPageDesktop = () => {
               </div>
               <div>
                 <span className="text-base font-bold text-foreground">
-                  {formatCurrency(monthlyCosts.totalExternal + monthlyCosts.totalEmployees)}
+                  {formatCurrency(technicianKPIs.monthlyCosts.totalExternal + technicianKPIs.monthlyCosts.totalEmployees)}
                 </span>
                 <div className="flex gap-1 mt-0.5 text-[10px] text-muted-foreground">
-                  <span>Ext: {formatCurrency(monthlyCosts.totalExternal)}</span>
+                  <span>Ext: {formatCurrency(technicianKPIs.monthlyCosts.totalExternal)}</span>
                   <span>•</span>
-                  <span>Pl: {formatCurrency(monthlyCosts.totalEmployees)}</span>
+                  <span>Pl: {formatCurrency(technicianKPIs.monthlyCosts.totalEmployees)}</span>
                 </div>
               </div>
             </div>
@@ -303,7 +386,7 @@ const TechniciansPageDesktop = () => {
               </div>
               <div>
                 <span className="text-base font-bold text-foreground">
-                  {formatCurrency(monthlyCosts.avgFreelancer)}
+                  {formatCurrency(technicianKPIs.monthlyCosts.avgFreelancer)}
                 </span>
               </div>
             </div>
@@ -317,7 +400,7 @@ const TechniciansPageDesktop = () => {
               </div>
               <div>
                 <span className="text-base font-bold text-foreground">
-                  {formatCurrency(monthlyCosts.avgCompany)}
+                  {formatCurrency(technicianKPIs.monthlyCosts.avgCompany)}
                 </span>
               </div>
             </div>
@@ -331,179 +414,244 @@ const TechniciansPageDesktop = () => {
               </div>
               <div>
                 <span className="text-base font-bold text-foreground">
-                  {formatCurrency(monthlyCosts.avgEmployee)}
+                  {formatCurrency(technicianKPIs.monthlyCosts.avgEmployee)}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Header - Estilo ProjectsPage */}
+          {/* DetailNavigationBar */}
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground">Técnicos</h1>
-                <Info className="h-3 w-3 text-muted-foreground" />
-              </div>
-
-              <div className="flex items-center gap-2">
-                    <Button
-                  onClick={() => setIsDialogOpen(true)}
-                  className="h-9 px-2 text-[10px] font-medium"
-                >
-                  <Plus className="h-3 w-3 mr-1.5" />
-                  Nuevo técnico
-                  <span className="ml-2 text-[9px] px-1.5 py-0.5 opacity-70">N</span>
-                </Button>
-              </div>
-            </div>
-
-            {/* Search Bar - Estilo Holded */}
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1 min-w-[200px] max-w-md">
-                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar técnicos..."
+            <DetailNavigationBar
+              pageTitle="Técnicos"
+              contextInfo={
+                <SearchBar
                   value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="pr-11 h-8 text-[9px] px-1.5 py-0.5"
+                  onChange={setSearchInput}
+                  items={technicians}
+                  getSearchText={(tech) => `${tech.company_name} ${tech.contact_email} ${tech.contact_phone || ''} ${tech.technician_number || ''} ${tech.contact_name || ''}`}
+                  renderResult={(tech) => ({
+                    id: tech.id,
+                    label: tech.company_name,
+                    subtitle: tech.contact_email || tech.contact_phone,
+                    icon: <UserRound className="h-4 w-4" />,
+                    data: tech,
+                  })}
+                  onSelectResult={(result) => {
+                    navigate(`/nexo-av/${userId}/technicians/${result.data.id}`);
+                  }}
+                  placeholder="Buscar técnicos..."
+                  maxResults={8}
+                  debounceMs={300}
                 />
-              </div>
-            </div>
+              }
+              tools={
+                <DetailActionButton
+                  actionType="new_technician"
+                  onClick={() => setShowCreateDialog(true)}
+                />
+              }
+            />
           </div>
 
-          {/* Table */}
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : technicians.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <UserRound className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No hay técnicos</p>
-              <p className="text-muted-foreground/70 text-[10px] mt-1">
-                Crea tu primer técnico para comenzar
-              </p>
-            </div>
-          ) : (
-            <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent bg-muted/30">
-                    <TableHead className="text-white/70 text-[10px] px-2">Técnico</TableHead>
-                    <TableHead className="text-white/70 text-[10px] px-2">Especialidades</TableHead>
-                    <TableHead className="text-white/70 text-[10px] px-2">Tarifas</TableHead>
-                    <TableHead className="text-white/70 text-[10px] px-2 text-center">Estado</TableHead>
-                    <TableHead className="text-white/70 w-10"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {technicians.map((tech) => {
-                    const statusInfo = getStatusInfo(tech.status);
+          {/* DataList */}
+          <DataList
+            data={paginatedTechnicians}
+            columns={[
+              {
+                key: "technician_number",
+                label: "Nº",
+                sortable: true,
+                align: "left",
+                priority: 1,
+                render: (tech) => (
+                  <span className="text-foreground/80 text-[10px]">
+                    {tech.technician_number || '-'}
+                  </span>
+                ),
+              },
+              {
+                key: "company_name",
+                label: "Técnico",
+                sortable: true,
+                align: "left",
+                priority: 3,
+                render: (tech) => (
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-muted/30">
+                      <UserRound className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-foreground font-medium text-[10px]">{tech.company_name}</p>
+                      {tech.city && (
+                        <p className="text-muted-foreground text-[9px]">
+                          {tech.city}{tech.province ? `, ${tech.province}` : ''}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                key: "type",
+                label: "Tipo",
+                sortable: true,
+                align: "center",
+                priority: 2,
+                render: (tech) => {
+                  const typeInfo = getTypeInfo(tech.type);
+                  return (
+                    <div className="flex justify-center">
+                      <Badge variant="outline" className={cn(typeInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                        {typeInfo.label}
+                      </Badge>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: "status",
+                label: "Estado",
+                sortable: true,
+                align: "center",
+                priority: 4,
+                render: (tech) => {
+                  const statusInfo = getStatusInfo(tech.status);
+                  return (
+                    <div className="flex justify-center">
+                      <Badge variant="outline" className={cn(statusInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                        {statusInfo.label}
+                      </Badge>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: "specialties",
+                label: "Especialidades",
+                align: "left",
+                priority: 5,
+                render: (tech) => (
+                  <div className="flex flex-wrap gap-1 max-w-[200px]">
+                    {tech.specialties && tech.specialties.length > 0 ? (
+                      tech.specialties.slice(0, 2).map((s, i) => (
+                        <Badge key={i} variant="secondary" className="text-[9px] px-1.5 py-0.5">
+                          {s}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground text-[9px]">—</span>
+                    )}
+                    {tech.specialties && tech.specialties.length > 2 && (
+                      <span className="text-[9px] text-muted-foreground">+{tech.specialties.length - 2}</span>
+                    )}
+                  </div>
+                ),
+              },
+              {
+                key: "rates",
+                label: "Tarifas",
+                align: "right",
+                priority: 6,
+                render: (tech) => {
+                  if (tech.type === "EMPLOYEE" && tech.monthly_salary && tech.monthly_salary > 0) {
                     return (
-                      <TableRow
-                        key={tech.id}
-                        className={cn(
-                          "border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200"
-                        )}
-                        onClick={() => navigate(`/nexo-av/${userId}/technicians/${tech.id}`)}
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-600 font-bold text-[10px]">
-                              {tech.company_name.substring(0, 1).toUpperCase()}
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="font-medium text-white text-[10px]">
-                                {tech.company_name}
-                              </span>
-                              {tech.city && (
-                                <span className="text-[9px] px-1.5 py-0.5 text-white/50 mt-0.5">{tech.city}</span>
-                              )}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1 max-w-[250px]">
-                            {tech.specialties && tech.specialties.length > 0 ? (
-                              tech.specialties.slice(0, 3).map((s, i) => (
-                                <Badge key={i} variant="secondary" className="text-[9px] px-1.5 py-0.5">
-                                  {s}
-                                </Badge>
-                              ))
-                            ) : (
-                              <span className="text-white/50 text-[9px] px-1.5 py-0.5">—</span>
-                            )}
-                            {tech.specialties && tech.specialties.length > 3 && (
-                              <span className="text-[9px] px-1.5 py-0.5 text-white/50">+{tech.specialties.length - 3}</span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-0.5">
-                            {tech.type === "EMPLOYEE" && tech.monthly_salary && tech.monthly_salary > 0 ? (
-                              <span className="text-[10px] text-white/80 font-medium">{formatCurrency(tech.monthly_salary)}/mes</span>
-                            ) : (
-                              <>
-                                {tech.daily_rate && tech.daily_rate > 0 && (
-                                  <span className="text-[10px] text-white/80 font-medium">{formatCurrency(tech.daily_rate)}/día</span>
-                                )}
-                                {tech.hourly_rate && tech.hourly_rate > 0 && (
-                                  <span className="text-[9px] px-1.5 py-0.5 text-white/60">{formatCurrency(tech.hourly_rate)}/h</span>
-                                )}
-                                {(!tech.daily_rate || tech.daily_rate === 0) && (!tech.hourly_rate || tech.hourly_rate === 0) && (
-                                  <span className="text-white/50 text-[9px] px-1.5 py-0.5">—</span>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex justify-center">
-                            <Badge variant="outline" className={cn(statusInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
-                              {statusInfo.label}
-                            </Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 text-white/40 hover:text-white hover:bg-white/10"
-                              >
-                                <MoreVertical className="h-3 w-3" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                              <DropdownMenuItem
-                                className="text-white hover:bg-white/10"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(`/nexo-av/${userId}/technicians/${tech.id}`);
-                                }}
-                              >
-                                Ver detalle
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
+                      <span className="text-foreground font-medium text-[10px]">
+                        {formatCurrency(tech.monthly_salary)}/mes
+                      </span>
                     );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+                  }
+                  return (
+                    <div className="flex flex-col gap-0.5 items-end">
+                      {tech.daily_rate && tech.daily_rate > 0 && (
+                        <span className="text-[10px] text-foreground font-medium">{formatCurrency(tech.daily_rate)}/día</span>
+                      )}
+                      {tech.hourly_rate && tech.hourly_rate > 0 && (
+                        <span className="text-[9px] text-muted-foreground">{formatCurrency(tech.hourly_rate)}/h</span>
+                      )}
+                      {(!tech.daily_rate || tech.daily_rate === 0) && (!tech.hourly_rate || tech.hourly_rate === 0) && (
+                        <span className="text-muted-foreground text-[9px]">—</span>
+                      )}
+                    </div>
+                  );
+                },
+              },
+              {
+                key: "contact_email",
+                label: "Email",
+                align: "left",
+                priority: 7,
+                render: (tech) => (
+                  <div className="flex items-center gap-1.5 text-muted-foreground text-[9px]">
+                    <Mail className="h-2.5 w-2.5" />
+                    <span className="truncate max-w-[200px]">{tech.contact_email || '-'}</span>
+                  </div>
+                ),
+              },
+              {
+                key: "contact_phone",
+                label: "Teléfono",
+                align: "left",
+                priority: 8,
+                render: (tech) => (
+                  <div className="flex items-center gap-1.5 text-muted-foreground text-[9px]">
+                    <Phone className="h-2.5 w-2.5" />
+                    {tech.contact_phone || '-'}
+                  </div>
+                ),
+              },
+            ]}
+            actions={[
+              {
+                label: "Ver detalle",
+                onClick: (tech) => navigate(`/nexo-av/${userId}/technicians/${tech.id}`),
+              },
+              {
+                label: "Editar",
+                onClick: () => {},
+              },
+              {
+                label: "Duplicar",
+                onClick: () => {},
+              },
+            ]}
+            onItemClick={(tech) => navigate(`/nexo-av/${userId}/technicians/${tech.id}`)}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            loading={loading}
+            emptyMessage="No hay técnicos"
+            emptyIcon={<UserRound className="h-16 w-16 text-muted-foreground" />}
+            getItemId={(tech) => tech.id}
+          />
+
+          {/* Paginación */}
+          {!loading && technicians.length > 0 && totalPages > 1 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              totalItems={totalItems}
+              canGoPrev={canGoPrev}
+              canGoNext={canGoNext}
+              onPrevPage={prevPage}
+              onNextPage={nextPage}
+              onGoToPage={goToPage}
+            />
           )}
         </div>
       </div>
 
       <CreateTechnicianDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
         onSuccess={() => {
-          setIsDialogOpen(false);
           fetchTechnicians();
+          toast({
+            title: "Técnico creado",
+            description: "El técnico se ha creado correctamente.",
+          });
         }}
       />
     </div>

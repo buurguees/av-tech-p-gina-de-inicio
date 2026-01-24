@@ -22,19 +22,24 @@
   padding: clamp(0.3125rem, 0.375rem, 0.5rem) clamp(0.875rem, 1rem, 1.25rem);
 }
 
-/* Grupo izquierdo de tabs */
+/* Grupo izquierdo de tabs - Distribución simétrica */
 .tab-nav__left {
   display: flex;
   align-items: center;
   gap: clamp(0.25rem, 0.375rem, 0.5rem);
+  flex: 1;
+  min-width: 0;
 }
 
-/* Grupo derecho de tabs */
+/* Grupo derecho de tabs - Aislado con stroke */
 .tab-nav__right {
   display: flex;
   align-items: center;
   gap: clamp(0.25rem, 0.375rem, 0.5rem);
   margin-left: auto;
+  padding-left: clamp(0.75rem, 1rem, 1.25rem);
+  border-left: 1px solid hsl(var(--border));
+  flex-shrink: 0;
 }
 
 /* Botón de tab - Autoajuste según número de tabs */
@@ -63,6 +68,12 @@
   /* Igual que sidebar */
   margin: clamp(0.0625rem, 0.125rem, 0.1875rem);
   /* Pequeño margen para que se vea el border-radius - autoajuste fluido */
+}
+
+/* Tab aislado (Histórico) - No se expande, tamaño fijo */
+.tab-nav__button--isolated {
+  flex: 0 0 auto;
+  min-width: fit-content;
 }
 
 /* Hover state - Igual que sidebar */
@@ -155,9 +166,26 @@ body.nexo-av-theme-dark .tab-nav__button--active .tab-nav__icon {
     padding: clamp(0.25rem, 0.3125rem, 0.375rem) clamp(0.4rem, 0.5rem, 0.625rem);
     font-size: clamp(0.625rem, 0.75rem, 0.8125rem) !important;
   }
+  
+  .tab-nav__right {
+    padding-left: clamp(0.5rem, 0.75rem, 1rem);
+  }
 }
 
-/* Nivel 3: En pantallas pequeñas, permitir scroll horizontal */
+/* Nivel 3: Reducir más el padding y ajustar el stroke */
+@media (max-width: 1024px) {
+  .tab-nav__button {
+    padding: clamp(0.25rem, 0.3125rem, 0.375rem) clamp(0.375rem, 0.5rem, 0.625rem);
+    font-size: clamp(0.5625rem, 0.6875rem, 0.75rem) !important;
+  }
+  
+  .tab-nav__right {
+    padding-left: clamp(0.5rem, 0.625rem, 0.875rem);
+    gap: clamp(0.125rem, 0.25rem, 0.375rem);
+  }
+}
+
+/* Nivel 4: En pantallas pequeñas, permitir scroll horizontal y ajustar tabs */
 @media (max-width: 768px) {
   .tab-nav__container {
     overflow-x: auto;
@@ -169,16 +197,25 @@ body.nexo-av-theme-dark .tab-nav__button--active .tab-nav__icon {
     display: none;
   }
 
+  .tab-nav__left {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
   .tab-nav__button {
+    flex: 0 0 auto;
+    min-width: fit-content;
+    padding: clamp(0.25rem, 0.3125rem, 0.375rem) clamp(0.5rem, 0.625rem, 0.75rem);
+  }
+  
+  .tab-nav__button--isolated {
     flex: 0 0 auto;
     min-width: fit-content;
   }
 
-  /* En mobile, no limitar el ancho */
-  .tab-nav__container:has(.tab-nav__button:nth-child(4):last-child) .tab-nav__button,
-  .tab-nav__container:has(.tab-nav__button:nth-child(5):last-child) .tab-nav__button,
-  .tab-nav__container:has(.tab-nav__button:nth-child(6):last-child) .tab-nav__button {
-    max-width: none;
+  .tab-nav__right {
+    padding-left: clamp(0.5rem, 0.625rem, 0.75rem);
+    margin-left: clamp(0.5rem, 0.75rem, 1rem);
   }
 }
 

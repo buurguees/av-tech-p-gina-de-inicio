@@ -36,6 +36,7 @@ export interface FormField {
   validation?: (value: any) => string | null; // Función de validación personalizada
   className?: string;
   colSpan?: 1 | 2; // Para controlar el ancho en layout de dos columnas (1 = media columna, 2 = ancho completo)
+  disabled?: boolean; // Para deshabilitar campos
 }
 
 export interface FormSection {
@@ -226,7 +227,7 @@ export default function FormDialog({
             required={field.required}
             error={hasError}
             errorMessage={hasError ? errors[field.name] : undefined}
-            disabled={loading || isSubmitting}
+            disabled={field.disabled || loading || isSubmitting}
             options={field.options}
             size="md"
             variant="default"
@@ -256,7 +257,7 @@ export default function FormDialog({
           required={field.required}
           error={hasError}
           errorMessage={hasError ? errors[field.name] : undefined}
-          disabled={loading || isSubmitting}
+          disabled={field.disabled || loading || isSubmitting}
           rows={field.rows}
           min={field.min}
           max={field.max}

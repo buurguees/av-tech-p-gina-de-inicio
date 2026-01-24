@@ -32,6 +32,7 @@ interface Quote {
   client_name: string | null;
   project_name: string | null;
   order_number: string | null;
+  project_client_order_number: string | null;
   status: string;
   subtotal: number;
   tax_amount: number;
@@ -234,11 +235,11 @@ const QuotesPageDesktop = () => {
   } = usePagination(sortedQuotes, { pageSize: 50 });
 
   return (
-    <div className="w-full h-full">
-      <div className="w-full h-full">
-        <div>
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      <div className="w-full h-full flex flex-col overflow-hidden">
+        <div className="flex flex-col h-full overflow-hidden">
           {/* Stats Cards - Optimizado */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 flex-shrink-0">
             <div className="bg-card/50 border border-white/10 rounded-lg p-2">
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-orange-500/10 rounded text-orange-500 text-[10px] font-bold uppercase tracking-wider">
@@ -297,7 +298,7 @@ const QuotesPageDesktop = () => {
           </div>
 
           {/* DetailNavigationBar */}
-          <div className="mb-6">
+          <div className="mb-6 flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Presupuestos"
               contextInfo={
@@ -331,6 +332,7 @@ const QuotesPageDesktop = () => {
           </div>
 
           {/* DataList */}
+          <div className="flex-1 min-h-0 overflow-hidden">
           <DataList
             data={paginatedQuotes}
             columns={[
@@ -341,7 +343,7 @@ const QuotesPageDesktop = () => {
                 align: "left",
                 priority: 1,
                 render: (quote) => (
-                  <span className="text-foreground/80 text-[10px]">
+                  <span className="text-foreground/80">
                     {quote.quote_number}
                   </span>
                 ),
@@ -353,7 +355,7 @@ const QuotesPageDesktop = () => {
                 align: "left",
                 priority: 3,
                 render: (quote) => (
-                  <span className="text-foreground text-[10px] font-medium truncate block max-w-[200px]">
+                  <span className="text-foreground truncate block">
                     {quote.project_name || "-"}
                   </span>
                 ),
@@ -365,8 +367,20 @@ const QuotesPageDesktop = () => {
                 align: "left",
                 priority: 5,
                 render: (quote) => (
-                  <span className="text-foreground/80 text-[10px]">
+                  <span className="text-foreground/80">
                     {quote.client_name || "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "project_client_order_number",
+                label: "Nº Pedido",
+                sortable: true,
+                align: "left",
+                priority: 7,
+                render: (quote) => (
+                  <span className="text-muted-foreground">
+                    {quote.project_client_order_number || "-"}
                   </span>
                 ),
               },
@@ -379,24 +393,12 @@ const QuotesPageDesktop = () => {
                   const statusInfo = getStatusInfo(quote.status);
                   return (
                     <div className="flex justify-center">
-                      <Badge variant="outline" className={cn(statusInfo.className, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                      <Badge variant="outline" className={cn(statusInfo.className, "border text-[11px] px-1.5 py-0.5 w-20 justify-center")}>
                         {statusInfo.label}
                       </Badge>
                     </div>
                   );
                 },
-              },
-              {
-                key: "total",
-                label: "Total",
-                sortable: true,
-                align: "right",
-                priority: 4,
-                render: (quote) => (
-                  <span className="text-foreground font-medium text-[10px]">
-                    {formatCurrency(quote.total)}
-                  </span>
-                ),
               },
               {
                 key: "created_at",
@@ -405,7 +407,7 @@ const QuotesPageDesktop = () => {
                 align: "left",
                 priority: 6,
                 render: (quote) => (
-                  <span className="text-muted-foreground text-[10px]">
+                  <span className="text-muted-foreground">
                     {quote.created_at 
                       ? new Date(quote.created_at).toLocaleDateString('es-ES', {
                           day: '2-digit',
@@ -423,7 +425,7 @@ const QuotesPageDesktop = () => {
                 align: "left",
                 priority: 7,
                 render: (quote) => (
-                  <span className="text-muted-foreground text-[10px]">
+                  <span className="text-muted-foreground">
                     {quote.valid_until 
                       ? new Date(quote.valid_until).toLocaleDateString('es-ES', {
                           day: '2-digit',
@@ -435,26 +437,26 @@ const QuotesPageDesktop = () => {
                 ),
               },
               {
-                key: "order_number",
-                label: "Nº Pedido",
+                key: "subtotal",
+                label: "Presupuesto",
                 sortable: true,
-                align: "left",
-                priority: 8,
+                align: "right",
+                priority: 5,
                 render: (quote) => (
-                  <span className="text-muted-foreground text-[10px]">
-                    {quote.order_number || "-"}
+                  <span className="text-foreground">
+                    {formatCurrency(quote.subtotal)}
                   </span>
                 ),
               },
               {
-                key: "subtotal",
-                label: "Subtotal",
+                key: "total",
+                label: "Total",
                 sortable: true,
                 align: "right",
-                priority: 8,
+                priority: 4,
                 render: (quote) => (
-                  <span className="text-muted-foreground text-[10px]">
-                    {formatCurrency(quote.subtotal)}
+                  <span className="text-foreground">
+                    {formatCurrency(quote.total)}
                   </span>
                 ),
               },
@@ -502,9 +504,11 @@ const QuotesPageDesktop = () => {
             emptyIcon={<FileText className="h-16 w-16 text-muted-foreground" />}
             getItemId={(quote) => quote.id}
           />
+          </div>
 
           {/* Paginación */}
           {!loading && quotes.length > 0 && totalPages > 1 && (
+            <div className="flex-shrink-0 mt-4">
             <PaginationControls
               currentPage={currentPage}
               totalPages={totalPages}
@@ -517,6 +521,7 @@ const QuotesPageDesktop = () => {
               onNextPage={nextPage}
               onGoToPage={goToPage}
             />
+            </div>
           )}
         </div>
       </div>

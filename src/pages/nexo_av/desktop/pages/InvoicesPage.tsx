@@ -21,6 +21,7 @@ interface Invoice {
   preliminary_number: string;
   source_quote_id: string | null;
   source_quote_number: string | null;
+  source_quote_order_number: string | null;
   client_id: string;
   client_name: string;
   project_id: string | null;
@@ -166,11 +167,11 @@ const InvoicesPageDesktop = () => {
   } = usePagination(sortedInvoices, { pageSize: 50 });
 
   return (
-    <div className="w-full h-full">
-      <div className="w-full h-full">
-        <div>
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      <div className="w-full h-full flex flex-col overflow-hidden">
+        <div className="flex flex-col h-full overflow-hidden">
           {/* Summary Metric Cards - Optimizado */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 flex-shrink-0">
             <div className="bg-zinc-900/50 border border-white/10 rounded-lg p-2 flex flex-col justify-between">
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-emerald-500/10 rounded text-emerald-500">
@@ -245,7 +246,7 @@ const InvoicesPageDesktop = () => {
           </div>
 
           {/* DetailNavigationBar */}
-          <div className="mb-6">
+          <div className="mb-6 flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Facturas"
               contextInfo={
@@ -285,6 +286,7 @@ const InvoicesPageDesktop = () => {
           </div>
 
           {/* DataList */}
+          <div className="flex-1 min-h-0 overflow-hidden">
           <DataList
             data={paginatedInvoices}
             columns={[
@@ -297,21 +299,33 @@ const InvoicesPageDesktop = () => {
                 render: (invoice) => {
                   const displayNumber = invoice.invoice_number || invoice.preliminary_number;
                   return (
-                    <span className="text-foreground/80 text-[10px]">
+                    <span className="text-foreground/80">
                       {displayNumber}
                     </span>
                   );
                 },
               },
               {
-                key: "project_number",
+                key: "project_name",
                 label: "Proyecto",
                 sortable: true,
                 align: "left",
                 priority: 3,
                 render: (invoice) => (
-                  <span className="text-foreground text-[10px] font-medium">
-                    {invoice.project_number || "-"}
+                  <span className="text-foreground truncate block">
+                    {invoice.project_name || invoice.project_number || "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "client_order_number",
+                label: "Pedido cliente",
+                sortable: true,
+                align: "left",
+                priority: 7,
+                render: (invoice) => (
+                  <span className="text-muted-foreground">
+                    {invoice.client_order_number || "-"}
                   </span>
                 ),
               },
@@ -324,7 +338,7 @@ const InvoicesPageDesktop = () => {
                   const statusInfo = getFinanceStatusInfo(invoice.status);
                   return (
                     <div className="flex justify-center">
-                      <Badge variant="outline" className={cn(statusInfo.className, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                      <Badge variant="outline" className={cn(statusInfo.className, "border text-[11px] px-1.5 py-0.5 w-20 justify-center")}>
                         {statusInfo.label}
                       </Badge>
                     </div>
@@ -332,37 +346,37 @@ const InvoicesPageDesktop = () => {
                 },
               },
               {
-                key: "total",
-                label: "Total",
-                sortable: true,
-                align: "right",
-                priority: 4,
-                render: (invoice) => (
-                  <span className="text-foreground font-medium text-[10px]">
-                    {formatCurrency(invoice.total)}
-                  </span>
-                ),
-              },
-              {
                 key: "issue_date",
                 label: "Emisión",
                 sortable: true,
                 align: "left",
-                priority: 5,
+                priority: 6,
                 render: (invoice) => (
-                  <span className="text-muted-foreground text-[10px]">
+                  <span className="text-muted-foreground">
                     {invoice.issue_date ? formatDate(invoice.issue_date) : "-"}
                   </span>
                 ),
               },
               {
-                key: "client_order_number",
-                label: "Nº Pedido",
+                key: "due_date",
+                label: "Vencimiento",
+                sortable: true,
                 align: "left",
                 priority: 6,
                 render: (invoice) => (
-                  <span className="text-muted-foreground text-[10px]">
-                    {invoice.client_order_number || "-"}
+                  <span className="text-muted-foreground">
+                    {invoice.due_date ? formatDate(invoice.due_date) : "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "source_quote_order_number",
+                label: "Presupuesto Origen",
+                align: "left",
+                priority: 7,
+                render: (invoice) => (
+                  <span className="text-muted-foreground">
+                    {invoice.source_quote_order_number || "-"}
                   </span>
                 ),
               },
@@ -371,10 +385,34 @@ const InvoicesPageDesktop = () => {
                 label: "Subtotal",
                 sortable: true,
                 align: "right",
-                priority: 7,
+                priority: 5,
                 render: (invoice) => (
-                  <span className="text-muted-foreground text-[10px]">
+                  <span className="text-foreground">
                     {formatCurrency(invoice.subtotal)}
+                  </span>
+                ),
+              },
+              {
+                key: "tax_amount",
+                label: "Impuestos",
+                sortable: true,
+                align: "right",
+                priority: 5,
+                render: (invoice) => (
+                  <span className="text-foreground">
+                    {formatCurrency(invoice.tax_amount || 0)}
+                  </span>
+                ),
+              },
+              {
+                key: "total",
+                label: "Total",
+                sortable: true,
+                align: "right",
+                priority: 4,
+                render: (invoice) => (
+                  <span className="text-foreground">
+                    {formatCurrency(invoice.total)}
                   </span>
                 ),
               },
@@ -385,7 +423,7 @@ const InvoicesPageDesktop = () => {
                 align: "right",
                 priority: 8,
                 render: (invoice) => (
-                  <span className="text-muted-foreground text-[10px]">
+                  <span className="text-muted-foreground">
                     {formatCurrency(invoice.paid_amount || 0)}
                   </span>
                 ),
@@ -416,9 +454,11 @@ const InvoicesPageDesktop = () => {
             emptyIcon={<FileText className="h-16 w-16 text-muted-foreground" />}
             getItemId={(invoice) => invoice.id}
           />
+          </div>
 
           {/* Paginación */}
           {!loading && invoices.length > 0 && totalPages > 1 && (
+            <div className="flex-shrink-0 mt-4">
             <PaginationControls
               currentPage={currentPage}
               totalPages={totalPages}
@@ -431,6 +471,7 @@ const InvoicesPageDesktop = () => {
               onNextPage={nextPage}
               onGoToPage={goToPage}
             />
+            </div>
           )}
         </div>
       </div>

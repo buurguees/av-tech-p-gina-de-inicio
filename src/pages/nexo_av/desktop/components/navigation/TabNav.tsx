@@ -25,7 +25,7 @@ const TabNav = ({ tabs, activeTab, onTabChange, className }: TabNavProps) => {
   const leftTabs = tabs.filter((tab) => tab.align !== "right");
   const rightTabs = tabs.filter((tab) => tab.align === "right");
 
-  const renderTab = (tab: TabItem) => {
+  const renderTab = (tab: TabItem, isRightTab: boolean = false) => {
     const Icon = tab.icon;
     const isActive = activeTab === tab.value;
 
@@ -33,7 +33,7 @@ const TabNav = ({ tabs, activeTab, onTabChange, className }: TabNavProps) => {
       <button
         key={tab.value}
         type="button"
-        className={`tab-nav__button ${isActive ? "tab-nav__button--active" : ""}`}
+        className={`tab-nav__button ${isActive ? "tab-nav__button--active" : ""} ${isRightTab ? "tab-nav__button--isolated" : ""}`}
         onClick={() => onTabChange(tab.value)}
         aria-label={tab.label}
         aria-selected={isActive}
@@ -49,11 +49,11 @@ const TabNav = ({ tabs, activeTab, onTabChange, className }: TabNavProps) => {
     <nav className={`tab-nav ${className || ""}`}>
       <div className="tab-nav__container">
         <div className="tab-nav__left">
-          {leftTabs.map(renderTab)}
+          {leftTabs.map((tab) => renderTab(tab, false))}
         </div>
         {rightTabs.length > 0 && (
           <div className="tab-nav__right">
-            {rightTabs.map(renderTab)}
+            {rightTabs.map((tab) => renderTab(tab, true))}
           </div>
         )}
       </div>

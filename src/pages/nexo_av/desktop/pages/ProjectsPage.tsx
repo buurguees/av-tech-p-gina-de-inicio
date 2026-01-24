@@ -30,6 +30,8 @@ interface Project {
   created_by: string | null;
   created_by_name: string | null;
   created_at: string;
+  assigned_to_name: string | null;
+  budget: number;
 }
 
 const formatCurrency = (amount: number) => {
@@ -72,6 +74,7 @@ const ProjectsPageDesktop = () => {
   const [projectProfitability, setProjectProfitability] = useState<Map<string, number>>(new Map());
   const [loadingProfitability, setLoadingProfitability] = useState(false);
   const [projectTotals, setProjectTotals] = useState<Map<string, number>>(new Map());
+  const [projectExpenses, setProjectExpenses] = useState<Map<string, number>>(new Map());
 
   const fetchProjects = async () => {
     try {
@@ -159,6 +162,16 @@ const ProjectsPageDesktop = () => {
         inv.project_id && (inv.status === 'APPROVED' || inv.status === 'PAID')
       );
       const totalCosts = projectPurchaseInvoices.reduce((sum: number, inv: any) => sum + (inv.tax_base || 0), 0);
+      
+      // Calcular gastos por proyecto
+      const expensesMap = new Map<string, number>();
+      projectPurchaseInvoices.forEach((inv: any) => {
+        if (inv.project_id) {
+          const currentExpense = expensesMap.get(inv.project_id) || 0;
+          expensesMap.set(inv.project_id, currentExpense + (inv.tax_base || inv.subtotal || 0));
+        }
+      });
+      setProjectExpenses(expensesMap);
 
       // Calcular rentabilidad
       const profitability = totalRevenue - totalCosts;
@@ -375,14 +388,14 @@ const ProjectsPageDesktop = () => {
   } = usePagination(sortedProjects, { pageSize: 50 });
 
   return (
-    <div className="w-full h-full">
-      <div className="w-full h-full">
-        <div className="flex flex-col lg:flex-row gap-6">
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      <div className="w-full h-full flex flex-col overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-6 h-full overflow-hidden">
           {/* Main Content - Ocupa todo el ancho disponible */}
-          <div className="flex-1 min-w-0 w-full">
-            <div>
+          <div className="flex-1 min-w-0 w-full flex flex-col overflow-hidden">
+            <div className="flex flex-col h-full overflow-hidden">
               {/* KPIs Cards - Recuento por Estado - Optimizado */}
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-3">
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-3 flex-shrink-0">
                 <div className="bg-card/50 border border-border rounded-lg p-2">
                   <div className="flex items-center gap-2 mb-1">
                     <div className="p-1 bg-blue-500/10 rounded text-blue-600">
@@ -455,7 +468,7 @@ const ProjectsPageDesktop = () => {
               </div>
 
               {/* KPIs Cards - Métricas Financieras - Optimizado */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 flex-shrink-0">
                 <div className="bg-card/50 border border-border rounded-lg p-2">
                   <div className="flex items-center gap-2 mb-1">
                     <div className="p-1 bg-green-500/10 rounded text-green-600">
@@ -526,7 +539,7 @@ const ProjectsPageDesktop = () => {
               </div>
 
               {/* KPIs Cards - Presupuestos y Productividad - Optimizado */}
-              <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-3">
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-3 flex-shrink-0">
                 <div className="bg-card/50 border border-border rounded-lg p-2">
                   <div className="flex items-center gap-2 mb-1">
                     <div className="p-1 bg-indigo-500/10 rounded text-indigo-600">
@@ -613,9 +626,30 @@ const ProjectsPageDesktop = () => {
               </div>
 
               {/* DetailNavigationBar */}
-              <div className="mb-6">
+              <div className="mb-6 flex-shrink-0">
                 <DetailNavigationBar
                   pageTitle="Proyectos"
+                  contextInfo={
+                    <SearchBar
+                      value={searchInput}
+                      onChange={setSearchInput}
+                      items={projects}
+                      getSearchText={(project) => `${project.project_number} ${project.project_name || ''} ${project.client_name || ''} ${project.client_order_number || ''}`}
+                      renderResult={(project) => ({
+                        id: project.id,
+                        label: project.project_number,
+                        subtitle: `${project.client_name || 'Sin cliente'} - ${project.project_name || ''}`,
+                        icon: <FolderKanban className="h-4 w-4" />,
+                        data: project,
+                      })}
+                      onSelectResult={(result) => {
+                        navigate(`/nexo-av/${userId}/projects/${result.data.id}`);
+                      }}
+                      placeholder="Buscar proyectos..."
+                      maxResults={8}
+                      debounceMs={300}
+                    />
+                  }
                   tools={
                     <DetailActionButton
                       actionType="new_project"
@@ -626,6 +660,7 @@ const ProjectsPageDesktop = () => {
               </div>
 
               {/* DataList */}
+              <div className="flex-1 min-h-0 overflow-hidden">
               <DataList
                 data={paginatedProjects}
             columns={[
@@ -636,7 +671,7 @@ const ProjectsPageDesktop = () => {
                 align: "left",
                 priority: 1,
                 render: (project) => (
-                  <span className="text-foreground/80 text-[10px]">
+                  <span className="text-foreground/80">
                     {project.project_number}
                   </span>
                 ),
@@ -648,7 +683,7 @@ const ProjectsPageDesktop = () => {
                 align: "left",
                 priority: 3,
                 render: (project) => (
-                  <span className="text-foreground text-[10px] font-medium">
+                  <span className="text-foreground truncate block">
                     {project.project_name}
                   </span>
                 ),
@@ -660,8 +695,20 @@ const ProjectsPageDesktop = () => {
                 align: "left",
                 priority: 5,
                 render: (project) => (
-                  <span className="text-foreground/80 text-[10px]">
+                  <span className="text-foreground/80">
                     {project.client_name || '-'}
+                  </span>
+                ),
+              },
+              {
+                key: "client_order_number",
+                label: "Nº Pedido",
+                sortable: true,
+                align: "left",
+                priority: 7,
+                render: (project) => (
+                  <span className="text-muted-foreground">
+                    {project.client_order_number || '-'}
                   </span>
                 ),
               },
@@ -675,10 +722,70 @@ const ProjectsPageDesktop = () => {
                   const statusInfo = getProjectStatusInfo(project.status);
                   return (
                     <div className="flex justify-center">
-                      <Badge variant="outline" className={cn(statusInfo.className, "text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                      <Badge variant="outline" className={cn(statusInfo.className, "text-[11px] px-1.5 py-0.5 w-20 justify-center")}>
                         {statusInfo.label}
                       </Badge>
                     </div>
+                  );
+                },
+              },
+              {
+                key: "project_city",
+                label: "Ciudad",
+                sortable: true,
+                align: "left",
+                priority: 8,
+                render: (project) => (
+                  <span className="text-muted-foreground">
+                    {project.project_city || '-'}
+                  </span>
+                ),
+              },
+              {
+                key: "local_name",
+                label: "Local",
+                align: "left",
+                render: (project) => (
+                  <span className="text-muted-foreground">
+                    {project.local_name || '-'}
+                  </span>
+                ),
+              },
+              {
+                key: "assigned_to_name",
+                label: "Asignado",
+                align: "left",
+                priority: 6,
+                render: (project) => (
+                  <span className="text-muted-foreground">
+                    {project.assigned_to_name || <span className="text-muted-foreground/50">Sin asignar</span>}
+                  </span>
+                ),
+              },
+              {
+                key: "budget",
+                label: "Presupuesto",
+                sortable: true,
+                align: "right",
+                priority: 5,
+                render: (project) => (
+                  <span className="text-foreground">
+                    {formatCurrency(project.budget || 0)}
+                  </span>
+                ),
+              },
+              {
+                key: "expenses",
+                label: "Gastos",
+                sortable: true,
+                align: "right",
+                priority: 4,
+                render: (project) => {
+                  const expenses = projectExpenses.get(project.id) || 0;
+                  return (
+                    <span className="text-foreground">
+                      {formatCurrency(expenses)}
+                    </span>
                   );
                 },
               },
@@ -691,64 +798,12 @@ const ProjectsPageDesktop = () => {
                 render: (project) => {
                   const total = projectTotals.get(project.id) || 0;
                   return (
-                    <span className="text-foreground font-medium text-[10px]">
+                    <span className="text-foreground">
                       {formatCurrency(total)}
                     </span>
                   );
                 },
               },
-              {
-                key: "created_at",
-                label: "Creación",
-                sortable: true,
-                align: "left",
-                priority: 6,
-                render: (project) => (
-                  <span className="text-muted-foreground text-[10px]">
-                    {project.created_at 
-                      ? new Date(project.created_at).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })
-                      : '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "client_order_number",
-                label: "Nº Pedido",
-                sortable: true,
-                align: "left",
-                priority: 7,
-                render: (project) => (
-                  <span className="text-muted-foreground text-[10px]">
-                    {project.client_order_number || '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "project_city",
-                label: "Ciudad",
-                sortable: true,
-                align: "left",
-                priority: 8,
-                render: (project) => (
-                  <span className="text-muted-foreground text-[10px]">
-                    {project.project_city || '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "local_name",
-                label: "Local",
-                align: "left",
-                render: (project) => (
-                  <span className="text-muted-foreground text-[10px]">
-                    {project.local_name || '-'}
-                  </span>
-                ),
-                  },
               {
                 key: "profitability",
                 label: "Rentabilidad",
@@ -768,13 +823,13 @@ const ProjectsPageDesktop = () => {
                     return (
                       <Badge 
                         variant="outline" 
-                        className={cn(profitClass, "text-[9px] px-1.5 py-0.5")}
+                        className={cn(profitClass, "text-[11px] px-1.5 py-0.5")}
                       >
                         {margin.toFixed(1)}%
                       </Badge>
                     );
                   }
-                  return <span className="text-muted-foreground text-[9px]">-</span>;
+                  return <span className="text-muted-foreground">-</span>;
                 },
               },
                 ]}
@@ -801,9 +856,11 @@ const ProjectsPageDesktop = () => {
                 emptyIcon={<FolderKanban className="h-16 w-16 text-muted-foreground" />}
                 getItemId={(project) => project.id}
               />
+              </div>
 
               {/* Paginación */}
               {!loading && projects.length > 0 && totalPages > 1 && (
+                <div className="flex-shrink-0 mt-4">
                 <PaginationControls
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -816,6 +873,7 @@ const ProjectsPageDesktop = () => {
                   onNextPage={nextPage}
                   onGoToPage={goToPage}
                 />
+                </div>
               )}
             </div>
           </div>

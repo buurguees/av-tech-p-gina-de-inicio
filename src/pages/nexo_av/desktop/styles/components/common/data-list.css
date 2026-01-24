@@ -6,6 +6,7 @@
 
 .data-list {
   width: 100%;
+  max-width: 100%;
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: 0.75rem;
@@ -13,6 +14,10 @@
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
+  /* Evitar scroll horizontal */
+  overflow-x: hidden;
+  height: 100%;
+  max-height: 100%;
 }
 
 /* Header */
@@ -23,6 +28,15 @@
   background: hsl(var(--muted) / 0.3);
   border-bottom: 1px solid hsl(var(--border));
   align-items: center;
+  width: 100%;
+  max-width: 100%;
+  /* Evitar overflow */
+  min-width: 0;
+  overflow: hidden;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
 }
 
 .data-list__header-cell {
@@ -94,6 +108,10 @@
 .data-list__body {
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
 }
 
 .data-list__row {
@@ -103,6 +121,14 @@
   border-bottom: 1px solid hsl(var(--border) / 0.5);
   align-items: center;
   transition: background-color 0.15s ease;
+  width: 100%;
+  max-width: 100%;
+  /* Evitar overflow */
+  min-width: 0;
+  overflow: hidden;
+  /* Altura fija para todas las filas */
+  min-height: 48px;
+  height: auto;
 }
 
 .data-list__row:last-child {
@@ -125,9 +151,22 @@
   display: flex;
   align-items: center;
   min-width: 0;
-  font-size: 0.8125rem;
+  font-size: 0.6875rem; /* 11px - tamaño estándar para todos los listados */
   color: hsl(var(--foreground));
   overflow: hidden;
+  /* Asegurar que el contenido se trunque con ellipsis */
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-list__cell--bold {
+  font-weight: 600;
+}
+
+.data-list__cell--bold .data-list__cell-content,
+.data-list__cell--bold span,
+.data-list__cell--bold p {
+  font-weight: 600;
 }
 
 .data-list__cell--left {
@@ -156,6 +195,25 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  width: 100%;
+}
+
+/* Permitir que elementos dentro de la celda también se trunquen */
+.data-list__cell > span,
+.data-list__cell > div {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Excepción para elementos que necesitan múltiples líneas (como badges) */
+.data-list__cell > .badge,
+.data-list__cell > [class*="Badge"] {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .data-list__action-button {

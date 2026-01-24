@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Users, Send, Copy, Receipt, Edit } from "lucide-react";
 import "../../styles/components/navigation/detail-action-button.css";
 
-export type DetailActionType = "quote" | "invoice" | "technicians" | "purchase" | "new_version" | "send" | "edit" | "new_invoice" | "new_client" | "new_project";
+export type DetailActionType = "quote" | "invoice" | "technicians" | "purchase" | "new_version" | "send" | "edit" | "new_invoice" | "new_client" | "new_project" | "new_technician";
 
 interface DetailActionButtonProps {
   actionType: DetailActionType;
@@ -67,6 +67,11 @@ const DetailActionButton = ({
       case "new_project":
         return {
           label: "Nuevo Proyecto",
+          icon: <Plus className="detail-action-button__icon" />,
+        };
+      case "new_technician":
+        return {
+          label: "Nuevo Técnico",
           icon: <Plus className="detail-action-button__icon" />,
         };
       default:

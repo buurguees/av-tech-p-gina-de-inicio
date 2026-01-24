@@ -10,8 +10,10 @@ import ProjectInvoicesList from "../components/projects/ProjectInvoicesList";
 import ProjectQuotesList from "../components/projects/ProjectQuotesList";
 import ProjectPurchasesList from "../components/projects/ProjectPurchasesList";
 import ProjectHistoryTab from "../components/projects/ProjectHistoryTab";
+import EditProjectDialog from "../components/projects/EditProjectDialog";
 import StatusSelector from "../components/common/StatusSelector";
 import { PROJECT_STATUSES } from "@/constants/projectStatuses";
+import { useToast } from "@/hooks/use-toast";
 import {
   LayoutDashboard,
   Calendar,
@@ -43,6 +45,7 @@ interface ProjectDetail {
   project_city: string | null;
   client_order_number: string | null;
   local_name: string | null;
+  notes: string | null;
   installation_start_date?: string | null;
   delivery_date?: string | null;
   start_date?: string | null;
@@ -63,6 +66,7 @@ interface ClientDetail {
 const ProjectDetailPageDesktop = () => {
   const { userId, projectId } = useParams<{ userId: string; projectId: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [client, setClient] = useState<ClientDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -555,6 +559,51 @@ const ProjectDetailPageDesktop = () => {
           </div>
         </div>
       </div>
+
+      {project && (
+        <EditProjectDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          project={project}
+          onSuccess={() => {
+            // Refrescar el proyecto después de editarlo
+            const fetchProject = async () => {
+              if (!projectId) return;
+              
+              try {
+                const { data, error } = await supabase.rpc('get_project', {
+                  p_project_id: projectId
+                });
+
+                if (error) throw error;
+                if (data && data.length > 0) {
+                  const projectData = data[0];
+                  setProject(projectData);
+
+                  // Fetch client data if client_id exists
+                  if (projectData.client_id) {
+                    const { data: clientData, error: clientError } = await supabase.rpc('get_client', {
+                      p_client_id: projectData.client_id
+                    });
+
+                    if (!clientError && clientData && clientData.length > 0) {
+                      setClient(clientData[0]);
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error('Error fetching project:', error);
+              }
+            };
+
+            fetchProject();
+            toast({
+              title: "Proyecto actualizado",
+              description: "Los datos del proyecto se han actualizado correctamente",
+            });
+          }}
+        />
+      )}
     </div>
   );
 };

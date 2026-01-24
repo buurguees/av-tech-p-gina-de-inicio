@@ -363,11 +363,11 @@ const ClientsPageDesktop = () => {
   }
 
   return (
-    <div className="w-full h-full">
-      <div className="w-full h-full">
-        <div>
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      <div className="w-full h-full flex flex-col overflow-hidden">
+        <div className="flex flex-col h-full overflow-hidden">
           {/* KPIs Cards - Recuento por Estado - Optimizado */}
-          <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-3">
+          <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-3 flex-shrink-0">
             <div className="bg-card/50 border border-border rounded-lg p-2">
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-emerald-500/10 rounded text-emerald-600">
@@ -440,7 +440,7 @@ const ClientsPageDesktop = () => {
           </div>
 
           {/* KPIs Cards - Métricas de Negocio - Optimizado */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 flex-shrink-0">
             <div className="bg-card/50 border border-border rounded-lg p-2">
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-purple-500/10 rounded text-purple-600">
@@ -499,7 +499,7 @@ const ClientsPageDesktop = () => {
           </div>
 
           {/* KPIs Cards - Métricas Mensuales - Optimizado */}
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="grid grid-cols-2 gap-2 mb-3 flex-shrink-0">
             <div className="bg-card/50 border border-border rounded-lg p-2">
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-blue-500/10 rounded text-blue-600">
@@ -530,7 +530,7 @@ const ClientsPageDesktop = () => {
           </div>
 
           {/* DetailNavigationBar */}
-          <div className="mb-6">
+          <div className="mb-6 flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Clientes"
               contextInfo={
@@ -564,6 +564,7 @@ const ClientsPageDesktop = () => {
           </div>
 
           {/* DataList */}
+          <div className="flex-1 min-h-0 overflow-hidden">
           <DataList
             data={paginatedClients}
             columns={[
@@ -574,7 +575,7 @@ const ClientsPageDesktop = () => {
                 align: "left",
                 priority: 1,
                 render: (client) => (
-                  <span className="text-foreground/80 text-[10px]">
+                  <span className="text-foreground/80">
                     {client.client_number || '-'}
                   </span>
                 ),
@@ -586,14 +587,14 @@ const ClientsPageDesktop = () => {
                 align: "left",
                 priority: 3,
                 render: (client) => (
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-muted/30">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="p-2 rounded-lg bg-muted/30 flex-shrink-0">
                       <Building2 className="h-3 w-3 text-muted-foreground" />
                     </div>
-                    <div>
-                      <p className="text-foreground font-medium text-[10px]">{client.company_name}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-foreground truncate">{client.company_name}</p>
                       {client.industry_sector && (
-                        <p className="text-muted-foreground text-[9px]">
+                        <p className="text-muted-foreground text-[10px] truncate">
                           {client.industry_sector}
                         </p>
                       )}
@@ -611,7 +612,7 @@ const ClientsPageDesktop = () => {
                   const stageInfo = getStageInfo(client.lead_stage);
                   return (
                     <div className="flex justify-center">
-                      <Badge variant="outline" className={cn(stageInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                      <Badge variant="outline" className={cn(stageInfo.color, "border text-[11px] px-1.5 py-0.5 w-20 justify-center")}>
                         {stageInfo.label}
                       </Badge>
                     </div>
@@ -624,7 +625,7 @@ const ClientsPageDesktop = () => {
                 align: "center",
                 priority: 4,
                 render: (client) => (
-                  <span className="text-foreground font-medium text-[10px]">
+                  <span className="text-foreground">
                     {projectsByClient.get(client.id) || 0}
                   </span>
                 ),
@@ -635,7 +636,7 @@ const ClientsPageDesktop = () => {
                 align: "left",
                 priority: 5,
                 render: (client) => (
-                  <div className="flex items-center gap-1.5 text-muted-foreground text-[9px]">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Mail className="h-2.5 w-2.5" />
                     <span className="truncate max-w-[200px]">{client.contact_email}</span>
                   </div>
@@ -647,7 +648,7 @@ const ClientsPageDesktop = () => {
                 align: "left",
                 priority: 6,
                 render: (client) => (
-                  <div className="flex items-center gap-1.5 text-muted-foreground text-[9px]">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Phone className="h-2.5 w-2.5" />
                     {client.contact_phone || '-'}
                   </div>
@@ -660,7 +661,7 @@ const ClientsPageDesktop = () => {
                 align: "left",
                 priority: 7,
                 render: (client) => (
-                  <span className="text-muted-foreground text-[10px]">
+                  <span className="text-muted-foreground">
                     {client.assigned_to_name || <span className="text-muted-foreground/50">Sin asignar</span>}
                   </span>
                 ),
@@ -689,9 +690,11 @@ const ClientsPageDesktop = () => {
             emptyIcon={<Building2 className="h-16 w-16 text-muted-foreground" />}
             getItemId={(client) => client.id}
           />
+          </div>
 
           {/* Paginación */}
           {!loading && filteredClients.length > 0 && totalPages > 1 && (
+            <div className="flex-shrink-0 mt-4">
             <PaginationControls
               currentPage={currentPage}
               totalPages={totalPages}
@@ -704,6 +707,7 @@ const ClientsPageDesktop = () => {
               onNextPage={nextPage}
               onGoToPage={goToPage}
             />
+            </div>
           )}
         </div>
       </div>
