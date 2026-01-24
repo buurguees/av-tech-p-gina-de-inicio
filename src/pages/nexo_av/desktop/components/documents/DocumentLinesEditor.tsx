@@ -238,6 +238,15 @@ export default function DocumentLinesEditor({
     });
   }, []);
 
+  // Grid template columns based on whether description is shown
+  const gridTemplateColumns = showDescription
+    ? showLineNumbers 
+      ? '60px minmax(200px, 3fr) minmax(150px, 2fr) 80px 100px 70px 90px 110px 50px'
+      : 'minmax(200px, 3fr) minmax(150px, 2fr) 80px 100px 70px 90px 110px 50px'
+    : showLineNumbers
+      ? '60px minmax(300px, 1fr) 80px 100px 70px 90px 110px 50px'
+      : 'minmax(300px, 1fr) 80px 100px 70px 90px 110px 50px';
+
   return (
     <div className={cn("document-lines-editor", className)}>
       {/* Header */}
@@ -248,7 +257,7 @@ export default function DocumentLinesEditor({
 
       {/* Table */}
       <div className="lines-table-container">
-        <table className="lines-table">
+        <table className="lines-table" style={{ gridTemplateColumns }}>
           <thead>
             <tr>
               {showLineNumbers && (

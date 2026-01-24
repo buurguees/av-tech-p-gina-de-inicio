@@ -236,11 +236,11 @@ export default function ProductSearchInput({
   const getItemIcon = (type: CatalogItem['type']) => {
     switch (type) {
       case 'product':
-        return <Package className="h-3 w-3 text-blue-400" />;
+        return <Package className="h-3 w-3 text-primary" />;
       case 'service':
-        return <Wrench className="h-3 w-3 text-orange-400" />;
+        return <Wrench className="h-3 w-3 text-accent-foreground" />;
       case 'pack':
-        return <Boxes className="h-3 w-3 text-purple-400" />;
+        return <Boxes className="h-3 w-3 text-secondary-foreground" />;
     }
   };
 
@@ -253,15 +253,18 @@ export default function ProductSearchInput({
 
   return (
     <>
-      <div ref={containerRef} className="relative w-full">
+      <div ref={containerRef} className="relative w-full min-w-0">
         <Input
           ref={inputRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className={cn(
-            "bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 text-xs w-full rounded-xl transition-all hover:bg-white/15",
-            searchMode && "border-orange-500/50 bg-orange-500/10 shadow-lg shadow-orange-500/20",
+            "w-full min-w-0 bg-transparent border-0 border-b border-border/30 rounded-none",
+            "text-foreground text-sm font-medium h-auto py-2 px-2",
+            "hover:border-border focus:border-primary/50",
+            "focus-visible:ring-0 focus-visible:shadow-none transition-colors",
+            searchMode && "border-primary/50 bg-primary/5",
             className
           )}
           onFocus={() => {
@@ -281,7 +284,7 @@ export default function ProductSearchInput({
         />
         
         {searchMode && (
-          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-orange-400 font-mono pointer-events-none">
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-primary font-mono pointer-events-none">
             @búsqueda
           </span>
         )}
@@ -291,7 +294,7 @@ export default function ProductSearchInput({
       {showResults && dropdownPosition && searchResults.length > 0 && isFocused && createPortal(
         <div
           ref={resultsRef}
-          className="fixed z-[99999] bg-white/10 backdrop-blur-2xl border border-orange-500/40 rounded-2xl shadow-2xl shadow-black/40 overflow-hidden"
+          className="fixed z-[99999] bg-popover/95 backdrop-blur-xl border border-border rounded-xl shadow-2xl overflow-hidden"
           style={{
             top: `${dropdownPosition.top}px`,
             left: `${dropdownPosition.left}px`,
@@ -300,8 +303,8 @@ export default function ProductSearchInput({
         >
           {loading ? (
             <div className="flex items-center justify-center p-4">
-              <Loader2 className="h-4 w-4 animate-spin text-orange-400" />
-              <span className="ml-2 text-white/60 text-xs">Buscando...</span>
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span className="ml-2 text-muted-foreground text-xs">Buscando...</span>
             </div>
           ) : (
             <div 
@@ -312,16 +315,16 @@ export default function ProductSearchInput({
                 <button
                   key={`${item.type}-${item.id}`}
                   onClick={() => handleSelectItem(item)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-orange-500/10 transition-colors text-left border-b border-white/10 last:border-0"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-accent/50 transition-colors text-left border-b border-border/30 last:border-0"
                 >
                   <div className="flex-shrink-0">
                     {getItemIcon(item.type)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-xs font-medium truncate">{item.name}</p>
-                    <p className="text-white/40 text-[10px] font-mono">{item.code}</p>
+                    <p className="text-foreground text-xs font-medium truncate">{item.name}</p>
+                    <p className="text-muted-foreground text-[10px] font-mono">{item.code}</p>
                   </div>
-                  <span className="text-orange-400 text-xs font-semibold shrink-0">
+                  <span className="text-primary text-xs font-semibold shrink-0">
                     {formatPrice(item.price)}
                   </span>
                 </button>
