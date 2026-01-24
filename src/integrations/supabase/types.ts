@@ -786,6 +786,7 @@ export type Database = {
           project_number: string
           source_quote_id: string
           source_quote_number: string
+          source_quote_order_number: string
           status: string
           subtotal: number
           tax_amount: number
@@ -1995,20 +1996,20 @@ export type Database = {
       list_projects: {
         Args: { p_search?: string; p_status?: string }
         Returns: {
+          assigned_to_name: string
+          budget: number
           client_id: string
           client_name: string
           client_order_number: string
           created_at: string
           created_by: string
           created_by_name: string
-          end_date: string
           id: string
           local_name: string
           project_address: string
           project_city: string
           project_name: string
           project_number: string
-          start_date: string
           status: string
         }[]
       }
@@ -2064,8 +2065,10 @@ export type Database = {
           created_by_name: string
           id: string
           order_number: string
+          project_client_order_number: string
           project_id: string
           project_name: string
+          project_number: string
           quote_number: string
           status: string
           subtotal: number
