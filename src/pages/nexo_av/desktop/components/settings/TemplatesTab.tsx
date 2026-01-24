@@ -703,11 +703,11 @@ export function TemplatesTab() {
 
   if (loading) {
     return (
-      <Card className="bg-white/5 border-white/10">
+      <Card className="bg-card border-border">
         <CardContent className="py-12">
           <div className="flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-            <p className="text-white/60 text-sm">Cargando plantillas...</p>
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <p className="text-muted-foreground text-sm">Cargando plantillas...</p>
           </div>
         </CardContent>
       </Card>
@@ -715,29 +715,29 @@ export function TemplatesTab() {
   }
 
   return (
-    <Card className="bg-white/5 border-white/10">
+    <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <FileText className="h-5 w-5 text-orange-500" />
+        <CardTitle className="text-foreground flex items-center gap-2">
+          <FileText className="h-5 w-5 text-primary" />
           Plantillas de Documentos
         </CardTitle>
-        <CardDescription className="text-white/60">
+        <CardDescription className="text-muted-foreground">
           Previsualiza las plantillas de presupuestos y facturas. La personalización avanzada estará disponible próximamente.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs value={selectedTemplate} onValueChange={(v) => setSelectedTemplate(v as "quote" | "invoice")}>
-          <TabsList className="bg-white/5 border border-white/10 mb-4">
+          <TabsList className="bg-muted border border-border mb-4">
             <TabsTrigger 
               value="quote" 
-              className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60 gap-2"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2"
             >
               <FileText className="h-4 w-4" />
               Presupuesto
             </TabsTrigger>
             <TabsTrigger 
               value="invoice" 
-              className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60 gap-2"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2"
             >
               <Receipt className="h-4 w-4" />
               Factura
@@ -745,25 +745,24 @@ export function TemplatesTab() {
           </TabsList>
 
           <TabsContent value="quote" className="mt-0">
-            <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+            <div className="bg-muted/30 rounded-lg border border-border overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                 <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-white/60" />
-                  <span className="text-white/60 text-sm">Vista previa - Plantilla de Presupuesto</span>
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground text-sm">Vista previa - Plantilla de Presupuesto</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
                     id="show-project"
                     checked={showProject}
                     onCheckedChange={setShowProject}
-                    className="data-[state=checked]:bg-orange-500"
                   />
-                  <Label htmlFor="show-project" className="text-white/70 text-sm cursor-pointer">
+                  <Label htmlFor="show-project" className="text-foreground text-sm cursor-pointer">
                     Mostrar Proyecto
                   </Label>
                 </div>
               </div>
-              <div className="h-[600px] bg-zinc-800">
+              <div className="h-[600px] bg-muted">
                 <PDFViewer width="100%" height="100%" showToolbar={false}>
                   <QuoteTemplatePreview company={company} showProject={showProject} />
                 </PDFViewer>
@@ -772,11 +771,11 @@ export function TemplatesTab() {
           </TabsContent>
 
           <TabsContent value="invoice" className="mt-0">
-            <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+            <div className="bg-muted/30 rounded-lg border border-border overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                 <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-white/60" />
-                  <span className="text-white/60 text-sm">
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground text-sm">
                     {invoiceLoading 
                       ? "Cargando plantilla..." 
                       : noInvoices 
@@ -790,35 +789,34 @@ export function TemplatesTab() {
                       id="show-project-invoice"
                       checked={showProject}
                       onCheckedChange={setShowProject}
-                      className="data-[state=checked]:bg-orange-500"
                     />
-                    <Label htmlFor="show-project-invoice" className="text-white/70 text-sm cursor-pointer">
+                    <Label htmlFor="show-project-invoice" className="text-foreground text-sm cursor-pointer">
                       Mostrar Proyecto
                     </Label>
                   </div>
                 )}
               </div>
               {invoiceLoading ? (
-                <div className="h-[600px] bg-zinc-800 flex items-center justify-center">
+                <div className="h-[600px] bg-muted flex items-center justify-center">
                   <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-                    <p className="text-white/60 text-sm">Cargando factura de referencia...</p>
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    <p className="text-muted-foreground text-sm">Cargando factura de referencia...</p>
                   </div>
                 </div>
               ) : noInvoices ? (
-                <div className="h-[600px] bg-zinc-800 flex items-center justify-center">
+                <div className="h-[600px] bg-muted flex items-center justify-center">
                   <div className="flex flex-col items-center gap-3 max-w-md text-center px-4">
-                    <AlertCircle className="w-12 h-12 text-orange-500" />
-                    <p className="text-white/80 text-base font-medium">
+                    <AlertCircle className="w-12 h-12 text-primary" />
+                    <p className="text-foreground text-base font-medium">
                       No hay facturas disponibles
                     </p>
-                    <p className="text-white/60 text-sm">
-                      Crea al menos una factura para ver la plantilla con datos reales. Mientras tanto, se muestra la plantilla estática.
+                    <p className="text-muted-foreground text-sm">
+                      Crea al menos una factura para ver la plantilla con datos reales.
                     </p>
                   </div>
                 </div>
               ) : invoice && company ? (
-                <div className="h-[600px] bg-zinc-800">
+                <div className="h-[600px] bg-muted">
                   <PDFViewer width="100%" height="100%" showToolbar={false}>
                     <InvoicePDFDocument
                       invoice={invoice}
@@ -831,7 +829,7 @@ export function TemplatesTab() {
                   </PDFViewer>
                 </div>
               ) : (
-                <div className="h-[600px] bg-zinc-800">
+                <div className="h-[600px] bg-muted">
                   <PDFViewer width="100%" height="100%" showToolbar={false}>
                     <InvoiceTemplatePreview company={company} showProject={showProject} />
                   </PDFViewer>
@@ -841,8 +839,8 @@ export function TemplatesTab() {
           </TabsContent>
         </Tabs>
 
-        <div className="mt-6 p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
-          <p className="text-orange-300 text-sm">
+        <div className="mt-6 p-4 bg-primary/10 border border-primary/30 rounded-lg">
+          <p className="text-primary text-sm">
             <strong>Próximamente:</strong> Podrás personalizar los colores, fuentes, logo, textos legales y layout de las plantillas.
           </p>
         </div>

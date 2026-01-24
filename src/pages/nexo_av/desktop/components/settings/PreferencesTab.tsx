@@ -15,7 +15,7 @@ interface BankAccount {
   bank: string;
   iban: string;
   notes: string;
-  isLocked?: boolean; // Para controlar si está bloqueado (guardado)
+  isLocked?: boolean;
 }
 
 interface CompanyPreferences {
@@ -25,17 +25,13 @@ interface CompanyPreferences {
   bank_accounts: BankAccount[];
 }
 
-// Regex para validar IBAN español: 2 letras + 22 dígitos
 const IBAN_REGEX = /^[A-Z]{2}\d{22}$/;
 
-// Función para validar formato IBAN
 const validateIBAN = (iban: string): boolean => {
-  // Eliminar espacios y convertir a mayúsculas
   const cleanIBAN = iban.replace(/\s/g, '').toUpperCase();
   return IBAN_REGEX.test(cleanIBAN);
 };
 
-// Función para formatear IBAN con espacios cada 4 caracteres
 const formatIBAN = (iban: string): string => {
   const clean = iban.replace(/\s/g, '').toUpperCase();
   return clean.match(/.{1,4}/g)?.join(' ') || clean;
@@ -65,7 +61,6 @@ export function PreferencesTab() {
       
       if (data && data.length > 0) {
         const prefs = data[0];
-        // Parse bank_accounts safely
         let bankAccounts: BankAccount[] = [];
         if (prefs.bank_accounts && Array.isArray(prefs.bank_accounts)) {
           bankAccounts = (prefs.bank_accounts as unknown as BankAccount[])
@@ -74,7 +69,6 @@ export function PreferencesTab() {
             )
             .map(acc => ({
               ...acc,
-              // Marcar como bloqueadas las cuentas que ya tienen IBAN válido guardado
               isLocked: acc.iban ? validateIBAN(acc.iban.replace(/\s/g, '')) : false
             }));
         }
@@ -94,7 +88,6 @@ export function PreferencesTab() {
   };
 
   const handleSave = async () => {
-    // Validar todos los IBANs antes de guardar
     const newErrors: Record<string, string> = {};
     let hasErrors = false;
 
@@ -102,7 +95,7 @@ export function PreferencesTab() {
       if (account.iban) {
         const cleanIBAN = account.iban.replace(/\s/g, '').toUpperCase();
         if (!validateIBAN(cleanIBAN)) {
-          newErrors[account.id] = 'Formato inválido. Debe ser 2 letras + 22 números (ej: ES1234567890123456789012)';
+          newErrors[account.id] = 'Formato inválido. Debe ser 2 letras + 22 números';
           hasErrors = true;
         }
       }
@@ -111,38 +104,29 @@ export function PreferencesTab() {
     setIbanErrors(newErrors);
 
     if (hasErrors) {
-      toast.error('Hay errores en el formato de IBAN. Por favor, corrígelos antes de guardar.');
+      toast.error('Hay errores en el formato de IBAN.');
       return;
     }
 
     setSaving(true);
     try {
-      // Convertir bank_accounts a un formato limpio para JSONB
       const cleanBankAccounts = preferences.bank_accounts.map(acc => ({
         id: acc.id,
         holder: acc.holder || '',
         bank: acc.bank || '',
-        iban: acc.iban?.replace(/\s/g, '').toUpperCase() || '', // Guardar sin espacios
+        iban: acc.iban?.replace(/\s/g, '').toUpperCase() || '',
         notes: acc.notes || ''
       }));
 
-      console.log('Saving preferences with bank_accounts:', cleanBankAccounts);
-
-      const { data, error } = await supabase.rpc('upsert_company_preferences', {
+      const { error } = await supabase.rpc('upsert_company_preferences', {
         p_quote_validity_days: preferences.quote_validity_days,
         p_invoice_payment_days: preferences.invoice_payment_days,
         p_default_currency: preferences.default_currency,
         p_bank_accounts: cleanBankAccounts as unknown as Json
       });
 
-      if (error) {
-        console.error('RPC error:', error);
-        throw error;
-      }
-
-      console.log('Save result:', data);
+      if (error) throw error;
       
-      // Después de guardar, marcar todas las cuentas con IBAN válido como bloqueadas
       setPreferences(prev => ({
         ...prev,
         bank_accounts: prev.bank_accounts.map(acc => ({
@@ -151,9 +135,7 @@ export function PreferencesTab() {
         }))
       }));
       
-      // Limpiar el estado de edición
       setEditingAccounts(new Set());
-      
       toast.success('Preferencias guardadas correctamente');
     } catch (error) {
       console.error('Error saving preferences:', error);
@@ -169,17 +151,9 @@ export function PreferencesTab() {
       ...prev,
       bank_accounts: [
         ...prev.bank_accounts,
-        {
-          id: newId,
-          holder: '',
-          bank: '',
-          iban: '',
-          notes: '',
-          isLocked: false
-        }
+        { id: newId, holder: '', bank: '', iban: '', notes: '', isLocked: false }
       ]
     }));
-    // Añadir a la lista de cuentas en edición
     setEditingAccounts(prev => new Set(prev).add(newId));
   };
 
@@ -188,7 +162,6 @@ export function PreferencesTab() {
       ...prev,
       bank_accounts: prev.bank_accounts.filter(acc => acc.id !== id)
     }));
-    // Limpiar errores y estado de edición
     setIbanErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors[id];
@@ -209,7 +182,6 @@ export function PreferencesTab() {
       )
     }));
     
-    // Limpiar error de IBAN cuando el usuario empiece a escribir
     if (field === 'iban' && ibanErrors[id]) {
       setIbanErrors(prev => {
         const newErrors = { ...prev };
@@ -230,7 +202,6 @@ export function PreferencesTab() {
       return newSet;
     });
     
-    // Desbloquear la cuenta para editar
     setPreferences(prev => ({
       ...prev,
       bank_accounts: prev.bank_accounts.map(acc =>
@@ -246,26 +217,22 @@ export function PreferencesTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header con botón guardar */}
+    <div className="space-y-6 max-w-4xl">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white">Preferencias Generales</h2>
-          <p className="text-sm text-white/60 mt-1">
+          <h2 className="text-xl font-semibold text-foreground">Preferencias Generales</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             Configuración que se aplicará automáticamente a nuevos documentos
           </p>
         </div>
-        <Button
-          onClick={handleSave}
-          disabled={saving}
-          className="bg-white text-black hover:bg-white/90"
-        >
+        <Button onClick={handleSave} disabled={saving}>
           {saving ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
           ) : (
@@ -276,22 +243,21 @@ export function PreferencesTab() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Plazos y condiciones */}
-        <Card className="bg-white/5 border-white/10">
+        {/* Plazos comerciales */}
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-white/60" />
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-muted-foreground" />
               Plazos Comerciales
             </CardTitle>
-            <CardDescription className="text-white/60">
+            <CardDescription className="text-muted-foreground">
               Configura los plazos por defecto para presupuestos y facturas
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Validez de presupuestos */}
             <div className="space-y-2">
-              <Label className="text-white/80 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-white/40" />
+              <Label className="text-foreground flex items-center gap-2">
+                <Clock className="w-4 h-4 text-muted-foreground" />
                 Validez de Presupuestos
               </Label>
               <div className="flex items-center gap-3">
@@ -304,24 +270,21 @@ export function PreferencesTab() {
                     ...prev,
                     quote_validity_days: parseInt(e.target.value) || 15
                   }))}
-                  className="w-24 bg-white/5 border-white/10 text-white text-center"
+                  className="w-24 bg-background border-input text-foreground text-center"
                 />
-                <span className="text-white/60">días desde la fecha de emisión</span>
+                <span className="text-muted-foreground">días desde la fecha de emisión</span>
               </div>
-              <p className="text-xs text-white/40">
-                Este valor se usará para calcular automáticamente la fecha de validez en los presupuestos
-              </p>
-              {/* Mini preview */}
-              <div className="flex items-center gap-2 mt-2 p-2 bg-white/5 rounded text-xs">
-                <Eye className="w-3 h-3 text-white/40" />
-                <span className="text-white/50">Ej: Presupuesto emitido hoy → Válido hasta {new Date(Date.now() + preferences.quote_validity_days * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES')}</span>
+              <div className="flex items-center gap-2 mt-2 p-2 bg-muted/50 rounded text-xs">
+                <Eye className="w-3 h-3 text-muted-foreground" />
+                <span className="text-muted-foreground">
+                  Ej: Presupuesto emitido hoy → Válido hasta {new Date(Date.now() + preferences.quote_validity_days * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES')}
+                </span>
               </div>
             </div>
 
-            {/* Plazo de pago de facturas */}
             <div className="space-y-2">
-              <Label className="text-white/80 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-white/40" />
+              <Label className="text-foreground flex items-center gap-2">
+                <Clock className="w-4 h-4 text-muted-foreground" />
                 Plazo de Pago de Facturas
               </Label>
               <div className="flex items-center gap-3">
@@ -334,34 +297,32 @@ export function PreferencesTab() {
                     ...prev,
                     invoice_payment_days: parseInt(e.target.value) || 30
                   }))}
-                  className="w-24 bg-white/5 border-white/10 text-white text-center"
+                  className="w-24 bg-background border-input text-foreground text-center"
                 />
-                <span className="text-white/60">días desde la fecha de emisión</span>
+                <span className="text-muted-foreground">días desde la fecha de emisión</span>
               </div>
-              <p className="text-xs text-white/40">
-                Este valor determinará la fecha de vencimiento en las facturas emitidas
-              </p>
-              {/* Mini preview */}
-              <div className="flex items-center gap-2 mt-2 p-2 bg-white/5 rounded text-xs">
-                <Eye className="w-3 h-3 text-white/40" />
-                <span className="text-white/50">Ej: Factura emitida hoy → Vence el {new Date(Date.now() + preferences.invoice_payment_days * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES')}</span>
+              <div className="flex items-center gap-2 mt-2 p-2 bg-muted/50 rounded text-xs">
+                <Eye className="w-3 h-3 text-muted-foreground" />
+                <span className="text-muted-foreground">
+                  Ej: Factura emitida hoy → Vence el {new Date(Date.now() + preferences.invoice_payment_days * 24 * 60 * 60 * 1000).toLocaleDateString('es-ES')}
+                </span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Información para futuras extensiones */}
-        <Card className="bg-white/5 border-white/10 border-dashed opacity-60">
+        {/* Próximamente */}
+        <Card className="bg-card border-border border-dashed opacity-60">
           <CardHeader>
-            <CardTitle className="text-white/60 flex items-center gap-2">
+            <CardTitle className="text-muted-foreground flex items-center gap-2">
               Próximamente
             </CardTitle>
-            <CardDescription className="text-white/40">
+            <CardDescription className="text-muted-foreground">
               Más opciones de configuración estarán disponibles aquí
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2 text-sm text-white/40">
+            <ul className="space-y-2 text-sm text-muted-foreground">
               <li>• Textos legales estándar</li>
               <li>• Condiciones de servicio por defecto</li>
               <li>• Notas automáticas en documentos</li>
@@ -372,24 +333,19 @@ export function PreferencesTab() {
       </div>
 
       {/* Datos bancarios */}
-      <Card className="bg-white/5 border-white/10">
+      <Card className="bg-card border-border">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-white flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-white/60" />
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-muted-foreground" />
                 Datos Bancarios para Cobros
               </CardTitle>
-              <CardDescription className="text-white/60 mt-1">
-                Información de pago que aparecerá en las facturas para que los clientes realicen el abono
+              <CardDescription className="text-muted-foreground mt-1">
+                Información de pago que aparecerá en las facturas
               </CardDescription>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={addBankAccount}
-              className="border-white/20 text-white hover:bg-white/10"
-            >
+            <Button variant="outline" size="sm" onClick={addBankAccount}>
               <Plus className="w-4 h-4 mr-2" />
               Añadir Cuenta
             </Button>
@@ -397,12 +353,12 @@ export function PreferencesTab() {
         </CardHeader>
         <CardContent>
           {preferences.bank_accounts.length === 0 ? (
-            <div className="text-center py-8 border border-dashed border-white/10 rounded-lg">
-              <CreditCard className="w-10 h-10 mx-auto text-white/20 mb-3" />
-              <p className="text-white/40 text-sm">
+            <div className="text-center py-8 border border-dashed border-border rounded-lg">
+              <CreditCard className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+              <p className="text-muted-foreground text-sm">
                 No hay cuentas bancarias configuradas
               </p>
-              <p className="text-white/30 text-xs mt-1">
+              <p className="text-muted-foreground text-xs mt-1">
                 Añade al menos una cuenta para que aparezca en las facturas
               </p>
             </div>
@@ -419,19 +375,19 @@ export function PreferencesTab() {
                       account.isLocked && !editingAccounts.has(account.id)
                         ? 'bg-green-500/5 border-green-500/20'
                         : hasError
-                        ? 'bg-red-500/5 border-red-500/30'
-                        : 'bg-white/5 border-white/10'
+                        ? 'bg-destructive/5 border-destructive/30'
+                        : 'bg-muted/30 border-border'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {account.isLocked && !editingAccounts.has(account.id) ? (
-                          <Lock className="w-4 h-4 text-green-400" />
+                          <Lock className="w-4 h-4 text-green-500" />
                         ) : null}
-                        <span className="text-sm font-medium text-white/80">
+                        <span className="text-sm font-medium text-foreground">
                           Cuenta {index + 1}
                           {account.isLocked && !editingAccounts.has(account.id) && (
-                            <span className="ml-2 text-xs text-green-400">(Guardada)</span>
+                            <span className="ml-2 text-xs text-green-500">(Guardada)</span>
                           )}
                         </span>
                       </div>
@@ -441,7 +397,6 @@ export function PreferencesTab() {
                             variant="ghost"
                             size="sm"
                             onClick={() => toggleEditAccount(account.id)}
-                            className="h-8 text-white/60 hover:text-white hover:bg-white/10"
                           >
                             <Pencil className="w-4 h-4 mr-1" />
                             Editar datos
@@ -451,66 +406,64 @@ export function PreferencesTab() {
                           variant="ghost"
                           size="icon"
                           onClick={() => removeBankAccount(account.id)}
-                          className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
 
-                    {/* Modo visualización (bloqueado) */}
                     {account.isLocked && !editingAccounts.has(account.id) ? (
                       <div className="grid gap-3 md:grid-cols-2">
                         <div className="space-y-1">
-                          <Label className="text-white/40 text-xs">Titular</Label>
-                          <p className="text-white/90 text-sm">{account.holder || '-'}</p>
+                          <Label className="text-muted-foreground text-xs">Titular</Label>
+                          <p className="text-foreground text-sm">{account.holder || '-'}</p>
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-white/40 text-xs">Entidad bancaria</Label>
-                          <p className="text-white/90 text-sm">{account.bank || '-'}</p>
+                          <Label className="text-muted-foreground text-xs">Entidad bancaria</Label>
+                          <p className="text-foreground text-sm">{account.bank || '-'}</p>
                         </div>
                         <div className="space-y-1 md:col-span-2">
-                          <Label className="text-white/40 text-xs">IBAN</Label>
-                          <p className="text-white/90 text-sm font-mono flex items-center gap-2">
-                            <Check className="w-4 h-4 text-green-400" />
+                          <Label className="text-muted-foreground text-xs">IBAN</Label>
+                          <p className="text-foreground text-sm font-mono flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
                             {formatIBAN(account.iban)}
                           </p>
                         </div>
                         {account.notes && (
                           <div className="space-y-1 md:col-span-2">
-                            <Label className="text-white/40 text-xs">Notas de pago</Label>
-                            <p className="text-white/60 text-sm italic">{account.notes}</p>
+                            <Label className="text-muted-foreground text-xs">Notas de pago</Label>
+                            <p className="text-muted-foreground text-sm italic">{account.notes}</p>
                           </div>
                         )}
                       </div>
                     ) : (
-                      /* Modo edición */
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                          <Label className="text-white/60 text-sm">Titular de la cuenta</Label>
+                          <Label className="text-foreground text-sm">Titular de la cuenta</Label>
                           <Input
                             value={account.holder}
                             onChange={(e) => updateBankAccount(account.id, 'holder', e.target.value)}
                             placeholder="Nombre del titular"
-                            className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                            className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                           />
                         </div>
 
                         <div className="space-y-2">
-                          <Label className="text-white/60 text-sm">Entidad bancaria</Label>
+                          <Label className="text-foreground text-sm">Entidad bancaria</Label>
                           <Input
                             value={account.bank}
                             onChange={(e) => updateBankAccount(account.id, 'bank', e.target.value)}
                             placeholder="Nombre del banco"
-                            className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                            className="bg-background border-input text-foreground placeholder:text-muted-foreground"
                           />
                         </div>
 
                         <div className="space-y-2 md:col-span-2">
-                          <Label className="text-white/60 text-sm flex items-center gap-2">
+                          <Label className="text-foreground text-sm flex items-center gap-2">
                             IBAN
                             {hasError && (
-                              <span className="text-red-400 text-xs flex items-center gap-1">
+                              <span className="text-destructive text-xs flex items-center gap-1">
                                 <AlertCircle className="w-3 h-3" />
                                 {hasError}
                               </span>
@@ -521,24 +474,22 @@ export function PreferencesTab() {
                             onChange={(e) => updateBankAccount(account.id, 'iban', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
                             placeholder="ES1234567890123456789012"
                             maxLength={24}
-                            className={`bg-white/5 text-white placeholder:text-white/30 font-mono ${
-                              hasError 
-                                ? 'border-red-500/50 focus-visible:ring-red-500/30' 
-                                : 'border-white/10'
+                            className={`bg-background text-foreground placeholder:text-muted-foreground font-mono ${
+                              hasError ? 'border-destructive focus-visible:ring-destructive/30' : 'border-input'
                             }`}
                           />
-                          <p className="text-xs text-white/40">
+                          <p className="text-xs text-muted-foreground">
                             Formato: 2 letras + 22 números (ejemplo: ES1234567890123456789012)
                           </p>
                         </div>
 
                         <div className="space-y-2 md:col-span-2">
-                          <Label className="text-white/60 text-sm">Notas de pago (opcional)</Label>
+                          <Label className="text-foreground text-sm">Notas de pago (opcional)</Label>
                           <Textarea
                             value={account.notes}
                             onChange={(e) => updateBankAccount(account.id, 'notes', e.target.value)}
                             placeholder="Ej: Indicar número de factura en el concepto"
-                            className="bg-white/5 border-white/10 text-white placeholder:text-white/30 min-h-[60px]"
+                            className="bg-background border-input text-foreground placeholder:text-muted-foreground min-h-[60px]"
                           />
                         </div>
                       </div>
@@ -549,12 +500,12 @@ export function PreferencesTab() {
             </div>
           )}
 
-          {/* Vista previa de cómo se mostrará en la factura */}
+          {/* Vista previa */}
           {preferences.bank_accounts.length > 0 && preferences.bank_accounts[0].iban && (
-            <div className="mt-6 pt-6 border-t border-white/10">
+            <div className="mt-6 pt-6 border-t border-border">
               <div className="flex items-center gap-2 mb-3">
-                <Eye className="w-4 h-4 text-white/40" />
-                <span className="text-sm text-white/60">Vista previa en factura</span>
+                <Eye className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Vista previa en factura</span>
               </div>
               <div className="bg-white rounded-lg p-4 max-w-md">
                 <div className="border-t-2 border-gray-200 pt-3">
@@ -581,23 +532,6 @@ export function PreferencesTab() {
           )}
         </CardContent>
       </Card>
-
-      {/* Botón guardar fijo al final */}
-      <div className="flex justify-end pt-4 border-t border-white/10">
-        <Button
-          onClick={handleSave}
-          disabled={saving}
-          size="lg"
-          className="bg-white text-black hover:bg-white/90"
-        >
-          {saving ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <Save className="w-4 h-4 mr-2" />
-          )}
-          Guardar Preferencias
-        </Button>
-      </div>
     </div>
   );
 }
