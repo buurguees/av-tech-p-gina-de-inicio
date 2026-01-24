@@ -1,6 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -9,8 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Calculator } from "lucide-react";
-import ProductSearchInput from "../common/ProductSearchInput";
+import { Plus, Trash2, Calculator, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface DocumentLine {
@@ -46,46 +43,26 @@ interface DocumentLinesEditorProps {
   className?: string;
 }
 
-// Utility functions for numeric handling
-const parseNumericInput = (value: string): number => {
-  if (!value || value === '') return 0;
-  let cleaned = value.trim();
-  const dotCount = (cleaned.match(/\./g) || []).length;
-  const commaCount = (cleaned.match(/,/g) || []).length;
-
-  if (commaCount > 0) {
-    cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.');
-  } else if (dotCount === 1) {
-    const dotIndex = cleaned.indexOf('.');
-    const afterDot = cleaned.substring(dotIndex + 1);
-    if (afterDot.length <= 2 && /^\d+$/.test(afterDot)) {
-      cleaned = cleaned;
-    } else {
-      cleaned = cleaned.replace(/\./g, '');
-    }
-  } else if (dotCount > 1) {
-    cleaned = cleaned.replace(/\./g, '');
-  }
-
-  const num = parseFloat(cleaned);
-  return isNaN(num) ? 0 : num;
-};
-
-const formatNumericDisplay = (value: number | string): string => {
-  if (value === '' || value === null || value === undefined) return '';
-  const num = typeof value === 'string' ? parseNumericInput(value) : value;
-  if (isNaN(num) || num === 0) return '';
-  return new Intl.NumberFormat('es-ES', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(num);
-};
-
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
     currency: "EUR",
   }).format(amount);
+};
+
+const formatNumber = (value: number): string => {
+  if (value === 0) return "";
+  return new Intl.NumberFormat("es-ES", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
+const parseNumber = (value: string): number => {
+  if (!value) return 0;
+  const cleaned = value.replace(/\./g, "").replace(",", ".");
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
 };
 
 export default function DocumentLinesEditor({
@@ -96,35 +73,37 @@ export default function DocumentLinesEditor({
   showDescription = false,
   showLineNumbers = true,
   title = "Líneas del documento",
-  hint = "Escribe @nombre para buscar en el catálogo",
+  hint = "Añade conceptos al presupuesto",
   className,
 }: DocumentLinesEditorProps) {
-  const [numericInputValues, setNumericInputValues] = useState<Record<string, string>>({});
-  const [expandedDescriptionIndex, setExpandedDescriptionIndex] = useState<number | null>(null);
+  const [editingValues, setEditingValues] = useState<Record<string, string>>({});
 
-  const calculateLineValues = useCallback((line: Partial<DocumentLine>): DocumentLine => {
-    const quantity = line.quantity || 0;
-    const unitPrice = line.unit_price || 0;
-    const discountPercent = line.discount_percent || 0;
-    const taxRate = line.tax_rate || defaultTaxRate;
+  const calculateLineValues = useCallback(
+    (line: Partial<DocumentLine>): DocumentLine => {
+      const quantity = line.quantity || 0;
+      const unitPrice = line.unit_price || 0;
+      const discountPercent = line.discount_percent || 0;
+      const taxRate = line.tax_rate || defaultTaxRate;
 
-    const subtotal = quantity * unitPrice * (1 - discountPercent / 100);
-    const taxAmount = subtotal * (taxRate / 100);
-    const total = subtotal + taxAmount;
+      const subtotal = quantity * unitPrice * (1 - discountPercent / 100);
+      const taxAmount = subtotal * (taxRate / 100);
+      const total = subtotal + taxAmount;
 
-    return {
-      ...line,
-      concept: line.concept || "",
-      description: line.description || "",
-      quantity,
-      unit_price: unitPrice,
-      tax_rate: taxRate,
-      discount_percent: discountPercent,
-      subtotal,
-      tax_amount: taxAmount,
-      total,
-    } as DocumentLine;
-  }, [defaultTaxRate]);
+      return {
+        ...line,
+        concept: line.concept || "",
+        description: line.description || "",
+        quantity,
+        unit_price: unitPrice,
+        tax_rate: taxRate,
+        discount_percent: discountPercent,
+        subtotal,
+        tax_amount: taxAmount,
+        total,
+      } as DocumentLine;
+    },
+    [defaultTaxRate]
+  );
 
   const addLine = useCallback(() => {
     const newLine = calculateLineValues({
@@ -140,228 +119,195 @@ export default function DocumentLinesEditor({
     onLinesChange([...lines, newLine]);
   }, [lines, onLinesChange, calculateLineValues, defaultTaxRate]);
 
-  const updateLine = useCallback((index: number, field: keyof DocumentLine, value: any) => {
-    const updatedLines = [...lines];
-    updatedLines[index] = calculateLineValues({
-      ...updatedLines[index],
-      [field]: value,
-    });
-    onLinesChange(updatedLines);
-  }, [lines, onLinesChange, calculateLineValues]);
+  const updateLine = useCallback(
+    (index: number, field: keyof DocumentLine, value: any) => {
+      const updatedLines = [...lines];
+      updatedLines[index] = calculateLineValues({
+        ...updatedLines[index],
+        [field]: value,
+      });
+      onLinesChange(updatedLines);
+    },
+    [lines, onLinesChange, calculateLineValues]
+  );
 
-  const handleProductSelect = useCallback((
+  const removeLine = useCallback(
+    (index: number) => {
+      const newLines = lines.filter((_, i) => i !== index);
+      const reorderedLines = newLines.map((line, i) => ({
+        ...line,
+        line_order: i + 1,
+      }));
+      onLinesChange(reorderedLines);
+    },
+    [lines, onLinesChange]
+  );
+
+  const handleNumericChange = (
     index: number,
-    item: { id: string; type: string; name: string; code: string; price: number; tax_rate: number; description?: string }
+    field: "quantity" | "unit_price" | "discount_percent",
+    value: string
   ) => {
-    const updatedLines = [...lines];
-    const currentQuantity = updatedLines[index].quantity;
+    const key = `${index}-${field}`;
+    setEditingValues((prev) => ({ ...prev, [key]: value }));
+    updateLine(index, field, parseNumber(value));
+  };
 
-    const lineData = {
-      ...updatedLines[index],
-      concept: item.name,
-      description: item.description || "",
-      unit_price: item.price,
-      tax_rate: item.tax_rate || defaultTaxRate,
-      quantity: currentQuantity,
-    };
-
-    updatedLines[index] = calculateLineValues(lineData);
-    onLinesChange(updatedLines);
-  }, [lines, onLinesChange, calculateLineValues, defaultTaxRate]);
-
-  const removeLine = useCallback((index: number) => {
-    const newLines = lines.filter((_, i) => i !== index);
-    // Update line_order for remaining lines
-    const reorderedLines = newLines.map((line, i) => ({
-      ...line,
-      line_order: i + 1,
-    }));
-    onLinesChange(reorderedLines);
-  }, [lines, onLinesChange]);
-
-  const moveLineToPosition = useCallback((currentIndex: number, newPosition: number) => {
-    if (newPosition < 1 || newPosition > lines.length) return;
-    const targetIndex = newPosition - 1;
-    if (targetIndex === currentIndex) return;
-
-    const newLines = [...lines];
-    const [movedLine] = newLines.splice(currentIndex, 1);
-    newLines.splice(targetIndex, 0, movedLine);
-
-    // Update line_order for all lines
-    const reorderedLines = newLines.map((line, i) => ({
-      ...line,
-      line_order: i + 1,
-    }));
-    onLinesChange(reorderedLines);
-  }, [lines, onLinesChange]);
-
-  const handleNumericInputChange = useCallback((
-    value: string,
-    field: 'quantity' | 'unit_price' | 'discount_percent',
-    index: number
-  ) => {
-    const inputKey = `${index}-${field}`;
-    setNumericInputValues(prev => ({ ...prev, [inputKey]: value }));
-
-    if (value === '' || value === null || value === undefined) {
-      updateLine(index, field, 0);
-      return;
-    }
-
-    const numericValue = parseNumericInput(value);
-    updateLine(index, field, numericValue);
-  }, [updateLine]);
-
-  const getNumericDisplayValue = useCallback((
-    value: number,
-    field: 'quantity' | 'unit_price' | 'discount_percent',
-    index: number
-  ): string => {
-    const inputKey = `${index}-${field}`;
-    const storedValue = numericInputValues[inputKey];
-
-    if (storedValue !== undefined) {
-      return storedValue;
-    }
-
-    if (value === 0) return '';
-    return formatNumericDisplay(value);
-  }, [numericInputValues]);
-
-  const clearNumericInputValue = useCallback((index: number, field: string) => {
-    const inputKey = `${index}-${field}`;
-    setNumericInputValues(prev => {
+  const handleNumericBlur = (index: number, field: string) => {
+    const key = `${index}-${field}`;
+    setEditingValues((prev) => {
       const newValues = { ...prev };
-      delete newValues[inputKey];
+      delete newValues[key];
       return newValues;
     });
-  }, []);
+  };
 
-  // Grid template columns based on whether description is shown
-  const gridTemplateColumns = showDescription
-    ? showLineNumbers 
-      ? '60px minmax(200px, 3fr) minmax(150px, 2fr) 80px 100px 70px 90px 110px 50px'
-      : 'minmax(200px, 3fr) minmax(150px, 2fr) 80px 100px 70px 90px 110px 50px'
-    : showLineNumbers
-      ? '60px minmax(300px, 1fr) 80px 100px 70px 90px 110px 50px'
-      : 'minmax(300px, 1fr) 80px 100px 70px 90px 110px 50px';
+  const getDisplayValue = (index: number, field: string, value: number): string => {
+    const key = `${index}-${field}`;
+    if (editingValues[key] !== undefined) return editingValues[key];
+    return formatNumber(value);
+  };
+
+  // Input base classes
+  const inputBase = cn(
+    "w-full h-12 px-4 text-base bg-muted/30 border-2 border-transparent rounded-xl",
+    "text-foreground placeholder:text-muted-foreground/50",
+    "transition-all duration-200",
+    "hover:bg-muted/50",
+    "focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none"
+  );
+
+  const numericInput = cn(inputBase, "text-center font-medium");
 
   return (
-    <div className={cn("document-lines-editor modern-lines-editor", className)}>
+    <section className={cn("bg-card border border-border rounded-2xl shadow-sm overflow-hidden", className)}>
       {/* Header */}
-      <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
-        <div className="p-6 border-b border-border/50 flex justify-between items-center bg-muted/30">
-          <h2 className="font-bold text-foreground flex items-center gap-2">
-            <Calculator className="w-4 h-4 text-primary" />
-            {title}
-          </h2>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground font-medium">{hint}</span>
-            <Button
-              variant="ghost"
-              onClick={addLine}
-              className="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
-            >
-              <Plus className="w-4 h-4" /> Añadir concepto
-            </Button>
+      <div className="px-6 py-4 border-b border-border bg-muted/30 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Calculator className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-foreground">{title}</h2>
+            <p className="text-sm text-muted-foreground">{hint}</p>
           </div>
         </div>
+        <Button onClick={addLine} variant="outline" className="h-10 gap-2 font-medium">
+          <Plus className="w-4 h-4" />
+          Añadir línea
+        </Button>
+      </div>
 
-        {/* Lines List */}
-        <div className="divide-y divide-border/50">
-          {lines.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Plus className="w-6 h-6 text-muted-foreground/50" />
-              </div>
-              <p className="text-muted-foreground font-medium">No hay conceptos añadidos todavía.</p>
+      {/* Lines */}
+      <div className="divide-y divide-border/50">
+        {lines.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
+              <Plus className="w-8 h-8 text-muted-foreground/50" />
             </div>
-          ) : (
-            lines.map((line, index) => (
-              <div
-                key={line.tempId || line.id || index}
-                className="p-6 hover:bg-accent/50 transition-colors group"
-              >
-                <div className="grid grid-cols-12 gap-4 items-start">
-                  {/* Concept and Description Column */}
-                  <div className="col-span-12 md:col-span-5 space-y-3">
-                    <div>
-                      <ProductSearchInput
+            <h3 className="text-lg font-medium text-foreground mb-2">Sin líneas</h3>
+            <p className="text-muted-foreground mb-4">Añade el primer concepto al presupuesto</p>
+            <Button onClick={addLine} variant="outline" className="gap-2">
+              <Plus className="w-4 h-4" />
+              Añadir línea
+            </Button>
+          </div>
+        ) : (
+          lines.map((line, index) => (
+            <div
+              key={line.tempId || line.id || index}
+              className="p-6 hover:bg-accent/30 transition-colors group"
+            >
+              <div className="flex gap-4">
+                {/* Order indicator */}
+                {showLineNumbers && (
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center">
+                    <span className="text-sm font-bold text-muted-foreground">{index + 1}</span>
+                  </div>
+                )}
+
+                {/* Main content */}
+                <div className="flex-1 space-y-4">
+                  {/* Row 1: Concept and Description */}
+                  <div className={cn("grid gap-4", showDescription ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1")}>
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Concepto
+                      </label>
+                      <input
+                        type="text"
                         value={line.concept}
-                        onChange={(value) => updateLine(index, "concept", value)}
-                        onSelectItem={(item) => handleProductSelect(index, item)}
-                        placeholder="Concepto (ej: Diseño Web)"
-                        className="modern-concept-input"
+                        onChange={(e) => updateLine(index, "concept", e.target.value)}
+                        placeholder="Nombre del producto o servicio"
+                        className={cn(inputBase, "font-medium")}
                       />
                     </div>
+
                     {showDescription && (
-                      <div>
-                        {expandedDescriptionIndex === index ? (
-                          <Textarea
-                            value={line.description || ""}
-                            onChange={(e) => updateLine(index, "description", e.target.value)}
-                            placeholder="Descripción detallada del servicio..."
-                            className="modern-description-textarea"
-                            onBlur={() => setExpandedDescriptionIndex(null)}
-                            autoFocus
-                          />
-                        ) : (
-                          <input
-                            type="text"
-                            value={line.description || ""}
-                            onChange={(e) => updateLine(index, "description", e.target.value)}
-                            onClick={() => setExpandedDescriptionIndex(index)}
-                            placeholder="Descripción detallada del servicio..."
-                            className="modern-description-input"
-                            readOnly
-                          />
-                        )}
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Descripción
+                        </label>
+                        <input
+                          type="text"
+                          value={line.description || ""}
+                          onChange={(e) => updateLine(index, "description", e.target.value)}
+                          placeholder="Descripción adicional (opcional)"
+                          className={inputBase}
+                        />
                       </div>
                     )}
                   </div>
 
-                  {/* Numeric Fields Column */}
-                  <div className="col-span-12 md:col-span-6 grid grid-cols-4 gap-2">
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase block text-center">Cant.</span>
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        value={getNumericDisplayValue(line.quantity, 'quantity', index)}
-                        onChange={(e) => handleNumericInputChange(e.target.value, 'quantity', index)}
-                        onBlur={() => clearNumericInputValue(index, 'quantity')}
-                        className="modern-numeric-input"
-                        placeholder="1"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase block text-center">Precio</span>
-                      <Input
+                  {/* Row 2: Numeric fields */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Cantidad
+                      </label>
+                      <input
                         type="text"
                         inputMode="decimal"
-                        value={getNumericDisplayValue(line.unit_price, 'unit_price', index)}
-                        onChange={(e) => handleNumericInputChange(e.target.value, 'unit_price', index)}
-                        onBlur={() => clearNumericInputValue(index, 'unit_price')}
-                        className="modern-numeric-input"
-                        placeholder="0,00"
+                        value={getDisplayValue(index, "quantity", line.quantity)}
+                        onChange={(e) => handleNumericChange(index, "quantity", e.target.value)}
+                        onBlur={() => handleNumericBlur(index, "quantity")}
+                        placeholder="1"
+                        className={numericInput}
                       />
                     </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase block text-center">IVA %</span>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Precio
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={getDisplayValue(index, "unit_price", line.unit_price)}
+                        onChange={(e) => handleNumericChange(index, "unit_price", e.target.value)}
+                        onBlur={() => handleNumericBlur(index, "unit_price")}
+                        placeholder="0,00"
+                        className={numericInput}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        IVA
+                      </label>
                       <Select
                         value={line.tax_rate.toString()}
                         onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
                       >
-                        <SelectTrigger className="modern-tax-select">
+                        <SelectTrigger className={cn(numericInput, "px-3")}>
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="tax-select-content">
+                        <SelectContent className="bg-popover border-border shadow-xl rounded-xl z-50">
                           {taxOptions.map((opt) => (
                             <SelectItem
                               key={opt.value}
                               value={opt.value.toString()}
-                              className="tax-select-item"
+                              className="py-3 cursor-pointer"
                             >
                               {opt.label}
                             </SelectItem>
@@ -369,31 +315,36 @@ export default function DocumentLinesEditor({
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase block text-center">Total</span>
-                      <div className="w-full py-1.5 text-right font-bold text-foreground text-sm">
-                        {formatCurrency(line.total)}
+
+                    <div className="space-y-2 col-span-2 sm:col-span-1">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Total
+                      </label>
+                      <div className="h-12 px-4 rounded-xl bg-primary/5 border-2 border-primary/20 flex items-center justify-center">
+                        <span className="text-base font-bold text-primary">
+                          {formatCurrency(line.total)}
+                        </span>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  {/* Actions Column */}
-                  <div className="col-span-12 md:col-span-1 flex justify-end pt-6 md:pt-4">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeLine(index)}
-                      className="p-2 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+                {/* Delete button */}
+                <div className="flex-shrink-0 pt-8">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeLine(index)}
+                    className="h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </Button>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            </div>
+          ))
+        )}
       </div>
-    </div>
+    </section>
   );
 }

@@ -54,14 +54,12 @@ const NewQuotePage = () => {
       setLoading(true);
       await Promise.all([fetchClients(), fetchSaleTaxes()]);
       
-      // Pre-select from URL params
       const urlClientId = searchParams.get('clientId') || clientId;
       if (urlClientId) {
         setSelectedClientId(urlClientId);
         await fetchProjects(urlClientId);
       }
       
-      // Check for source quote
       const sourceQuoteId = searchParams.get('sourceQuoteId');
       if (sourceQuoteId) {
         await loadSourceQuoteData(sourceQuoteId);
@@ -109,7 +107,6 @@ const NewQuotePage = () => {
     try {
       const { data, error } = await supabase.rpc("list_projects", { p_search: "" });
       if (error) throw error;
-      // Filter projects by client
       const clientProjects = (data || []).filter((p: any) => p.client_id === clientId);
       setProjects(clientProjects.map((p: any) => ({
         id: p.id,
@@ -233,115 +230,122 @@ const NewQuotePage = () => {
     }
   };
 
-  // Client/Project options for select
+  // Options for selects
   const clientOptions = clients.map(c => ({ value: c.id, label: `${c.client_number} - ${c.company_name}` }));
   const projectOptions = projects.map(p => ({ value: p.id, label: `${p.project_number} - ${p.project_name}` }));
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center h-[calc(100vh-3.25rem)]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-[calc(100vh-3.25rem)] overflow-y-auto">
-      <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <div className="h-[calc(100vh-3.25rem)] overflow-y-auto bg-background">
+      <div className="max-w-6xl mx-auto px-8 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="space-y-6"
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="space-y-8"
         >
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
+          <header className="flex items-start justify-between gap-6">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold text-foreground tracking-tight">
                 {sourceQuoteNumber ? "Nueva versión" : "Nuevo presupuesto"}
               </h1>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-base text-muted-foreground">
                 {sourceQuoteNumber
-                  ? `Basado en ${sourceQuoteNumber}`
-                  : "El número se asignará automáticamente al guardar"}
+                  ? `Creando nueva versión basada en ${sourceQuoteNumber}`
+                  : "El número se asignará automáticamente al guardar el documento"}
               </p>
             </div>
-            <Button onClick={handleSave} disabled={saving} className="gap-2">
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Guardar
+            <Button 
+              onClick={handleSave} 
+              disabled={saving} 
+              size="lg"
+              className="h-12 px-6 text-base font-semibold gap-2 shadow-lg shadow-primary/20"
+            >
+              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+              Guardar presupuesto
             </Button>
-          </div>
+          </header>
 
           {/* Document Info Card */}
-          <div className="bg-card border border-border rounded-2xl overflow-hidden">
-            <div className="p-4 border-b border-border/50 bg-muted/30 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-foreground text-sm">Datos del documento</span>
+          <section className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-border bg-muted/30 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <FileText className="w-5 h-5 text-primary" />
+              </div>
+              <h2 className="font-semibold text-foreground">Información del documento</h2>
             </div>
             
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Client */}
-                <div className="lg:col-span-2">
-                  <TextInput
-                    type="select"
-                    label="Cliente"
-                    placeholder="Seleccionar cliente..."
-                    value={selectedClientId}
-                    onChange={(value: string) => {
-                      setSelectedClientId(value);
-                      setSelectedProjectId("");
-                    }}
-                    options={clientOptions}
-                    leftIcon={<Building2 className="w-4 h-4" />}
-                    required
-                    size="md"
-                  />
-                </div>
+            <div className="p-6 space-y-6">
+              {/* Row 1: Client and Project */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <TextInput
+                  type="select"
+                  label="Cliente"
+                  placeholder="Seleccionar cliente..."
+                  value={selectedClientId}
+                  onChange={(value: string) => {
+                    setSelectedClientId(value);
+                    setSelectedProjectId("");
+                  }}
+                  options={clientOptions}
+                  leftIcon={<Building2 />}
+                  required
+                  size="lg"
+                  variant="filled"
+                />
 
-                {/* Project */}
-                <div className="lg:col-span-2">
-                  <TextInput
-                    type="select"
-                    label="Proyecto"
-                    placeholder={selectedClientId ? "Seleccionar proyecto..." : "Primero selecciona cliente"}
-                    value={selectedProjectId}
-                    onChange={(value: string) => setSelectedProjectId(value)}
-                    options={projectOptions}
-                    leftIcon={<FolderKanban className="w-4 h-4" />}
-                    disabled={!selectedClientId || projects.length === 0}
-                    size="md"
-                  />
-                </div>
+                <TextInput
+                  type="select"
+                  label="Proyecto"
+                  placeholder={selectedClientId ? "Seleccionar proyecto..." : "Primero selecciona un cliente"}
+                  value={selectedProjectId}
+                  onChange={(value: string) => setSelectedProjectId(value)}
+                  options={projectOptions}
+                  leftIcon={<FolderKanban />}
+                  disabled={!selectedClientId || projects.length === 0}
+                  size="lg"
+                  variant="filled"
+                />
+              </div>
 
-                {/* Date */}
-                <div>
-                  <TextInput
-                    type="date"
-                    label="Fecha"
-                    value={new Date().toISOString().split("T")[0]}
-                    disabled
-                    leftIcon={<Calendar className="w-4 h-4" />}
-                    size="md"
-                  />
-                </div>
+              {/* Row 2: Dates */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <TextInput
+                  type="date"
+                  label="Fecha de emisión"
+                  value={new Date().toISOString().split("T")[0]}
+                  disabled
+                  leftIcon={<Calendar />}
+                  size="md"
+                  variant="filled"
+                  helperText="Fecha actual"
+                />
 
-                {/* Valid Until */}
-                <div>
-                  <TextInput
-                    type="date"
-                    label="Válido hasta"
-                    value={validUntil}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValidUntil(e.target.value)}
-                    disabled
-                    helperText="Auto: +30 días"
-                    leftIcon={<Calendar className="w-4 h-4" />}
-                    size="md"
-                  />
-                </div>
+                <TextInput
+                  type="date"
+                  label="Válido hasta"
+                  value={validUntil}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValidUntil(e.target.value)}
+                  disabled
+                  leftIcon={<Calendar />}
+                  size="md"
+                  variant="filled"
+                  helperText="Automático: +30 días"
+                />
               </div>
             </div>
-          </div>
+          </section>
 
           {/* Lines Editor */}
           <DocumentLinesEditor

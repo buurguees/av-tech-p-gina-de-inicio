@@ -41,7 +41,7 @@ export default function DocumentTotals({
     lines.forEach((line) => {
       if (line.tax_amount !== 0) {
         if (!taxesByRate[line.tax_rate]) {
-          const taxOption = taxOptions.find(t => t.value === line.tax_rate);
+          const taxOption = taxOptions.find((t) => t.value === line.tax_rate);
           taxesByRate[line.tax_rate] = {
             rate: line.tax_rate,
             amount: 0,
@@ -60,26 +60,39 @@ export default function DocumentTotals({
   }, [lines, taxOptions]);
 
   return (
-    <div className={cn("document-totals", className)}>
-      <div className="totals-content">
+    <div
+      className={cn(
+        "bg-card border border-border rounded-2xl shadow-sm p-6 w-full sm:w-80",
+        className
+      )}
+    >
+      <div className="space-y-4">
         {/* Subtotal */}
-        <div className="totals-row">
-          <span className="totals-label">Base imponible</span>
-          <span className="totals-value">{formatCurrency(totals.subtotal)}</span>
+        <div className="flex justify-between items-center">
+          <span className="text-base text-muted-foreground">Base imponible</span>
+          <span className="text-base font-semibold text-foreground">
+            {formatCurrency(totals.subtotal)}
+          </span>
         </div>
 
         {/* Tax breakdown */}
         {totals.taxes.map((tax) => (
-          <div key={tax.rate} className="totals-row tax-row">
-            <span className="totals-label">{tax.label}</span>
-            <span className="totals-value">{formatCurrency(tax.amount)}</span>
+          <div key={tax.rate} className="flex justify-between items-center">
+            <span className="text-base text-muted-foreground">{tax.label}</span>
+            <span className="text-base font-medium text-foreground">
+              {formatCurrency(tax.amount)}
+            </span>
           </div>
         ))}
 
-        {/* Total */}
-        <div className="totals-row total-row">
-          <span className="totals-label">Total</span>
-          <span className="totals-value total-amount">{formatCurrency(totals.total)}</span>
+        {/* Divider */}
+        <div className="border-t border-border pt-4 mt-4">
+          <div className="flex justify-between items-center">
+            <span className="text-lg font-bold text-foreground">Total</span>
+            <span className="text-2xl font-bold text-primary">
+              {formatCurrency(totals.total)}
+            </span>
+          </div>
         </div>
       </div>
     </div>
