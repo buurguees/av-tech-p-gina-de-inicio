@@ -242,8 +242,6 @@ const NewInvoicePage = () => {
             taxOptions={taxOptions}
             defaultTaxRate={defaultTaxRate}
             showDescription={false}
-            showLineNumbers={true}
-            title="Líneas de la factura"
           />
 
           {/* Totals */}
