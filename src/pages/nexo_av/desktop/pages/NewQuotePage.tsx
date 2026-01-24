@@ -587,7 +587,7 @@ const NewQuotePage = () => {
             {lines.map((line, index) => (
               <div
                 key={line.tempId || line.id || index}
-                className="grid grid-cols-[40px_2fr_1.5fr_100px_120px_100px_100px_40px] items-center hover:bg-muted/20 transition-colors group"
+                className="grid grid-cols-[40px_1fr_1fr_90px_100px_90px_90px_36px] items-center hover:bg-muted/20 transition-colors group"
               >
                 {/* Drag Handle */}
                 <div className="px-2 py-3 flex justify-center cursor-grab">
