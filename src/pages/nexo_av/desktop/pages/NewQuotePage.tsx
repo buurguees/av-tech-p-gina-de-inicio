@@ -1,24 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ArrowLeft, Save, Loader2, Eye, Settings, FileDown } from "lucide-react";
+import { Loader2, ChevronDown, Search, GripVertical, Trash2, Plus } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  DocumentLinesEditor,
-  DocumentTotals,
-  type DocumentLine,
-  type TaxOption,
-} from "../components/documents";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import DetailActionButton from "../components/navigation/DetailActionButton";
+import { cn } from "@/lib/utils";
 
+// ============= INLINE TYPES =============
 interface Client {
   id: string;
   company_name: string;
@@ -31,6 +21,151 @@ interface Project {
   project_number: string;
 }
 
+interface TaxOption {
+  value: number;
+  label: string;
+}
+
+interface DocumentLine {
+  id?: string;
+  tempId?: string;
+  concept: string;
+  description?: string;
+  quantity: number;
+  unit_price: number;
+  tax_rate: number;
+  discount_percent: number;
+  subtotal: number;
+  tax_amount: number;
+  total: number;
+  group_name?: string;
+  line_order?: number;
+}
+
+// ============= UTILITY FUNCTIONS =============
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat("es-ES", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+};
+
+// ============= INLINE COMPONENTS =============
+
+// Dropdown Select Component - No external imports
+interface DropdownOption {
+  value: string;
+  label: string;
+}
+
+interface InlineDropdownProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: DropdownOption[];
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+}
+
+const InlineDropdown = ({ value, onChange, options, placeholder, disabled, className }: InlineDropdownProps) => {
+  const [open, setOpen] = useState(false);
+  const selectedOption = options.find(o => o.value === value);
+
+  return (
+    <div className={cn("relative", className)}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen(!open)}
+        className={cn(
+          "w-full h-11 px-4 flex items-center justify-between gap-2",
+          "bg-background border border-border rounded-lg text-sm",
+          "hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
+          "transition-all duration-150",
+          disabled && "opacity-50 cursor-not-allowed bg-muted",
+          !selectedOption && "text-muted-foreground"
+        )}
+      >
+        <span className="truncate">{selectedOption?.label || placeholder}</span>
+        <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", open && "rotate-180")} />
+      </button>
+      
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+                className={cn(
+                  "w-full px-4 py-2.5 text-left text-sm hover:bg-muted transition-colors",
+                  value === opt.value && "bg-primary/10 text-primary font-medium"
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// Tax Badge Dropdown
+interface TaxBadgeDropdownProps {
+  value: number;
+  onChange: (value: number) => void;
+  options: TaxOption[];
+}
+
+const TaxBadgeDropdown = ({ value, onChange, options }: TaxBadgeDropdownProps) => {
+  const [open, setOpen] = useState(false);
+  const selectedOption = options.find(o => o.value === value);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={cn(
+          "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md",
+          "bg-muted hover:bg-muted/80 text-xs font-medium",
+          "transition-colors"
+        )}
+      >
+        <span className="text-muted-foreground">×</span>
+        <span>{selectedOption?.label || `${value}%`}</span>
+        <ChevronDown className={cn("w-3 h-3 text-muted-foreground transition-transform", open && "rotate-180")} />
+      </button>
+      
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 bg-popover border border-border rounded-lg shadow-lg min-w-[120px]">
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+                className={cn(
+                  "w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors",
+                  value === opt.value && "bg-primary/10 text-primary font-medium"
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// ============= MAIN COMPONENT =============
 const NewQuotePage = () => {
   const navigate = useNavigate();
   const { userId, clientId } = useParams<{ userId: string; clientId?: string }>();
@@ -54,6 +189,7 @@ const NewQuotePage = () => {
   const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
   const [defaultTaxRate, setDefaultTaxRate] = useState(21);
   const [sourceQuoteNumber, setSourceQuoteNumber] = useState<string | null>(null);
+  const [editingValues, setEditingValues] = useState<Record<string, string>>({});
 
   // Load initial data
   useEffect(() => {
@@ -70,6 +206,9 @@ const NewQuotePage = () => {
       const sourceQuoteId = searchParams.get("sourceQuoteId");
       if (sourceQuoteId) {
         await loadSourceQuoteData(sourceQuoteId);
+      } else {
+        // Start with one empty line ready to edit
+        addEmptyLine();
       }
       
       setLoading(false);
@@ -188,9 +327,109 @@ const NewQuotePage = () => {
     }
   };
 
+  // Line calculation helpers
+  const calculateLineValues = useCallback(
+    (line: Partial<DocumentLine>): DocumentLine => {
+      const quantity = line.quantity || 0;
+      const unitPrice = line.unit_price || 0;
+      const discountPercent = line.discount_percent || 0;
+      const taxRate = line.tax_rate ?? defaultTaxRate;
+
+      const subtotal = quantity * unitPrice * (1 - discountPercent / 100);
+      const taxAmount = subtotal * (taxRate / 100);
+      const total = subtotal + taxAmount;
+
+      return {
+        ...line,
+        concept: line.concept || "",
+        description: line.description || "",
+        quantity,
+        unit_price: unitPrice,
+        tax_rate: taxRate,
+        discount_percent: discountPercent,
+        subtotal,
+        tax_amount: taxAmount,
+        total,
+      } as DocumentLine;
+    },
+    [defaultTaxRate]
+  );
+
+  const addEmptyLine = useCallback(() => {
+    const newLine = calculateLineValues({
+      tempId: crypto.randomUUID(),
+      concept: "",
+      description: "",
+      quantity: 1,
+      unit_price: 0,
+      tax_rate: defaultTaxRate,
+      discount_percent: 0,
+      line_order: lines.length + 1,
+    });
+    setLines(prev => [...prev, newLine]);
+  }, [calculateLineValues, defaultTaxRate, lines.length]);
+
+  const updateLine = useCallback(
+    (index: number, field: keyof DocumentLine, value: any) => {
+      setLines(prev => {
+        const updated = [...prev];
+        updated[index] = calculateLineValues({
+          ...updated[index],
+          [field]: value,
+        });
+        return updated;
+      });
+    },
+    [calculateLineValues]
+  );
+
+  const removeLine = useCallback((index: number) => {
+    setLines(prev => prev.filter((_, i) => i !== index).map((line, i) => ({ ...line, line_order: i + 1 })));
+  }, []);
+
+  const parseNumber = (value: string): number => {
+    if (!value) return 0;
+    const cleaned = value.replace(/\./g, "").replace(",", ".");
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  };
+
+  const handleNumericFocus = (index: number, field: string, value: number) => {
+    setEditingValues(prev => ({ ...prev, [`${index}-${field}`]: value === 0 ? "" : value.toString() }));
+  };
+
+  const handleNumericBlur = (index: number, field: string) => {
+    setEditingValues(prev => {
+      const copy = { ...prev };
+      delete copy[`${index}-${field}`];
+      return copy;
+    });
+  };
+
+  const getDisplayValue = (index: number, field: string, value: number): string => {
+    const key = `${index}-${field}`;
+    if (editingValues[key] !== undefined) return editingValues[key];
+    return value === 0 ? "" : formatCurrency(value);
+  };
+
+  // Totals
+  const totals = useMemo(() => {
+    const validLines = lines.filter(l => l.concept.trim());
+    const subtotal = validLines.reduce((acc, l) => acc + l.subtotal, 0);
+    const taxAmount = validLines.reduce((acc, l) => acc + l.tax_amount, 0);
+    const total = validLines.reduce((acc, l) => acc + l.total, 0);
+    return { subtotal, taxAmount, total };
+  }, [lines]);
+
   const handleSave = async () => {
     if (!selectedClientId) {
       toast({ title: "Error", description: "Selecciona un cliente", variant: "destructive" });
+      return;
+    }
+
+    const validLines = lines.filter(l => l.concept.trim());
+    if (validLines.length === 0) {
+      toast({ title: "Error", description: "Añade al menos una línea", variant: "destructive" });
       return;
     }
 
@@ -214,23 +453,21 @@ const NewQuotePage = () => {
       const quoteId = quoteData[0].quote_id;
       const lineIds: string[] = [];
 
-      for (const line of lines) {
-        if (line.concept.trim()) {
-          const { data: lineIdData, error: lineError } = await supabase.rpc("add_quote_line", {
-            p_quote_id: quoteId,
-            p_concept: line.concept,
-            p_description: line.description || null,
-            p_quantity: line.quantity,
-            p_unit_price: line.unit_price,
-            p_tax_rate: line.tax_rate,
-            p_discount_percent: line.discount_percent,
-            p_group_name: line.group_name || null,
-            p_line_order: line.line_order || null,
-          });
-          if (lineError) throw lineError;
-          const lineId = typeof lineIdData === "string" ? lineIdData : lineIdData?.[0] || lineIdData;
-          if (lineId) lineIds.push(lineId);
-        }
+      for (const line of validLines) {
+        const { data: lineIdData, error: lineError } = await supabase.rpc("add_quote_line", {
+          p_quote_id: quoteId,
+          p_concept: line.concept,
+          p_description: line.description || null,
+          p_quantity: line.quantity,
+          p_unit_price: line.unit_price,
+          p_tax_rate: line.tax_rate,
+          p_discount_percent: line.discount_percent,
+          p_group_name: line.group_name || null,
+          p_line_order: line.line_order || null,
+        });
+        if (lineError) throw lineError;
+        const lineId = typeof lineIdData === "string" ? lineIdData : lineIdData?.[0] || lineIdData;
+        if (lineId) lineIds.push(lineId);
       }
 
       if (lineIds.length > 0) {
@@ -255,112 +492,228 @@ const NewQuotePage = () => {
     );
   }
 
+  // Dropdown options
+  const clientOptions: DropdownOption[] = clients.map(c => ({ value: c.id, label: c.company_name }));
+  const projectOptions: DropdownOption[] = projects.map(p => ({ value: p.id, label: `${p.project_number} - ${p.project_name}` }));
+
   return (
     <div className="h-[calc(100vh-3.25rem)] overflow-y-auto bg-background">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="min-h-full"
-      >
-        {/* Header */}
-        <header className="sticky top-0 z-10 bg-background border-b border-border px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-muted-foreground" />
-            </button>
-            <h1 className="text-xl font-semibold text-foreground">
-              {sourceQuoteNumber ? `Nueva versión de ${sourceQuoteNumber}` : "Nuevo presupuesto"}
-            </h1>
-          </div>
-
+      {/* Navigation Bar with DetailActionButton */}
+      <DetailNavigationBar
+        pageTitle={sourceQuoteNumber ? `Nueva versión de ${sourceQuoteNumber}` : "Nuevo presupuesto"}
+        backPath={`/nexo-av/${userId}/quotes`}
+        tools={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Eye className="w-4 h-4" />
-              Vista previa
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Settings className="w-4 h-4" />
-              Opciones
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2">
-              <FileDown className="w-4 h-4" />
-              Guardar borrador
-            </Button>
-            <Button onClick={handleSave} disabled={saving} size="sm" className="gap-2">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Guardar
-            </Button>
+            <DetailActionButton actionType="send" onClick={() => {}} disabled />
+            <DetailActionButton 
+              actionType="quote" 
+              onClick={handleSave}
+              disabled={saving}
+            />
           </div>
-        </header>
+        }
+      />
 
-        {/* Document Info Row */}
-        <div className="px-6 py-5 border-b border-border bg-muted/20">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Contacto/Cliente */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Contacto</label>
-              <Select value={selectedClientId} onValueChange={(v) => { setSelectedClientId(v); setSelectedProjectId(""); }}>
-                <SelectTrigger className="h-10 bg-background border-border">
-                  <SelectValue placeholder="Seleccionar contacto" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border z-50">
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.company_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="p-6 space-y-6"
+      >
+        {/* Document Info Section */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-card border border-border rounded-xl">
+          {/* Cliente */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cliente</label>
+            <InlineDropdown
+              value={selectedClientId}
+              onChange={(v) => { setSelectedClientId(v); setSelectedProjectId(""); }}
+              options={clientOptions}
+              placeholder="Seleccionar cliente..."
+            />
+          </div>
 
-            {/* Número de documento */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Número de documento</label>
-              <input
-                type="text"
-                value="(Automático)"
-                disabled
-                className="w-full h-10 px-3 bg-muted/50 border border-border rounded-lg text-sm text-muted-foreground"
-              />
-            </div>
+          {/* Proyecto */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Proyecto</label>
+            <InlineDropdown
+              value={selectedProjectId}
+              onChange={setSelectedProjectId}
+              options={projectOptions}
+              placeholder="Seleccionar proyecto..."
+              disabled={!selectedClientId || projects.length === 0}
+            />
+          </div>
 
-            {/* Fecha */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Fecha</label>
-              <input
-                type="date"
-                value={issueDate}
-                disabled
-                className="w-full h-10 px-3 bg-background border border-border rounded-lg text-sm text-foreground"
-              />
-            </div>
+          {/* Fecha */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha</label>
+            <input
+              type="date"
+              value={issueDate}
+              disabled
+              className="w-full h-11 px-4 bg-muted/50 border border-border rounded-lg text-sm text-muted-foreground"
+            />
+          </div>
 
-            {/* Vencimiento */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Vencimiento</label>
-              <input
-                type="date"
-                value={validUntil}
-                onChange={(e) => setValidUntil(e.target.value)}
-                className="w-full h-10 px-3 bg-background border border-border rounded-lg text-sm text-foreground"
-              />
-            </div>
+          {/* Vencimiento */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Vencimiento</label>
+            <input
+              type="date"
+              value={validUntil}
+              onChange={(e) => setValidUntil(e.target.value)}
+              className="w-full h-11 px-4 bg-background border border-border rounded-lg text-sm text-foreground hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            />
           </div>
         </div>
 
         {/* Lines Editor */}
-        <div className="p-6">
-          <DocumentLinesEditor
-            lines={lines}
-            onLinesChange={setLines}
-            taxOptions={taxOptions}
-            defaultTaxRate={defaultTaxRate}
-            showDescription={true}
-          />
+        <div className="border border-border rounded-xl overflow-hidden bg-card">
+          {/* Table Header */}
+          <div className="grid grid-cols-[40px_2fr_1.5fr_100px_120px_100px_100px_40px] bg-muted/50 border-b border-border">
+            <div className="px-2 py-3.5" />
+            <div className="px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Concepto</div>
+            <div className="px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Descripción</div>
+            <div className="px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Cant.</div>
+            <div className="px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Precio</div>
+            <div className="px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">IVA</div>
+            <div className="px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Total</div>
+            <div className="px-2 py-3.5" />
+          </div>
+
+          {/* Lines */}
+          <div className="divide-y divide-border">
+            {lines.map((line, index) => (
+              <div
+                key={line.tempId || line.id || index}
+                className="grid grid-cols-[40px_2fr_1.5fr_100px_120px_100px_100px_40px] items-center hover:bg-muted/20 transition-colors group"
+              >
+                {/* Drag Handle */}
+                <div className="px-2 py-3 flex justify-center cursor-grab">
+                  <GripVertical className="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
+                </div>
+
+                {/* Concept */}
+                <div className="px-2 py-2">
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      value={line.concept}
+                      onChange={(e) => updateLine(index, "concept", e.target.value)}
+                      placeholder="Escribe el concepto..."
+                      className="w-full h-10 px-3 pr-9 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm transition-all outline-none"
+                    />
+                    <Search className="absolute right-3 w-4 h-4 text-muted-foreground/40" />
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="px-2 py-2">
+                  <input
+                    type="text"
+                    value={line.description || ""}
+                    onChange={(e) => updateLine(index, "description", e.target.value)}
+                    placeholder="Descripción opcional..."
+                    className="w-full h-10 px-3 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm text-muted-foreground transition-all outline-none"
+                  />
+                </div>
+
+                {/* Quantity */}
+                <div className="px-2 py-2">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={getDisplayValue(index, "quantity", line.quantity)}
+                    onFocus={() => handleNumericFocus(index, "quantity", line.quantity)}
+                    onChange={(e) => {
+                      setEditingValues(prev => ({ ...prev, [`${index}-quantity`]: e.target.value }));
+                      updateLine(index, "quantity", parseNumber(e.target.value));
+                    }}
+                    onBlur={() => handleNumericBlur(index, "quantity")}
+                    placeholder="1"
+                    className="w-full h-10 px-3 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm text-right tabular-nums font-medium transition-all outline-none"
+                  />
+                </div>
+
+                {/* Price */}
+                <div className="px-2 py-2">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={getDisplayValue(index, "unit_price", line.unit_price)}
+                    onFocus={() => handleNumericFocus(index, "unit_price", line.unit_price)}
+                    onChange={(e) => {
+                      setEditingValues(prev => ({ ...prev, [`${index}-unit_price`]: e.target.value }));
+                      updateLine(index, "unit_price", parseNumber(e.target.value));
+                    }}
+                    onBlur={() => handleNumericBlur(index, "unit_price")}
+                    placeholder="0,00"
+                    className="w-full h-10 px-3 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm text-right tabular-nums font-medium transition-all outline-none"
+                  />
+                </div>
+
+                {/* Tax */}
+                <div className="px-2 py-2 flex justify-center">
+                  <TaxBadgeDropdown
+                    value={line.tax_rate}
+                    onChange={(v) => updateLine(index, "tax_rate", v)}
+                    options={taxOptions}
+                  />
+                </div>
+
+                {/* Total */}
+                <div className="px-4 py-2 text-right">
+                  <span className="text-sm font-semibold text-foreground tabular-nums">
+                    {line.total > 0 ? `${formatCurrency(line.total)}€` : "—"}
+                  </span>
+                </div>
+
+                {/* Delete */}
+                <div className="px-2 py-2 flex justify-center">
+                  <button
+                    onClick={() => removeLine(index)}
+                    className="p-1.5 text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-md transition-all opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {/* Add Line Row */}
+            <div
+              onClick={addEmptyLine}
+              className="grid grid-cols-[40px_2fr_1.5fr_100px_120px_100px_100px_40px] items-center hover:bg-muted/30 transition-colors cursor-pointer py-1"
+            >
+              <div className="px-2 py-3 flex justify-center">
+                <Plus className="w-4 h-4 text-muted-foreground/40" />
+              </div>
+              <div className="px-4 py-3 col-span-7">
+                <span className="text-sm text-muted-foreground/60 hover:text-muted-foreground transition-colors">
+                  + Añadir línea
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Totals */}
+        <div className="flex justify-end">
+          <div className="w-80 p-5 bg-card border border-border rounded-xl space-y-3">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span className="font-medium text-foreground tabular-nums">{formatCurrency(totals.subtotal)} €</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">IVA</span>
+              <span className="font-medium text-foreground tabular-nums">{formatCurrency(totals.taxAmount)} €</span>
+            </div>
+            <div className="border-t border-border pt-3 flex justify-between items-center">
+              <span className="font-semibold text-foreground">Total</span>
+              <span className="text-xl font-bold text-foreground tabular-nums">{formatCurrency(totals.total)} €</span>
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>
