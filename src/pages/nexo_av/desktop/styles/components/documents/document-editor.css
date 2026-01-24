@@ -75,11 +75,11 @@
 }
 
 .document-lines-editor .lines-table th.col-concept {
-  @apply min-w-[280px];
+  @apply min-w-[25rem];
 }
 
 .document-lines-editor .lines-table th.col-description {
-  @apply min-w-[200px];
+  @apply min-w-[21.875rem];
 }
 
 .document-lines-editor .lines-table th.col-quantity {
@@ -119,6 +119,21 @@
   @apply px-4 py-3 align-middle;
 }
 
+.document-lines-editor .line-row td.col-concept,
+.document-lines-editor .line-row td.col-description {
+  @apply w-full;
+}
+
+.document-lines-editor .line-row td.col-concept > div,
+.document-lines-editor .line-row td.col-description > div {
+  @apply w-full;
+}
+
+.document-lines-editor .line-row td.col-concept input,
+.document-lines-editor .line-row td.col-description input {
+  @apply w-full;
+}
+
 /* Order Input */
 .document-lines-editor .order-input {
   @apply w-12 h-8 text-center text-sm font-mono;
@@ -129,7 +144,7 @@
 
 /* Concept Input */
 .document-lines-editor .concept-input {
-  @apply bg-transparent border-0 border-b border-border/30 rounded-none;
+  @apply w-full bg-transparent border-0 border-b border-border/30 rounded-none;
   @apply text-foreground text-sm font-medium;
   @apply h-auto py-2 px-2;
   @apply hover:border-border focus:border-primary/50;
@@ -139,7 +154,7 @@
 
 /* Description Inputs */
 .document-lines-editor .description-input {
-  @apply bg-transparent border-0 border-b border-border/30 rounded-none;
+  @apply w-full bg-transparent border-0 border-b border-border/30 rounded-none;
   @apply text-muted-foreground text-sm;
   @apply h-auto py-2 px-2;
   @apply hover:border-border cursor-text;
@@ -148,7 +163,7 @@
 }
 
 .document-lines-editor .description-textarea {
-  @apply bg-muted/30 border border-border/50 rounded-lg;
+  @apply w-full bg-muted/30 border border-border/50 rounded-lg;
   @apply text-foreground text-sm;
   @apply px-3 py-2 min-h-[80px] resize-y;
   @apply focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20;
