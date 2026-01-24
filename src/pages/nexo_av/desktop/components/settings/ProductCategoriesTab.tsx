@@ -357,9 +357,9 @@ export function ProductCategoriesTab() {
 
   if (loading) {
     return (
-      <Card className="bg-white/5 border-white/10">
+      <Card className="bg-card border-border">
         <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </CardContent>
       </Card>
     );
@@ -367,38 +367,26 @@ export function ProductCategoriesTab() {
 
   return (
     <>
-      <Card className="bg-white/5 border-white/10">
+      <Card className="bg-card border-border">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <Tags className="w-5 h-5" />
               Categorías de Producto
             </CardTitle>
-            <CardDescription className="text-white/60">
+            <CardDescription className="text-muted-foreground">
               Gestiona las categorías y subcategorías de productos para el catálogo.
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchData}
-              className="border-white/20 text-white hover:bg-white/10"
-            >
+            <Button variant="outline" size="sm" onClick={fetchData}>
               <RefreshCw className="w-4 h-4" />
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => setShowImportDialog(true)}
-              className="border-white/20 text-white hover:bg-white/10"
-            >
+            <Button variant="outline" onClick={() => setShowImportDialog(true)}>
               <Upload className="w-4 h-4 mr-2" />
               Importar Excel
             </Button>
-            <Button
-              onClick={openCreateCategory}
-              className="bg-orange-600 hover:bg-orange-700"
-            >
+            <Button onClick={openCreateCategory}>
               <Plus className="w-4 h-4 mr-2" />
               Nueva Categoría
             </Button>
@@ -406,7 +394,7 @@ export function ProductCategoriesTab() {
         </CardHeader>
         <CardContent>
           {categories.length === 0 ? (
-            <div className="text-white/40 text-center py-12">
+            <div className="text-muted-foreground text-center py-12">
               <FolderTree className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>No hay categorías creadas</p>
               <p className="text-sm mt-2">
@@ -424,21 +412,21 @@ export function ProductCategoriesTab() {
                 >
                   <AccordionItem 
                     value={category.id} 
-                    className="border border-white/10 rounded-lg overflow-hidden bg-white/5"
+                    className="border border-border rounded-lg overflow-hidden bg-muted/30"
                   >
-                    <AccordionTrigger className="px-4 py-3 hover:bg-white/5 hover:no-underline">
+                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline">
                       <div className="flex items-center justify-between w-full pr-4">
                         <div className="flex items-center gap-3">
                           <Badge 
                             variant="outline" 
-                            className={`${category.is_active ? 'border-orange-500/50 text-orange-400' : 'border-white/20 text-white/40'}`}
+                            className={`${category.is_active ? 'border-primary/50 text-primary' : 'border-border text-muted-foreground'}`}
                           >
                             {category.code}
                           </Badge>
-                          <span className={`font-medium ${category.is_active ? 'text-white' : 'text-white/40'}`}>
+                          <span className={`font-medium ${category.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {category.name}
                           </span>
-                          <span className="text-white/40 text-sm">
+                          <span className="text-muted-foreground text-sm">
                             ({category.subcategory_count} subcategorías, {category.product_count} productos)
                           </span>
                         </div>
@@ -447,19 +435,14 @@ export function ProductCategoriesTab() {
                             checked={category.is_active}
                             onCheckedChange={() => handleToggleCategoryStatus(category)}
                           />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openEditCategory(category)}
-                            className="text-white/60 hover:text-white hover:bg-white/10"
-                          >
+                          <Button variant="ghost" size="icon" onClick={() => openEditCategory(category)}>
                             <Pencil className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => setDeletingCategory(category)}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
                             disabled={category.product_count > 0}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -467,58 +450,50 @@ export function ProductCategoriesTab() {
                         </div>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="border-t border-white/10">
+                    <AccordionContent className="border-t border-border">
                       <div className="p-4">
                         {category.description && (
-                          <p className="text-white/60 text-sm mb-4">{category.description}</p>
+                          <p className="text-muted-foreground text-sm mb-4">{category.description}</p>
                         )}
                         
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-white/80 text-sm font-medium flex items-center gap-2">
+                          <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
                             <FolderTree className="w-4 h-4" />
                             Subcategorías
                           </h4>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openCreateSubcategory(category.id)}
-                            className="border-white/20 text-white hover:bg-white/10"
-                          >
+                          <Button variant="outline" size="sm" onClick={() => openCreateSubcategory(category.id)}>
                             <Plus className="w-3 h-3 mr-1" />
                             Añadir
                           </Button>
                         </div>
 
                         {getSubcategoriesForCategory(category.id).length === 0 ? (
-                          <p className="text-white/40 text-sm text-center py-4">
+                          <p className="text-muted-foreground text-sm text-center py-4">
                             No hay subcategorías
                           </p>
                         ) : (
                           <Table>
                             <TableHeader>
-                              <TableRow className="border-white/10 hover:bg-transparent">
-                                <TableHead className="text-white/60">Código</TableHead>
-                                <TableHead className="text-white/60">Nombre</TableHead>
-                                <TableHead className="text-white/60">Productos</TableHead>
-                                <TableHead className="text-white/60">Estado</TableHead>
-                                <TableHead className="text-white/60 text-right">Acciones</TableHead>
+                              <TableRow className="border-border hover:bg-transparent">
+                                <TableHead className="text-muted-foreground">Código</TableHead>
+                                <TableHead className="text-muted-foreground">Nombre</TableHead>
+                                <TableHead className="text-muted-foreground">Productos</TableHead>
+                                <TableHead className="text-muted-foreground">Estado</TableHead>
+                                <TableHead className="text-muted-foreground text-right">Acciones</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {getSubcategoriesForCategory(category.id).map(subcategory => (
-                                <TableRow 
-                                  key={subcategory.id} 
-                                  className="border-white/10 hover:bg-white/5"
-                                >
+                                <TableRow key={subcategory.id} className="border-border hover:bg-muted/50">
                                   <TableCell>
-                                    <Badge variant="outline" className="border-white/20 text-white/60">
+                                    <Badge variant="outline" className="border-border text-muted-foreground">
                                       {category.code}-{subcategory.code}
                                     </Badge>
                                   </TableCell>
-                                  <TableCell className={subcategory.is_active ? 'text-white' : 'text-white/40'}>
+                                  <TableCell className={subcategory.is_active ? 'text-foreground' : 'text-muted-foreground'}>
                                     {subcategory.name}
                                   </TableCell>
-                                  <TableCell className="text-white/60">
+                                  <TableCell className="text-muted-foreground">
                                     <div className="flex items-center gap-1">
                                       <Package className="w-3 h-3" />
                                       {subcategory.product_count}
@@ -532,19 +507,14 @@ export function ProductCategoriesTab() {
                                   </TableCell>
                                   <TableCell className="text-right">
                                     <div className="flex items-center justify-end gap-1">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => openEditSubcategory(subcategory)}
-                                        className="text-white/60 hover:text-white hover:bg-white/10"
-                                      >
+                                      <Button variant="ghost" size="icon" onClick={() => openEditSubcategory(subcategory)}>
                                         <Pencil className="w-4 h-4" />
                                       </Button>
                                       <Button
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => setDeletingSubcategory(subcategory)}
-                                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                         disabled={subcategory.product_count > 0}
                                       >
                                         <Trash2 className="w-4 h-4" />
@@ -568,12 +538,12 @@ export function ProductCategoriesTab() {
 
       {/* Category Dialog */}
       <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white">
+        <DialogContent className="bg-card border-border">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-foreground">
               {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
             </DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription className="text-muted-foreground">
               {editingCategory 
                 ? 'Modifica los datos de la categoría.' 
                 : 'Crea una nueva categoría para organizar tus productos.'}
@@ -582,60 +552,52 @@ export function ProductCategoriesTab() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white/80">Nombre *</Label>
+                <Label className="text-foreground">Nombre *</Label>
                 <Input
                   value={categoryFormData.name}
                   onChange={e => setCategoryFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Ej: Pantallas LED"
-                  className="bg-white/5 border-white/10 text-white uppercase"
+                  className="bg-background border-input text-foreground uppercase"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-white/80">Código *</Label>
+                <Label className="text-foreground">Código *</Label>
                 <Input
                   value={categoryFormData.code}
                   onChange={e => setCategoryFormData(prev => ({ ...prev, code: e.target.value }))}
                   placeholder="Ej: LED"
-                  className="bg-white/5 border-white/10 text-white uppercase"
+                  className="bg-background border-input text-foreground uppercase"
                   maxLength={10}
                 />
-                <p className="text-xs text-white/40">Código único para identificar la categoría</p>
+                <p className="text-xs text-muted-foreground">Código único para identificar la categoría</p>
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-white/80">Descripción</Label>
+              <Label className="text-foreground">Descripción</Label>
               <Textarea
                 value={categoryFormData.description}
                 onChange={e => setCategoryFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Descripción de la categoría..."
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-background border-input text-foreground"
                 rows={3}
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white/80">Orden de visualización</Label>
+              <Label className="text-foreground">Orden de visualización</Label>
               <Input
                 type="number"
                 value={categoryFormData.display_order}
                 onChange={e => setCategoryFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-background border-input text-foreground"
                 min={0}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowCategoryDialog(false)}
-              className="border-white/20 text-white hover:bg-white/10"
-            >
+            <Button variant="outline" onClick={() => setShowCategoryDialog(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={handleSaveCategory}
-              disabled={isSubmitting}
-              className="bg-orange-600 hover:bg-orange-700"
-            >
+            <Button onClick={handleSaveCategory} disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {editingCategory ? 'Guardar' : 'Crear'}
             </Button>
@@ -645,12 +607,12 @@ export function ProductCategoriesTab() {
 
       {/* Subcategory Dialog */}
       <Dialog open={showSubcategoryDialog} onOpenChange={setShowSubcategoryDialog}>
-        <DialogContent className="bg-zinc-900 border-white/10 text-white">
+        <DialogContent className="bg-card border-border">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-foreground">
               {editingSubcategory ? 'Editar Subcategoría' : 'Nueva Subcategoría'}
             </DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription className="text-muted-foreground">
               {editingSubcategory 
                 ? 'Modifica los datos de la subcategoría.' 
                 : 'Crea una nueva subcategoría dentro de esta categoría.'}
@@ -659,60 +621,52 @@ export function ProductCategoriesTab() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white/80">Nombre *</Label>
+                <Label className="text-foreground">Nombre *</Label>
                 <Input
                   value={subcategoryFormData.name}
                   onChange={e => setSubcategoryFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Ej: Interior"
-                  className="bg-white/5 border-white/10 text-white uppercase"
+                  className="bg-background border-input text-foreground uppercase"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-white/80">Código *</Label>
+                <Label className="text-foreground">Código *</Label>
                 <Input
                   value={subcategoryFormData.code}
                   onChange={e => setSubcategoryFormData(prev => ({ ...prev, code: e.target.value }))}
                   placeholder="Ej: INT"
-                  className="bg-white/5 border-white/10 text-white uppercase"
+                  className="bg-background border-input text-foreground uppercase"
                   maxLength={10}
                 />
-                <p className="text-xs text-white/40">Código único dentro de la categoría</p>
+                <p className="text-xs text-muted-foreground">Código único dentro de la categoría</p>
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-white/80">Descripción</Label>
+              <Label className="text-foreground">Descripción</Label>
               <Textarea
                 value={subcategoryFormData.description}
                 onChange={e => setSubcategoryFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Descripción de la subcategoría..."
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-background border-input text-foreground"
                 rows={3}
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white/80">Orden de visualización</Label>
+              <Label className="text-foreground">Orden de visualización</Label>
               <Input
                 type="number"
                 value={subcategoryFormData.display_order}
                 onChange={e => setSubcategoryFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
-                className="bg-white/5 border-white/10 text-white w-24"
+                className="bg-background border-input text-foreground w-24"
                 min={0}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowSubcategoryDialog(false)}
-              className="border-white/20 text-white hover:bg-white/10"
-            >
+            <Button variant="outline" onClick={() => setShowSubcategoryDialog(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={handleSaveSubcategory}
-              disabled={isSubmitting}
-              className="bg-orange-600 hover:bg-orange-700"
-            >
+            <Button onClick={handleSaveSubcategory} disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {editingSubcategory ? 'Guardar' : 'Crear'}
             </Button>
@@ -722,22 +676,20 @@ export function ProductCategoriesTab() {
 
       {/* Delete Category Alert */}
       <AlertDialog open={!!deletingCategory} onOpenChange={() => setDeletingCategory(null)}>
-        <AlertDialogContent className="bg-zinc-900 border-white/10 text-white">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar categoría?</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
+            <AlertDialogTitle className="text-foreground">¿Eliminar categoría?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               Esta acción eliminará la categoría "{deletingCategory?.name}" y todas sus subcategorías.
               Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-white/20 text-white hover:bg-white/10">
-              Cancelar
-            </AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteCategory}
               disabled={isSubmitting}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Eliminar
@@ -748,22 +700,20 @@ export function ProductCategoriesTab() {
 
       {/* Delete Subcategory Alert */}
       <AlertDialog open={!!deletingSubcategory} onOpenChange={() => setDeletingSubcategory(null)}>
-        <AlertDialogContent className="bg-zinc-900 border-white/10 text-white">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar subcategoría?</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
+            <AlertDialogTitle className="text-foreground">¿Eliminar subcategoría?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               Esta acción eliminará la subcategoría "{deletingSubcategory?.name}".
               Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-white/20 text-white hover:bg-white/10">
-              Cancelar
-            </AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteSubcategory}
               disabled={isSubmitting}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Eliminar
