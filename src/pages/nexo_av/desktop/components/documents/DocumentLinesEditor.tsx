@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, GripVertical, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, Calculator } from "lucide-react";
 import ProductSearchInput from "../common/ProductSearchInput";
 import { cn } from "@/lib/utils";
 
@@ -248,185 +248,151 @@ export default function DocumentLinesEditor({
       : 'minmax(300px, 1fr) 80px 100px 70px 90px 110px 50px';
 
   return (
-    <div className={cn("document-lines-editor", className)}>
+    <div className={cn("document-lines-editor modern-lines-editor", className)}>
       {/* Header */}
-      <div className="lines-header">
-        <span className="lines-title">{title}</span>
-        <span className="lines-hint">{hint}</span>
-      </div>
+      <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+        <div className="p-6 border-b border-border/50 flex justify-between items-center bg-muted/30">
+          <h2 className="font-bold text-foreground flex items-center gap-2">
+            <Calculator className="w-4 h-4 text-primary" />
+            {title}
+          </h2>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground font-medium">{hint}</span>
+            <Button
+              variant="ghost"
+              onClick={addLine}
+              className="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Añadir concepto
+            </Button>
+          </div>
+        </div>
 
-      {/* Table */}
-      <div className="lines-table-container">
-        <table className="lines-table" style={{ gridTemplateColumns }}>
-          <thead>
-            <tr>
-              {showLineNumbers && (
-                <th className="col-order">#</th>
-              )}
-              <th className="col-concept">Concepto</th>
-              {showDescription && (
-                <th className="col-description">Descripción</th>
-              )}
-              <th className="col-quantity">Cant.</th>
-              <th className="col-price">Precio</th>
-              <th className="col-discount">Dto %</th>
-              <th className="col-tax">IVA</th>
-              <th className="col-total">Total</th>
-              <th className="col-actions"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {lines.map((line, index) => (
-              <tr key={line.tempId || line.id || index} className="line-row">
-                {/* Line Order Number */}
-                {showLineNumbers && (
-                  <td className="col-order">
-                    <Input
-                      type="number"
-                      min={1}
-                      max={lines.length}
-                      value={index + 1}
-                      onChange={(e) => {
-                        const newPos = parseInt(e.target.value, 10);
-                        if (!isNaN(newPos)) {
-                          moveLineToPosition(index, newPos);
-                        }
-                      }}
-                      className="order-input"
-                    />
-                  </td>
-                )}
-
-                {/* Concept */}
-                <td className="col-concept">
-                  <ProductSearchInput
-                    value={line.concept}
-                    onChange={(value) => updateLine(index, "concept", value)}
-                    onSelectItem={(item) => handleProductSelect(index, item)}
-                    placeholder="Concepto o @buscar"
-                    className="concept-input"
-                  />
-                </td>
-
-                {/* Description (optional) */}
-                {showDescription && (
-                  <td className="col-description">
-                    {expandedDescriptionIndex === index ? (
-                      <Textarea
-                        value={line.description || ""}
-                        onChange={(e) => updateLine(index, "description", e.target.value)}
-                        placeholder="Descripción opcional"
-                        className="description-textarea"
-                        onBlur={() => setExpandedDescriptionIndex(null)}
-                        autoFocus
+        {/* Lines List */}
+        <div className="divide-y divide-border/50">
+          {lines.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Plus className="w-6 h-6 text-muted-foreground/50" />
+              </div>
+              <p className="text-muted-foreground font-medium">No hay conceptos añadidos todavía.</p>
+            </div>
+          ) : (
+            lines.map((line, index) => (
+              <div
+                key={line.tempId || line.id || index}
+                className="p-6 hover:bg-accent/50 transition-colors group"
+              >
+                <div className="grid grid-cols-12 gap-4 items-start">
+                  {/* Concept and Description Column */}
+                  <div className="col-span-12 md:col-span-5 space-y-3">
+                    <div>
+                      <ProductSearchInput
+                        value={line.concept}
+                        onChange={(value) => updateLine(index, "concept", value)}
+                        onSelectItem={(item) => handleProductSelect(index, item)}
+                        placeholder="Concepto (ej: Diseño Web)"
+                        className="modern-concept-input"
                       />
-                    ) : (
-                      <Input
-                        value={line.description || ""}
-                        onChange={(e) => updateLine(index, "description", e.target.value)}
-                        onClick={() => setExpandedDescriptionIndex(index)}
-                        placeholder="Descripción"
-                        className="description-input"
-                        readOnly
-                      />
+                    </div>
+                    {showDescription && (
+                      <div>
+                        {expandedDescriptionIndex === index ? (
+                          <Textarea
+                            value={line.description || ""}
+                            onChange={(e) => updateLine(index, "description", e.target.value)}
+                            placeholder="Descripción detallada del servicio..."
+                            className="modern-description-textarea"
+                            onBlur={() => setExpandedDescriptionIndex(null)}
+                            autoFocus
+                          />
+                        ) : (
+                          <input
+                            type="text"
+                            value={line.description || ""}
+                            onChange={(e) => updateLine(index, "description", e.target.value)}
+                            onClick={() => setExpandedDescriptionIndex(index)}
+                            placeholder="Descripción detallada del servicio..."
+                            className="modern-description-input"
+                            readOnly
+                          />
+                        )}
+                      </div>
                     )}
-                  </td>
-                )}
+                  </div>
 
-                {/* Quantity */}
-                <td className="col-quantity">
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={getNumericDisplayValue(line.quantity, 'quantity', index)}
-                    onChange={(e) => handleNumericInputChange(e.target.value, 'quantity', index)}
-                    onBlur={() => clearNumericInputValue(index, 'quantity')}
-                    className="quantity-input"
-                    placeholder="1"
-                  />
-                </td>
+                  {/* Numeric Fields Column */}
+                  <div className="col-span-12 md:col-span-6 grid grid-cols-4 gap-2">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase block text-center">Cant.</span>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        value={getNumericDisplayValue(line.quantity, 'quantity', index)}
+                        onChange={(e) => handleNumericInputChange(e.target.value, 'quantity', index)}
+                        onBlur={() => clearNumericInputValue(index, 'quantity')}
+                        className="modern-numeric-input"
+                        placeholder="1"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase block text-center">Precio</span>
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        value={getNumericDisplayValue(line.unit_price, 'unit_price', index)}
+                        onChange={(e) => handleNumericInputChange(e.target.value, 'unit_price', index)}
+                        onBlur={() => clearNumericInputValue(index, 'unit_price')}
+                        className="modern-numeric-input"
+                        placeholder="0,00"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase block text-center">IVA %</span>
+                      <Select
+                        value={line.tax_rate.toString()}
+                        onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
+                      >
+                        <SelectTrigger className="modern-tax-select">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="tax-select-content">
+                          {taxOptions.map((opt) => (
+                            <SelectItem
+                              key={opt.value}
+                              value={opt.value.toString()}
+                              className="tax-select-item"
+                            >
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase block text-center">Total</span>
+                      <div className="w-full py-1.5 text-right font-bold text-foreground text-sm">
+                        {formatCurrency(line.total)}
+                      </div>
+                    </div>
+                  </div>
 
-                {/* Unit Price */}
-                <td className="col-price">
-                  <Input
-                    type="text"
-                    inputMode="decimal"
-                    value={getNumericDisplayValue(line.unit_price, 'unit_price', index)}
-                    onChange={(e) => handleNumericInputChange(e.target.value, 'unit_price', index)}
-                    onBlur={() => clearNumericInputValue(index, 'unit_price')}
-                    className="price-input"
-                    placeholder="0,00"
-                  />
-                </td>
-
-                {/* Discount */}
-                <td className="col-discount">
-                  <Input
-                    type="text"
-                    inputMode="decimal"
-                    value={getNumericDisplayValue(line.discount_percent || 0, 'discount_percent', index)}
-                    onChange={(e) => handleNumericInputChange(e.target.value, 'discount_percent', index)}
-                    onBlur={() => clearNumericInputValue(index, 'discount_percent')}
-                    className="discount-input"
-                    placeholder="0"
-                  />
-                </td>
-
-                {/* Tax */}
-                <td className="col-tax">
-                  <Select
-                    value={line.tax_rate.toString()}
-                    onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
-                  >
-                    <SelectTrigger className="tax-select">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="tax-select-content">
-                      {taxOptions.map((opt) => (
-                        <SelectItem
-                          key={opt.value}
-                          value={opt.value.toString()}
-                          className="tax-select-item"
-                        >
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </td>
-
-                {/* Total */}
-                <td className="col-total">
-                  <span className="total-value">{formatCurrency(line.total)}</span>
-                </td>
-
-                {/* Actions */}
-                <td className="col-actions">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeLine(index)}
-                    className="delete-btn"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Add Line Button */}
-      <div className="lines-footer">
-        <Button
-          variant="outline"
-          onClick={addLine}
-          className="add-line-btn"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Añadir línea
-        </Button>
+                  {/* Actions Column */}
+                  <div className="col-span-12 md:col-span-1 flex justify-end pt-6 md:pt-4">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeLine(index)}
+                      className="p-2 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

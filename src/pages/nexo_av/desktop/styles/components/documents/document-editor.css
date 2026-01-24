@@ -40,6 +40,18 @@
   @apply bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 overflow-hidden;
 }
 
+.document-lines-editor.modern-lines-editor {
+  @apply bg-transparent;
+  border: none;
+  overflow: visible;
+}
+
+.document-lines-editor.modern-lines-editor {
+  @apply bg-transparent;
+  border: none;
+  overflow: visible;
+}
+
 .document-lines-editor .lines-header {
   @apply flex items-center justify-between px-5 py-4 border-b border-border/50;
   @apply bg-gradient-to-r from-muted/30 to-transparent;
@@ -104,7 +116,9 @@
 .document-lines-editor .line-row td {
   @apply px-3 py-3 align-middle border-b border-border/20;
   @apply transition-colors duration-150;
+  vertical-align: middle;
 }
+
 
 .document-lines-editor .line-row:hover td {
   @apply bg-muted/40;
@@ -114,18 +128,25 @@
 .document-lines-editor .line-row td.col-concept,
 .document-lines-editor .line-row td.col-description {
   @apply min-w-0;
+  vertical-align: middle;
 }
 
-/* Inputs inside flex cells must fill 100% */
+/* Inputs inside cells must fill width with 2px minimum lateral margins */
 .document-lines-editor .line-row td.col-concept > *,
 .document-lines-editor .line-row td.col-description > * {
-  @apply w-full;
+  width: calc(100% - 4px);
+  min-width: 0;
+  margin-left: 2px;
+  margin-right: 2px;
+  box-sizing: border-box;
 }
 
 .document-lines-editor .line-row td.col-concept input,
 .document-lines-editor .line-row td.col-description input,
 .document-lines-editor .line-row td.col-description textarea {
-  @apply w-full min-w-0;
+  width: 100% !important;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* Order Input */
@@ -136,37 +157,49 @@
   @apply transition-all;
 }
 
-/* Concept Input - MUST fill 100% of cell */
-.document-lines-editor .concept-input,
-.document-lines-editor td.col-concept input,
+/* Concept Input - MUST fill width with 2px minimum lateral margins */
 .document-lines-editor td.col-concept > div {
-  @apply w-full min-w-0;
+  width: calc(100% - 4px) !important;
+  min-width: 0;
+  margin-left: 2px;
+  margin-right: 2px;
+  box-sizing: border-box;
 }
 
-.document-lines-editor .concept-input {
+.document-lines-editor .concept-input,
+.document-lines-editor td.col-concept input {
   @apply bg-transparent border-0 border-b border-border/30 rounded-none;
   @apply text-foreground text-sm font-medium;
   @apply h-auto py-2 px-3;
   @apply hover:border-border focus:border-primary/50;
   @apply focus:ring-2 focus:ring-primary/20 focus-visible:shadow-none;
   @apply transition-colors;
+  width: 100% !important;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-/* Description Inputs - MUST fill 100% of cell */
+/* Description Inputs - MUST fill width with 2px minimum lateral margins */
+.document-lines-editor td.col-description > div {
+  width: calc(100% - 4px) !important;
+  min-width: 0;
+  margin-left: 2px;
+  margin-right: 2px;
+  box-sizing: border-box;
+}
+
 .document-lines-editor .description-input,
 .document-lines-editor td.col-description input,
-.document-lines-editor td.col-description textarea,
-.document-lines-editor td.col-description > div {
-  @apply w-full min-w-0;
-}
-
-.document-lines-editor .description-input {
+.document-lines-editor td.col-description textarea {
   @apply bg-transparent border-0 border-b border-border/30 rounded-none;
   @apply text-muted-foreground text-sm;
   @apply h-auto py-2 px-3;
   @apply hover:border-border cursor-text;
   @apply focus-visible:ring-0 focus-visible:shadow-none;
   @apply transition-colors;
+  width: 100% !important;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .document-lines-editor .description-textarea {
@@ -351,4 +384,54 @@
 
 .document-save-btn:hover {
   @apply shadow-xl shadow-primary/30;
+}
+
+/* ----------------------------------------
+   Modern Lines Editor Styles
+   ---------------------------------------- */
+
+/* Modern Concept Input */
+.modern-concept-input,
+.modern-concept-input input {
+  @apply w-full font-bold text-foreground bg-transparent border-none p-0 focus:ring-0 placeholder:text-muted-foreground;
+  @apply text-base;
+}
+
+.modern-concept-input > div {
+  @apply w-full;
+}
+
+.modern-concept-input input {
+  @apply bg-transparent border-none shadow-none focus-visible:ring-0;
+}
+
+/* Modern Description Input */
+.modern-description-input {
+  @apply w-full text-sm text-muted-foreground bg-transparent border-none p-0 focus:ring-0 resize-none placeholder:text-muted-foreground;
+  @apply focus:outline-none;
+}
+
+.modern-description-textarea {
+  @apply w-full text-sm text-muted-foreground bg-transparent border border-border rounded-lg p-3 resize-none placeholder:text-muted-foreground;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50;
+  min-height: 80px;
+}
+
+/* Modern Numeric Inputs */
+.modern-numeric-input {
+  @apply w-full bg-card border border-border rounded-lg px-2 py-1.5 text-center text-sm text-foreground;
+  @apply focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/20;
+  @apply transition-colors;
+}
+
+/* Modern Tax Select */
+.modern-tax-select {
+  @apply w-full bg-card border border-border rounded-lg px-2 py-1.5 text-center text-sm h-auto text-foreground;
+  @apply focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/20;
+  @apply hover:border-border/80;
+  @apply transition-colors;
+}
+
+.modern-tax-select [data-radix-select-trigger] {
+  @apply h-auto py-1.5;
 }
