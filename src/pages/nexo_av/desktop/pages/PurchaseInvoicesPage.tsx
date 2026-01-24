@@ -325,8 +325,8 @@ const PurchaseInvoicesPageDesktop = () => {
   } = usePagination(sortedInvoices, { pageSize: 50 });
 
   return (
-    <div className="w-full h-full">
-      <div className="w-full px-6 py-6">
+    <div className="w-full h-full p-6">
+      <div className="w-full h-full">
         <div>
           {/* Summary Metric Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
