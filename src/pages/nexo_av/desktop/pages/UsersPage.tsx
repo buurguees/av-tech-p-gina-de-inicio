@@ -11,7 +11,7 @@ const UsersPage = () => {
   const [loading, setLoading] = useState(false);
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full p-6">
       <UserManagement />
     </div>
   );

@@ -308,7 +308,7 @@ const ExpensesPageDesktop = () => {
   } = usePagination(sortedExpenses, { pageSize: 50 });
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full p-6">
       <div className="w-full h-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

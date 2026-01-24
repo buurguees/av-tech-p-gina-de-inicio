@@ -86,9 +86,9 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
   };
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">Visión global de tu negocio</p>

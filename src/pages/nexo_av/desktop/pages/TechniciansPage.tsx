@@ -299,7 +299,7 @@ const TechniciansPageDesktop = () => {
   }
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full p-6">
       <div className="w-full h-full">
         <div>
           {/* KPIs Cards - Recuento por Tipo - Optimizado */}

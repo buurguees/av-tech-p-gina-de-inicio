@@ -103,7 +103,7 @@ function SettingsPageDesktop() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col p-6">
       {/* Tab Navigation */}
       <TabNav
         tabs={SETTINGS_TABS}
@@ -112,7 +112,7 @@ function SettingsPageDesktop() {
       />
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto pt-4">
         {renderTabContent()}
       </div>
     </div>

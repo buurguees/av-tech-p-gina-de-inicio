@@ -235,7 +235,7 @@ const QuotesPageDesktop = () => {
   } = usePagination(sortedQuotes, { pageSize: 50 });
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden">
+    <div className="w-full h-full flex flex-col overflow-hidden p-6">
       <div className="w-full h-full flex flex-col overflow-hidden">
         <div className="flex flex-col h-full overflow-hidden">
           {/* Stats Cards - Optimizado */}
