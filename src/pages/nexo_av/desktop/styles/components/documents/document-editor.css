@@ -54,11 +54,21 @@
 }
 
 .document-lines-editor .lines-table-container {
-  @apply overflow-x-auto;
+  @apply w-full;
 }
 
 .document-lines-editor .lines-table {
-  @apply w-full border-collapse;
+  @apply w-full;
+  display: grid;
+  /* Grid columns: Order(fixed), Concept(flex 3fr), Description(flex 2fr), Qty(fixed), Price(fixed), Discount(fixed), Tax(fixed), Total(fixed), Actions(fixed) */
+  --cols-with-desc: 60px minmax(200px, 3fr) minmax(150px, 2fr) 80px 100px 70px 90px 110px 50px;
+  --cols-without-desc: 60px minmax(300px, 1fr) 80px 100px 70px 90px 110px 50px;
+}
+
+.document-lines-editor .lines-table thead,
+.document-lines-editor .lines-table tbody,
+.document-lines-editor .lines-table tr {
+  display: contents;
 }
 
 .document-lines-editor .lines-table thead {
@@ -67,77 +77,55 @@
 
 .document-lines-editor .lines-table th {
   @apply text-muted-foreground text-xs font-semibold uppercase tracking-wider;
-  @apply px-4 py-3 text-left border-b border-border/30;
+  @apply px-3 py-3 text-left border-b border-border/30 bg-muted/20;
 }
 
 .document-lines-editor .lines-table th.col-order {
-  @apply w-16 text-center;
-}
-
-.document-lines-editor .lines-table th.col-concept {
-  @apply min-w-[25rem];
-}
-
-.document-lines-editor .lines-table th.col-description {
-  @apply min-w-[21.875rem];
+  @apply text-center;
 }
 
 .document-lines-editor .lines-table th.col-quantity {
-  @apply w-24 text-center;
+  @apply text-center;
 }
 
 .document-lines-editor .lines-table th.col-price {
-  @apply w-28 text-right;
+  @apply text-right;
 }
 
 .document-lines-editor .lines-table th.col-discount {
-  @apply w-20 text-center;
-}
-
-.document-lines-editor .lines-table th.col-tax {
-  @apply w-32;
+  @apply text-center;
 }
 
 .document-lines-editor .lines-table th.col-total {
-  @apply w-28 text-right;
-}
-
-.document-lines-editor .lines-table th.col-actions {
-  @apply w-14;
+  @apply text-right;
 }
 
 /* Line Rows */
-.document-lines-editor .line-row {
-  @apply border-b border-border/20 transition-colors duration-150;
+.document-lines-editor .line-row td {
+  @apply px-3 py-3 align-middle border-b border-border/20;
+  @apply transition-colors duration-150;
 }
 
-.document-lines-editor .line-row:hover {
+.document-lines-editor .line-row:hover td {
   @apply bg-muted/30;
 }
 
-.document-lines-editor .line-row td {
-  @apply px-4 py-3 align-middle;
-}
-
+/* Concept and Description cells - full width */
 .document-lines-editor .line-row td.col-concept,
 .document-lines-editor .line-row td.col-description {
-  width: 100%;
+  @apply min-w-0;
 }
 
-.document-lines-editor .line-row td.col-concept .text-input,
-.document-lines-editor .line-row td.col-description .text-input {
-  width: 100% !important;
+/* Inputs inside flex cells must fill 100% */
+.document-lines-editor .line-row td.col-concept > *,
+.document-lines-editor .line-row td.col-description > * {
+  @apply w-full;
 }
 
-.document-lines-editor .line-row td.col-concept .text-input__wrapper,
-.document-lines-editor .line-row td.col-description .text-input__wrapper {
-  width: 100% !important;
-}
-
-.document-lines-editor .line-row td.col-concept .text-input__field,
-.document-lines-editor .line-row td.col-description .text-input__field {
-  width: 100% !important;
-  min-width: 0;
+.document-lines-editor .line-row td.col-concept input,
+.document-lines-editor .line-row td.col-description input,
+.document-lines-editor .line-row td.col-description textarea {
+  @apply w-full min-w-0;
 }
 
 /* Order Input */
@@ -148,9 +136,15 @@
   @apply transition-all;
 }
 
-/* Concept Input */
+/* Concept Input - MUST fill 100% of cell */
+.document-lines-editor .concept-input,
+.document-lines-editor td.col-concept input,
+.document-lines-editor td.col-concept > div {
+  @apply w-full min-w-0;
+}
+
 .document-lines-editor .concept-input {
-  @apply w-full bg-transparent border-0 border-b border-border/30 rounded-none;
+  @apply bg-transparent border-0 border-b border-border/30 rounded-none;
   @apply text-foreground text-sm font-medium;
   @apply h-auto py-2 px-2;
   @apply hover:border-border focus:border-primary/50;
@@ -158,9 +152,16 @@
   @apply transition-colors;
 }
 
-/* Description Inputs */
+/* Description Inputs - MUST fill 100% of cell */
+.document-lines-editor .description-input,
+.document-lines-editor td.col-description input,
+.document-lines-editor td.col-description textarea,
+.document-lines-editor td.col-description > div {
+  @apply w-full min-w-0;
+}
+
 .document-lines-editor .description-input {
-  @apply w-full bg-transparent border-0 border-b border-border/30 rounded-none;
+  @apply bg-transparent border-0 border-b border-border/30 rounded-none;
   @apply text-muted-foreground text-sm;
   @apply h-auto py-2 px-2;
   @apply hover:border-border cursor-text;
