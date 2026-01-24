@@ -1,6 +1,12 @@
 import React, { forwardRef } from "react";
 import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type TextInputType = "text" | "email" | "tel" | "number" | "password" | "date" | "textarea" | "select";
 
@@ -12,7 +18,7 @@ export interface TextInputOption {
 export interface TextInputProps {
   type?: TextInputType;
   size?: "sm" | "md" | "lg";
-  variant?: "default" | "outline" | "filled";
+  variant?: "default" | "outline" | "ghost";
   error?: boolean;
   errorMessage?: string;
   label?: string;
@@ -37,19 +43,48 @@ export interface TextInputProps {
   max?: number | string;
   step?: number | string;
   className?: string;
+  inputClassName?: string;
 }
 
-// Estilos base usando tokens semánticos
-const sizeStyles = {
-  sm: "text-sm px-2.5 py-1.5 min-h-[32px]",
-  md: "text-sm px-3 py-2 min-h-[38px]",
-  lg: "text-base px-4 py-2.5 min-h-[44px]",
+// Size configurations
+const sizes = {
+  sm: {
+    input: "h-8 text-xs px-2.5",
+    label: "text-[11px]",
+    icon: "w-3.5 h-3.5",
+    iconLeft: "left-2",
+    iconRight: "right-2",
+    paddingWithIcon: "pl-7",
+    paddingWithRightIcon: "pr-7",
+    textarea: "min-h-[60px] py-1.5",
+  },
+  md: {
+    input: "h-9 text-sm px-3",
+    label: "text-xs",
+    icon: "w-4 h-4",
+    iconLeft: "left-2.5",
+    iconRight: "right-2.5",
+    paddingWithIcon: "pl-9",
+    paddingWithRightIcon: "pr-9",
+    textarea: "min-h-[80px] py-2",
+  },
+  lg: {
+    input: "h-10 text-sm px-3.5",
+    label: "text-xs",
+    icon: "w-4 h-4",
+    iconLeft: "left-3",
+    iconRight: "right-3",
+    paddingWithIcon: "pl-10",
+    paddingWithRightIcon: "pr-10",
+    textarea: "min-h-[100px] py-2.5",
+  },
 };
 
-const labelSizeStyles = {
-  sm: "text-xs",
-  md: "text-xs",
-  lg: "text-sm",
+// Variant configurations
+const variants = {
+  default: "bg-muted/30 border-border/60 hover:border-border hover:bg-muted/40 focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/10",
+  outline: "bg-transparent border-border hover:border-foreground/30 focus:border-primary focus:ring-2 focus:ring-primary/10",
+  ghost: "bg-transparent border-transparent hover:bg-muted/50 focus:bg-muted/30 focus:ring-0",
 };
 
 const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputProps>(
@@ -64,9 +99,9 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
       helperText,
       leftIcon,
       rightIcon,
-      options,
+      options = [],
       placeholder,
-      rows = 4,
+      rows = 3,
       value,
       onChange,
       onKeyDown,
@@ -82,44 +117,35 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
       max,
       step,
       className,
+      inputClassName,
     },
     ref
   ) => {
-    // Clases base del input
-    const baseInputClasses = cn(
-      // Layout
-      "w-full min-w-0 box-border",
-      // Apariencia
-      "rounded-lg border bg-muted/20 text-foreground",
-      "border-border/70",
-      "placeholder:text-muted-foreground/60",
-      // Transiciones
-      "transition-all duration-150 ease-out",
-      // Estados
-      "hover:border-border hover:bg-muted/30",
-      "focus:outline-none focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/10",
-      "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/30",
-      // Error
-      error && "border-destructive/70 bg-destructive/5 focus:border-destructive focus:ring-destructive/10",
-      // Tamaño
-      sizeStyles[size],
-      // Iconos
-      leftIcon && "pl-9",
-      rightIcon && "pr-9",
-      className
+    const sizeConfig = sizes[size];
+    const variantStyles = variants[variant];
+
+    // Base input classes
+    const baseClasses = cn(
+      "w-full min-w-0 rounded-lg border outline-none transition-all duration-150",
+      "text-foreground placeholder:text-muted-foreground/50",
+      "disabled:cursor-not-allowed disabled:opacity-50",
+      variantStyles,
+      error && "border-destructive/60 bg-destructive/5 focus:border-destructive focus:ring-destructive/10",
+      sizeConfig.input,
+      leftIcon && sizeConfig.paddingWithIcon,
+      rightIcon && sizeConfig.paddingWithRightIcon,
+      inputClassName
     );
 
-    // Contenedor principal
-    const containerClasses = "flex flex-col gap-1.5 w-full min-w-0";
-
-    // Label
+    // Render label
     const renderLabel = () => {
       if (!label) return null;
       return (
-        <label 
+        <label
+          htmlFor={id}
           className={cn(
-            "font-medium text-muted-foreground leading-tight",
-            labelSizeStyles[size],
+            "block font-medium text-muted-foreground mb-1.5",
+            sizeConfig.label,
             error && "text-destructive"
           )}
         >
@@ -129,43 +155,39 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
       );
     };
 
-    // Iconos
-    const renderLeftIcon = () => {
-      if (!leftIcon) return null;
+    // Render icon wrapper
+    const renderIcon = (icon: React.ReactNode, position: "left" | "right") => {
+      if (!icon) return null;
       return (
-        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-          {leftIcon}
+        <div
+          className={cn(
+            "absolute top-1/2 -translate-y-1/2 text-muted-foreground/70 pointer-events-none flex items-center justify-center",
+            position === "left" ? sizeConfig.iconLeft : sizeConfig.iconRight
+          )}
+        >
+          <div className={sizeConfig.icon}>{icon}</div>
         </div>
       );
     };
 
-    const renderRightIcon = () => {
-      if (!rightIcon) return null;
-      return (
-        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-          {rightIcon}
-        </div>
-      );
-    };
-
-    // Mensajes
-    const renderMessages = () => {
+    // Render helper/error message
+    const renderMessage = () => {
       if (error && errorMessage) {
-        return <span className="text-xs text-destructive leading-tight">{errorMessage}</span>;
+        return <p className="text-[10px] text-destructive mt-1">{errorMessage}</p>;
       }
       if (helperText) {
-        return <span className="text-xs text-muted-foreground/80 leading-tight">{helperText}</span>;
+        return <p className="text-[10px] text-muted-foreground/70 mt-1">{helperText}</p>;
       }
       return null;
     };
 
-    // SELECT
+    // SELECT TYPE
     if (type === "select") {
       return (
-        <div className={containerClasses}>
+        <div className={cn("w-full min-w-0", className)}>
           {renderLabel()}
-          <div className="relative w-full min-w-0">
-            {renderLeftIcon()}
+          <div className="relative w-full">
+            {renderIcon(leftIcon, "left")}
             <Select
               value={value as string}
               onValueChange={(val) => {
@@ -175,36 +197,45 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
               }}
               disabled={disabled}
             >
-              <SelectTrigger className={baseInputClasses}>
+              <SelectTrigger
+                className={cn(
+                  baseClasses,
+                  "flex items-center justify-between"
+                )}
+              >
                 <SelectValue placeholder={placeholder || "Seleccionar..."} />
               </SelectTrigger>
-              <SelectContent>
-                {options?.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+              <SelectContent className="bg-popover border-border z-50">
+                {options.map((opt) => (
+                  <SelectItem
+                    key={opt.value}
+                    value={opt.value}
+                    className="text-sm cursor-pointer hover:bg-accent"
+                  >
+                    {opt.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {renderRightIcon()}
+            {renderIcon(rightIcon, "right")}
           </div>
-          {renderMessages()}
+          {renderMessage()}
         </div>
       );
     }
 
-    // TEXTAREA
+    // TEXTAREA TYPE
     if (type === "textarea") {
       return (
-        <div className={containerClasses}>
+        <div className={cn("w-full min-w-0", className)}>
           {renderLabel()}
-          <div className="relative w-full min-w-0">
-            {renderLeftIcon()}
+          <div className="relative w-full">
+            {renderIcon(leftIcon, "left")}
             <textarea
               ref={ref as React.Ref<HTMLTextAreaElement>}
               id={id}
               name={name}
-              className={cn(baseInputClasses, "resize-y leading-relaxed", size === "sm" && "min-h-[60px]", size === "md" && "min-h-[80px]", size === "lg" && "min-h-[100px]")}
+              className={cn(baseClasses, "resize-y", sizeConfig.textarea)}
               rows={rows}
               value={value}
               onChange={onChange as React.ChangeEventHandler<HTMLTextAreaElement>}
@@ -217,25 +248,25 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
               autoComplete={autoComplete}
               autoFocus={autoFocus}
             />
-            {renderRightIcon()}
+            {renderIcon(rightIcon, "right")}
           </div>
-          {renderMessages()}
+          {renderMessage()}
         </div>
       );
     }
 
-    // INPUT NORMAL
+    // STANDARD INPUT
     return (
-      <div className={containerClasses}>
+      <div className={cn("w-full min-w-0", className)}>
         {renderLabel()}
-        <div className="relative w-full min-w-0">
-          {renderLeftIcon()}
+        <div className="relative w-full">
+          {renderIcon(leftIcon, "left")}
           <input
             ref={ref as React.Ref<HTMLInputElement>}
             type={type}
             id={id}
             name={name}
-            className={baseInputClasses}
+            className={baseClasses}
             value={value}
             onChange={onChange as React.ChangeEventHandler<HTMLInputElement>}
             onKeyDown={onKeyDown as React.KeyboardEventHandler<HTMLInputElement>}
@@ -250,9 +281,9 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
             max={max}
             step={step}
           />
-          {renderRightIcon()}
+          {renderIcon(rightIcon, "right")}
         </div>
-        {renderMessages()}
+        {renderMessage()}
       </div>
     );
   }
