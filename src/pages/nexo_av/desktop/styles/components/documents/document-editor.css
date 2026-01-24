@@ -1,0 +1,332 @@
+/* ============================================
+   Document Editor Styles
+   Shared styles for quotes and invoices
+   ============================================ */
+
+/* ----------------------------------------
+   Client/Project Selector
+   ---------------------------------------- */
+.client-project-selector {
+  @apply w-full;
+}
+
+.client-project-selector .selector-field {
+  @apply flex flex-col gap-2;
+}
+
+.client-project-selector .selector-label {
+  @apply flex items-center gap-2 text-muted-foreground text-xs font-medium uppercase tracking-wide;
+}
+
+.client-project-selector .selector-trigger {
+  @apply h-10 bg-card/50 border-border/50 rounded-lg text-sm;
+  @apply hover:bg-card hover:border-border transition-all;
+  @apply focus:ring-2 focus:ring-primary/20 focus:border-primary/50;
+}
+
+.client-project-selector .selector-content {
+  @apply bg-popover/95 backdrop-blur-xl border-border rounded-xl shadow-2xl;
+}
+
+.client-project-selector .selector-item {
+  @apply text-sm py-2.5 cursor-pointer;
+  @apply hover:bg-accent/50 focus:bg-accent/50;
+}
+
+/* ----------------------------------------
+   Document Lines Editor
+   ---------------------------------------- */
+.document-lines-editor {
+  @apply bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 overflow-hidden;
+}
+
+.document-lines-editor .lines-header {
+  @apply flex items-center justify-between px-5 py-4 border-b border-border/50;
+  @apply bg-gradient-to-r from-muted/30 to-transparent;
+}
+
+.document-lines-editor .lines-title {
+  @apply text-foreground text-sm font-semibold uppercase tracking-wider;
+}
+
+.document-lines-editor .lines-hint {
+  @apply text-muted-foreground text-xs font-medium;
+}
+
+.document-lines-editor .lines-table-container {
+  @apply overflow-x-auto;
+}
+
+.document-lines-editor .lines-table {
+  @apply w-full border-collapse;
+}
+
+.document-lines-editor .lines-table thead {
+  @apply bg-muted/20;
+}
+
+.document-lines-editor .lines-table th {
+  @apply text-muted-foreground text-xs font-semibold uppercase tracking-wider;
+  @apply px-4 py-3 text-left border-b border-border/30;
+}
+
+.document-lines-editor .lines-table th.col-order {
+  @apply w-16 text-center;
+}
+
+.document-lines-editor .lines-table th.col-concept {
+  @apply min-w-[280px];
+}
+
+.document-lines-editor .lines-table th.col-description {
+  @apply min-w-[200px];
+}
+
+.document-lines-editor .lines-table th.col-quantity {
+  @apply w-24 text-center;
+}
+
+.document-lines-editor .lines-table th.col-price {
+  @apply w-28 text-right;
+}
+
+.document-lines-editor .lines-table th.col-discount {
+  @apply w-20 text-center;
+}
+
+.document-lines-editor .lines-table th.col-tax {
+  @apply w-32;
+}
+
+.document-lines-editor .lines-table th.col-total {
+  @apply w-28 text-right;
+}
+
+.document-lines-editor .lines-table th.col-actions {
+  @apply w-14;
+}
+
+/* Line Rows */
+.document-lines-editor .line-row {
+  @apply border-b border-border/20 transition-colors duration-150;
+}
+
+.document-lines-editor .line-row:hover {
+  @apply bg-muted/30;
+}
+
+.document-lines-editor .line-row td {
+  @apply px-4 py-3 align-middle;
+}
+
+/* Order Input */
+.document-lines-editor .order-input {
+  @apply w-12 h-8 text-center text-sm font-mono;
+  @apply bg-transparent border border-border/30 rounded-lg;
+  @apply hover:border-border focus:border-primary/50 focus:ring-1 focus:ring-primary/20;
+  @apply transition-all;
+}
+
+/* Concept Input */
+.document-lines-editor .concept-input {
+  @apply bg-transparent border-0 border-b border-border/30 rounded-none;
+  @apply text-foreground text-sm font-medium;
+  @apply h-auto py-2 px-2;
+  @apply hover:border-border focus:border-primary/50;
+  @apply focus-visible:ring-0 focus-visible:shadow-none;
+  @apply transition-colors;
+}
+
+/* Description Inputs */
+.document-lines-editor .description-input {
+  @apply bg-transparent border-0 border-b border-border/30 rounded-none;
+  @apply text-muted-foreground text-sm;
+  @apply h-auto py-2 px-2;
+  @apply hover:border-border cursor-text;
+  @apply focus-visible:ring-0 focus-visible:shadow-none;
+  @apply transition-colors;
+}
+
+.document-lines-editor .description-textarea {
+  @apply bg-muted/30 border border-border/50 rounded-lg;
+  @apply text-foreground text-sm;
+  @apply px-3 py-2 min-h-[80px] resize-y;
+  @apply focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20;
+}
+
+/* Numeric Inputs */
+.document-lines-editor .quantity-input,
+.document-lines-editor .price-input,
+.document-lines-editor .discount-input {
+  @apply bg-transparent border-0 border-b border-border/30 rounded-none;
+  @apply text-foreground text-sm font-medium;
+  @apply h-auto py-2 px-0;
+  @apply hover:border-border focus:border-primary/50;
+  @apply focus-visible:ring-0 focus-visible:shadow-none;
+  @apply transition-colors;
+}
+
+.document-lines-editor .quantity-input {
+  @apply w-16 text-center mx-auto;
+}
+
+.document-lines-editor .price-input {
+  @apply text-right;
+}
+
+.document-lines-editor .discount-input {
+  @apply w-12 text-center mx-auto;
+}
+
+/* Tax Select */
+.document-lines-editor .tax-select {
+  @apply bg-transparent border-0 border-b border-border/30 rounded-none;
+  @apply text-foreground text-sm font-medium;
+  @apply h-auto py-2 px-0;
+  @apply hover:border-border focus:border-primary/50;
+  @apply shadow-none;
+  @apply transition-colors;
+}
+
+.document-lines-editor .tax-select-content {
+  @apply bg-popover/95 backdrop-blur-xl border-border rounded-xl shadow-2xl;
+}
+
+.document-lines-editor .tax-select-item {
+  @apply text-sm hover:bg-accent/50;
+}
+
+/* Total Value */
+.document-lines-editor .total-value {
+  @apply text-foreground text-sm font-semibold text-right block;
+}
+
+/* Delete Button */
+.document-lines-editor .delete-btn {
+  @apply text-muted-foreground hover:text-destructive hover:bg-destructive/10;
+  @apply h-8 w-8 transition-colors;
+}
+
+/* Footer */
+.document-lines-editor .lines-footer {
+  @apply p-4 border-t border-border/30 bg-gradient-to-r from-muted/20 to-transparent;
+}
+
+.document-lines-editor .add-line-btn {
+  @apply border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50;
+  @apply rounded-lg h-10 px-4 font-medium;
+  @apply transition-all duration-200;
+}
+
+/* ----------------------------------------
+   Document Totals
+   ---------------------------------------- */
+.document-totals {
+  @apply bg-card/60 backdrop-blur-sm rounded-xl border border-border/50;
+  @apply p-5 w-full md:w-80;
+}
+
+.document-totals .totals-content {
+  @apply space-y-3;
+}
+
+.document-totals .totals-row {
+  @apply flex justify-between items-center;
+}
+
+.document-totals .totals-label {
+  @apply text-muted-foreground text-sm font-medium;
+}
+
+.document-totals .totals-value {
+  @apply text-foreground text-sm font-semibold;
+}
+
+.document-totals .tax-row {
+  @apply text-muted-foreground;
+}
+
+.document-totals .total-row {
+  @apply pt-3 border-t border-border/50;
+}
+
+.document-totals .total-row .totals-label {
+  @apply text-foreground text-base font-bold;
+}
+
+.document-totals .total-row .total-amount {
+  @apply text-primary text-lg font-bold;
+}
+
+/* ----------------------------------------
+   Document Page Layout
+   ---------------------------------------- */
+.document-page {
+  @apply w-full;
+}
+
+.document-page-content {
+  @apply w-full px-4 md:px-6 py-4 md:py-6 space-y-4;
+}
+
+.document-page-header {
+  @apply flex items-center justify-between gap-4 mb-6;
+}
+
+.document-page-title {
+  @apply text-xl md:text-2xl font-bold text-foreground;
+}
+
+.document-page-subtitle {
+  @apply text-muted-foreground text-xs md:text-sm;
+}
+
+/* Document Info Card */
+.document-info-card {
+  @apply bg-card/50 backdrop-blur-sm rounded-xl border border-border/50;
+  @apply p-4 md:p-6;
+}
+
+.document-info-header {
+  @apply flex items-center gap-2 mb-4 pb-3 border-b border-border/30;
+}
+
+.document-info-header .icon-wrapper {
+  @apply p-2 rounded-lg bg-primary/10;
+}
+
+.document-info-header .icon-wrapper svg {
+  @apply h-4 w-4 text-primary;
+}
+
+.document-info-header span {
+  @apply text-muted-foreground text-xs font-medium uppercase tracking-wide;
+}
+
+.document-info-grid {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6;
+}
+
+.document-info-field {
+  @apply space-y-2;
+}
+
+.document-info-field label {
+  @apply block text-muted-foreground text-xs font-medium;
+}
+
+.document-info-field .field-value {
+  @apply text-foreground text-sm font-medium;
+}
+
+/* Save Button */
+.document-save-btn {
+  @apply h-10 px-5 font-medium rounded-lg;
+  @apply bg-primary hover:bg-primary/90 text-primary-foreground;
+  @apply shadow-lg shadow-primary/20;
+  @apply transition-all duration-200;
+}
+
+.document-save-btn:hover {
+  @apply shadow-xl shadow-primary/30;
+}
