@@ -2,10 +2,16 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Save, Loader2, FileText, Calendar, Building2, FolderKanban } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Save, Loader2, Eye, Settings, FileDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
-import TextInput from "../components/common/TextInput";
 import {
   DocumentLinesEditor,
   DocumentTotals,
@@ -38,6 +44,7 @@ const NewQuotePage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [issueDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [validUntil, setValidUntil] = useState(() => {
     const date = new Date();
     date.setDate(date.getDate() + 30);
@@ -54,13 +61,13 @@ const NewQuotePage = () => {
       setLoading(true);
       await Promise.all([fetchClients(), fetchSaleTaxes()]);
       
-      const urlClientId = searchParams.get('clientId') || clientId;
+      const urlClientId = searchParams.get("clientId") || clientId;
       if (urlClientId) {
         setSelectedClientId(urlClientId);
         await fetchProjects(urlClientId);
       }
       
-      const sourceQuoteId = searchParams.get('sourceQuoteId');
+      const sourceQuoteId = searchParams.get("sourceQuoteId");
       if (sourceQuoteId) {
         await loadSourceQuoteData(sourceQuoteId);
       }
@@ -82,9 +89,9 @@ const NewQuotePage = () => {
 
   // Pre-select project from URL
   useEffect(() => {
-    const urlProjectId = searchParams.get('projectId');
+    const urlProjectId = searchParams.get("projectId");
     if (urlProjectId && projects.length > 0) {
-      const exists = projects.find(p => p.id === urlProjectId);
+      const exists = projects.find((p) => p.id === urlProjectId);
       if (exists) setSelectedProjectId(urlProjectId);
     }
   }, [projects, searchParams]);
@@ -93,11 +100,13 @@ const NewQuotePage = () => {
     try {
       const { data, error } = await supabase.rpc("list_clients", {});
       if (error) throw error;
-      setClients((data || []).map((c: any) => ({
-        id: c.id,
-        company_name: c.company_name,
-        client_number: c.client_number,
-      })));
+      setClients(
+        (data || []).map((c: any) => ({
+          id: c.id,
+          company_name: c.company_name,
+          client_number: c.client_number,
+        }))
+      );
     } catch (error) {
       console.error("Error fetching clients:", error);
     }
@@ -108,11 +117,13 @@ const NewQuotePage = () => {
       const { data, error } = await supabase.rpc("list_projects", { p_search: "" });
       if (error) throw error;
       const clientProjects = (data || []).filter((p: any) => p.client_id === clientId);
-      setProjects(clientProjects.map((p: any) => ({
-        id: p.id,
-        project_name: p.project_name,
-        project_number: p.project_number,
-      })));
+      setProjects(
+        clientProjects.map((p: any) => ({
+          id: p.id,
+          project_name: p.project_name,
+          project_number: p.project_number,
+        }))
+      );
     } catch (error) {
       console.error("Error fetching projects:", error);
       setProjects([]);
@@ -137,7 +148,9 @@ const NewQuotePage = () => {
 
   const loadSourceQuoteData = async (sourceQuoteId: string) => {
     try {
-      const { data: quoteData, error: quoteError } = await supabase.rpc("get_quote", { p_quote_id: sourceQuoteId });
+      const { data: quoteData, error: quoteError } = await supabase.rpc("get_quote", {
+        p_quote_id: sourceQuoteId,
+      });
       if (quoteError) throw quoteError;
       if (!quoteData?.[0]) throw new Error("Presupuesto no encontrado");
 
@@ -146,23 +159,27 @@ const NewQuotePage = () => {
       setSelectedClientId(quote.client_id);
       if (quote.project_id) setSelectedProjectId(quote.project_id);
 
-      const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", { p_quote_id: sourceQuoteId });
+      const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", {
+        p_quote_id: sourceQuoteId,
+      });
       if (linesError) throw linesError;
 
-      setLines((linesData || []).map((line: any, index: number) => ({
-        tempId: crypto.randomUUID(),
-        concept: line.concept,
-        description: line.description || "",
-        quantity: line.quantity,
-        unit_price: line.unit_price,
-        tax_rate: line.tax_rate,
-        discount_percent: line.discount_percent,
-        subtotal: line.subtotal,
-        tax_amount: line.tax_amount,
-        total: line.total,
-        group_name: line.group_name || null,
-        line_order: index + 1,
-      })));
+      setLines(
+        (linesData || []).map((line: any, index: number) => ({
+          tempId: crypto.randomUUID(),
+          concept: line.concept,
+          description: line.description || "",
+          quantity: line.quantity,
+          unit_price: line.unit_price,
+          tax_rate: line.tax_rate,
+          discount_percent: line.discount_percent,
+          subtotal: line.subtotal,
+          tax_amount: line.tax_amount,
+          total: line.total,
+          group_name: line.group_name || null,
+          line_order: index + 1,
+        }))
+      );
 
       toast({ title: "Datos importados", description: `Datos cargados de ${quote.quote_number}` });
     } catch (error: any) {
@@ -183,7 +200,7 @@ const NewQuotePage = () => {
       validDate.setDate(validDate.getDate() + 30);
       const calculatedValidUntil = validDate.toISOString().split("T")[0];
 
-      const selectedProject = projects.find(p => p.id === selectedProjectId);
+      const selectedProject = projects.find((p) => p.id === selectedProjectId);
       const { data: quoteData, error: quoteError } = await supabase.rpc("create_quote_with_number", {
         p_client_id: selectedClientId,
         p_project_name: selectedProject?.project_name || null,
@@ -211,7 +228,7 @@ const NewQuotePage = () => {
             p_line_order: line.line_order || null,
           });
           if (lineError) throw lineError;
-          const lineId = typeof lineIdData === 'string' ? lineIdData : lineIdData?.[0] || lineIdData;
+          const lineId = typeof lineIdData === "string" ? lineIdData : lineIdData?.[0] || lineIdData;
           if (lineId) lineIds.push(lineId);
         }
       }
@@ -230,140 +247,122 @@ const NewQuotePage = () => {
     }
   };
 
-  // Options for selects
-  const clientOptions = clients.map(c => ({ value: c.id, label: `${c.client_number} - ${c.company_name}` }));
-  const projectOptions = projects.map(p => ({ value: p.id, label: `${p.project_number} - ${p.project_name}` }));
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-3.25rem)]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-muted-foreground">Cargando...</p>
-        </div>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
     <div className="h-[calc(100vh-3.25rem)] overflow-y-auto bg-background">
-      <div className="max-w-6xl mx-auto px-8 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="space-y-8"
-        >
-          {/* Header */}
-          <header className="flex items-start justify-between gap-6">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-foreground tracking-tight">
-                {sourceQuoteNumber ? "Nueva versión" : "Nuevo presupuesto"}
-              </h1>
-              <p className="text-base text-muted-foreground">
-                {sourceQuoteNumber
-                  ? `Creando nueva versión basada en ${sourceQuoteNumber}`
-                  : "El número se asignará automáticamente al guardar el documento"}
-              </p>
-            </div>
-            <Button 
-              onClick={handleSave} 
-              disabled={saving} 
-              size="lg"
-              className="h-12 px-6 text-base font-semibold gap-2 shadow-lg shadow-primary/20"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="min-h-full"
+      >
+        {/* Header */}
+        <header className="sticky top-0 z-10 bg-background border-b border-border px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-muted rounded-lg transition-colors"
             >
-              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-              Guardar presupuesto
+              <ArrowLeft className="w-5 h-5 text-muted-foreground" />
+            </button>
+            <h1 className="text-xl font-semibold text-foreground">
+              {sourceQuoteNumber ? `Nueva versión de ${sourceQuoteNumber}` : "Nuevo presupuesto"}
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Eye className="w-4 h-4" />
+              Vista previa
             </Button>
-          </header>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Settings className="w-4 h-4" />
+              Opciones
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2">
+              <FileDown className="w-4 h-4" />
+              Guardar borrador
+            </Button>
+            <Button onClick={handleSave} disabled={saving} size="sm" className="gap-2">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Guardar
+            </Button>
+          </div>
+        </header>
 
-          {/* Document Info Card */}
-          <section className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-border bg-muted/30 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <FileText className="w-5 h-5 text-primary" />
-              </div>
-              <h2 className="font-semibold text-foreground">Información del documento</h2>
+        {/* Document Info Row */}
+        <div className="px-6 py-5 border-b border-border bg-muted/20">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Contacto/Cliente */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Contacto</label>
+              <Select value={selectedClientId} onValueChange={(v) => { setSelectedClientId(v); setSelectedProjectId(""); }}>
+                <SelectTrigger className="h-10 bg-background border-border">
+                  <SelectValue placeholder="Seleccionar contacto" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border z-50">
+                  {clients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.company_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            
-            <div className="p-6 space-y-6">
-              {/* Row 1: Client and Project */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <TextInput
-                  type="select"
-                  label="Cliente"
-                  placeholder="Seleccionar cliente..."
-                  value={selectedClientId}
-                  onChange={(value: string) => {
-                    setSelectedClientId(value);
-                    setSelectedProjectId("");
-                  }}
-                  options={clientOptions}
-                  leftIcon={<Building2 />}
-                  required
-                  size="lg"
-                  variant="filled"
-                />
 
-                <TextInput
-                  type="select"
-                  label="Proyecto"
-                  placeholder={selectedClientId ? "Seleccionar proyecto..." : "Primero selecciona un cliente"}
-                  value={selectedProjectId}
-                  onChange={(value: string) => setSelectedProjectId(value)}
-                  options={projectOptions}
-                  leftIcon={<FolderKanban />}
-                  disabled={!selectedClientId || projects.length === 0}
-                  size="lg"
-                  variant="filled"
-                />
-              </div>
-
-              {/* Row 2: Dates */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <TextInput
-                  type="date"
-                  label="Fecha de emisión"
-                  value={new Date().toISOString().split("T")[0]}
-                  disabled
-                  leftIcon={<Calendar />}
-                  size="md"
-                  variant="filled"
-                  helperText="Fecha actual"
-                />
-
-                <TextInput
-                  type="date"
-                  label="Válido hasta"
-                  value={validUntil}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValidUntil(e.target.value)}
-                  disabled
-                  leftIcon={<Calendar />}
-                  size="md"
-                  variant="filled"
-                  helperText="Automático: +30 días"
-                />
-              </div>
+            {/* Número de documento */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Número de documento</label>
+              <input
+                type="text"
+                value="(Automático)"
+                disabled
+                className="w-full h-10 px-3 bg-muted/50 border border-border rounded-lg text-sm text-muted-foreground"
+              />
             </div>
-          </section>
 
-          {/* Lines Editor */}
+            {/* Fecha */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Fecha</label>
+              <input
+                type="date"
+                value={issueDate}
+                disabled
+                className="w-full h-10 px-3 bg-background border border-border rounded-lg text-sm text-foreground"
+              />
+            </div>
+
+            {/* Vencimiento */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Vencimiento</label>
+              <input
+                type="date"
+                value={validUntil}
+                onChange={(e) => setValidUntil(e.target.value)}
+                className="w-full h-10 px-3 bg-background border border-border rounded-lg text-sm text-foreground"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Lines Editor */}
+        <div className="p-6">
           <DocumentLinesEditor
             lines={lines}
             onLinesChange={setLines}
             taxOptions={taxOptions}
             defaultTaxRate={defaultTaxRate}
             showDescription={true}
-            showLineNumbers={true}
-            title="Líneas del presupuesto"
           />
-
-          {/* Totals */}
-          <div className="flex justify-end">
-            <DocumentTotals lines={lines} taxOptions={taxOptions} />
-          </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 };

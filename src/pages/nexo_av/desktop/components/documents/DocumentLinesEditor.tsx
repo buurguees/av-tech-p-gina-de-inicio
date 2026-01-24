@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Calculator, GripVertical } from "lucide-react";
+import { Plus, Trash2, Search, GripVertical, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface DocumentLine {
@@ -37,32 +37,14 @@ interface DocumentLinesEditorProps {
   taxOptions: TaxOption[];
   defaultTaxRate: number;
   showDescription?: boolean;
-  showLineNumbers?: boolean;
-  title?: string;
-  hint?: string;
   className?: string;
 }
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-};
-
-const formatNumber = (value: number): string => {
-  if (value === 0) return "";
-  return new Intl.NumberFormat("es-ES", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
-  }).format(value);
-};
-
-const parseNumber = (value: string): number => {
-  if (!value) return 0;
-  const cleaned = value.replace(/\./g, "").replace(",", ".");
-  const num = parseFloat(cleaned);
-  return isNaN(num) ? 0 : num;
+  }).format(amount);
 };
 
 export default function DocumentLinesEditor({
@@ -70,10 +52,7 @@ export default function DocumentLinesEditor({
   onLinesChange,
   taxOptions,
   defaultTaxRate,
-  showDescription = false,
-  showLineNumbers = true,
-  title = "Líneas del documento",
-  hint = "Añade conceptos al presupuesto",
+  showDescription = true,
   className,
 }: DocumentLinesEditorProps) {
   const [editingValues, setEditingValues] = useState<Record<string, string>>({});
@@ -133,218 +112,270 @@ export default function DocumentLinesEditor({
 
   const removeLine = useCallback(
     (index: number) => {
-      const newLines = lines.filter((_, i) => i !== index);
-      const reorderedLines = newLines.map((line, i) => ({
-        ...line,
-        line_order: i + 1,
-      }));
-      onLinesChange(reorderedLines);
+      onLinesChange(lines.filter((_, i) => i !== index).map((line, i) => ({ ...line, line_order: i + 1 })));
     },
     [lines, onLinesChange]
   );
 
-  const handleNumericChange = (
-    index: number,
-    field: "quantity" | "unit_price" | "discount_percent",
-    value: string
-  ) => {
-    const key = `${index}-${field}`;
-    setEditingValues((prev) => ({ ...prev, [key]: value }));
-    updateLine(index, field, parseNumber(value));
+  const parseNumber = (value: string): number => {
+    if (!value) return 0;
+    const cleaned = value.replace(/\./g, "").replace(",", ".");
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
   };
 
   const handleNumericBlur = (index: number, field: string) => {
-    const key = `${index}-${field}`;
     setEditingValues((prev) => {
-      const newValues = { ...prev };
-      delete newValues[key];
-      return newValues;
+      const copy = { ...prev };
+      delete copy[`${index}-${field}`];
+      return copy;
     });
   };
 
   const getDisplayValue = (index: number, field: string, value: number): string => {
     const key = `${index}-${field}`;
     if (editingValues[key] !== undefined) return editingValues[key];
-    return formatNumber(value);
+    return value === 0 ? "" : formatCurrency(value);
   };
 
-  // Input base classes
-  const inputBase = cn(
-    "w-full h-12 px-4 text-base bg-muted/30 border-2 border-transparent rounded-xl",
-    "text-foreground placeholder:text-muted-foreground/50",
-    "transition-all duration-200",
-    "hover:bg-muted/50",
-    "focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none"
-  );
+  // Totals calculation
+  const totals = useMemo(() => {
+    const subtotal = lines.reduce((acc, l) => acc + l.subtotal, 0);
+    const taxAmount = lines.reduce((acc, l) => acc + l.tax_amount, 0);
+    const total = lines.reduce((acc, l) => acc + l.total, 0);
+    return { subtotal, taxAmount, total };
+  }, [lines]);
 
-  const numericInput = cn(inputBase, "text-center font-medium");
+  // Input styles
+  const inputBase = "w-full h-9 px-3 bg-transparent border-0 text-sm focus:outline-none focus:ring-0";
+  const numericInput = cn(inputBase, "text-right tabular-nums");
 
   return (
-    <section className={cn("bg-card border border-border rounded-2xl shadow-sm overflow-hidden", className)}>
-      {/* Header */}
-      <div className="px-6 py-4 border-b border-border bg-muted/30 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Calculator className="w-5 h-5 text-primary" />
+    <div className={cn("space-y-4", className)}>
+      {/* Table */}
+      <div className="border border-border rounded-lg overflow-hidden bg-card">
+        {/* Table Header */}
+        <div className="grid grid-cols-[40px_1fr_1fr_100px_100px_120px_100px_40px] bg-muted/50 border-b border-border">
+          <div className="px-2 py-3"></div>
+          <div className="px-3 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Concepto
           </div>
-          <div>
-            <h2 className="font-semibold text-foreground">{title}</h2>
-            <p className="text-sm text-muted-foreground">{hint}</p>
-          </div>
-        </div>
-        <Button onClick={addLine} variant="outline" className="h-10 gap-2 font-medium">
-          <Plus className="w-4 h-4" />
-          Añadir línea
-        </Button>
-      </div>
-
-      {/* Lines */}
-      <div className="divide-y divide-border/50">
-        {lines.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
-              <Plus className="w-8 h-8 text-muted-foreground/50" />
+          {showDescription && (
+            <div className="px-3 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Descripción
             </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">Sin líneas</h3>
-            <p className="text-muted-foreground mb-4">Añade el primer concepto al presupuesto</p>
-            <Button onClick={addLine} variant="outline" className="gap-2">
-              <Plus className="w-4 h-4" />
-              Añadir línea
-            </Button>
+          )}
+          <div className="px-3 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">
+            Cantidad
           </div>
-        ) : (
-          lines.map((line, index) => (
+          <div className="px-3 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">
+            Precio
+          </div>
+          <div className="px-3 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center">
+            Impuestos
+          </div>
+          <div className="px-3 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">
+            Total
+          </div>
+          <div className="px-2 py-3"></div>
+        </div>
+
+        {/* Table Body */}
+        <div className="divide-y divide-border">
+          {lines.length === 0 ? (
+            // Empty state row
             <div
-              key={line.tempId || line.id || index}
-              className="p-6 hover:bg-accent/30 transition-colors group"
+              className="grid grid-cols-[40px_1fr_1fr_100px_100px_120px_100px_40px] items-center hover:bg-muted/30 transition-colors cursor-pointer"
+              onClick={addLine}
             >
-              <div className="flex gap-4">
-                {/* Order indicator */}
-                {showLineNumbers && (
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center">
-                    <span className="text-sm font-bold text-muted-foreground">{index + 1}</span>
+              <div className="px-2 py-3 flex justify-center">
+                <GripVertical className="w-4 h-4 text-muted-foreground/30" />
+              </div>
+              <div className="px-1 py-2">
+                <div className="flex items-center gap-2 px-2">
+                  <input
+                    type="text"
+                    placeholder="Escribe el concepto o usa @ para buscar"
+                    className={cn(inputBase, "text-muted-foreground/60 placeholder:text-muted-foreground/40")}
+                    readOnly
+                  />
+                  <Search className="w-4 h-4 text-muted-foreground/40 flex-shrink-0" />
+                </div>
+              </div>
+              <div className="px-1 py-2">
+                <input
+                  type="text"
+                  placeholder="Desc"
+                  className={cn(inputBase, "text-muted-foreground/60")}
+                  readOnly
+                />
+              </div>
+              <div className="px-1 py-2">
+                <span className="block text-right text-sm text-primary">1</span>
+              </div>
+              <div className="px-1 py-2">
+                <span className="block text-right text-sm text-primary">0</span>
+              </div>
+              <div className="px-1 py-2 flex justify-center">
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-muted text-xs text-muted-foreground">
+                  × IVA 21%
+                </span>
+              </div>
+              <div className="px-3 py-2 text-right text-sm text-muted-foreground">0</div>
+              <div className="px-2 py-2"></div>
+            </div>
+          ) : (
+            lines.map((line, index) => (
+              <div
+                key={line.tempId || line.id || index}
+                className="grid grid-cols-[40px_1fr_1fr_100px_100px_120px_100px_40px] items-center hover:bg-muted/30 transition-colors group"
+              >
+                {/* Drag handle */}
+                <div className="px-2 py-3 flex justify-center cursor-grab">
+                  <GripVertical className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground" />
+                </div>
+
+                {/* Concept */}
+                <div className="px-1 py-2">
+                  <div className="flex items-center gap-2 px-2">
+                    <input
+                      type="text"
+                      value={line.concept}
+                      onChange={(e) => updateLine(index, "concept", e.target.value)}
+                      placeholder="Escribe el concepto o usa @ para buscar"
+                      className={cn(inputBase, "flex-1")}
+                    />
+                    <Search className="w-4 h-4 text-muted-foreground/40 flex-shrink-0" />
+                  </div>
+                </div>
+
+                {/* Description */}
+                {showDescription && (
+                  <div className="px-1 py-2">
+                    <textarea
+                      value={line.description || ""}
+                      onChange={(e) => updateLine(index, "description", e.target.value)}
+                      placeholder="Desc"
+                      className={cn(inputBase, "resize-none h-9 py-2")}
+                      rows={1}
+                    />
                   </div>
                 )}
 
-                {/* Main content */}
-                <div className="flex-1 space-y-4">
-                  {/* Row 1: Concept and Description */}
-                  <div className={cn("grid gap-4", showDescription ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1")}>
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Concepto
-                      </label>
-                      <input
-                        type="text"
-                        value={line.concept}
-                        onChange={(e) => updateLine(index, "concept", e.target.value)}
-                        placeholder="Nombre del producto o servicio"
-                        className={cn(inputBase, "font-medium")}
-                      />
-                    </div>
-
-                    {showDescription && (
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Descripción
-                        </label>
-                        <input
-                          type="text"
-                          value={line.description || ""}
-                          onChange={(e) => updateLine(index, "description", e.target.value)}
-                          placeholder="Descripción adicional (opcional)"
-                          className={inputBase}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Row 2: Numeric fields */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Cantidad
-                      </label>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={getDisplayValue(index, "quantity", line.quantity)}
-                        onChange={(e) => handleNumericChange(index, "quantity", e.target.value)}
-                        onBlur={() => handleNumericBlur(index, "quantity")}
-                        placeholder="1"
-                        className={numericInput}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Precio
-                      </label>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={getDisplayValue(index, "unit_price", line.unit_price)}
-                        onChange={(e) => handleNumericChange(index, "unit_price", e.target.value)}
-                        onBlur={() => handleNumericBlur(index, "unit_price")}
-                        placeholder="0,00"
-                        className={numericInput}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        IVA
-                      </label>
-                      <Select
-                        value={line.tax_rate.toString()}
-                        onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
-                      >
-                        <SelectTrigger className={cn(numericInput, "px-3")}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-popover border-border shadow-xl rounded-xl z-50">
-                          {taxOptions.map((opt) => (
-                            <SelectItem
-                              key={opt.value}
-                              value={opt.value.toString()}
-                              className="py-3 cursor-pointer"
-                            >
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2 col-span-2 sm:col-span-1">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Total
-                      </label>
-                      <div className="h-12 px-4 rounded-xl bg-primary/5 border-2 border-primary/20 flex items-center justify-center">
-                        <span className="text-base font-bold text-primary">
-                          {formatCurrency(line.total)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                {/* Quantity */}
+                <div className="px-1 py-2">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={getDisplayValue(index, "quantity", line.quantity)}
+                    onChange={(e) => {
+                      setEditingValues((prev) => ({ ...prev, [`${index}-quantity`]: e.target.value }));
+                      updateLine(index, "quantity", parseNumber(e.target.value));
+                    }}
+                    onBlur={() => handleNumericBlur(index, "quantity")}
+                    placeholder="1"
+                    className={cn(numericInput, "text-primary font-medium")}
+                  />
                 </div>
 
-                {/* Delete button */}
-                <div className="flex-shrink-0 pt-8">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeLine(index)}
-                    className="h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                {/* Price */}
+                <div className="px-1 py-2">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={getDisplayValue(index, "unit_price", line.unit_price)}
+                    onChange={(e) => {
+                      setEditingValues((prev) => ({ ...prev, [`${index}-unit_price`]: e.target.value }));
+                      updateLine(index, "unit_price", parseNumber(e.target.value));
+                    }}
+                    onBlur={() => handleNumericBlur(index, "unit_price")}
+                    placeholder="0"
+                    className={cn(numericInput, "text-primary font-medium")}
+                  />
+                </div>
+
+                {/* Tax */}
+                <div className="px-1 py-2 flex justify-center">
+                  <Select
+                    value={line.tax_rate.toString()}
+                    onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
                   >
-                    <Trash2 className="w-5 h-5" />
-                  </Button>
+                    <SelectTrigger className="h-8 w-auto px-2 bg-muted border-0 rounded text-xs gap-1">
+                      <span className="text-muted-foreground">×</span>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border z-50">
+                      {taxOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value.toString()} className="text-sm">
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Total */}
+                <div className="px-3 py-2 text-right text-sm font-medium text-foreground tabular-nums">
+                  {formatCurrency(line.total)}
+                </div>
+
+                {/* Delete */}
+                <div className="px-2 py-2 flex justify-center">
+                  <button
+                    onClick={() => removeLine(index)}
+                    className="p-1 text-muted-foreground/40 hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
+            ))
+          )}
+
+          {/* Add line row (if there are already lines) */}
+          {lines.length > 0 && (
+            <div
+              className="grid grid-cols-[40px_1fr_1fr_100px_100px_120px_100px_40px] items-center hover:bg-muted/30 transition-colors cursor-pointer"
+              onClick={addLine}
+            >
+              <div className="px-2 py-3 flex justify-center">
+                <GripVertical className="w-4 h-4 text-muted-foreground/20" />
+              </div>
+              <div className="px-3 py-2">
+                <span className="text-sm text-muted-foreground/50">+ Añadir línea</span>
+              </div>
+              <div className="col-span-6"></div>
             </div>
-          ))
-        )}
+          )}
+        </div>
       </div>
-    </section>
+
+      {/* Footer with Add Line button and Totals */}
+      <div className="flex items-start justify-between gap-6">
+        {/* Left side - Add line button */}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={addLine} className="gap-1">
+            Añadir línea
+            <ChevronDown className="w-3 h-3" />
+          </Button>
+        </div>
+
+        {/* Right side - Totals */}
+        <div className="w-72 space-y-2 text-sm">
+          <div className="flex justify-between items-center py-1">
+            <span className="text-muted-foreground">Subtotal</span>
+            <span className="font-medium text-foreground tabular-nums">{formatCurrency(totals.subtotal)}€</span>
+          </div>
+          <div className="flex justify-between items-center py-1">
+            <span className="text-muted-foreground">IVA</span>
+            <span className="font-medium text-foreground tabular-nums">{formatCurrency(totals.taxAmount)}€</span>
+          </div>
+          <div className="flex justify-between items-center py-2 border-t border-border">
+            <span className="font-semibold text-foreground">Total</span>
+            <span className="font-bold text-foreground text-lg tabular-nums">{formatCurrency(totals.total)}€</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
