@@ -3,11 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
+import { 
+  Select as RadixSelect, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { 
   Building2, Upload, Trash2, Loader2, Save, Globe, Mail, Phone, MapPin, 
-  FileText, CheckCircle, AlertCircle, ImageIcon
+  CheckCircle, AlertCircle, ImageIcon
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -71,7 +76,6 @@ export function CompanyDataTab() {
   }, []);
 
   useEffect(() => {
-    // Check if there are unsaved changes
     const changed = JSON.stringify(settings) !== JSON.stringify(originalSettings);
     setHasChanges(changed);
   }, [settings, originalSettings]);
@@ -111,7 +115,6 @@ export function CompanyDataTab() {
   };
 
   const handleSave = async () => {
-    // Validate required fields
     if (!settings.legal_name.trim()) {
       toast.error('La razón social es obligatoria');
       return;
@@ -161,13 +164,11 @@ export function CompanyDataTab() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Solo se permiten archivos de imagen');
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('El archivo no puede superar los 5MB');
       return;
@@ -175,19 +176,16 @@ export function CompanyDataTab() {
 
     setUploadingLogo(true);
     try {
-      // Generate unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `logo-${Date.now()}.${fileExt}`;
       const filePath = `logos/${fileName}`;
 
-      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('company-assets')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from('company-assets')
         .getPublicUrl(filePath);
@@ -209,7 +207,6 @@ export function CompanyDataTab() {
     if (!settings.logo_url) return;
 
     try {
-      // Extract file path from URL
       const url = new URL(settings.logo_url);
       const pathParts = url.pathname.split('/company-assets/');
       if (pathParts.length > 1) {
@@ -221,7 +218,6 @@ export function CompanyDataTab() {
       toast.success('Logo eliminado');
     } catch (err: any) {
       console.error('Error removing logo:', err);
-      // Still remove from state even if storage delete fails
       setSettings(prev => ({ ...prev, logo_url: '' }));
     }
   };
@@ -232,10 +228,10 @@ export function CompanyDataTab() {
 
   if (loading) {
     return (
-      <Card className="bg-white/5 border-white/10">
+      <Card className="bg-card border-border">
         <CardContent className="py-12">
           <div className="flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         </CardContent>
       </Card>
@@ -243,22 +239,21 @@ export function CompanyDataTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl">
       {/* Logo Section */}
-      <Card className="bg-white/5 border-white/10">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-foreground flex items-center gap-2">
             <ImageIcon className="w-5 h-5" />
             Logo de la Empresa
           </CardTitle>
-          <CardDescription className="text-white/60">
+          <CardDescription className="text-muted-foreground">
             Este logo aparecerá en los presupuestos y facturas generados.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center gap-4">
-            {/* Logo Preview */}
-            <div className="w-full max-w-md aspect-[3/1] bg-white rounded-lg flex items-center justify-center border-2 border-dashed border-white/20 overflow-hidden relative group">
+            <div className="w-full max-w-md aspect-[3/1] bg-background rounded-lg flex items-center justify-center border-2 border-dashed border-border overflow-hidden relative group">
               {settings.logo_url ? (
                 <>
                   <img 
@@ -271,7 +266,7 @@ export function CompanyDataTab() {
                       variant="outline"
                       size="sm"
                       onClick={() => fileInputRef.current?.click()}
-                      className="bg-white text-black hover:bg-white/90"
+                      className="bg-background text-foreground hover:bg-accent"
                     >
                       <Upload className="w-4 h-4 mr-2" />
                       Cambiar
@@ -288,14 +283,13 @@ export function CompanyDataTab() {
                 </>
               ) : (
                 <div className="text-center p-6">
-                  <ImageIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                  <p className="text-gray-500 text-sm mb-3">Sin logo configurado</p>
+                  <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-muted-foreground text-sm mb-3">Sin logo configurado</p>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingLogo}
-                    className="bg-black text-white hover:bg-black/80 border-black"
                   >
                     {uploadingLogo ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -307,7 +301,7 @@ export function CompanyDataTab() {
                 </div>
               )}
             </div>
-            <p className="text-white/40 text-xs text-center">
+            <p className="text-muted-foreground text-xs text-center">
               Formatos aceptados: PNG, JPG, SVG. Tamaño máximo: 5MB. 
               Recomendado: fondo transparente.
             </p>
@@ -323,163 +317,161 @@ export function CompanyDataTab() {
       </Card>
 
       {/* Company Identification */}
-      <Card className="bg-white/5 border-white/10">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-foreground flex items-center gap-2">
             <Building2 className="w-5 h-5" />
             Datos de Identificación
           </CardTitle>
-          <CardDescription className="text-white/60">
+          <CardDescription className="text-muted-foreground">
             Información legal de tu empresa para documentos fiscales.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-white/80">
-                NIF/CIF <span className="text-red-400">*</span>
+              <Label className="text-foreground">
+                NIF/CIF <span className="text-destructive">*</span>
               </Label>
               <Input
                 value={settings.tax_id}
                 onChange={(e) => updateField('tax_id', e.target.value)}
                 placeholder="B75835728"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white/80">
+              <Label className="text-foreground">
                 NIF-IVA (Intracomunitario)
               </Label>
               <Input
                 value={settings.vat_number}
                 onChange={(e) => updateField('vat_number', e.target.value)}
                 placeholder="ESB75835728"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white/80">
-                Razón Social <span className="text-red-400">*</span>
+              <Label className="text-foreground">
+                Razón Social <span className="text-destructive">*</span>
               </Label>
               <Input
                 value={settings.legal_name}
                 onChange={(e) => updateField('legal_name', e.target.value)}
                 placeholder="AV TECH ESDEVENIMENTS S.L."
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white/80">
+              <Label className="text-foreground">
                 Nombre Comercial
               </Label>
               <Input
                 value={settings.commercial_name}
                 onChange={(e) => updateField('commercial_name', e.target.value)}
                 placeholder="AV TECH"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white/80">
-                País
-              </Label>
-              <Select value={settings.country} onValueChange={(v) => updateField('country', v)}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+              <Label className="text-foreground">País</Label>
+              <RadixSelect value={settings.country} onValueChange={(v) => updateField('country', v)}>
+                <SelectTrigger className="bg-background border-input text-foreground">
                   <SelectValue placeholder="País" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10">
+                <SelectContent className="bg-popover border-border z-50">
                   <SelectItem value="España">🇪🇸 España</SelectItem>
                   <SelectItem value="Portugal">🇵🇹 Portugal</SelectItem>
                   <SelectItem value="Francia">🇫🇷 Francia</SelectItem>
                   <SelectItem value="Andorra">🇦🇩 Andorra</SelectItem>
                 </SelectContent>
-              </Select>
+              </RadixSelect>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Fiscal Address */}
-      <Card className="bg-white/5 border-white/10">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-foreground flex items-center gap-2">
             <MapPin className="w-5 h-5" />
             Dirección Fiscal
           </CardTitle>
-          <CardDescription className="text-white/60">
+          <CardDescription className="text-muted-foreground">
             Dirección oficial para facturación y documentos legales.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2 space-y-2">
-              <Label className="text-white/80">
-                Dirección <span className="text-red-400">*</span>
+              <Label className="text-foreground">
+                Dirección <span className="text-destructive">*</span>
               </Label>
               <Input
                 value={settings.fiscal_address}
                 onChange={(e) => updateField('fiscal_address', e.target.value)}
                 placeholder="C/ Francesc Hombravella Maristany, 13"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white/80">
-                Código Postal <span className="text-red-400">*</span>
+              <Label className="text-foreground">
+                Código Postal <span className="text-destructive">*</span>
               </Label>
               <Input
                 value={settings.fiscal_postal_code}
                 onChange={(e) => updateField('fiscal_postal_code', e.target.value)}
                 placeholder="08320"
                 maxLength={5}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white/80">
-                Población <span className="text-red-400">*</span>
+              <Label className="text-foreground">
+                Población <span className="text-destructive">*</span>
               </Label>
               <Input
                 value={settings.fiscal_city}
                 onChange={(e) => updateField('fiscal_city', e.target.value)}
                 placeholder="El Masnou"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white/80">
-                Provincia <span className="text-red-400">*</span>
+              <Label className="text-foreground">
+                Provincia <span className="text-destructive">*</span>
               </Label>
-              <Select value={settings.fiscal_province} onValueChange={(v) => updateField('fiscal_province', v)}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+              <RadixSelect value={settings.fiscal_province} onValueChange={(v) => updateField('fiscal_province', v)}>
+                <SelectTrigger className="bg-background border-input text-foreground">
                   <SelectValue placeholder="Selecciona provincia" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10 max-h-60">
+                <SelectContent className="bg-popover border-border max-h-60 z-50">
                   {SPANISH_PROVINCES.map(province => (
                     <SelectItem key={province} value={province}>{province}</SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </RadixSelect>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Contact Information */}
-      <Card className="bg-white/5 border-white/10">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-foreground flex items-center gap-2">
             <Mail className="w-5 h-5" />
             Datos de Contacto
           </CardTitle>
-          <CardDescription className="text-white/60">
+          <CardDescription className="text-muted-foreground">
             Información de contacto para facturación.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-white/80 flex items-center gap-2">
+              <Label className="text-foreground flex items-center gap-2">
                 <Mail className="w-4 h-4" />
                 Email de Facturación
               </Label>
@@ -488,11 +480,11 @@ export function CompanyDataTab() {
                 value={settings.billing_email}
                 onChange={(e) => updateField('billing_email', e.target.value)}
                 placeholder="facturacion@empresa.com"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white/80 flex items-center gap-2">
+              <Label className="text-foreground flex items-center gap-2">
                 <Phone className="w-4 h-4" />
                 Teléfono de Facturación
               </Label>
@@ -501,11 +493,11 @@ export function CompanyDataTab() {
                 value={settings.billing_phone}
                 onChange={(e) => updateField('billing_phone', e.target.value)}
                 placeholder="+34 600 000 000"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <div className="md:col-span-2 space-y-2">
-              <Label className="text-white/80 flex items-center gap-2">
+              <Label className="text-foreground flex items-center gap-2">
                 <Globe className="w-4 h-4" />
                 Página Web
               </Label>
@@ -514,7 +506,7 @@ export function CompanyDataTab() {
                 value={settings.website}
                 onChange={(e) => updateField('website', e.target.value)}
                 placeholder="https://www.empresa.com"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               />
             </div>
           </div>
@@ -522,26 +514,25 @@ export function CompanyDataTab() {
       </Card>
 
       {/* Save Button */}
-      <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+      <div className="flex items-center justify-between p-4 bg-card rounded-lg border border-border">
         <div className="flex items-center gap-2">
           {hasChanges ? (
             <>
-              <AlertCircle className="w-5 h-5 text-yellow-400" />
-              <span className="text-yellow-400 text-sm">Tienes cambios sin guardar</span>
+              <AlertCircle className="w-5 h-5 text-yellow-500" />
+              <span className="text-yellow-500 text-sm">Tienes cambios sin guardar</span>
             </>
           ) : settings.id ? (
             <>
-              <CheckCircle className="w-5 h-5 text-green-400" />
-              <span className="text-green-400 text-sm">Datos guardados</span>
+              <CheckCircle className="w-5 h-5 text-green-500" />
+              <span className="text-green-500 text-sm">Datos guardados</span>
             </>
           ) : (
-            <span className="text-white/40 text-sm">Completa los datos obligatorios</span>
+            <span className="text-muted-foreground text-sm">Completa los datos obligatorios</span>
           )}
         </div>
         <Button
           onClick={handleSave}
           disabled={saving || !hasChanges}
-          className="bg-white text-black hover:bg-white/90"
         >
           {saving ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />

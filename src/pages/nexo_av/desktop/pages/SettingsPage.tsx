@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, Settings2, FileText, Tags, Receipt, Loader2 } from "lucide-react";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import { CompanyDataTab } from "../components/settings/CompanyDataTab";
@@ -9,11 +8,20 @@ import { PreferencesTab } from "../components/settings/PreferencesTab";
 import { TemplatesTab } from "../components/settings/TemplatesTab";
 import { TaxesTab } from "../components/settings/TaxesTab";
 import { ProductCategoriesTab } from "../components/settings/ProductCategoriesTab";
+import TabNav, { TabItem } from "../components/navigation/TabNav";
 
 interface UserInfo {
   user_id: string;
   roles: string[];
 }
+
+const SETTINGS_TABS: TabItem[] = [
+  { value: "company", label: "Datos de la Empresa", icon: Building2 },
+  { value: "preferences", label: "Preferencias", icon: Settings2 },
+  { value: "categories", label: "Categorías", icon: Tags },
+  { value: "taxes", label: "Impuestos", icon: Receipt },
+  { value: "templates", label: "Plantillas", icon: FileText },
+];
 
 function SettingsPageDesktop() {
   const navigate = useNavigate();
@@ -77,67 +85,36 @@ function SettingsPageDesktop() {
     );
   }
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "company":
+        return <CompanyDataTab />;
+      case "preferences":
+        return <PreferencesTab />;
+      case "categories":
+        return <ProductCategoriesTab />;
+      case "taxes":
+        return <TaxesTab />;
+      case "templates":
+        return <TemplatesTab />;
+      default:
+        return <CompanyDataTab />;
+    }
+  };
+
   return (
-    <div className="w-full h-full">
-      <Tabs defaultValue="company" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="bg-white/5 border border-white/10">
-          <TabsTrigger
-            value="company"
-            className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
-          >
-            <Building2 className="w-4 h-4 mr-2" />
-            Datos de la Empresa
-          </TabsTrigger>
-          <TabsTrigger
-            value="preferences"
-            className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
-          >
-            <Settings2 className="w-4 h-4 mr-2" />
-            Preferencias
-          </TabsTrigger>
-          <TabsTrigger
-            value="categories"
-            className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
-          >
-            <Tags className="w-4 h-4 mr-2" />
-            Categorías de Producto
-          </TabsTrigger>
-          <TabsTrigger
-            value="taxes"
-            className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
-          >
-            <Receipt className="w-4 h-4 mr-2" />
-            Impuestos
-          </TabsTrigger>
-          <TabsTrigger
-            value="templates"
-            className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/60"
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            Plantillas
-          </TabsTrigger>
-        </TabsList>
+    <div className="w-full h-full flex flex-col">
+      {/* Tab Navigation */}
+      <TabNav
+        tabs={SETTINGS_TABS}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
-        <TabsContent value="company">
-          <CompanyDataTab />
-        </TabsContent>
-
-        <TabsContent value="preferences">
-          <PreferencesTab />
-        </TabsContent>
-
-        <TabsContent value="categories">
-          <ProductCategoriesTab />
-        </TabsContent>
-
-        <TabsContent value="taxes">
-          <TaxesTab />
-        </TabsContent>
-
-        <TabsContent value="templates">
-          <TemplatesTab />
-        </TabsContent>
-      </Tabs>
+      {/* Tab Content */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {renderTabContent()}
+      </div>
     </div>
   );
 }
