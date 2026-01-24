@@ -1,7 +1,6 @@
 import React, { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import "../../styles/components/common/text-input.css";
 
 export type TextInputType = "text" | "email" | "tel" | "number" | "password" | "date" | "textarea" | "select";
 
@@ -20,18 +19,14 @@ export interface TextInputProps {
   helperText?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
-  // Para tipo select
   options?: TextInputOption[];
   placeholder?: string;
-  // Para tipo textarea
   rows?: number;
-  // Valores y eventos
   value?: string | number;
   onChange?: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((value: string) => void);
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onFocus?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  // Props comunes
   id?: string;
   name?: string;
   disabled?: boolean;
@@ -43,6 +38,19 @@ export interface TextInputProps {
   step?: number | string;
   className?: string;
 }
+
+// Estilos base usando tokens semánticos
+const sizeStyles = {
+  sm: "text-sm px-2.5 py-1.5 min-h-[32px]",
+  md: "text-sm px-3 py-2 min-h-[38px]",
+  lg: "text-base px-4 py-2.5 min-h-[44px]",
+};
+
+const labelSizeStyles = {
+  sm: "text-xs",
+  md: "text-xs",
+  lg: "text-sm",
+};
 
 const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputProps>(
   (
@@ -77,39 +85,97 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
     },
     ref
   ) => {
-    const fieldClasses = cn(
-      "text-input__field",
-      `text-input__field--${size}`,
-      `text-input__field--${variant}`,
-      error && "text-input__field--error",
-      leftIcon && "text-input__field--with-left-icon",
-      rightIcon && "text-input__field--with-right-icon",
-      type === "textarea" && "text-input__field--textarea",
+    // Clases base del input
+    const baseInputClasses = cn(
+      // Layout
+      "w-full min-w-0 box-border",
+      // Apariencia
+      "rounded-lg border bg-muted/20 text-foreground",
+      "border-border/70",
+      "placeholder:text-muted-foreground/60",
+      // Transiciones
+      "transition-all duration-150 ease-out",
+      // Estados
+      "hover:border-border hover:bg-muted/30",
+      "focus:outline-none focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/10",
+      "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/30",
+      // Error
+      error && "border-destructive/70 bg-destructive/5 focus:border-destructive focus:ring-destructive/10",
+      // Tamaño
+      sizeStyles[size],
+      // Iconos
+      leftIcon && "pl-9",
+      rightIcon && "pr-9",
       className
     );
 
-    // Si es tipo select
+    // Contenedor principal
+    const containerClasses = "flex flex-col gap-1.5 w-full min-w-0";
+
+    // Label
+    const renderLabel = () => {
+      if (!label) return null;
+      return (
+        <label 
+          className={cn(
+            "font-medium text-muted-foreground leading-tight",
+            labelSizeStyles[size],
+            error && "text-destructive"
+          )}
+        >
+          {label}
+          {required && <span className="text-destructive ml-0.5">*</span>}
+        </label>
+      );
+    };
+
+    // Iconos
+    const renderLeftIcon = () => {
+      if (!leftIcon) return null;
+      return (
+        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+          {leftIcon}
+        </div>
+      );
+    };
+
+    const renderRightIcon = () => {
+      if (!rightIcon) return null;
+      return (
+        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+          {rightIcon}
+        </div>
+      );
+    };
+
+    // Mensajes
+    const renderMessages = () => {
+      if (error && errorMessage) {
+        return <span className="text-xs text-destructive leading-tight">{errorMessage}</span>;
+      }
+      if (helperText) {
+        return <span className="text-xs text-muted-foreground/80 leading-tight">{helperText}</span>;
+      }
+      return null;
+    };
+
+    // SELECT
     if (type === "select") {
       return (
-        <div className="text-input">
-          {label && (
-            <label className={cn("text-input__label", error && "text-input__label--error")}>
-              {label}
-              {required && <span className="text-destructive ml-1">*</span>}
-            </label>
-          )}
-          <div className="text-input__wrapper">
-            {leftIcon && <div className="text-input__icon text-input__icon--left">{leftIcon}</div>}
+        <div className={containerClasses}>
+          {renderLabel()}
+          <div className="relative w-full min-w-0">
+            {renderLeftIcon()}
             <Select
               value={value as string}
               onValueChange={(val) => {
-                if (onChange && typeof onChange === 'function') {
+                if (onChange && typeof onChange === "function") {
                   (onChange as (value: string) => void)(val);
                 }
               }}
               disabled={disabled}
             >
-              <SelectTrigger className={fieldClasses}>
+              <SelectTrigger className={baseInputClasses}>
                 <SelectValue placeholder={placeholder || "Seleccionar..."} />
               </SelectTrigger>
               <SelectContent>
@@ -120,35 +186,25 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
                 ))}
               </SelectContent>
             </Select>
-            {rightIcon && <div className="text-input__icon text-input__icon--right">{rightIcon}</div>}
+            {renderRightIcon()}
           </div>
-          {error && errorMessage && (
-            <span className="text-input__error">{errorMessage}</span>
-          )}
-          {!error && helperText && (
-            <span className="text-input__helper">{helperText}</span>
-          )}
+          {renderMessages()}
         </div>
       );
     }
 
-    // Si es tipo textarea
+    // TEXTAREA
     if (type === "textarea") {
       return (
-        <div className="text-input">
-          {label && (
-            <label className={cn("text-input__label", error && "text-input__label--error")}>
-              {label}
-              {required && <span className="text-destructive ml-1">*</span>}
-            </label>
-          )}
-          <div className="text-input__wrapper">
-            {leftIcon && <div className="text-input__icon text-input__icon--left">{leftIcon}</div>}
+        <div className={containerClasses}>
+          {renderLabel()}
+          <div className="relative w-full min-w-0">
+            {renderLeftIcon()}
             <textarea
               ref={ref as React.Ref<HTMLTextAreaElement>}
               id={id}
               name={name}
-              className={fieldClasses}
+              className={cn(baseInputClasses, "resize-y leading-relaxed", size === "sm" && "min-h-[60px]", size === "md" && "min-h-[80px]", size === "lg" && "min-h-[100px]")}
               rows={rows}
               value={value}
               onChange={onChange as React.ChangeEventHandler<HTMLTextAreaElement>}
@@ -161,35 +217,25 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
               autoComplete={autoComplete}
               autoFocus={autoFocus}
             />
-            {rightIcon && <div className="text-input__icon text-input__icon--right">{rightIcon}</div>}
+            {renderRightIcon()}
           </div>
-          {error && errorMessage && (
-            <span className="text-input__error">{errorMessage}</span>
-          )}
-          {!error && helperText && (
-            <span className="text-input__helper">{helperText}</span>
-          )}
+          {renderMessages()}
         </div>
       );
     }
 
-    // Para tipos input normales
+    // INPUT NORMAL
     return (
-      <div className="text-input">
-        {label && (
-          <label className={cn("text-input__label", error && "text-input__label--error")}>
-            {label}
-            {required && <span className="text-destructive ml-1">*</span>}
-          </label>
-        )}
-        <div className="text-input__wrapper">
-          {leftIcon && <div className="text-input__icon text-input__icon--left">{leftIcon}</div>}
+      <div className={containerClasses}>
+        {renderLabel()}
+        <div className="relative w-full min-w-0">
+          {renderLeftIcon()}
           <input
             ref={ref as React.Ref<HTMLInputElement>}
             type={type}
             id={id}
             name={name}
-            className={fieldClasses}
+            className={baseInputClasses}
             value={value}
             onChange={onChange as React.ChangeEventHandler<HTMLInputElement>}
             onKeyDown={onKeyDown as React.KeyboardEventHandler<HTMLInputElement>}
@@ -204,14 +250,9 @@ const TextInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, TextInputPr
             max={max}
             step={step}
           />
-          {rightIcon && <div className="text-input__icon text-input__icon--right">{rightIcon}</div>}
+          {renderRightIcon()}
         </div>
-        {error && errorMessage && (
-          <span className="text-input__error">{errorMessage}</span>
-        )}
-        {!error && helperText && (
-          <span className="text-input__helper">{helperText}</span>
-        )}
+        {renderMessages()}
       </div>
     );
   }
