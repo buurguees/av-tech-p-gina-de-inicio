@@ -121,17 +121,23 @@
 
 .document-lines-editor .line-row td.col-concept,
 .document-lines-editor .line-row td.col-description {
-  @apply w-full;
+  width: 100%;
 }
 
-.document-lines-editor .line-row td.col-concept > div,
-.document-lines-editor .line-row td.col-description > div {
-  @apply w-full;
+.document-lines-editor .line-row td.col-concept .text-input,
+.document-lines-editor .line-row td.col-description .text-input {
+  width: 100% !important;
 }
 
-.document-lines-editor .line-row td.col-concept input,
-.document-lines-editor .line-row td.col-description input {
-  @apply w-full;
+.document-lines-editor .line-row td.col-concept .text-input__wrapper,
+.document-lines-editor .line-row td.col-description .text-input__wrapper {
+  width: 100% !important;
+}
+
+.document-lines-editor .line-row td.col-concept .text-input__field,
+.document-lines-editor .line-row td.col-description .text-input__field {
+  width: 100% !important;
+  min-width: 0;
 }
 
 /* Order Input */
