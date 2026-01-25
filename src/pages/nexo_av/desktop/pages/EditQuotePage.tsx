@@ -1108,10 +1108,10 @@ const EditQuotePageDesktop = () => {
             </div>
             
             {/* Main content - horizontal layout */}
-            <div className="p-4 flex items-start gap-6">
-              {/* Client selector */}
-              <div className="flex-shrink-0 w-72">
-                <Label className="text-muted-foreground text-xs mb-1.5 block">Cliente</Label>
+            <div className="p-5 flex items-start gap-4">
+              {/* Client selector - 40% */}
+              <div className="flex-[4] min-w-0">
+                <Label className="text-muted-foreground text-xs mb-2 block font-medium">Cliente</Label>
                 <InlineSelector
                   value={selectedClientId}
                   onChange={(v) => { 
@@ -1125,9 +1125,9 @@ const EditQuotePageDesktop = () => {
                 />
               </div>
               
-              {/* Project selector - takes remaining space */}
-              <div className="flex-1 min-w-0">
-                <Label className="text-muted-foreground text-xs mb-1.5 block">Proyecto</Label>
+              {/* Project selector - 60% */}
+              <div className="flex-[6] min-w-0">
+                <Label className="text-muted-foreground text-xs mb-2 block font-medium">Proyecto</Label>
                 <InlineSelector
                   value={selectedProjectId}
                   onChange={setSelectedProjectId}
