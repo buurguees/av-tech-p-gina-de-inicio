@@ -1,13 +1,6 @@
-import { useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useState, useRef, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Eye, ShieldCheck, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type SimulatedRole = 'admin' | 'manager' | 'comercial' | 'tecnico' | null;
@@ -26,18 +19,45 @@ const ROLE_OPTIONS = [
 ];
 
 const RoleSimulator = ({ currentRole, onRoleChange, isVisible = true }: RoleSimulatorProps) => {
-  const [isSimulating, setIsSimulating] = useState(currentRole !== null && currentRole !== 'admin');
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const isSimulating = currentRole !== null && currentRole !== 'admin';
+
+  // Close on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  // Close on Escape
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
 
   if (!isVisible) return null;
 
   const handleRoleChange = (value: string) => {
     if (value === 'admin') {
-      setIsSimulating(false);
       onRoleChange(null); // null means use real role
     } else {
-      setIsSimulating(true);
       onRoleChange(value as SimulatedRole);
     }
+    setIsOpen(false);
   };
 
   const currentRoleInfo = ROLE_OPTIONS.find(r => r.value === (currentRole || 'admin'));
@@ -57,32 +77,60 @@ const RoleSimulator = ({ currentRole, onRoleChange, isVisible = true }: RoleSimu
         </Badge>
       )}
       
-      <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/30 border border-border/50">
-        <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
-        <Select
-          value={currentRole || 'admin'}
-          onValueChange={handleRoleChange}
+      <div className="relative" ref={dropdownRef}>
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className={cn(
+            "flex items-center gap-1.5 px-2 py-1.5 rounded-md",
+            "bg-muted/30 border border-border/50 hover:bg-muted/50",
+            "text-xs font-medium transition-colors",
+            "focus:outline-none focus:ring-2 focus:ring-primary/20"
+          )}
         >
-          <SelectTrigger className="h-6 w-[110px] border-0 bg-transparent text-xs font-medium focus:ring-0 px-1">
-            <SelectValue placeholder="Rol" />
-          </SelectTrigger>
-          <SelectContent align="end" className="min-w-[200px]">
+          <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="min-w-[70px] text-left">{currentRoleInfo?.label || 'Admin'}</span>
+          <ChevronDown className={cn(
+            "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+            isOpen && "rotate-180"
+          )} />
+        </button>
+
+        {isOpen && (
+          <div 
+            className={cn(
+              "absolute right-0 top-full mt-1 z-[9999]",
+              "min-w-[220px] p-1 rounded-lg",
+              "bg-popover border border-border shadow-xl",
+              "animate-in fade-in-0 zoom-in-95 duration-150"
+            )}
+          >
             {ROLE_OPTIONS.map((role) => (
-              <SelectItem 
-                key={role.value} 
-                value={role.value}
-                className="py-2"
+              <button
+                key={role.value}
+                type="button"
+                onClick={() => handleRoleChange(role.value)}
+                className={cn(
+                  "w-full flex items-start gap-2 px-3 py-2.5 rounded-md text-left",
+                  "hover:bg-accent transition-colors",
+                  (currentRole || 'admin') === role.value && "bg-accent"
+                )}
               >
-                <div className="flex flex-col gap-0.5">
-                  <span className="font-medium">{role.label}</span>
-                  <span className="text-[10px] text-muted-foreground">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm">{role.label}</span>
+                    {(currentRole || 'admin') === role.value && (
+                      <Check className="h-3.5 w-3.5 text-primary" />
+                    )}
+                  </div>
+                  <span className="text-[11px] text-muted-foreground leading-tight block mt-0.5">
                     {role.description}
                   </span>
                 </div>
-              </SelectItem>
+              </button>
             ))}
-          </SelectContent>
-        </Select>
+          </div>
+        )}
       </div>
     </div>
   );
