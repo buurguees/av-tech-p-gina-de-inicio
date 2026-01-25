@@ -153,6 +153,7 @@ const InlineSelector = ({
           ${isOpen ? "border-primary ring-2 ring-primary/20" : ""}
           ${!selectedOption ? "text-muted-foreground" : "text-foreground"}
         `}
+        style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}
       >
         {icon && (
           <span className="flex-shrink-0 text-muted-foreground">
@@ -1110,42 +1111,46 @@ const EditQuotePageDesktop = () => {
             {/* Main content - horizontal layout */}
             <div className="p-5 flex items-start gap-4">
               {/* Client selector - 40% */}
-              <div className="flex-[4] min-w-0">
+              <div className="flex-[4] min-w-0 w-full">
                 <Label className="text-muted-foreground text-xs mb-2 block font-medium">Cliente</Label>
-                <InlineSelector
-                  value={selectedClientId}
-                  onChange={(v) => { 
-                    setSelectedClientId(v); 
-                    setSelectedProjectId(""); 
-                  }}
-                  options={clientOptions}
-                  placeholder="Seleccionar cliente..."
-                  icon={<User className="h-4 w-4" />}
-                  disabled={false}
-                />
+                <div className="w-full">
+                  <InlineSelector
+                    value={selectedClientId}
+                    onChange={(v) => { 
+                      setSelectedClientId(v); 
+                      setSelectedProjectId(""); 
+                    }}
+                    options={clientOptions}
+                    placeholder="Seleccionar cliente..."
+                    icon={<User className="h-4 w-4" />}
+                    disabled={false}
+                  />
+                </div>
               </div>
               
               {/* Project selector - 60% */}
-              <div className="flex-[6] min-w-0">
+              <div className="flex-[6] min-w-0 w-full">
                 <Label className="text-muted-foreground text-xs mb-2 block font-medium">Proyecto</Label>
-                <InlineSelector
-                  value={selectedProjectId}
-                  onChange={setSelectedProjectId}
-                  options={projectOptions}
-                  placeholder={
-                    !selectedClientId
-                      ? "Selecciona un cliente primero"
-                      : loadingProjects
-                        ? "Cargando proyectos..."
-                        : projects.length === 0
-                          ? "Sin proyectos disponibles"
-                          : "Seleccionar proyecto..."
-                  }
-                  icon={<FolderKanban className="h-4 w-4" />}
-                  disabled={!selectedClientId || loadingProjects || projects.length === 0}
-                  loading={loadingProjects}
-                  emptyText={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"}
-                />
+                <div className="w-full">
+                  <InlineSelector
+                    value={selectedProjectId}
+                    onChange={setSelectedProjectId}
+                    options={projectOptions}
+                    placeholder={
+                      !selectedClientId
+                        ? "Selecciona un cliente primero"
+                        : loadingProjects
+                          ? "Cargando proyectos..."
+                          : projects.length === 0
+                            ? "Sin proyectos disponibles"
+                            : "Seleccionar proyecto..."
+                    }
+                    icon={<FolderKanban className="h-4 w-4" />}
+                    disabled={!selectedClientId || loadingProjects || projects.length === 0}
+                    loading={loadingProjects}
+                    emptyText={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"}
+                  />
+                </div>
               </div>
               
               {/* Validity date - only editable when not draft */}
