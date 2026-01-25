@@ -146,7 +146,7 @@ export default function SearchableDropdown({
   const maxHeight = searchHeight + paddingHeight + itemHeight * maxVisibleItems;
 
   return (
-    <>
+    <div className="searchable-dropdown w-full">
       {/* Trigger Button */}
       <button
         ref={triggerRef}
@@ -267,6 +267,6 @@ export default function SearchableDropdown({
           </div>,
           document.body
         )}
-    </>
+    </div>
   );
 }
