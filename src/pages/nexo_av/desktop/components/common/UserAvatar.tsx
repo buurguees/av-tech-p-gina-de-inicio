@@ -3,7 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { User, LogOut, Key, Eye, EyeOff, Sun, Moon, Settings } from "lucide-react";
 import { validatePassword } from "@/hooks/usePasswordValidation";
 import PasswordStrengthIndicator from "../users/PasswordStrengthIndicator";
-import DropDown, { DropDownOption } from "./DropDown";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -315,44 +321,10 @@ export default function UserAvatar({
     }
   };
 
-  // Dropdown options
-  const dropdownOptions: DropDownOption[] = [
-    {
-      value: 'profile',
-      label: 'Mi perfil',
-      icon: <User className="w-4 h-4" />,
-    },
-    {
-      value: 'preferences',
-      label: 'Preferencias',
-      icon: <Settings className="w-4 h-4" />,
-    },
-    {
-      value: 'theme',
-      label: currentTheme === 'light' ? 'Tema: Claro' : 'Tema: Oscuro',
-      icon: (
-        <div className="flex items-center gap-1">
-          <Sun className={cn("w-4 h-4", currentTheme === 'light' ? "opacity-100" : "opacity-40")} />
-          <Moon className={cn("w-4 h-4", currentTheme === 'dark' ? "opacity-100" : "opacity-40")} />
-        </div>
-      ),
-    },
-    {
-      value: 'logout',
-      label: 'Cerrar sesión',
-      icon: <LogOut className="w-4 h-4" />,
-      variant: 'destructive',
-    },
-  ];
-
   return (
     <>
-      <DropDown
-        options={dropdownOptions}
-        value={selectedOption}
-        onSelect={handleOptionSelect}
-        align="end"
-        trigger={
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
           <button 
             className="user-avatar__button"
             aria-label="Menú de usuario"
@@ -361,8 +333,27 @@ export default function UserAvatar({
               {initials}
             </span>
           </button>
-        }
-      />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuItem onClick={() => handleOptionSelect('profile')}>
+            <User className="w-4 h-4 mr-2" />
+            Mi perfil
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleOptionSelect('preferences')}>
+            <Settings className="w-4 h-4 mr-2" />
+            Preferencias
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleOptionSelect('theme')}>
+            {currentTheme === 'light' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+            {currentTheme === 'light' ? 'Tema: Claro' : 'Tema: Oscuro'}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => handleOptionSelect('logout')} className="text-destructive">
+            <LogOut className="w-4 h-4 mr-2" />
+            Cerrar sesión
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Edit Info Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
