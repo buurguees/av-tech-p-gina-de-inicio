@@ -5,9 +5,9 @@ import {
   Receipt,
   AlertCircle,
   FolderKanban,
-  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import DetailNavigationBar from "../navigation/DetailNavigationBar";
 
 // Import new widgets
 import DashboardListsWidget from "./widgets/DashboardListsWidget";
@@ -48,6 +48,32 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 
+  // Period filter component for the navigation bar tools
+  const PeriodFilter = () => (
+    <div className="flex gap-1.5 bg-secondary/50 rounded-lg p-1 border border-border/50">
+      <button
+        onClick={() => setSelectedPeriod('quarter')}
+        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+          selectedPeriod === 'quarter' 
+            ? "bg-background text-foreground shadow-sm" 
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        Trimestre
+      </button>
+      <button
+        onClick={() => setSelectedPeriod('year')}
+        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+          selectedPeriod === 'year' 
+            ? "bg-background text-foreground shadow-sm" 
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        Año
+      </button>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -86,162 +112,149 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
   };
 
   return (
-    <div className="w-full h-full p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">Visión global de tu negocio</p>
+    <div className="w-full h-full flex flex-col">
+      {/* Navigation Bar */}
+      <DetailNavigationBar
+        pageTitle="Dashboard"
+        contextInfo="Visión global de tu negocio"
+        tools={<PeriodFilter />}
+      />
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {/* Row 1: KPI Cards - ProjectsPage Style */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
+          {/* Facturas */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-emerald-500/10 rounded text-emerald-600 dark:text-emerald-400">
+                  <Receipt className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-muted-foreground text-xs font-medium">Facturado ({selectedPeriod === 'quarter' ? 'Trimestre' : 'Año'})</span>
+              </div>
+              <div>
+                <span className="text-base font-bold text-foreground">{formatCurrency(kpis.invoicesAmount)}</span>
+                <span className="text-[10px] text-muted-foreground ml-1 block">
+                  {kpis.invoicesCount} ops
+                </span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Presupuestos */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-cyan-500/10 rounded text-cyan-600 dark:text-cyan-400">
+                  <FileText className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-muted-foreground text-xs font-medium">Presupuestado</span>
+              </div>
+              <div>
+                <span className="text-base font-bold text-foreground">{formatCurrency(kpis.quotesAmount)}</span>
+                <span className="text-[10px] text-muted-foreground ml-1 block">
+                  {kpis.quotesCount} ops
+                </span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Proyectos */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-violet-500/10 rounded text-violet-600 dark:text-violet-400">
+                  <FolderKanban className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-muted-foreground text-xs font-medium">Proyectos Activos</span>
+              </div>
+              <div>
+                <span className="text-lg font-bold text-foreground">{kpis.activeProjects}</span>
+                <span className="text-[10px] text-muted-foreground ml-1 block">
+                  En curso
+                </span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Pendiente Cobro */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <div className="bg-card/50 border border-border rounded-lg p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-destructive/10 rounded text-destructive">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-muted-foreground text-xs font-medium">Pendiente cobrar</span>
+              </div>
+              <div>
+                <span className="text-base font-bold text-destructive">{formatCurrency(kpis.pendingAmount)}</span>
+                <span className="text-[10px] text-muted-foreground ml-1 block">
+                  {kpis.pendingCount} ops
+                </span>
+              </div>
+            </div>
+          </motion.div>
         </div>
-        <div className="flex gap-1.5 bg-secondary/50 rounded-lg p-1 border border-border/50">
-          <button
-            onClick={() => setSelectedPeriod('quarter')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${selectedPeriod === 'quarter' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+
+        {/* Row 2: Unified Lists & Financial Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Main List Widget (2/3) */}
+          <motion.div
+            className="lg:col-span-2 min-h-[500px]"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
           >
-            Trimestre
-          </button>
-          <button
-            onClick={() => setSelectedPeriod('year')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${selectedPeriod === 'year' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            Año
-          </button>
+            <DashboardListsWidget userId={userId} />
+          </motion.div>
+
+          {/* Financial Side Column (1/3) - Chart Blocks Square */}
+          <div className="space-y-6">
+            <motion.div
+              className="h-auto chart-block-square"
+              data-chart-type="square"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.35 }}
+            >
+              <TaxSummaryWidget data={dashboardData.taxes} period={selectedPeriod} />
+            </motion.div>
+
+            <motion.div
+              className="h-[300px] chart-block-square"
+              data-chart-type="square"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <ProfitMarginWidget data={dashboardData.profitability} />
+            </motion.div>
+          </div>
         </div>
-      </div>
 
-      {/* Row 1: KPI Cards - ProjectsPage Style */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
-        {/* Facturas */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <div className="bg-card/50 border border-border rounded-lg p-2">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-1 bg-green-500/10 rounded text-green-600">
-                <Receipt className="h-3.5 w-3.5" />
-              </div>
-              <span className="text-muted-foreground text-xs font-medium">Facturado ({selectedPeriod === 'quarter' ? 'Trimestre' : 'Año'})</span>
-            </div>
-            <div>
-              <span className="text-base font-bold text-foreground">{formatCurrency(kpis.invoicesAmount)}</span>
-              <span className="text-[10px] text-muted-foreground ml-1 block">
-                {kpis.invoicesCount} ops
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Presupuestos */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <div className="bg-card/50 border border-border rounded-lg p-2">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-1 bg-cyan-500/10 rounded text-cyan-600">
-                <FileText className="h-3.5 w-3.5" />
-              </div>
-              <span className="text-muted-foreground text-xs font-medium">Presupuestado</span>
-            </div>
-            <div>
-              <span className="text-base font-bold text-foreground">{formatCurrency(kpis.quotesAmount)}</span>
-              <span className="text-[10px] text-muted-foreground ml-1 block">
-                {kpis.quotesCount} ops
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Proyectos */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-          <div className="bg-card/50 border border-border rounded-lg p-2">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-1 bg-violet-500/10 rounded text-violet-600">
-                <FolderKanban className="h-3.5 w-3.5" />
-              </div>
-              <span className="text-muted-foreground text-xs font-medium">Proyectos Activos</span>
-            </div>
-            <div>
-              <span className="text-lg font-bold text-foreground">{kpis.activeProjects}</span>
-              <span className="text-[10px] text-muted-foreground ml-1 block">
-                En curso
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Pendiente Cobro */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <div className="bg-card/50 border border-border rounded-lg p-2">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-1 bg-red-500/10 rounded text-red-600">
-                <AlertCircle className="h-3.5 w-3.5" />
-              </div>
-              <span className="text-muted-foreground text-xs font-medium">Pendiente cobrar</span>
-            </div>
-            <div>
-              <span className="text-base font-bold text-red-600">{formatCurrency(kpis.pendingAmount)}</span>
-              <span className="text-[10px] text-muted-foreground ml-1 block">
-                {kpis.pendingCount} ops
-              </span>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Row 2: Unified Lists & Financial Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Main List Widget (2/3) */}
+        {/* Row 3: Full Width Revenue Chart - Chart Block Horizontal */}
         <motion.div
-          className="lg:col-span-2 min-h-[500px]"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
+          className="h-[350px] chart-block-horizontal mb-6"
+          data-chart-type="horizontal"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
         >
-          <DashboardListsWidget userId={userId} />
+          <RevenueChart data={dashboardData.revenueChart} />
         </motion.div>
 
-        {/* Financial Side Column (1/3) - Chart Blocks Square */}
-        <div className="space-y-6">
-          <motion.div
-            className="h-auto chart-block-square"
-            data-chart-type="square"
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.35 }}
-          >
-            <TaxSummaryWidget data={dashboardData.taxes} period={selectedPeriod} />
-          </motion.div>
-
-          <motion.div
-            className="h-[300px] chart-block-square"
-            data-chart-type="square"
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <ProfitMarginWidget data={dashboardData.profitability} />
-          </motion.div>
-        </div>
+        {/* Row 4: Cash Flow Chart - Chart Block Horizontal */}
+        <motion.div
+          className="h-[350px] chart-block-horizontal"
+          data-chart-type="horizontal"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+        >
+          <CashFlowChart data={dashboardData.revenueChart} />
+        </motion.div>
       </div>
-
-      {/* Row 3: Full Width Revenue Chart - Chart Block Horizontal */}
-      <motion.div
-        className="h-[350px] chart-block-horizontal mb-6"
-        data-chart-type="horizontal"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <RevenueChart data={dashboardData.revenueChart} />
-      </motion.div>
-
-      {/* Row 4: Cash Flow Chart - Chart Block Horizontal */}
-      <motion.div
-        className="h-[350px] chart-block-horizontal"
-        data-chart-type="horizontal"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.55 }}
-      >
-        <CashFlowChart data={dashboardData.revenueChart} />
-      </motion.div>
-
     </div>
   );
 };
