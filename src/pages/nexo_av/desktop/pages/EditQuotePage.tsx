@@ -875,8 +875,8 @@ const EditQuotePageDesktop = () => {
               </div>
               <span className="text-muted-foreground text-[10px] md:text-xs font-medium uppercase tracking-wide">Datos del documento</span>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-              <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
+            <div className="grid grid-cols-10 gap-3 md:gap-6">
+              <div className="space-y-1 md:space-y-2 col-span-10 md:col-span-3">
                 <Label className="text-muted-foreground text-[10px] md:text-sm">Contacto</Label>
                 <SearchableDropdown
                   value={selectedClientId}
@@ -891,8 +891,8 @@ const EditQuotePageDesktop = () => {
                 />
               </div>
 
-              <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
-                <Label className="text-white/70 text-[10px] md:text-sm">Proyecto</Label>
+              <div className="space-y-1 md:space-y-2 col-span-10 md:col-span-7">
+                <Label className="text-muted-foreground text-[10px] md:text-sm">Proyecto</Label>
                 <SearchableDropdown
                   value={selectedProjectId}
                   onChange={setSelectedProjectId}
@@ -911,22 +911,25 @@ const EditQuotePageDesktop = () => {
                   emptyMessage={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"}
                 />
               </div>
+            </div>
 
+            {/* Second row for dates */}
+            <div className="grid grid-cols-2 gap-3 md:gap-6 mt-3 md:mt-4">
               <div className="space-y-1 md:space-y-2">
-                <Label className="text-white/70 text-[10px] md:text-sm">Fecha</Label>
+                <Label className="text-muted-foreground text-[10px] md:text-sm">Fecha</Label>
                 <Input
                   type="date"
                   value={quote.created_at.split('T')[0]}
                   disabled
-                  className="bg-white/5 border-white/10 text-white/50 h-8 md:h-10 text-xs md:text-sm"
+                  className="bg-muted/50 border-border text-muted-foreground h-8 md:h-10 text-xs md:text-sm"
                 />
               </div>
 
               <div className="space-y-1 md:space-y-2">
-                <Label className="text-white/70 text-[10px] md:text-sm">
+                <Label className="text-muted-foreground text-[10px] md:text-sm">
                   Vence
                   {currentStatus === "DRAFT" && (
-                    <span className="text-orange-400/70 text-[9px] ml-1">(auto: +30 días)</span>
+                    <span className="text-amber-500/70 text-[9px] ml-1">(auto: +30 días)</span>
                   )}
                 </Label>
                 <Input
@@ -934,7 +937,7 @@ const EditQuotePageDesktop = () => {
                   value={validUntil}
                   onChange={(e) => setValidUntil(e.target.value)}
                   disabled={currentStatus === "DRAFT"}
-                  className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-muted/50 border-border text-foreground h-8 md:h-10 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   title={currentStatus === "DRAFT" ? "En borrador, la fecha se calcula automáticamente como hoy + 30 días" : "Fecha de validez del presupuesto"}
                 />
               </div>
