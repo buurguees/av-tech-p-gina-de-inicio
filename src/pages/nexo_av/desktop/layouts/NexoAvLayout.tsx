@@ -9,6 +9,7 @@ import Sidebar from "../components/layout/Sidebar";
 import UserAvatar from "../components/common/UserAvatar";
 import UserInfo from "../components/common/UserInfo";
 import PlatformBrand from "../components/common/PlatformBrand";
+import RoleSimulator, { type SimulatedRole } from "../components/common/RoleSimulator";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import "../styles/global.css";
 import {
@@ -44,6 +45,9 @@ interface HeaderProps {
   currentTheme: 'light' | 'dark';
   onLogout: () => void;
   onThemeChange: (theme: 'light' | 'dark') => void;
+  isRealAdmin: boolean;
+  simulatedRole: string | null;
+  onSimulatedRoleChange: (role: string | null) => void;
 }
 
 const Header = ({
@@ -51,7 +55,10 @@ const Header = ({
   userInfo,
   currentTheme,
   onLogout,
-  onThemeChange
+  onThemeChange,
+  isRealAdmin,
+  simulatedRole,
+  onSimulatedRoleChange
 }: HeaderProps) => {
   const navigate = useNavigate();
 
@@ -63,6 +70,15 @@ const Header = ({
 
           {userInfo && (
             <div className="flex items-center gap-4">
+              {/* Role Simulator - solo visible para admin real */}
+              {isRealAdmin && (
+                <RoleSimulator
+                  currentRole={simulatedRole as SimulatedRole}
+                  onRoleChange={onSimulatedRoleChange}
+                  isVisible={true}
+                />
+              )}
+              
               <UserInfo
                 name={userInfo.full_name}
                 role={userInfo.roles}
@@ -96,6 +112,7 @@ const NexoAvLayout = () => {
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
+  const [simulatedRole, setSimulatedRole] = useState<SimulatedRole>(null);
 
   // Apply nexo-av theme
   useNexoAvTheme(currentTheme);
@@ -188,10 +205,17 @@ const NexoAvLayout = () => {
     navigate('/nexo-av');
   };
 
-  const isAdmin = userInfo?.roles?.includes('admin');
-  const isManager = userInfo?.roles?.includes('manager');
-  const isComercial = userInfo?.roles?.includes('comercial') || userInfo?.roles?.includes('sales');
-  const isTech = userInfo?.roles?.includes('tecnico') || userInfo?.roles?.includes('tech');
+  // Real roles from database
+  const isRealAdmin = userInfo?.roles?.includes('admin');
+  
+  // Effective roles - use simulated if set by admin, otherwise use real roles
+  const effectiveRole = (isRealAdmin && simulatedRole) ? simulatedRole : 
+    (userInfo?.roles?.[0] || null);
+  
+  const isAdmin = effectiveRole === 'admin' || (!simulatedRole && isRealAdmin);
+  const isManager = effectiveRole === 'manager';
+  const isComercial = effectiveRole === 'comercial' || effectiveRole === 'sales';
+  const isTech = effectiveRole === 'tecnico' || effectiveRole === 'tech';
 
   const hasSalesAccess = isComercial;
   const hasTechAccess = isTech;
@@ -353,6 +377,9 @@ const NexoAvLayout = () => {
         currentTheme={currentTheme}
         onLogout={handleLogout}
         onThemeChange={setCurrentTheme}
+        isRealAdmin={!!isRealAdmin}
+        simulatedRole={simulatedRole}
+        onSimulatedRoleChange={(role) => setSimulatedRole(role as SimulatedRole)}
       />
 
       {/* Sidebar - Fijo a la izquierda debajo del header */}
