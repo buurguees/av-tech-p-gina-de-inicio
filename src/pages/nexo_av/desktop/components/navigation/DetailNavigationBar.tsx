@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { ReactNode } from "react";
 import "../../styles/components/navigation/detail-navigation-bar.css";
-
 interface DetailNavigationBarProps {
   pageTitle: string;
   contextInfo?: string | ReactNode;
@@ -11,16 +10,14 @@ interface DetailNavigationBarProps {
   onBack?: () => void;
   backPath?: string;
 }
-
 const DetailNavigationBar = ({
   pageTitle,
   contextInfo,
   tools,
   onBack,
-  backPath,
+  backPath
 }: DetailNavigationBarProps) => {
   const navigate = useNavigate();
-
   const handleBack = () => {
     if (onBack) {
       onBack();
@@ -30,39 +27,23 @@ const DetailNavigationBar = ({
       window.history.back();
     }
   };
-
-  return (
-    <nav className="detail-navigation-bar">
-      <div className="detail-navigation-bar__container">
+  return <nav className="detail-navigation-bar">
+      <div className="detail-navigation-bar__container mx-0 px-[10px]">
         {/* Left Section - Nombre de la página */}
         <div className="detail-navigation-bar__left">
-          {(backPath || onBack) && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleBack}
-              className="detail-navigation-bar__back-button"
-              aria-label="Volver atrás"
-            >
+          {(backPath || onBack) && <Button variant="ghost" size="icon" onClick={handleBack} className="detail-navigation-bar__back-button" aria-label="Volver atrás">
               <ArrowLeft className="detail-navigation-bar__back-icon" />
-            </Button>
-          )}
+            </Button>}
           <h1 className="detail-navigation-bar__page-title">{pageTitle}</h1>
         </div>
 
         {/* Center Section - Buscador */}
         <div className="detail-navigation-bar__center">
-          {contextInfo && (
-            <div className="detail-navigation-bar__context-info">
-              {typeof contextInfo === "string" ? (
-                <span className="detail-navigation-bar__context-text">
+          {contextInfo && <div className="detail-navigation-bar__context-info">
+              {typeof contextInfo === "string" ? <span className="detail-navigation-bar__context-text">
                   {contextInfo}
-                </span>
-              ) : (
-                contextInfo
-              )}
-            </div>
-          )}
+                </span> : contextInfo}
+            </div>}
         </div>
 
         {/* Right Section - Herramientas (siempre visible para mantener centrado) */}
@@ -70,8 +51,6 @@ const DetailNavigationBar = ({
           <div className="detail-navigation-bar__tools">{tools}</div>
         </div>
       </div>
-    </nav>
-  );
+    </nav>;
 };
-
 export default DetailNavigationBar;
