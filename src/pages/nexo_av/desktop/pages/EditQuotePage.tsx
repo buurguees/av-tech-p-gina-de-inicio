@@ -109,62 +109,102 @@ const InlineSelector = ({
       document.removeEventListener("keydown", handleEsc);
     };
   }, [isOpen]);
-  return <>
-      <button ref={triggerRef} type="button" disabled={disabled || loading} onClick={isOpen ? handleClose : handleOpen} className="">
-        {icon && <span className="flex-shrink-0 text-muted-foreground">
+  return (
+    <div className="w-full">
+      <button
+        ref={triggerRef}
+        type="button"
+        disabled={disabled || loading}
+        onClick={isOpen ? handleClose : handleOpen}
+        className="w-full h-11 px-4 flex items-center gap-3 bg-background border border-border rounded-lg text-sm font-medium hover:border-primary/50 hover:bg-accent/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted"
+      >
+        {icon && (
+          <span className="flex-shrink-0 text-muted-foreground">
             {icon}
-          </span>}
+          </span>
+        )}
         
-        <span className="flex-1 min-w-0 truncate">
-          {loading ? <span className="flex items-center gap-2 text-muted-foreground">
+        <span className="flex-1 min-w-0 text-left">
+          {loading ? (
+            <span className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               Cargando...
-            </span> : selectedOption ? <span className="flex items-center gap-2">
-              {selectedOption.sublabel && <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-md font-mono">
+            </span>
+          ) : selectedOption ? (
+            <span className="flex items-center gap-2">
+              {selectedOption.sublabel && (
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-md font-mono flex-shrink-0">
                   {selectedOption.sublabel}
-                </span>}
-              <span>{selectedOption.label}</span>
-            </span> : placeholder}
+                </span>
+              )}
+              <span className="truncate">{selectedOption.label}</span>
+            </span>
+          ) : (
+            <span className="text-muted-foreground">{placeholder}</span>
+          )}
         </span>
         
         <ChevronsUpDown className={`h-4 w-4 text-muted-foreground flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
-      {isOpen && position && createPortal(<div ref={dropdownRef} style={{
-      position: "fixed",
-      top: position.top,
-      left: position.left,
-      width: position.width,
-      zIndex: 9999
-    }} className="bg-popover border border-border rounded-xl shadow-2xl shadow-black/20 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150">
+      {isOpen && position && createPortal(
+        <div
+          ref={dropdownRef}
+          style={{
+            position: "fixed",
+            top: position.top,
+            left: position.left,
+            width: position.width,
+            zIndex: 9999
+          }}
+          className="bg-popover border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150"
+        >
           {/* Search input */}
           <div className="p-2 border-b border-border bg-muted/20">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input ref={searchRef} type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar..." className="w-full h-10 pl-10 pr-4 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+              <input
+                ref={searchRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar..."
+                className="w-full h-10 pl-10 pr-4 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
             </div>
           </div>
 
           {/* Options list */}
           <div className="max-h-64 overflow-y-auto overscroll-contain">
-            {filteredOptions.length === 0 ? <div className="p-4 text-center text-sm text-muted-foreground">
+            {filteredOptions.length === 0 ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
                 {emptyText}
-              </div> : filteredOptions.map(opt => <button key={opt.value} type="button" onClick={() => handleSelect(opt.value)} className={`
-                    w-full px-4 py-3 flex items-center gap-3 text-left text-sm
-                    transition-colors duration-100
-                    hover:bg-accent/50
-                    ${opt.value === value ? "bg-primary/10 text-primary font-medium" : "text-foreground"}
-                  `}>
+              </div>
+            ) : (
+              filteredOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => handleSelect(opt.value)}
+                  className={`w-full px-4 py-3 flex items-center gap-3 text-left text-sm transition-colors duration-100 hover:bg-accent/50 ${
+                    opt.value === value ? "bg-primary/10 text-primary font-medium" : "text-foreground"
+                  }`}
+                >
                   {opt.icon && <span className="flex-shrink-0 text-muted-foreground">{opt.icon}</span>}
                   <span className="flex-1 min-w-0">
                     <span className="block truncate">{opt.label}</span>
                     {opt.sublabel && <span className="block text-xs text-muted-foreground truncate">{opt.sublabel}</span>}
                   </span>
                   {opt.value === value && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
-                </button>)}
+                </button>
+              ))
+            )}
           </div>
-        </div>, document.body)}
-    </>;
+        </div>,
+        document.body
+      )}
+    </div>
+  );
 };
 
 // Estados que bloquean la edición
