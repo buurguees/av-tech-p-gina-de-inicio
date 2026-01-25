@@ -867,17 +867,31 @@ const EditQuotePageDesktop = () => {
             </Button>
           </div>
 
-          {/* Quote header info - Client Data */}
-          <div className="bg-card rounded-lg border border-border p-3 md:p-6 mb-3 md:mb-4">
-            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
-              <div className="p-1.5 rounded-lg bg-secondary">
-                <FileText className="h-3 w-3 md:h-4 md:w-4 text-primary" />
+          {/* Quote header info - Document Header */}
+          <div className="bg-card/80 backdrop-blur-sm rounded-xl border border-border mb-4 overflow-hidden">
+            {/* Compact header bar */}
+            <div className="flex items-center justify-between px-4 py-2.5 bg-muted/30 border-b border-border">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-foreground">Datos del Presupuesto</span>
               </div>
-              <span className="text-muted-foreground text-[10px] md:text-xs font-medium uppercase tracking-wide">Datos del documento</span>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span>Creado: {new Date(quote.created_at).toLocaleDateString('es-ES')}</span>
+                <span className="text-border">•</span>
+                <span>
+                  Vence: {validUntil ? new Date(validUntil).toLocaleDateString('es-ES') : 'Sin fecha'}
+                  {currentStatus === "DRAFT" && (
+                    <span className="text-amber-500 ml-1">(auto)</span>
+                  )}
+                </span>
+              </div>
             </div>
-            <div className="grid grid-cols-10 gap-3 md:gap-6">
-              <div className="space-y-1 md:space-y-2 col-span-10 md:col-span-3">
-                <Label className="text-muted-foreground text-[10px] md:text-sm">Contacto</Label>
+            
+            {/* Main content - horizontal layout */}
+            <div className="p-4 flex items-start gap-6">
+              {/* Client selector */}
+              <div className="flex-shrink-0 w-64">
+                <Label className="text-muted-foreground text-xs mb-1.5 block">Cliente</Label>
                 <SearchableDropdown
                   value={selectedClientId}
                   onChange={(v) => { 
@@ -890,20 +904,21 @@ const EditQuotePageDesktop = () => {
                   disabled={false}
                 />
               </div>
-
-              <div className="space-y-1 md:space-y-2 col-span-10 md:col-span-7">
-                <Label className="text-muted-foreground text-[10px] md:text-sm">Proyecto</Label>
+              
+              {/* Project selector - takes remaining space */}
+              <div className="flex-1 min-w-0">
+                <Label className="text-muted-foreground text-xs mb-1.5 block">Proyecto</Label>
                 <SearchableDropdown
                   value={selectedProjectId}
                   onChange={setSelectedProjectId}
                   options={projectOptions}
                   placeholder={
                     !selectedClientId
-                      ? "Selecciona un cliente"
+                      ? "Selecciona un cliente primero"
                       : loadingProjects
-                        ? "Cargando..."
+                        ? "Cargando proyectos..."
                         : projects.length === 0
-                          ? "Sin proyectos"
+                          ? "Sin proyectos disponibles"
                           : "Seleccionar proyecto..."
                   }
                   searchPlaceholder="Buscar proyecto..."
@@ -911,36 +926,20 @@ const EditQuotePageDesktop = () => {
                   emptyMessage={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"}
                 />
               </div>
-            </div>
-
-            {/* Second row for dates */}
-            <div className="grid grid-cols-2 gap-3 md:gap-6 mt-3 md:mt-4">
-              <div className="space-y-1 md:space-y-2">
-                <Label className="text-muted-foreground text-[10px] md:text-sm">Fecha</Label>
-                <Input
-                  type="date"
-                  value={quote.created_at.split('T')[0]}
-                  disabled
-                  className="bg-muted/50 border-border text-muted-foreground h-8 md:h-10 text-xs md:text-sm"
-                />
-              </div>
-
-              <div className="space-y-1 md:space-y-2">
-                <Label className="text-muted-foreground text-[10px] md:text-sm">
-                  Vence
-                  {currentStatus === "DRAFT" && (
-                    <span className="text-amber-500/70 text-[9px] ml-1">(auto: +30 días)</span>
-                  )}
-                </Label>
-                <Input
-                  type="date"
-                  value={validUntil}
-                  onChange={(e) => setValidUntil(e.target.value)}
-                  disabled={currentStatus === "DRAFT"}
-                  className="bg-muted/50 border-border text-foreground h-8 md:h-10 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={currentStatus === "DRAFT" ? "En borrador, la fecha se calcula automáticamente como hoy + 30 días" : "Fecha de validez del presupuesto"}
-                />
-              </div>
+              
+              {/* Validity date - only editable when not draft */}
+              {currentStatus !== "DRAFT" && (
+                <div className="flex-shrink-0 w-40">
+                  <Label className="text-muted-foreground text-xs mb-1.5 block">Válido hasta</Label>
+                  <Input
+                    type="date"
+                    value={validUntil}
+                    onChange={(e) => setValidUntil(e.target.value)}
+                    className="h-11 text-sm"
+                    title="Fecha de validez del presupuesto"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
