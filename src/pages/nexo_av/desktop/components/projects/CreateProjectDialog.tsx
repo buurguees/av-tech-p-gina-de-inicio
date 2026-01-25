@@ -29,7 +29,7 @@ const formSchema = z.object({
   country: z.string().optional(),
   local_name: z.string().optional(),
   client_order_number: z.string().optional(),
-  notes: z.string().max(1000, "Las notas no pueden superar los 1000 caracteres").optional(),
+  internal_notes: z.string().max(1000, "Las notas no pueden superar los 1000 caracteres").optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -70,7 +70,7 @@ const CreateProjectDialog = ({
       country: "España",
       local_name: "",
       client_order_number: "",
-      notes: "",
+      internal_notes: "",
     },
   });
 
@@ -167,7 +167,7 @@ const CreateProjectDialog = ({
         country: "España",
         local_name: "",
         client_order_number: "",
-        notes: "",
+        internal_notes: "",
       });
     }
   }, [open, preselectedClientId, form]);
@@ -186,13 +186,13 @@ const CreateProjectDialog = ({
       setLoading(true);
 
       const { error } = await supabase.rpc("create_project", {
-        p_project_name: generatedProjectName,
         p_client_id: data.client_id,
         p_status: data.status,
         p_project_address: data.project_address || null,
         p_project_city: data.project_city || null,
         p_local_name: data.local_name || null,
         p_client_order_number: data.client_order_number || null,
+        p_notes: data.internal_notes || null,
       });
 
       if (error) throw error;
@@ -354,14 +354,14 @@ const CreateProjectDialog = ({
                 />
               </div>
 
-              {/* Notas - ancho completo */}
+              {/* Notas internas - ancho completo */}
               <TextInput
                 type="textarea"
-                label="Notas"
+                label="Notas internas"
                 placeholder="Notas adicionales sobre el proyecto..."
-                value={form.watch("notes") || ""}
+                value={form.watch("internal_notes") || ""}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                  form.setValue("notes", e.target.value);
+                  form.setValue("internal_notes", e.target.value);
                 }}
                 rows={3}
                 size="sm"
