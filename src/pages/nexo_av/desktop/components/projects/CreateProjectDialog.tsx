@@ -1,7 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -11,28 +8,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Loader2, Building2, MapPin, FileText, Users } from "lucide-react";
+import { Building2, MapPin, FileText, Users } from "lucide-react";
 import { PROJECT_STATUSES } from "@/constants/projectStatuses";
 import TextInput from "../common/TextInput";
 import FormSection from "../common/FormSection";
 import DropDown, { DropDownOption } from "../common/DropDown";
 import StatusSelector, { StatusOption } from "../common/StatusSelector";
-
-const formSchema = z.object({
-  client_id: z.string().min(1, "El cliente es obligatorio"),
-  status: z.string().default("PLANNED"),
-  project_address: z.string().optional().nullable(),
-  project_city: z.string().optional().nullable(),
-  postal_code: z.string().optional().nullable(),
-  province: z.string().optional().nullable(),
-  country: z.string().optional().nullable(),
-  local_name: z.string().optional().nullable(),
-  client_order_number: z.string().optional().nullable(),
-  internal_notes: z.string().max(1000, "Las notas no pueden superar los 1000 caracteres").optional().nullable(),
-});
-
-type FormData = z.infer<typeof formSchema>;
+import DetailActionButton from "../navigation/DetailActionButton";
 
 interface Client {
   id: string;
@@ -58,27 +40,17 @@ const CreateProjectDialog = ({
   const [clients, setClients] = useState<Client[]>([]);
   const [loadingClients, setLoadingClients] = useState(false);
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      client_id: preselectedClientId || "",
-      status: "PLANNED",
-      project_address: "",
-      project_city: "",
-      postal_code: "",
-      province: "",
-      country: "España",
-      local_name: "",
-      client_order_number: "",
-      internal_notes: "",
-    },
-  });
-
-  // Watch form values for auto-generating project name
-  const clientId = form.watch("client_id");
-  const clientOrderNumber = form.watch("client_order_number");
-  const projectCity = form.watch("project_city");
-  const localName = form.watch("local_name");
+  // Form state
+  const [clientId, setClientId] = useState(preselectedClientId || "");
+  const [status, setStatus] = useState("PLANNED");
+  const [projectAddress, setProjectAddress] = useState("");
+  const [projectCity, setProjectCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [province, setProvince] = useState("");
+  const [country, setCountry] = useState("España");
+  const [localName, setLocalName] = useState("");
+  const [clientOrderNumber, setClientOrderNumber] = useState("");
+  const [internalNotes, setInternalNotes] = useState("");
 
   // Filter out LOST clients
   const availableClients = useMemo(() => {
@@ -93,27 +65,10 @@ const CreateProjectDialog = ({
   // Generate project name automatically
   const generatedProjectName = useMemo(() => {
     const parts: string[] = [];
-    
-    // Add client name
-    if (selectedClient?.company_name) {
-      parts.push(selectedClient.company_name);
-    }
-    
-    // Add client order number
-    if (clientOrderNumber?.trim()) {
-      parts.push(clientOrderNumber.trim());
-    }
-    
-    // Add city
-    if (projectCity?.trim()) {
-      parts.push(projectCity.trim());
-    }
-    
-    // Add local name
-    if (localName?.trim()) {
-      parts.push(localName.trim());
-    }
-    
+    if (selectedClient?.company_name) parts.push(selectedClient.company_name);
+    if (clientOrderNumber?.trim()) parts.push(clientOrderNumber.trim());
+    if (projectCity?.trim()) parts.push(projectCity.trim());
+    if (localName?.trim()) parts.push(localName.trim());
     return parts.join(" - ");
   }, [selectedClient, clientOrderNumber, projectCity, localName]);
 
@@ -127,10 +82,10 @@ const CreateProjectDialog = ({
 
   // Convert PROJECT_STATUSES to StatusSelector options
   const statusOptions: StatusOption[] = useMemo(() => {
-    return PROJECT_STATUSES.map((status) => ({
-      value: status.value,
-      label: status.label,
-      className: status.className,
+    return PROJECT_STATUSES.map((s) => ({
+      value: s.value,
+      label: s.label,
+      className: s.className,
     }));
   }, []);
 
@@ -155,25 +110,24 @@ const CreateProjectDialog = ({
     }
   }, [open]);
 
+  // Reset form when dialog opens
   useEffect(() => {
     if (open) {
-      form.reset({
-        client_id: preselectedClientId || "",
-        status: "PLANNED",
-        project_address: "",
-        project_city: "",
-        postal_code: "",
-        province: "",
-        country: "España",
-        local_name: "",
-        client_order_number: "",
-        internal_notes: "",
-      });
+      setClientId(preselectedClientId || "");
+      setStatus("PLANNED");
+      setProjectAddress("");
+      setProjectCity("");
+      setPostalCode("");
+      setProvince("");
+      setCountry("España");
+      setLocalName("");
+      setClientOrderNumber("");
+      setInternalNotes("");
     }
-  }, [open, preselectedClientId, form]);
+  }, [open, preselectedClientId]);
 
-  const onSubmit = async (data: FormData) => {
-    if (!data.client_id) {
+  const handleSubmit = async () => {
+    if (!clientId) {
       toast({
         title: "Error",
         description: "Debes seleccionar un cliente.",
@@ -186,24 +140,24 @@ const CreateProjectDialog = ({
       setLoading(true);
 
       // Convert empty strings to null for optional fields
-      const sanitize = (val: string | undefined | null): string | null => 
+      const sanitize = (val: string): string | null => 
         val && val.trim() ? val.trim() : null;
 
-      const { data: result, error } = await supabase.rpc("create_project", {
-        p_client_id: data.client_id,
-        p_status: data.status || "PLANNED",
-        p_project_address: sanitize(data.project_address),
-        p_project_city: sanitize(data.project_city),
-        p_local_name: sanitize(data.local_name),
-        p_client_order_number: sanitize(data.client_order_number),
-        p_notes: sanitize(data.internal_notes),
+      const { error } = await supabase.rpc("create_project", {
+        p_client_id: clientId,
+        p_status: status || "PLANNED",
+        p_project_address: sanitize(projectAddress),
+        p_project_city: sanitize(projectCity),
+        p_local_name: sanitize(localName),
+        p_client_order_number: sanitize(clientOrderNumber),
+        p_notes: sanitize(internalNotes),
       });
 
       if (error) throw error;
 
       toast({
         title: "Proyecto creado",
-        description: `El proyecto se ha creado correctamente.`,
+        description: "El proyecto se ha creado correctamente.",
       });
 
       onOpenChange(false);
@@ -230,7 +184,7 @@ const CreateProjectDialog = ({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
+        <div className="flex flex-col">
           <div className="px-6 py-5 space-y-5">
             {/* Sección: Asignación */}
             <FormSection
@@ -244,16 +198,11 @@ const CreateProjectDialog = ({
                 </label>
                 <DropDown
                   options={clientOptions}
-                  value={form.watch("client_id")}
-                  onSelect={(value) => form.setValue("client_id", value, { shouldValidate: true })}
+                  value={clientId}
+                  onSelect={setClientId}
                   placeholder={loadingClients ? "Cargando..." : "Seleccionar cliente..."}
                   disabled={!!preselectedClientId || loadingClients}
                 />
-                {form.formState.errors.client_id && (
-                  <p className="text-xs text-destructive">
-                    {form.formState.errors.client_id.message}
-                  </p>
-                )}
               </div>
 
               <div className="space-y-1.5">
@@ -261,9 +210,9 @@ const CreateProjectDialog = ({
                   Estado inicial
                 </label>
                 <StatusSelector
-                  currentStatus={form.watch("status")}
+                  currentStatus={status}
                   statusOptions={statusOptions}
-                  onStatusChange={(value) => form.setValue("status", value)}
+                  onStatusChange={setStatus}
                 />
               </div>
             </FormSection>
@@ -274,58 +223,43 @@ const CreateProjectDialog = ({
               icon={<MapPin className="h-4 w-4" />}
               columns={1}
             >
-              {/* Dirección - Calle y número */}
               <TextInput
                 label="Dirección"
                 placeholder="Calle y número del local"
-                value={form.watch("project_address") || ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  form.setValue("project_address", e.target.value);
-                }}
+                value={projectAddress}
+                onChange={(e) => setProjectAddress(e.target.value)}
                 size="sm"
               />
               
-              {/* Ciudad */}
               <TextInput
                 label="Ciudad"
                 placeholder="Ciudad"
-                value={form.watch("project_city") || ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  form.setValue("project_city", e.target.value);
-                }}
+                value={projectCity}
+                onChange={(e) => setProjectCity(e.target.value)}
                 size="sm"
               />
 
-              {/* Código Postal */}
               <TextInput
                 label="Código Postal"
                 placeholder="08000"
-                value={form.watch("postal_code") || ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  form.setValue("postal_code", e.target.value);
-                }}
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
                 size="sm"
               />
 
-              {/* Provincia */}
               <TextInput
                 label="Provincia"
                 placeholder="Provincia"
-                value={form.watch("province") || ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  form.setValue("province", e.target.value);
-                }}
+                value={province}
+                onChange={(e) => setProvince(e.target.value)}
                 size="sm"
               />
 
-              {/* País */}
               <TextInput
                 label="País"
                 placeholder="País"
-                value={form.watch("country") || ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  form.setValue("country", e.target.value);
-                }}
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
                 size="sm"
               />
             </FormSection>
@@ -336,37 +270,29 @@ const CreateProjectDialog = ({
               icon={<FileText className="h-4 w-4" />}
               columns={1}
             >
-              {/* Fila: Nº Pedido Cliente, Nombre del Local */}
               <div className="grid grid-cols-2 gap-3">
                 <TextInput
                   label="Nº Pedido Cliente"
                   placeholder="Referencia del cliente"
-                  value={form.watch("client_order_number") || ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    form.setValue("client_order_number", e.target.value);
-                  }}
+                  value={clientOrderNumber}
+                  onChange={(e) => setClientOrderNumber(e.target.value)}
                   size="sm"
                 />
                 <TextInput
                   label="Nombre del Local"
                   placeholder="Ej: Tienda Centro"
-                  value={form.watch("local_name") || ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    form.setValue("local_name", e.target.value);
-                  }}
+                  value={localName}
+                  onChange={(e) => setLocalName(e.target.value)}
                   size="sm"
                 />
               </div>
 
-              {/* Notas internas - ancho completo */}
               <TextInput
                 type="textarea"
                 label="Notas internas"
                 placeholder="Notas adicionales sobre el proyecto..."
-                value={form.watch("internal_notes") || ""}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                  form.setValue("internal_notes", e.target.value);
-                }}
+                value={internalNotes}
+                onChange={(e) => setInternalNotes(e.target.value)}
                 rows={3}
                 size="sm"
               />
@@ -388,30 +314,19 @@ const CreateProjectDialog = ({
           </div>
 
           <DialogFooter className="px-6 py-4 border-t border-border/50 bg-muted/20 gap-2">
-            <Button
-              type="button"
-              variant="outline"
+            <DetailActionButton
+              actionType="cancel"
               onClick={() => onOpenChange(false)}
               disabled={loading}
-              className="h-9"
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={loading || !clientId} className="h-9">
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creando...
-                </>
-              ) : (
-                <>
-                  <Building2 className="mr-2 h-4 w-4" />
-                  Nuevo Proyecto
-                </>
-              )}
-            </Button>
+            />
+            <DetailActionButton
+              actionType="create_project"
+              onClick={handleSubmit}
+              disabled={!clientId}
+              loading={loading}
+            />
           </DialogFooter>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
