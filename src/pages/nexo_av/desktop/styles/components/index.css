@@ -18,11 +18,9 @@
 @import './common/user-info.css';
 @import './common/platform-brand.css';
 @import './common/form-dialog.css';
-@import './common/form-section.css';
 @import './common/data-list.css';
 @import './common/status-selector.css';
 @import './common/locked-indicator.css';
-@import './common/searchable-dropdown.css';
 @import './common/document-pdf-viewer.css';
 @import './navigation/tab-nav.css';
 @import './navigation/detail-navigation-bar.css';
