@@ -522,7 +522,7 @@ const PurchaseInvoicesPageDesktop = () => {
                   placeholder="Buscar facturas..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="pr-11 h-8 text-xs"
+                  className="pr-11"
                 />
               </div>
 

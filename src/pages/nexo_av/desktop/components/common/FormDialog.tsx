@@ -8,88 +8,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import DetailActionButton, { DetailActionType } from "../navigation/DetailActionButton";
 import "../../styles/components/common/form-dialog.css";
-
-// ============= INLINE TEXT INPUT =============
-interface InlineTextInputProps {
-  type?: "text" | "email" | "tel" | "number" | "textarea" | "date";
-  label?: string;
-  placeholder?: string;
-  value: string | number;
-  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((value: string) => void);
-  required?: boolean;
-  disabled?: boolean;
-  error?: boolean;
-  errorMessage?: string;
-  rows?: number;
-  min?: number;
-  max?: number;
-}
-
-const InlineTextInput = ({
-  type = "text",
-  label,
-  placeholder,
-  value,
-  onChange,
-  required,
-  disabled,
-  error,
-  errorMessage,
-  rows = 3,
-  min,
-  max,
-}: InlineTextInputProps) => {
-  const baseClasses = cn(
-    "w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm",
-    "hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-    "transition-all duration-200 placeholder:text-muted-foreground/60",
-    disabled && "opacity-50 cursor-not-allowed bg-muted",
-    error && "border-destructive focus:border-destructive focus:ring-destructive/20"
-  );
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (typeof onChange === "function") {
-      (onChange as (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void)(e);
-    }
-  };
-
-  return (
-    <div className="space-y-1.5 w-full">
-      {label && (
-        <Label className={cn("text-xs font-medium", error ? "text-destructive" : "text-muted-foreground")}>
-          {label} {required && <span className="text-destructive">*</span>}
-        </Label>
-      )}
-      {type === "textarea" ? (
-        <textarea
-          value={value}
-          onChange={handleChange}
-          placeholder={placeholder}
-          rows={rows}
-          disabled={disabled}
-          className={cn(baseClasses, "resize-y min-h-[80px]")}
-        />
-      ) : (
-        <input
-          type={type}
-          value={value}
-          onChange={handleChange}
-          placeholder={placeholder}
-          disabled={disabled}
-          min={min}
-          max={max}
-          className={cn(baseClasses, "h-11")}
-        />
-      )}
-      {error && errorMessage && <p className="text-xs text-destructive mt-1">{errorMessage}</p>}
-    </div>
-  );
-};
 
 // ============= INLINE SELECT =============
 interface InlineSelectProps {
@@ -336,22 +261,39 @@ export default function FormDialog({
       );
     }
 
+    const isTextarea = field.type === "textarea";
+
     return (
       <div key={field.name} className={cn("form-dialog__field", colSpan === 2 && "form-dialog__field--full-width", field.className)}>
-        <InlineTextInput
-          type={field.type}
-          label={field.label}
-          value={fieldValue as string}
-          onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange(field.name, e.target.value)}
-          placeholder={field.placeholder}
-          required={field.required}
-          error={hasError}
-          errorMessage={hasError ? errors[field.name] : undefined}
-          disabled={field.disabled || loading || isSubmitting}
-          rows={field.rows}
-          min={field.min}
-          max={field.max}
-        />
+        <div className="space-y-1.5 w-full">
+          {field.label && (
+            <Label className={cn("text-xs font-medium", hasError ? "text-destructive" : "text-muted-foreground")}>
+              {field.label} {field.required && <span className="text-destructive">*</span>}
+            </Label>
+          )}
+          {isTextarea ? (
+            <Textarea
+              value={fieldValue as string}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+              placeholder={field.placeholder}
+              disabled={field.disabled || loading || isSubmitting}
+              rows={field.rows}
+              className={cn(hasError && "border-destructive")}
+            />
+          ) : (
+            <Input
+              type={field.type}
+              value={fieldValue as string}
+              onChange={(e) => handleChange(field.name, e.target.value)}
+              placeholder={field.placeholder}
+              disabled={field.disabled || loading || isSubmitting}
+              min={field.min}
+              max={field.max}
+              className={cn(hasError && "border-destructive")}
+            />
+          )}
+          {hasError && <p className="text-xs text-destructive mt-1">{errors[field.name]}</p>}
+        </div>
       </div>
     );
   };

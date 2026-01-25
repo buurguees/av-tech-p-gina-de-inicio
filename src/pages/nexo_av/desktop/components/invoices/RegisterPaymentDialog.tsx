@@ -246,7 +246,7 @@ const RegisterPaymentDialog = ({
               inputMode="decimal"
               value={amount}
               onChange={handleAmountChange}
-              className="h-11 font-mono text-lg"
+              className="font-mono text-lg"
               placeholder="0.00"
             />
           </div>
@@ -259,7 +259,6 @@ const RegisterPaymentDialog = ({
             <Input
               value={bankReference}
               onChange={(e) => setBankReference(e.target.value)}
-              className="h-11"
               placeholder="Nº transferencia, recibo, etc."
             />
           </div>

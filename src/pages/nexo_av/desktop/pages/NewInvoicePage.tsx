@@ -219,7 +219,6 @@ const NewInvoicePage = () => {
                   type="date"
                   value={issueDate}
                   onChange={(e) => setIssueDate(e.target.value)}
-                  className="h-10 bg-card/50 border-border/50"
                 />
               </div>
 
@@ -229,7 +228,6 @@ const NewInvoicePage = () => {
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="h-10 bg-card/50 border-border/50"
                 />
               </div>
             </div>

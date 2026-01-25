@@ -267,30 +267,26 @@ const RegisterPurchasePaymentDialog = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">Importe (€)</Label>
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Importe (€)</Label>
                 <Input
                   type="text"
                   inputMode="decimal"
                   value={amount}
                   onChange={handleAmountChange}
-                  className="h-12 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-red-500/20 focus:border-red-500/40 pl-4 transition-all font-mono text-lg"
+                  className="font-mono text-lg"
                   placeholder="0.00"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">Método</Label>
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Método</Label>
                 <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger className="h-12 bg-white/5 border-white/10 text-white rounded-2xl hover:bg-white/10 transition-all">
+                  <SelectTrigger>
                     <SelectValue placeholder="Método" />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900/95 backdrop-blur-3xl border-white/10 rounded-2xl shadow-2xl">
+                  <SelectContent>
                     {PAYMENT_METHODS.map((method) => (
-                      <SelectItem
-                        key={method.value}
-                        value={method.value}
-                        className="text-white focus:bg-red-500/20 focus:text-white rounded-xl mx-1 my-0.5 transition-colors"
-                      >
+                      <SelectItem key={method.value} value={method.value}>
                         {method.label}
                       </SelectItem>
                     ))}
@@ -300,22 +296,18 @@ const RegisterPurchasePaymentDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">Pagado desde (Cuenta Banco)</Label>
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pagado desde (Cuenta Banco)</Label>
               <Select value={bankAccountId} onValueChange={setBankAccountId}>
-                <SelectTrigger className="h-12 bg-white/5 border-white/10 text-white rounded-2xl hover:bg-white/10 transition-all">
+                <SelectTrigger>
                   <SelectValue placeholder="Selecciona cuenta bancaria" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900/95 backdrop-blur-3xl border-white/10 rounded-2xl shadow-2xl max-h-[200px]">
-                  <SelectItem value="NONE" className="text-white/40 italic">Ninguna cuenta específica</SelectItem>
+                <SelectContent>
+                  <SelectItem value="NONE">Ninguna cuenta específica</SelectItem>
                   {availableBankAccounts.map((acc) => (
-                    <SelectItem
-                      key={acc.id}
-                      value={acc.id}
-                      className="text-white focus:bg-red-500/20 focus:text-white rounded-xl mx-1 my-0.5 transition-colors"
-                    >
+                    <SelectItem key={acc.id} value={acc.id}>
                       <div className="flex flex-col items-start gap-1">
-                        <span className="font-bold">{acc.bank}</span>
-                        <span className="text-[10px] text-white/40">{acc.iban}</span>
+                        <span className="font-medium">{acc.bank}</span>
+                        <span className="text-xs text-muted-foreground">{acc.iban}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -324,21 +316,19 @@ const RegisterPurchasePaymentDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">Referencia (Opcional)</Label>
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Referencia (Opcional)</Label>
               <Input
                 value={bankReference}
                 onChange={(e) => setBankReference(e.target.value)}
-                className="h-12 bg-white/5 border-white/10 text-white rounded-2xl focus:ring-red-500/20 transition-all"
                 placeholder="Nº transferencia, ticket, etc."
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">Notas internas</Label>
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Notas internas</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="bg-white/5 border-white/10 text-white rounded-2xl focus:ring-red-500/20 resize-none min-h-[60px] transition-all p-4"
                 placeholder="Detalles sobre este pago..."
               />
             </div>
