@@ -154,30 +154,32 @@ export default function SearchableDropdown({
         disabled={disabled || loading}
         onClick={isOpen ? handleClose : handleOpen}
         className={cn(
-          "w-full h-11 px-4 flex items-center justify-between gap-2",
-          "bg-background border border-border rounded-lg text-sm",
-          "hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
+          "w-full min-h-[44px] h-full px-4 py-2.5 flex items-center justify-between gap-3",
+          "bg-background border border-border rounded-lg",
+          "text-sm font-medium",
+          "hover:border-primary/50 hover:bg-accent/30",
+          "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
           "transition-all duration-150",
-          (disabled || loading) && "opacity-50 cursor-not-allowed bg-muted",
+          (disabled || loading) && "opacity-50 cursor-not-allowed bg-muted hover:bg-muted",
           !selectedOption && "text-muted-foreground",
           className
         )}
       >
         {loading ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span>Cargando...</span>
           </div>
         ) : (
-          <span className="truncate">
+          <span className="truncate flex-1 text-left">
             {selectedOption ? (
               <span className="flex items-center gap-2">
                 {selectedOption.secondaryLabel && (
-                  <span className="font-mono text-xs opacity-60">
+                  <span className="font-mono text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                     {selectedOption.secondaryLabel}
                   </span>
                 )}
-                {selectedOption.label}
+                <span className="text-foreground">{selectedOption.label}</span>
               </span>
             ) : (
               placeholder
@@ -186,7 +188,7 @@ export default function SearchableDropdown({
         )}
         <ChevronDown
           className={cn(
-            "w-4 h-4 text-muted-foreground transition-transform flex-shrink-0",
+            "w-5 h-5 text-muted-foreground transition-transform flex-shrink-0",
             isOpen && "rotate-180"
           )}
         />
