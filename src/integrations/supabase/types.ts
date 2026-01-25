@@ -376,40 +376,22 @@ export type Database = {
         }
         Returns: string
       }
-      create_project:
-        | {
-            Args: {
-              p_client_id: string
-              p_client_order_number?: string
-              p_local_name?: string
-              p_notes?: string
-              p_project_address?: string
-              p_project_city?: string
-              p_project_name?: string
-              p_status?: string
-            }
-            Returns: {
-              project_id: string
-              project_name: string
-              project_number: string
-            }[]
-          }
-        | {
-            Args: {
-              p_client_id: string
-              p_client_order_number?: string
-              p_local_name?: string
-              p_notes?: string
-              p_project_address?: string
-              p_project_city?: string
-              p_status?: string
-            }
-            Returns: {
-              project_id: string
-              project_name: string
-              project_number: string
-            }[]
-          }
+      create_project: {
+        Args: {
+          p_client_id: string
+          p_client_order_number?: string
+          p_local_name?: string
+          p_notes?: string
+          p_project_address?: string
+          p_project_city?: string
+          p_status?: string
+        }
+        Returns: {
+          project_id: string
+          project_name: string
+          project_number: string
+        }[]
+      }
       create_purchase_invoice: {
         Args: {
           p_client_id?: string
