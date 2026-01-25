@@ -1,24 +1,20 @@
 // DeveloperPage - Component Showcase for Development
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Code2, Component, Folder, Edit, Copy, Trash2, FileText, User, Building2 } from "lucide-react";
+import { Code2, Component, Folder, Edit, Copy, Trash2, FileText } from "lucide-react";
 import { motion } from "motion/react";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 
-// Import components to showcase
+// Import components to showcase (only ones that still exist as shared)
 import StatusSelector from "../components/common/StatusSelector";
 import DropDown from "../components/common/DropDown";
-import SearchableDropdown from "../components/common/SearchableDropdown";
-import TextInput from "../components/common/TextInput";
 import UserInfo from "../components/common/UserInfo";
 import PlatformBrand from "../components/common/PlatformBrand";
 import LockedIndicator from "../components/common/LockedIndicator";
 import MoreOptionsDropdown from "../components/common/MoreOptionsDropdown";
-import FormSection from "../components/common/FormSection";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import DataList from "../components/common/DataList";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 // Component registry with metadata
@@ -36,8 +32,6 @@ const DeveloperPage = () => {
   // States for interactive components
   const [statusValue, setStatusValue] = useState("DRAFT");
   const [dropdownValue, setDropdownValue] = useState("option1");
-  const [searchableValue, setSearchableValue] = useState("");
-  const [textValue, setTextValue] = useState("Texto de ejemplo");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   // Status options for StatusSelector
@@ -94,58 +88,10 @@ const DeveloperPage = () => {
       ),
     },
     {
-      name: "SearchableDropdown",
-      file: "components/common/SearchableDropdown.tsx",
-      description: "Dropdown con búsqueda integrada para listas largas. Ocupa 100% del ancho.",
-      component: (
-        <div className="w-full">
-          <SearchableDropdown
-            value={searchableValue}
-            onChange={setSearchableValue}
-            options={[
-              { value: "1", label: "Cliente Ejemplo S.L.", secondaryLabel: "C-001" },
-              { value: "2", label: "Empresa Demo S.A.", secondaryLabel: "C-002" },
-              { value: "3", label: "Corporación Test", secondaryLabel: "C-003" },
-            ]}
-            placeholder="Seleccionar cliente..."
-          />
-        </div>
-      ),
-    },
-    {
-      name: "TextInput",
-      file: "components/common/TextInput.tsx",
-      description: "Campo de texto unificado con variantes, tamaños e iconos. Ocupa 100% del ancho.",
-      component: (
-        <div className="w-full space-y-3">
-          <TextInput
-            label="Nombre"
-            value={textValue}
-            onChange={(e) => setTextValue((e as React.ChangeEvent<HTMLInputElement>).target.value)}
-            placeholder="Escribe aquí..."
-            leftIcon={<User className="h-4 w-4" />}
-          />
-          <TextInput
-            label="Empresa"
-            value=""
-            onChange={() => {}}
-            placeholder="Nombre de empresa"
-            leftIcon={<Building2 className="h-4 w-4" />}
-            size="sm"
-          />
-        </div>
-      ),
-    },
-    {
       name: "UserInfo",
       file: "components/common/UserInfo.tsx",
       description: "Información de usuario con nombre y rol",
-      component: (
-        <UserInfo 
-          name="Alex Burgués" 
-          role="Admin"
-        />
-      ),
+      component: <UserInfo name="Alex Burgués" role="Admin" />,
     },
     {
       name: "PlatformBrand",
@@ -157,9 +103,7 @@ const DeveloperPage = () => {
       name: "LockedIndicator",
       file: "components/common/LockedIndicator.tsx",
       description: "Indicador de elemento bloqueado",
-      component: (
-        <LockedIndicator isLocked={true} message="Este documento está bloqueado" />
-      ),
+      component: <LockedIndicator isLocked={true} message="Este documento está bloqueado" />,
     },
     {
       name: "MoreOptionsDropdown",
@@ -173,19 +117,6 @@ const DeveloperPage = () => {
             { label: "Eliminar", icon: <Trash2 className="h-4 w-4" />, onClick: () => {}, variant: "destructive" },
           ]}
         />
-      ),
-    },
-    {
-      name: "FormSection",
-      file: "components/common/FormSection.tsx",
-      description: "Sección de formulario con título y grid para agrupar campos",
-      component: (
-        <div className="w-full">
-          <FormSection title="Datos Generales">
-            <Input placeholder="Campo 1" />
-            <Input placeholder="Campo 2" />
-          </FormSection>
-        </div>
       ),
     },
     {
@@ -246,29 +177,6 @@ const DeveloperPage = () => {
       ),
     },
     {
-      name: "Button Sizes",
-      file: "components/ui/button.tsx",
-      description: "Tamaños disponibles: sm (h-9), default (h-11), lg (h-12), xl (h-14)",
-      component: (
-        <div className="flex items-center gap-3 flex-wrap">
-          <Button size="sm">Small</Button>
-          <Button size="default">Default</Button>
-          <Button size="lg">Large</Button>
-          <Button size="xl">Extra Large</Button>
-        </div>
-      ),
-    },
-    {
-      name: "Input",
-      file: "components/ui/input.tsx",
-      description: "Campo de entrada básico consistente con TextInput (h-11)",
-      component: (
-        <div className="w-full">
-          <Input placeholder="Escribe algo..." />
-        </div>
-      ),
-    },
-    {
       name: "Badge",
       file: "components/ui/badge.tsx",
       description: "Etiquetas para estados y categorías",
@@ -300,7 +208,6 @@ const DeveloperPage = () => {
             transition={{ duration: 0.2, delay: index * 0.03 }}
             className="bg-card border border-border rounded-xl overflow-hidden"
           >
-            {/* Component Header */}
             <div className="px-5 py-4 border-b border-border bg-muted/30 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
                 <Component className="h-4 w-4 text-primary flex-shrink-0" />
@@ -309,18 +216,10 @@ const DeveloperPage = () => {
                   <p className="text-xs text-muted-foreground font-mono truncate">{item.file}</p>
                 </div>
               </div>
-              <span className="text-xs text-muted-foreground max-w-md text-right hidden sm:block">
-                {item.description}
-              </span>
+              <span className="text-xs text-muted-foreground max-w-md text-right hidden sm:block">{item.description}</span>
             </div>
-
-            {/* Component Preview */}
             <div className="p-6 bg-background">
-              <div className="flex items-center justify-start min-h-[60px] w-full">
-                <div className="w-full min-w-0">
-                  {item.component}
-                </div>
-              </div>
+              <div className="flex items-center justify-center min-h-[60px]">{item.component}</div>
             </div>
           </motion.div>
         ))}
@@ -330,41 +229,20 @@ const DeveloperPage = () => {
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Navigation Bar */}
-      <DetailNavigationBar
-        pageTitle="Developer"
-        contextInfo="Catálogo de Componentes"
-        onBack={() => navigate(`/nexo-av/${userId}/dashboard`)}
-      />
-
-      {/* Content */}
+      <DetailNavigationBar pageTitle="Developer" contextInfo="Catálogo de Componentes" onBack={() => navigate(`/nexo-av/${userId}/dashboard`)} />
       <div className="flex-1 overflow-y-auto p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="max-w-6xl mx-auto space-y-8"
-        >
-          {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="max-w-6xl mx-auto space-y-8">
           <div className="flex items-center gap-3 mb-8">
             <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
               <Code2 className="h-6 w-6 text-primary" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-foreground">Componentes Reutilizables</h1>
-              <p className="text-sm text-muted-foreground">
-                Catálogo de componentes disponibles en la plataforma NexoAV
-              </p>
+              <p className="text-sm text-muted-foreground">Catálogo de componentes disponibles en la plataforma NexoAV</p>
             </div>
           </div>
-
-          {/* Common Components Section */}
           {renderSection("Componentes Comunes", "components/common/", commonComponents)}
-
-          {/* UI Components Section */}
-          <div className="pt-4">
-            {renderSection("Componentes UI (shadcn)", "components/ui/", uiComponents)}
-          </div>
+          <div className="pt-4">{renderSection("Componentes UI (shadcn)", "components/ui/", uiComponents)}</div>
         </motion.div>
       </div>
     </div>
