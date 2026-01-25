@@ -143,7 +143,16 @@ const CreateProjectDialog = ({
       const sanitize = (val: string): string | null => 
         val && val.trim() ? val.trim() : null;
 
-      const { error } = await supabase.rpc("create_project", {
+      // Use explicit parameter object to match the RPC signature without p_project_name
+      const rpcParams: {
+        p_client_id: string;
+        p_status: string;
+        p_project_address: string | null;
+        p_project_city: string | null;
+        p_local_name: string | null;
+        p_client_order_number: string | null;
+        p_notes: string | null;
+      } = {
         p_client_id: clientId,
         p_status: status || "PLANNED",
         p_project_address: sanitize(projectAddress),
@@ -151,7 +160,9 @@ const CreateProjectDialog = ({
         p_local_name: sanitize(localName),
         p_client_order_number: sanitize(clientOrderNumber),
         p_notes: sanitize(internalNotes),
-      });
+      };
+
+      const { error } = await supabase.rpc("create_project", rpcParams);
 
       if (error) throw error;
 
