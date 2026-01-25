@@ -540,7 +540,7 @@ const Login = () => {
                     Correo electrónico
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-black/60" />
                     <Input
                       id="email"
                       type="email"
@@ -548,7 +548,7 @@ const Login = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={isSubmitting}
-                      className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/20 h-12 disabled:opacity-50 rounded-lg"
+                      className="!pl-10 !bg-white/5 !border-white/10 !text-white placeholder:!text-white/30 focus-visible:!border-white/30 focus-visible:!ring-white/20 !h-12 disabled:!opacity-50 !rounded-lg"
                       required
                     />
                   </div>
@@ -559,7 +559,7 @@ const Login = () => {
                     Contraseña
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-black/60" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
@@ -567,14 +567,14 @@ const Login = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={isSubmitting}
-                      className="pl-10 pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-white/30 focus:ring-white/20 h-12 disabled:opacity-50 rounded-lg"
+                      className="!pl-10 !pr-10 !bg-white/5 !border-white/10 !text-white placeholder:!text-white/30 focus-visible:!border-white/30 focus-visible:!ring-white/20 !h-12 disabled:!opacity-50 !rounded-lg"
                       required
                       minLength={8}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-black/60 hover:text-black transition-colors"
                       disabled={isSubmitting}
                     >
                       {showPassword ? (

@@ -241,7 +241,7 @@ export default function FormDialog({
       <div 
         key={field.name} 
         className={cn(
-          "form-dialog__field",
+          "form-dialog__field w-full min-w-0",
           colSpan === 2 && "form-dialog__field--full-width",
           field.className
         )}

@@ -146,7 +146,7 @@ export default function SearchableDropdown({
   const maxHeight = searchHeight + paddingHeight + itemHeight * maxVisibleItems;
 
   return (
-    <div className="searchable-dropdown w-full">
+    <div className="searchable-dropdown w-full min-w-0">
       {/* Trigger Button */}
       <button
         ref={triggerRef}
@@ -154,7 +154,7 @@ export default function SearchableDropdown({
         disabled={disabled || loading}
         onClick={isOpen ? handleClose : handleOpen}
         className={cn(
-          "w-full min-h-[44px] h-full px-4 py-2.5 flex items-center justify-between gap-3",
+          "w-full min-h-[44px] px-4 py-2.5 flex items-center justify-between gap-3",
           "bg-background border border-border rounded-lg",
           "text-sm font-medium",
           "hover:border-primary/50 hover:bg-accent/30",
@@ -164,6 +164,7 @@ export default function SearchableDropdown({
           !selectedOption && "text-muted-foreground",
           className
         )}
+        style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}
       >
         {loading ? (
           <div className="flex items-center gap-2 text-muted-foreground">

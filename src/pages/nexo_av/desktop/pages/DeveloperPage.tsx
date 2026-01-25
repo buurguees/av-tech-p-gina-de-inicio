@@ -316,8 +316,10 @@ const DeveloperPage = () => {
 
             {/* Component Preview */}
             <div className="p-6 bg-background">
-              <div className="flex items-center justify-center min-h-[60px]">
-                {item.component}
+              <div className="flex items-center justify-start min-h-[60px] w-full">
+                <div className="w-full min-w-0">
+                  {item.component}
+                </div>
               </div>
             </div>
           </motion.div>
