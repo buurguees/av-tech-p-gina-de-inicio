@@ -60,10 +60,10 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
 
   const availableModules = modules.filter(m => m.available);
   const isAdmin = userRole === 'admin' || modules.some(m => m.id === 'settings' && m.available);
+  const isAdminOrManager = isAdmin || userRole === 'manager';
 
   // Obtener módulos individuales
   const getModule = (id: string) => availableModules.find(m => m.id === id);
-
   // Construir estructura de carpetas
   const folders: Folder[] = [
     {
@@ -139,14 +139,14 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           title: 'Facturas de Compra',
           icon: ShoppingCart,
           path: `/nexo-av/${userId}/purchase-invoices`,
-          available: isAdmin || true, // Por ahora disponible para todos
+          available: isAdminOrManager,
         },
         {
           id: 'expenses',
           title: 'Gastos',
           icon: DollarSign,
           path: `/nexo-av/${userId}/expenses`,
-          available: isAdmin || true, // Por ahora disponible para todos
+          available: isAdminOrManager,
         },
       ],
     },
@@ -173,7 +173,7 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
       title: 'Proveedores',
       icon: Truck,
       path: `/nexo-av/${userId}/suppliers`,
-      available: isAdmin || true, // Por ahora disponible para todos
+      available: isAdminOrManager,
     },
     {
       id: 'catalog',
