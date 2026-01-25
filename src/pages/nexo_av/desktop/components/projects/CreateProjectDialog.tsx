@@ -22,14 +22,14 @@ import StatusSelector, { StatusOption } from "../common/StatusSelector";
 const formSchema = z.object({
   client_id: z.string().min(1, "El cliente es obligatorio"),
   status: z.string().default("PLANNED"),
-  project_address: z.string().optional(),
-  project_city: z.string().optional(),
-  postal_code: z.string().optional(),
-  province: z.string().optional(),
-  country: z.string().optional(),
-  local_name: z.string().optional(),
-  client_order_number: z.string().optional(),
-  internal_notes: z.string().max(1000, "Las notas no pueden superar los 1000 caracteres").optional(),
+  project_address: z.string().optional().nullable(),
+  project_city: z.string().optional().nullable(),
+  postal_code: z.string().optional().nullable(),
+  province: z.string().optional().nullable(),
+  country: z.string().optional().nullable(),
+  local_name: z.string().optional().nullable(),
+  client_order_number: z.string().optional().nullable(),
+  internal_notes: z.string().max(1000, "Las notas no pueden superar los 1000 caracteres").optional().nullable(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -173,10 +173,10 @@ const CreateProjectDialog = ({
   }, [open, preselectedClientId, form]);
 
   const onSubmit = async (data: FormData) => {
-    if (!generatedProjectName.trim()) {
+    if (!data.client_id) {
       toast({
         title: "Error",
-        description: "No se puede crear un proyecto sin nombre. Selecciona un cliente.",
+        description: "Debes seleccionar un cliente.",
         variant: "destructive",
       });
       return;
@@ -185,21 +185,25 @@ const CreateProjectDialog = ({
     try {
       setLoading(true);
 
-      const { error } = await supabase.rpc("create_project", {
+      // Convert empty strings to null for optional fields
+      const sanitize = (val: string | undefined | null): string | null => 
+        val && val.trim() ? val.trim() : null;
+
+      const { data: result, error } = await supabase.rpc("create_project", {
         p_client_id: data.client_id,
-        p_status: data.status,
-        p_project_address: data.project_address || null,
-        p_project_city: data.project_city || null,
-        p_local_name: data.local_name || null,
-        p_client_order_number: data.client_order_number || null,
-        p_notes: data.internal_notes || null,
+        p_status: data.status || "PLANNED",
+        p_project_address: sanitize(data.project_address),
+        p_project_city: sanitize(data.project_city),
+        p_local_name: sanitize(data.local_name),
+        p_client_order_number: sanitize(data.client_order_number),
+        p_notes: sanitize(data.internal_notes),
       });
 
       if (error) throw error;
 
       toast({
         title: "Proyecto creado",
-        description: "El proyecto se ha creado correctamente.",
+        description: `El proyecto se ha creado correctamente.`,
       });
 
       onOpenChange(false);
@@ -207,8 +211,8 @@ const CreateProjectDialog = ({
     } catch (error: any) {
       console.error("Error creating project:", error);
       toast({
-        title: "Error",
-        description: error.message || "No se pudo crear el proyecto",
+        title: "Error al crear proyecto",
+        description: error.message || "No se pudo crear el proyecto. Revisa los datos e inténtalo de nuevo.",
         variant: "destructive",
       });
     } finally {
