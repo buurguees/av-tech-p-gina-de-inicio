@@ -1,6 +1,7 @@
 // DeveloperPage - Component Showcase for Development
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Code2, Component, Folder, Edit, Copy, Trash2 } from "lucide-react";
+import { Code2, Component, Folder, Edit, Copy, Trash2, FileText, User, Building2 } from "lucide-react";
 import { motion } from "motion/react";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 
@@ -14,9 +15,11 @@ import PlatformBrand from "../components/common/PlatformBrand";
 import LockedIndicator from "../components/common/LockedIndicator";
 import MoreOptionsDropdown from "../components/common/MoreOptionsDropdown";
 import FormSection from "../components/common/FormSection";
-import { useState } from "react";
+import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
+import DataList from "../components/common/DataList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 // Component registry with metadata
 interface ComponentShowcase {
@@ -35,6 +38,7 @@ const DeveloperPage = () => {
   const [dropdownValue, setDropdownValue] = useState("option1");
   const [searchableValue, setSearchableValue] = useState("");
   const [textValue, setTextValue] = useState("Texto de ejemplo");
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   // Status options for StatusSelector
   const statusOptions = [
@@ -43,7 +47,21 @@ const DeveloperPage = () => {
     { value: "APPROVED", label: "Aprobado", className: "bg-green-500" },
   ];
 
-  // Define showcased components
+  // Sample data for DataList
+  const sampleData = [
+    { id: "1", number: "P-001", name: "Proyecto Ejemplo", status: "Activo", total: "€12,500" },
+    { id: "2", number: "P-002", name: "Instalación LED", status: "Pendiente", total: "€8,200" },
+    { id: "3", number: "P-003", name: "Mantenimiento Anual", status: "Completado", total: "€3,400" },
+  ];
+
+  const dataListColumns = [
+    { key: "number", label: "Nº", priority: 1 },
+    { key: "name", label: "Nombre", priority: 2 },
+    { key: "status", label: "Estado", priority: 3 },
+    { key: "total", label: "Total", priority: 4, align: "right" as const },
+  ];
+
+  // Define showcased components - Common
   const commonComponents: ComponentShowcase[] = [
     {
       name: "StatusSelector",
@@ -60,9 +78,9 @@ const DeveloperPage = () => {
     {
       name: "DropDown",
       file: "components/common/DropDown.tsx",
-      description: "Dropdown simple para 2-7 opciones",
+      description: "Dropdown simple para 2-7 opciones. Ocupa 100% del ancho del contenedor.",
       component: (
-        <div className="w-64">
+        <div className="w-full max-w-xs">
           <DropDown
             value={dropdownValue}
             onSelect={setDropdownValue}
@@ -78,9 +96,9 @@ const DeveloperPage = () => {
     {
       name: "SearchableDropdown",
       file: "components/common/SearchableDropdown.tsx",
-      description: "Dropdown con búsqueda integrada para listas largas",
+      description: "Dropdown con búsqueda integrada para listas largas. Ocupa 100% del ancho.",
       component: (
-        <div className="w-80">
+        <div className="w-full max-w-sm">
           <SearchableDropdown
             value={searchableValue}
             onChange={setSearchableValue}
@@ -97,14 +115,23 @@ const DeveloperPage = () => {
     {
       name: "TextInput",
       file: "components/common/TextInput.tsx",
-      description: "Campo de texto estilizado con label opcional",
+      description: "Campo de texto unificado con variantes, tamaños e iconos. Ocupa 100% del ancho.",
       component: (
-        <div className="w-64">
+        <div className="w-full max-w-sm space-y-3">
           <TextInput
             label="Nombre"
             value={textValue}
-            onChange={setTextValue}
+            onChange={(e) => setTextValue((e as React.ChangeEvent<HTMLInputElement>).target.value)}
             placeholder="Escribe aquí..."
+            leftIcon={<User className="h-4 w-4" />}
+          />
+          <TextInput
+            label="Empresa"
+            value=""
+            onChange={() => {}}
+            placeholder="Nombre de empresa"
+            leftIcon={<Building2 className="h-4 w-4" />}
+            size="sm"
           />
         </div>
       ),
@@ -137,7 +164,7 @@ const DeveloperPage = () => {
     {
       name: "MoreOptionsDropdown",
       file: "components/common/MoreOptionsDropdown.tsx",
-      description: "Menú de opciones (tres puntos) con acciones",
+      description: "Menú de opciones (tres puntos) con acciones destructivas separadas",
       component: (
         <MoreOptionsDropdown
           actions={[
@@ -151,9 +178,9 @@ const DeveloperPage = () => {
     {
       name: "FormSection",
       file: "components/common/FormSection.tsx",
-      description: "Sección de formulario con título y grid",
+      description: "Sección de formulario con título y grid para agrupar campos",
       component: (
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-lg">
           <FormSection title="Datos Generales">
             <Input placeholder="Campo 1" />
             <Input placeholder="Campo 2" />
@@ -162,9 +189,52 @@ const DeveloperPage = () => {
       ),
     },
     {
-      name: "Button (shadcn/ui)",
+      name: "ConfirmActionDialog",
+      file: "components/common/ConfirmActionDialog.tsx",
+      description: "Diálogo de confirmación para acciones destructivas",
+      component: (
+        <div className="flex flex-col items-center gap-3">
+          <Button variant="destructive" onClick={() => setConfirmDialogOpen(true)}>
+            Abrir diálogo de confirmación
+          </Button>
+          <ConfirmActionDialog
+            open={confirmDialogOpen}
+            onOpenChange={setConfirmDialogOpen}
+            title="¿Eliminar elemento?"
+            description="Esta acción no se puede deshacer. ¿Estás seguro?"
+            confirmLabel="Eliminar"
+            onConfirm={() => setConfirmDialogOpen(false)}
+          />
+        </div>
+      ),
+    },
+    {
+      name: "DataList",
+      file: "components/common/DataList.tsx",
+      description: "Lista de datos responsive con columnas ordenables y acciones",
+      component: (
+        <div className="w-full max-w-2xl border border-border rounded-xl overflow-hidden">
+          <DataList
+            data={sampleData}
+            columns={dataListColumns}
+            getItemId={(item) => item.id}
+            onItemClick={() => {}}
+            actions={[
+              { label: "Ver", icon: <FileText className="h-4 w-4" />, onClick: () => {} },
+              { label: "Eliminar", icon: <Trash2 className="h-4 w-4" />, onClick: () => {}, variant: "destructive" },
+            ]}
+          />
+        </div>
+      ),
+    },
+  ];
+
+  // UI Components from shadcn
+  const uiComponents: ComponentShowcase[] = [
+    {
+      name: "Button",
       file: "components/ui/button.tsx",
-      description: "Botones con variantes y tamaños",
+      description: "Botones con variantes y tamaños consistentes (h-11 por defecto)",
       component: (
         <div className="flex items-center gap-3 flex-wrap">
           <Button variant="default">Default</Button>
@@ -176,16 +246,85 @@ const DeveloperPage = () => {
       ),
     },
     {
-      name: "Input (shadcn/ui)",
-      file: "components/ui/input.tsx",
-      description: "Campo de entrada básico",
+      name: "Button Sizes",
+      file: "components/ui/button.tsx",
+      description: "Tamaños disponibles: sm (h-9), default (h-11), lg (h-12), xl (h-14)",
       component: (
-        <div className="w-64">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Button size="sm">Small</Button>
+          <Button size="default">Default</Button>
+          <Button size="lg">Large</Button>
+          <Button size="xl">Extra Large</Button>
+        </div>
+      ),
+    },
+    {
+      name: "Input",
+      file: "components/ui/input.tsx",
+      description: "Campo de entrada básico consistente con TextInput (h-11)",
+      component: (
+        <div className="w-full max-w-sm">
           <Input placeholder="Escribe algo..." />
         </div>
       ),
     },
+    {
+      name: "Badge",
+      file: "components/ui/badge.tsx",
+      description: "Etiquetas para estados y categorías",
+      component: (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge>Default</Badge>
+          <Badge variant="secondary">Secondary</Badge>
+          <Badge variant="outline">Outline</Badge>
+          <Badge variant="destructive">Destructive</Badge>
+        </div>
+      ),
+    },
   ];
+
+  const renderSection = (title: string, folder: string, items: ComponentShowcase[]) => (
+    <section>
+      <div className="flex items-center gap-2 mb-4">
+        <Folder className="h-5 w-5 text-muted-foreground" />
+        <h2 className="text-lg font-semibold text-foreground">{folder}</h2>
+        <span className="text-sm text-muted-foreground">({items.length} componentes)</span>
+      </div>
+
+      <div className="grid gap-4">
+        {items.map((item, index) => (
+          <motion.div
+            key={item.name}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: index * 0.03 }}
+            className="bg-card border border-border rounded-xl overflow-hidden"
+          >
+            {/* Component Header */}
+            <div className="px-5 py-4 border-b border-border bg-muted/30 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <Component className="h-4 w-4 text-primary flex-shrink-0" />
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-foreground">{item.name}</h3>
+                  <p className="text-xs text-muted-foreground font-mono truncate">{item.file}</p>
+                </div>
+              </div>
+              <span className="text-xs text-muted-foreground max-w-md text-right hidden sm:block">
+                {item.description}
+              </span>
+            </div>
+
+            {/* Component Preview */}
+            <div className="p-6 bg-background">
+              <div className="flex items-center justify-center min-h-[60px]">
+                {item.component}
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -202,7 +341,7 @@ const DeveloperPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="max-w-6xl mx-auto space-y-6"
+          className="max-w-6xl mx-auto space-y-8"
         >
           {/* Header */}
           <div className="flex items-center gap-3 mb-8">
@@ -212,58 +351,18 @@ const DeveloperPage = () => {
             <div>
               <h1 className="text-2xl font-bold text-foreground">Componentes Reutilizables</h1>
               <p className="text-sm text-muted-foreground">
-                Catálogo de componentes disponibles en la plataforma
+                Catálogo de componentes disponibles en la plataforma NexoAV
               </p>
             </div>
           </div>
 
           {/* Common Components Section */}
-          <section>
-            <div className="flex items-center gap-2 mb-4">
-              <Folder className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-lg font-semibold text-foreground">
-                components/common/
-              </h2>
-              <span className="text-sm text-muted-foreground">
-                ({commonComponents.length} componentes)
-              </span>
-            </div>
+          {renderSection("Componentes Comunes", "components/common/", commonComponents)}
 
-            <div className="grid gap-4">
-              {commonComponents.map((item, index) => (
-                <motion.div
-                  key={item.name}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: index * 0.05 }}
-                  className="bg-card border border-border rounded-xl overflow-hidden"
-                >
-                  {/* Component Header */}
-                  <div className="px-5 py-4 border-b border-border bg-muted/30 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Component className="h-4 w-4 text-primary" />
-                      <div>
-                        <h3 className="font-semibold text-foreground">{item.name}</h3>
-                        <p className="text-xs text-muted-foreground font-mono">
-                          {item.file}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-xs text-muted-foreground max-w-md text-right">
-                      {item.description}
-                    </span>
-                  </div>
-
-                  {/* Component Preview */}
-                  <div className="p-6 bg-background">
-                    <div className="flex items-center justify-center min-h-[60px]">
-                      {item.component}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </section>
+          {/* UI Components Section */}
+          <div className="pt-4">
+            {renderSection("Componentes UI (shadcn)", "components/ui/", uiComponents)}
+          </div>
         </motion.div>
       </div>
     </div>
