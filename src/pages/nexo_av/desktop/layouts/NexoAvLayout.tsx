@@ -360,7 +360,7 @@ const NexoAvLayout = () => {
         <Sidebar
           userId={userId}
           modules={modules}
-          userRole={isAdmin ? 'admin' : isManager ? 'manager' : undefined}
+          userRole={isAdmin ? 'admin' : isManager ? 'manager' : isComercial ? 'sales' : undefined}
         />
       </aside>
 

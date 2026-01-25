@@ -175,6 +175,7 @@ const InvoiceDetailPageDesktop = () => {
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [activeTab, setActiveTab] = useState("resumen");
   const [showIssueConfirm, setShowIssueConfirm] = useState(false);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
 
   const tabs: TabItem[] = [
     { value: "resumen", label: "Resumen", icon: LayoutDashboard },
@@ -182,6 +183,20 @@ const InvoiceDetailPageDesktop = () => {
     { value: "lineas", label: "Lineas", icon: FileText },
     { value: "auditoria", label: "Auditoria", icon: Clock },
   ];
+
+  useEffect(() => {
+    const fetchUserRoles = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_current_user_info');
+        if (!error && data && data.length > 0) {
+          setUserRoles(data[0].roles || []);
+        }
+      } catch (err) {
+        console.error('Error fetching user roles:', err);
+      }
+    };
+    fetchUserRoles();
+  }, []);
 
   useEffect(() => {
     if (invoiceId) {
@@ -455,6 +470,10 @@ const InvoiceDetailPageDesktop = () => {
   const hasFinalNumber = invoice?.invoice_number && !isPreliminaryNumber;
   const availableTransitions = invoice ? getAvailableStatusTransitions(invoice.status) : [];
   const canChangeStatus = availableTransitions.length > 1;
+  
+  // Sales users can only create/edit drafts but NOT issue invoices
+  const isAdminOrManager = userRoles.includes('admin') || userRoles.includes('manager');
+  const canIssueInvoice = isAdminOrManager;
 
   if (loading) {
     return (
@@ -512,18 +531,20 @@ const InvoiceDetailPageDesktop = () => {
         backPath={userId ? `/nexo-av/${userId}/invoices` : undefined}
         tools={
           <div className="flex items-center gap-2">
-            {/* Estado DRAFT: mostrar "Editar" y "Emitir" */}
+            {/* Estado DRAFT: mostrar "Editar" y "Emitir" (solo admin/manager puede emitir) */}
             {invoice?.status === "DRAFT" && (
               <>
                 <DetailActionButton
                   actionType="edit"
                   onClick={() => navigate(`/nexo-av/${userId}/invoices/${invoiceId}/edit`)}
                 />
-                <DetailActionButton
-                  actionType="send"
-                  onClick={() => setShowIssueConfirm(true)}
-                  disabled={updatingStatus}
-                />
+                {canIssueInvoice && (
+                  <DetailActionButton
+                    actionType="send"
+                    onClick={() => setShowIssueConfirm(true)}
+                    disabled={updatingStatus}
+                  />
+                )}
               </>
             )}
 
