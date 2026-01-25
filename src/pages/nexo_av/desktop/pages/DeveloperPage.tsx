@@ -80,7 +80,7 @@ const DeveloperPage = () => {
       file: "components/common/DropDown.tsx",
       description: "Dropdown simple para 2-7 opciones. Ocupa 100% del ancho del contenedor.",
       component: (
-        <div className="w-full max-w-xs">
+        <div className="w-full">
           <DropDown
             value={dropdownValue}
             onSelect={setDropdownValue}
@@ -98,7 +98,7 @@ const DeveloperPage = () => {
       file: "components/common/SearchableDropdown.tsx",
       description: "Dropdown con búsqueda integrada para listas largas. Ocupa 100% del ancho.",
       component: (
-        <div className="w-full max-w-sm">
+        <div className="w-full">
           <SearchableDropdown
             value={searchableValue}
             onChange={setSearchableValue}
@@ -117,7 +117,7 @@ const DeveloperPage = () => {
       file: "components/common/TextInput.tsx",
       description: "Campo de texto unificado con variantes, tamaños e iconos. Ocupa 100% del ancho.",
       component: (
-        <div className="w-full max-w-sm space-y-3">
+        <div className="w-full space-y-3">
           <TextInput
             label="Nombre"
             value={textValue}
@@ -180,7 +180,7 @@ const DeveloperPage = () => {
       file: "components/common/FormSection.tsx",
       description: "Sección de formulario con título y grid para agrupar campos",
       component: (
-        <div className="w-full max-w-lg">
+        <div className="w-full">
           <FormSection title="Datos Generales">
             <Input placeholder="Campo 1" />
             <Input placeholder="Campo 2" />
@@ -213,7 +213,7 @@ const DeveloperPage = () => {
       file: "components/common/DataList.tsx",
       description: "Lista de datos responsive con columnas ordenables y acciones",
       component: (
-        <div className="w-full max-w-2xl border border-border rounded-xl overflow-hidden">
+        <div className="w-full border border-border rounded-xl overflow-hidden">
           <DataList
             data={sampleData}
             columns={dataListColumns}
@@ -263,7 +263,7 @@ const DeveloperPage = () => {
       file: "components/ui/input.tsx",
       description: "Campo de entrada básico consistente con TextInput (h-11)",
       component: (
-        <div className="w-full max-w-sm">
+        <div className="w-full">
           <Input placeholder="Escribe algo..." />
         </div>
       ),
