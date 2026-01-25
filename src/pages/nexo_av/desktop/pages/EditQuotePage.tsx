@@ -1,5 +1,5 @@
 // EditQuotePage - Quote editing with tax selector
-import { useState, useEffect, useRef, useCallback, useMemo, lazy } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown, CheckCircle2, Search, Check, ChevronsUpDown, User, FolderKanban } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "../components/common/ProductSearchInput";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
