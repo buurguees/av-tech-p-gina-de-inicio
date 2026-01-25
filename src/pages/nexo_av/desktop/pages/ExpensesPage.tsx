@@ -498,12 +498,12 @@ const ExpensesPageDesktop = () => {
               </Button>
 
               <div className="relative flex-1 min-w-[200px] max-w-md">
-                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar gastos..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="pr-11 bg-white/5 border-white/10 text-white placeholder:text-white/40 h-8 text-xs"
+                  className="pr-11"
                 />
               </div>
 

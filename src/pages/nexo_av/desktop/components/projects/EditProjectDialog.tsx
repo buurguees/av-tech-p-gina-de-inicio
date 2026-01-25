@@ -12,6 +12,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Loader2, Building2, MapPin, FileText, Users, ChevronDown } from "lucide-react";
 import { PROJECT_STATUSES } from "@/constants/projectStatuses";
 import DropDown, { DropDownOption } from "../common/DropDown";
@@ -40,55 +43,23 @@ const InlineFormSection = ({ title, icon, children, columns = 1 }: InlineFormSec
   </div>
 );
 
-// ============= INLINE TEXT INPUT =============
-interface InlineTextInputProps {
+// ============= LABELED INPUT WRAPPER =============
+interface LabeledInputProps {
   label?: string;
-  placeholder?: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  type?: "text" | "textarea";
-  rows?: number;
   required?: boolean;
-  disabled?: boolean;
+  children: ReactNode;
 }
 
-const InlineTextInput = ({ label, placeholder, value, onChange, type = "text", rows = 3, required, disabled }: InlineTextInputProps) => {
-  const baseClasses = cn(
-    "w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm",
-    "hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-    "transition-all duration-200 placeholder:text-muted-foreground/60",
-    disabled && "opacity-50 cursor-not-allowed bg-muted"
-  );
-
-  return (
-    <div className="space-y-1.5">
-      {label && (
-        <label className="text-xs font-medium text-muted-foreground">
-          {label} {required && <span className="text-destructive">*</span>}
-        </label>
-      )}
-      {type === "textarea" ? (
-        <textarea
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          rows={rows}
-          disabled={disabled}
-          className={cn(baseClasses, "resize-y min-h-[80px]")}
-        />
-      ) : (
-        <input
-          type="text"
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          disabled={disabled}
-          className={cn(baseClasses, "h-11")}
-        />
-      )}
-    </div>
-  );
-};
+const LabeledInput = ({ label, required, children }: LabeledInputProps) => (
+  <div className="space-y-1.5">
+    {label && (
+      <Label className="text-xs font-medium text-muted-foreground">
+        {label} {required && <span className="text-destructive">*</span>}
+      </Label>
+    )}
+    {children}
+  </div>
+);
 
 // ============= SCHEMA & TYPES =============
 const formSchema = z.object({
@@ -274,19 +245,35 @@ const EditProjectDialog = ({ open, onOpenChange, project, onSuccess }: EditProje
             </InlineFormSection>
 
             <InlineFormSection title="Ubicación" icon={<MapPin className="h-4 w-4" />}>
-              <InlineTextInput label="Dirección" placeholder="Calle y número del local" value={form.watch("project_address") || ""} onChange={(e) => form.setValue("project_address", e.target.value)} />
-              <InlineTextInput label="Ciudad" placeholder="Ciudad" value={form.watch("project_city") || ""} onChange={(e) => form.setValue("project_city", e.target.value)} />
-              <InlineTextInput label="Código Postal" placeholder="08000" value={form.watch("postal_code") || ""} onChange={(e) => form.setValue("postal_code", e.target.value)} />
-              <InlineTextInput label="Provincia" placeholder="Provincia" value={form.watch("province") || ""} onChange={(e) => form.setValue("province", e.target.value)} />
-              <InlineTextInput label="País" placeholder="País" value={form.watch("country") || ""} onChange={(e) => form.setValue("country", e.target.value)} />
+              <LabeledInput label="Dirección">
+                <Input placeholder="Calle y número del local" value={form.watch("project_address") || ""} onChange={(e) => form.setValue("project_address", e.target.value)} />
+              </LabeledInput>
+              <LabeledInput label="Ciudad">
+                <Input placeholder="Ciudad" value={form.watch("project_city") || ""} onChange={(e) => form.setValue("project_city", e.target.value)} />
+              </LabeledInput>
+              <LabeledInput label="Código Postal">
+                <Input placeholder="08000" value={form.watch("postal_code") || ""} onChange={(e) => form.setValue("postal_code", e.target.value)} />
+              </LabeledInput>
+              <LabeledInput label="Provincia">
+                <Input placeholder="Provincia" value={form.watch("province") || ""} onChange={(e) => form.setValue("province", e.target.value)} />
+              </LabeledInput>
+              <LabeledInput label="País">
+                <Input placeholder="País" value={form.watch("country") || ""} onChange={(e) => form.setValue("country", e.target.value)} />
+              </LabeledInput>
             </InlineFormSection>
 
             <InlineFormSection title="Información del Proyecto" icon={<FileText className="h-4 w-4" />}>
               <div className="grid grid-cols-2 gap-3">
-                <InlineTextInput label="Nº Pedido Cliente" placeholder="Referencia del cliente" value={form.watch("client_order_number") || ""} onChange={(e) => form.setValue("client_order_number", e.target.value)} />
-                <InlineTextInput label="Nombre del Local" placeholder="Ej: Tienda Centro" value={form.watch("local_name") || ""} onChange={(e) => form.setValue("local_name", e.target.value)} />
+                <LabeledInput label="Nº Pedido Cliente">
+                  <Input placeholder="Referencia del cliente" value={form.watch("client_order_number") || ""} onChange={(e) => form.setValue("client_order_number", e.target.value)} />
+                </LabeledInput>
+                <LabeledInput label="Nombre del Local">
+                  <Input placeholder="Ej: Tienda Centro" value={form.watch("local_name") || ""} onChange={(e) => form.setValue("local_name", e.target.value)} />
+                </LabeledInput>
               </div>
-              <InlineTextInput type="textarea" label="Notas" placeholder="Notas adicionales..." value={form.watch("notes") || ""} onChange={(e) => form.setValue("notes", e.target.value)} rows={3} />
+              <LabeledInput label="Notas">
+                <Textarea placeholder="Notas adicionales..." value={form.watch("notes") || ""} onChange={(e) => form.setValue("notes", e.target.value)} rows={3} />
+              </LabeledInput>
             </InlineFormSection>
 
             <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
