@@ -1,15 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Building2, FolderOpen, Loader2 } from "lucide-react";
+import { Building2, FolderOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
+import SearchableDropdown, { type SearchableDropdownOption } from "../common/SearchableDropdown";
 
 export interface Client {
   id: string;
@@ -115,8 +109,17 @@ export default function ClientProjectSelector({
     onProjectChange("");
   };
 
-  const selectedClient = clients.find(c => c.id === selectedClientId);
-  const selectedProject = projects.find(p => p.id === selectedProjectId);
+  // Convert to SearchableDropdownOption format
+  const clientOptions: SearchableDropdownOption[] = clients.map(c => ({
+    value: c.id,
+    label: c.company_name,
+  }));
+
+  const projectOptions: SearchableDropdownOption[] = projects.map(p => ({
+    value: p.id,
+    label: p.project_name,
+    secondaryLabel: p.project_number,
+  }));
 
   return (
     <div className={cn(
@@ -132,33 +135,16 @@ export default function ClientProjectSelector({
             <span>Cliente</span>
           </Label>
         )}
-        <Select
+        <SearchableDropdown
           value={selectedClientId}
-          onValueChange={handleClientChange}
-          disabled={disabled || loadingClients}
-        >
-          <SelectTrigger className="selector-trigger">
-            {loadingClients ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span className="text-muted-foreground">Cargando...</span>
-              </div>
-            ) : (
-              <SelectValue placeholder="Seleccionar cliente" />
-            )}
-          </SelectTrigger>
-          <SelectContent className="selector-content">
-            {clients.map((client) => (
-              <SelectItem
-                key={client.id}
-                value={client.id}
-                className="selector-item"
-              >
-                {client.company_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onChange={handleClientChange}
+          options={clientOptions}
+          placeholder="Seleccionar cliente"
+          searchPlaceholder="Buscar cliente..."
+          disabled={disabled}
+          loading={loadingClients}
+          emptyMessage="No hay clientes"
+        />
       </div>
 
       {/* Project Selector */}
@@ -169,44 +155,22 @@ export default function ClientProjectSelector({
             <span>Proyecto</span>
           </Label>
         )}
-        <Select
+        <SearchableDropdown
           value={selectedProjectId}
-          onValueChange={onProjectChange}
-          disabled={disabled || !selectedClientId || loadingProjects}
-        >
-          <SelectTrigger className="selector-trigger">
-            {loadingProjects ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span className="text-muted-foreground">Cargando...</span>
-              </div>
-            ) : (
-              <SelectValue
-                placeholder={
-                  !selectedClientId
-                    ? "Selecciona un cliente primero"
-                    : projects.length === 0
-                    ? "Sin proyectos disponibles"
-                    : "Seleccionar proyecto"
-                }
-              />
-            )}
-          </SelectTrigger>
-          <SelectContent className="selector-content">
-            {projects.map((project) => (
-              <SelectItem
-                key={project.id}
-                value={project.id}
-                className="selector-item"
-              >
-                <span className="font-mono text-xs opacity-60 mr-2">
-                  {project.project_number}
-                </span>
-                {project.project_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onChange={onProjectChange}
+          options={projectOptions}
+          placeholder={
+            !selectedClientId
+              ? "Selecciona un cliente primero"
+              : projects.length === 0
+              ? "Sin proyectos disponibles"
+              : "Seleccionar proyecto"
+          }
+          searchPlaceholder="Buscar proyecto..."
+          disabled={disabled || !selectedClientId}
+          loading={loadingProjects}
+          emptyMessage={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"}
+        />
       </div>
     </div>
   );

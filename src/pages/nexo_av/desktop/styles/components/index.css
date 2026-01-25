@@ -22,6 +22,7 @@
 @import './common/data-list.css';
 @import './common/status-selector.css';
 @import './common/locked-indicator.css';
+@import './common/searchable-dropdown.css';
 @import './common/document-pdf-viewer.css';
 @import './navigation/tab-nav.css';
 @import './navigation/detail-navigation-bar.css';

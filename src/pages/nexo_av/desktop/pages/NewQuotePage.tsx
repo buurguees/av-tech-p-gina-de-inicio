@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ChevronDown, Search, GripVertical, Trash2, Plus } from "lucide-react";
+import { Loader2, Search, GripVertical, Trash2, Plus, ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
@@ -52,67 +52,7 @@ const formatCurrency = (amount: number) => {
 
 // ============= INLINE COMPONENTS =============
 
-// Dropdown Select Component - No external imports
-interface DropdownOption {
-  value: string;
-  label: string;
-}
-
-interface InlineDropdownProps {
-  value: string;
-  onChange: (value: string) => void;
-  options: DropdownOption[];
-  placeholder?: string;
-  disabled?: boolean;
-  className?: string;
-}
-
-const InlineDropdown = ({ value, onChange, options, placeholder, disabled, className }: InlineDropdownProps) => {
-  const [open, setOpen] = useState(false);
-  const selectedOption = options.find(o => o.value === value);
-
-  return (
-    <div className={cn("relative", className)}>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setOpen(!open)}
-        className={cn(
-          "w-full h-11 px-4 flex items-center justify-between gap-2",
-          "bg-background border border-border rounded-lg text-sm",
-          "hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-          "transition-all duration-150",
-          disabled && "opacity-50 cursor-not-allowed bg-muted",
-          !selectedOption && "text-muted-foreground"
-        )}
-      >
-        <span className="truncate">{selectedOption?.label || placeholder}</span>
-        <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", open && "rotate-180")} />
-      </button>
-      
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-            {options.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => { onChange(opt.value); setOpen(false); }}
-                className={cn(
-                  "w-full px-4 py-2.5 text-left text-sm hover:bg-muted transition-colors",
-                  value === opt.value && "bg-primary/10 text-primary font-medium"
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
+import SearchableDropdown, { type SearchableDropdownOption } from "../components/common/SearchableDropdown";
 
 // Tax Badge Dropdown
 interface TaxBadgeDropdownProps {
@@ -493,8 +433,12 @@ const NewQuotePage = () => {
   }
 
   // Dropdown options
-  const clientOptions: DropdownOption[] = clients.map(c => ({ value: c.id, label: c.company_name }));
-  const projectOptions: DropdownOption[] = projects.map(p => ({ value: p.id, label: `${p.project_number} - ${p.project_name}` }));
+  const clientOptions: SearchableDropdownOption[] = clients.map(c => ({ value: c.id, label: c.company_name }));
+  const projectOptions: SearchableDropdownOption[] = projects.map(p => ({ 
+    value: p.id, 
+    label: p.project_name,
+    secondaryLabel: p.project_number 
+  }));
 
   return (
     <div className="h-[calc(100vh-3.25rem)] overflow-y-auto bg-background">
@@ -525,23 +469,26 @@ const NewQuotePage = () => {
           {/* Cliente */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cliente</label>
-            <InlineDropdown
+            <SearchableDropdown
               value={selectedClientId}
               onChange={(v) => { setSelectedClientId(v); setSelectedProjectId(""); }}
               options={clientOptions}
               placeholder="Seleccionar cliente..."
+              searchPlaceholder="Buscar cliente..."
             />
           </div>
 
           {/* Proyecto */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Proyecto</label>
-            <InlineDropdown
+            <SearchableDropdown
               value={selectedProjectId}
               onChange={setSelectedProjectId}
               options={projectOptions}
               placeholder="Seleccionar proyecto..."
+              searchPlaceholder="Buscar proyecto..."
               disabled={!selectedClientId || projects.length === 0}
+              emptyMessage={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"}
             />
           </div>
 
