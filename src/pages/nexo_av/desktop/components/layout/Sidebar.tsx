@@ -19,7 +19,8 @@ import {
   Shield,
   Wrench,
   Truck,
-  BookOpen
+  BookOpen,
+  Code2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import "../../styles/components/layout/sidebar.css";
@@ -220,6 +221,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
       icon: Shield,
       path: `/nexo-av/${userId}/audit`,
       available: getModule('audit')?.available || false,
+    },
+    {
+      id: 'developer',
+      title: 'Developer',
+      icon: Code2,
+      path: `/nexo-av/${userId}/developer`,
+      available: isAdmin,
     },
   ];
 
