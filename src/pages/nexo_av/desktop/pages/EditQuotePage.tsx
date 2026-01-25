@@ -1,5 +1,5 @@
 // EditQuotePage - Quote editing with tax selector
-import { useState, useEffect, useRef, useCallback, lazy } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, lazy } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,13 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -26,6 +19,7 @@ import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDow
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "../components/common/ProductSearchInput";
+import SearchableDropdown, { type SearchableDropdownOption } from "../components/common/SearchableDropdown";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 
@@ -35,6 +29,7 @@ const LOCKED_STATES = ["SENT", "APPROVED", "REJECTED", "EXPIRED", "INVOICED"];
 interface Client {
   id: string;
   company_name: string;
+  lead_stage?: string;
 }
 
 interface Project {
@@ -110,12 +105,18 @@ const EditQuotePageDesktop = () => {
     }
   }, [quoteId]);
 
+  // Filter out LOST clients
+  const availableClients = useMemo(() => {
+    return clients.filter(client => client.lead_stage !== 'LOST');
+  }, [clients]);
+
   // Fetch projects when client changes
   useEffect(() => {
     if (selectedClientId) {
       fetchClientProjects(selectedClientId);
     } else {
       setProjects([]);
+      setSelectedProjectId("");
     }
   }, [selectedClientId]);
 
@@ -214,9 +215,15 @@ const EditQuotePageDesktop = () => {
 
   const fetchClients = async () => {
     try {
-      const { data, error } = await supabase.rpc("list_clients", {});
+      const { data, error } = await supabase.rpc("list_clients", {
+        p_search: null,
+      });
       if (error) throw error;
-      setClients(data?.map((c: any) => ({ id: c.id, company_name: c.company_name })) || []);
+      setClients(data?.map((c: any) => ({ 
+        id: c.id, 
+        company_name: c.company_name,
+        lead_stage: c.lead_stage 
+      })) || []);
     } catch (error) {
       console.error("Error fetching clients:", error);
     }
@@ -775,6 +782,22 @@ const EditQuotePageDesktop = () => {
   const totals = getTotals();
   const statusInfo = getStatusInfo(currentStatus);
 
+  // Dropdown options
+  const clientOptions: SearchableDropdownOption[] = useMemo(() => {
+    return availableClients.map(c => ({ 
+      value: c.id, 
+      label: c.company_name 
+    }));
+  }, [availableClients]);
+
+  const projectOptions: SearchableDropdownOption[] = useMemo(() => {
+    return projects.map(p => ({ 
+      value: p.id, 
+      label: p.project_name,
+      secondaryLabel: p.project_number 
+    }));
+  }, [projects]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center pt-32">
@@ -848,46 +871,38 @@ const EditQuotePageDesktop = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                 <Label className="text-muted-foreground text-[10px] md:text-sm">Contacto</Label>
-                <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                  <SelectTrigger className="h-8 md:h-10 text-xs md:text-sm">
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id} className="text-xs md:text-sm">
-                        {client.company_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableDropdown
+                  value={selectedClientId}
+                  onChange={(v) => { 
+                    setSelectedClientId(v); 
+                    setSelectedProjectId(""); 
+                  }}
+                  options={clientOptions}
+                  placeholder="Seleccionar cliente..."
+                  searchPlaceholder="Buscar cliente..."
+                  disabled={false}
+                />
               </div>
 
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                 <Label className="text-white/70 text-[10px] md:text-sm">Proyecto</Label>
-                <Select
+                <SearchableDropdown
                   value={selectedProjectId}
-                  onValueChange={setSelectedProjectId}
-                  disabled={!selectedClientId || loadingProjects}
-                >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 md:h-10 text-xs md:text-sm">
-                    <SelectValue placeholder={
-                      !selectedClientId
-                        ? "Cliente primero"
-                        : loadingProjects
-                          ? "Cargando..."
-                          : projects.length === 0
-                            ? "Sin proyectos"
-                            : "Seleccionar"
-                    } />
-                  </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10">
-                    {projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id} className="text-white text-xs md:text-sm">
-                        {project.project_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={setSelectedProjectId}
+                  options={projectOptions}
+                  placeholder={
+                    !selectedClientId
+                      ? "Selecciona un cliente"
+                      : loadingProjects
+                        ? "Cargando..."
+                        : projects.length === 0
+                          ? "Sin proyectos"
+                          : "Seleccionar proyecto..."
+                  }
+                  searchPlaceholder="Buscar proyecto..."
+                  disabled={!selectedClientId || loadingProjects || projects.length === 0}
+                  emptyMessage={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"}
+                />
               </div>
 
               <div className="space-y-1 md:space-y-2">

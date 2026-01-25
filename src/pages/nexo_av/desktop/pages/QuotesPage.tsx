@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Edit, Trash2, Loader2 } from "lucide-react";
+import { FileText, Edit, Trash2, Loader2, Copy } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../components/common/PaginationControls";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -463,22 +463,19 @@ const QuotesPageDesktop = () => {
             ]}
             actions={[
               {
-                label: "Ver detalle",
-                onClick: (quote) => navigate(`/nexo-av/${userId}/quotes/${quote.id}`),
-              },
-              {
                 label: "Editar",
-                icon: <Edit className="h-3 w-3" />,
+                icon: <Edit className="mr-2 h-4 w-4" />,
                 onClick: (quote) => navigate(`/nexo-av/${userId}/quotes/${quote.id}/edit`),
                 condition: (quote) => quote.status === "DRAFT",
               },
               {
-                label: "Duplicar",
-                onClick: () => {},
+                label: "Nueva Versión",
+                icon: <Copy className="mr-2 h-4 w-4" />,
+                onClick: (quote) => navigate(`/nexo-av/${userId}/quotes/new?sourceQuoteId=${quote.id}`),
               },
               {
                 label: "Eliminar",
-                icon: <Trash2 className="h-3 w-3" />,
+                icon: <Trash2 className="mr-2 h-4 w-4" />,
                 variant: "destructive",
                 onClick: (quote) => {
                   if (quote.status !== "DRAFT") {

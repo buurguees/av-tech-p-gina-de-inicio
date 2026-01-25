@@ -13,6 +13,7 @@ interface Client {
   id: string;
   company_name: string;
   client_number: string;
+  lead_stage?: string;
 }
 
 interface Project {
@@ -177,13 +178,16 @@ const NewQuotePage = () => {
 
   const fetchClients = async () => {
     try {
-      const { data, error } = await supabase.rpc("list_clients", {});
+      const { data, error } = await supabase.rpc("list_clients", {
+        p_search: null,
+      });
       if (error) throw error;
       setClients(
         (data || []).map((c: any) => ({
           id: c.id,
           company_name: c.company_name,
           client_number: c.client_number,
+          lead_stage: c.lead_stage,
         }))
       );
     } catch (error) {
@@ -432,13 +436,23 @@ const NewQuotePage = () => {
     );
   }
 
+  // Filter out LOST clients
+  const availableClients = useMemo(() => {
+    return clients.filter(client => client.lead_stage !== 'LOST');
+  }, [clients]);
+
   // Dropdown options
-  const clientOptions: SearchableDropdownOption[] = clients.map(c => ({ value: c.id, label: c.company_name }));
-  const projectOptions: SearchableDropdownOption[] = projects.map(p => ({ 
-    value: p.id, 
-    label: p.project_name,
-    secondaryLabel: p.project_number 
-  }));
+  const clientOptions: SearchableDropdownOption[] = useMemo(() => {
+    return availableClients.map(c => ({ value: c.id, label: c.company_name }));
+  }, [availableClients]);
+
+  const projectOptions: SearchableDropdownOption[] = useMemo(() => {
+    return projects.map(p => ({ 
+      value: p.id, 
+      label: p.project_name,
+      secondaryLabel: p.project_number 
+    }));
+  }, [projects]);
 
   return (
     <div className="h-[calc(100vh-3.25rem)] overflow-y-auto bg-background">

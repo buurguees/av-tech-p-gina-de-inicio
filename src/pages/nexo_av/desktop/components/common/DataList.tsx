@@ -1,10 +1,11 @@
-import { ReactNode, useState, useEffect, useCallback, useRef } from "react";
+import React, { ReactNode, useState, useEffect, useCallback, useRef } from "react";
 import { ChevronUp, ChevronDown, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -297,40 +298,43 @@ export default function DataList<T = any>({
                 >
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <button
+                        type="button"
                         className="data-list__action-button"
+                        aria-label="Opciones"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <MoreVertical className="data-list__action-icon" />
-                      </Button>
+                      </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      className="bg-zinc-900 border-white/10"
+                    <DropdownMenuContent 
+                      align="end" 
+                      className="w-56"
                     >
-                      {visibleActions.map((action, actionIndex) => (
-                        <DropdownMenuItem
-                          key={actionIndex}
-                          className={cn(
-                            "text-white hover:bg-white/10",
-                            action.variant === "destructive" &&
-                              "text-red-400 hover:bg-red-500/10",
-                            action.className
-                          )}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            action.onClick(item);
-                          }}
-                        >
-                          {action.icon && (
-                            <span className="data-list__action-item-icon">
+                      {visibleActions.map((action, index) => {
+                        const isDestructive = action.variant === "destructive";
+                        const hasNextDestructive = visibleActions[index + 1]?.variant === "destructive";
+                        const shouldAddSeparator = !isDestructive && hasNextDestructive;
+                        
+                        return (
+                          <React.Fragment key={index}>
+                            <DropdownMenuItem 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                action.onClick(item);
+                              }}
+                              className={cn(
+                                isDestructive && "text-destructive focus:text-destructive",
+                                action.className
+                              )}
+                            >
                               {action.icon}
-                            </span>
-                          )}
-                          {action.label}
-                        </DropdownMenuItem>
-                      ))}
+                              <span>{action.label}</span>
+                            </DropdownMenuItem>
+                            {shouldAddSeparator && <DropdownMenuSeparator />}
+                          </React.Fragment>
+                        );
+                      })}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

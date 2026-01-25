@@ -1,7 +1,9 @@
 # 📋 INFORME COMPLETO DE ERRORES DE IMPORTACIÓN
 
 **Fecha:** 22 de enero de 2026  
-**Total de errores encontrados:** 38  
+**Última actualización:** 24 de enero de 2026  
+**Total de errores encontrados originalmente:** 38  
+**Estado:** La mayoría de los errores ya se resolvieron o los archivos fueron eliminados  
 **Ubicación base:** `/src/pages/nexo_av`
 
 ---
@@ -11,17 +13,17 @@
 | Archivo | Línea | Módulo Incorrecto | Módulo Correcto | Tipo |
 |---------|-------|-------------------|-----------------|------|
 | `components/MobileBottomNav.tsx` | 5 | `./mobile/MenuDesplegable` | `./mobile/MenuDesplegable` | **Archivo falta en estructura mobile/** |
-| `desktop/components/Header.tsx` | 2 | `./UserAvatarDropdown` | `./layout/UserAvatarDropdown` | **Ruta incorrecta** |
-| `desktop/components/Header.tsx` | 3 | `./NexoHeader` | `./layout/NexoHeader` | **Ruta incorrecta** |
+| `desktop/components/Header.tsx` | 2 | `./UserAvatarDropdown` | `./layout/UserAvatarDropdown` | ✅ **RESUELTO** - Archivo eliminado (duplicado no usado) |
+| `desktop/components/Header.tsx` | 3 | `./NexoHeader` | `./layout/NexoHeader` | ✅ **RESUELTO** - Archivo eliminado (duplicado no usado) |
 | `desktop/components/leadmap/CanvassingMapSidebar.tsx` | 4 | `../../LeadMapPage` | `../../pages/LeadMapPage` | **Archivo en otra carpeta** |
 | `desktop/components/leadmap/CreateLeadDialog.tsx` | 16 | `../../LeadMapPage` | `../../pages/LeadMapPage` | **Archivo en otra carpeta** |
-| `desktop/components/leadmap/LeadDetailMobileSheet.tsx` | 17 | `../../LeadMapPage` | `../../pages/LeadMapPage` | **Archivo en otra carpeta** |
-| `desktop/components/leadmap/LeadDetailPanel.tsx` | 17 | `../../LeadMapPage` | `../../pages/LeadMapPage` | **Archivo en otra carpeta** |
+| `desktop/components/leadmap/LeadDetailMobileSheet.tsx` | 17 | `../../LeadMapPage` | `../../pages/LeadMapPage` | ✅ **RESUELTO** - Archivo eliminado (componente deshabilitado no usado) |
+| `desktop/components/leadmap/LeadDetailPanel.tsx` | 17 | `../../LeadMapPage` | `../../pages/LeadMapPage` | ✅ **RESUELTO** - Archivo eliminado (componente deshabilitado no usado) |
 | `desktop/components/leadmap/LeadMap.tsx` | 7 | `../../LeadMapPage` | `../../pages/LeadMapPage` | **Archivo en otra carpeta** |
 | `desktop/components/leadmap/LeadMapFilters.tsx` | 4 | `../../LeadMapPage` | `../../pages/LeadMapPage` | **Archivo en otra carpeta** |
-| `desktop/components/leadmap/LeadMapSidebar.tsx` | 3 | `../../LeadMapPage` | `../../pages/LeadMapPage` | **Archivo en otra carpeta** |
-| `desktop/components/purchases/PurchaseInvoiceLinesEditor.tsx` | 22 | `./ProductSearchInput` | `../common/ProductSearchInput` | **Ruta incorrecta** |
-| `desktop/components/settings/TemplatesTab.tsx` | 18 | `../InvoicePDFViewer` | `../invoices/InvoicePDFViewer` | **Ruta incorrecta** |
+| `desktop/components/leadmap/LeadMapSidebar.tsx` | 3 | `../../LeadMapPage` | `../../pages/LeadMapPage` | ✅ **RESUELTO** - Archivo eliminado (componente deshabilitado no usado) |
+| `desktop/components/purchases/PurchaseInvoiceLinesEditor.tsx` | 22 | `./ProductSearchInput` | `../common/ProductSearchInput` | ✅ **RESUELTO** - Ruta ya corregida |
+| `desktop/components/settings/TemplatesTab.tsx` | 18 | `../InvoicePDFViewer` | `../invoices/InvoicePDFViewer` | ✅ **RESUELTO** - Ruta ya corregida |
 | `mobile/components/InvoicePaymentsSection.tsx` | 30 | `./RegisterPaymentDialog` | `../desktop/components/invoices/RegisterPaymentDialog` | **Archivo ubicado en desktop** |
 | `mobile/components/ProjectExpensesTab.tsx` | 16 | `./CreateProjectExpenseDialog` | **NO EXISTE en el proyecto** | **Archivo no existe** |
 | `mobile/components/ProjectExpensesTab.tsx` | 17 | `./RegisterPurchasePaymentDialog` | `../desktop/components/purchases/RegisterPurchasePaymentDialog` | **Archivo ubicado en desktop** |
@@ -124,8 +126,13 @@ Actualizar cada importación para apuntar a la ubicación correcta del component
 
 ## 📊 ESTADÍSTICAS
 
-- **Total de archivos con errores:** 21
-- **Total de importaciones incorrectas:** 38
+- **Total de archivos con errores originalmente:** 21
+- **Total de importaciones incorrectas originalmente:** 38
 - **Archivos que no existen:** 2
 - **Rutas incorrectas:** 37
 
+## ✅ ESTADO ACTUAL (24 de enero de 2026)
+
+- **Errores resueltos:** La mayoría de los errores mencionados ya se resolvieron o los archivos fueron eliminados durante la limpieza de código
+- **Archivos eliminados:** 9 componentes no usados fueron eliminados (ver `COMPONENTES_ELIMINADOS.md`)
+- **Código hardcodeado eliminado:** Todos los valores hardcodeados en componentes UI base fueron reemplazados por variables CSS (ver `GUIA_EVITAR_CODIGO_HARDCODEADO.md`)

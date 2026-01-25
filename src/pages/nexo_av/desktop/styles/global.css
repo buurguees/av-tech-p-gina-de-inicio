@@ -1261,21 +1261,62 @@ body.nexo-av-theme-dark main>div[class*="overflow-y-auto"] {
 }
 
 /* Padding universal para todas las páginas - Aplicado al contenedor del Outlet */
+/* Normaliza el padding a 1.5rem (p-6) para todas las páginas, igual que Dashboard */
+/* Esto asegura que todas las páginas tengan los mismos márgenes que Dashboard */
 body.nexo-av-theme main>div[class*="overflow-y-auto"]>*,
 body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>* {
-  padding-top: 2rem !important;
-  padding-left: 2rem !important;
-  padding-right: 2rem !important;
+  padding-top: 1.5rem !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
 }
 
-/* Padding del contenedor principal de páginas - Ya controlado en MAIN CONTENT AREA */
-/* Este selector es para páginas que usen directamente p-6, px-6, py-6 */
-body.nexo-av-theme main>div[class*="p-6"]:not([class*="overflow-y-auto"]),
-body.nexo-av-theme-dark main>div[class*="p-6"]:not([class*="overflow-y-auto"]) {
-  padding-top: 2rem !important;
-  padding-left: 2rem !important;
-  padding-right: 2rem !important;
-  padding-bottom: 0 !important;
+/* Normalizar padding de páginas que ya tienen p-6 o p-8 para mantener consistencia */
+/* Esto sobrescribe cualquier padding específico para asegurar uniformidad */
+body.nexo-av-theme main>div[class*="overflow-y-auto"]>*[class*="p-6"],
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>*[class*="p-6"],
+body.nexo-av-theme main>div[class*="overflow-y-auto"]>*[class*="p-8"],
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>*[class*="p-8"] {
+  padding-top: 1.5rem !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  padding-bottom: 1.5rem !important;
+}
+
+/* ============================================
+   DETAIL PAGES - Padding consistente con Dashboard
+   Asegurar que las páginas de detalle tengan los mismos márgenes
+   ============================================ */
+
+/* Contenedor principal de páginas de detalle - Aplicar padding igual que Dashboard */
+body.nexo-av-theme main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"],
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"] {
+  padding-top: 1.5rem !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+}
+
+/* Normalizar padding responsivo en contenido de páginas de detalle a 1.5rem fijo */
+/* Esto aplica a los divs con padding responsivo dentro de contenedores overflow-auto */
+body.nexo-av-theme main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="px-2"],
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="px-2"],
+body.nexo-av-theme main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="px-3"],
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="px-3"],
+body.nexo-av-theme main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="px-4"],
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="px-4"],
+body.nexo-av-theme main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="px-6"],
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="px-6"],
+body.nexo-av-theme main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="py-2"],
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="py-2"],
+body.nexo-av-theme main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="py-3"],
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="py-3"],
+body.nexo-av-theme main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="py-4"],
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="py-4"],
+body.nexo-av-theme main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="py-6"],
+body.nexo-av-theme-dark main>div[class*="overflow-y-auto"]>div[class*="w-full"][class*="h-full"][class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="flex"][class*="flex-col"]>div[class*="flex-1"]>div[class*="overflow-auto"]>div[class*="py-6"] {
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  padding-top: 1.5rem !important;
+  padding-bottom: 1.5rem !important;
 }
 
 /* Control de padding en páginas individuales */
@@ -3706,8 +3747,11 @@ body.nexo-av-theme-dark [class*="SelectTrigger"]:hover {
   background-color: hsl(var(--accent)) !important;
 }
 
-body.nexo-av-theme [class*="SelectContent"],
-body.nexo-av-theme-dark [class*="SelectContent"] {
+/* SelectContent - Mejorar especificidad para capturar componentes de Radix UI */
+body.nexo-av-theme [data-radix-select-content],
+body.nexo-av-theme-dark [data-radix-select-content],
+body.nexo-av-theme [class*="SelectContent"][class*="rounded"],
+body.nexo-av-theme-dark [class*="SelectContent"][class*="rounded"] {
   background-color: hsl(var(--card)) !important;
   border: 1px solid hsl(var(--border)) !important;
   z-index: 9999 !important;
@@ -3730,9 +3774,15 @@ body.nexo-av-theme-dark [class*="SelectItem"][class*="disabled"] {
   cursor: not-allowed !important;
 }
 
-/* DropdownMenuContent - Asegurar z-index alto y visibilidad */
+/* DropdownMenuContent - Asegurar z-index alto y visibilidad - Mejorar especificidad */
+body.nexo-av-theme [data-radix-dropdown-menu-content],
+body.nexo-av-theme-dark [data-radix-dropdown-menu-content],
+body.nexo-av-theme [class*="DropdownMenuContent"][class*="rounded"],
+body.nexo-av-theme-dark [class*="DropdownMenuContent"][class*="rounded"],
 body.nexo-av-theme [class*="DropdownMenuContent"],
-body.nexo-av-theme-dark [class*="DropdownMenuContent"] {
+body.nexo-av-theme-dark [class*="DropdownMenuContent"],
+body.nexo-av-theme .data-list__dropdown-content,
+body.nexo-av-theme-dark .data-list__dropdown-content {
   z-index: 9999 !important;
   background-color: hsl(var(--card)) !important;
   border: 1px solid hsl(var(--border)) !important;
@@ -3741,14 +3791,20 @@ body.nexo-av-theme-dark [class*="DropdownMenuContent"] {
 
 /* DropdownMenuItem */
 body.nexo-av-theme [class*="DropdownMenuItem"],
-body.nexo-av-theme-dark [class*="DropdownMenuItem"] {
+body.nexo-av-theme-dark [class*="DropdownMenuItem"],
+body.nexo-av-theme .data-list__dropdown-item,
+body.nexo-av-theme-dark .data-list__dropdown-item {
   z-index: 9999 !important;
   cursor: pointer !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 body.nexo-av-theme [class*="DropdownMenuItem"]:hover,
-body.nexo-av-theme-dark [class*="DropdownMenuItem"]:hover {
+body.nexo-av-theme-dark [class*="DropdownMenuItem"]:hover,
+body.nexo-av-theme .data-list__dropdown-item:hover,
+body.nexo-av-theme-dark .data-list__dropdown-item:hover {
   background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
 }
 
 /* AlertDialog en página de detalle */
