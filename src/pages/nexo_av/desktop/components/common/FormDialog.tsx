@@ -7,92 +7,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, ChevronDown } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import DetailActionButton, { DetailActionType } from "../navigation/DetailActionButton";
 import "../../styles/components/common/form-dialog.css";
-
-// ============= INLINE SELECT =============
-interface InlineSelectProps {
-  label?: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-  placeholder?: string;
-  required?: boolean;
-  disabled?: boolean;
-  error?: boolean;
-  errorMessage?: string;
-}
-
-const InlineSelect = ({
-  label,
-  value,
-  onChange,
-  options,
-  placeholder = "Seleccionar...",
-  required,
-  disabled,
-  error,
-  errorMessage,
-}: InlineSelectProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const selected = options.find(o => o.value === value);
-
-  return (
-    <div className="space-y-1.5 w-full">
-      {label && (
-        <Label className={cn("text-xs font-medium", error ? "text-destructive" : "text-muted-foreground")}>
-          {label} {required && <span className="text-destructive">*</span>}
-        </Label>
-      )}
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => !disabled && setIsOpen(!isOpen)}
-          disabled={disabled}
-          className={cn(
-            "w-full h-11 px-4 flex items-center justify-between gap-2",
-            "bg-background border border-border rounded-xl text-sm",
-            "hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20",
-            "transition-all duration-200",
-            disabled && "opacity-50 cursor-not-allowed bg-muted",
-            error && "border-destructive",
-            !selected && "text-muted-foreground"
-          )}
-        >
-          <span className="truncate">{selected?.label || placeholder}</span>
-          <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", isOpen && "rotate-180")} />
-        </button>
-        {isOpen && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-            <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border rounded-xl shadow-lg max-h-60 overflow-y-auto">
-              {options.map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => { onChange(opt.value); setIsOpen(false); }}
-                  className={cn(
-                    "w-full px-4 py-2.5 text-left text-sm hover:bg-muted transition-colors",
-                    value === opt.value && "bg-primary/10 text-primary font-medium"
-                  )}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-      {error && errorMessage && <p className="text-xs text-destructive mt-1">{errorMessage}</p>}
-    </div>
-  );
-};
 
 // ============= TYPES =============
 export type FormFieldType = "text" | "email" | "tel" | "number" | "textarea" | "select" | "date";
@@ -246,17 +175,30 @@ export default function FormDialog({
     if (field.type === "select") {
       return (
         <div key={field.name} className={cn("form-dialog__field", colSpan === 2 && "form-dialog__field--full-width", field.className)}>
-          <InlineSelect
-            label={field.label}
-            value={fieldValue as string}
-            onChange={(value: string) => handleChange(field.name, value)}
-            options={field.options || []}
-            placeholder={field.placeholder}
-            required={field.required}
-            error={hasError}
-            errorMessage={hasError ? errors[field.name] : undefined}
-            disabled={field.disabled || loading || isSubmitting}
-          />
+          <div className="space-y-1.5 w-full">
+            {field.label && (
+              <Label className={cn("text-xs font-medium", hasError ? "text-destructive" : "text-muted-foreground")}>
+                {field.label} {field.required && <span className="text-destructive">*</span>}
+              </Label>
+            )}
+            <Select
+              value={fieldValue as string}
+              onValueChange={(value: string) => handleChange(field.name, value)}
+              disabled={field.disabled || loading || isSubmitting}
+            >
+              <SelectTrigger className={cn(hasError && "border-destructive")}>
+                <SelectValue placeholder={field.placeholder || "Seleccionar..."} />
+              </SelectTrigger>
+              <SelectContent>
+                {(field.options || []).map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {hasError && <p className="text-xs text-destructive mt-1">{errors[field.name]}</p>}
+          </div>
         </div>
       );
     }

@@ -7,7 +7,6 @@ import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 
 // Import components to showcase (only ones that still exist as shared)
 import StatusSelector from "../components/common/StatusSelector";
-import DropDown from "../components/common/DropDown";
 import UserInfo from "../components/common/UserInfo";
 import PlatformBrand from "../components/common/PlatformBrand";
 import LockedIndicator from "../components/common/LockedIndicator";
@@ -16,6 +15,7 @@ import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import DataList from "../components/common/DataList";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Component registry with metadata
 interface ComponentShowcase {
@@ -70,20 +70,21 @@ const DeveloperPage = () => {
       ),
     },
     {
-      name: "DropDown",
-      file: "components/common/DropDown.tsx",
-      description: "Dropdown simple para 2-7 opciones. Ocupa 100% del ancho del contenedor.",
+      name: "Select (shadcn/ui)",
+      file: "@/components/ui/select.tsx",
+      description: "Dropdown de selección de la librería shadcn/ui. Usa Radix UI.",
       component: (
         <div className="w-full">
-          <DropDown
-            value={dropdownValue}
-            onSelect={setDropdownValue}
-            options={[
-              { value: "option1", label: "Opción 1" },
-              { value: "option2", label: "Opción 2" },
-              { value: "option3", label: "Opción 3" },
-            ]}
-          />
+          <Select value={dropdownValue} onValueChange={setDropdownValue}>
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccionar..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="option1">Opción 1</SelectItem>
+              <SelectItem value="option2">Opción 2</SelectItem>
+              <SelectItem value="option3">Opción 3</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       ),
     },

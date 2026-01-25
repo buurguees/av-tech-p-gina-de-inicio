@@ -11,13 +11,19 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, Building2, MapPin, FileText, Users, ChevronDown } from "lucide-react";
+import { Loader2, Building2, MapPin, FileText, Users } from "lucide-react";
 import { PROJECT_STATUSES } from "@/constants/projectStatuses";
-import DropDown, { DropDownOption } from "../common/DropDown";
 import StatusSelector, { StatusOption } from "../common/StatusSelector";
 import { cn } from "@/lib/utils";
 
@@ -145,7 +151,7 @@ const EditProjectDialog = ({ open, onOpenChange, project, onSuccess }: EditProje
     return parts.join(" - ");
   }, [project.project_number, project.client_name, selectedClient, clientOrderNumber, projectCity, localName]);
 
-  const clientOptions: DropDownOption[] = useMemo(() => availableClients.map(client => ({ value: client.id, label: client.company_name })), [availableClients]);
+  const clientOptions = useMemo(() => availableClients.map(client => ({ value: client.id, label: client.company_name })), [availableClients]);
   const statusOptions: StatusOption[] = useMemo(() => PROJECT_STATUSES.map(status => ({ value: status.value, label: status.label, className: status.className })), []);
 
   useEffect(() => {
@@ -226,13 +232,22 @@ const EditProjectDialog = ({ open, onOpenChange, project, onSuccess }: EditProje
             <InlineFormSection title="Asignación" icon={<Users className="h-4 w-4" />} columns={2}>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Cliente <span className="text-destructive">*</span></label>
-                <DropDown
-                  options={clientOptions}
-                  value={form.watch("client_id")}
-                  onSelect={(value) => form.setValue("client_id", value, { shouldValidate: true })}
-                  placeholder={loadingClients ? "Cargando..." : "Seleccionar cliente..."}
+                <Select 
+                  value={form.watch("client_id")} 
+                  onValueChange={(value) => form.setValue("client_id", value, { shouldValidate: true })}
                   disabled={true}
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={loadingClients ? "Cargando..." : "Seleccionar cliente..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clientOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Estado</label>

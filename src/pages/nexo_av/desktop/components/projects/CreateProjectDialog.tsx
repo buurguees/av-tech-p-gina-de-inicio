@@ -8,10 +8,17 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Building2, MapPin, FileText, Users, ChevronDown } from "lucide-react";
+import { Building2, MapPin, FileText, Users } from "lucide-react";
 import { PROJECT_STATUSES } from "@/constants/projectStatuses";
 import StatusSelector, { StatusOption } from "../common/StatusSelector";
 import DetailActionButton from "../navigation/DetailActionButton";
@@ -56,66 +63,6 @@ const LabeledInput = ({ label, required, children }: LabeledInputProps) => (
     {children}
   </div>
 );
-
-// ============= INLINE DROPDOWN =============
-interface DropDownOption {
-  value: string;
-  label: string;
-}
-
-interface InlineDropDownProps {
-  options: DropDownOption[];
-  value: string;
-  onSelect: (value: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
-}
-
-const InlineDropDown = ({ options, value, onSelect, placeholder = "Seleccionar...", disabled }: InlineDropDownProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const selected = options.find(o => o.value === value);
-
-  return (
-    <div className="relative w-full">
-      <button
-        type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        disabled={disabled}
-        className={cn(
-          "w-full h-11 px-4 flex items-center justify-between gap-2",
-          "bg-background border border-border rounded-xl text-sm",
-          "hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20",
-          "transition-all duration-200",
-          disabled && "opacity-50 cursor-not-allowed bg-muted",
-          !selected && "text-muted-foreground"
-        )}
-      >
-        <span className="truncate">{selected?.label || placeholder}</span>
-        <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", isOpen && "rotate-180")} />
-      </button>
-      {isOpen && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border rounded-xl shadow-lg max-h-60 overflow-y-auto">
-            {options.map(opt => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => { onSelect(opt.value); setIsOpen(false); }}
-                className={cn(
-                  "w-full px-4 py-2.5 text-left text-sm hover:bg-muted transition-colors",
-                  value === opt.value && "bg-primary/10 text-primary font-medium"
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
 
 // ============= MAIN COMPONENT =============
 interface Client {
@@ -170,8 +117,8 @@ const CreateProjectDialog = ({
     return parts.join(" - ");
   }, [selectedClient, clientOrderNumber, projectCity, localName]);
 
-  // Convert clients to options
-  const clientOptions: DropDownOption[] = useMemo(() => availableClients.map(client => ({ value: client.id, label: client.company_name })), [availableClients]);
+  // Convert clients to options for Select
+  const clientOptions = useMemo(() => availableClients.map(client => ({ value: client.id, label: client.company_name })), [availableClients]);
 
   // Convert PROJECT_STATUSES to StatusSelector options
   const statusOptions: StatusOption[] = useMemo(() => PROJECT_STATUSES.map(s => ({ value: s.value, label: s.label, className: s.className })), []);
@@ -259,13 +206,22 @@ const CreateProjectDialog = ({
                 <label className="text-xs font-medium text-muted-foreground">
                   Cliente <span className="text-destructive">*</span>
                 </label>
-                <InlineDropDown
-                  options={clientOptions}
-                  value={clientId}
-                  onSelect={setClientId}
-                  placeholder={loadingClients ? "Cargando..." : "Seleccionar cliente..."}
+                <Select 
+                  value={clientId} 
+                  onValueChange={setClientId}
                   disabled={!!preselectedClientId || loadingClients}
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={loadingClients ? "Cargando..." : "Seleccionar cliente..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clientOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Estado inicial</label>
