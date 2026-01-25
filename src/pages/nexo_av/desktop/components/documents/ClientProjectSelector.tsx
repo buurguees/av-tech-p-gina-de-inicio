@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Building2, FolderOpen, Search, ChevronDown, Check, Loader2 } from "lucide-react";
+import { Building2, FolderOpen, Search, ChevronDown, Check, Loader2, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
 
@@ -54,15 +53,23 @@ const InlineSearchableDropdown = ({
 
   const selectedOption = options.find((opt) => opt.value === value);
 
-  const filteredOptions = options.filter((opt) => {
-    const searchText = `${opt.label} ${opt.secondaryLabel || ""}`.toLowerCase();
-    return searchText.includes(searchQuery.toLowerCase());
-  });
+  const filteredOptions = useMemo(() => {
+    if (!searchQuery.trim()) return options;
+    const q = searchQuery.toLowerCase();
+    return options.filter((opt) => {
+      const searchText = `${opt.label} ${opt.secondaryLabel || ""}`.toLowerCase();
+      return searchText.includes(q);
+    });
+  }, [options, searchQuery]);
 
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
-    setDropdownPosition({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+    setDropdownPosition({ 
+      top: rect.bottom + 4, 
+      left: rect.left, 
+      width: Math.max(rect.width, 320) 
+    });
   }, []);
 
   const handleOpen = useCallback(() => {
@@ -79,7 +86,7 @@ const InlineSearchableDropdown = ({
 
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
-      setTimeout(() => searchInputRef.current?.focus(), 10);
+      setTimeout(() => searchInputRef.current?.focus(), 50);
     }
   }, [isOpen]);
 
@@ -125,63 +132,72 @@ const InlineSearchableDropdown = ({
         type="button"
         disabled={disabled || loading}
         onClick={isOpen ? handleClose : handleOpen}
+        style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}
         className={cn(
-          "w-full min-h-[44px] px-4 py-2.5 flex items-center justify-between gap-3",
-          "bg-background border border-border rounded-xl",
+          "w-full h-11 px-4 flex items-center gap-3",
+          "bg-background border border-border rounded-lg",
           "text-sm font-medium",
           "hover:border-primary/50 hover:bg-accent/30",
           "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-          "transition-all duration-150",
-          (disabled || loading) && "opacity-50 cursor-not-allowed bg-muted hover:bg-muted",
+          "transition-all duration-200",
+          (disabled || loading) && "opacity-50 cursor-not-allowed disabled:bg-muted disabled:hover:bg-muted",
           !selectedOption && "text-muted-foreground"
         )}
       >
         {loading ? (
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <span className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Cargando...</span>
-          </div>
-        ) : (
-          <span className="truncate flex-1 text-left">
-            {selectedOption ? (
-              <span className="flex items-center gap-2">
-                {selectedOption.secondaryLabel && (
-                  <span className="font-mono text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                    {selectedOption.secondaryLabel}
-                  </span>
-                )}
-                <span className="text-foreground">{selectedOption.label}</span>
-              </span>
-            ) : (
-              placeholder
-            )}
+            Cargando...
           </span>
+        ) : selectedOption ? (
+          <span className="flex items-center gap-2 flex-1 min-w-0 text-left">
+            {selectedOption.secondaryLabel && (
+              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-md font-mono flex-shrink-0">
+                {selectedOption.secondaryLabel}
+              </span>
+            )}
+            <span className="truncate">{selectedOption.label}</span>
+          </span>
+        ) : (
+          <span className="flex-1 min-w-0 text-left text-muted-foreground">{placeholder}</span>
         )}
-        <ChevronDown className={cn("w-5 h-5 text-muted-foreground transition-transform flex-shrink-0", isOpen && "rotate-180")} />
+        <ChevronsUpDown className={cn("h-4 w-4 text-muted-foreground flex-shrink-0 transition-transform", isOpen && "rotate-180")} />
       </button>
 
       {isOpen && dropdownPosition && createPortal(
         <div
           ref={dropdownRef}
-          className="fixed z-[9999] bg-popover border border-border rounded-xl shadow-2xl overflow-hidden"
-          style={{ top: `${dropdownPosition.top}px`, left: `${dropdownPosition.left}px`, width: `${Math.max(dropdownPosition.width, 280)}px`, maxHeight: "280px" }}
+          style={{
+            position: "fixed",
+            top: dropdownPosition.top,
+            left: dropdownPosition.left,
+            width: dropdownPosition.width,
+            zIndex: 9999
+          }}
+          className="bg-popover border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150"
         >
-          <div className="p-2 border-b border-border bg-muted/30">
+          {/* Search input */}
+          <div className="p-2 border-b border-border bg-muted/20">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
                 ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={searchPlaceholder}
-                className="pl-9"
+                style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}
+                className="w-full h-10 pl-10 pr-4 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
             </div>
           </div>
-          <div className="overflow-y-auto overscroll-contain" style={{ maxHeight: "220px" }}>
+
+          {/* Options list */}
+          <div className="max-h-64 overflow-y-auto overscroll-contain">
             {filteredOptions.length === 0 ? (
-              <div className="px-4 py-3 text-sm text-muted-foreground text-center">{emptyMessage}</div>
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                {emptyMessage}
+              </div>
             ) : (
               filteredOptions.map((opt) => {
                 const isSelected = opt.value === value;
@@ -191,17 +207,18 @@ const InlineSearchableDropdown = ({
                     type="button"
                     onClick={() => handleSelect(opt.value)}
                     className={cn(
-                      "w-full flex items-center justify-between gap-2 px-4 py-3",
-                      "text-sm text-left transition-colors",
+                      "w-full px-4 py-3 flex items-center gap-3 text-left text-sm transition-colors duration-100",
                       "hover:bg-accent/50",
                       isSelected && "bg-primary/10 text-primary font-medium"
                     )}
                   >
-                    <span className="flex items-center gap-2 truncate">
-                      {opt.secondaryLabel && <span className="font-mono text-xs opacity-60 flex-shrink-0">{opt.secondaryLabel}</span>}
-                      <span className="truncate">{opt.label}</span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block truncate">{opt.label}</span>
+                      {opt.secondaryLabel && (
+                        <span className="block text-xs text-muted-foreground truncate">{opt.secondaryLabel}</span>
+                      )}
                     </span>
-                    {isSelected && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
+                    {isSelected && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
                   </button>
                 );
               })
