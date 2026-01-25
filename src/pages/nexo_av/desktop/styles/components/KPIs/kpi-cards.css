@@ -1,6 +1,7 @@
 /* ============================================
    KPI CARDS - Component Styles
    Key Performance Indicator card styling
+   Mejorado: Mayor espaciado y legibilidad
    ============================================ */
 
 /* KPI card base styling */
@@ -8,39 +9,40 @@ body.nexo-av-theme [class*="kpi-card"],
 body.nexo-av-theme-dark [class*="kpi-card"] {
   background-color: hsl(var(--card)) !important;
   border: 1px solid hsl(var(--border)) !important;
-  border-radius: 8px !important;
-  box-shadow: var(--shadow-xs) !important;
-  transition: box-shadow 0.2s ease !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s ease !important;
 }
 
 body.nexo-av-theme [class*="kpi-card"]:hover,
 body.nexo-av-theme-dark [class*="kpi-card"]:hover {
-  box-shadow: var(--shadow-sm) !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.06) !important;
+  transform: translateY(-1px);
 }
 
-/* KPI card sizes */
+/* KPI card sizes - Mayor padding */
 body.nexo-av-theme [class*="kpi-card-small"],
 body.nexo-av-theme-dark [class*="kpi-card-small"],
 body.nexo-av-theme [data-kpi-size="small"],
 body.nexo-av-theme-dark [data-kpi-size="small"] {
-  padding: 0.75rem !important;
-  min-height: 80px !important;
+  padding: 1rem !important;
+  min-height: 90px !important;
 }
 
 body.nexo-av-theme [class*="kpi-card-medium"],
 body.nexo-av-theme-dark [class*="kpi-card-medium"],
 body.nexo-av-theme [data-kpi-size="medium"],
 body.nexo-av-theme-dark [data-kpi-size="medium"] {
-  padding: 1rem !important;
-  min-height: 120px !important;
+  padding: 1.25rem !important;
+  min-height: 130px !important;
 }
 
 body.nexo-av-theme [class*="kpi-card-large"],
 body.nexo-av-theme-dark [class*="kpi-card-large"],
 body.nexo-av-theme [data-kpi-size="large"],
 body.nexo-av-theme-dark [data-kpi-size="large"] {
-  padding: 1.25rem !important;
-  min-height: 150px !important;
+  padding: 1.5rem !important;
+  min-height: 160px !important;
 }
 
 /* KPI value text - escala proporcional */

@@ -76,52 +76,52 @@
   min-width: fit-content;
 }
 
-/* Hover state - Igual que sidebar */
-/* Light theme - hover negro con texto blanco */
-body.nexo-av-theme .tab-nav__button:hover {
-  background-color: #000000 !important;
-  color: #ffffff !important;
+/* Hover state - Sutil y elegante */
+/* Light theme - hover con fondo suave */
+body.nexo-av-theme .tab-nav__button:hover:not(.tab-nav__button--active) {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
-body.nexo-av-theme .tab-nav__button:hover .tab-nav__icon {
-  color: #ffffff !important;
+body.nexo-av-theme .tab-nav__button:hover:not(.tab-nav__button--active) .tab-nav__icon {
+  color: hsl(var(--foreground)) !important;
 }
 
-/* Dark theme - hover blanco con texto negro */
-body.nexo-av-theme-dark .tab-nav__button:hover {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+/* Dark theme - hover con fondo sutil */
+body.nexo-av-theme-dark .tab-nav__button:hover:not(.tab-nav__button--active) {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
-body.nexo-av-theme-dark .tab-nav__button:hover .tab-nav__icon {
-  color: #000000 !important;
+body.nexo-av-theme-dark .tab-nav__button:hover:not(.tab-nav__button--active) .tab-nav__icon {
+  color: hsl(var(--foreground)) !important;
 }
 
-/* Active state - Igual que sidebar */
-/* Light theme - activo negro con texto blanco */
+/* Active state - Destacado pero profesional */
+/* Light theme - activo con fondo sólido */
 body.nexo-av-theme .tab-nav__button--active {
-  background-color: #000000 !important;
-  color: #ffffff !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
   border-bottom-color: transparent !important;
-  /* Sin borde inferior cuando está activo, el fondo ya lo indica */
   font-weight: 600 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 body.nexo-av-theme .tab-nav__button--active .tab-nav__icon {
-  color: #ffffff !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 
-/* Dark theme - activo blanco con texto negro */
+/* Dark theme - activo con contraste */
 body.nexo-av-theme-dark .tab-nav__button--active {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
   border-bottom-color: transparent !important;
-  /* Sin borde inferior cuando está activo, el fondo ya lo indica */
   font-weight: 600 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 body.nexo-av-theme-dark .tab-nav__button--active .tab-nav__icon {
-  color: #000000 !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 
 /* Icono */

@@ -2,6 +2,7 @@
    DATA LIST
    Componente reutilizable de listado con columnas responsivas
    Las columnas se filtran dinámicamente en JS según prioridad
+   Mejorado: Mayor legibilidad, espaciado profesional
    ============================================ */
 
 .data-list {
@@ -11,26 +12,24 @@
   border: 1px solid hsl(var(--border));
   border-radius: 0.75rem;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
-  /* Evitar scroll horizontal */
   overflow-x: hidden;
   height: 100%;
   max-height: 100%;
 }
 
-/* Header */
+/* Header - Más prominente y profesional */
 .data-list__header {
   display: grid;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: hsl(var(--muted) / 0.3);
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  background: hsl(var(--muted) / 0.4);
   border-bottom: 1px solid hsl(var(--border));
   align-items: center;
   width: 100%;
   max-width: 100%;
-  /* Evitar overflow */
   min-width: 0;
   overflow: hidden;
   position: sticky;
@@ -42,9 +41,9 @@
 .data-list__header-cell {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
-  font-size: 0.6875rem;
-  font-weight: 500;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
   color: hsl(var(--text-secondary));
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -114,20 +113,19 @@
   min-height: 0;
 }
 
+/* Filas - Más altura y espaciado profesional */
 .data-list__row {
   display: grid;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid hsl(var(--border) / 0.5);
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.4);
   align-items: center;
-  transition: background-color 0.15s ease;
+  transition: all 0.2s ease;
   width: 100%;
   max-width: 100%;
-  /* Evitar overflow */
   min-width: 0;
   overflow: hidden;
-  /* Altura fija para todas las filas */
-  min-height: 48px;
+  min-height: 56px;
   height: auto;
 }
 
@@ -136,7 +134,7 @@
 }
 
 .data-list__row:hover {
-  background: hsl(var(--accent) / 0.05);
+  background: hsl(var(--accent) / 0.08);
 }
 
 .data-list__row--clickable {
@@ -144,23 +142,25 @@
 }
 
 .data-list__row--clickable:hover {
-  background: hsl(var(--accent) / 0.1);
+  background: hsl(var(--primary) / 0.04);
 }
 
+/* Celdas - Tamaño de fuente mejorado (13px) */
 .data-list__cell {
   display: flex;
   align-items: center;
   min-width: 0;
-  font-size: 0.6875rem; /* 11px - tamaño estándar para todos los listados */
+  font-size: 0.8125rem;
+  line-height: 1.5;
   color: hsl(var(--foreground));
   overflow: hidden;
-  /* Asegurar que el contenido se trunque con ellipsis */
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .data-list__cell--bold {
   font-weight: 600;
+  color: hsl(var(--foreground));
 }
 
 .data-list__cell--bold .data-list__cell-content,

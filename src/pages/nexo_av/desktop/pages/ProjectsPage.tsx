@@ -394,144 +394,134 @@ const ProjectsPageDesktop = () => {
           {/* Main Content - Ocupa todo el ancho disponible */}
           <div className="flex-1 min-w-0 w-full flex flex-col overflow-hidden">
             <div className="flex flex-col h-full overflow-hidden">
-              {/* KPIs Cards - Recuento por Estado - Optimizado */}
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-3 flex-shrink-0">
-                <div className="bg-card/50 border border-border rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1 bg-blue-500/10 rounded text-blue-600">
-                      <Clock className="h-3.5 w-3.5" />
+              {/* KPIs Cards - Recuento por Estado - Mejorado */}
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-3 mb-4 flex-shrink-0">
+                <div className="bg-card border border-border rounded-xl p-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="p-1.5 bg-blue-500/10 rounded-lg text-blue-600">
+                      <Clock className="h-4 w-4" />
                     </div>
                     <span className="text-muted-foreground text-xs font-medium">Planificados</span>
                   </div>
-                  <div>
-                    <span className="text-lg font-bold text-foreground">
-                      {projectKPIs.byStatus['PLANNED'] || 0}
-                    </span>
-                  </div>
+                  <span className="text-xl font-bold text-foreground">
+                    {projectKPIs.byStatus['PLANNED'] || 0}
+                  </span>
                 </div>
 
-                <div className="bg-card/50 border border-border rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1 bg-yellow-500/10 rounded text-yellow-600">
-                      <FolderKanban className="h-3.5 w-3.5" />
+                <div className="bg-card border border-border rounded-xl p-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="p-1.5 bg-yellow-500/10 rounded-lg text-yellow-600">
+                      <FolderKanban className="h-4 w-4" />
                     </div>
                     <span className="text-muted-foreground text-xs font-medium">En Progreso</span>
                   </div>
-                  <div>
-                    <span className="text-lg font-bold text-foreground">
-                      {projectKPIs.byStatus['IN_PROGRESS'] || 0}
-                    </span>
-                  </div>
+                  <span className="text-xl font-bold text-foreground">
+                    {projectKPIs.byStatus['IN_PROGRESS'] || 0}
+                  </span>
                 </div>
 
-                <div className="bg-card/50 border border-border rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1 bg-orange-500/10 rounded text-orange-600">
-                      <AlertCircle className="h-3.5 w-3.5" />
+                <div className="bg-card border border-border rounded-xl p-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="p-1.5 bg-orange-500/10 rounded-lg text-orange-600">
+                      <AlertCircle className="h-4 w-4" />
                     </div>
                     <span className="text-muted-foreground text-xs font-medium">Pausados</span>
                   </div>
-                  <div>
-                    <span className="text-lg font-bold text-foreground">
-                      {projectKPIs.byStatus['PAUSED'] || 0}
-                    </span>
-                  </div>
+                  <span className="text-xl font-bold text-foreground">
+                    {projectKPIs.byStatus['PAUSED'] || 0}
+                  </span>
                 </div>
 
-                <div className="bg-card/50 border border-border rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1 bg-green-500/10 rounded text-green-600">
-                      <CheckCircle className="h-3.5 w-3.5" />
+                <div className="bg-card border border-border rounded-xl p-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="p-1.5 bg-green-500/10 rounded-lg text-green-600">
+                      <CheckCircle className="h-4 w-4" />
                     </div>
                     <span className="text-muted-foreground text-xs font-medium">Completados</span>
                   </div>
-                  <div>
-                    <span className="text-lg font-bold text-foreground">
-                      {projectKPIs.byStatus['COMPLETED'] || 0}
-                    </span>
-                  </div>
+                  <span className="text-xl font-bold text-foreground">
+                    {projectKPIs.byStatus['COMPLETED'] || 0}
+                  </span>
                 </div>
 
-                <div className="bg-card/50 border border-border rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1 bg-red-500/10 rounded text-red-600">
-                      <XCircle className="h-3.5 w-3.5" />
+                <div className="bg-card border border-border rounded-xl p-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="p-1.5 bg-red-500/10 rounded-lg text-red-600">
+                      <XCircle className="h-4 w-4" />
                     </div>
                     <span className="text-muted-foreground text-xs font-medium">Cancelados</span>
                   </div>
-                  <div>
-                    <span className="text-lg font-bold text-foreground">
-                      {projectKPIs.byStatus['CANCELLED'] || 0}
-                    </span>
-                  </div>
+                  <span className="text-xl font-bold text-foreground">
+                    {projectKPIs.byStatus['CANCELLED'] || 0}
+                  </span>
                 </div>
               </div>
 
-              {/* KPIs Cards - Métricas Financieras - Optimizado */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 flex-shrink-0">
-                <div className="bg-card/50 border border-border rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1 bg-green-500/10 rounded text-green-600">
-                      <Euro className="h-3.5 w-3.5" />
+              {/* KPIs Cards - Métricas Financieras - Mejorado */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 flex-shrink-0">
+                <div className="bg-card border border-border rounded-xl p-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="p-1.5 bg-green-500/10 rounded-lg text-green-600">
+                      <Euro className="h-4 w-4" />
                     </div>
                     <span className="text-muted-foreground text-xs font-medium">Facturación Total</span>
                   </div>
-                  <div>
-                    <span className="text-base font-bold text-foreground">
+                  <div className="flex flex-col">
+                    <span className="text-lg font-bold text-foreground">
                       {formatCurrency(projectKPIs.totalRevenue)}
                     </span>
-                    <span className="text-[10px] text-muted-foreground ml-1 block">
+                    <span className="text-xs text-muted-foreground mt-0.5">
                       proyectos facturados
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-card/50 border border-border rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1 bg-orange-500/10 rounded text-orange-600">
-                      <Euro className="h-3.5 w-3.5" />
+                <div className="bg-card border border-border rounded-xl p-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="p-1.5 bg-orange-500/10 rounded-lg text-orange-600">
+                      <Euro className="h-4 w-4" />
                     </div>
                     <span className="text-muted-foreground text-xs font-medium">Costes Total</span>
                   </div>
-                  <div>
-                    <span className="text-base font-bold text-foreground">
+                  <div className="flex flex-col">
+                    <span className="text-lg font-bold text-foreground">
                       {formatCurrency(projectKPIs.totalCosts)}
                     </span>
-                    <span className="text-[10px] text-muted-foreground ml-1 block">
+                    <span className="text-xs text-muted-foreground mt-0.5">
                       compras/gastos
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-card/50 border border-border rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className={`p-1 rounded ${projectKPIs.profitability >= 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
-                      <TrendingUp className="h-3.5 w-3.5" />
+                <div className="bg-card border border-border rounded-xl p-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className={`p-1.5 rounded-lg ${projectKPIs.profitability >= 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'}`}>
+                      <TrendingUp className="h-4 w-4" />
                     </div>
                     <span className="text-muted-foreground text-xs font-medium">Rentabilidad</span>
                   </div>
-                  <div>
-                    <span className={`text-base font-bold ${projectKPIs.profitability >= 0 ? 'text-foreground' : 'text-red-600'}`}>
+                  <div className="flex flex-col">
+                    <span className={`text-lg font-bold ${projectKPIs.profitability >= 0 ? 'text-foreground' : 'text-destructive'}`}>
                       {formatCurrency(projectKPIs.profitability)}
                     </span>
-                    <span className="text-[10px] text-muted-foreground ml-1 block">
+                    <span className="text-xs text-muted-foreground mt-0.5">
                       margen: {projectKPIs.profitMargin.toFixed(1)}%
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-card/50 border border-border rounded-lg p-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="p-1 bg-purple-500/10 rounded text-purple-600">
-                      <BarChart3 className="h-3.5 w-3.5" />
+                <div className="bg-card border border-border rounded-xl p-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="p-1.5 bg-purple-500/10 rounded-lg text-purple-600">
+                      <BarChart3 className="h-4 w-4" />
                     </div>
                     <span className="text-muted-foreground text-xs font-medium">Facturación Media</span>
                   </div>
-                  <div>
-                    <span className="text-base font-bold text-foreground">
+                  <div className="flex flex-col">
+                    <span className="text-lg font-bold text-foreground">
                       {formatCurrency(projectKPIs.avgProjectValue)}
                     </span>
-                    <span className="text-[10px] text-muted-foreground ml-1 block">
+                    <span className="text-xs text-muted-foreground mt-0.5">
                       por proyecto
                     </span>
                   </div>
