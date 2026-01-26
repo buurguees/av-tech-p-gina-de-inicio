@@ -20,7 +20,8 @@ import {
   Wrench,
   Truck,
   BookOpen,
-  Code2
+  Code2,
+  UserCog
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import "../../styles/components/layout/sidebar.css";
@@ -155,6 +156,20 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           icon: DollarSign,
           path: `/nexo-av/${userId}/expenses`,
           available: isAdminOrManager,
+        },
+      ],
+    },
+    {
+      id: 'rrhh',
+      title: 'RRHH',
+      icon: UserCog,
+      items: [
+        {
+          id: 'partners',
+          title: 'Socios',
+          icon: Users,
+          path: `/nexo-av/${userId}/partners`,
+          available: isAdmin,
         },
       ],
     },
