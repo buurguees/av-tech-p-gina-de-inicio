@@ -124,121 +124,142 @@ body.nexo-av-theme {
 }
 
 /* ============================================
-   DARK THEME
+   DARK THEME (refinado: carbón + azul acento)
    ============================================ */
 body.nexo-av-theme-dark {
-  /* Background & Surface Colors */
-  --background: 224 14% 10%;
-  --foreground: 220 14% 96%;
-  --card: 224 14% 12%;
-  --card-foreground: 220 14% 96%;
-  --popover: 224 14% 12%;
-  --popover-foreground: 220 14% 96%;
+  /* Background & Surface Colors (más carbón, menos azul) */
+  --background: 220 10% 6%;
+  --foreground: 220 15% 96%;
 
-  /* Primary - Lighter blue for contrast */
-  --primary: 217 91% 60%;
-  --primary-foreground: 224 14% 10%;
+  --card: 220 10% 9%;
+  --card-foreground: 220 15% 96%;
 
-  /* Secondary */
-  --secondary: 224 14% 18%;
-  --secondary-foreground: 220 14% 96%;
+  --popover: 220 10% 10%;
+  --popover-foreground: 220 15% 96%;
 
-  /* Muted */
-  --muted: 224 14% 16%;
-  --muted-foreground: 220 9% 60%;
+  /* Primary (azul más estable para UI) */
+  --primary: 217 92% 62%;
+  --primary-foreground: 220 10% 8%;
 
-  /* Accent */
-  --accent: 224 14% 18%;
-  --accent-foreground: 220 14% 96%;
+  /* Secondary / Accent (superficies elevadas) */
+  --secondary: 220 10% 14%;
+  --secondary-foreground: 220 15% 96%;
 
-  /* Borders & Inputs */
-  --border: 224 14% 22%;
-  --input: 224 14% 18%;
-  --ring: 217 91% 60%;
+  --accent: 220 10% 16%;
+  --accent-foreground: 220 15% 96%;
 
-  /* Chart Colors */
-  --chart-1: 217 91% 65%;
-  --chart-2: 173 58% 50%;
-  --chart-3: 45 93% 55%;
-  --chart-4: 43 74% 55%;
-  --chart-5: 12 76% 65%;
+  /* Muted (fondos sutiles + texto muted más legible) */
+  --muted: 220 10% 12%;
+  --muted-foreground: 220 10% 68%;
+
+  /* Borders & Inputs (un poco más visibles y consistentes) */
+  --border: 220 10% 20%;
+  --input: 220 10% 14%;
+  --ring: 217 92% 62%;
+
+  /* Chart Colors (manteniendo espíritu pero armonizados) */
+  --chart-1: 217 92% 66%;
+  --chart-2: 173 62% 46%;
+  --chart-3: 45 92% 56%;
+  --chart-4: 35 80% 56%;
+  --chart-5: 10 78% 62%;
 
   /* Semantic Text Colors */
-  --text-primary: 220 14% 96%;
-  --text-secondary: 220 9% 60%;
-  --text-muted: 220 8% 50%;
+  --text-primary: 220 15% 96%;
+  --text-secondary: 220 10% 70%;
+  --text-muted: 220 8% 58%;
 
-  /* Sidebar */
-  --sidebar-background: 224 14% 8%;
-  --sidebar-foreground: 220 14% 96%;
-  --sidebar-primary: 217 91% 60%;
-  --sidebar-primary-foreground: 224 14% 10%;
-  --sidebar-accent: 224 14% 14%;
-  --sidebar-accent-foreground: 220 14% 96%;
-  --sidebar-border: 224 14% 20%;
-  --sidebar-ring: 217 91% 60%;
+  /* Sidebar (más oscuro que el fondo, pero sin “azul marino”) */
+  --sidebar-background: 220 10% 4%;
+  --sidebar-foreground: 220 15% 96%;
+  --sidebar-primary: 217 92% 62%;
+  --sidebar-primary-foreground: 220 10% 8%;
+  --sidebar-accent: 220 10% 10%;
+  --sidebar-accent-foreground: 220 15% 96%;
+  --sidebar-border: 220 10% 18%;
+  --sidebar-ring: 217 92% 62%;
 
-  /* Status Colors - Adjusted for dark mode */
-  --status-success: 142 71% 50%;
-  --status-success-bg: 142 50% 15%;
-  --status-warning: 38 92% 55%;
-  --status-warning-bg: 38 50% 15%;
-  --status-error: 0 84% 60%;
-  --status-error-bg: 0 50% 15%;
-  --status-info: 217 91% 65%;
-  --status-info-bg: 217 50% 15%;
-  --status-special: 262 83% 65%;
-  --status-special-bg: 262 50% 15%;
-  --status-neutral: 220 9% 55%;
-  --status-neutral-bg: 220 14% 18%;
+  /* Status Colors (ligeramente más “neón controlado”) */
+  --status-success: 142 70% 48%;
+  --status-success-bg: 142 45% 14%;
 
-  /* Purchase Invoice Document Status Colors - Dark Mode */
-  --purchase-doc-scanned: 213 10% 55%;
-  --purchase-doc-scanned-bg: 213 10% 18%;
-  --purchase-doc-draft: 205 79% 55%;
-  --purchase-doc-draft-bg: 205 50% 15%;
-  --purchase-doc-pending: 38 90% 50%;
-  --purchase-doc-pending-bg: 38 50% 15%;
+  --status-warning: 38 92% 56%;
+  --status-warning-bg: 38 45% 14%;
+
+  --status-error: 0 84% 62%;
+  --status-error-bg: 0 45% 14%;
+
+  --status-info: 217 92% 66%;
+  --status-info-bg: 217 45% 14%;
+
+  --status-special: 262 85% 68%;
+  --status-special-bg: 262 45% 14%;
+
+  --status-neutral: 220 10% 66%;
+  --status-neutral-bg: 220 10% 16%;
+
+  /* Purchase Invoice Document Status Colors */
+  --purchase-doc-scanned: 215 10% 64%;
+  --purchase-doc-scanned-bg: 220 10% 14%;
+
+  --purchase-doc-draft: 205 80% 60%;
+  --purchase-doc-draft-bg: 205 45% 14%;
+
+  --purchase-doc-pending: 38 90% 54%;
+  --purchase-doc-pending-bg: 38 45% 14%;
+
   --purchase-doc-approved: 145 65% 50%;
-  --purchase-doc-approved-bg: 145 50% 15%;
-  --purchase-doc-blocked: 4 78% 55%;
-  --purchase-doc-blocked-bg: 4 50% 15%;
+  --purchase-doc-approved-bg: 145 45% 14%;
 
-  /* Purchase Invoice Payment Status Colors - Dark Mode */
-  --purchase-pay-pending: 212 80% 55%;
-  --purchase-pay-pending-bg: 212 50% 15%;
-  --purchase-pay-overdue: 0 80% 55%;
-  --purchase-pay-overdue-bg: 0 50% 15%;
-  --purchase-pay-partial: 28 80% 50%;
-  --purchase-pay-partial-bg: 28 50% 15%;
-  --purchase-pay-paid: 142 65% 45%;
-  --purchase-pay-paid-bg: 142 50% 15%;
+  --purchase-doc-blocked: 4 78% 60%;
+  --purchase-doc-blocked-bg: 4 45% 14%;
 
-  /* Sales Invoice Document Status Colors - Dark Mode */
-  --sales-doc-draft: 205 79% 55%;
-  --sales-doc-draft-bg: 205 50% 15%;
-  --sales-doc-pending: 38 90% 50%;
-  --sales-doc-pending-bg: 38 50% 15%;
+  /* Purchase Invoice Payment Status Colors */
+  --purchase-pay-pending: 212 82% 60%;
+  --purchase-pay-pending-bg: 212 45% 14%;
+
+  --purchase-pay-overdue: 0 82% 60%;
+  --purchase-pay-overdue-bg: 0 45% 14%;
+
+  --purchase-pay-partial: 28 82% 54%;
+  --purchase-pay-partial-bg: 28 45% 14%;
+
+  --purchase-pay-paid: 142 65% 48%;
+  --purchase-pay-paid-bg: 142 45% 14%;
+
+  /* Sales Invoice Document Status Colors */
+  --sales-doc-draft: 205 80% 60%;
+  --sales-doc-draft-bg: 205 45% 14%;
+
+  --sales-doc-pending: 38 90% 54%;
+  --sales-doc-pending-bg: 38 45% 14%;
+
   --sales-doc-issued: 145 65% 50%;
-  --sales-doc-issued-bg: 145 50% 15%;
-  --sales-doc-cancelled: 213 10% 50%;
-  --sales-doc-cancelled-bg: 213 10% 18%;
-  --sales-doc-rectified: 270 50% 55%;
-  --sales-doc-rectified-bg: 270 50% 15%;
+  --sales-doc-issued-bg: 145 45% 14%;
 
-  /* Sales Invoice Collection Status Colors - Dark Mode */
-  --sales-collect-pending: 212 80% 55%;
-  --sales-collect-pending-bg: 212 50% 15%;
-  --sales-collect-overdue: 0 80% 55%;
-  --sales-collect-overdue-bg: 0 50% 15%;
-  --sales-collect-partial: 28 80% 50%;
-  --sales-collect-partial-bg: 28 50% 15%;
-  --sales-collect-collected: 142 65% 45%;
-  --sales-collect-collected-bg: 142 50% 15%;
+  --sales-doc-cancelled: 215 10% 60%;
+  --sales-doc-cancelled-bg: 220 10% 14%;
 
-  /* Shadows */
-  --shadow-xs: 0 1px 2px hsl(0 0% 0% / 0.2);
-  --shadow-sm: 0 2px 4px hsl(0 0% 0% / 0.25);
-  --shadow-md: 0 4px 12px hsl(0 0% 0% / 0.3);
-  --shadow-lg: 0 8px 24px hsl(0 0% 0% / 0.4);
+  --sales-doc-rectified: 270 55% 62%;
+  --sales-doc-rectified-bg: 270 45% 14%;
+
+  /* Sales Invoice Collection Status Colors */
+  --sales-collect-pending: 212 82% 60%;
+  --sales-collect-pending-bg: 212 45% 14%;
+
+  --sales-collect-overdue: 0 82% 60%;
+  --sales-collect-overdue-bg: 0 45% 14%;
+
+  --sales-collect-partial: 28 82% 54%;
+  --sales-collect-partial-bg: 28 45% 14%;
+
+  --sales-collect-collected: 142 65% 48%;
+  --sales-collect-collected-bg: 142 45% 14%;
+
+  /* Shadows (un poco más “profundo” para dark) */
+  --shadow-xs: 0 1px 2px hsl(0 0% 0% / 0.28);
+  --shadow-sm: 0 2px 6px hsl(0 0% 0% / 0.35);
+  --shadow-md: 0 6px 16px hsl(0 0% 0% / 0.45);
+  --shadow-lg: 0 12px 32px hsl(0 0% 0% / 0.55);
 }
+
