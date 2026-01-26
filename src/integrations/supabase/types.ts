@@ -1618,46 +1618,25 @@ export type Database = {
           setup_completed: boolean
         }[]
       }
-      list_bank_account_movements:
-        | {
-            Args: {
-              p_account_code: string
-              p_end_date?: string
-              p_start_date?: string
-            }
-            Returns: {
-              credit_amount: number
-              debit_amount: number
-              description: string
-              entry_date: string
-              entry_number: string
-              entry_type: string
-              id: string
-              reference_id: string
-              reference_type: string
-              running_balance: number
-            }[]
-          }
-        | {
-            Args: {
-              p_account_code: string
-              p_end_date?: string
-              p_limit?: number
-              p_start_date?: string
-            }
-            Returns: {
-              credit_amount: number
-              debit_amount: number
-              description: string
-              entry_date: string
-              entry_number: string
-              entry_type: string
-              id: string
-              reference_id: string
-              reference_type: string
-              running_balance: number
-            }[]
-          }
+      list_bank_account_movements: {
+        Args: {
+          p_account_code: string
+          p_end_date?: string
+          p_start_date?: string
+        }
+        Returns: {
+          credit_amount: number
+          debit_amount: number
+          description: string
+          entry_date: string
+          entry_number: string
+          entry_type: string
+          id: string
+          reference_id: string
+          reference_type: string
+          running_balance: number
+        }[]
+      }
       list_chart_of_accounts: {
         Args: { p_account_type?: string; p_only_active?: boolean }
         Returns: {
