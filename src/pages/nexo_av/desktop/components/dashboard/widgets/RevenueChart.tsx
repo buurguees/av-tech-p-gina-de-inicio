@@ -29,10 +29,7 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
                 setLoading(true);
                 
                 // Fetch all invoices once
-                const { data: invoicesData, error } = await supabase.rpc("finance_list_invoices", {
-                    p_search: null,
-                    p_status: null,
-                });
+                const { data: invoicesData, error } = await supabase.rpc("finance_list_invoices", {});
                 
                 if (error) throw error;
                 
