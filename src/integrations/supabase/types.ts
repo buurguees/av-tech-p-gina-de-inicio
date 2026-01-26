@@ -351,6 +351,18 @@ export type Database = {
         }
         Returns: string
       }
+      create_partner: {
+        Args: {
+          p_email?: string
+          p_full_name: string
+          p_phone?: string
+          p_tax_id?: string
+        }
+        Returns: {
+          partner_id: string
+          partner_number: string
+        }[]
+      }
       create_partner_compensation_run: {
         Args: {
           p_gross_amount: number
