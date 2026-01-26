@@ -52,6 +52,7 @@ import { Badge } from "@/components/ui/badge";
 import CreatePayrollDialog from "../components/accounting/CreatePayrollDialog";
 import CreatePartnerCompensationDialog from "../components/accounting/CreatePartnerCompensationDialog";
 import CreatePayrollPaymentDialog from "../components/accounting/CreatePayrollPaymentDialog";
+import JournalEntryRow from "../components/accounting/JournalEntryRow";
 
 interface BalanceSheetItem {
   account_code: string;
@@ -1366,64 +1367,55 @@ const AccountingPage = () => {
         <TabsContent value="journal" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Libro Diario - Asientos Contables</CardTitle>
-              <CardDescription>
-                Del {format(new Date(periodDates.start), "dd/MM/yyyy")} al {format(new Date(periodDates.end), "dd/MM/yyyy")}
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Libro Diario - Asientos Contables</CardTitle>
+                  <CardDescription>
+                    Del {format(new Date(periodDates.start), "dd/MM/yyyy")} al {format(new Date(periodDates.end), "dd/MM/yyyy")} · {journalEntries.length} asientos
+                  </CardDescription>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <span className="mr-4">Total DEBE: <span className="font-semibold text-foreground">{formatCurrency(journalEntries.reduce((sum, e) => sum + e.total_debit, 0))}</span></span>
+                  <span>Total HABER: <span className="font-semibold text-foreground">{formatCurrency(journalEntries.reduce((sum, e) => sum + e.total_credit, 0))}</span></span>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Nº Asiento</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Descripción</TableHead>
-                    <TableHead className="text-right">DEBE</TableHead>
-                    <TableHead className="text-right">HABER</TableHead>
-                    <TableHead>Documento</TableHead>
-                    <TableHead>Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {journalEntries.map((entry) => (
-                    <TableRow key={entry.id}>
-                      <TableCell>{format(new Date(entry.entry_date), "dd/MM/yyyy")}</TableCell>
-                      <TableCell className="font-mono">{entry.entry_number}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{getEntryTypeLabel(entry.entry_type)}</Badge>
-                      </TableCell>
-                      <TableCell>{entry.description}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(entry.total_debit)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(entry.total_credit)}</TableCell>
-                      <TableCell>
-                        {entry.reference_type && entry.reference_id ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewDocument(entry.reference_type, entry.reference_id)}
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            Ver
-                          </Button>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {entry.is_locked ? (
-                          <Badge variant="secondary">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Bloqueado
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline">Abierto</Badge>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              {journalEntries.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">No hay asientos contables en el período seleccionado</p>
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="w-[30px]"></TableHead>
+                        <TableHead className="w-[90px]">Fecha</TableHead>
+                        <TableHead className="w-[120px]">Nº Asiento</TableHead>
+                        <TableHead className="w-[130px]">Tipo</TableHead>
+                        <TableHead>Descripción</TableHead>
+                        <TableHead className="text-right w-[100px]">DEBE</TableHead>
+                        <TableHead className="text-right w-[100px]">HABER</TableHead>
+                        <TableHead className="w-[80px]">Doc.</TableHead>
+                        <TableHead className="w-[100px]">Estado</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {journalEntries.map((entry) => (
+                        <JournalEntryRow
+                          key={entry.id}
+                          entry={entry}
+                          formatCurrency={formatCurrency}
+                          getEntryTypeLabel={getEntryTypeLabel}
+                          onViewDocument={handleViewDocument}
+                        />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
