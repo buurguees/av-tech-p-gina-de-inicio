@@ -275,24 +275,34 @@ const AccountingPage = () => {
   const [createCompensationDialogOpen, setCreateCompensationDialogOpen] = useState(false);
   const [createPaymentDialogOpen, setCreatePaymentDialogOpen] = useState(false);
 
-  // Cálculos del dashboard
+  // Cálculos del dashboard - usando datos reales
   const totalRevenue = profitLoss
     .filter((item) => item.account_type === "REVENUE")
     .reduce((sum, item) => sum + item.amount, 0);
 
+  // Gastos operativos (excluyendo provisiones de IS - cuenta 630xxx)
+  const operatingExpenses = profitLoss
+    .filter((item) => item.account_type === "EXPENSE" && !item.account_code.startsWith("630"))
+    .reduce((sum, item) => sum + item.amount, 0);
+
+  // Total gastos incluyendo provisiones
   const totalExpenses = profitLoss
     .filter((item) => item.account_type === "EXPENSE")
     .reduce((sum, item) => sum + item.amount, 0);
 
-  const profitBeforeTax = totalRevenue - totalExpenses;
+  // BAI = Ingresos - Gastos Operativos (antes de IS)
+  const profitBeforeTax = totalRevenue - operatingExpenses;
   const corporateTax = corporateTaxSummary?.tax_amount || 0;
   const netProfit = profitBeforeTax - corporateTax;
 
-  // Tesorería
-  const bankBalance = balanceSheet.find((item) => item.account_code === "572000")?.net_balance || 0;
+  // Tesorería - datos reales del balance
+  const bankBalance = balanceSheet.find((item) => item.account_code.startsWith("572"))?.net_balance || 0;
   const clientsPending = clientBalances.reduce((sum, c) => sum + Math.max(0, c.net_balance), 0);
   const suppliersPending = supplierBalances.reduce((sum, s) => sum + Math.max(0, Math.abs(s.net_balance)), 0);
-  const availableCash = bankBalance - suppliersPending;
+  const techniciansPending = supplierBalances
+    .filter(s => s.third_party_type === "TECHNICIAN")
+    .reduce((sum, t) => sum + Math.max(0, Math.abs(t.net_balance)), 0);
+  const availableCash = bankBalance - suppliersPending - techniciansPending;
 
   const fetchBalanceSheet = async () => {
     setLoading(true);
@@ -1080,12 +1090,12 @@ const AccountingPage = () => {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs font-medium">Gastos</CardTitle>
+                <CardTitle className="text-xs font-medium">Gastos Operativos</CardTitle>
                 <TrendingDown className="h-3 w-3 text-red-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-base font-bold text-red-600">{formatCurrency(totalExpenses)}</div>
-                <p className="text-[10px] text-muted-foreground">Período seleccionado</p>
+                <div className="text-base font-bold text-red-600">{formatCurrency(operatingExpenses)}</div>
+                <p className="text-[10px] text-muted-foreground">Sin provisiones IS</p>
               </CardContent>
             </Card>
 
