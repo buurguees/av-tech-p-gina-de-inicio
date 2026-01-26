@@ -708,11 +708,11 @@ const AccountingPage = () => {
   };
 
   return (
-    <div className="AccountingPage flex flex-col bg-background -m-6 w-[calc(100%+3rem)] h-[calc(100vh-3.25rem+3rem)]">
+    <div className="AccountingPage w-full h-full flex flex-col">
       {/* Contenedor principal con Sidebar y Contenido */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar fijo a la izquierda */}
-        <aside className="w-48 border-r bg-card flex-shrink-0 overflow-y-auto h-full">
+        <aside className="w-48 border-r bg-card/50 flex-shrink-0 overflow-y-auto">
           <nav className="p-3 space-y-1">
             <button
               onClick={() => setActiveTab("dashboard")}
@@ -877,8 +877,8 @@ const AccountingPage = () => {
         </aside>
 
         {/* Contenido central con scroll */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="w-full p-6 pb-8">
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="w-full">
             {/* Header - Estilo Dashboard */}
             <div className="flex items-center justify-between mb-6">
               <div>
