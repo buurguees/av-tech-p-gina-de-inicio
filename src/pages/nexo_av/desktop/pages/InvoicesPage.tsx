@@ -10,7 +10,12 @@ import PaginationControls from "../components/common/PaginationControls";
 import { useDebounce } from "@/hooks/useDebounce";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
-import { getFinanceStatusInfo, FINANCE_INVOICE_STATUSES } from "@/constants/financeStatuses";
+import {
+  getSalesDocumentStatusInfo,
+  calculateCollectionStatus,
+  getCollectionStatusInfo,
+  SALES_DOCUMENT_STATUSES,
+} from "@/constants/salesInvoiceStatuses";
 import DataList from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
 
@@ -45,7 +50,7 @@ interface Invoice {
 // Status options for the filter dropdown
 const INVOICE_STATUS_OPTIONS = [
   { value: "all", label: "Todos los estados" },
-  ...FINANCE_INVOICE_STATUSES,
+  ...SALES_DOCUMENT_STATUSES,
 ];
 
 const InvoicesPageDesktop = () => {
@@ -335,11 +340,38 @@ const InvoicesPageDesktop = () => {
                 align: "center",
                 priority: 2,
                 render: (invoice) => {
-                  const statusInfo = getFinanceStatusInfo(invoice.status);
+                  const docStatusInfo = getSalesDocumentStatusInfo(invoice.status);
                   return (
                     <div className="flex justify-center">
-                      <Badge variant="outline" className={cn(statusInfo.className, "border text-[11px] px-1.5 py-0.5 w-20 justify-center")}>
-                        {statusInfo.label}
+                      <Badge variant="outline" className={cn("sales-status-badge sales-status-badge--document", docStatusInfo.className)}>
+                        {docStatusInfo.label}
+                      </Badge>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: "collection_status",
+                label: "Cobros",
+                align: "center",
+                priority: 3,
+                render: (invoice) => {
+                  const collectionStatus = calculateCollectionStatus(
+                    invoice.paid_amount,
+                    invoice.total,
+                    invoice.due_date,
+                    invoice.status
+                  );
+                  const collectionInfo = getCollectionStatusInfo(collectionStatus);
+                  
+                  if (!collectionInfo) {
+                    return <span className="text-muted-foreground text-xs">—</span>;
+                  }
+                  
+                  return (
+                    <div className="flex justify-center">
+                      <Badge variant="outline" className={cn("sales-status-badge sales-status-badge--collection", collectionInfo.className)}>
+                        {collectionInfo.label}
                       </Badge>
                     </div>
                   );
