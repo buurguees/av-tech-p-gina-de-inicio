@@ -234,7 +234,8 @@ const FilePreview = ({ filePath }: { filePath: string }) => {
 };
 
 const PurchaseInvoiceDetailPageDesktop = () => {
-  const { userId, purchaseInvoiceId } = useParams<{ userId: string; purchaseInvoiceId: string }>();
+  const { userId, invoiceId } = useParams<{ userId: string; invoiceId: string }>();
+  const purchaseInvoiceId = invoiceId;
   const navigate = useNavigate();
   
   // State
