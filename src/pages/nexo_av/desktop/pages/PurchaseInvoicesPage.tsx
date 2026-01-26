@@ -634,6 +634,9 @@ const PurchaseInvoicesPageDesktop = () => {
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
+                      <TableHead className="text-muted-foreground text-xs font-medium w-[90px]">
+                        Vencimiento
+                      </TableHead>
                       <TableHead className="text-muted-foreground text-xs font-medium w-[80px]">
                         Pagos
                       </TableHead>
@@ -705,6 +708,14 @@ const PurchaseInvoicesPageDesktop = () => {
                                 {docStatusInfo.label}
                               </Badge>
                             </div>
+                          </TableCell>
+                          <TableCell className="text-sm py-3 w-[90px]">
+                            <span className={cn(
+                              "text-foreground",
+                              invoice.due_date && new Date(invoice.due_date) < new Date() && invoice.pending_amount > 0 && "text-destructive font-medium"
+                            )}>
+                              {formatDate(invoice.due_date)}
+                            </span>
                           </TableCell>
                           <TableCell className="py-3 w-[80px]">
                             {paymentStatusInfo ? (
