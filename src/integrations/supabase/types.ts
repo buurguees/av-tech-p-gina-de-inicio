@@ -1637,6 +1637,15 @@ export type Database = {
           running_balance: number
         }[]
       }
+      list_bank_accounts_with_balances: {
+        Args: { p_as_of_date?: string }
+        Returns: {
+          account_code: string
+          balance: number
+          bank_account_id: string
+          bank_name: string
+        }[]
+      }
       list_chart_of_accounts: {
         Args: { p_account_type?: string; p_only_active?: boolean }
         Returns: {
