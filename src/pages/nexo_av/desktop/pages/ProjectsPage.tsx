@@ -158,8 +158,9 @@ const ProjectsPageDesktop = () => {
       }
 
       // Calcular costes totales de proyectos (solo facturas de compra con project_id asignado, usando tax_base/subtotal)
+      // Incluir REGISTERED, APPROVED y PAID - excluir PENDING y CANCELLED
       const projectPurchaseInvoices = (purchaseInvoicesData || []).filter((inv: any) => 
-        inv.project_id && (inv.status === 'APPROVED' || inv.status === 'PAID')
+        inv.project_id && (inv.status === 'REGISTERED' || inv.status === 'APPROVED' || inv.status === 'PAID')
       );
       const totalCosts = projectPurchaseInvoices.reduce((sum: number, inv: any) => sum + (inv.tax_base || 0), 0);
       
@@ -267,10 +268,16 @@ const ProjectsPageDesktop = () => {
             
             if (financialData && Array.isArray(financialData) && financialData.length > 0) {
               const stats = financialData[0];
-              const margin = stats?.margin_percentage;
-              // Only include projects with invoiced amount > 0
-              if (margin !== null && margin !== undefined && !isNaN(margin) && stats?.total_invoiced > 0) {
-                return { projectId, margin };
+              // Mostrar rentabilidad si hay facturación O gastos
+              const hasActivity = (stats?.total_invoiced || 0) > 0 || (stats?.total_expenses || 0) > 0;
+              if (hasActivity) {
+                // Calcular margin_percentage: (margin / total_invoiced) * 100, o si no hay facturado, mostrar el margen absoluto
+                let marginPercentage = stats?.margin_percentage || 0;
+                // Si hay gastos pero no facturación, mostrar como -100% (todo son pérdidas)
+                if ((stats?.total_invoiced || 0) === 0 && (stats?.total_expenses || 0) > 0) {
+                  marginPercentage = -100;
+                }
+                return { projectId, margin: marginPercentage };
               }
             }
             return { projectId, margin: null };
