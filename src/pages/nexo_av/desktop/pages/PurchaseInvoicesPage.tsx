@@ -16,6 +16,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -32,6 +33,9 @@ import {
   Calendar,
   ExternalLink,
   ArrowUpDown,
+  MoreVertical,
+  Trash2,
+  Eye,
 } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -39,6 +43,7 @@ import { useToast } from "@/hooks/use-toast";
 import { usePagination } from "@/hooks/usePagination";
 import { cn } from "@/lib/utils";
 import PaginationControls from "../components/common/PaginationControls";
+import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 
 const DocumentScanner = lazy(() => import("../components/common/DocumentScanner"));
 
@@ -104,6 +109,9 @@ const PurchaseInvoicesPageDesktop = () => {
   const [typeFilter, setTypeFilter] = useState("all");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<PurchaseInvoice | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchInvoices();
@@ -267,6 +275,51 @@ const PurchaseInvoicesPageDesktop = () => {
     } else {
       setSortColumn(column);
       setSortDirection("asc");
+    }
+  };
+
+  const canDeleteInvoice = (invoice: PurchaseInvoice) => {
+    return invoice.status === "DRAFT" || invoice.status === "PENDING";
+  };
+
+  const handleDeleteClick = (invoice: PurchaseInvoice, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setInvoiceToDelete(invoice);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!invoiceToDelete) return;
+
+    try {
+      setDeleting(true);
+      
+      // Delete the purchase invoice
+      const { error } = await supabase
+        .from("purchase_invoices" as any)
+        .delete()
+        .eq("id", invoiceToDelete.id)
+        .in("status", ["DRAFT", "PENDING"]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Factura eliminada",
+        description: "La factura de compra ha sido eliminada correctamente.",
+      });
+
+      fetchInvoices();
+    } catch (error: any) {
+      console.error("Error deleting purchase invoice:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar la factura",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
     }
   };
 
@@ -668,18 +721,39 @@ const PurchaseInvoicesPageDesktop = () => {
                             <span className="text-green-400">—</span>
                           )}
                         </TableCell>
-                        <TableCell className="py-3">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`);
-                            }}
-                          >
-                            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                          </Button>
+                        <TableCell className="py-3" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                              >
+                                <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 z-[9999] bg-card border border-border shadow-lg">
+                              <DropdownMenuItem
+                                onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}
+                                className="cursor-pointer"
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver detalles
+                              </DropdownMenuItem>
+                              {canDeleteInvoice(invoice) && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={(e) => handleDeleteClick(invoice, e)}
+                                    className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Eliminar
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -724,6 +798,18 @@ const PurchaseInvoicesPageDesktop = () => {
           </Suspense>
         )}
       </AnimatePresence>
+
+      <ConfirmActionDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Eliminar factura de compra"
+        description={`¿Estás seguro de que deseas eliminar la factura "${invoiceToDelete?.internal_purchase_number || invoiceToDelete?.invoice_number || ''}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+        loading={deleting}
+      />
     </div>
   );
 };
