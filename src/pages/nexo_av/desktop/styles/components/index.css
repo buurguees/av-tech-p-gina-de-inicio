@@ -4,14 +4,11 @@
    This file ensures all component styles are loaded
    ============================================ */
 
+/* Layout */
 @import './layout/header.css';
 @import './layout/sidebar.css';
-@import './cards/card.css';
-@import './tables/table.css';
-@import './KPIs/kpi-cards.css';
-@import './icons.css';
-@import './dashboard.css';
-@import './pages/detail-pages.css';
+
+/* Common */
 @import './common/search-bar.css';
 @import './common/searchable-select.css';
 @import './common/form-input.css';
@@ -23,17 +20,49 @@
 @import './common/status-selector.css';
 @import './common/locked-indicator.css';
 @import './common/document-pdf-viewer.css';
+@import './common/status-badges.css';
+
+/* Cards */
+@import './cards/card.css';
+
+/* Tables */
+@import './tables/table.css';
+
+/* Navigation */
 @import './navigation/tab-nav.css';
 @import './navigation/detail-navigation-bar.css';
 @import './navigation/detail-action-button.css';
+
+/* Detail components */
 @import './detail/detail-info-header.css';
 @import './detail/detail-info-block.css';
 @import './detail/detail-info-summary.css';
 @import './detail/metric-card.css';
+
+/* Dashboard */
+@import './dashboard.css';
 @import './dashboard/detail-dashboard.css';
 @import './dashboard/detail-dashboard-kpis.css';
 @import './dashboard/detail-dashboard-products.css';
 @import './dashboard/detail-dashboard-tasks.css';
+
+/* KPIs */
+@import './KPIs/kpi-cards.css';
+
+/* Icons */
+@import './icons.css';
+
+/* Pages */
+@import './pages/detail-pages.css';
+
+/* Projects */
 @import './projects/project-items-list.css';
+
+/* Payments */
 @import './payments/payments-tab.css';
+
+/* Documents */
 @import './documents/document-editor.css';
+
+/* Tabs */
+@import './tabs.css';

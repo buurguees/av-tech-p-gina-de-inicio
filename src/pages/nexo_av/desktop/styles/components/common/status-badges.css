@@ -1,0 +1,130 @@
+/* ============================================
+   STATUS BADGES
+   Status indicators for projects, invoices, etc.
+   ============================================ */
+
+/* ============================================
+   STATUS CLASSES - Solid backgrounds
+   ============================================ */
+body.nexo-av-theme .status-success,
+body.nexo-av-theme-dark .status-success {
+  background-color: hsl(var(--status-success-bg)) !important;
+  color: hsl(var(--status-success)) !important;
+  border: 1px solid hsl(var(--status-success) / 0.2) !important;
+}
+
+body.nexo-av-theme .status-warning,
+body.nexo-av-theme-dark .status-warning {
+  background-color: hsl(var(--status-warning-bg)) !important;
+  color: hsl(var(--status-warning)) !important;
+  border: 1px solid hsl(var(--status-warning) / 0.2) !important;
+}
+
+body.nexo-av-theme .status-error,
+body.nexo-av-theme-dark .status-error {
+  background-color: hsl(var(--status-error-bg)) !important;
+  color: hsl(var(--status-error)) !important;
+  border: 1px solid hsl(var(--status-error) / 0.2) !important;
+}
+
+body.nexo-av-theme .status-info,
+body.nexo-av-theme-dark .status-info {
+  background-color: hsl(var(--status-info-bg)) !important;
+  color: hsl(var(--status-info)) !important;
+  border: 1px solid hsl(var(--status-info) / 0.2) !important;
+}
+
+body.nexo-av-theme .status-neutral,
+body.nexo-av-theme-dark .status-neutral {
+  background-color: hsl(var(--status-neutral-bg)) !important;
+  color: hsl(var(--status-neutral)) !important;
+  border: 1px solid hsl(var(--status-neutral) / 0.2) !important;
+}
+
+body.nexo-av-theme .status-special,
+body.nexo-av-theme-dark .status-special {
+  background-color: hsl(var(--status-special-bg)) !important;
+  color: hsl(var(--status-special)) !important;
+  border: 1px solid hsl(var(--status-special) / 0.2) !important;
+}
+
+/* ============================================
+   STATUS DOTS - Small circle indicators
+   ============================================ */
+body.nexo-av-theme .status-dot-success,
+body.nexo-av-theme-dark .status-dot-success {
+  background-color: hsl(var(--status-success)) !important;
+}
+
+body.nexo-av-theme .status-dot-warning,
+body.nexo-av-theme-dark .status-dot-warning {
+  background-color: hsl(var(--status-warning)) !important;
+}
+
+body.nexo-av-theme .status-dot-error,
+body.nexo-av-theme-dark .status-dot-error {
+  background-color: hsl(var(--status-error)) !important;
+}
+
+body.nexo-av-theme .status-dot-info,
+body.nexo-av-theme-dark .status-dot-info {
+  background-color: hsl(var(--status-info)) !important;
+}
+
+body.nexo-av-theme .status-dot-neutral,
+body.nexo-av-theme-dark .status-dot-neutral {
+  background-color: hsl(var(--status-neutral)) !important;
+}
+
+body.nexo-av-theme .status-dot-special,
+body.nexo-av-theme-dark .status-dot-special {
+  background-color: hsl(var(--status-special)) !important;
+}
+
+/* ============================================
+   PROFIT BADGES - Margin/profitability indicators
+   ============================================ */
+body.nexo-av-theme .profit-high,
+body.nexo-av-theme-dark .profit-high {
+  background-color: hsl(var(--status-success-bg)) !important;
+  color: hsl(var(--status-success)) !important;
+  border: 1px solid hsl(var(--status-success) / 0.2) !important;
+}
+
+body.nexo-av-theme .profit-medium,
+body.nexo-av-theme-dark .profit-medium {
+  background-color: hsl(var(--status-warning-bg)) !important;
+  color: hsl(var(--status-warning)) !important;
+  border: 1px solid hsl(var(--status-warning) / 0.2) !important;
+}
+
+body.nexo-av-theme .profit-low,
+body.nexo-av-theme-dark .profit-low {
+  background-color: hsl(var(--status-error-bg)) !important;
+  color: hsl(var(--status-error)) !important;
+  border: 1px solid hsl(var(--status-error) / 0.2) !important;
+}
+
+/* ============================================
+   BADGE BASE STYLES
+   ============================================ */
+body.nexo-av-theme .status-badge,
+body.nexo-av-theme-dark .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+body.nexo-av-theme .status-dot,
+body.nexo-av-theme-dark .status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
