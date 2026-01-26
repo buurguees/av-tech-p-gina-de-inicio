@@ -606,7 +606,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
 
       <div className="flex-1 overflow-hidden flex">
         {/* Left side - Document viewer */}
-        <div className="w-1/2 border-r border-border bg-muted/30 flex flex-col">
+        <div className="w-[35%] min-w-[300px] border-r border-border bg-muted/30 flex flex-col">
           <div className="p-4 border-b border-border">
             <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
               <FileText className="h-4 w-4" />
@@ -626,7 +626,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
         </div>
 
         {/* Right side - Form */}
-        <div className="w-1/2 flex flex-col overflow-hidden">
+        <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
             <div className="border-b border-border px-4">
               <TabsList className="h-11 bg-transparent">
