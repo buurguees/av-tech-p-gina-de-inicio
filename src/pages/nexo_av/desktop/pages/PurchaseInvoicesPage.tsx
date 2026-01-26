@@ -294,14 +294,19 @@ const PurchaseInvoicesPageDesktop = () => {
     try {
       setDeleting(true);
       
-      // Delete the purchase invoice
-      const { error } = await supabase
-        .from("purchase_invoices" as any)
-        .delete()
-        .eq("id", invoiceToDelete.id)
-        .in("status", ["DRAFT", "PENDING"]);
+      // Delete the purchase invoice using RPC
+      const { error } = await supabase.rpc("delete_purchase_invoice", {
+        p_invoice_id: invoiceToDelete.id,
+      });
 
       if (error) throw error;
+
+      // Also delete the file from storage if it exists
+      if (invoiceToDelete.file_path) {
+        await supabase.storage
+          .from("purchase-documents")
+          .remove([invoiceToDelete.file_path]);
+      }
 
       toast({
         title: "Factura eliminada",
