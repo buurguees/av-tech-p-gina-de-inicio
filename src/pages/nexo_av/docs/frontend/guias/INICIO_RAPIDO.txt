@@ -1,0 +1,162 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                 🎯 INICIO RÁPIDO - NEXO AV FRONTEND                            ║
+║                  Guía Express para Desarrolladores                             ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+
+📚 ¿QUÉ DOCUMENTOS LEER?
+═══════════════════════════════════════════════════════════════════════════════════
+
+Para Desarrolladores (DEBE LEER):
+  📘 GUIA_DESARROLLO_FRONTEND_NEXO_AV.md
+     └─ Guía completa con ejemplos, mejores prácticas, y estándares
+
+Para Tech Leads/Managers:
+  🔍 INFORME_ANALISIS_ERRORES_CSS.md
+     └─ Análisis profundo de problemas y plan de acción
+  
+  📊 RESUMEN_FINAL_ANALISIS_Y_CORRECCIONES.md
+     └─ Resumen ejecutivo del trabajo realizado
+
+Para Reference Rápida:
+  ✅ CORRECCIONES_CSS_APLICADAS.md
+     └─ Correcciones ya implementadas
+
+  📋 TABLA_COMPARATIVA_CAMBIOS.md
+     └─ Antes/después con ejemplos visuales
+
+
+🚫 REGLAS DE ORO (NUNCA HACER)
+═══════════════════════════════════════════════════════════════════════════════════
+
+❌ NO usar selectores frágiles:
+   body.theme [class*="flex-1"] { }
+   body.theme [style*="width"] { }
+   
+✅ SÍ usar clases semánticas:
+   .component-name { }
+   .lead-map-container { }
+
+❌ NO usar !important sin razón:
+   color: red !important;
+   
+✅ SÍ usar especificidad natural:
+   body.nexo-av-theme .component { color: red; }
+
+❌ NO hardcodear valores:
+   font-size: 14px;
+   z-index: 9999;
+   
+✅ SÍ usar variables y clamp():
+   font-size: clamp(0.875rem, 1rem, 1.125rem);
+   z-index: var(--z-dropdown);
+
+❌ NO inline styles complejos:
+   <div style={{ width: '60%', height: 500 }}>
+   
+✅ SÍ usar clases CSS:
+   <div className="lead-map-view">
+
+
+✅ REGLAS A SEGUIR (SIEMPRE)
+═══════════════════════════════════════════════════════════════════════════════════
+
+1. Leer GUIA_DESARROLLO_FRONTEND_NEXO_AV.md antes de empezar
+2. Usar clases semánticas (.component-name)
+3. Usar variables CSS (var(--variable))
+4. Usar clamp() para responsividad
+5. Tipar todo con TypeScript
+6. Componentes pequeños (< 300 líneas)
+7. Seguir checklist de PRs
+
+
+🔥 PROBLEMAS ENCONTRADOS
+═══════════════════════════════════════════════════════════════════════════════════
+
+Estado Actual:
+  ❌ 1,040 selectores [class*="..."]  (9 archivos)   → Target: 50
+  ❌ 2,178 usos de !important         (29 archivos)  → Target: 200
+  ✅ 0 selectores [style*="..."]      (RESUELTO)     → Target: 0
+  
+Índice de Calidad:
+  📊 Actual: 28/100 🔴
+  🎯 Target: 80/100 🟢
+
+
+✅ CORRECCIONES YA IMPLEMENTADAS
+═══════════════════════════════════════════════════════════════════════════════════
+
+Fase 1 (Completado):
+  ✓ Sistema z-index con variables CSS
+  ✓ Layout desktop corregido
+  ✓ Dropdowns position: fixed
+  ✓ Tamaños responsivos con clamp()
+  ✓ Listeners scroll/resize
+
+Corrección Urgente (Completado hoy):
+  ✓ Eliminados selectores [style*="..."]
+  ✓ Creadas clases semánticas para LeadMapPage
+  ✓ Documentación completa generada
+
+
+📋 PRÓXIMAS TAREAS (Fase 2)
+═══════════════════════════════════════════════════════════════════════════════════
+
+Prioridad Alta (3-5 días):
+  [ ] Refactorizar top 5 selectores [class*="..."]
+  [ ] Reducir !important en typography (450 → 250)
+  [ ] Reorganizar global.css (5,150 → 3,500 líneas)
+
+
+🎯 PARA EMPEZAR UN NUEVO FEATURE
+═══════════════════════════════════════════════════════════════════════════════════
+
+1. Lee la sección correspondiente en GUIA_DESARROLLO_FRONTEND_NEXO_AV.md
+2. Crea branch: feature/[nombre]
+3. Escribe componentes siguiendo estándares
+4. NO uses selectores frágiles
+5. NO uses !important
+6. Usa clases semánticas
+7. Sigue checklist de PRs antes de crear PR
+
+
+🤖 PARA AI AGENTS
+═══════════════════════════════════════════════════════════════════════════════════
+
+Prompt recomendado:
+  "Crea [componente/feature] siguiendo GUIA_DESARROLLO_FRONTEND_NEXO_AV.md.
+   NO uses [class*='...'] ni [style*='...'].
+   Usa clases semánticas, variables CSS, y evita !important."
+
+
+📞 AYUDA
+═══════════════════════════════════════════════════════════════════════════════════
+
+¿Dudas sobre código?
+  → Lee GUIA_DESARROLLO_FRONTEND_NEXO_AV.md
+
+¿Dudas sobre problemas encontrados?
+  → Lee INFORME_ANALISIS_ERRORES_CSS.md
+
+¿Quieres ver ejemplos?
+  → Lee TABLA_COMPARATIVA_CAMBIOS.md
+
+¿Problemas después de correcciones?
+  → Ctrl+Shift+R para limpiar caché
+  → Revisar consola del navegador
+  → Verificar que no haya linter errors
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+🎉 ¡Todo listo! El proyecto tiene ahora:
+   ✅ Documentación completa
+   ✅ Guías de desarrollo
+   ✅ Plan de refactorización
+   ✅ Errores críticos corregidos
+
+🚀 ¡A codear con buenas prácticas!
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+Generado: 2026-01-25

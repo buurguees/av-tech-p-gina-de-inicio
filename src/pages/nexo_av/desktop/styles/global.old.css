@@ -730,6 +730,36 @@ body.nexo-av-theme-dark {
   --sidebar-width: 14rem;
 }
 
+/* ============================================
+   Z-INDEX SYSTEM
+   Sistema coherente de z-index para todos los componentes
+   ============================================ */
+:root {
+  --z-base: 1;
+  --z-sidebar: 50;
+  --z-header: 100;
+  --z-tooltip: 999;
+  --z-dropdown: 1000;
+  --z-modal: 1001;
+  --z-notification: 1002;
+}
+
+/* ============================================
+   DESKTOP LAYOUT - Main Content Area
+   Ajuste del main para dejar espacio al sidebar fixed
+   ============================================ */
+
+/* Desktop base - Aplica para pantallas >= 1024px */
+@media (min-width: 1024px) {
+  body.nexo-av-theme main,
+  body.nexo-av-theme-dark main {
+    margin-left: var(--sidebar-width) !important;
+    margin-top: var(--header-height) !important;
+    width: calc(100% - var(--sidebar-width)) !important;
+    min-height: calc(100vh - var(--header-height)) !important;
+  }
+}
+
 /* HEADER & SIDEBAR - Styling moved to components/layout/header.css and components/layout/sidebar.css */
 
 /* Sidebar section divider */
@@ -2927,6 +2957,48 @@ body.nexo-av-theme-dark [class*="bg-card"][class*="rounded-2xl"][class*="border"
   border: 1px solid hsl(var(--border)) !important;
   overflow: hidden !important;
   box-shadow: var(--shadow-md) !important;
+}
+
+/* ============================================
+   FIX: Dropdowns/Popovers recortados en tablas/listados
+   
+   Problema:
+   Muchos listados usan contenedores con `overflow-hidden` (por estética y para
+   redondear bordes). Cuando dentro hay dropdowns con `position: absolute`
+   (ej. StatusSelector, acciones, etc.), el menú queda *recortado* o incluso
+   parece que "no funciona".
+
+   Solución:
+   En navegadores modernos (Chrome/Edge), podemos usar :has() para permitir
+   `overflow: visible` SOLO cuando el contenedor contiene un menú abierto.
+   Así mantenemos el clipping por defecto y evitamos romper el look.
+   ============================================ */
+
+body.nexo-av-theme
+  [class*="bg-card"][class*="rounded-2xl"][class*="border"][class*="overflow-hidden"][class*="shadow-md"]:has(.dropdown__menu),
+body.nexo-av-theme-dark
+  [class*="bg-card"][class*="rounded-2xl"][class*="border"][class*="overflow-hidden"][class*="shadow-md"]:has(.dropdown__menu) {
+  overflow: visible !important;
+}
+
+/* Compat: algunos menús usan variantes de dropdown (searchable, status, etc.) */
+body.nexo-av-theme
+  [class*="bg-card"][class*="rounded-2xl"][class*="border"][class*="overflow-hidden"][class*="shadow-md"]:has(.status-selector__menu),
+body.nexo-av-theme-dark
+  [class*="bg-card"][class*="rounded-2xl"][class*="border"][class*="overflow-hidden"][class*="shadow-md"]:has(.status-selector__menu) {
+  overflow: visible !important;
+}
+
+/* Compat: DropdownMenu de Radix UI (shadcn/ui) */
+body.nexo-av-theme
+  [class*="bg-card"][class*="rounded-2xl"][class*="border"][class*="overflow-hidden"][class*="shadow-md"]:has([data-radix-dropdown-menu-content]),
+body.nexo-av-theme-dark
+  [class*="bg-card"][class*="rounded-2xl"][class*="border"][class*="overflow-hidden"][class*="shadow-md"]:has([data-radix-dropdown-menu-content]),
+body.nexo-av-theme
+  [class*="bg-card"][class*="rounded-2xl"][class*="border"][class*="overflow-hidden"][class*="shadow-md"]:has([class*="DropdownMenuContent"]),
+body.nexo-av-theme-dark
+  [class*="bg-card"][class*="rounded-2xl"][class*="border"][class*="overflow-hidden"][class*="shadow-md"]:has([class*="DropdownMenuContent"]) {
+  overflow: visible !important;
 }
 
 /* Header row de tabla */
