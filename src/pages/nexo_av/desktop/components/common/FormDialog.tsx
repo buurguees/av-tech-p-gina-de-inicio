@@ -15,13 +15,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import DetailActionButton, { DetailActionType } from "../navigation/DetailActionButton";
 import "../../styles/components/common/form-dialog.css";
+import "../../styles/components/common/form-input.css";
 
 // ============= TYPES =============
 export type FormFieldType = "text" | "email" | "tel" | "number" | "textarea" | "select" | "date";
@@ -214,16 +213,16 @@ export default function FormDialog({
             </Label>
           )}
           {isTextarea ? (
-            <Textarea
+            <textarea
               value={fieldValue as string}
               onChange={(e) => handleChange(field.name, e.target.value)}
               placeholder={field.placeholder}
               disabled={field.disabled || loading || isSubmitting}
-              rows={field.rows}
-              className={cn(hasError && "border-destructive")}
+              rows={field.rows || 3}
+              className={cn("form-textarea", hasError && "form-textarea--error")}
             />
           ) : (
-            <Input
+            <input
               type={field.type}
               value={fieldValue as string}
               onChange={(e) => handleChange(field.name, e.target.value)}
@@ -231,7 +230,7 @@ export default function FormDialog({
               disabled={field.disabled || loading || isSubmitting}
               min={field.min}
               max={field.max}
-              className={cn(hasError && "border-destructive")}
+              className={cn("form-input", hasError && "form-input--error")}
             />
           )}
           {hasError && <p className="text-xs text-destructive mt-1">{errors[field.name]}</p>}

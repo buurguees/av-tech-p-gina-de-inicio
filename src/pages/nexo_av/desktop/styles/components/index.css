@@ -14,6 +14,7 @@
 @import './pages/detail-pages.css';
 @import './common/search-bar.css';
 @import './common/searchable-select.css';
+@import './common/form-input.css';
 @import './common/user-avatar.css';
 @import './common/user-info.css';
 @import './common/platform-brand.css';
