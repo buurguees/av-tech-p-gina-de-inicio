@@ -101,9 +101,9 @@ const ClientDetailPageDesktop = () => {
 
   const tabs: TabItem[] = [
     { value: "resumen", label: "Resumen", icon: LayoutDashboard },
-    { value: "por-asignar-1", label: "Por asignar", icon: FolderKanban },
-    { value: "por-asignar-2", label: "Por asignar", icon: FileText },
-    { value: "por-asignar-3", label: "Por asignar", icon: Receipt },
+    { value: "proyectos", label: "Proyectos", icon: FolderKanban },
+    { value: "presupuestos", label: "Presupuestos", icon: FileText },
+    { value: "facturas", label: "Facturas", icon: Receipt },
   ];
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -553,19 +553,19 @@ const ClientDetailPageDesktop = () => {
                 </div>
               </div>
             )}
-            {activeTab === "por-asignar-1" && (
-              <div className="p-6">
-                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+            {activeTab === "proyectos" && (
+              <div className="p-4 lg:p-6">
+                <ClientProjectsTab clientId={client.id} />
               </div>
             )}
-            {activeTab === "por-asignar-2" && (
-              <div className="p-6">
-                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+            {activeTab === "presupuestos" && (
+              <div className="p-4 lg:p-6">
+                <ClientQuotesTab clientId={client.id} />
               </div>
             )}
-            {activeTab === "por-asignar-3" && (
-              <div className="p-6">
-                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+            {activeTab === "facturas" && (
+              <div className="p-4 lg:p-6">
+                <ClientInvoicesTab clientId={client.id} />
               </div>
             )}
           </div>
