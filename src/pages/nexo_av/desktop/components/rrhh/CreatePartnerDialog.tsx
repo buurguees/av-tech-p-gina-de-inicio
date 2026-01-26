@@ -40,16 +40,23 @@ export default function CreatePartnerDialog({
     setLoading(true);
 
     try {
-      // Note: The system doesn't have a create_partner RPC that matches our needs
-      // Partners are created through the existing internal.partners table
-      // For now, show a message that partners need to be created via accounting module
-      toast({
-        title: "Información",
-        description: "Para crear un nuevo socio, utiliza el módulo de Contabilidad → Retribuciones de Socios",
-        variant: "default",
+      const { data, error } = await supabase.rpc("create_partner", {
+        p_full_name: formData.full_name,
+        p_tax_id: formData.tax_id || null,
+        p_email: formData.email || null,
+        p_phone: formData.phone || null,
       });
 
+      if (error) throw error;
+
+      toast({
+        title: "Socio creado",
+        description: `Se ha registrado el socio correctamente`,
+      });
+
+      resetForm();
       onOpenChange(false);
+      onSuccess();
     } catch (error: any) {
       console.error("Error creating partner:", error);
       toast({

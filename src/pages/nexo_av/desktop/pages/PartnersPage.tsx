@@ -1,21 +1,21 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Plus, Users, Loader2, Receipt, TrendingUp, Search } from "lucide-react";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
-import PaginationControls from "../components/common/PaginationControls";
-import { usePagination } from "@/hooks/usePagination";
 import CreatePartnerDialog from "../components/rrhh/CreatePartnerDialog";
+import PartnerCard from "../components/rrhh/PartnerCard";
 
 interface Partner {
   id: string;
   partner_number: string;
   full_name: string;
   tax_id: string | null;
+  email?: string | null;
+  phone?: string | null;
   status: string;
   created_at: string;
 }
@@ -28,10 +28,8 @@ interface PartnerStats {
 }
 
 function PartnersPage() {
-  const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   useNexoAvTheme();
-
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -90,8 +88,6 @@ function PartnersPage() {
     );
   }, [partners, searchTerm]);
 
-  const pagination = usePagination(filteredPartners, { pageSize: 10 });
-
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat("es-ES", {
       style: "currency",
@@ -108,7 +104,7 @@ function PartnersPage() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col p-6 gap-6">
+    <div className="w-full h-full flex flex-col p-6 gap-6 overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -141,8 +137,8 @@ function PartnersPage() {
         <Card className="bg-card/50 border-border/50">
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-500/10">
-                <TrendingUp className="w-5 h-5 text-green-500" />
+              <div className="p-2 rounded-lg bg-chart-2/10">
+                <TrendingUp className="w-5 h-5 text-chart-2" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Bruto YTD</p>
@@ -154,8 +150,8 @@ function PartnersPage() {
         <Card className="bg-card/50 border-border/50">
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-orange-500/10">
-                <Receipt className="w-5 h-5 text-orange-500" />
+              <div className="p-2 rounded-lg bg-chart-3/10">
+                <Receipt className="w-5 h-5 text-chart-3" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">IRPF YTD</p>
@@ -167,8 +163,8 @@ function PartnersPage() {
         <Card className="bg-card/50 border-border/50">
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <TrendingUp className="w-5 h-5 text-blue-500" />
+              <div className="p-2 rounded-lg bg-chart-1/10">
+                <TrendingUp className="w-5 h-5 text-chart-1" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Neto YTD</p>
@@ -190,72 +186,35 @@ function PartnersPage() {
         />
       </div>
 
-      {/* Table */}
-      <Card className="flex-1 overflow-hidden">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium">
-            Listado de Socios ({filteredPartners.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border/50">
-                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Nº</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Nombre</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">NIF</th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pagination.paginatedData.map((partner) => (
-                  <tr
-                    key={partner.id}
-                    className="border-b border-border/30 hover:bg-muted/30 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/nexo-av/${userId}/partners/${partner.id}`)}
-                  >
-                    <td className="py-3 px-4 text-sm font-mono">{partner.partner_number}</td>
-                    <td className="py-3 px-4 text-sm font-medium">{partner.full_name}</td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground">{partner.tax_id || "-"}</td>
-                    <td className="py-3 px-4">
-                      {partner.status === "ACTIVE" ? (
-                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Activo</Badge>
-                      ) : (
-                        <Badge variant="secondary">Inactivo</Badge>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {pagination.paginatedData.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="py-8 text-center text-muted-foreground">
-                      No hay socios registrados
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+      {/* Partners Grid */}
+      <div className="flex-1">
+        <p className="text-sm text-muted-foreground mb-4">
+          {filteredPartners.length} socio{filteredPartners.length !== 1 ? "s" : ""} encontrado{filteredPartners.length !== 1 ? "s" : ""}
+        </p>
+        
+        {filteredPartners.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredPartners.map((partner) => (
+              <PartnerCard key={partner.id} partner={partner} />
+            ))}
           </div>
-
-          {pagination.totalPages > 1 && (
-            <div className="mt-4">
-              <PaginationControls
-                currentPage={pagination.currentPage}
-                totalPages={pagination.totalPages}
-                startIndex={pagination.startIndex}
-                endIndex={pagination.endIndex}
-                totalItems={pagination.totalItems}
-                canGoPrev={pagination.canGoPrev}
-                canGoNext={pagination.canGoNext}
-                onPrevPage={pagination.prevPage}
-                onNextPage={pagination.nextPage}
-                onGoToPage={pagination.goToPage}
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        ) : (
+          <Card className="bg-card/50 border-border/50">
+            <CardContent className="py-12 text-center">
+              <Users className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground">No hay socios registrados</p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => setShowCreateDialog(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Crear primer socio
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {/* Create Dialog */}
       <CreatePartnerDialog
