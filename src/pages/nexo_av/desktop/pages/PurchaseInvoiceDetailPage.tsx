@@ -940,6 +940,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                     setLines(newLines);
                     setHasChanges(true);
                   }}
+                  disabled={isLocked}
                 />
               </TabsContent>
 

@@ -43,11 +43,13 @@ interface TaxOption {
 interface PurchaseInvoiceLinesEditorProps {
   lines: PurchaseInvoiceLine[];
   onChange: (lines: PurchaseInvoiceLine[]) => void;
+  disabled?: boolean;
 }
 
 const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
   lines,
   onChange,
+  disabled = false,
 }) => {
   const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
   const [defaultTaxRate, setDefaultTaxRate] = useState<number>(21);
@@ -288,17 +290,18 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Label className="text-white/70 text-sm font-medium">Líneas de la factura</Label>
-        <Button
-          type="button"
-          onClick={addLine}
-          variant="outline"
-          size="sm"
-          className="bg-white/10 border-white/20 text-white hover:bg-white/15"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Añadir línea
-        </Button>
+        <Label className="text-muted-foreground text-sm font-medium">Líneas de la factura</Label>
+        {!disabled && (
+          <Button
+            type="button"
+            onClick={addLine}
+            variant="outline"
+            size="sm"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Añadir línea
+          </Button>
+        )}
       </div>
 
       <div className="border border-white/10 rounded-lg overflow-hidden">
@@ -323,97 +326,119 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
               </TableRow>
             ) : (
               lines.map((line, index) => (
-                <TableRow key={line.tempId || line.id} className="border-b border-white/5">
+                <TableRow key={line.tempId || line.id} className="border-b border-border/50">
                   <TableCell>
-                    <ProductSearchInput
-                      value={line.concept}
-                      onChange={(value) => updateLine(index, "concept", value)}
-                      onSelectItem={(item) => handleProductSelect(index, item)}
-                      placeholder="Concepto o @buscar"
-                      className="bg-white/5 border-white/10 text-white text-sm h-9"
-                    />
+                    {disabled ? (
+                      <span className="text-sm text-foreground">{line.concept || "-"}</span>
+                    ) : (
+                      <ProductSearchInput
+                        value={line.concept}
+                        onChange={(value) => updateLine(index, "concept", value)}
+                        onSelectItem={(item) => handleProductSelect(index, item)}
+                        placeholder="Concepto o @buscar"
+                        className="text-sm h-9"
+                      />
+                    )}
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="text"
-                      value={getNumericDisplayValue(line.quantity, 'quantity', index)}
-                      onChange={(e) => handleNumericInputChange(e.target.value, 'quantity', index)}
-                      onBlur={() => {
-                        const inputKey = `${index}-quantity`;
-                        setNumericInputValues(prev => {
-                          const newValues = { ...prev };
-                          delete newValues[inputKey];
-                          return newValues;
-                        });
-                      }}
-                      className="bg-white/5 border-white/10 text-white text-sm h-9 text-center"
-                      placeholder="0"
-                    />
+                    {disabled ? (
+                      <span className="text-sm text-foreground text-center block">{line.quantity}</span>
+                    ) : (
+                      <Input
+                        type="text"
+                        value={getNumericDisplayValue(line.quantity, 'quantity', index)}
+                        onChange={(e) => handleNumericInputChange(e.target.value, 'quantity', index)}
+                        onBlur={() => {
+                          const inputKey = `${index}-quantity`;
+                          setNumericInputValues(prev => {
+                            const newValues = { ...prev };
+                            delete newValues[inputKey];
+                            return newValues;
+                          });
+                        }}
+                        className="text-sm h-9 text-center"
+                        placeholder="0"
+                      />
+                    )}
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="text"
-                      value={getNumericDisplayValue(line.unit_price, 'unit_price', index)}
-                      onChange={(e) => handleNumericInputChange(e.target.value, 'unit_price', index)}
-                      onBlur={() => {
-                        const inputKey = `${index}-unit_price`;
-                        setNumericInputValues(prev => {
-                          const newValues = { ...prev };
-                          delete newValues[inputKey];
-                          return newValues;
-                        });
-                      }}
-                      className="bg-white/5 border-white/10 text-white text-sm h-9 text-right"
-                      placeholder="0,00"
-                    />
+                    {disabled ? (
+                      <span className="text-sm text-foreground text-right block">{formatCurrency(line.unit_price)}</span>
+                    ) : (
+                      <Input
+                        type="text"
+                        value={getNumericDisplayValue(line.unit_price, 'unit_price', index)}
+                        onChange={(e) => handleNumericInputChange(e.target.value, 'unit_price', index)}
+                        onBlur={() => {
+                          const inputKey = `${index}-unit_price`;
+                          setNumericInputValues(prev => {
+                            const newValues = { ...prev };
+                            delete newValues[inputKey];
+                            return newValues;
+                          });
+                        }}
+                        className="text-sm h-9 text-right"
+                        placeholder="0,00"
+                      />
+                    )}
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="text"
-                      value={getNumericDisplayValue(line.discount_percent, 'discount_percent', index)}
-                      onChange={(e) => handleNumericInputChange(e.target.value, 'discount_percent', index)}
-                      onBlur={() => {
-                        const inputKey = `${index}-discount_percent`;
-                        setNumericInputValues(prev => {
-                          const newValues = { ...prev };
-                          delete newValues[inputKey];
-                          return newValues;
-                        });
-                      }}
-                      className="bg-white/5 border-white/10 text-white text-sm h-9 text-right"
-                      placeholder="0"
-                    />
+                    {disabled ? (
+                      <span className="text-sm text-foreground text-right block">{line.discount_percent}%</span>
+                    ) : (
+                      <Input
+                        type="text"
+                        value={getNumericDisplayValue(line.discount_percent, 'discount_percent', index)}
+                        onChange={(e) => handleNumericInputChange(e.target.value, 'discount_percent', index)}
+                        onBlur={() => {
+                          const inputKey = `${index}-discount_percent`;
+                          setNumericInputValues(prev => {
+                            const newValues = { ...prev };
+                            delete newValues[inputKey];
+                            return newValues;
+                          });
+                        }}
+                        className="text-sm h-9 text-right"
+                        placeholder="0"
+                      />
+                    )}
                   </TableCell>
                   <TableCell>
-                    <Select
-                      value={line.tax_rate.toString()}
-                      onValueChange={(value) => updateLine(index, "tax_rate", parseFloat(value))}
-                    >
-                      <SelectTrigger className="bg-white/5 border-white/10 text-white text-sm h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-950 border-white/10">
-                        {taxOptions.map((tax) => (
-                          <SelectItem key={tax.value} value={tax.value.toString()}>
-                            {tax.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {disabled ? (
+                      <span className="text-sm text-foreground text-right block">{line.tax_rate}%</span>
+                    ) : (
+                      <Select
+                        value={line.tax_rate.toString()}
+                        onValueChange={(value) => updateLine(index, "tax_rate", parseFloat(value))}
+                      >
+                        <SelectTrigger className="text-sm h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {taxOptions.map((tax) => (
+                            <SelectItem key={tax.value} value={tax.value.toString()}>
+                              {tax.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </TableCell>
-                  <TableCell className="text-right text-white font-medium">
+                  <TableCell className="text-right text-foreground font-medium">
                     {formatCurrency(line.total)}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeLine(index)}
-                      className="h-8 w-8 text-white/40 hover:text-red-400 hover:bg-red-500/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {!disabled && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeLine(index)}
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
