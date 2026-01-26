@@ -162,7 +162,8 @@ const PurchaseInvoicePaymentsSection = ({
 
   // Permitir pagos en facturas CONFIRMED, PARTIAL o PAID
   // isLocked solo impide editar la factura, no registrar pagos
-  const canRegisterPayment = ["CONFIRMED", "PARTIAL", "PAID", "REGISTERED"].includes(status);
+  // Permitir pagos en facturas APPROVED, CONFIRMED, PARTIAL, REGISTERED
+  const canRegisterPayment = ["CONFIRMED", "PARTIAL", "PAID", "REGISTERED", "APPROVED"].includes(status);
 
   return (
     <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 md:p-8 shadow-xl overflow-hidden relative group">
