@@ -451,6 +451,7 @@ export type Database = {
           p_project_id?: string
           p_status?: string
           p_supplier_id?: string
+          p_supplier_invoice_number?: string
           p_technician_id?: string
         }
         Returns: string
