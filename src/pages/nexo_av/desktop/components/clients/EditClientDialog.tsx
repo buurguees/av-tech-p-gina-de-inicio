@@ -302,7 +302,7 @@ const EditClientDialog = ({
               label: "Asignar a",
               type: "select" as const,
               placeholder: "Sin asignar",
-              options: [{ value: "", label: "Sin asignar" }, ...assignableUserOptions],
+              options: assignableUserOptions,
               defaultValue: client.assigned_to || "",
               colSpan: 1 as const,
             },
