@@ -1,226 +1,312 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft,
-  FileText,
-  Upload,
+  Save,
   Loader2,
-  Plus,
-  X,
+  ShoppingCart,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "motion/react";
-import CreatePurchaseInvoiceDialog from "../components/purchases/CreatePurchaseInvoiceDialog";
-
+import { format } from "date-fns";
+import SupplierSearchInput from "../components/suppliers/SupplierSearchInput";
+import ProjectSearchInput from "../components/projects/ProjectSearchInput";
+import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "../components/purchases/PurchaseInvoiceLinesEditor";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import DetailActionButton from "../components/navigation/DetailActionButton";
 
 const NewPurchaseInvoicePageDesktop = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [showDialog, setShowDialog] = useState(false);
-  const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
-  const [pendingDocumentId, setPendingDocumentId] = useState<string | null>(null);
-  const [documentType, setDocumentType] = useState<"INVOICE" | "EXPENSE">(
-    searchParams.get("type") === "EXPENSE" ? "EXPENSE" : "INVOICE"
-  );
+  
+  const [saving, setSaving] = useState(false);
+  
+  // Form state
+  const [supplierId, setSupplierId] = useState<string | null>(null);
+  const [technicianId, setTechnicianId] = useState<string | null>(null);
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState("");
+  const [supplierInvoiceNumber, setSupplierInvoiceNumber] = useState("");
+  const [issueDate, setIssueDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [dueDate, setDueDate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [internalNotes, setInternalNotes] = useState("");
+  const [lines, setLines] = useState<PurchaseInvoiceLine[]>([]);
+  
+  const documentType = searchParams.get("type") === "EXPENSE" ? "EXPENSE" : "INVOICE";
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0] || !userId) return;
+  const totals = useMemo(() => {
+    const subtotal = lines.reduce((sum, line) => sum + line.subtotal, 0);
+    const taxAmount = lines.reduce((sum, line) => sum + line.tax_amount, 0);
+    const total = lines.reduce((sum, line) => sum + line.total, 0);
+    return { subtotal, taxAmount, total };
+  }, [lines]);
 
-    const selectedFile = e.target.files[0];
-    setFile(selectedFile);
+  const handleSave = async () => {
+    // Validation
+    if (!supplierId && !technicianId) {
+      toast.error("Debes seleccionar un proveedor o técnico");
+      return;
+    }
+
+    if (lines.length === 0) {
+      toast.error("Añade al menos una línea de factura");
+      return;
+    }
 
     try {
-      setLoading(true);
+      setSaving(true);
 
-      // Upload file to storage
-      const extension = selectedFile.name.split('.').pop();
-      const fileName = `invoice_${Date.now()}.${extension}`;
-      const filePath = `${userId}/${fileName}`;
+      // Create invoice
+      const { data: invoiceData, error: invoiceError } = await supabase.rpc(
+        "create_purchase_invoice",
+        {
+          p_invoice_number: supplierInvoiceNumber || `BORRADOR-${Date.now().toString().slice(-6)}`,
+          p_document_type: documentType,
+          p_status: "DRAFT",
+          p_supplier_id: supplierId,
+          p_technician_id: technicianId,
+          p_project_id: projectId,
+          p_issue_date: issueDate,
+          p_due_date: dueDate || null,
+          p_notes: notes || null,
+        } as any
+      );
 
-      const { error: uploadError } = await supabase.storage
-        .from('purchase-documents')
-        .upload(filePath, selectedFile);
+      if (invoiceError) throw invoiceError;
 
-      if (uploadError) throw uploadError;
+      const invoiceId = invoiceData;
 
-      setUploadedFilePath(filePath);
+      // Add lines
+      for (const line of lines) {
+        const { error: lineError } = await supabase.rpc(
+          "add_purchase_invoice_line",
+          {
+            p_invoice_id: invoiceId,
+            p_concept: line.concept,
+            p_description: line.description || null,
+            p_quantity: line.quantity,
+            p_unit_price: line.unit_price,
+            p_tax_rate: line.tax_rate,
+          }
+        );
 
-      // Create pending document
-      const { data: invoiceData, error: dbError } = await supabase.rpc('create_purchase_invoice', {
-        p_invoice_number: `PENDIENTE-${Date.now().toString().slice(-6)}`,
-        p_document_type: documentType,
-        p_status: 'PENDING',
-        p_file_path: filePath,
-        p_file_name: fileName,
-      } as any);
-
-      if (dbError) throw dbError;
-
-      if (invoiceData) {
-        // La RPC devuelve un UUID directamente o un array con un objeto
-        const invoiceId = Array.isArray(invoiceData) 
-          ? (invoiceData[0]?.purchase_invoice_id || invoiceData[0] || invoiceData)
-          : (typeof invoiceData === 'string' ? invoiceData : invoiceData);
-        setPendingDocumentId(invoiceId);
-        // Open dialog to complete the invoice
-        setShowDialog(true);
-        toast.success("Documento subido correctamente. Completa los datos de la factura.");
+        if (lineError) throw lineError;
       }
+
+      toast.success("Factura de compra creada correctamente");
+      navigate(`/nexo-av/${userId}/purchase-invoices/${invoiceId}`);
     } catch (error: any) {
-      console.error("Upload error:", error);
-      toast.error("Error al subir el documento: " + error.message);
-      setFile(null);
-      setUploadedFilePath(null);
+      console.error("Error saving invoice:", error);
+      toast.error("Error al guardar: " + error.message);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  const handleCreateWithoutFile = () => {
-    setShowDialog(true);
-  };
-
-  const handleDialogSuccess = () => {
+  const handleBack = () => {
     navigate(`/nexo-av/${userId}/purchase-invoices`);
   };
 
-  const handleRemoveFile = () => {
-    setFile(null);
-    setUploadedFilePath(null);
-    setPendingDocumentId(null);
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "EUR",
+    }).format(amount);
   };
 
   return (
-    <>
-      <div className="w-full h-full px-6 py-6">
-        <div className="w-full max-w-none mx-auto">
-          <div className="flex items-center gap-4 mb-10">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-white/40 hover:text-white hover:bg-white/5 rounded-2xl h-11 w-11"
-              onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices`)}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <h1 className="text-3xl font-black text-white tracking-tight">
-              Nueva {documentType === "EXPENSE" ? "Gasto" : "Factura de Compra"}
-            </h1>
-          </div>
+    <div className="w-full h-full flex flex-col">
+      {/* Navigation Bar */}
+      <DetailNavigationBar
+        pageTitle={`Nueva ${documentType === "EXPENSE" ? "Gasto" : "Factura de Compra"}`}
+        contextInfo="Creación manual"
+        onBack={handleBack}
+        tools={
+          <DetailActionButton
+            actionType="save"
+            onClick={handleSave}
+            loading={saving}
+          />
+        }
+      />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left: File Upload */}
-            <div className="space-y-6">
-              <div className="bg-zinc-900/40 border-2 border-dashed border-white/5 rounded-[2.5rem] p-12 text-center hover:border-blue-500/20 transition-all cursor-pointer group">
-                <input
-                  type="file"
-                  id="file-upload"
-                  className="hidden"
-                  onChange={handleUpload}
-                  accept="application/pdf,image/jpeg,image/png"
-                  disabled={loading}
-                />
-                <label
-                  htmlFor="file-upload"
-                  className={`cursor-pointer flex flex-col items-center ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  <div className="p-6 bg-blue-500/10 rounded-[2rem] mb-6 group-hover:scale-110 transition-transform">
-                    {loading ? (
-                      <Loader2 className="h-10 w-10 text-blue-400 animate-spin" />
-                    ) : (
-                      <Upload className="h-10 w-10 text-blue-400" />
-                    )}
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-2">
-                    {loading ? "Subiendo..." : "Haz clic para subir documento"}
-                  </h3>
-                  <p className="text-white/20 text-xs font-medium uppercase tracking-widest">
-                    Formatos PDF, JPG, PNG (Max. 50MB)
-                  </p>
-                </label>
-              </div>
-
-              <AnimatePresence>
-                {file && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="bg-zinc-900 border border-white/5 p-4 rounded-3xl flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-emerald-400" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-white truncate max-w-[200px]">
-                          {file.name}
-                        </span>
-                        <span className="text-[10px] text-white/20 font-mono">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
-                        </span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-white/20 hover:text-red-400 hover:bg-red-400/10 rounded-xl"
-                      onClick={handleRemoveFile}
-                      disabled={loading}
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-5xl mx-auto space-y-8">
+          {/* Header Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Proveedor/Técnico */}
+            <div className="lg:col-span-2 space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">
+                Proveedor / Técnico *
+              </Label>
+              <SupplierSearchInput
+                value={supplierId || technicianId || ""}
+                onChange={(value) => {
+                  // For now, treat as supplier ID
+                  setSupplierId(value);
+                  setTechnicianId(null);
+                }}
+                placeholder="Buscar proveedor o técnico..."
+              />
             </div>
 
-            {/* Right: Quick Create */}
-            <div className="space-y-6">
-              <Card className="bg-zinc-900/40 border-white/5 backdrop-blur-md rounded-[2.5rem] p-8">
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-bold text-white mb-2">
-                      Crear sin documento
-                    </h3>
-                    <p className="text-white/40 text-sm">
-                      Crea una factura de compra o gasto directamente sin subir un documento PDF.
-                      Puedes añadir el documento más tarde.
-                    </p>
-                  </div>
+            {/* Proyecto */}
+            <div className="lg:col-span-2 space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">
+                Proyecto (opcional)
+              </Label>
+              <ProjectSearchInput
+                value={projectName}
+                onChange={setProjectName}
+                onSelectProject={(project) => {
+                  setProjectId(project.id);
+                  setProjectName(project.project_name);
+                }}
+                placeholder="Asignar a un proyecto..."
+                showDropdown={true}
+              />
+            </div>
 
-                  <div className="pt-4">
-                    <Button
-                      onClick={handleCreateWithoutFile}
-                      disabled={loading}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-14 rounded-2xl shadow-xl shadow-blue-500/10 gap-3"
-                    >
-                      <Plus className="h-5 w-5" />
-                      Crear {documentType === "EXPENSE" ? "Gasto" : "Factura"}
-                    </Button>
+            {/* Nº Factura Proveedor */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">
+                Nº Factura Proveedor
+              </Label>
+              <Input
+                value={supplierInvoiceNumber}
+                onChange={(e) => setSupplierInvoiceNumber(e.target.value)}
+                placeholder="Ej: FAC-2024-001"
+                className="h-11"
+              />
+            </div>
+
+            {/* Fecha Emisión */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">
+                Fecha Emisión
+              </Label>
+              <Input
+                type="date"
+                value={issueDate}
+                onChange={(e) => setIssueDate(e.target.value)}
+                className="h-11"
+              />
+            </div>
+
+            {/* Fecha Vencimiento */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">
+                Fecha Vencimiento
+              </Label>
+              <Input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="h-11"
+              />
+            </div>
+          </div>
+
+          {/* Lines Editor */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-foreground">
+              Líneas de Factura
+            </h3>
+            <PurchaseInvoiceLinesEditor
+              lines={lines}
+              onChange={setLines}
+            />
+          </div>
+
+          {/* Notes and Summary */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Notes */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-muted-foreground">
+                  Notas públicas
+                </Label>
+                <Textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Notas que aparecerán en el documento..."
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-muted-foreground">
+                  Notas internas
+                </Label>
+                <Textarea
+                  value={internalNotes}
+                  onChange={(e) => setInternalNotes(e.target.value)}
+                  placeholder="Notas internas (no visibles en documentos)..."
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Totals Summary */}
+            <div className="flex justify-end">
+              <div className="bg-card border border-border rounded-2xl shadow-sm p-6 w-full sm:w-80">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-base text-muted-foreground">Base imponible</span>
+                    <span className="text-base font-semibold text-foreground">
+                      {formatCurrency(totals.subtotal)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-base text-muted-foreground">Impuestos</span>
+                    <span className="text-base font-medium text-foreground">
+                      {formatCurrency(totals.taxAmount)}
+                    </span>
+                  </div>
+                  <div className="border-t border-border pt-4 mt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-bold text-foreground">Total</span>
+                      <span className="text-2xl font-bold text-primary">
+                        {formatCurrency(totals.total)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </Card>
+              </div>
+            </div>
+          </div>
+
+          {/* Info Box */}
+          <div className="bg-muted/30 border border-border/50 rounded-2xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-primary/10 rounded-xl">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-foreground mb-1">
+                  Flujo de trabajo
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Esta factura se guardará como <strong>Borrador</strong>. Una vez
+                  creada, podrás subir el documento PDF del proveedor o asignar
+                  uno desde el <strong>Escáner</strong>. Después de validar los
+                  datos, podrás aprobarla y proceder a pagos.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <CreatePurchaseInvoiceDialog
-        open={showDialog}
-        onOpenChange={setShowDialog}
-        onSuccess={handleDialogSuccess}
-        preselectedDocumentId={pendingDocumentId || undefined}
-        documentType={documentType}
-      />
-    </>
+    </div>
   );
 };
 

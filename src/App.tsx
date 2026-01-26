@@ -53,6 +53,8 @@ const NexoSuppliersPage = lazy(() => import("./pages/nexo_av/desktop/pages/Suppl
 const NexoSupplierDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/SupplierDetailPage"));
 const NexoAccountingPage = lazy(() => import("./pages/nexo_av/desktop/pages/AccountingPage"));
 const NexoDeveloperPage = lazy(() => import("./pages/nexo_av/desktop/pages/DeveloperPage"));
+const NexoScannerPage = lazy(() => import("./pages/nexo_av/desktop/pages/ScannerPage"));
+const NexoNewPurchaseInvoicePage = lazy(() => import("./pages/nexo_av/desktop/pages/NewPurchaseInvoicePage"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -110,9 +112,12 @@ const App = () => (
                 <Route path="suppliers" element={<NexoSuppliersPage />} />
                 <Route path="suppliers/:supplierId" element={<NexoSupplierDetailPage />} />
                 <Route path="invoices" element={<NexoInvoicesPage />} />
+                <Route path="scanner" element={<NexoScannerPage />} />
                 <Route path="purchase-invoices" element={<NexoPurchaseInvoicesPage />} />
+                <Route path="purchase-invoices/new" element={<NexoNewPurchaseInvoicePage />} />
                 <Route path="purchase-invoices/:invoiceId" element={<NexoPurchaseInvoiceDetailPage />} />
                 <Route path="expenses" element={<NexoExpensesPage />} />
+                <Route path="expenses/new" element={<NexoNewPurchaseInvoicePage />} />
                 <Route path="expenses/:invoiceId" element={<NexoPurchaseInvoiceDetailPage />} />
                 <Route path="reports" element={<NexoReportsPage />} />
                 <Route path="accounting" element={<NexoAccountingPage />} />
