@@ -8,12 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown, User, FolderKanban } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "../components/common/ProductSearchInput";
-import SearchableSelect from "../components/common/SearchableSelect";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 
 // Estados que bloquean la edición
@@ -801,23 +799,6 @@ const EditQuotePageDesktop = () => {
   };
   const totals = getTotals();
   const statusInfo = getStatusInfo(currentStatus);
-
-  // Dropdown options for SearchableSelect
-  const clientOptions = useMemo(() => {
-    return availableClients.map(c => ({
-      value: c.id,
-      label: c.company_name,
-      icon: <User className="h-4 w-4" />
-    }));
-  }, [availableClients]);
-  const projectOptions = useMemo(() => {
-    return projects.map(p => ({
-      value: p.id,
-      label: p.project_name,
-      sublabel: p.project_number,
-      icon: <FolderKanban className="h-4 w-4" />
-    }));
-  }, [projects]);
   if (loading) {
     return <div className="flex items-center justify-center pt-32">
         <Loader2 className="h-8 w-8 animate-spin text-white/40" />
@@ -887,31 +868,37 @@ const EditQuotePageDesktop = () => {
               {/* Client selector - 40% */}
               <div className="flex-[4] min-w-0">
                 <Label className="text-muted-foreground text-xs mb-2 block font-medium">Cliente</Label>
-                <SearchableSelect 
+                <select 
                   value={selectedClientId} 
-                  onChange={v => {
-                    setSelectedClientId(v);
+                  onChange={e => {
+                    setSelectedClientId(e.target.value);
                     setSelectedProjectId("");
-                  }} 
-                  options={clientOptions} 
-                  placeholder="Seleccionar cliente..." 
-                  icon={<User className="h-4 w-4" />} 
-                />
+                  }}
+                  className="form-input"
+                >
+                  <option value="">Seleccionar cliente...</option>
+                  {availableClients.map(c => (
+                    <option key={c.id} value={c.id}>{c.company_name}</option>
+                  ))}
+                </select>
               </div>
               
               {/* Project selector - 60% */}
               <div className="flex-[6] min-w-0">
                 <Label className="text-muted-foreground text-xs mb-2 block font-medium">Proyecto</Label>
-                <SearchableSelect 
+                <select 
                   value={selectedProjectId} 
-                  onChange={setSelectedProjectId} 
-                  options={projectOptions} 
-                  placeholder={!selectedClientId ? "Selecciona un cliente primero" : projects.length === 0 ? "Sin proyectos disponibles" : "Seleccionar proyecto..."} 
-                  icon={<FolderKanban className="h-4 w-4" />} 
-                  disabled={!selectedClientId || loadingProjects || projects.length === 0} 
-                  loading={loadingProjects} 
-                  disabledText={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"} 
-                />
+                  onChange={e => setSelectedProjectId(e.target.value)}
+                  disabled={!selectedClientId || loadingProjects || projects.length === 0}
+                  className="form-input"
+                >
+                  <option value="">
+                    {!selectedClientId ? "Selecciona un cliente primero" : projects.length === 0 ? "Sin proyectos disponibles" : "Seleccionar proyecto..."}
+                  </option>
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id}>{p.project_name} ({p.project_number})</option>
+                  ))}
+                </select>
               </div>
               
               {/* Validity date - only editable when not draft */}
@@ -1012,16 +999,15 @@ const EditQuotePageDesktop = () => {
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
                           <div className="flex justify-center">
-                            <Select value={String(line.tax_rate)} onValueChange={v => updateLine(actualIndex, "tax_rate", parseFloat(v))}>
-                              <SelectTrigger className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium px-0 py-2 w-full hover:border-white/30 focus:border-orange-500/60 rounded-none shadow-none transition-colors">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-zinc-900/95 backdrop-blur-xl border-white/20 shadow-2xl">
-                                {taxOptions.map(tax => <SelectItem key={tax.value} value={String(tax.value)} className="text-white hover:bg-white/10">
-                                    {tax.label}
-                                  </SelectItem>)}
-                              </SelectContent>
-                            </Select>
+                            <select 
+                              value={String(line.tax_rate)} 
+                              onChange={e => updateLine(actualIndex, "tax_rate", parseFloat(e.target.value))}
+                              className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium px-1 py-2 w-full hover:border-primary/50 focus:border-primary rounded-none transition-colors outline-none"
+                            >
+                              {taxOptions.map(tax => (
+                                <option key={tax.value} value={String(tax.value)}>{tax.label}</option>
+                              ))}
+                            </select>
                           </div>
                         </TableCell>
                         <TableCell className="text-white font-semibold text-right text-sm px-5 py-3.5">

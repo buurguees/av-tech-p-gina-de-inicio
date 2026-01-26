@@ -5,13 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -589,46 +582,39 @@ const EditInvoicePageDesktop = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                 <Label className="text-white/70 text-[10px] md:text-sm">Cliente</Label>
-                <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                  <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 md:h-10 text-xs md:text-sm rounded-xl transition-all hover:bg-white/15">
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white/10 backdrop-blur-2xl border-white/20 rounded-2xl shadow-2xl">
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id} className="text-white text-xs md:text-sm">
-                        {client.company_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select 
+                  value={selectedClientId} 
+                  onChange={e => setSelectedClientId(e.target.value)}
+                  className="form-input"
+                >
+                  <option value="">Seleccionar</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.id}>{client.company_name}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                 <Label className="text-white/70 text-[10px] md:text-sm">Proyecto</Label>
-                <Select
+                <select
                   value={selectedProjectId}
-                  onValueChange={setSelectedProjectId}
+                  onChange={e => setSelectedProjectId(e.target.value)}
                   disabled={!selectedClientId || loadingProjects}
+                  className="form-input"
                 >
-                  <SelectTrigger className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 md:h-10 text-xs md:text-sm rounded-xl transition-all hover:bg-white/15">
-                    <SelectValue placeholder={
-                      !selectedClientId
-                        ? "Cliente primero"
-                        : loadingProjects
-                          ? "Cargando..."
-                          : projects.length === 0
-                            ? "Sin proyectos"
-                            : "Seleccionar"
-                    } />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white/10 backdrop-blur-2xl border-white/20 rounded-2xl shadow-2xl">
-                    {projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id} className="text-white text-xs md:text-sm">
-                        {project.project_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value="">
+                    {!selectedClientId
+                      ? "Cliente primero"
+                      : loadingProjects
+                        ? "Cargando..."
+                        : projects.length === 0
+                          ? "Sin proyectos"
+                          : "Seleccionar"}
+                  </option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>{project.project_name}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-1 md:space-y-2">
@@ -751,21 +737,15 @@ const EditInvoicePageDesktop = () => {
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
                           <div className="flex justify-center">
-                            <Select
+                            <select
                               value={line.tax_rate.toString()}
-                              onValueChange={(v) => updateLine(realIndex, "tax_rate", parseFloat(v))}
+                              onChange={(e) => updateLine(realIndex, "tax_rate", parseFloat(e.target.value))}
+                              className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium px-1 py-2 w-full hover:border-primary/50 focus:border-primary rounded-none transition-colors outline-none"
                             >
-                              <SelectTrigger className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium px-0 py-2 w-full hover:border-white/30 focus:border-orange-500/60 rounded-none shadow-none transition-colors">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-zinc-900/95 backdrop-blur-xl border-white/20 shadow-2xl">
-                                {taxOptions.map((opt) => (
-                                  <SelectItem key={opt.value} value={opt.value.toString()} className="text-white hover:bg-white/10">
-                                    {opt.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              {taxOptions.map((opt) => (
+                                <option key={opt.value} value={opt.value.toString()}>{opt.label}</option>
+                              ))}
+                            </select>
                           </div>
                         </TableCell>
                         <TableCell className="text-white text-right font-semibold px-5 py-3.5">
