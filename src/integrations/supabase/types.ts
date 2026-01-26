@@ -906,6 +906,10 @@ export type Database = {
           net_balance: number
         }[]
       }
+      get_bank_account_code: {
+        Args: { p_bank_account_id: string }
+        Returns: string
+      }
       get_canvassing_location: {
         Args: { p_location_id: string }
         Returns: {
@@ -1598,6 +1602,26 @@ export type Database = {
           phone: string
           roles: string[]
           setup_completed: boolean
+        }[]
+      }
+      list_bank_account_movements: {
+        Args: {
+          p_account_code: string
+          p_end_date?: string
+          p_limit?: number
+          p_start_date?: string
+        }
+        Returns: {
+          credit_amount: number
+          debit_amount: number
+          description: string
+          entry_date: string
+          entry_number: string
+          entry_type: string
+          id: string
+          reference_id: string
+          reference_type: string
+          running_balance: number
         }[]
       }
       list_chart_of_accounts: {
