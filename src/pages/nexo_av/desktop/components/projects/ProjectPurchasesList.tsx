@@ -21,6 +21,11 @@ import { MoreVertical, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../common/PaginationControls";
+import {
+  getDocumentStatusInfo,
+  calculatePaymentStatus,
+  getPaymentStatusInfo,
+} from "@/constants/purchaseInvoiceStatuses";
 import "../../styles/components/projects/project-items-list.css";
 
 interface PurchaseInvoice {
@@ -30,30 +35,13 @@ interface PurchaseInvoice {
   supplier_invoice_number: string | null;
   document_type: string;
   issue_date: string;
+  due_date?: string | null;
   provider_name: string | null;
   total: number;
   paid_amount: number;
   pending_amount: number;
   status: string;
 }
-
-const STATUS_STYLES: Record<string, string> = {
-  PENDING: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  REGISTERED: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  PARTIAL: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  PAID: "bg-green-500/20 text-green-400 border-green-500/30",
-  CANCELLED: "bg-gray-500/20 text-gray-400 border-gray-500/30",
-  DRAFT: "bg-gray-500/20 text-gray-400 border-gray-500/30",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  PENDING: "Pendiente",
-  REGISTERED: "Registrado",
-  PARTIAL: "Pago Parcial",
-  PAID: "Pagado",
-  CANCELLED: "Cancelado",
-  DRAFT: "Borrador",
-};
 
 interface ProjectPurchasesListProps {
   projectId: string;
@@ -159,16 +147,21 @@ const ProjectPurchasesList = ({ projectId }: ProjectPurchasesListProps) => {
                 <TableHead className="project-items-list__header">Proveedor</TableHead>
                 <TableHead className="project-items-list__header">Tipo</TableHead>
                 <TableHead className="project-items-list__header text-right">Total</TableHead>
-                <TableHead className="project-items-list__header text-right">Pagado</TableHead>
-                <TableHead className="project-items-list__header text-right">Pendiente</TableHead>
                 <TableHead className="project-items-list__header text-center">Estado</TableHead>
+                <TableHead className="project-items-list__header text-center">Pagos</TableHead>
                 <TableHead className="project-items-list__header w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedPurchases.map((purchase) => {
-                const statusStyle = STATUS_STYLES[purchase.status] || STATUS_STYLES.PENDING;
-                const statusLabel = STATUS_LABELS[purchase.status] || purchase.status;
+                const docStatusInfo = getDocumentStatusInfo(purchase.status);
+                const paymentStatus = calculatePaymentStatus(
+                  purchase.paid_amount,
+                  purchase.total,
+                  purchase.due_date || null,
+                  purchase.status
+                );
+                const paymentStatusInfo = getPaymentStatusInfo(paymentStatus);
                 const displayNumber =
                   purchase.internal_purchase_number ||
                   purchase.supplier_invoice_number ||
@@ -197,19 +190,25 @@ const ProjectPurchasesList = ({ projectId }: ProjectPurchasesListProps) => {
                     <TableCell className="project-items-list__cell text-right">
                       {formatCurrency(purchase.total)}
                     </TableCell>
-                    <TableCell className="project-items-list__cell text-right">
-                      {formatCurrency(purchase.paid_amount)}
-                    </TableCell>
-                    <TableCell className="project-items-list__cell text-right">
-                      {formatCurrency(purchase.pending_amount)}
-                    </TableCell>
                     <TableCell className="project-items-list__cell text-center">
                       <Badge
                         variant="outline"
-                        className={cn(statusStyle, "project-items-list__badge")}
+                        className={cn("purchase-status-badge purchase-status-badge--document", docStatusInfo.className)}
                       >
-                        {statusLabel}
+                        {docStatusInfo.label}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="project-items-list__cell text-center">
+                      {paymentStatusInfo ? (
+                        <Badge
+                          variant="outline"
+                          className={cn("purchase-status-badge purchase-status-badge--payment", paymentStatusInfo.className)}
+                        >
+                          {paymentStatusInfo.label}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
                     </TableCell>
                     <TableCell
                       className="project-items-list__cell"

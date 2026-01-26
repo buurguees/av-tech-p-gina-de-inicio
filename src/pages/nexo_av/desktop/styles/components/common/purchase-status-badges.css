@@ -1,0 +1,121 @@
+/* ============================================
+   PURCHASE INVOICE STATUS BADGES
+   Dual badge system: Document Status + Payment Status
+   ============================================ */
+
+/* ============================================
+   DOCUMENT STATUS CLASSES
+   Administrative state of the invoice
+   ============================================ */
+
+/* Scanned - PDF uploaded but not assigned */
+body.nexo-av-theme .purchase-doc-scanned,
+body.nexo-av-theme-dark .purchase-doc-scanned {
+  background-color: hsl(var(--purchase-doc-scanned-bg)) !important;
+  color: hsl(var(--purchase-doc-scanned)) !important;
+  border: 1px solid hsl(var(--purchase-doc-scanned) / 0.3) !important;
+}
+
+/* Draft - Manual forecast/order */
+body.nexo-av-theme .purchase-doc-draft,
+body.nexo-av-theme-dark .purchase-doc-draft {
+  background-color: hsl(var(--purchase-doc-draft-bg)) !important;
+  color: hsl(var(--purchase-doc-draft)) !important;
+  border: 1px solid hsl(var(--purchase-doc-draft) / 0.3) !important;
+}
+
+/* Pending Validation - Requires review */
+body.nexo-av-theme .purchase-doc-pending,
+body.nexo-av-theme-dark .purchase-doc-pending {
+  background-color: hsl(var(--purchase-doc-pending-bg)) !important;
+  color: hsl(var(--purchase-doc-pending)) !important;
+  border: 1px solid hsl(var(--purchase-doc-pending) / 0.3) !important;
+}
+
+/* Approved - Ready for payments */
+body.nexo-av-theme .purchase-doc-approved,
+body.nexo-av-theme-dark .purchase-doc-approved {
+  background-color: hsl(var(--purchase-doc-approved-bg)) !important;
+  color: hsl(var(--purchase-doc-approved)) !important;
+  border: 1px solid hsl(var(--purchase-doc-approved) / 0.3) !important;
+}
+
+/* Blocked - Error or dispute */
+body.nexo-av-theme .purchase-doc-blocked,
+body.nexo-av-theme-dark .purchase-doc-blocked {
+  background-color: hsl(var(--purchase-doc-blocked-bg)) !important;
+  color: hsl(var(--purchase-doc-blocked)) !important;
+  border: 1px solid hsl(var(--purchase-doc-blocked) / 0.3) !important;
+}
+
+/* ============================================
+   PAYMENT STATUS CLASSES
+   Financial state (only when APPROVED)
+   ============================================ */
+
+/* Pending - Within deadline, 0€ paid */
+body.nexo-av-theme .purchase-pay-pending,
+body.nexo-av-theme-dark .purchase-pay-pending {
+  background-color: hsl(var(--purchase-pay-pending-bg)) !important;
+  color: hsl(var(--purchase-pay-pending)) !important;
+  border: 1px solid hsl(var(--purchase-pay-pending) / 0.3) !important;
+}
+
+/* Overdue - Past due date, 0€ paid */
+body.nexo-av-theme .purchase-pay-overdue,
+body.nexo-av-theme-dark .purchase-pay-overdue {
+  background-color: hsl(var(--purchase-pay-overdue-bg)) !important;
+  color: hsl(var(--purchase-pay-overdue)) !important;
+  border: 1px solid hsl(var(--purchase-pay-overdue) / 0.3) !important;
+}
+
+/* Partial - Incomplete payment */
+body.nexo-av-theme .purchase-pay-partial,
+body.nexo-av-theme-dark .purchase-pay-partial {
+  background-color: hsl(var(--purchase-pay-partial-bg)) !important;
+  color: hsl(var(--purchase-pay-partial)) !important;
+  border: 1px solid hsl(var(--purchase-pay-partial) / 0.3) !important;
+}
+
+/* Paid - 100% paid */
+body.nexo-av-theme .purchase-pay-paid,
+body.nexo-av-theme-dark .purchase-pay-paid {
+  background-color: hsl(var(--purchase-pay-paid-bg)) !important;
+  color: hsl(var(--purchase-pay-paid)) !important;
+  border: 1px solid hsl(var(--purchase-pay-paid) / 0.3) !important;
+}
+
+/* ============================================
+   DUAL BADGE CONTAINER
+   For displaying both statuses side by side
+   ============================================ */
+.purchase-status-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-wrap: nowrap;
+}
+
+.purchase-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Document status badge - Primary (slightly larger) */
+.purchase-status-badge--document {
+  min-width: 70px;
+}
+
+/* Payment status badge - Secondary (smaller) */
+.purchase-status-badge--payment {
+  min-width: 58px;
+}

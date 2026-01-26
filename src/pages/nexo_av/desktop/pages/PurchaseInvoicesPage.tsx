@@ -44,6 +44,12 @@ import { usePagination } from "@/hooks/usePagination";
 import { cn } from "@/lib/utils";
 import PaginationControls from "../components/common/PaginationControls";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
+import {
+  getDocumentStatusInfo,
+  calculatePaymentStatus,
+  getPaymentStatusInfo,
+  PURCHASE_DOCUMENT_STATUSES,
+} from "@/constants/purchaseInvoiceStatuses";
 
 const DocumentScanner = lazy(() => import("../components/common/DocumentScanner"));
 
@@ -75,24 +81,6 @@ interface PurchaseInvoice {
   is_locked: boolean;
   created_at: string;
 }
-
-const STATUS_STYLES: Record<string, string> = {
-  PENDING: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  REGISTERED: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  PARTIAL: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  PAID: "bg-green-500/20 text-green-400 border-green-500/30",
-  CANCELLED: "bg-gray-500/20 text-gray-400 border-gray-500/30",
-  DRAFT: "bg-gray-500/20 text-gray-400 border-gray-500/30",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  PENDING: "Pendiente",
-  REGISTERED: "Registrado",
-  PARTIAL: "Pago Parcial",
-  PAID: "Pagado",
-  CANCELLED: "Cancelado",
-  DRAFT: "Borrador",
-};
 
 const PurchaseInvoicesPageDesktop = () => {
   const navigate = useNavigate();
@@ -491,7 +479,9 @@ const PurchaseInvoicesPageDesktop = () => {
                       statusFilter !== "all" && "bg-accent"
                     )}
                   >
-                    {statusFilter === "all" ? "Todos" : STATUS_LABELS[statusFilter] || statusFilter}
+                    {statusFilter === "all" 
+                      ? "Todos" 
+                      : PURCHASE_DOCUMENT_STATUSES.find(s => s.value === statusFilter)?.label || statusFilter}
                     <ChevronDown className="h-3 w-3 ml-1" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -502,30 +492,15 @@ const PurchaseInvoicesPageDesktop = () => {
                   >
                     Todos los estados
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setStatusFilter("PENDING")}
-                    className={cn(statusFilter === "PENDING" && "bg-accent")}
-                  >
-                    Pendientes
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setStatusFilter("REGISTERED")}
-                    className={cn(statusFilter === "REGISTERED" && "bg-accent")}
-                  >
-                    Registrado
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setStatusFilter("PARTIAL")}
-                    className={cn(statusFilter === "PARTIAL" && "bg-accent")}
-                  >
-                    Pago Parcial
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setStatusFilter("PAID")}
-                    className={cn(statusFilter === "PAID" && "bg-accent")}
-                  >
-                    Pagado
-                  </DropdownMenuItem>
+                  {PURCHASE_DOCUMENT_STATUSES.map((status) => (
+                    <DropdownMenuItem
+                      key={status.value}
+                      onClick={() => setStatusFilter(status.value)}
+                      className={cn(statusFilter === status.value && "bg-accent")}
+                    >
+                      {status.label}
+                    </DropdownMenuItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -651,13 +626,16 @@ const PurchaseInvoicesPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="text-muted-foreground text-xs font-medium cursor-pointer w-[100px]"
+                        className="text-muted-foreground text-xs font-medium cursor-pointer w-[160px]"
                         onClick={() => handleSort("status")}
                       >
                         <div className="flex items-center gap-1">
                           Estado
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
+                      </TableHead>
+                      <TableHead className="text-muted-foreground text-xs font-medium w-[80px]">
+                        Pagos
                       </TableHead>
                       <TableHead 
                         className="text-muted-foreground text-xs font-medium text-right cursor-pointer w-[90px]"
@@ -675,59 +653,83 @@ const PurchaseInvoicesPageDesktop = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedInvoices.map((invoice) => (
-                      <TableRow
-                        key={invoice.id}
-                        className="border-border hover:bg-accent/50 cursor-pointer"
-                        onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}
-                      >
-                        <TableCell className="text-foreground text-sm py-3 w-[90px]">
-                          {formatDate(invoice.issue_date)}
-                        </TableCell>
-                        <TableCell className="text-sm py-3 w-[200px] max-w-[200px]">
-                          <div className="truncate">
-                            <span className="text-foreground font-medium">
-                              {invoice.internal_purchase_number || invoice.invoice_number || "—"}
-                            </span>
-                            {invoice.supplier_invoice_number && (
-                              <span className="text-muted-foreground text-xs ml-1">
-                                ({invoice.supplier_invoice_number})
+                    {paginatedInvoices.map((invoice) => {
+                      const docStatusInfo = getDocumentStatusInfo(invoice.status);
+                      const paymentStatus = calculatePaymentStatus(
+                        invoice.paid_amount,
+                        invoice.total,
+                        invoice.due_date,
+                        invoice.status
+                      );
+                      const paymentStatusInfo = getPaymentStatusInfo(paymentStatus);
+                      
+                      return (
+                        <TableRow
+                          key={invoice.id}
+                          className="border-border hover:bg-accent/50 cursor-pointer"
+                          onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}
+                        >
+                          <TableCell className="text-foreground text-sm py-3 w-[90px]">
+                            {formatDate(invoice.issue_date)}
+                          </TableCell>
+                          <TableCell className="text-sm py-3 w-[200px] max-w-[200px]">
+                            <div className="truncate">
+                              <span className="text-foreground font-medium">
+                                {invoice.internal_purchase_number || invoice.invoice_number || "—"}
                               </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm py-3 w-[180px] max-w-[180px]">
-                          <span className="text-foreground truncate block">
-                            {invoice.provider_name || "Sin proveedor"}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-sm py-3 w-[220px] max-w-[220px]">
-                          {invoice.project_name ? (
-                            <span className="text-foreground truncate block">{invoice.project_name}</span>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="py-3 w-[100px]">
-                          <Badge
-                            variant="outline"
-                            className={cn("text-[10px] px-2 py-0.5 w-[80px] justify-center", STATUS_STYLES[invoice.status])}
-                          >
-                            {STATUS_LABELS[invoice.status] || invoice.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-foreground text-sm font-medium text-right py-3">
-                          {formatCurrency(invoice.total)}
-                        </TableCell>
-                        <TableCell className="text-sm text-right py-3">
-                          {invoice.pending_amount > 0 ? (
-                            <span className="text-orange-400 font-medium">
-                              {formatCurrency(invoice.pending_amount)}
+                              {invoice.supplier_invoice_number && (
+                                <span className="text-muted-foreground text-xs ml-1">
+                                  ({invoice.supplier_invoice_number})
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm py-3 w-[180px] max-w-[180px]">
+                            <span className="text-foreground truncate block">
+                              {invoice.provider_name || "Sin proveedor"}
                             </span>
-                          ) : (
-                            <span className="text-green-400">—</span>
-                          )}
-                        </TableCell>
+                          </TableCell>
+                          <TableCell className="text-sm py-3 w-[220px] max-w-[220px]">
+                            {invoice.project_name ? (
+                              <span className="text-foreground truncate block">{invoice.project_name}</span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-3 w-[160px]">
+                            <div className="purchase-status-badges">
+                              <Badge
+                                variant="outline"
+                                className={cn("purchase-status-badge purchase-status-badge--document", docStatusInfo.className)}
+                              >
+                                {docStatusInfo.label}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-3 w-[80px]">
+                            {paymentStatusInfo ? (
+                              <Badge
+                                variant="outline"
+                                className={cn("purchase-status-badge purchase-status-badge--payment", paymentStatusInfo.className)}
+                              >
+                                {paymentStatusInfo.label}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-foreground text-sm font-medium text-right py-3">
+                            {formatCurrency(invoice.total)}
+                          </TableCell>
+                          <TableCell className="text-sm text-right py-3">
+                            {invoice.pending_amount > 0 ? (
+                              <span className="text-muted-foreground font-medium">
+                                {formatCurrency(invoice.pending_amount)}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
                         <TableCell className="py-3" onClick={(e) => e.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -763,7 +765,8 @@ const PurchaseInvoicesPageDesktop = () => {
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

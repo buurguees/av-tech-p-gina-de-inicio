@@ -72,6 +72,28 @@ body.nexo-av-theme {
   --status-neutral: 220 9% 46%;
   --status-neutral-bg: 220 14% 96%;
 
+  /* Purchase Invoice Document Status Colors */
+  --purchase-doc-scanned: 213 10% 70%;
+  --purchase-doc-scanned-bg: 213 10% 95%;
+  --purchase-doc-draft: 205 79% 65%;
+  --purchase-doc-draft-bg: 205 79% 95%;
+  --purchase-doc-pending: 38 90% 55%;
+  --purchase-doc-pending-bg: 38 90% 95%;
+  --purchase-doc-approved: 145 65% 48%;
+  --purchase-doc-approved-bg: 145 65% 95%;
+  --purchase-doc-blocked: 4 78% 55%;
+  --purchase-doc-blocked-bg: 4 78% 95%;
+
+  /* Purchase Invoice Payment Status Colors */
+  --purchase-pay-pending: 212 80% 55%;
+  --purchase-pay-pending-bg: 212 80% 95%;
+  --purchase-pay-overdue: 0 80% 52%;
+  --purchase-pay-overdue-bg: 0 80% 95%;
+  --purchase-pay-partial: 28 80% 55%;
+  --purchase-pay-partial-bg: 28 80% 95%;
+  --purchase-pay-paid: 142 65% 42%;
+  --purchase-pay-paid-bg: 142 65% 95%;
+
   /* Shadows */
   --shadow-xs: 0 1px 2px hsl(224 14% 14% / 0.04);
   --shadow-sm: 0 2px 4px hsl(224 14% 14% / 0.06);
@@ -147,6 +169,28 @@ body.nexo-av-theme-dark {
   --status-special-bg: 262 50% 15%;
   --status-neutral: 220 9% 55%;
   --status-neutral-bg: 220 14% 18%;
+
+  /* Purchase Invoice Document Status Colors - Dark Mode */
+  --purchase-doc-scanned: 213 10% 55%;
+  --purchase-doc-scanned-bg: 213 10% 18%;
+  --purchase-doc-draft: 205 79% 55%;
+  --purchase-doc-draft-bg: 205 50% 15%;
+  --purchase-doc-pending: 38 90% 50%;
+  --purchase-doc-pending-bg: 38 50% 15%;
+  --purchase-doc-approved: 145 65% 50%;
+  --purchase-doc-approved-bg: 145 50% 15%;
+  --purchase-doc-blocked: 4 78% 55%;
+  --purchase-doc-blocked-bg: 4 50% 15%;
+
+  /* Purchase Invoice Payment Status Colors - Dark Mode */
+  --purchase-pay-pending: 212 80% 55%;
+  --purchase-pay-pending-bg: 212 50% 15%;
+  --purchase-pay-overdue: 0 80% 55%;
+  --purchase-pay-overdue-bg: 0 50% 15%;
+  --purchase-pay-partial: 28 80% 50%;
+  --purchase-pay-partial-bg: 28 50% 15%;
+  --purchase-pay-paid: 142 65% 45%;
+  --purchase-pay-paid-bg: 142 50% 15%;
 
   /* Shadows */
   --shadow-xs: 0 1px 2px hsl(0 0% 0% / 0.2);
