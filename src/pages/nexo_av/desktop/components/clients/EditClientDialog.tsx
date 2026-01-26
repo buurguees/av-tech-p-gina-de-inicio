@@ -396,8 +396,6 @@ const EditClientDialog = ({
       cancelLabel="Cancelar"
       loading={loading}
       size="lg"
-      submitActionType="edit"
-      useCustomSubmitButton={true}
       twoColumnLayout={true}
       defaultValues={{
         company_name: client.company_name || "",
