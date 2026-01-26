@@ -30,8 +30,10 @@ export interface PurchaseInvoiceLine {
   unit_price: number;
   tax_rate: number;
   discount_percent: number;
+  withholding_tax_rate: number;
   subtotal: number;
   tax_amount: number;
+  withholding_amount: number;
   total: number;
 }
 
@@ -90,6 +92,7 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
     const unitPrice = line.unit_price || 0;
     const discountPercent = line.discount_percent || 0;
     const taxRate = line.tax_rate || defaultTaxRate;
+    const withholdingTaxRate = line.withholding_tax_rate || 0;
 
     // Calculate subtotal (before discount)
     const lineSubtotal = quantity * unitPrice;
@@ -98,11 +101,14 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
     const discountAmount = (lineSubtotal * discountPercent) / 100;
     const subtotal = lineSubtotal - discountAmount;
     
-    // Calculate tax
+    // Calculate tax (IVA)
     const taxAmount = (subtotal * taxRate) / 100;
     
-    // Total
-    const total = subtotal + taxAmount;
+    // Calculate withholding (IRPF) - this is a deduction
+    const withholdingAmount = (subtotal * withholdingTaxRate) / 100;
+    
+    // Total = subtotal + IVA - IRPF
+    const total = subtotal + taxAmount - withholdingAmount;
 
     return {
       ...line,
@@ -112,8 +118,10 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
       unit_price: unitPrice,
       tax_rate: taxRate,
       discount_percent: discountPercent,
+      withholding_tax_rate: withholdingTaxRate,
       subtotal: Math.round(subtotal * 100) / 100,
       tax_amount: Math.round(taxAmount * 100) / 100,
+      withholding_amount: Math.round(withholdingAmount * 100) / 100,
       total: Math.round(total * 100) / 100,
     } as PurchaseInvoiceLine;
   };
@@ -126,6 +134,7 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
       unit_price: 0,
       tax_rate: defaultTaxRate,
       discount_percent: 0,
+      withholding_tax_rate: 0,
     });
     onChange([...lines, newLine]);
   };
@@ -213,7 +222,7 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
   // Helper: Handle numeric input change
   const handleNumericInputChange = (
     value: string,
-    field: 'quantity' | 'unit_price' | 'discount_percent',
+    field: 'quantity' | 'unit_price' | 'discount_percent' | 'withholding_tax_rate',
     index: number
   ) => {
     const inputKey = `${index}-${field}`;
@@ -235,7 +244,7 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
   // Get display value for numeric input
   const getNumericDisplayValue = (
     value: number,
-    field: 'quantity' | 'unit_price' | 'discount_percent',
+    field: 'quantity' | 'unit_price' | 'discount_percent' | 'withholding_tax_rate',
     index: number
   ): string => {
     const inputKey = `${index}-${field}`;
@@ -261,6 +270,7 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
   const getTotals = () => {
     const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
     const total = lines.reduce((acc, line) => acc + line.total, 0);
+    const totalWithholding = lines.reduce((acc, line) => acc + (line.withholding_amount || 0), 0);
 
     // Group taxes by rate
     const taxesByRate: Record<number, { rate: number; amount: number; label: string }> = {};
@@ -278,9 +288,26 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
       }
     });
 
+    // Group withholdings by rate
+    const withholdingsByRate: Record<number, { rate: number; amount: number; label: string }> = {};
+    lines.forEach((line) => {
+      if (line.withholding_amount && line.withholding_amount !== 0) {
+        if (!withholdingsByRate[line.withholding_tax_rate]) {
+          withholdingsByRate[line.withholding_tax_rate] = {
+            rate: line.withholding_tax_rate,
+            amount: 0,
+            label: `IRPF -${line.withholding_tax_rate}%`,
+          };
+        }
+        withholdingsByRate[line.withholding_tax_rate].amount += line.withholding_amount;
+      }
+    });
+
     return {
       subtotal,
       taxes: Object.values(taxesByRate).sort((a, b) => b.rate - a.rate),
+      withholdings: Object.values(withholdingsByRate).sort((a, b) => b.rate - a.rate),
+      totalWithholding,
       total,
     };
   };
@@ -308,12 +335,13 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
         <Table>
           <TableHeader>
             <TableRow className="bg-white/5 border-b border-white/10">
-              <TableHead className="text-white/70 text-xs font-medium w-[300px]">Concepto</TableHead>
-              <TableHead className="text-white/70 text-xs font-medium w-[80px] text-center">Cant.</TableHead>
-              <TableHead className="text-white/70 text-xs font-medium w-[120px] text-right">Precio Unit.</TableHead>
-              <TableHead className="text-white/70 text-xs font-medium w-[100px] text-right">Dto. %</TableHead>
-              <TableHead className="text-white/70 text-xs font-medium w-[100px] text-right">IVA %</TableHead>
-              <TableHead className="text-white/70 text-xs font-medium w-[120px] text-right">Total</TableHead>
+              <TableHead className="text-white/70 text-xs font-medium w-[250px]">Concepto</TableHead>
+              <TableHead className="text-white/70 text-xs font-medium w-[70px] text-center">Cant.</TableHead>
+              <TableHead className="text-white/70 text-xs font-medium w-[100px] text-right">Precio Unit.</TableHead>
+              <TableHead className="text-white/70 text-xs font-medium w-[70px] text-right">Dto. %</TableHead>
+              <TableHead className="text-white/70 text-xs font-medium w-[90px] text-right">IVA %</TableHead>
+              <TableHead className="text-white/70 text-xs font-medium w-[90px] text-right">IRPF %</TableHead>
+              <TableHead className="text-white/70 text-xs font-medium w-[100px] text-right">Total</TableHead>
               <TableHead className="text-white/70 text-xs font-medium w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -424,6 +452,29 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
                       </Select>
                     )}
                   </TableCell>
+                  <TableCell>
+                    {disabled ? (
+                      <span className="text-sm text-foreground text-right block">
+                        {line.withholding_tax_rate > 0 ? `-${line.withholding_tax_rate}%` : '—'}
+                      </span>
+                    ) : (
+                      <Input
+                        type="text"
+                        value={getNumericDisplayValue(line.withholding_tax_rate, 'withholding_tax_rate' as any, index)}
+                        onChange={(e) => handleNumericInputChange(e.target.value, 'withholding_tax_rate' as any, index)}
+                        onBlur={() => {
+                          const inputKey = `${index}-withholding_tax_rate`;
+                          setNumericInputValues(prev => {
+                            const newValues = { ...prev };
+                            delete newValues[inputKey];
+                            return newValues;
+                          });
+                        }}
+                        className="text-sm h-9 text-right"
+                        placeholder="0"
+                      />
+                    )}
+                  </TableCell>
                   <TableCell className="text-right text-foreground font-medium">
                     {formatCurrency(line.total)}
                   </TableCell>
@@ -458,6 +509,12 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
             <div key={tax.rate} className="flex justify-between text-sm">
               <span className="text-white/60">{tax.label}:</span>
               <span className="text-white font-medium">{formatCurrency(tax.amount)}</span>
+            </div>
+          ))}
+          {totals.withholdings.map((wh) => (
+            <div key={wh.rate} className="flex justify-between text-sm">
+              <span className="text-white/60">{wh.label}:</span>
+              <span className="text-destructive font-medium">-{formatCurrency(wh.amount)}</span>
             </div>
           ))}
           <div className="flex justify-between text-lg font-bold pt-2 border-t border-white/10">
