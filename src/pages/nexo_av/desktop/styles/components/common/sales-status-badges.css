@@ -1,0 +1,121 @@
+/* ============================================
+   SALES INVOICE STATUS BADGES
+   Dual badge system: Document Status + Collection Status
+   ============================================ */
+
+/* ============================================
+   DOCUMENT STATUS CLASSES
+   Administrative/commercial state of the invoice
+   ============================================ */
+
+/* Draft - Proforma, forecast */
+body.nexo-av-theme .sales-doc-draft,
+body.nexo-av-theme-dark .sales-doc-draft {
+  background-color: hsl(var(--sales-doc-draft-bg)) !important;
+  color: hsl(var(--sales-doc-draft)) !important;
+  border: 1px solid hsl(var(--sales-doc-draft) / 0.3) !important;
+}
+
+/* Pending Issue - Complete but not issued */
+body.nexo-av-theme .sales-doc-pending,
+body.nexo-av-theme-dark .sales-doc-pending {
+  background-color: hsl(var(--sales-doc-pending-bg)) !important;
+  color: hsl(var(--sales-doc-pending)) !important;
+  border: 1px solid hsl(var(--sales-doc-pending) / 0.3) !important;
+}
+
+/* Issued - Officially numbered and active */
+body.nexo-av-theme .sales-doc-issued,
+body.nexo-av-theme-dark .sales-doc-issued {
+  background-color: hsl(var(--sales-doc-issued-bg)) !important;
+  color: hsl(var(--sales-doc-issued)) !important;
+  border: 1px solid hsl(var(--sales-doc-issued) / 0.3) !important;
+}
+
+/* Cancelled - Error, should not be collected */
+body.nexo-av-theme .sales-doc-cancelled,
+body.nexo-av-theme-dark .sales-doc-cancelled {
+  background-color: hsl(var(--sales-doc-cancelled-bg)) !important;
+  color: hsl(var(--sales-doc-cancelled)) !important;
+  border: 1px solid hsl(var(--sales-doc-cancelled) / 0.3) !important;
+}
+
+/* Rectified - Corrected with rectifying invoice */
+body.nexo-av-theme .sales-doc-rectified,
+body.nexo-av-theme-dark .sales-doc-rectified {
+  background-color: hsl(var(--sales-doc-rectified-bg)) !important;
+  color: hsl(var(--sales-doc-rectified)) !important;
+  border: 1px solid hsl(var(--sales-doc-rectified) / 0.3) !important;
+}
+
+/* ============================================
+   COLLECTION STATUS CLASSES
+   Financial state (only when ISSUED)
+   ============================================ */
+
+/* Pending - Within deadline, 0€ collected */
+body.nexo-av-theme .sales-collect-pending,
+body.nexo-av-theme-dark .sales-collect-pending {
+  background-color: hsl(var(--sales-collect-pending-bg)) !important;
+  color: hsl(var(--sales-collect-pending)) !important;
+  border: 1px solid hsl(var(--sales-collect-pending) / 0.3) !important;
+}
+
+/* Overdue - Past due date, 0€ collected */
+body.nexo-av-theme .sales-collect-overdue,
+body.nexo-av-theme-dark .sales-collect-overdue {
+  background-color: hsl(var(--sales-collect-overdue-bg)) !important;
+  color: hsl(var(--sales-collect-overdue)) !important;
+  border: 1px solid hsl(var(--sales-collect-overdue) / 0.3) !important;
+}
+
+/* Partial - Incomplete collection */
+body.nexo-av-theme .sales-collect-partial,
+body.nexo-av-theme-dark .sales-collect-partial {
+  background-color: hsl(var(--sales-collect-partial-bg)) !important;
+  color: hsl(var(--sales-collect-partial)) !important;
+  border: 1px solid hsl(var(--sales-collect-partial) / 0.3) !important;
+}
+
+/* Collected - 100% collected */
+body.nexo-av-theme .sales-collect-collected,
+body.nexo-av-theme-dark .sales-collect-collected {
+  background-color: hsl(var(--sales-collect-collected-bg)) !important;
+  color: hsl(var(--sales-collect-collected)) !important;
+  border: 1px solid hsl(var(--sales-collect-collected) / 0.3) !important;
+}
+
+/* ============================================
+   DUAL BADGE CONTAINER
+   For displaying both statuses side by side
+   ============================================ */
+.sales-status-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-wrap: nowrap;
+}
+
+.sales-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Document status badge - Primary (slightly larger) */
+.sales-status-badge--document {
+  min-width: 70px;
+}
+
+/* Collection status badge - Secondary (smaller) */
+.sales-status-badge--collection {
+  min-width: 58px;
+}

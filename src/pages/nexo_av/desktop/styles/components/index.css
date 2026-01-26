@@ -22,6 +22,7 @@
 @import './common/document-pdf-viewer.css';
 @import './common/status-badges.css';
 @import './common/purchase-status-badges.css';
+@import './common/sales-status-badges.css';
 
 /* Cards */
 @import './cards/card.css';
