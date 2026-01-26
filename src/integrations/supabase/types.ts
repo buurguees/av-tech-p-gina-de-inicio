@@ -613,6 +613,10 @@ export type Database = {
         Args: { p_subcategory_id: string }
         Returns: boolean
       }
+      delete_purchase_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: boolean
+      }
       delete_purchase_invoice_line: {
         Args: { p_line_id: string }
         Returns: boolean
