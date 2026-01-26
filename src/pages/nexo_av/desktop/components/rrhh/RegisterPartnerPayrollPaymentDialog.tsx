@@ -118,12 +118,12 @@ export default function RegisterPartnerPayrollPaymentDialog({
     setLoading(true);
 
     try {
+      // Note: create_payroll_payment doesn't have p_bank_account_id, bank info goes in reference/notes
       const { error } = await supabase.rpc("create_payroll_payment", {
         p_partner_compensation_run_id: payrollId,
         p_amount: parseFloat(formData.amount),
         p_payment_date: formData.payment_date,
         p_payment_method: formData.payment_method,
-        p_bank_account_id: formData.bank_account_id || null,
         p_bank_reference: formData.bank_reference || null,
         p_notes: formData.notes || null,
       });
