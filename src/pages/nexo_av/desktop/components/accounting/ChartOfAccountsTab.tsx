@@ -76,6 +76,18 @@ interface ExpenseByCategory {
   color: string;
 }
 
+interface SalesByCategory {
+  category_id: string;
+  category_name: string;
+  category_code: string;
+  category_type: string;
+  invoice_count: number;
+  line_count: number;
+  total_subtotal: number;
+  total_tax: number;
+  total_amount: number;
+}
+
 interface ChartOfAccountsTabProps {
   balanceDate: string;
   periodStart?: string;
@@ -94,6 +106,23 @@ const EXPENSE_CATEGORY_CONFIG: Record<string, { label: string; icon: React.Compo
   RENT: { label: "Alquiler", icon: Home, color: "text-teal-600" },
   UTILITIES: { label: "Suministros", icon: Plug, color: "text-yellow-600" },
   OTHER: { label: "Otros", icon: MoreHorizontal, color: "text-gray-600" },
+};
+
+// Iconos por tipo de categoría de venta
+const getSalesCategoryIcon = (categoryType: string, categoryCode: string) => {
+  if (categoryType === "service") return Briefcase;
+  // Mapear por código de categoría si es necesario
+  const codeUpper = categoryCode.toUpperCase();
+  if (codeUpper.includes("AUD") || codeUpper.includes("AUDIO")) return Package;
+  if (codeUpper.includes("LED") || codeUpper.includes("SCREEN")) return Package;
+  if (codeUpper.includes("INST") || codeUpper.includes("INSTALLATION")) return Wrench;
+  return Package;
+};
+
+const getSalesCategoryColor = (categoryType: string, index: number) => {
+  if (categoryType === "service") return "text-purple-600";
+  const colors = ["text-blue-600", "text-green-600", "text-orange-600", "text-teal-600", "text-rose-600"];
+  return colors[index % colors.length];
 };
 
 const formatCurrency = (amount: number): string => {
@@ -116,6 +145,7 @@ const ChartOfAccountsTab = ({
   const [clientBalances, setClientBalances] = useState<ClientBalance[]>([]);
   const [supplierBalances, setSupplierBalances] = useState<SupplierTechnicianBalance[]>([]);
   const [expensesByCategory, setExpensesByCategory] = useState<ExpenseByCategory[]>([]);
+  const [salesByCategory, setSalesByCategory] = useState<SalesByCategory[]>([]);
 
   useEffect(() => {
     fetchAllData();
@@ -124,14 +154,19 @@ const ChartOfAccountsTab = ({
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [balanceRes, clientsRes, suppliersRes, purchasesRes] = await Promise.all([
+      const [balanceRes, clientsRes, suppliersRes, purchasesRes, salesRes] = await Promise.all([
         supabase.rpc("get_balance_sheet", { p_as_of_date: balanceDate }),
         supabase.rpc("get_client_balances", { p_as_of_date: balanceDate }),
         supabase.rpc("get_supplier_technician_balances", { p_as_of_date: balanceDate }),
         supabase.rpc("list_purchase_invoices", {
           p_search: null,
-          p_status: "APPROVED", // Solo facturas aprobadas cuentan como gasto real
+          p_status: "APPROVED",
           p_document_type: null,
+        }),
+        supabase.rpc("get_sales_by_product_category", {
+          p_period_start: periodStart || null,
+          p_period_end: periodEnd || null,
+          p_status: "ISSUED",
         }),
       ]);
 
@@ -139,10 +174,12 @@ const ChartOfAccountsTab = ({
       if (clientsRes.error) throw clientsRes.error;
       if (suppliersRes.error) throw suppliersRes.error;
       if (purchasesRes.error) throw purchasesRes.error;
+      if (salesRes.error) throw salesRes.error;
 
       setBalanceSheet(balanceRes.data || []);
       setClientBalances(clientsRes.data || []);
       setSupplierBalances(suppliersRes.data || []);
+      setSalesByCategory((salesRes.data || []) as SalesByCategory[]);
 
       // Agrupar facturas de compra por categoría de gasto
       const purchases = purchasesRes.data || [];
@@ -177,7 +214,7 @@ const ChartOfAccountsTab = ({
             color: config.color,
           };
         })
-        .sort((a, b) => b.total - a.total); // Ordenar por total descendente
+        .sort((a, b) => b.total - a.total);
 
       setExpensesByCategory(expensesArray);
     } catch (error) {
@@ -205,6 +242,7 @@ const ChartOfAccountsTab = ({
   const totalRevenue = getAccountsByPrefix("7").reduce((sum, a) => sum + a.net_balance, 0);
   const totalExpenses = getAccountsByPrefix("6").reduce((sum, a) => sum + Math.abs(a.net_balance), 0);
   const totalExpensesByCategory = expensesByCategory.reduce((sum, e) => sum + e.total, 0);
+  const totalSalesByCategory = salesByCategory.reduce((sum, s) => sum + s.total_subtotal, 0);
 
   if (loading) {
     return (
@@ -636,6 +674,91 @@ const ChartOfAccountsTab = ({
                       </TableCell>
                     </TableRow>
                   ))
+                )}
+              </TableBody>
+            </Table>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* VENTAS POR CATEGORÍA DE PRODUCTO */}
+        <AccordionItem value="sales-by-category" className="border rounded-lg overflow-hidden">
+          <AccordionTrigger className="px-4 py-3 bg-muted/50 hover:bg-muted/70 [&[data-state=open]]:bg-muted">
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5 text-emerald-600" />
+              <span className="font-semibold">Ventas por Categoría</span>
+              <Badge variant="secondary" className="ml-2">
+                {salesByCategory.length} categorías
+              </Badge>
+              <span className="ml-auto mr-4 font-bold text-green-600">
+                {formatCurrency(totalSalesByCategory)}
+              </span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="px-0 pb-0">
+            {/* Summary cards for sales categories */}
+            <div className="p-4 border-b bg-muted/20 grid grid-cols-2 md:grid-cols-4 gap-3">
+              {salesByCategory.slice(0, 4).map((sale, index) => {
+                const IconComponent = getSalesCategoryIcon(sale.category_type, sale.category_code);
+                const color = getSalesCategoryColor(sale.category_type, index);
+                return (
+                  <div key={sale.category_id} className="flex items-center gap-2 p-2 rounded-lg bg-background border">
+                    <IconComponent className={`h-4 w-4 ${color}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground truncate">{sale.category_name}</p>
+                      <p className="text-sm font-semibold">{formatCurrency(sale.total_subtotal)}</p>
+                    </div>
+                    <Badge variant="outline" className="text-[10px]">{sale.invoice_count}</Badge>
+                  </div>
+                );
+              })}
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="w-[60px]"></TableHead>
+                  <TableHead>Categoría</TableHead>
+                  <TableHead className="text-center">Tipo</TableHead>
+                  <TableHead className="text-center">Facturas</TableHead>
+                  <TableHead className="text-right">Subtotal</TableHead>
+                  <TableHead className="text-right">IVA</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {salesByCategory.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
+                      No hay facturas de venta emitidas en el período
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  salesByCategory.map((sale, index) => {
+                    const IconComponent = getSalesCategoryIcon(sale.category_type, sale.category_code);
+                    const color = getSalesCategoryColor(sale.category_type, index);
+                    return (
+                      <TableRow key={sale.category_id}>
+                        <TableCell>
+                          <div className="p-2 rounded-lg bg-muted inline-flex">
+                            <IconComponent className={`h-4 w-4 ${color}`} />
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">{sale.category_name}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant={sale.category_type === "service" ? "default" : "secondary"}>
+                            {sale.category_type === "service" ? "Servicio" : "Producto"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="outline">{sale.invoice_count}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right">{formatCurrency(sale.total_subtotal)}</TableCell>
+                        <TableCell className="text-right text-muted-foreground">{formatCurrency(sale.total_tax)}</TableCell>
+                        <TableCell className="text-right font-semibold text-green-600">
+                          {formatCurrency(sale.total_amount)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

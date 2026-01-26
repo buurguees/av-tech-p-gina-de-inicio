@@ -1445,6 +1445,24 @@ export type Database = {
           unit_price: number
         }[]
       }
+      get_sales_by_product_category: {
+        Args: {
+          p_period_end?: string
+          p_period_start?: string
+          p_status?: string
+        }
+        Returns: {
+          category_code: string
+          category_id: string
+          category_name: string
+          category_type: string
+          invoice_count: number
+          line_count: number
+          total_amount: number
+          total_subtotal: number
+          total_tax: number
+        }[]
+      }
       get_supplier: {
         Args: { p_supplier_id: string }
         Returns: {
