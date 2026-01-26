@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, useMemo, ReactNode } from "react";
 import {
   Dialog,
   DialogContent,
@@ -93,8 +93,12 @@ export default function FormDialog({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const allFields = sections ? sections.flatMap(section => section.fields) : fields;
+  // Memoize allFields to prevent recalculation on every render
+  const allFields = useMemo(() => {
+    return sections ? sections.flatMap(section => section.fields) : fields;
+  }, [sections, fields]);
 
+  // Only reset form when dialog opens, not on every render
   useEffect(() => {
     if (open) {
       const initialData: Record<string, any> = {};
@@ -104,7 +108,8 @@ export default function FormDialog({
       setFormData(initialData);
       setErrors({});
     }
-  }, [open, allFields, defaultValues]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const handleChange = (name: string, value: any) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
