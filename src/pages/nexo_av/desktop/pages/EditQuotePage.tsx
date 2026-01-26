@@ -9,203 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown, CheckCircle2, Search, Check, ChevronsUpDown, User, FolderKanban } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown, User, FolderKanban } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "../components/common/ProductSearchInput";
+import SearchableSelect from "../components/common/SearchableSelect";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
-import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
-import { createPortal } from "react-dom";
-
-// ============================================
-// INLINE SELECTOR COMPONENT
-// Modern combobox-style selector with search
-// ============================================
-interface InlineSelectorOption {
-  value: string;
-  label: string;
-  sublabel?: string;
-  icon?: React.ReactNode;
-}
-interface InlineSelectorProps {
-  value: string;
-  onChange: (value: string) => void;
-  options: InlineSelectorOption[];
-  placeholder?: string;
-  disabled?: boolean;
-  loading?: boolean;
-  icon?: React.ReactNode;
-  emptyText?: string;
-}
-const InlineSelector = ({
-  value,
-  onChange,
-  options,
-  placeholder = "Seleccionar...",
-  disabled = false,
-  loading = false,
-  icon,
-  emptyText = "Sin opciones"
-}: InlineSelectorProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [position, setPosition] = useState<{
-    top: number;
-    left: number;
-    width: number;
-  } | null>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
-  const selectedOption = options.find(opt => opt.value === value);
-  const filteredOptions = useMemo(() => {
-    if (!search.trim()) return options;
-    const q = search.toLowerCase();
-    return options.filter(opt => opt.label.toLowerCase().includes(q) || opt.sublabel?.toLowerCase().includes(q));
-  }, [options, search]);
-  const updatePosition = useCallback(() => {
-    if (triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      setPosition({
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: Math.max(rect.width, 320)
-      });
-    }
-  }, []);
-  const handleOpen = () => {
-    if (disabled || loading) return;
-    updatePosition();
-    setIsOpen(true);
-    setSearch("");
-  };
-  const handleClose = () => {
-    setIsOpen(false);
-    setSearch("");
-  };
-  const handleSelect = (val: string) => {
-    onChange(val);
-    handleClose();
-  };
-  useEffect(() => {
-    if (isOpen && searchRef.current) {
-      setTimeout(() => searchRef.current?.focus(), 50);
-    }
-  }, [isOpen]);
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node) && triggerRef.current && !triggerRef.current.contains(e.target as Node)) {
-        handleClose();
-      }
-    };
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") handleClose();
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEsc);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEsc);
-    };
-  }, [isOpen]);
-  return (
-    <div className="w-full">
-      <button
-        ref={triggerRef}
-        type="button"
-        disabled={disabled || loading}
-        onClick={isOpen ? handleClose : handleOpen}
-        className="w-full h-11 px-4 flex items-center gap-3 bg-background border border-border rounded-lg text-sm font-medium hover:border-primary/50 hover:bg-accent/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-muted"
-      >
-        {icon && (
-          <span className="flex-shrink-0 text-muted-foreground">
-            {icon}
-          </span>
-        )}
-        
-        <span className="flex-1 min-w-0 text-left">
-          {loading ? (
-            <span className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Cargando...
-            </span>
-          ) : selectedOption ? (
-            <span className="flex items-center gap-2">
-              {selectedOption.sublabel && (
-                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-md font-mono flex-shrink-0">
-                  {selectedOption.sublabel}
-                </span>
-              )}
-              <span className="truncate">{selectedOption.label}</span>
-            </span>
-          ) : (
-            <span className="text-muted-foreground">{placeholder}</span>
-          )}
-        </span>
-        
-        <ChevronsUpDown className={`h-4 w-4 text-muted-foreground flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-      </button>
-
-      {isOpen && position && createPortal(
-        <div
-          ref={dropdownRef}
-          style={{
-            position: "fixed",
-            top: position.top,
-            left: position.left,
-            width: position.width,
-            zIndex: 9999
-          }}
-          className="bg-popover border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150"
-        >
-          {/* Search input */}
-          <div className="p-2 border-b border-border bg-muted/20">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                ref={searchRef}
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar..."
-                className="w-full h-10 pl-10 pr-4 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              />
-            </div>
-          </div>
-
-          {/* Options list */}
-          <div className="max-h-64 overflow-y-auto overscroll-contain">
-            {filteredOptions.length === 0 ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                {emptyText}
-              </div>
-            ) : (
-              filteredOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleSelect(opt.value)}
-                  className={`w-full px-4 py-3 flex items-center gap-3 text-left text-sm transition-colors duration-100 hover:bg-accent/50 ${
-                    opt.value === value ? "bg-primary/10 text-primary font-medium" : "text-foreground"
-                  }`}
-                >
-                  {opt.icon && <span className="flex-shrink-0 text-muted-foreground">{opt.icon}</span>}
-                  <span className="flex-1 min-w-0">
-                    <span className="block truncate">{opt.label}</span>
-                    {opt.sublabel && <span className="block text-xs text-muted-foreground truncate">{opt.sublabel}</span>}
-                  </span>
-                  {opt.value === value && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
-                </button>
-              ))
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
-    </div>
-  );
-};
 
 // Estados que bloquean la edición
 const LOCKED_STATES = ["SENT", "APPROVED", "REJECTED", "EXPIRED", "INVOICED"];
@@ -993,15 +802,15 @@ const EditQuotePageDesktop = () => {
   const totals = getTotals();
   const statusInfo = getStatusInfo(currentStatus);
 
-  // Dropdown options for InlineSelector
-  const clientOptions: InlineSelectorOption[] = useMemo(() => {
+  // Dropdown options for SearchableSelect
+  const clientOptions = useMemo(() => {
     return availableClients.map(c => ({
       value: c.id,
       label: c.company_name,
       icon: <User className="h-4 w-4" />
     }));
   }, [availableClients]);
-  const projectOptions: InlineSelectorOption[] = useMemo(() => {
+  const projectOptions = useMemo(() => {
     return projects.map(p => ({
       value: p.id,
       label: p.project_name,
@@ -1078,16 +887,31 @@ const EditQuotePageDesktop = () => {
               {/* Client selector - 40% */}
               <div className="flex-[4] min-w-0">
                 <Label className="text-muted-foreground text-xs mb-2 block font-medium">Cliente</Label>
-                <InlineSelector value={selectedClientId} onChange={v => {
-                setSelectedClientId(v);
-                setSelectedProjectId("");
-              }} options={clientOptions} placeholder="Seleccionar cliente..." icon={<User className="h-4 w-4" />} disabled={false} />
+                <SearchableSelect 
+                  value={selectedClientId} 
+                  onChange={v => {
+                    setSelectedClientId(v);
+                    setSelectedProjectId("");
+                  }} 
+                  options={clientOptions} 
+                  placeholder="Seleccionar cliente..." 
+                  icon={<User className="h-4 w-4" />} 
+                />
               </div>
               
               {/* Project selector - 60% */}
               <div className="flex-[6] min-w-0">
                 <Label className="text-muted-foreground text-xs mb-2 block font-medium">Proyecto</Label>
-                <InlineSelector value={selectedProjectId} onChange={setSelectedProjectId} options={projectOptions} placeholder={!selectedClientId ? "Selecciona un cliente primero" : loadingProjects ? "Cargando proyectos..." : projects.length === 0 ? "Sin proyectos disponibles" : "Seleccionar proyecto..."} icon={<FolderKanban className="h-4 w-4" />} disabled={!selectedClientId || loadingProjects || projects.length === 0} loading={loadingProjects} emptyText={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"} />
+                <SearchableSelect 
+                  value={selectedProjectId} 
+                  onChange={setSelectedProjectId} 
+                  options={projectOptions} 
+                  placeholder={!selectedClientId ? "Selecciona un cliente primero" : projects.length === 0 ? "Sin proyectos disponibles" : "Seleccionar proyecto..."} 
+                  icon={<FolderKanban className="h-4 w-4" />} 
+                  disabled={!selectedClientId || loadingProjects || projects.length === 0} 
+                  loading={loadingProjects} 
+                  disabledText={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"} 
+                />
               </div>
               
               {/* Validity date - only editable when not draft */}

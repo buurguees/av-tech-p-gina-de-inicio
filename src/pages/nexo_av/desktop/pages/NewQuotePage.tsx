@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Search, GripVertical, Trash2, Plus, ChevronDown, Check } from "lucide-react";
+import { Loader2, GripVertical, Trash2, Plus, ChevronDown, User, FolderKanban } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
+import SearchableSelect from "../components/common/SearchableSelect";
 import { cn } from "@/lib/utils";
-import { createPortal } from "react-dom";
 
 // ============= INLINE TYPES =============
 interface Client {
@@ -50,194 +50,6 @@ const formatCurrency = (amount: number) => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(amount);
-};
-
-// ============= INLINE SEARCHABLE DROPDOWN =============
-interface DropdownOption {
-  value: string;
-  label: string;
-  secondaryLabel?: string;
-}
-
-interface InlineSearchableDropdownProps {
-  options: DropdownOption[];
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  searchPlaceholder?: string;
-  disabled?: boolean;
-  emptyMessage?: string;
-}
-
-const InlineSearchableDropdown = ({
-  options,
-  value,
-  onChange,
-  placeholder = "Seleccionar...",
-  searchPlaceholder = "Buscar...",
-  disabled = false,
-  emptyMessage = "Sin resultados",
-}: InlineSearchableDropdownProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  const selectedOption = options.find((opt) => opt.value === value);
-
-  const filteredOptions = options.filter((opt) => {
-    const searchText = `${opt.label} ${opt.secondaryLabel || ""}`.toLowerCase();
-    return searchText.includes(searchQuery.toLowerCase());
-  });
-
-  const updatePosition = useCallback(() => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    setDropdownPosition({ top: rect.bottom + 4, left: rect.left, width: rect.width });
-  }, []);
-
-  const handleOpen = useCallback(() => {
-    if (disabled) return;
-    updatePosition();
-    setIsOpen(true);
-    setSearchQuery("");
-  }, [disabled, updatePosition]);
-
-  const handleClose = useCallback(() => {
-    setIsOpen(false);
-    setSearchQuery("");
-  }, []);
-
-  useEffect(() => {
-    if (isOpen && searchInputRef.current) {
-      setTimeout(() => searchInputRef.current?.focus(), 10);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (dropdownRef.current && !dropdownRef.current.contains(target) && triggerRef.current && !triggerRef.current.contains(target)) {
-        handleClose();
-      }
-    };
-    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, handleClose]);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isOpen) handleClose();
-    };
-    if (isOpen) document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, handleClose]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleScrollOrResize = () => updatePosition();
-    window.addEventListener("scroll", handleScrollOrResize, true);
-    window.addEventListener("resize", handleScrollOrResize);
-    return () => {
-      window.removeEventListener("scroll", handleScrollOrResize, true);
-      window.removeEventListener("resize", handleScrollOrResize);
-    };
-  }, [isOpen, updatePosition]);
-
-  const handleSelect = (optValue: string) => {
-    onChange(optValue);
-    handleClose();
-  };
-
-  return (
-    <div className="w-full min-w-0">
-      <button
-        ref={triggerRef}
-        type="button"
-        disabled={disabled}
-        onClick={isOpen ? handleClose : handleOpen}
-        className={cn(
-          "w-full min-h-[44px] px-4 py-2.5 flex items-center justify-between gap-3",
-          "bg-background border border-border rounded-xl",
-          "text-sm font-medium",
-          "hover:border-primary/50 hover:bg-accent/30",
-          "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-          "transition-all duration-150",
-          disabled && "opacity-50 cursor-not-allowed bg-muted hover:bg-muted",
-          !selectedOption && "text-muted-foreground"
-        )}
-      >
-        <span className="truncate flex-1 text-left">
-          {selectedOption ? (
-            <span className="flex items-center gap-2">
-              {selectedOption.secondaryLabel && (
-                <span className="font-mono text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                  {selectedOption.secondaryLabel}
-                </span>
-              )}
-              <span className="text-foreground">{selectedOption.label}</span>
-            </span>
-          ) : (
-            placeholder
-          )}
-        </span>
-        <ChevronDown className={cn("w-5 h-5 text-muted-foreground transition-transform flex-shrink-0", isOpen && "rotate-180")} />
-      </button>
-
-      {isOpen && dropdownPosition && createPortal(
-        <div
-          ref={dropdownRef}
-          className="fixed z-[9999] bg-popover border border-border rounded-xl shadow-2xl overflow-hidden"
-          style={{ top: `${dropdownPosition.top}px`, left: `${dropdownPosition.left}px`, width: `${Math.max(dropdownPosition.width, 280)}px`, maxHeight: "280px" }}
-        >
-          <div className="p-2 border-b border-border bg-muted/30">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={searchPlaceholder}
-                className="w-full h-9 pl-9 pr-3 bg-background border border-border rounded-lg text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              />
-            </div>
-          </div>
-          <div className="overflow-y-auto overscroll-contain" style={{ maxHeight: "220px" }}>
-            {filteredOptions.length === 0 ? (
-              <div className="px-4 py-3 text-sm text-muted-foreground text-center">{emptyMessage}</div>
-            ) : (
-              filteredOptions.map((opt) => {
-                const isSelected = opt.value === value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => handleSelect(opt.value)}
-                    className={cn(
-                      "w-full flex items-center justify-between gap-2 px-4 py-3",
-                      "text-sm text-left transition-colors",
-                      "hover:bg-accent/50",
-                      isSelected && "bg-primary/10 text-primary font-medium"
-                    )}
-                  >
-                    <span className="flex items-center gap-2 truncate">
-                      {opt.secondaryLabel && <span className="font-mono text-xs opacity-60 flex-shrink-0">{opt.secondaryLabel}</span>}
-                      <span className="truncate">{opt.label}</span>
-                    </span>
-                    {isSelected && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
-    </div>
-  );
 };
 
 // ============= TAX BADGE DROPDOWN =============
@@ -614,9 +426,19 @@ const NewQuotePage = () => {
   // Filter out LOST clients
   const availableClients = clients.filter(client => client.lead_stage !== 'LOST');
 
-  // Dropdown options
-  const clientOptions: DropdownOption[] = availableClients.map(c => ({ value: c.id, label: c.company_name }));
-  const projectOptions: DropdownOption[] = projects.map(p => ({ value: p.id, label: p.project_name, secondaryLabel: p.project_number }));
+  // Dropdown options using SearchableSelect format
+  const clientOptions = availableClients.map(c => ({ 
+    value: c.id, 
+    label: c.company_name,
+    icon: <User className="w-4 h-4" />
+  }));
+  
+  const projectOptions = projects.map(p => ({ 
+    value: p.id, 
+    label: p.project_name, 
+    sublabel: p.project_number,
+    icon: <FolderKanban className="w-4 h-4" />
+  }));
 
   return (
     <div className="h-[calc(100vh-3.25rem)] overflow-y-auto bg-background">
@@ -643,26 +465,28 @@ const NewQuotePage = () => {
           {/* Cliente */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cliente</label>
-            <InlineSearchableDropdown
+            <SearchableSelect
               value={selectedClientId}
               onChange={(v) => { setSelectedClientId(v); setSelectedProjectId(""); }}
               options={clientOptions}
               placeholder="Seleccionar cliente..."
               searchPlaceholder="Buscar cliente..."
+              icon={<User className="w-4 h-4" />}
             />
           </div>
 
           {/* Proyecto */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Proyecto</label>
-            <InlineSearchableDropdown
+            <SearchableSelect
               value={selectedProjectId}
               onChange={setSelectedProjectId}
               options={projectOptions}
               placeholder="Seleccionar proyecto..."
               searchPlaceholder="Buscar proyecto..."
               disabled={!selectedClientId || projects.length === 0}
-              emptyMessage={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"}
+              disabledText={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"}
+              icon={<FolderKanban className="w-4 h-4" />}
             />
           </div>
 
@@ -689,17 +513,17 @@ const NewQuotePage = () => {
           </div>
         </div>
 
-        {/* Lines Editor */}
+        {/* Lines Editor - Fixed layout without horizontal scroll */}
         <div className="border border-border rounded-xl overflow-hidden bg-card">
           {/* Table Header */}
-          <div className="grid grid-cols-[40px_2fr_1.5fr_100px_120px_100px_100px_40px] bg-muted/50 border-b border-border">
+          <div className="grid grid-cols-[40px_2fr_1.5fr_80px_100px_80px_100px_36px] bg-muted/50 border-b border-border">
             <div className="px-2 py-3.5" />
-            <div className="px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Concepto</div>
-            <div className="px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Descripción</div>
-            <div className="px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Cant.</div>
-            <div className="px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Precio</div>
-            <div className="px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">IVA</div>
-            <div className="px-4 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Total</div>
+            <div className="px-3 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Concepto</div>
+            <div className="px-3 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Descripción</div>
+            <div className="px-2 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Cant.</div>
+            <div className="px-2 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Precio</div>
+            <div className="px-2 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">IVA</div>
+            <div className="px-2 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Total</div>
             <div className="px-2 py-3.5" />
           </div>
 
@@ -708,7 +532,7 @@ const NewQuotePage = () => {
             {lines.map((line, index) => (
               <div
                 key={line.tempId || line.id || index}
-                className="grid grid-cols-[40px_1fr_1fr_90px_100px_90px_90px_36px] items-center hover:bg-muted/20 transition-colors group"
+                className="grid grid-cols-[40px_2fr_1.5fr_80px_100px_80px_100px_36px] items-center hover:bg-muted/20 transition-colors group"
               >
                 {/* Drag Handle */}
                 <div className="px-2 py-3 flex justify-center cursor-grab">
@@ -717,16 +541,13 @@ const NewQuotePage = () => {
 
                 {/* Concept */}
                 <div className="px-2 py-2">
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={line.concept}
-                      onChange={(e) => updateLine(index, "concept", e.target.value)}
-                      placeholder="Escribe el concepto..."
-                      className="w-full h-10 px-3 pr-9 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm transition-all outline-none"
-                    />
-                    <Search className="absolute right-3 w-4 h-4 text-muted-foreground/40" />
-                  </div>
+                  <input
+                    type="text"
+                    value={line.concept}
+                    onChange={(e) => updateLine(index, "concept", e.target.value)}
+                    placeholder="Escribe el concepto..."
+                    className="w-full h-10 px-3 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm transition-all outline-none"
+                  />
                 </div>
 
                 {/* Description */}
@@ -735,7 +556,7 @@ const NewQuotePage = () => {
                     type="text"
                     value={line.description || ""}
                     onChange={(e) => updateLine(index, "description", e.target.value)}
-                    placeholder="Descripción opcional..."
+                    placeholder="Descripción..."
                     className="w-full h-10 px-3 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm text-muted-foreground transition-all outline-none"
                   />
                 </div>
@@ -753,7 +574,7 @@ const NewQuotePage = () => {
                     }}
                     onBlur={() => handleNumericBlur(index, "quantity")}
                     placeholder="1"
-                    className="w-full h-10 px-3 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm text-right tabular-nums font-medium transition-all outline-none"
+                    className="w-full h-10 px-2 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm text-right tabular-nums font-medium transition-all outline-none"
                   />
                 </div>
 
@@ -770,7 +591,7 @@ const NewQuotePage = () => {
                     }}
                     onBlur={() => handleNumericBlur(index, "unit_price")}
                     placeholder="0,00"
-                    className="w-full h-10 px-3 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm text-right tabular-nums font-medium transition-all outline-none"
+                    className="w-full h-10 px-2 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm text-right tabular-nums font-medium transition-all outline-none"
                   />
                 </div>
 
@@ -780,7 +601,7 @@ const NewQuotePage = () => {
                 </div>
 
                 {/* Total */}
-                <div className="px-4 py-2 text-right">
+                <div className="px-3 py-2 text-right">
                   <span className="text-sm font-semibold text-foreground tabular-nums">
                     {line.total > 0 ? `${formatCurrency(line.total)}€` : "—"}
                   </span>
@@ -801,12 +622,12 @@ const NewQuotePage = () => {
             {/* Add Line Row */}
             <div
               onClick={addEmptyLine}
-              className="grid grid-cols-[40px_2fr_1.5fr_100px_120px_100px_100px_40px] items-center hover:bg-muted/30 transition-colors cursor-pointer py-1"
+              className="grid grid-cols-[40px_2fr_1.5fr_80px_100px_80px_100px_36px] items-center hover:bg-muted/30 transition-colors cursor-pointer py-1"
             >
               <div className="px-2 py-3 flex justify-center">
                 <Plus className="w-4 h-4 text-muted-foreground/40" />
               </div>
-              <div className="px-4 py-3 col-span-7">
+              <div className="px-3 py-3 col-span-7">
                 <span className="text-sm text-muted-foreground/60 hover:text-muted-foreground transition-colors">
                   + Añadir línea
                 </span>
