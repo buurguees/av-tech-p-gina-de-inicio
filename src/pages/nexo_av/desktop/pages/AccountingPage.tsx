@@ -44,6 +44,7 @@ import {
   Plus,
   UserCog,
   Briefcase,
+  ChevronRight,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, startOfYear, startOfQuarter, startOfMonth, endOfMonth, endOfQuarter, endOfYear } from "date-fns";
@@ -60,6 +61,7 @@ import BankOpeningEntryDialog from "../components/accounting/BankOpeningEntryDia
 import BankTransferDialog from "../components/accounting/BankTransferDialog";
 import TaxPaymentDialog from "../components/accounting/TaxPaymentDialog";
 import ManualMovementDialog from "../components/accounting/ManualMovementDialog";
+import BankDetailView from "../components/accounting/BankDetailView";
 
 interface BalanceSheetItem {
   account_code: string;
@@ -297,6 +299,13 @@ const AccountingPage = () => {
   
   // Estado para saldos de bancos por cuenta
   const [bankAccountBalances, setBankAccountBalances] = useState<Record<string, number>>({});
+  
+  // Estado para códigos contables de bancos
+  const [bankAccountCodes, setBankAccountCodes] = useState<Record<string, string>>({});
+  
+  // Banco seleccionado para vista detalle
+  const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
+  const [banksSectionOpen, setBanksSectionOpen] = useState(false);
 
   // Cálculos del dashboard - usando datos reales
   const totalRevenue = profitLoss
@@ -686,6 +695,23 @@ const AccountingPage = () => {
     }
   };
 
+  const fetchBankAccountCodes = async () => {
+    try {
+      const codes: Record<string, string> = {};
+      for (const account of companyBankAccounts) {
+        const { data, error } = await (supabase.rpc as any)("get_bank_account_code", {
+          p_bank_account_id: account.id,
+        });
+        if (!error && data) {
+          codes[account.id] = data;
+        }
+      }
+      setBankAccountCodes(codes);
+    } catch (error: any) {
+      console.error("Error fetching bank account codes:", error);
+    }
+  };
+
   const loadAllData = async () => {
     await Promise.all([
       fetchBalanceSheet(),
@@ -732,8 +758,18 @@ const AccountingPage = () => {
       fetchIRPFByPeriod();
       fetchIRPFByPerson();
       fetchIRPFModel111Summary();
+    } else if (activeTab.startsWith("bank-")) {
+      // Vista de banco individual
+      fetchBankAccountCodes();
     }
   }, [activeTab, filterType, selectedYear, selectedQuarter, selectedMonth, balanceDate]);
+
+  // Cargar códigos de cuentas cuando se cargan los bancos
+  useEffect(() => {
+    if (companyBankAccounts.length > 0) {
+      fetchBankAccountCodes();
+    }
+  }, [companyBankAccounts]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-ES", {
@@ -884,6 +920,53 @@ const AccountingPage = () => {
               <Wallet className="h-3.5 w-3.5" />
               Balance
             </button>
+            
+            {/* Sección Bancos - Expandible */}
+            {companyBankAccounts.length > 0 && (
+              <>
+                <div className="pt-4 pb-2">
+                  <button
+                    onClick={() => setBanksSectionOpen(!banksSectionOpen)}
+                    className="w-full flex items-center gap-2 px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
+                  >
+                    <ChevronRight className={`h-3 w-3 transition-transform ${banksSectionOpen ? "rotate-90" : ""}`} />
+                    Bancos
+                  </button>
+                </div>
+                {banksSectionOpen && (
+                  <div className="space-y-0.5">
+                    {companyBankAccounts.map((bank) => {
+                      const bankTabId = `bank-${bank.id}`;
+                      const isActive = activeTab === bankTabId;
+                      const accountCode = bankAccountCodes[bank.id];
+                      const bankBalance = bankAccountBalances[bank.id] || 0;
+                      
+                      return (
+                        <button
+                          key={bank.id}
+                          onClick={() => setActiveTab(bankTabId)}
+                          className={`w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                            isActive
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <CreditCard className="h-3.5 w-3.5 flex-shrink-0" />
+                            <span className="truncate">{bank.bank}</span>
+                          </div>
+                          {accountCode && (
+                            <span className={`text-[10px] font-mono ${isActive ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                              {formatCurrency(bankBalance)}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
             <div className="pt-4 pb-2">
               <div className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Nóminas
@@ -2481,6 +2564,32 @@ const AccountingPage = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* BANCOS - Vista detalle por banco */}
+        {companyBankAccounts.map((bank) => {
+          const bankTabId = `bank-${bank.id}`;
+          const accountCode = bankAccountCodes[bank.id] || "";
+          const bankBalance = bankAccountBalances[bank.id] || 0;
+          
+          return (
+            <TabsContent key={bank.id} value={bankTabId} className="space-y-4">
+              <BankDetailView
+                bankAccount={bank}
+                accountCode={accountCode}
+                balance={bankBalance}
+                periodStart={periodDates.start}
+                periodEnd={periodDates.end}
+                balanceDate={balanceDate}
+                onRefresh={() => {
+                  fetchBalanceSheet();
+                  fetchJournalEntries();
+                  fetchBankAccountBalances();
+                }}
+                allBankAccounts={companyBankAccounts}
+              />
+            </TabsContent>
+          );
+        })}
             </Tabs>
           </div>
         </div>
