@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      scanned_documents: {
+        Row: {
+          assigned_to_id: string | null
+          assigned_to_type: string | null
+          created_at: string
+          created_by: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to_id?: string | null
+          assigned_to_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to_id?: string | null
+          assigned_to_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
