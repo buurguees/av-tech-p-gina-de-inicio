@@ -53,6 +53,7 @@ import CreatePayrollDialog from "../components/accounting/CreatePayrollDialog";
 import CreatePartnerCompensationDialog from "../components/accounting/CreatePartnerCompensationDialog";
 import CreatePayrollPaymentDialog from "../components/accounting/CreatePayrollPaymentDialog";
 import JournalEntryRow from "../components/accounting/JournalEntryRow";
+import CashMovementsTable from "../components/accounting/CashMovementsTable";
 
 interface BalanceSheetItem {
   account_code: string;
@@ -733,6 +734,17 @@ const AccountingPage = () => {
             >
               <BookOpen className="h-3.5 w-3.5" />
               Libro Diario
+            </button>
+            <button
+              onClick={() => setActiveTab("cash")}
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                activeTab === "cash"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+            >
+              <Wallet className="h-3.5 w-3.5" />
+              Libro de Caja
             </button>
             <button
               onClick={() => setActiveTab("chart")}
@@ -1418,6 +1430,18 @@ const AccountingPage = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* LIBRO DE CAJA - Movimientos de dinero */}
+        <TabsContent value="cash" className="space-y-4">
+          <CashMovementsTable
+            startDate={periodDates.start}
+            endDate={periodDates.end}
+            onNavigate={(type, id) => {
+              if (type === 'invoice') navigate(`/nexo-av/${userId}/invoices/${id}`);
+              else if (type === 'purchase_invoice') navigate(`/nexo-av/${userId}/purchase-invoices/${id}`);
+            }}
+          />
         </TabsContent>
 
         {/* 3. PLAN CONTABLE */}
