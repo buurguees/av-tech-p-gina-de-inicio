@@ -79,7 +79,7 @@ const ScannerPage = () => {
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0] || !userId) return;
+    if (!e.target.files || !e.target.files[0]) return;
 
     const file = e.target.files[0];
     const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
@@ -97,10 +97,17 @@ const ScannerPage = () => {
     try {
       setUploading(true);
 
-      // Upload to storage
+      // Get auth user id for storage path
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        toast.error("Usuario no autenticado");
+        return;
+      }
+
+      // Upload to storage using auth.uid() for proper RLS
       const extension = file.name.split(".").pop();
       const fileName = `scan_${Date.now()}.${extension}`;
-      const filePath = `${userId}/scanner/${fileName}`;
+      const filePath = `${authUser.id}/scanner/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("purchase-documents")
@@ -115,6 +122,7 @@ const ScannerPage = () => {
         file_size: file.size,
         file_type: file.type,
         status: "UNASSIGNED",
+        created_by: userId || null,
       });
 
       if (dbError) throw dbError;
