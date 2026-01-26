@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, GripVertical, Trash2, Plus, ChevronDown, User, FolderKanban } from "lucide-react";
+import { Loader2, GripVertical, Trash2, Plus, ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
-import SearchableSelect from "../components/common/SearchableSelect";
 import { cn } from "@/lib/utils";
 
 // ============= INLINE TYPES =============
@@ -426,20 +425,6 @@ const NewQuotePage = () => {
   // Filter out LOST clients
   const availableClients = clients.filter(client => client.lead_stage !== 'LOST');
 
-  // Dropdown options using SearchableSelect format
-  const clientOptions = availableClients.map(c => ({ 
-    value: c.id, 
-    label: c.company_name,
-    icon: <User className="w-4 h-4" />
-  }));
-  
-  const projectOptions = projects.map(p => ({ 
-    value: p.id, 
-    label: p.project_name, 
-    sublabel: p.project_number,
-    icon: <FolderKanban className="w-4 h-4" />
-  }));
-
   return (
     <div className="h-[calc(100vh-3.25rem)] overflow-y-auto bg-background">
       {/* Navigation Bar with DetailActionButton */}
@@ -465,29 +450,34 @@ const NewQuotePage = () => {
           {/* Cliente */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cliente</label>
-            <SearchableSelect
+            <select
               value={selectedClientId}
-              onChange={(v) => { setSelectedClientId(v); setSelectedProjectId(""); }}
-              options={clientOptions}
-              placeholder="Seleccionar cliente..."
-              searchPlaceholder="Buscar cliente..."
-              icon={<User className="w-4 h-4" />}
-            />
+              onChange={(e) => { setSelectedClientId(e.target.value); setSelectedProjectId(""); }}
+              className="form-input"
+            >
+              <option value="">Seleccionar cliente...</option>
+              {availableClients.map((c) => (
+                <option key={c.id} value={c.id}>{c.company_name}</option>
+              ))}
+            </select>
           </div>
 
           {/* Proyecto */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Proyecto</label>
-            <SearchableSelect
+            <select
               value={selectedProjectId}
-              onChange={setSelectedProjectId}
-              options={projectOptions}
-              placeholder="Seleccionar proyecto..."
-              searchPlaceholder="Buscar proyecto..."
+              onChange={(e) => setSelectedProjectId(e.target.value)}
               disabled={!selectedClientId || projects.length === 0}
-              disabledText={!selectedClientId ? "Selecciona un cliente" : "Sin proyectos"}
-              icon={<FolderKanban className="w-4 h-4" />}
-            />
+              className="form-input"
+            >
+              <option value="">
+                {!selectedClientId ? "Selecciona un cliente" : projects.length === 0 ? "Sin proyectos" : "Seleccionar proyecto..."}
+              </option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.project_name} ({p.project_number})</option>
+              ))}
+            </select>
           </div>
 
           {/* Fecha */}

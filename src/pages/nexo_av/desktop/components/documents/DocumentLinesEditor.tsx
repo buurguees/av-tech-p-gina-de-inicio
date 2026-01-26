@@ -1,12 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Plus, Trash2, Search, GripVertical, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -296,22 +289,17 @@ export default function DocumentLinesEditor({
 
                 {/* Tax */}
                 <div className="px-1 py-2 flex justify-center">
-                  <Select
+                  <select
                     value={line.tax_rate.toString()}
-                    onValueChange={(v) => updateLine(index, "tax_rate", parseFloat(v))}
+                    onChange={(e) => updateLine(index, "tax_rate", parseFloat(e.target.value))}
+                    className="h-8 px-2 bg-muted border-0 rounded text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
-                    <SelectTrigger className="h-8 w-auto px-2 bg-muted border-0 rounded text-xs gap-1">
-                      <span className="text-muted-foreground">×</span>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover border-border z-50">
-                      {taxOptions.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value.toString()} className="text-sm">
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    {taxOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value.toString()}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Total */}
