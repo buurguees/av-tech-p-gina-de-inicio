@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
+import ProductSearchInput from "../components/common/ProductSearchInput";
 import { cn } from "@/lib/utils";
 
 // ============= INLINE TYPES =============
@@ -531,11 +532,24 @@ const NewQuotePage = () => {
 
                 {/* Concept */}
                 <div className="px-2 py-2">
-                  <input
-                    type="text"
+                  <ProductSearchInput
                     value={line.concept}
-                    onChange={(e) => updateLine(index, "concept", e.target.value)}
-                    placeholder="Escribe el concepto..."
+                    onChange={(value) => updateLine(index, "concept", value)}
+                    onSelectItem={(item) => {
+                      // Update all fields from catalog item
+                      setLines(prev => {
+                        const updated = [...prev];
+                        updated[index] = calculateLineValues({
+                          ...updated[index],
+                          concept: item.name,
+                          description: item.description || updated[index].description,
+                          unit_price: item.price,
+                          tax_rate: item.tax_rate,
+                        });
+                        return updated;
+                      });
+                    }}
+                    placeholder="@buscar o escribe..."
                     className="w-full h-10 px-3 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm transition-all outline-none"
                   />
                 </div>
