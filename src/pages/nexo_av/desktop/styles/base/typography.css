@@ -1,0 +1,96 @@
+/* ============================================
+   NEXO AV - TYPOGRAPHY
+   Base typography styles for headings and text
+   ============================================ */
+
+/* ============================================
+   HEADINGS - Semantic hierarchy
+   ============================================ */
+body.nexo-av-theme h1,
+body.nexo-av-theme-dark h1 {
+  font-size: clamp(1.0625rem, 1.25rem, 1.375rem) !important;
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.4 !important;
+  letter-spacing: -0.01em !important;
+  margin: 0 !important;
+}
+
+body.nexo-av-theme h2,
+body.nexo-av-theme-dark h2 {
+  font-size: clamp(1rem, 0.8rem + 0.5vw, 1.25rem) !important;
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.4 !important;
+  letter-spacing: -0.01em !important;
+  margin: 0 !important;
+}
+
+body.nexo-av-theme h3,
+body.nexo-av-theme-dark h3 {
+  font-size: clamp(0.875rem, 0.75rem + 0.3vw, 1rem) !important;
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.45 !important;
+  letter-spacing: -0.005em !important;
+  margin: 0 !important;
+}
+
+body.nexo-av-theme h4,
+body.nexo-av-theme-dark h4 {
+  font-size: clamp(0.8125rem, 0.875rem, 0.9375rem) !important;
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+}
+
+/* ============================================
+   PARAGRAPHS & TEXT
+   ============================================ */
+body.nexo-av-theme p,
+body.nexo-av-theme-dark p {
+  font-size: clamp(0.75rem, 0.8125rem, 0.875rem) !important;
+  font-weight: 400 !important;
+  color: hsl(var(--text-secondary)) !important;
+  line-height: 1.55 !important;
+  margin: 0 !important;
+}
+
+/* Small text */
+body.nexo-av-theme small,
+body.nexo-av-theme-dark small {
+  font-size: clamp(0.6875rem, 0.75rem, 0.8125rem) !important;
+  font-weight: 400 !important;
+  color: hsl(var(--text-muted)) !important;
+  line-height: 1.5 !important;
+}
+
+/* ============================================
+   LINKS
+   ============================================ */
+body.nexo-av-theme a:not([class]),
+body.nexo-av-theme-dark a:not([class]) {
+  color: hsl(var(--primary)) !important;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+body.nexo-av-theme a:not([class]):hover,
+body.nexo-av-theme-dark a:not([class]):hover {
+  color: hsl(var(--primary) / 0.8) !important;
+  text-decoration: underline;
+}
+
+/* ============================================
+   TEXT UTILITIES
+   ============================================ */
+body.nexo-av-theme .text-muted,
+body.nexo-av-theme-dark .text-muted {
+  color: hsl(var(--text-muted)) !important;
+}
+
+body.nexo-av-theme .text-secondary,
+body.nexo-av-theme-dark .text-secondary {
+  color: hsl(var(--text-secondary)) !important;
+}
