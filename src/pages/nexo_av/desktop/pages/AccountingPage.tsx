@@ -56,6 +56,10 @@ import JournalEntryRow from "../components/accounting/JournalEntryRow";
 import CashMovementsTable from "../components/accounting/CashMovementsTable";
 import ChartOfAccountsTab from "../components/accounting/ChartOfAccountsTab";
 import BankBalanceAdjustmentDialog from "../components/accounting/BankBalanceAdjustmentDialog";
+import BankOpeningEntryDialog from "../components/accounting/BankOpeningEntryDialog";
+import BankTransferDialog from "../components/accounting/BankTransferDialog";
+import TaxPaymentDialog from "../components/accounting/TaxPaymentDialog";
+import ManualMovementDialog from "../components/accounting/ManualMovementDialog";
 
 interface BalanceSheetItem {
   account_code: string;
@@ -285,6 +289,14 @@ const AccountingPage = () => {
   const [createCompensationDialogOpen, setCreateCompensationDialogOpen] = useState(false);
   const [createPaymentDialogOpen, setCreatePaymentDialogOpen] = useState(false);
   const [bankAdjustmentDialogOpen, setBankAdjustmentDialogOpen] = useState(false);
+  const [bankOpeningDialogOpen, setBankOpeningDialogOpen] = useState(false);
+  const [bankTransferDialogOpen, setBankTransferDialogOpen] = useState(false);
+  const [taxPaymentDialogOpen, setTaxPaymentDialogOpen] = useState(false);
+  const [manualExpenseDialogOpen, setManualExpenseDialogOpen] = useState(false);
+  const [manualIncomeDialogOpen, setManualIncomeDialogOpen] = useState(false);
+  
+  // Estado para saldos de bancos por cuenta
+  const [bankAccountBalances, setBankAccountBalances] = useState<Record<string, number>>({});
 
   // Cálculos del dashboard - usando datos reales
   const totalRevenue = profitLoss
@@ -653,6 +665,27 @@ const AccountingPage = () => {
     }
   };
 
+  const fetchBankAccountBalances = async () => {
+    try {
+      const { data, error } = await (supabase.rpc as any)("list_bank_accounts_with_balances", {
+        p_as_of_date: balanceDate,
+      });
+      if (error) throw error;
+      
+      if (data && Array.isArray(data)) {
+        const balances: Record<string, number> = {};
+        data.forEach((item: any) => {
+          if (item.bank_account_id) {
+            balances[item.bank_account_id] = item.balance || 0;
+          }
+        });
+        setBankAccountBalances(balances);
+      }
+    } catch (error: any) {
+      console.error("Error fetching bank account balances:", error);
+    }
+  };
+
   const loadAllData = async () => {
     await Promise.all([
       fetchBalanceSheet(),
@@ -665,6 +698,7 @@ const AccountingPage = () => {
       fetchJournalEntries(),
       fetchChartOfAccounts(),
       fetchCompanyBankAccounts(),
+      fetchBankAccountBalances(),
     ]);
   };
 
@@ -1162,19 +1196,71 @@ const AccountingPage = () => {
                   Cuentas Bancarias
                 </CardTitle>
                 <CardDescription>
-                  Saldos actuales de las cuentas bancarias configuradas
+                  Saldos contables de las cuentas bancarias configuradas
                 </CardDescription>
               </div>
               {companyBankAccounts.length > 0 && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setBankAdjustmentDialogOpen(true)}
-                  className="shrink-0"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Ajustar Saldo
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Select
+                    value=""
+                    onValueChange={(value) => {
+                      switch (value) {
+                        case "opening":
+                          setBankOpeningDialogOpen(true);
+                          break;
+                        case "transfer":
+                          setBankTransferDialogOpen(true);
+                          break;
+                        case "tax":
+                          setTaxPaymentDialogOpen(true);
+                          break;
+                        case "expense":
+                          setManualExpenseDialogOpen(true);
+                          break;
+                        case "income":
+                          setManualIncomeDialogOpen(true);
+                          break;
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <Plus className="h-4 w-4 mr-1" />
+                      <SelectValue placeholder="Nuevo movimiento" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[99999]">
+                      <SelectItem value="opening">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          <span>Asiento de apertura</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="transfer">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4" />
+                          <span>Traspaso entre bancos</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="tax">
+                        <div className="flex items-center gap-2">
+                          <Receipt className="h-4 w-4" />
+                          <span>Pago de impuesto</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="expense">
+                        <div className="flex items-center gap-2">
+                          <TrendingDown className="h-4 w-4" />
+                          <span>Gasto sin factura</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="income">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4" />
+                          <span>Ingreso sin factura</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
             </CardHeader>
             <CardContent>
@@ -1194,14 +1280,12 @@ const AccountingPage = () => {
               ) : (
                 <div className="space-y-3">
                   {companyBankAccounts.map((account) => {
-                    // Buscar saldo contable (por ahora usamos el saldo total de 572)
-                    // En el futuro, cada cuenta tendría su propio código (572001, 572002, etc.)
-                    const accountBalance = balanceSheet
-                      .filter((bs) => bs.account_code.startsWith("572"))
-                      .reduce((sum, bs) => sum + bs.net_balance, 0);
-                    const singleAccountBalance = companyBankAccounts.length === 1 
-                      ? accountBalance 
-                      : accountBalance / companyBankAccounts.length;
+                    // Usar saldo real del banco si está disponible, sino calcular del balance general
+                    const accountBalance = bankAccountBalances[account.id] !== undefined
+                      ? bankAccountBalances[account.id]
+                      : balanceSheet
+                          .filter((bs) => bs.account_code.startsWith("572"))
+                          .reduce((sum, bs) => sum + bs.net_balance, 0) / Math.max(1, companyBankAccounts.length);
                     
                     return (
                       <div
@@ -1223,11 +1307,11 @@ const AccountingPage = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className={`font-bold text-lg ${singleAccountBalance >= 0 ? "text-emerald-600" : "text-red-600"}`}>
-                            {formatCurrency(singleAccountBalance)}
+                          <p className={`font-bold text-lg ${accountBalance >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                            {formatCurrency(accountBalance)}
                           </p>
-                          {account.notes && (
-                            <p className="text-xs text-muted-foreground">{account.notes}</p>
+                          {bankAccountBalances[account.id] === undefined && (
+                            <p className="text-xs text-muted-foreground italic">Sin cuenta contable</p>
                           )}
                         </div>
                       </div>
@@ -2449,6 +2533,66 @@ const AccountingPage = () => {
         onSuccess={() => {
           fetchBalanceSheet();
           fetchJournalEntries();
+          fetchBankAccountBalances();
+        }}
+      />
+
+      <BankOpeningEntryDialog
+        open={bankOpeningDialogOpen}
+        onOpenChange={setBankOpeningDialogOpen}
+        bankAccounts={companyBankAccounts}
+        onSuccess={() => {
+          fetchBalanceSheet();
+          fetchJournalEntries();
+          fetchBankAccountBalances();
+        }}
+      />
+
+      <BankTransferDialog
+        open={bankTransferDialogOpen}
+        onOpenChange={setBankTransferDialogOpen}
+        bankAccounts={companyBankAccounts}
+        onSuccess={() => {
+          fetchBalanceSheet();
+          fetchJournalEntries();
+          fetchBankAccountBalances();
+        }}
+      />
+
+      <TaxPaymentDialog
+        open={taxPaymentDialogOpen}
+        onOpenChange={setTaxPaymentDialogOpen}
+        bankAccounts={companyBankAccounts}
+        onSuccess={() => {
+          fetchBalanceSheet();
+          fetchJournalEntries();
+          fetchBankAccountBalances();
+        }}
+      />
+
+      <ManualMovementDialog
+        open={manualExpenseDialogOpen}
+        onOpenChange={setManualExpenseDialogOpen}
+        bankAccounts={companyBankAccounts}
+        movementType="EXPENSE"
+        onSuccess={() => {
+          fetchBalanceSheet();
+          fetchJournalEntries();
+          fetchBankAccountBalances();
+          fetchProfitLoss();
+        }}
+      />
+
+      <ManualMovementDialog
+        open={manualIncomeDialogOpen}
+        onOpenChange={setManualIncomeDialogOpen}
+        bankAccounts={companyBankAccounts}
+        movementType="INCOME"
+        onSuccess={() => {
+          fetchBalanceSheet();
+          fetchJournalEntries();
+          fetchBankAccountBalances();
+          fetchProfitLoss();
         }}
       />
     </div>
