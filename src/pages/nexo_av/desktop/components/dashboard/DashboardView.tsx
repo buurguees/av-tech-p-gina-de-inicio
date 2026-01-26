@@ -121,7 +121,7 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
       />
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto">
         {/* Row 1: KPI Cards - ProjectsPage Style */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
           {/* Facturas */}

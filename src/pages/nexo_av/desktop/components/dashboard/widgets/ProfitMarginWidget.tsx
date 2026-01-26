@@ -31,6 +31,10 @@ const ProfitMarginWidget = ({ data: externalData }: ProfitMarginWidgetProps) => 
         );
     }
 
+    // Calculate stroke offset for progress circle
+    const circumference = 251.2;
+    const strokeOffset = circumference * (1 - Math.max(0, Math.min(stats.margin, 100)) / 100);
+
     return (
         <DashboardWidget
             title="Rentabilidad"
@@ -42,14 +46,35 @@ const ProfitMarginWidget = ({ data: externalData }: ProfitMarginWidgetProps) => 
             <div className="flex flex-col items-center justify-center flex-1 text-center">
                 <div className="relative inline-flex items-center justify-center">
                     <svg className="transform -rotate-90 w-24 h-24">
-                        <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-primary-foreground/20" />
-                        <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 * (1 - Math.max(0, stats.margin) / 100)} className="text-white drop-shadow-md" />
+                        {/* Background circle */}
+                        <circle 
+                            cx="48" 
+                            cy="48" 
+                            r="40" 
+                            stroke="currentColor" 
+                            strokeWidth="8" 
+                            fill="transparent" 
+                            className="text-primary-foreground/20" 
+                        />
+                        {/* Progress circle */}
+                        <circle 
+                            cx="48" 
+                            cy="48" 
+                            r="40" 
+                            stroke="currentColor"
+                            strokeWidth="8" 
+                            fill="transparent" 
+                            strokeDasharray={circumference} 
+                            strokeDashoffset={strokeOffset} 
+                            strokeLinecap="round"
+                            className="text-primary-foreground drop-shadow-md transition-all duration-700 ease-out" 
+                        />
                     </svg>
-                    <span className="absolute text-2xl font-bold text-white">{stats.margin}%</span>
+                    <span className="absolute text-2xl font-bold text-primary-foreground">{stats.margin}%</span>
                 </div>
                 <div className="mt-4">
                     <p className="text-sm text-primary-foreground/80">Beneficio Bruto Total</p>
-                    <p className="text-xl font-bold text-white mt-1">
+                    <p className="text-xl font-bold text-primary-foreground mt-1">
                         {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(stats.profit)}
                     </p>
                 </div>

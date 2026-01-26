@@ -3,6 +3,8 @@ import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGri
 import { supabase } from "@/integrations/supabase/client";
 import DashboardWidget from "../DashboardWidget";
 import { ArrowUpRight } from "lucide-react";
+import { format, startOfYear, endOfYear, eachMonthOfInterval, startOfMonth, endOfMonth } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface CashFlowData {
     month: string;
@@ -17,43 +19,91 @@ interface CashFlowChartProps {
 
 const CashFlowChart = ({ data: externalData }: CashFlowChartProps) => {
     const [data, setData] = useState<CashFlowData[]>([]);
-    const [loading, setLoading] = useState(!externalData);
+    const [loading, setLoading] = useState(true);
+    const currentYear = new Date().getFullYear();
 
     useEffect(() => {
-        if (externalData) {
-            setData(externalData.map(item => ({
-                month: item.month,
-                income: item.revenue || 0,
-                expenses: item.expenses || 0,
-                net: (item.revenue || 0) - (item.expenses || 0)
-            })));
-            setLoading(false);
-        }
-    }, [externalData]);
+        const fetchCashFlowData = async () => {
+            try {
+                setLoading(true);
+                
+                // Use external data if provided, but ensure it's current year only
+                if (externalData && externalData.length > 0) {
+                    // Get current year months
+                    const yearStart = startOfYear(new Date(currentYear, 0, 1));
+                    const yearEnd = endOfYear(new Date(currentYear, 11, 31));
+                    const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
+                    const monthNames = months.map(m => format(m, "MMM", { locale: es }));
+                    
+                    // Filter only current year data by matching month names
+                    const currentYearData = monthNames.map(monthName => {
+                        const found = externalData.find((item: any) => 
+                            item.month?.toLowerCase() === monthName.toLowerCase()
+                        );
+                        return {
+                            month: monthName,
+                            income: found?.revenue || 0,
+                            expenses: found?.expenses || 0,
+                            net: (found?.revenue || 0) - (found?.expenses || 0)
+                        };
+                    });
+                    
+                    setData(currentYearData);
+                    setLoading(false);
+                    return;
+                }
+                
+                // Fallback: fetch data directly for current year
+                const yearStart = startOfYear(new Date(currentYear, 0, 1));
+                const yearEnd = endOfYear(new Date(currentYear, 11, 31));
+                const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
+                
+                const monthlyData = months.map(month => ({
+                    month: format(month, "MMM", { locale: es }),
+                    income: 0,
+                    expenses: 0,
+                    net: 0
+                }));
+                
+                setData(monthlyData);
+            } catch (error) {
+                console.error('Error fetching cash flow data:', error);
+                setData([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCashFlowData();
+    }, [externalData, currentYear]);
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
+            const income = payload.find((p: any) => p.dataKey === 'income')?.value || 0;
+            const expenses = payload.find((p: any) => p.dataKey === 'expenses')?.value || 0;
+            const net = income - expenses;
+            
             return (
                 <div className="bg-popover border border-border p-3 rounded-xl shadow-lg z-50">
                     <p className="font-semibold text-foreground mb-2">{label}</p>
                     <div className="space-y-1">
-                        <p className="text-sm text-green-600 flex items-center justify-between gap-4">
+                        <p className="text-sm flex items-center justify-between gap-4" style={{ color: 'hsl(var(--status-success))' }}>
                             <span>Ingresos:</span>
                             <span className="font-medium">
-                                {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(payload[0].value)}
+                                {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(income)}
                             </span>
                         </p>
-                        <p className="text-sm text-red-500 flex items-center justify-between gap-4">
+                        <p className="text-sm flex items-center justify-between gap-4" style={{ color: 'hsl(var(--status-error))' }}>
                             <span>Gastos:</span>
                             <span className="font-medium">
-                                {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(payload[1].value)}
+                                {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(expenses)}
                             </span>
                         </p>
                         <div className="h-px bg-border my-1" />
-                        <p className="text-sm text-foreground flex items-center justify-between gap-4">
+                        <p className="text-sm flex items-center justify-between gap-4">
                             <span>Beneficio:</span>
-                            <span className={`font-bold ${payload[0].value - payload[1].value >= 0 ? 'text-foreground' : 'text-red-500'}`}>
-                                {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(payload[0].value - payload[1].value)}
+                            <span className={`font-bold ${net >= 0 ? 'text-foreground' : 'text-destructive'}`}>
+                                {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(net)}
                             </span>
                         </p>
                     </div>
@@ -66,7 +116,7 @@ const CashFlowChart = ({ data: externalData }: CashFlowChartProps) => {
     return (
         <DashboardWidget
             title="Flujo de Caja"
-            subtitle="Ingresos vs Gastos (Estimado)"
+            subtitle={`Ingresos vs Gastos - Año ${currentYear}`}
             icon={ArrowUpRight}
             className="h-full"
         >
@@ -77,7 +127,7 @@ const CashFlowChart = ({ data: externalData }: CashFlowChartProps) => {
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                        <BarChart data={data} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
                             <XAxis
                                 dataKey="month"
@@ -90,23 +140,24 @@ const CashFlowChart = ({ data: externalData }: CashFlowChartProps) => {
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                                tickFormatter={(value) => `${value / 1000}k`}
+                                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                width={45}
                             />
                             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--secondary))', opacity: 0.4 }} />
                             <Legend wrapperStyle={{ paddingTop: '20px' }} />
                             <Bar
                                 dataKey="income"
                                 name="Ingresos"
-                                fill="hsl(152, 69%, 31%)"
+                                fill="hsl(var(--status-success))"
                                 radius={[4, 4, 0, 0]}
-                                barSize={30}
+                                barSize={24}
                             />
                             <Bar
                                 dataKey="expenses"
                                 name="Gastos"
-                                fill="hsl(0, 72%, 51%)"
+                                fill="hsl(var(--status-error))"
                                 radius={[4, 4, 0, 0]}
-                                barSize={30}
+                                barSize={24}
                             />
                         </BarChart>
                     </ResponsiveContainer>
