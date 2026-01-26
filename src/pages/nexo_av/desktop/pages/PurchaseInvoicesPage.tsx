@@ -615,7 +615,7 @@ const PurchaseInvoicesPageDesktop = () => {
                   <TableHeader>
                     <TableRow className="hover:bg-transparent border-border">
                       <TableHead 
-                        className="text-muted-foreground text-xs font-medium cursor-pointer"
+                        className="text-muted-foreground text-xs font-medium cursor-pointer w-[90px]"
                         onClick={() => handleSort("date")}
                       >
                         <div className="flex items-center gap-1">
@@ -624,7 +624,7 @@ const PurchaseInvoicesPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="text-muted-foreground text-xs font-medium cursor-pointer"
+                        className="text-muted-foreground text-xs font-medium cursor-pointer w-[200px]"
                         onClick={() => handleSort("number")}
                       >
                         <div className="flex items-center gap-1">
@@ -633,7 +633,7 @@ const PurchaseInvoicesPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="text-muted-foreground text-xs font-medium cursor-pointer"
+                        className="text-muted-foreground text-xs font-medium cursor-pointer w-[180px]"
                         onClick={() => handleSort("provider")}
                       >
                         <div className="flex items-center gap-1">
@@ -642,7 +642,7 @@ const PurchaseInvoicesPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="text-muted-foreground text-xs font-medium cursor-pointer"
+                        className="text-muted-foreground text-xs font-medium cursor-pointer w-[220px]"
                         onClick={() => handleSort("project")}
                       >
                         <div className="flex items-center gap-1">
@@ -651,7 +651,7 @@ const PurchaseInvoicesPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="text-muted-foreground text-xs font-medium cursor-pointer"
+                        className="text-muted-foreground text-xs font-medium cursor-pointer w-[100px]"
                         onClick={() => handleSort("status")}
                       >
                         <div className="flex items-center gap-1">
@@ -660,7 +660,7 @@ const PurchaseInvoicesPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="text-muted-foreground text-xs font-medium text-right cursor-pointer"
+                        className="text-muted-foreground text-xs font-medium text-right cursor-pointer w-[90px]"
                         onClick={() => handleSort("total")}
                       >
                         <div className="flex items-center justify-end gap-1">
@@ -668,7 +668,7 @@ const PurchaseInvoicesPageDesktop = () => {
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
-                      <TableHead className="text-muted-foreground text-xs font-medium text-right">
+                      <TableHead className="text-muted-foreground text-xs font-medium text-right w-[90px]">
                         Pendiente
                       </TableHead>
                       <TableHead className="text-muted-foreground text-xs font-medium w-10" />
@@ -681,11 +681,11 @@ const PurchaseInvoicesPageDesktop = () => {
                         className="border-border hover:bg-accent/50 cursor-pointer"
                         onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}
                       >
-                        <TableCell className="text-foreground text-sm py-3">
+                        <TableCell className="text-foreground text-sm py-3 w-[90px]">
                           {formatDate(invoice.issue_date)}
                         </TableCell>
-                        <TableCell className="text-sm py-3">
-                          <div>
+                        <TableCell className="text-sm py-3 w-[200px] max-w-[200px]">
+                          <div className="truncate">
                             <span className="text-foreground font-medium">
                               {invoice.internal_purchase_number || invoice.invoice_number || "—"}
                             </span>
@@ -696,20 +696,22 @@ const PurchaseInvoicesPageDesktop = () => {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-foreground text-sm py-3">
-                          {invoice.provider_name || "Sin proveedor"}
+                        <TableCell className="text-sm py-3 w-[180px] max-w-[180px]">
+                          <span className="text-foreground truncate block">
+                            {invoice.provider_name || "Sin proveedor"}
+                          </span>
                         </TableCell>
-                        <TableCell className="text-sm py-3">
+                        <TableCell className="text-sm py-3 w-[220px] max-w-[220px]">
                           {invoice.project_name ? (
-                            <span className="text-foreground">{invoice.project_name}</span>
+                            <span className="text-foreground truncate block">{invoice.project_name}</span>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
                         </TableCell>
-                        <TableCell className="py-3">
+                        <TableCell className="py-3 w-[100px]">
                           <Badge
                             variant="outline"
-                            className={cn("text-[10px] px-2 py-0.5", STATUS_STYLES[invoice.status])}
+                            className={cn("text-[10px] px-2 py-0.5 w-[80px] justify-center", STATUS_STYLES[invoice.status])}
                           >
                             {STATUS_LABELS[invoice.status] || invoice.status}
                           </Badge>
