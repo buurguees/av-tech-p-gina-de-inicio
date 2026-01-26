@@ -213,6 +213,14 @@ interface IRPFModel111Summary {
   total_partners: number;
 }
 
+interface CompanyBankAccount {
+  id: string;
+  holder: string;
+  bank: string;
+  iban: string;
+  notes: string;
+}
+
 const AccountingPage = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
@@ -269,6 +277,7 @@ const AccountingPage = () => {
   const [irpfByPeriod, setIrpfByPeriod] = useState<IRPFByPeriod[]>([]);
   const [irpfByPerson, setIrpfByPerson] = useState<IRPFByPerson[]>([]);
   const [irpfModel111Summary, setIrpfModel111Summary] = useState<IRPFModel111Summary | null>(null);
+  const [companyBankAccounts, setCompanyBankAccounts] = useState<CompanyBankAccount[]>([]);
 
   // Diálogos
   const [createPayrollDialogOpen, setCreatePayrollDialogOpen] = useState(false);
@@ -627,6 +636,21 @@ const AccountingPage = () => {
     }
   };
 
+  const fetchCompanyBankAccounts = async () => {
+    try {
+      const { data, error } = await supabase.rpc("get_company_preferences");
+      if (error) throw error;
+      if (data && data.length > 0 && data[0].bank_accounts) {
+        const accounts = Array.isArray(data[0].bank_accounts) 
+          ? (data[0].bank_accounts as unknown as CompanyBankAccount[])
+          : [];
+        setCompanyBankAccounts(accounts);
+      }
+    } catch (error: any) {
+      console.error("Error fetching company bank accounts:", error);
+    }
+  };
+
   const loadAllData = async () => {
     await Promise.all([
       fetchBalanceSheet(),
@@ -638,6 +662,7 @@ const AccountingPage = () => {
       fetchCorporateTaxSummary(),
       fetchJournalEntries(),
       fetchChartOfAccounts(),
+      fetchCompanyBankAccounts(),
     ]);
   };
 
@@ -1126,6 +1151,86 @@ const AccountingPage = () => {
             </Card>
           </div>
 
+          {/* Cuentas Bancarias */}
+          <Card className="col-span-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Cuentas Bancarias
+              </CardTitle>
+              <CardDescription>
+                Saldos actuales de las cuentas bancarias configuradas
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {companyBankAccounts.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  <Building2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No hay cuentas bancarias configuradas</p>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() => navigate(`/nexo-av/${userId}/settings`)}
+                    className="mt-2"
+                  >
+                    Configurar cuentas →
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {companyBankAccounts.map((account) => {
+                    // Buscar saldo contable (por ahora usamos el saldo total de 572)
+                    // En el futuro, cada cuenta tendría su propio código (572001, 572002, etc.)
+                    const accountBalance = balanceSheet
+                      .filter((bs) => bs.account_code.startsWith("572"))
+                      .reduce((sum, bs) => sum + bs.net_balance, 0);
+                    const singleAccountBalance = companyBankAccounts.length === 1 
+                      ? accountBalance 
+                      : accountBalance / companyBankAccounts.length;
+                    
+                    return (
+                      <div
+                        key={account.id}
+                        className="flex items-center justify-between p-3 rounded-lg border bg-muted/30"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10">
+                            <Building2 className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{account.bank}</p>
+                            <p className="text-xs text-muted-foreground font-mono">
+                              {account.iban ? `${account.iban.slice(0, 4)} •••• ${account.iban.slice(-4)}` : "Sin IBAN"}
+                            </p>
+                            {account.holder && (
+                              <p className="text-xs text-muted-foreground">{account.holder}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-bold text-lg ${singleAccountBalance >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                            {formatCurrency(singleAccountBalance)}
+                          </p>
+                          {account.notes && (
+                            <p className="text-xs text-muted-foreground">{account.notes}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Total */}
+                  <div className="flex items-center justify-between pt-3 border-t">
+                    <span className="font-semibold">Saldo Total Bancos:</span>
+                    <span className={`font-bold text-xl ${bankBalance >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                      {formatCurrency(bankBalance)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Tesorería */}
             <Card>
@@ -1142,7 +1247,7 @@ const AccountingPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Clientes pendientes:</span>
-                  <span className="font-semibold text-green-600">{formatCurrency(clientsPending)}</span>
+                  <span className="font-semibold text-emerald-600">{formatCurrency(clientsPending)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Proveedores pendientes:</span>
@@ -1151,7 +1256,7 @@ const AccountingPage = () => {
                 <div className="pt-2 border-t">
                   <div className="flex justify-between">
                     <span className="font-semibold">Saldo disponible:</span>
-                    <span className={`font-bold text-lg ${availableCash >= 0 ? "text-green-600" : "text-red-600"}`}>
+                    <span className={`font-bold text-lg ${availableCash >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                       {formatCurrency(availableCash)}
                     </span>
                   </div>
