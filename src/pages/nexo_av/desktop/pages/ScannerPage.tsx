@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -48,6 +48,7 @@ interface ScannedDocument {
 
 const ScannerPage = () => {
   const { userId } = useParams();
+  const navigate = useNavigate();
   const [documents, setDocuments] = useState<ScannedDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -350,7 +351,7 @@ const ScannerPage = () => {
                       ? "border-emerald-500/30 bg-emerald-500/5"
                       : "border-border bg-card hover:border-primary/30"
                   )}
-                  onClick={() => handlePreview(doc)}
+                  onClick={() => navigate(`/nexo-av/${userId}/scanner/${doc.id}`)}
                 >
                   {/* File Icon */}
                   <div className="p-6 flex flex-col items-center">
