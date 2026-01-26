@@ -54,6 +54,7 @@ import CreatePartnerCompensationDialog from "../components/accounting/CreatePart
 import CreatePayrollPaymentDialog from "../components/accounting/CreatePayrollPaymentDialog";
 import JournalEntryRow from "../components/accounting/JournalEntryRow";
 import CashMovementsTable from "../components/accounting/CashMovementsTable";
+import ChartOfAccountsTab from "../components/accounting/ChartOfAccountsTab";
 
 interface BalanceSheetItem {
   account_code: string;
@@ -1446,48 +1447,12 @@ const AccountingPage = () => {
 
         {/* 3. PLAN CONTABLE */}
         <TabsContent value="chart" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Plan Contable</CardTitle>
-              <CardDescription>Cuentas contables y sus saldos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Código</TableHead>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Saldo Actual</TableHead>
-                    <TableHead>Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {chartOfAccounts.map((account) => {
-                    const balance = balanceSheet.find((b) => b.account_code === account.account_code);
-                    return (
-                      <TableRow key={account.account_code}>
-                        <TableCell className="font-mono">{account.account_code}</TableCell>
-                        <TableCell>{account.account_name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{getAccountTypeLabel(account.account_type)}</Badge>
-                        </TableCell>
-                        <TableCell className={`text-right font-semibold ${(balance?.net_balance || 0) >= 0 ? "text-green-600" : "text-red-600"}`}>
-                          {formatCurrency(balance?.net_balance || 0)}
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-3 w-3 mr-1" />
-                            Ver movimientos
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <ChartOfAccountsTab
+            balanceDate={balanceDate}
+            onNavigateToClient={(clientId) => navigate(`/nexo-av/${userId}/clients/${clientId}`)}
+            onNavigateToSupplier={(supplierId) => navigate(`/nexo-av/${userId}/suppliers/${supplierId}`)}
+            onNavigateToTechnician={(technicianId) => navigate(`/nexo-av/${userId}/technicians/${technicianId}`)}
+          />
         </TabsContent>
 
         {/* 4. CLIENTES (DEUDORES - 430) */}
