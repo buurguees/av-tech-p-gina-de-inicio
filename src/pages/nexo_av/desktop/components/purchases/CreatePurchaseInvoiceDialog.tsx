@@ -241,9 +241,11 @@ export default function CreatePurchaseInvoiceDialog({
           quantity: l.quantity,
           unit_price: l.unit_price,
           tax_rate: l.tax_rate,
-          discount_percent: l.discount_percent,
+          discount_percent: l.discount_percent || 0,
+          withholding_tax_rate: l.withholding_tax_rate || 0,
           subtotal: l.subtotal,
           tax_amount: l.tax_amount,
+          withholding_amount: l.withholding_amount || 0,
           total: l.total,
         })));
       }
