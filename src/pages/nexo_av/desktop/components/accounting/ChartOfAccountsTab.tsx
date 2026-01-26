@@ -29,6 +29,13 @@ import {
   UserCog,
   FileText,
   ChevronRight,
+  Package,
+  Briefcase,
+  Wrench,
+  Car,
+  Home,
+  Plug,
+  MoreHorizontal,
 } from "lucide-react";
 
 interface BalanceSheetItem {
@@ -60,12 +67,34 @@ interface SupplierTechnicianBalance {
   net_balance: number;
 }
 
+interface ExpenseByCategory {
+  category: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  total: number;
+  count: number;
+  color: string;
+}
+
 interface ChartOfAccountsTabProps {
   balanceDate: string;
+  periodStart?: string;
+  periodEnd?: string;
   onNavigateToClient?: (clientId: string) => void;
   onNavigateToSupplier?: (supplierId: string) => void;
   onNavigateToTechnician?: (technicianId: string) => void;
 }
+
+// Mapeo de categorías de gasto
+const EXPENSE_CATEGORY_CONFIG: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
+  MATERIAL: { label: "Material", icon: Wrench, color: "text-green-600" },
+  SERVICE: { label: "Servicios", icon: Briefcase, color: "text-purple-600" },
+  SOFTWARE: { label: "Software", icon: Package, color: "text-blue-600" },
+  TRAVEL: { label: "Viajes", icon: Car, color: "text-orange-600" },
+  RENT: { label: "Alquiler", icon: Home, color: "text-teal-600" },
+  UTILITIES: { label: "Suministros", icon: Plug, color: "text-yellow-600" },
+  OTHER: { label: "Otros", icon: MoreHorizontal, color: "text-gray-600" },
+};
 
 const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat("es-ES", {
@@ -76,6 +105,8 @@ const formatCurrency = (amount: number): string => {
 
 const ChartOfAccountsTab = ({
   balanceDate,
+  periodStart,
+  periodEnd,
   onNavigateToClient,
   onNavigateToSupplier,
   onNavigateToTechnician,
@@ -84,27 +115,71 @@ const ChartOfAccountsTab = ({
   const [balanceSheet, setBalanceSheet] = useState<BalanceSheetItem[]>([]);
   const [clientBalances, setClientBalances] = useState<ClientBalance[]>([]);
   const [supplierBalances, setSupplierBalances] = useState<SupplierTechnicianBalance[]>([]);
+  const [expensesByCategory, setExpensesByCategory] = useState<ExpenseByCategory[]>([]);
 
   useEffect(() => {
     fetchAllData();
-  }, [balanceDate]);
+  }, [balanceDate, periodStart, periodEnd]);
 
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [balanceRes, clientsRes, suppliersRes] = await Promise.all([
+      const [balanceRes, clientsRes, suppliersRes, purchasesRes] = await Promise.all([
         supabase.rpc("get_balance_sheet", { p_as_of_date: balanceDate }),
         supabase.rpc("get_client_balances", { p_as_of_date: balanceDate }),
         supabase.rpc("get_supplier_technician_balances", { p_as_of_date: balanceDate }),
+        supabase.rpc("list_purchase_invoices", {
+          p_search: null,
+          p_status: "APPROVED", // Solo facturas aprobadas cuentan como gasto real
+          p_document_type: null,
+        }),
       ]);
 
       if (balanceRes.error) throw balanceRes.error;
       if (clientsRes.error) throw clientsRes.error;
       if (suppliersRes.error) throw suppliersRes.error;
+      if (purchasesRes.error) throw purchasesRes.error;
 
       setBalanceSheet(balanceRes.data || []);
       setClientBalances(clientsRes.data || []);
       setSupplierBalances(suppliersRes.data || []);
+
+      // Agrupar facturas de compra por categoría de gasto
+      const purchases = purchasesRes.data || [];
+      const categoryTotals: Record<string, { total: number; count: number }> = {};
+
+      // Filtrar por período si está definido
+      const filteredPurchases = purchases.filter((p: any) => {
+        if (!periodStart || !periodEnd) return true;
+        const issueDate = new Date(p.issue_date);
+        return issueDate >= new Date(periodStart) && issueDate <= new Date(periodEnd);
+      });
+
+      filteredPurchases.forEach((purchase: any) => {
+        const category = purchase.expense_category || "OTHER";
+        if (!categoryTotals[category]) {
+          categoryTotals[category] = { total: 0, count: 0 };
+        }
+        categoryTotals[category].total += purchase.total || 0;
+        categoryTotals[category].count += 1;
+      });
+
+      // Convertir a array con configuración de categorías
+      const expensesArray: ExpenseByCategory[] = Object.entries(categoryTotals)
+        .map(([category, data]) => {
+          const config = EXPENSE_CATEGORY_CONFIG[category] || EXPENSE_CATEGORY_CONFIG.OTHER;
+          return {
+            category,
+            label: config.label,
+            icon: config.icon,
+            total: data.total,
+            count: data.count,
+            color: config.color,
+          };
+        })
+        .sort((a, b) => b.total - a.total); // Ordenar por total descendente
+
+      setExpensesByCategory(expensesArray);
     } catch (error) {
       console.error("Error fetching chart of accounts data:", error);
     } finally {
@@ -129,6 +204,7 @@ const ChartOfAccountsTab = ({
   const totalVATPaid = getAccountsByPrefix("472").reduce((sum, a) => sum + a.net_balance, 0);
   const totalRevenue = getAccountsByPrefix("7").reduce((sum, a) => sum + a.net_balance, 0);
   const totalExpenses = getAccountsByPrefix("6").reduce((sum, a) => sum + Math.abs(a.net_balance), 0);
+  const totalExpensesByCategory = expensesByCategory.reduce((sum, e) => sum + e.total, 0);
 
   if (loading) {
     return (
@@ -610,6 +686,79 @@ const ChartOfAccountsTab = ({
                       </TableCell>
                     </TableRow>
                   ))
+                )}
+              </TableBody>
+            </Table>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* GASTOS POR CATEGORÍA (Facturas de Compra) */}
+        <AccordionItem value="expenses-by-category" className="border rounded-lg overflow-hidden">
+          <AccordionTrigger className="px-4 py-3 bg-muted/50 hover:bg-muted/70 [&[data-state=open]]:bg-muted">
+            <div className="flex items-center gap-3">
+              <Package className="h-5 w-5 text-indigo-600" />
+              <span className="font-semibold">Gastos por Categoría</span>
+              <Badge variant="secondary" className="ml-2">
+                {expensesByCategory.length} categorías
+              </Badge>
+              <span className="ml-auto mr-4 font-bold text-red-600">
+                {formatCurrency(totalExpensesByCategory)}
+              </span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="px-0 pb-0">
+            {/* Summary cards for categories */}
+            <div className="p-4 border-b bg-muted/20 grid grid-cols-2 md:grid-cols-4 gap-3">
+              {expensesByCategory.slice(0, 4).map((expense) => {
+                const IconComponent = expense.icon;
+                return (
+                  <div key={expense.category} className="flex items-center gap-2 p-2 rounded-lg bg-background border">
+                    <IconComponent className={`h-4 w-4 ${expense.color}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground truncate">{expense.label}</p>
+                      <p className="text-sm font-semibold">{formatCurrency(expense.total)}</p>
+                    </div>
+                    <Badge variant="outline" className="text-[10px]">{expense.count}</Badge>
+                  </div>
+                );
+              })}
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="w-[60px]"></TableHead>
+                  <TableHead>Categoría</TableHead>
+                  <TableHead className="text-center">Facturas</TableHead>
+                  <TableHead className="text-right">Total Base</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {expensesByCategory.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-6">
+                      No hay facturas de compra aprobadas en el período
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  expensesByCategory.map((expense) => {
+                    const IconComponent = expense.icon;
+                    return (
+                      <TableRow key={expense.category}>
+                        <TableCell>
+                          <div className={`p-2 rounded-lg bg-muted inline-flex`}>
+                            <IconComponent className={`h-4 w-4 ${expense.color}`} />
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">{expense.label}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="secondary">{expense.count}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold text-red-600">
+                          {formatCurrency(expense.total)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

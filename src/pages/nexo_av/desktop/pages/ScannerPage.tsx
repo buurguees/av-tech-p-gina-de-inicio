@@ -55,7 +55,7 @@ const ScannerPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [previewDoc, setPreviewDoc] = useState<ScannedDocument | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "unassigned" | "assigned">("all");
+  const [filter, setFilter] = useState<"all" | "unassigned" | "assigned">("unassigned");
 
   useEffect(() => {
     fetchDocuments();
@@ -64,9 +64,11 @@ const ScannerPage = () => {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
+      // Solo obtenemos documentos no asignados por defecto
       const { data, error } = await supabase
         .from("scanned_documents")
         .select("*")
+        .eq("status", "UNASSIGNED")
         .order("created_at", { ascending: false });
 
       if (error) throw error;

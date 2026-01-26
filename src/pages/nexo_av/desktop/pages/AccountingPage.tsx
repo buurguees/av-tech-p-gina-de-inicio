@@ -1459,6 +1459,8 @@ const AccountingPage = () => {
         <TabsContent value="chart" className="space-y-4">
           <ChartOfAccountsTab
             balanceDate={balanceDate}
+            periodStart={periodDates.start}
+            periodEnd={periodDates.end}
             onNavigateToClient={(clientId) => navigate(`/nexo-av/${userId}/clients/${clientId}`)}
             onNavigateToSupplier={(supplierId) => navigate(`/nexo-av/${userId}/suppliers/${supplierId}`)}
             onNavigateToTechnician={(technicianId) => navigate(`/nexo-av/${userId}/technicians/${technicianId}`)}
