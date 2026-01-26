@@ -2,7 +2,6 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  lazy,
 } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,21 +14,20 @@ import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
   Phone,
-  Mail,
   MapPin,
   CreditCard,
   FileText,
   Edit,
   Loader2,
-  Calendar,
-  Building2,
   PhoneCall,
   Plus,
+  Calendar,
   Truck,
   Receipt,
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import EditSupplierDialog from "../components/suppliers/EditSupplierDialog";
 
 
 interface SupplierDetail {
@@ -77,6 +75,7 @@ interface PurchaseInvoice {
   const [loading, setLoading] = useState(true);
   const [purchaseInvoices, setPurchaseInvoices] = useState<PurchaseInvoice[]>([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -196,10 +195,7 @@ interface PurchaseInvoice {
             variant="outline"
             size="sm"
             className="gap-2"
-            onClick={() => {
-              // TODO: Implementar EditSupplierDialog en FASE 3
-              toast.info("Funcionalidad de edición en desarrollo");
-            }}
+            onClick={() => setEditDialogOpen(true)}
           >
             <Edit className="h-3.5 w-3.5" />
             Editar
@@ -487,6 +483,16 @@ interface PurchaseInvoice {
           </Tabs>
         </div>
       </div>
+
+      {/* Edit Dialog */}
+      {supplier && (
+        <EditSupplierDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          supplier={supplier}
+          onSuccess={fetchSupplier}
+        />
+      )}
     </div>
   );
 }
