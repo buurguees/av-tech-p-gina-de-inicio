@@ -621,7 +621,7 @@ const PurchaseInvoicesPageDesktop = () => {
                       <TableRow
                         key={invoice.id}
                         className="border-border hover:bg-accent/50 cursor-pointer"
-                        onClick={() => navigate(`/nexo/${userId}/purchase-invoices/${invoice.id}`)}
+                        onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}
                       >
                         <TableCell className="text-foreground text-sm py-3">
                           {formatDate(invoice.issue_date)}
@@ -675,7 +675,7 @@ const PurchaseInvoicesPageDesktop = () => {
                             className="h-7 w-7"
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/nexo/${userId}/purchase-invoices/${invoice.id}`);
+                              navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`);
                             }}
                           >
                             <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
