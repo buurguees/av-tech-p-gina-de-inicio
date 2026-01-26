@@ -152,13 +152,10 @@ body.nexo-av-theme-dark {
      =============================== */
   --card: 0 0% 6%;
   --card-foreground: 0 0% 100%;
-
   --popover: 0 0% 7%;
   --popover-foreground: 0 0% 100%;
-
   --secondary: 0 0% 10%;
   --secondary-foreground: 0 0% 100%;
-
   --accent: 0 0% 12%;
   --accent-foreground: 0 0% 100%;
 
@@ -168,7 +165,6 @@ body.nexo-av-theme-dark {
   --text-primary: 0 0% 100%;
   --text-secondary: 0 0% 72%;
   --text-muted: 0 0% 55%;
-
   --muted: 0 0% 10%;
   --muted-foreground: 0 0% 65%;
 
@@ -190,21 +186,60 @@ body.nexo-av-theme-dark {
      =============================== */
   --status-success: 142 70% 48%;
   --status-success-bg: 142 45% 14%;
-
   --status-warning: 38 92% 56%;
   --status-warning-bg: 38 45% 14%;
-
   --status-error: 0 84% 62%;
   --status-error-bg: 0 45% 14%;
-
   --status-info: 217 92% 66%;
   --status-info-bg: 217 45% 14%;
-
   --status-special: 262 85% 68%;
   --status-special-bg: 262 45% 14%;
-
   --status-neutral: 0 0% 65%;
   --status-neutral-bg: 0 0% 14%;
+
+  /* Purchase Invoice Document Status Colors - Dark Mode */
+  --purchase-doc-scanned: 0 0% 55%;
+  --purchase-doc-scanned-bg: 0 0% 14%;
+  --purchase-doc-draft: 205 79% 55%;
+  --purchase-doc-draft-bg: 205 45% 14%;
+  --purchase-doc-pending: 38 90% 50%;
+  --purchase-doc-pending-bg: 38 45% 14%;
+  --purchase-doc-approved: 145 65% 50%;
+  --purchase-doc-approved-bg: 145 45% 14%;
+  --purchase-doc-blocked: 4 78% 55%;
+  --purchase-doc-blocked-bg: 4 45% 14%;
+
+  /* Purchase Invoice Payment Status Colors - Dark Mode */
+  --purchase-pay-pending: 212 80% 55%;
+  --purchase-pay-pending-bg: 212 45% 14%;
+  --purchase-pay-overdue: 0 80% 55%;
+  --purchase-pay-overdue-bg: 0 45% 14%;
+  --purchase-pay-partial: 28 80% 50%;
+  --purchase-pay-partial-bg: 28 45% 14%;
+  --purchase-pay-paid: 142 65% 45%;
+  --purchase-pay-paid-bg: 142 45% 14%;
+
+  /* Sales Invoice Document Status Colors - Dark Mode */
+  --sales-doc-draft: 205 79% 55%;
+  --sales-doc-draft-bg: 205 45% 14%;
+  --sales-doc-pending: 38 90% 50%;
+  --sales-doc-pending-bg: 38 45% 14%;
+  --sales-doc-issued: 145 65% 50%;
+  --sales-doc-issued-bg: 145 45% 14%;
+  --sales-doc-cancelled: 0 0% 50%;
+  --sales-doc-cancelled-bg: 0 0% 14%;
+  --sales-doc-rectified: 270 50% 55%;
+  --sales-doc-rectified-bg: 270 45% 14%;
+
+  /* Sales Invoice Collection Status Colors - Dark Mode */
+  --sales-collect-pending: 212 80% 55%;
+  --sales-collect-pending-bg: 212 45% 14%;
+  --sales-collect-overdue: 0 80% 55%;
+  --sales-collect-overdue-bg: 0 45% 14%;
+  --sales-collect-partial: 28 80% 50%;
+  --sales-collect-partial-bg: 28 45% 14%;
+  --sales-collect-collected: 142 65% 45%;
+  --sales-collect-collected-bg: 142 45% 14%;
 
   /* ===============================
      CHARTS (SOBRE FONDO NEGRO)
