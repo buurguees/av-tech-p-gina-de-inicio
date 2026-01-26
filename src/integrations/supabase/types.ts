@@ -2559,49 +2559,23 @@ export type Database = {
         Args: { p_line_ids: string[]; p_quote_id: string }
         Returns: boolean
       }
-      update_supplier:
-        | {
-            Args: {
-              p_address?: string
-              p_billing_email?: string
-              p_city?: string
-              p_company_name?: string
-              p_contact_email?: string
-              p_contact_name?: string
-              p_contact_phone?: string
-              p_contact_phone_secondary?: string
-              p_country?: string
-              p_iban?: string
-              p_latitude?: number
-              p_legal_name?: string
-              p_longitude?: number
-              p_notes?: string
-              p_payment_terms?: string
-              p_postal_code?: string
-              p_province?: string
-              p_status?: string
-              p_supplier_id: string
-              p_tax_id?: string
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              p_address?: string
-              p_city?: string
-              p_company_name?: string
-              p_contact_email?: string
-              p_contact_phone?: string
-              p_country?: string
-              p_payment_terms?: string
-              p_postal_code?: string
-              p_province?: string
-              p_status?: string
-              p_supplier_id: string
-              p_tax_id?: string
-            }
-            Returns: boolean
-          }
+      update_supplier: {
+        Args: {
+          p_address?: string
+          p_city?: string
+          p_company_name?: string
+          p_contact_email?: string
+          p_contact_phone?: string
+          p_country?: string
+          p_payment_terms?: string
+          p_postal_code?: string
+          p_province?: string
+          p_status?: string
+          p_supplier_id: string
+          p_tax_id?: string
+        }
+        Returns: boolean
+      }
       update_tax: {
         Args: {
           p_code?: string
