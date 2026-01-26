@@ -17,7 +17,9 @@ import {
   Check,
   X,
   ExternalLink,
-  Download
+  Download,
+  Pencil,
+  CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -241,6 +243,8 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   // State
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [invoice, setInvoice] = useState<PurchaseInvoice | null>(null);
   const [lines, setLines] = useState<PurchaseInvoiceLine[]>([]);
   const [activeTab, setActiveTab] = useState("datos");
@@ -395,6 +399,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
       
       toast.success("Factura guardada correctamente");
       setHasChanges(false);
+      setIsEditing(false);
       await fetchInvoice();
       
     } catch (error: any) {
@@ -403,6 +408,45 @@ const PurchaseInvoiceDetailPageDesktop = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Handle approve invoice
+  const handleApprove = async () => {
+    if (!purchaseInvoiceId || !invoice) return;
+    
+    try {
+      setApproving(true);
+      
+      // First save any pending changes
+      if (hasChanges) {
+        await handleSave();
+      }
+      
+      // Update status to APPROVED
+      const { error: updateError } = await supabase.rpc("update_purchase_invoice", {
+        p_invoice_id: purchaseInvoiceId,
+        p_status: "APPROVED",
+      });
+      
+      if (updateError) throw updateError;
+      
+      toast.success("Factura aprobada correctamente");
+      setIsEditing(false);
+      await fetchInvoice();
+      
+    } catch (error: any) {
+      console.error("Error approving invoice:", error);
+      toast.error("Error al aprobar la factura");
+    } finally {
+      setApproving(false);
+    }
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setHasChanges(false);
+    fetchInvoice(); // Reset to original values
   };
 
   // Handle supplier selection
@@ -476,8 +520,10 @@ const PurchaseInvoiceDetailPageDesktop = () => {
     );
   }
 
-  const isLocked = invoice.is_locked;
+  const isLocked = invoice.is_locked || invoice.status === "APPROVED" || invoice.status === "PAID";
   const statusInfo = getStatusInfo(invoice.status);
+  const canApprove = !isLocked && (invoice.status === "PENDING" || invoice.status === "REGISTERED");
+  const canEdit = !isLocked;
 
   return (
     <div className="flex flex-col h-full">
@@ -497,18 +543,62 @@ const PurchaseInvoiceDetailPageDesktop = () => {
           </div>
         }
         tools={
-          <Button
-            onClick={handleSave}
-            disabled={saving || isLocked}
-            className="gap-2"
-          >
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+          <div className="flex items-center gap-2">
+            {/* Edit Mode Controls */}
+            {isEditing ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleCancelEdit}
+                  disabled={saving}
+                  className="gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="gap-2"
+                >
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  Guardar
+                </Button>
+              </>
             ) : (
-              <Save className="h-4 w-4" />
+              <>
+                {/* View Mode Controls */}
+                {canEdit && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(true)}
+                    className="gap-2"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Editar
+                  </Button>
+                )}
+                {canApprove && (
+                  <Button
+                    onClick={handleApprove}
+                    disabled={approving}
+                    className="gap-2 status-success"
+                  >
+                    {approving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4" />
+                    )}
+                    Aprobar
+                  </Button>
+                )}
+              </>
             )}
-            Guardar
-          </Button>
+          </div>
         }
       />
 
@@ -573,7 +663,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                           setHasChanges(true);
                         }}
                         placeholder="Número de factura del proveedor"
-                        disabled={isLocked}
+                        disabled={!isEditing || isLocked}
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -584,7 +674,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                           setStatus(value);
                           setHasChanges(true);
                         }}
-                        disabled={isLocked}
+                        disabled={!isEditing || isLocked}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -610,7 +700,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                           setIssueDate(e.target.value);
                           setHasChanges(true);
                         }}
-                        disabled={isLocked}
+                        disabled={!isEditing || isLocked}
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -622,7 +712,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                           setDueDate(e.target.value);
                           setHasChanges(true);
                         }}
-                        disabled={isLocked}
+                        disabled={!isEditing || isLocked}
                       />
                     </div>
                   </div>
@@ -635,7 +725,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                         setExpenseCategory(value);
                         setHasChanges(true);
                       }}
-                      disabled={isLocked}
+                      disabled={!isEditing || isLocked}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Seleccionar categoría" />
@@ -678,7 +768,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                           setSelectedTechnicianId(null);
                           setHasChanges(true);
                         }}
-                        disabled={isLocked}
+                        disabled={!isEditing || isLocked}
                         className="gap-2"
                       >
                         <Building2 className="h-4 w-4" />
@@ -693,7 +783,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                           setSelectedSupplierId(null);
                           setHasChanges(true);
                         }}
-                        disabled={isLocked}
+                        disabled={!isEditing || isLocked}
                         className="gap-2"
                       >
                         <UserRound className="h-4 w-4" />
@@ -708,7 +798,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                       onSelectTechnician={handleSelectTechnician}
                       entityType={entityType === "SUPPLIER" ? "SUPPLIER" : "TECHNICIAN"}
                       placeholder={`Escribe @ para buscar ${entityType === "SUPPLIER" ? "proveedores" : "técnicos"}`}
-                      disabled={isLocked}
+                      disabled={!isEditing || isLocked}
                     />
 
                     {(selectedSupplierId || selectedTechnicianId) && (
@@ -719,7 +809,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                           <UserRound className="h-4 w-4 text-primary" />
                         )}
                         <span className="text-sm font-medium">{supplierSearchValue}</span>
-                        {!isLocked && (
+                        {isEditing && !isLocked && (
                           <Button
                             type="button"
                             variant="ghost"
@@ -757,14 +847,14 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                     onChange={setProjectSearchValue}
                     onSelectProject={handleSelectProject}
                     placeholder="Seleccionar proyecto o @buscar"
-                    showDropdown={!isLocked}
+                    showDropdown={isEditing && !isLocked}
                   />
 
                   {selectedProjectId && (
                     <div className="flex items-center gap-2 p-2 bg-accent/50 rounded-lg">
                       <FolderKanban className="h-4 w-4 text-primary" />
                       <span className="text-sm font-medium">{projectSearchValue}</span>
-                      {!isLocked && (
+                      {isEditing && !isLocked && (
                         <Button
                           type="button"
                           variant="ghost"
@@ -802,7 +892,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                       }}
                       placeholder="Notas visibles en el documento..."
                       rows={2}
-                      disabled={isLocked}
+                      disabled={!isEditing || isLocked}
                     />
                   </div>
 
@@ -816,7 +906,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                       }}
                       placeholder="Notas solo visibles internamente..."
                       rows={2}
-                      disabled={isLocked}
+                      disabled={!isEditing || isLocked}
                     />
                   </div>
                 </motion.div>
