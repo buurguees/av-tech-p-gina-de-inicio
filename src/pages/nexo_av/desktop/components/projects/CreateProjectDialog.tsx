@@ -89,8 +89,8 @@ const CreateProjectDialog = ({
   const [clients, setClients] = useState<Client[]>([]);
   const [loadingClients, setLoadingClients] = useState(false);
 
-  // Form state - use undefined instead of empty string for Select compatibility
-  const [clientId, setClientId] = useState<string | undefined>(preselectedClientId);
+  // Form state
+  const [clientId, setClientId] = useState<string>(preselectedClientId || "");
   const [status, setStatus] = useState("PLANNED");
   const [projectAddress, setProjectAddress] = useState("");
   const [projectCity, setProjectCity] = useState("");
@@ -105,7 +105,7 @@ const CreateProjectDialog = ({
   const availableClients = useMemo(() => clients.filter(client => client.lead_stage !== 'LOST'), [clients]);
 
   // Get selected client name
-  const selectedClient = useMemo(() => clientId ? availableClients.find(c => c.id === clientId) : undefined, [availableClients, clientId]);
+  const selectedClient = useMemo(() => clientId ? availableClients.find(c => c.id === clientId) : null, [availableClients, clientId]);
 
   // Generate project name automatically
   const generatedProjectName = useMemo(() => {
@@ -142,7 +142,7 @@ const CreateProjectDialog = ({
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
-      setClientId(preselectedClientId || undefined);
+      setClientId(preselectedClientId || "");
       setStatus("PLANNED");
       setProjectAddress("");
       setProjectCity("");
@@ -207,8 +207,8 @@ const CreateProjectDialog = ({
                   Cliente <span className="text-destructive">*</span>
                 </label>
                 <Select 
-                  value={clientId} 
-                  onValueChange={setClientId}
+                  value={clientId || undefined}
+                  onValueChange={(value) => setClientId(value)}
                   disabled={!!preselectedClientId || loadingClients}
                 >
                   <SelectTrigger>
