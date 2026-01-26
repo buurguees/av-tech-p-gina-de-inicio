@@ -267,6 +267,20 @@ export type Database = {
         }
         Returns: string
       }
+      create_bank_balance_adjustment: {
+        Args: {
+          p_adjustment_date?: string
+          p_bank_account_id: string
+          p_bank_name: string
+          p_new_balance: number
+          p_notes?: string
+        }
+        Returns: {
+          adjustment_amount: number
+          entry_id: string
+          entry_number: string
+        }[]
+      }
       create_canvassing_location: {
         Args: {
           p_address?: string
