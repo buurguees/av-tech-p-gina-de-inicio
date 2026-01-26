@@ -685,13 +685,13 @@ body.nexo-av-theme button[class*="bg-secondary"] {
 
 /* ============================================
    INPUTS - Clean & functional
-   Solo aplica a inputs sin clases de componentes (shadcn/ui, TextInput, etc.)
+   Solo aplica a inputs sin clases de componentes (shadcn/ui, TextInput, form-input, etc.)
    ============================================ */
 
-/* Excluir componentes de shadcn/ui y componentes custom */
-body.nexo-av-theme input:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]),
-body.nexo-av-theme textarea:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]),
-body.nexo-av-theme select:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]) {
+/* Excluir componentes de shadcn/ui, form-input y componentes custom */
+body.nexo-av-theme input:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]):not(.form-input):not(.search-bar__input),
+body.nexo-av-theme textarea:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]):not(.form-textarea),
+body.nexo-av-theme select:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]):not(.form-input) {
   background-color: hsl(var(--card)) !important;
   border: 1px solid hsl(var(--border)) !important;
   color: hsl(var(--foreground)) !important;
@@ -704,16 +704,16 @@ body.nexo-av-theme select:not([class*="flex"]):not([class*="h-"]):not([class*="r
   box-sizing: border-box;
 }
 
-body.nexo-av-theme input:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]):focus,
-body.nexo-av-theme textarea:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]):focus,
-body.nexo-av-theme select:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]):focus {
+body.nexo-av-theme input:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]):not(.form-input):not(.search-bar__input):focus,
+body.nexo-av-theme textarea:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]):not(.form-textarea):focus,
+body.nexo-av-theme select:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]):not(.form-input):focus {
   border-color: hsl(var(--ring)) !important;
   box-shadow: 0 0 0 2px hsl(var(--ring) / 0.12) !important;
   outline: none !important;
 }
 
-body.nexo-av-theme input:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"])::placeholder,
-body.nexo-av-theme textarea:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"])::placeholder {
+body.nexo-av-theme input:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]):not(.form-input):not(.search-bar__input)::placeholder,
+body.nexo-av-theme textarea:not([class*="flex"]):not([class*="h-"]):not([class*="rounded-"]):not([class*="border-"]):not(.form-textarea)::placeholder {
   color: hsl(var(--text-muted)) !important;
 }
 
