@@ -411,8 +411,6 @@ const CreateClientDialog = ({
       cancelLabel="Cancelar"
       loading={loading}
       size="lg"
-      submitActionType="new_client"
-      useCustomSubmitButton={true}
       twoColumnLayout={true}
     />
   );
