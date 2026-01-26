@@ -240,9 +240,7 @@ export default function FormDialog({
   };
 
   return (
-    <>
-      {open && <div className="form-dialog__backdrop" />}
-      <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className={cn("form-dialog", `form-dialog--${size}`, className)}>
           <DialogHeader className="form-dialog__header">
             <DialogTitle className="form-dialog__title">{title}</DialogTitle>
@@ -287,6 +285,5 @@ export default function FormDialog({
           </form>
         </DialogContent>
       </Dialog>
-    </>
   );
 }
