@@ -55,6 +55,7 @@ import CreatePayrollPaymentDialog from "../components/accounting/CreatePayrollPa
 import JournalEntryRow from "../components/accounting/JournalEntryRow";
 import CashMovementsTable from "../components/accounting/CashMovementsTable";
 import ChartOfAccountsTab from "../components/accounting/ChartOfAccountsTab";
+import BankBalanceAdjustmentDialog from "../components/accounting/BankBalanceAdjustmentDialog";
 
 interface BalanceSheetItem {
   account_code: string;
@@ -283,6 +284,7 @@ const AccountingPage = () => {
   const [createPayrollDialogOpen, setCreatePayrollDialogOpen] = useState(false);
   const [createCompensationDialogOpen, setCreateCompensationDialogOpen] = useState(false);
   const [createPaymentDialogOpen, setCreatePaymentDialogOpen] = useState(false);
+  const [bankAdjustmentDialogOpen, setBankAdjustmentDialogOpen] = useState(false);
 
   // Cálculos del dashboard - usando datos reales
   const totalRevenue = profitLoss
@@ -1153,14 +1155,27 @@ const AccountingPage = () => {
 
           {/* Cuentas Bancarias */}
           <Card className="col-span-full">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Cuentas Bancarias
-              </CardTitle>
-              <CardDescription>
-                Saldos actuales de las cuentas bancarias configuradas
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Cuentas Bancarias
+                </CardTitle>
+                <CardDescription>
+                  Saldos actuales de las cuentas bancarias configuradas
+                </CardDescription>
+              </div>
+              {companyBankAccounts.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setBankAdjustmentDialogOpen(true)}
+                  className="shrink-0"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Ajustar Saldo
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {companyBankAccounts.length === 0 ? (
@@ -2423,6 +2438,17 @@ const AccountingPage = () => {
           fetchPartnerCompensations();
           delete (window as any).__pendingPayrollId;
           delete (window as any).__pendingCompensationId;
+        }}
+      />
+
+      <BankBalanceAdjustmentDialog
+        open={bankAdjustmentDialogOpen}
+        onOpenChange={setBankAdjustmentDialogOpen}
+        bankAccounts={companyBankAccounts}
+        currentTotalBalance={bankBalance}
+        onSuccess={() => {
+          fetchBalanceSheet();
+          fetchJournalEntries();
         }}
       />
     </div>
