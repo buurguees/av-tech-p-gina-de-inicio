@@ -396,7 +396,7 @@ const NexoAvLayout = () => {
         className="bg-background pt-[3.25rem]" 
         style={{ marginLeft: 'var(--sidebar-width, 14rem)' }}
       >
-        <div className="h-[calc(100vh-3.25rem)] overflow-y-auto overflow-x-hidden">
+        <div className="h-[calc(100vh-3.25rem)] overflow-y-auto overflow-x-hidden p-5">
           <Outlet />
         </div>
       </main>

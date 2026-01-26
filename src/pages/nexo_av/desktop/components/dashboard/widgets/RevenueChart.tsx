@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardWidget from "../DashboardWidget";
 import { TrendingUp } from "lucide-react";
@@ -8,8 +8,9 @@ import { es } from "date-fns/locale";
 
 interface MonthlyRevenue {
     month: string;
+    monthIndex: number;
     revenue: number;
-    forecast: number;
+    forecast: number | null;
 }
 
 interface RevenueChartProps {
@@ -17,9 +18,10 @@ interface RevenueChartProps {
 }
 
 const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
-    const [data, setData] = useState<any[]>([]);
+    const [data, setData] = useState<MonthlyRevenue[]>([]);
     const [loading, setLoading] = useState(true);
     const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth(); // 0-indexed
 
     useEffect(() => {
         const fetchYearlyData = async () => {
@@ -35,7 +37,7 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
                 
                 // Obtener datos de ingresos por mes
                 const monthlyData = await Promise.all(
-                    months.map(async (month) => {
+                    months.map(async (month, index) => {
                         const monthStart = startOfMonth(month);
                         const monthEnd = endOfMonth(month);
                         
@@ -57,13 +59,40 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
                         
                         return {
                             month: format(month, "MMM", { locale: es }),
+                            monthIndex: index,
                             revenue: revenue,
-                            forecast: revenue * 1.1, // Forecast simple
+                            forecast: null as number | null, // Will be calculated below
                         };
                     })
                 );
                 
-                setData(monthlyData);
+                // Calculate forecast based on current month's projection
+                // Get average daily revenue from current month and project for future months
+                const currentMonthData = monthlyData[currentMonth];
+                const dayOfMonth = new Date().getDate();
+                const daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                
+                // Project current month's revenue to full month
+                const projectedCurrentMonthRevenue = currentMonthData.revenue > 0 
+                    ? (currentMonthData.revenue / dayOfMonth) * daysInCurrentMonth 
+                    : 0;
+                
+                // Calculate average monthly revenue from past months with data
+                const pastMonthsWithRevenue = monthlyData
+                    .filter((m, idx) => idx < currentMonth && m.revenue > 0);
+                const avgMonthlyRevenue = pastMonthsWithRevenue.length > 0
+                    ? pastMonthsWithRevenue.reduce((sum, m) => sum + m.revenue, 0) / pastMonthsWithRevenue.length
+                    : projectedCurrentMonthRevenue;
+                
+                // Set forecast values for current and future months
+                const dataWithForecast = monthlyData.map((m, idx) => ({
+                    ...m,
+                    forecast: idx >= currentMonth 
+                        ? (idx === currentMonth ? projectedCurrentMonthRevenue : avgMonthlyRevenue)
+                        : null,
+                }));
+                
+                setData(dataWithForecast);
             } catch (error) {
                 console.error('Error fetching revenue data:', error);
                 setData([]);
@@ -73,26 +102,33 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
         };
 
         fetchYearlyData();
-    }, [currentYear]);
+    }, [currentYear, currentMonth]);
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
+            const revenueValue = payload.find((p: any) => p.dataKey === 'revenue')?.value;
+            const forecastValue = payload.find((p: any) => p.dataKey === 'forecast')?.value;
+            
             return (
                 <div className="bg-popover border border-border p-3 rounded-xl shadow-lg">
                     <p className="font-semibold text-foreground mb-1">{label}</p>
                     <div className="space-y-1">
-                        <p className="text-sm text-primary flex items-center justify-between gap-4">
-                            <span>Ingresos:</span>
-                            <span className="font-medium">
-                                {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(payload[0].value)}
-                            </span>
-                        </p>
-                        <p className="text-sm text-purple-500/70 flex items-center justify-between gap-4">
-                            <span>Previsto:</span>
-                            <span className="font-medium">
-                                {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(payload[1].value)}
-                            </span>
-                        </p>
+                        {revenueValue !== undefined && revenueValue !== null && (
+                            <p className="text-sm flex items-center justify-between gap-4" style={{ color: 'hsl(var(--primary))' }}>
+                                <span>Ingresos:</span>
+                                <span className="font-medium">
+                                    {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(revenueValue)}
+                                </span>
+                            </p>
+                        )}
+                        {forecastValue !== undefined && forecastValue !== null && (
+                            <p className="text-sm flex items-center justify-between gap-4" style={{ color: 'hsl(var(--chart-5))' }}>
+                                <span>Previsión:</span>
+                                <span className="font-medium">
+                                    {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(forecastValue)}
+                                </span>
+                            </p>
+                        )}
                     </div>
                 </div>
             );
@@ -115,15 +151,15 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
                                     <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                                 </linearGradient>
                                 <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.1} />
-                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="hsl(var(--chart-5))" stopOpacity={0.15} />
+                                    <stop offset="95%" stopColor="hsl(var(--chart-5))" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
@@ -138,18 +174,22 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                                tickFormatter={(value) => `${value / 1000}k`}
+                                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                width={45}
                             />
                             <Tooltip content={<CustomTooltip />} />
+                            {/* Forecast line - dashed */}
                             <Area
                                 type="monotone"
                                 dataKey="forecast"
-                                stroke="#8b5cf6"
-                                strokeDasharray="5 5"
+                                stroke="hsl(var(--chart-5))"
+                                strokeDasharray="6 4"
                                 fillOpacity={1}
                                 fill="url(#colorForecast)"
                                 strokeWidth={2}
+                                connectNulls={false}
                             />
+                            {/* Revenue line - solid */}
                             <Area
                                 type="monotone"
                                 dataKey="revenue"
