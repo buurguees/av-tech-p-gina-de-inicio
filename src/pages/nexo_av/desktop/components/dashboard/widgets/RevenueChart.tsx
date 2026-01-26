@@ -99,7 +99,7 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
         fetchYearlyData();
     }, [currentYear, currentMonth]);
 
-    const CustomTooltip = ({ active, payload, label }: any) => {
+    const renderCustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             const revenueValue = payload.find((p: any) => p.dataKey === 'revenue')?.value;
             const forecastValue = payload.find((p: any) => p.dataKey === 'forecast')?.value;
@@ -168,7 +168,7 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
                                 tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                                 width={45}
                             />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={renderCustomTooltip} />
                             {/* Revenue area - solid blue */}
                             <Area
                                 type="monotone"
