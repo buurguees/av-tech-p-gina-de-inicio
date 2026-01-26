@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import DashboardWidget from "../DashboardWidget";
-import { TrendingUp, DollarSign } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { DollarSign } from "lucide-react";
 
 interface ProfitMarginWidgetProps {
     data?: any;
@@ -34,6 +33,15 @@ const ProfitMarginWidget = ({ data: externalData }: ProfitMarginWidgetProps) => 
     // Calculate stroke offset for progress circle
     const circumference = 251.2;
     const strokeOffset = circumference * (1 - Math.max(0, Math.min(stats.margin, 100)) / 100);
+    
+    // Determine color based on margin value
+    const getMarginColor = () => {
+        if (stats.margin >= 25) return 'hsl(var(--chart-2))'; // Green/Teal for good
+        if (stats.margin >= 15) return 'hsl(var(--chart-3))'; // Yellow for medium
+        return 'hsl(var(--chart-5))'; // Red for low
+    };
+    
+    const marginColor = getMarginColor();
 
     return (
         <DashboardWidget
@@ -41,40 +49,39 @@ const ProfitMarginWidget = ({ data: externalData }: ProfitMarginWidgetProps) => 
             subtitle="Margen Bruto Real"
             icon={DollarSign}
             className="h-full"
-            variant="solid"
+            variant="clean"
         >
-            <div className="flex flex-col items-center justify-center flex-1 text-center">
+            <div className="flex flex-col items-center justify-center flex-1 text-center py-4">
                 <div className="relative inline-flex items-center justify-center">
-                    <svg className="transform -rotate-90 w-24 h-24">
+                    <svg className="transform -rotate-90 w-28 h-28">
                         {/* Background circle */}
                         <circle 
-                            cx="48" 
-                            cy="48" 
-                            r="40" 
-                            stroke="currentColor" 
-                            strokeWidth="8" 
+                            cx="56" 
+                            cy="56" 
+                            r="46" 
+                            strokeWidth="10" 
                             fill="transparent" 
-                            className="text-primary-foreground/20" 
+                            stroke="hsl(var(--muted))"
                         />
                         {/* Progress circle */}
                         <circle 
-                            cx="48" 
-                            cy="48" 
-                            r="40" 
-                            stroke="currentColor"
-                            strokeWidth="8" 
+                            cx="56" 
+                            cy="56" 
+                            r="46" 
+                            strokeWidth="10" 
                             fill="transparent" 
-                            strokeDasharray={circumference} 
-                            strokeDashoffset={strokeOffset} 
+                            strokeDasharray={289}
+                            strokeDashoffset={289 * (1 - Math.max(0, Math.min(stats.margin, 100)) / 100)}
                             strokeLinecap="round"
-                            className="text-primary-foreground drop-shadow-md transition-all duration-700 ease-out" 
+                            stroke={marginColor}
+                            style={{ transition: 'stroke-dashoffset 0.7s ease-out, stroke 0.3s ease' }}
                         />
                     </svg>
-                    <span className="absolute text-2xl font-bold text-primary-foreground">{stats.margin}%</span>
+                    <span className="absolute text-2xl font-bold text-foreground">{stats.margin}%</span>
                 </div>
                 <div className="mt-4">
-                    <p className="text-sm text-primary-foreground/80">Beneficio Bruto Total</p>
-                    <p className="text-xl font-bold text-primary-foreground mt-1">
+                    <p className="text-sm text-muted-foreground">Beneficio Bruto Total</p>
+                    <p className="text-xl font-bold text-foreground mt-1">
                         {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(stats.profit)}
                     </p>
                 </div>
