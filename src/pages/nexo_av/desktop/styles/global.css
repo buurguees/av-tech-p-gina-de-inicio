@@ -1,13 +1,20 @@
 /* ============================================
    NEXO AV - GLOBAL STYLES
    Base styles, layout variables, and imports
+   
+   IMPORTANT: Import order matters!
+   1. Variables must come first
+   2. Typography second
+   3. Components last (they use variables)
    ============================================ */
 
-/* ============================================
-   BASE IMPORTS
-   ============================================ */
+/* Variables - Theme colors and design tokens */
 @import './base/variables.css';
+
+/* Typography - Headings and text styles */
 @import './base/typography.css';
+
+/* Components - All component-specific styles */
 @import './components/index.css';
 
 /* ============================================
