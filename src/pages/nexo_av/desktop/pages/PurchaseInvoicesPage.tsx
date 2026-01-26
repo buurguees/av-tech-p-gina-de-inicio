@@ -599,7 +599,7 @@ const PurchaseInvoicesPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="text-muted-foreground text-xs font-medium cursor-pointer w-[200px]"
+                        className="text-muted-foreground text-xs font-medium cursor-pointer w-[260px]"
                         onClick={() => handleSort("number")}
                       >
                         <div className="flex items-center gap-1">
@@ -617,7 +617,7 @@ const PurchaseInvoicesPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="text-muted-foreground text-xs font-medium cursor-pointer w-[220px]"
+                        className="text-muted-foreground text-xs font-medium cursor-pointer w-[100px]"
                         onClick={() => handleSort("project")}
                       >
                         <div className="flex items-center gap-1">
@@ -675,7 +675,7 @@ const PurchaseInvoicesPageDesktop = () => {
                           <TableCell className="text-foreground text-sm py-3 w-[90px]">
                             {formatDate(invoice.issue_date)}
                           </TableCell>
-                          <TableCell className="text-sm py-3 w-[200px] max-w-[200px]">
+                          <TableCell className="text-sm py-3 w-[260px] max-w-[260px]">
                             <div className="truncate">
                               <span className="text-foreground font-medium">
                                 {invoice.internal_purchase_number || invoice.invoice_number || "—"}
@@ -692,9 +692,9 @@ const PurchaseInvoicesPageDesktop = () => {
                               {invoice.provider_name || "Sin proveedor"}
                             </span>
                           </TableCell>
-                          <TableCell className="text-sm py-3 w-[220px] max-w-[220px]">
-                            {invoice.project_name ? (
-                              <span className="text-foreground truncate block">{invoice.project_name}</span>
+                          <TableCell className="text-sm py-3 w-[100px]">
+                            {invoice.project_number ? (
+                              <span className="text-foreground font-mono text-xs">{invoice.project_number}</span>
                             ) : (
                               <span className="text-muted-foreground">—</span>
                             )}
