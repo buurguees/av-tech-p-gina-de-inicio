@@ -115,24 +115,37 @@ export default function RegisterPartnerPayrollPaymentDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.bank_account_id) {
+      toast({
+        title: "Error",
+        description: "Debes seleccionar una cuenta bancaria",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      // Note: create_payroll_payment doesn't have p_bank_account_id, bank info goes in reference/notes
-      const { error } = await supabase.rpc("create_payroll_payment", {
-        p_partner_compensation_run_id: payrollId,
+      const selectedBank = bankAccounts.find(b => b.id === formData.bank_account_id);
+      
+      const { data, error } = await (supabase.rpc as any)("pay_partner_compensation_run", {
+        p_compensation_run_id: payrollId,
+        p_bank_account_id: formData.bank_account_id,
+        p_bank_name: selectedBank?.bank_name || "Banco",
         p_amount: parseFloat(formData.amount),
         p_payment_date: formData.payment_date,
         p_payment_method: formData.payment_method,
-        p_bank_reference: formData.bank_reference || null,
         p_notes: formData.notes || null,
       });
 
       if (error) throw error;
 
+      const result = data?.[0];
       toast({
         title: "Pago registrado",
-        description: "El pago se ha registrado y el asiento contable se ha generado",
+        description: `Asiento ${result?.entry_number} - ${formatCurrency(parseFloat(formData.amount))}`,
       });
 
       onSuccess();
