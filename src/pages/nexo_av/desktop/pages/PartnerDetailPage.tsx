@@ -745,7 +745,7 @@ function PartnerDetailPage() {
                           <TableHead className="text-muted-foreground text-xs font-medium text-right">IRPF</TableHead>
                           <TableHead className="text-muted-foreground text-xs font-medium text-right">Neto</TableHead>
                           <TableHead className="text-muted-foreground text-xs font-medium text-center">Estado</TableHead>
-                          <TableHead className="text-muted-foreground text-xs font-medium w-10" />
+                          <TableHead className="text-muted-foreground text-xs font-medium">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -775,51 +775,76 @@ function PartnerDetailPage() {
                             <TableCell className="text-center py-3">
                               {getStatusBadge(payroll.status)}
                             </TableCell>
-                            <TableCell className="py-3" onClick={(e) => e.stopPropagation()}>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
+                            <TableCell className="py-3">
+                              <div className="flex items-center gap-1">
+                                {/* Aprobar - solo si está en DRAFT */}
+                                {payroll.status === "DRAFT" && (
                                   <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                    onClick={() => handleConfirmPayroll(payroll.id)}
                                   >
-                                    <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                    <Check className="h-3 w-3 mr-1" />
+                                    Aprobar
                                   </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48 z-[9999] bg-card border border-border shadow-lg">
-                                  <DropdownMenuItem
-                                    onClick={() => handleViewPayrollDetail(payroll)}
-                                    className="cursor-pointer"
+                                )}
+                                {/* Pagar - solo si está POSTED o PARTIAL */}
+                                {(payroll.status === "POSTED" || payroll.status === "PARTIAL") && (
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                    onClick={() => setSelectedPayrollForPayment(payroll.id)}
                                   >
-                                    <Eye className="h-4 w-4 mr-2" />
-                                    Ver detalle
-                                  </DropdownMenuItem>
-                                  {payroll.status !== "POSTED" && payroll.status !== "PAID" && (
+                                    <CreditCard className="h-3 w-3 mr-1" />
+                                    Pagar
+                                  </Button>
+                                )}
+                                {/* Menú de acciones adicionales */}
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                    >
+                                      <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-48 z-[9999] bg-card border border-border shadow-lg">
                                     <DropdownMenuItem
-                                      onClick={() => handleEditPayroll(payroll)}
+                                      onClick={() => handleViewPayrollDetail(payroll)}
                                       className="cursor-pointer"
                                     >
-                                      <Edit className="h-4 w-4 mr-2" />
-                                      Editar
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      Ver detalle
                                     </DropdownMenuItem>
-                                  )}
-                                  {payroll.status === "DRAFT" && (
-                                    <>
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem
-                                        onClick={() => {
-                                          setPayrollToDelete(payroll);
-                                          setDeleteDialogOpen(true);
-                                        }}
-                                        className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
-                                      >
-                                        <Trash2 className="h-4 w-4 mr-2" />
-                                        Eliminar
-                                      </DropdownMenuItem>
-                                    </>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                                    {payroll.status === "DRAFT" && (
+                                      <>
+                                        <DropdownMenuItem
+                                          onClick={() => handleEditPayroll(payroll)}
+                                          className="cursor-pointer"
+                                        >
+                                          <Edit className="h-4 w-4 mr-2" />
+                                          Editar
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
+                                          onClick={() => {
+                                            setPayrollToDelete(payroll);
+                                            setDeleteDialogOpen(true);
+                                          }}
+                                          className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                                        >
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Eliminar
+                                        </DropdownMenuItem>
+                                      </>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
