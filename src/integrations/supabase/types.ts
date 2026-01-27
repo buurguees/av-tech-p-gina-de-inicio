@@ -167,6 +167,13 @@ export type Database = {
             }
             Returns: string
           }
+      approve_purchase_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          invoice_number: string
+          is_locked: boolean
+        }[]
+      }
       assign_user_role: {
         Args: { p_assigned_by: string; p_role_name: string; p_user_id: string }
         Returns: boolean

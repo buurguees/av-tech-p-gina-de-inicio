@@ -418,21 +418,21 @@ const PurchaseInvoiceDetailPageDesktop = () => {
         await handleSave();
       }
       
-      // Update status to APPROVED
-      const { error: updateError } = await supabase.rpc("update_purchase_invoice", {
+      // Use the new approve_purchase_invoice RPC which assigns definitive number
+      const { data, error: approveError } = await (supabase.rpc as any)("approve_purchase_invoice", {
         p_invoice_id: purchaseInvoiceId,
-        p_status: "APPROVED",
       });
       
-      if (updateError) throw updateError;
+      if (approveError) throw approveError;
       
-      toast.success("Factura aprobada correctamente");
+      const newNumber = data?.[0]?.invoice_number;
+      toast.success(`Factura aprobada: ${newNumber || 'OK'}`);
       setIsEditing(false);
       await fetchInvoice();
       
     } catch (error: any) {
       console.error("Error approving invoice:", error);
-      toast.error("Error al aprobar la factura");
+      toast.error(error.message || "Error al aprobar la factura");
     } finally {
       setApproving(false);
     }
