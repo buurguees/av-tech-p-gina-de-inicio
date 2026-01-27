@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import { toast } from "sonner";
+// Worker detail page for managing worker profiles and assignments
 import {
   Loader2,
   ArrowLeft,
@@ -77,7 +78,6 @@ export default function WorkerDetailPage() {
   const { userId, workerId } = useParams<{ userId: string; workerId: string }>();
   const navigate = useNavigate();
   useNexoAvTheme();
-  
 
   const [worker, setWorker] = useState<WorkerDetail | null>(null);
   const [loading, setLoading] = useState(true);
