@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface PayrollRun {
@@ -35,6 +35,12 @@ interface CompensationRun {
   partner_name: string;
   net_amount: number;
   paid_amount?: number;
+}
+
+interface BankAccount {
+  id: string;
+  bank_name: string;
+  account_code: string;
 }
 
 interface CreatePayrollPaymentDialogProps {
@@ -57,6 +63,7 @@ export default function CreatePayrollPaymentDialog({
   const [loadingPayrolls, setLoadingPayrolls] = useState(false);
   const [payrolls, setPayrolls] = useState<PayrollRun[]>([]);
   const [compensations, setCompensations] = useState<CompensationRun[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
 
   const [formData, setFormData] = useState({
     payment_type: payrollRunId ? "payroll" : compensationRunId ? "compensation" : "payroll",
@@ -65,42 +72,33 @@ export default function CreatePayrollPaymentDialog({
     payment_date: new Date().toISOString().split("T")[0],
     amount: "",
     payment_method: "TRANSFER",
+    bank_account_id: "",
     bank_reference: "",
     notes: "",
   });
 
   useEffect(() => {
     if (open) {
-      if (payrollRunId) {
+      fetchBankAccounts();
+      
+      // Check for pending IDs from window (used when clicking "Pagar" from table)
+      const pendingPayrollId = (window as any).__pendingPayrollId;
+      const pendingCompensationId = (window as any).__pendingCompensationId;
+      
+      if (payrollRunId || pendingPayrollId) {
+        setFormData(prev => ({ ...prev, payment_type: "payroll" }));
         fetchPayrolls().then(() => {
-          const payroll = payrolls.find((p) => p.id === payrollRunId);
-          if (payroll) {
-            setFormData({
-              payment_type: "payroll",
-              payroll_run_id: payrollRunId,
-              partner_compensation_run_id: "",
-              payment_date: new Date().toISOString().split("T")[0],
-              amount: (payroll.net_amount - (payroll.paid_amount || 0)).toFixed(2),
-              payment_method: "TRANSFER",
-              bank_reference: "",
-              notes: "",
-            });
+          const id = payrollRunId || pendingPayrollId;
+          if (id) {
+            setFormData(prev => ({ ...prev, payroll_run_id: id }));
           }
         });
-      } else if (compensationRunId) {
+      } else if (compensationRunId || pendingCompensationId) {
+        setFormData(prev => ({ ...prev, payment_type: "compensation" }));
         fetchCompensations().then(() => {
-          const comp = compensations.find((c) => c.id === compensationRunId);
-          if (comp) {
-            setFormData({
-              payment_type: "compensation",
-              payroll_run_id: "",
-              partner_compensation_run_id: compensationRunId,
-              payment_date: new Date().toISOString().split("T")[0],
-              amount: (comp.net_amount - (comp.paid_amount || 0)).toFixed(2),
-              payment_method: "TRANSFER",
-              bank_reference: "",
-              notes: "",
-            });
+          const id = compensationRunId || pendingCompensationId;
+          if (id) {
+            setFormData(prev => ({ ...prev, partner_compensation_run_id: id }));
           }
         });
       } else {
@@ -112,6 +110,41 @@ export default function CreatePayrollPaymentDialog({
       }
     }
   }, [open, payrollRunId, compensationRunId]);
+
+  // Update amount when selection changes
+  useEffect(() => {
+    if (formData.payment_type === "payroll" && formData.payroll_run_id) {
+      const payroll = payrolls.find(p => p.id === formData.payroll_run_id);
+      if (payroll) {
+        const pending = payroll.net_amount - (payroll.paid_amount || 0);
+        setFormData(prev => ({ ...prev, amount: pending.toFixed(2) }));
+      }
+    } else if (formData.payment_type === "compensation" && formData.partner_compensation_run_id) {
+      const comp = compensations.find(c => c.id === formData.partner_compensation_run_id);
+      if (comp) {
+        const pending = comp.net_amount - (comp.paid_amount || 0);
+        setFormData(prev => ({ ...prev, amount: pending.toFixed(2) }));
+      }
+    }
+  }, [formData.payroll_run_id, formData.partner_compensation_run_id, payrolls, compensations]);
+
+  const fetchBankAccounts = async () => {
+    try {
+      const { data, error } = await supabase.rpc("list_bank_accounts_with_balances", {});
+      if (error) throw error;
+      const accounts = (data || []).map((b: any) => ({
+        id: b.bank_account_id,
+        bank_name: b.bank_name,
+        account_code: b.account_code,
+      }));
+      setBankAccounts(accounts);
+      if (accounts.length > 0 && !formData.bank_account_id) {
+        setFormData(prev => ({ ...prev, bank_account_id: accounts[0].id }));
+      }
+    } catch (error) {
+      console.error("Error fetching bank accounts:", error);
+    }
+  };
 
   const fetchPayrolls = async (): Promise<void> => {
     setLoadingPayrolls(true);
@@ -183,29 +216,67 @@ export default function CreatePayrollPaymentDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.bank_account_id) {
+      toast({
+        title: "Error",
+        description: "Debes seleccionar una cuenta bancaria",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.rpc("create_payroll_payment", {
-        p_amount: parseFloat(formData.amount),
-        p_payroll_run_id: formData.payment_type === "payroll" ? formData.payroll_run_id : null,
-        p_partner_compensation_run_id: formData.payment_type === "compensation" ? formData.partner_compensation_run_id : null,
-        p_payment_date: formData.payment_date,
-        p_payment_method: formData.payment_method,
-        p_bank_reference: formData.bank_reference || null,
-        p_notes: formData.notes || null,
-      });
+      const selectedBank = bankAccounts.find(b => b.id === formData.bank_account_id);
+      
+      if (formData.payment_type === "compensation") {
+        // Usar la nueva RPC que genera asiento con banco
+        const { data, error } = await (supabase.rpc as any)("pay_partner_compensation_run", {
+          p_compensation_run_id: formData.partner_compensation_run_id,
+          p_bank_account_id: formData.bank_account_id,
+          p_bank_name: selectedBank?.bank_name || "Banco",
+          p_amount: parseFloat(formData.amount),
+          p_payment_date: formData.payment_date,
+          p_payment_method: formData.payment_method,
+          p_notes: formData.notes || null,
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Pago registrado",
-        description: "El pago se ha registrado y el asiento contable se ha generado automáticamente",
-      });
+        const result = data?.[0];
+        toast({
+          title: "Pago registrado",
+          description: `Asiento ${result?.entry_number} generado - El balance bancario se ha actualizado`,
+        });
+      } else {
+        // Para nóminas de empleados, usar RPC existente o crear nueva
+        const { data, error } = await supabase.rpc("create_payroll_payment", {
+          p_amount: parseFloat(formData.amount),
+          p_payroll_run_id: formData.payroll_run_id,
+          p_partner_compensation_run_id: null,
+          p_payment_date: formData.payment_date,
+          p_payment_method: formData.payment_method,
+          p_bank_reference: formData.bank_reference || null,
+          p_notes: `Banco: ${selectedBank?.bank_name || 'N/A'}. ${formData.notes || ''}`,
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Pago registrado",
+          description: "El pago se ha registrado y el asiento contable se ha generado",
+        });
+      }
 
       onSuccess();
       onOpenChange(false);
       resetForm();
+      
+      // Limpiar IDs pendientes
+      delete (window as any).__pendingPayrollId;
+      delete (window as any).__pendingCompensationId;
     } catch (error: any) {
       console.error("Error creating payment:", error);
       toast({
@@ -226,6 +297,7 @@ export default function CreatePayrollPaymentDialog({
       payment_date: new Date().toISOString().split("T")[0],
       amount: "",
       payment_method: "TRANSFER",
+      bank_account_id: bankAccounts[0]?.id || "",
       bank_reference: "",
       notes: "",
     });
@@ -237,38 +309,76 @@ export default function CreatePayrollPaymentDialog({
     ? (selectedPayroll?.net_amount || 0) - (selectedPayroll?.paid_amount || 0)
     : (selectedCompensation?.net_amount || 0) - (selectedCompensation?.paid_amount || 0);
 
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "EUR",
+    }).format(val);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Registrar Pago de Nómina/Retribución</DialogTitle>
           <DialogDescription>
-            Registra un pago. Se generará automáticamente el asiento contable.
+            Registra un pago desde una cuenta bancaria. Se generará el asiento contable y se actualizará el saldo del banco.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="payment_type">Tipo de pago</Label>
-            <Select
-              value={formData.payment_type}
-              onValueChange={(value) => {
-                setFormData({
-                  ...formData,
-                  payment_type: value,
-                  payroll_run_id: value === "payroll" ? formData.payroll_run_id : "",
-                  partner_compensation_run_id: value === "compensation" ? formData.partner_compensation_run_id : "",
-                });
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="payroll">Nómina</SelectItem>
-                <SelectItem value="compensation">Retribución</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="payment_type">Tipo de pago</Label>
+              <Select
+                value={formData.payment_type}
+                onValueChange={(value) => {
+                  setFormData({
+                    ...formData,
+                    payment_type: value,
+                    payroll_run_id: "",
+                    partner_compensation_run_id: "",
+                    amount: "",
+                  });
+                  if (value === "payroll") {
+                    fetchPayrolls();
+                  } else {
+                    fetchCompensations();
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="payroll">Nómina Empleado</SelectItem>
+                  <SelectItem value="compensation">Retribución Socio</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Cuenta Bancaria Origen *</Label>
+              <Select
+                value={formData.bank_account_id}
+                onValueChange={(value) => setFormData({ ...formData, bank_account_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona banco" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bankAccounts.map((bank) => (
+                    <SelectItem key={bank.id} value={bank.id}>
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4" />
+                        <span>{bank.bank_name}</span>
+                        <span className="text-muted-foreground text-xs">({bank.account_code})</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {formData.payment_type === "payroll" ? (
@@ -278,14 +388,7 @@ export default function CreatePayrollPaymentDialog({
               </Label>
               <Select
                 value={formData.payroll_run_id}
-                onValueChange={(value) => {
-                  const payroll = payrolls.find((p) => p.id === value);
-                  setFormData({
-                    ...formData,
-                    payroll_run_id: value,
-                    amount: payroll ? (payroll.net_amount - (payroll.paid_amount || 0)).toFixed(2) : "",
-                  });
-                }}
+                onValueChange={(value) => setFormData({ ...formData, payroll_run_id: value })}
                 disabled={loadingPayrolls}
               >
                 <SelectTrigger>
@@ -296,7 +399,7 @@ export default function CreatePayrollPaymentDialog({
                     const pending = payroll.net_amount - (payroll.paid_amount || 0);
                     return (
                       <SelectItem key={payroll.id} value={payroll.id} disabled={pending <= 0}>
-                        {payroll.payroll_number} - {payroll.employee_name} (Pendiente: {pending.toFixed(2)}€)
+                        {payroll.payroll_number} - {payroll.employee_name} (Pte: {formatCurrency(pending)})
                       </SelectItem>
                     );
                   })}
@@ -304,9 +407,9 @@ export default function CreatePayrollPaymentDialog({
               </Select>
               {selectedPayroll && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  Neto: {selectedPayroll.net_amount.toFixed(2)}€ | 
-                  Pagado: {(selectedPayroll.paid_amount || 0).toFixed(2)}€ | 
-                  Pendiente: {pendingAmount.toFixed(2)}€
+                  Neto: {formatCurrency(selectedPayroll.net_amount)} | 
+                  Pagado: {formatCurrency(selectedPayroll.paid_amount || 0)} | 
+                  <span className="font-medium"> Pendiente: {formatCurrency(pendingAmount)}</span>
                 </p>
               )}
             </div>
@@ -317,15 +420,8 @@ export default function CreatePayrollPaymentDialog({
               </Label>
               <Select
                 value={formData.partner_compensation_run_id}
-                onValueChange={(value) => {
-                  const comp = compensations.find((c) => c.id === value);
-                  setFormData({
-                    ...formData,
-                    partner_compensation_run_id: value,
-                    amount: comp ? (comp.net_amount - (comp.paid_amount || 0)).toFixed(2) : "",
-                  });
-                }}
-                disabled={loadingPayrolls || !!compensationRunId}
+                onValueChange={(value) => setFormData({ ...formData, partner_compensation_run_id: value })}
+                disabled={loadingPayrolls}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona una retribución" />
@@ -335,7 +431,7 @@ export default function CreatePayrollPaymentDialog({
                     const pending = comp.net_amount - (comp.paid_amount || 0);
                     return (
                       <SelectItem key={comp.id} value={comp.id} disabled={pending <= 0}>
-                        {comp.compensation_number} - {comp.partner_name} (Pendiente: {pending.toFixed(2)}€)
+                        {comp.compensation_number} - {comp.partner_name} (Pte: {formatCurrency(pending)})
                       </SelectItem>
                     );
                   })}
@@ -343,9 +439,9 @@ export default function CreatePayrollPaymentDialog({
               </Select>
               {selectedCompensation && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  Neto: {selectedCompensation.net_amount.toFixed(2)}€ | 
-                  Pagado: {(selectedCompensation.paid_amount || 0).toFixed(2)}€ | 
-                  Pendiente: {pendingAmount.toFixed(2)}€
+                  Neto: {formatCurrency(selectedCompensation.net_amount)} | 
+                  Pagado: {formatCurrency(selectedCompensation.paid_amount || 0)} | 
+                  <span className="font-medium"> Pendiente: {formatCurrency(pendingAmount)}</span>
                 </p>
               )}
             </div>
@@ -353,7 +449,7 @@ export default function CreatePayrollPaymentDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="payment_date">Fecha de pago <span className="text-destructive">*</span></Label>
+              <Label htmlFor="payment_date">Fecha de pago *</Label>
               <Input
                 id="payment_date"
                 type="date"
@@ -364,9 +460,7 @@ export default function CreatePayrollPaymentDialog({
             </div>
 
             <div>
-              <Label htmlFor="amount">
-                Importe (€) <span className="text-destructive">*</span>
-              </Label>
+              <Label htmlFor="amount">Importe (€) *</Label>
               <Input
                 id="amount"
                 type="number"
@@ -400,7 +494,7 @@ export default function CreatePayrollPaymentDialog({
                 id="bank_reference"
                 value={formData.bank_reference}
                 onChange={(e) => setFormData({ ...formData, bank_reference: e.target.value })}
-                placeholder="Nº de transferencia, cheque, etc."
+                placeholder="Nº de transferencia"
               />
             </div>
           </div>
@@ -411,7 +505,7 @@ export default function CreatePayrollPaymentDialog({
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              rows={3}
+              rows={2}
             />
           </div>
 
@@ -424,6 +518,7 @@ export default function CreatePayrollPaymentDialog({
               disabled={
                 loading ||
                 !formData.amount ||
+                !formData.bank_account_id ||
                 (formData.payment_type === "payroll" && !formData.payroll_run_id) ||
                 (formData.payment_type === "compensation" && !formData.partner_compensation_run_id)
               }

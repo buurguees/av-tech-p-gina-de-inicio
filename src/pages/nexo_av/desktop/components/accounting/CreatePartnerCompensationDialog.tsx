@@ -25,6 +25,8 @@ interface Partner {
   id: string;
   partner_number: string;
   full_name: string;
+  irpf_rate?: number;
+  ss_regime?: string;
 }
 
 interface CreatePartnerCompensationDialogProps {
@@ -61,16 +63,31 @@ export default function CreatePartnerCompensationDialog({
   const fetchPartners = async () => {
     setLoadingPartners(true);
     try {
-      const { data, error } = await supabase.rpc("list_partners", {
+      // Obtener socios
+      const { data: partnersData, error: partnersError } = await supabase.rpc("list_partners", {
         p_status: "ACTIVE",
       });
 
-      if (error) throw error;
-      setPartners((data || []).map((item: any) => ({
-        id: item.id,
-        partner_number: item.partner_number,
-        full_name: item.full_name,
-      })));
+      if (partnersError) throw partnersError;
+
+      // Obtener datos de trabajadores para el IRPF
+      const { data: workersData } = await supabase.rpc("list_workers");
+      
+      // Combinar datos
+      const enrichedPartners = (partnersData || []).map((partner: any) => {
+        const linkedWorker = (workersData || []).find(
+          (w: any) => w.linked_partner_id === partner.id
+        );
+        return {
+          id: partner.id,
+          partner_number: partner.partner_number,
+          full_name: partner.full_name,
+          irpf_rate: linkedWorker?.irpf_rate || 19,
+          ss_regime: linkedWorker?.ss_regime || "RETA",
+        };
+      });
+      
+      setPartners(enrichedPartners);
     } catch (error: any) {
       console.error("Error fetching partners:", error);
       toast({
@@ -81,6 +98,16 @@ export default function CreatePartnerCompensationDialog({
     } finally {
       setLoadingPartners(false);
     }
+  };
+
+  // Auto-cargar IRPF cuando se selecciona un socio
+  const handlePartnerChange = (partnerId: string) => {
+    const partner = partners.find(p => p.id === partnerId);
+    setFormData({
+      ...formData,
+      partner_id: partnerId,
+      irpf_rate: (partner?.irpf_rate || 19).toFixed(2),
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -155,7 +182,7 @@ export default function CreatePartnerCompensationDialog({
               </Label>
               <Select
                 value={formData.partner_id}
-                onValueChange={(value) => setFormData({ ...formData, partner_id: value })}
+                onValueChange={handlePartnerChange}
                 disabled={loadingPartners}
               >
                 <SelectTrigger>
@@ -164,11 +191,16 @@ export default function CreatePartnerCompensationDialog({
                 <SelectContent>
                   {partners.map((partner) => (
                     <SelectItem key={partner.id} value={partner.id}>
-                      {partner.partner_number} - {partner.full_name}
+                      {partner.partner_number} - {partner.full_name} ({partner.irpf_rate}% IRPF)
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {formData.partner_id && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  IRPF cargado automáticamente desde la ficha del socio
+                </p>
+              )}
             </div>
 
             <div>
