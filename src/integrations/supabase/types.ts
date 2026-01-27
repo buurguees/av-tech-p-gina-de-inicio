@@ -2373,7 +2373,9 @@ export type Database = {
           department: string
           email: string
           full_name: string
+          iban: string
           id: string
+          irpf_rate: number
           is_active: boolean
           job_position: string
           last_login_at: string
@@ -2382,6 +2384,7 @@ export type Database = {
           linked_partner_id: string
           linked_partner_number: string
           phone: string
+          ss_regime: string
           tax_id: string
           worker_type: string
         }[]
