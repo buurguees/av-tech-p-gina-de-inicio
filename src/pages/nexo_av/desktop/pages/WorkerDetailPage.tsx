@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   Loader2,
   ArrowLeft,
-  User,
   Mail,
   Phone,
   Building2,
@@ -15,12 +14,16 @@ import {
   MapPin,
   UserCheck,
   Save,
+  Shield,
+  Percent,
+  Calendar,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -28,6 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface WorkerDetail {
   id: string;
@@ -40,6 +46,7 @@ interface WorkerDetail {
   worker_type: string | null;
   tax_id: string | null;
   iban: string | null;
+  irpf_rate: number | null;
   address: string | null;
   city: string | null;
   postal_code: string | null;
@@ -62,6 +69,7 @@ const departmentOptions = [
 ];
 
 const workerTypeOptions = [
+  { value: "", label: "Sin asignar" },
   { value: "PARTNER", label: "Socio" },
   { value: "EMPLOYEE", label: "Empleado" },
 ];
@@ -69,24 +77,29 @@ const workerTypeOptions = [
 export default function WorkerDetailPage() {
   const { userId, workerId } = useParams<{ userId: string; workerId: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
   useNexoAvTheme();
 
   const [worker, setWorker] = useState<WorkerDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const [formData, setFormData] = useState({
+  // Admin fields (only admin can change)
+  const [adminData, setAdminData] = useState({
+    worker_type: "",
     department: "",
+  });
+
+  // User profile fields (user fills in, admin can view/edit)
+  const [profileData, setProfileData] = useState({
     job_position: "",
     phone: "",
     tax_id: "",
     iban: "",
+    irpf_rate: "15",
     address: "",
     city: "",
     postal_code: "",
     province: "",
-    worker_type: "",
   });
 
   const fetchWorker = async () => {
@@ -100,26 +113,25 @@ export default function WorkerDetailPage() {
       const w = data?.[0];
       if (w) {
         setWorker(w);
-        setFormData({
+        setAdminData({
+          worker_type: w.worker_type || "",
           department: w.department || "",
+        });
+        setProfileData({
           job_position: w.job_position || "",
           phone: w.phone || "",
           tax_id: w.tax_id || "",
           iban: w.iban || "",
+          irpf_rate: w.irpf_rate?.toString() || "15",
           address: w.address || "",
           city: w.city || "",
           postal_code: w.postal_code || "",
           province: w.province || "",
-          worker_type: w.worker_type || "",
         });
       }
     } catch (error) {
       console.error("Error fetching worker:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo cargar el trabajador",
-        variant: "destructive",
-      });
+      toast.error("No se pudo cargar el trabajador");
     } finally {
       setLoading(false);
     }
@@ -136,44 +148,39 @@ export default function WorkerDetailPage() {
       // Update worker data
       const { error: updateError } = await (supabase.rpc as any)("update_worker", {
         p_user_id: workerId,
-        p_department: formData.department || null,
-        p_job_position: formData.job_position || null,
-        p_phone: formData.phone || null,
-        p_tax_id: formData.tax_id || null,
-        p_iban: formData.iban || null,
-        p_address: formData.address || null,
-        p_city: formData.city || null,
-        p_postal_code: formData.postal_code || null,
-        p_province: formData.province || null,
+        p_department: adminData.department || null,
+        p_job_position: profileData.job_position || null,
+        p_phone: profileData.phone || null,
+        p_tax_id: profileData.tax_id || null,
+        p_iban: profileData.iban || null,
+        p_irpf_rate: profileData.irpf_rate ? parseFloat(profileData.irpf_rate) : null,
+        p_address: profileData.address || null,
+        p_city: profileData.city || null,
+        p_postal_code: profileData.postal_code || null,
+        p_province: profileData.province || null,
       });
 
       if (updateError) throw updateError;
 
       // If worker type changed, assign it
-      if (formData.worker_type && formData.worker_type !== worker?.worker_type) {
-        const { error: assignError } = await (supabase.rpc as any)("assign_worker_type", {
-          p_user_id: workerId,
-          p_worker_type: formData.worker_type,
-          p_tax_id: formData.tax_id || null,
-          p_iban: formData.iban || null,
-        });
+      if (adminData.worker_type !== worker?.worker_type) {
+        if (adminData.worker_type) {
+          const { error: assignError } = await (supabase.rpc as any)("assign_worker_type", {
+            p_user_id: workerId,
+            p_worker_type: adminData.worker_type,
+            p_tax_id: profileData.tax_id || null,
+            p_iban: profileData.iban || null,
+          });
 
-        if (assignError) throw assignError;
+          if (assignError) throw assignError;
+        }
       }
 
-      toast({
-        title: "Guardado",
-        description: "Los datos del trabajador se han actualizado correctamente",
-      });
-
+      toast.success("Datos del trabajador actualizados correctamente");
       fetchWorker();
     } catch (error: any) {
       console.error("Error saving worker:", error);
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo guardar",
-        variant: "destructive",
-      });
+      toast.error(error.message || "No se pudo guardar");
     } finally {
       setSaving(false);
     }
@@ -205,6 +212,11 @@ export default function WorkerDetailPage() {
     .slice(0, 2)
     .toUpperCase();
 
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "Nunca";
+    return format(new Date(dateStr), "d MMM yyyy, HH:mm", { locale: es });
+  };
+
   return (
     <div className="w-full h-full flex flex-col p-6 gap-6 overflow-y-auto">
       {/* Header */}
@@ -213,15 +225,18 @@ export default function WorkerDetailPage() {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div className="flex items-center gap-4 flex-1">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
-            <span className="text-lg font-semibold text-primary">{initials}</span>
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-2 border-primary/20">
+            <span className="text-xl font-semibold text-primary">{initials}</span>
           </div>
           <div>
             <h1 className="text-2xl font-bold">{worker.full_name}</h1>
-            <p className="text-muted-foreground">{worker.email}</p>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Mail className="w-4 h-4" />
+              <span>{worker.email}</span>
+            </div>
           </div>
         </div>
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSave} disabled={saving} size="lg">
           {saving ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
           ) : (
@@ -237,7 +252,7 @@ export default function WorkerDetailPage() {
           <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
             <UserCheck className="w-3 h-3 mr-1" />
             Socio: {worker.linked_partner_number}
-            {worker.linked_partner_account_code && ` (Cuenta ${worker.linked_partner_account_code})`}
+            {worker.linked_partner_account_code && ` · Cuenta ${worker.linked_partner_account_code}`}
           </Badge>
         )}
         {worker.linked_employee_number && (
@@ -248,31 +263,46 @@ export default function WorkerDetailPage() {
         )}
         {worker.roles?.map((role) => (
           <Badge key={role} variant="secondary" className="text-xs">
+            <Shield className="w-3 h-3 mr-1" />
             {role}
           </Badge>
         ))}
         {!worker.is_active && (
           <Badge variant="destructive">Inactivo</Badge>
         )}
+        <div className="flex-1" />
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            Alta: {formatDate(worker.created_at)}
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            Último acceso: {formatDate(worker.last_login_at)}
+          </span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Datos Laborales */}
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ADMIN SECTION - Left column */}
+        <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Briefcase className="w-5 h-5" />
-              Datos Laborales
+              <Shield className="w-5 h-5 text-primary" />
+              Configuración Admin
             </CardTitle>
+            <CardDescription>
+              Solo el administrador puede modificar esta sección
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label>Tipo de Trabajador</Label>
+              <Label className="font-medium">Tipo de Trabajador</Label>
               <Select
-                value={formData.worker_type}
-                onValueChange={(value) => setFormData({ ...formData, worker_type: value })}
+                value={adminData.worker_type}
+                onValueChange={(value) => setAdminData({ ...adminData, worker_type: value })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Seleccionar tipo..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -284,18 +314,24 @@ export default function WorkerDetailPage() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Al asignar como Socio o Empleado se creará automáticamente su ficha vinculada
+                {adminData.worker_type === "PARTNER" 
+                  ? "Se creará una ficha de socio con cuenta contable para retribuciones"
+                  : adminData.worker_type === "EMPLOYEE"
+                  ? "Se creará una ficha de empleado para nóminas"
+                  : "El usuario no tiene asignación laboral"}
               </p>
             </div>
 
+            <Separator />
+
             <div className="space-y-2">
-              <Label>Departamento</Label>
+              <Label className="font-medium">Departamento</Label>
               <Select
-                value={formData.department}
-                onValueChange={(value) => setFormData({ ...formData, department: value })}
+                value={adminData.department}
+                onValueChange={(value) => setAdminData({ ...adminData, department: value })}
               >
-                <SelectTrigger>
-                  <SelectValue />
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Seleccionar departamento..." />
                 </SelectTrigger>
                 <SelectContent>
                   {departmentOptions.map((opt) => (
@@ -307,112 +343,177 @@ export default function WorkerDetailPage() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="job_position">Puesto de Trabajo</Label>
-              <Input
-                id="job_position"
-                value={formData.job_position}
-                onChange={(e) => setFormData({ ...formData, job_position: e.target.value })}
-                placeholder="Ej: Director Comercial"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Teléfono</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="pl-10"
-                  placeholder="+34 600 000 000"
-                />
-              </div>
-            </div>
+            {adminData.worker_type === "PARTNER" && (
+              <>
+                <Separator />
+                <div className="space-y-2">
+                  <Label htmlFor="irpf_rate" className="font-medium flex items-center gap-2">
+                    <Percent className="w-4 h-4" />
+                    Retención IRPF
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="irpf_rate"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value={profileData.irpf_rate}
+                      onChange={(e) => setProfileData({ ...profileData, irpf_rate: e.target.value })}
+                      className="h-11 pr-8"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Porcentaje de retención para el modelo 111
+                  </p>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
-        {/* Datos Fiscales */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <CreditCard className="w-5 h-5" />
-              Datos Fiscales
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="tax_id">NIF/DNI</Label>
-              <Input
-                id="tax_id"
-                value={formData.tax_id}
-                onChange={(e) => setFormData({ ...formData, tax_id: e.target.value })}
-                placeholder="12345678A"
-              />
-            </div>
+        {/* USER PROFILE SECTION - Right columns */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Datos de Contacto */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Briefcase className="w-5 h-5" />
+                Datos Profesionales
+              </CardTitle>
+              <CardDescription>
+                Información del puesto y contacto
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="job_position">Puesto de Trabajo</Label>
+                  <Input
+                    id="job_position"
+                    value={profileData.job_position}
+                    onChange={(e) => setProfileData({ ...profileData, job_position: e.target.value })}
+                    placeholder="Ej: Director Comercial"
+                    className="h-11"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    El título del puesto lo define el usuario
+                  </p>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="iban">IBAN</Label>
-              <Input
-                id="iban"
-                value={formData.iban}
-                onChange={(e) => setFormData({ ...formData, iban: e.target.value })}
-                placeholder="ES00 0000 0000 0000 0000 0000"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Dirección */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <MapPin className="w-5 h-5" />
-              Dirección
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="md:col-span-2 space-y-2">
-                <Label htmlFor="address">Dirección</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="Calle, número, piso..."
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Teléfono</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="phone"
+                      value={profileData.phone}
+                      onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                      className="h-11 pl-10"
+                      placeholder="+34 600 000 000"
+                    />
+                  </div>
+                </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="city">Ciudad</Label>
-                <Input
-                  id="city"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                />
-              </div>
+          {/* Datos Fiscales */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <CreditCard className="w-5 h-5" />
+                Datos Fiscales
+              </CardTitle>
+              <CardDescription>
+                Información fiscal y bancaria
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tax_id">NIF/DNI</Label>
+                  <Input
+                    id="tax_id"
+                    value={profileData.tax_id}
+                    onChange={(e) => setProfileData({ ...profileData, tax_id: e.target.value })}
+                    placeholder="12345678A"
+                    className="h-11"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="postal_code">C.P.</Label>
-                <Input
-                  id="postal_code"
-                  value={formData.postal_code}
-                  onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="iban">IBAN</Label>
+                  <Input
+                    id="iban"
+                    value={profileData.iban}
+                    onChange={(e) => setProfileData({ ...profileData, iban: e.target.value })}
+                    placeholder="ES00 0000 0000 0000 0000 0000"
+                    className="h-11"
+                  />
+                </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="province">Provincia</Label>
-                <Input
-                  id="province"
-                  value={formData.province}
-                  onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                />
+          {/* Dirección */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <MapPin className="w-5 h-5" />
+                Dirección
+              </CardTitle>
+              <CardDescription>
+                Domicilio fiscal del trabajador
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor="address">Dirección</Label>
+                  <Input
+                    id="address"
+                    value={profileData.address}
+                    onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
+                    placeholder="Calle, número, piso..."
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">Ciudad</Label>
+                  <Input
+                    id="city"
+                    value={profileData.city}
+                    onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="postal_code">C.P.</Label>
+                  <Input
+                    id="postal_code"
+                    value={profileData.postal_code}
+                    onChange={(e) => setProfileData({ ...profileData, postal_code: e.target.value })}
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="province">Provincia</Label>
+                  <Input
+                    id="province"
+                    value={profileData.province}
+                    onChange={(e) => setProfileData({ ...profileData, province: e.target.value })}
+                    className="h-11"
+                  />
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

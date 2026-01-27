@@ -1621,6 +1621,7 @@ export type Database = {
           full_name: string
           iban: string
           id: string
+          irpf_rate: number
           is_active: boolean
           job_position: string
           last_login_at: string
@@ -2822,6 +2823,7 @@ export type Database = {
           p_city?: string
           p_department?: string
           p_iban?: string
+          p_irpf_rate?: number
           p_job_position?: string
           p_phone?: string
           p_postal_code?: string
