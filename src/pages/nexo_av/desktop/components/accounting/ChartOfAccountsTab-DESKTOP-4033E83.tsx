@@ -102,6 +102,7 @@ const EXPENSE_CATEGORY_CONFIG: Record<string, { label: string; icon: React.Compo
   MATERIAL: { label: "Material", icon: Wrench, color: "text-green-600" },
   SERVICE: { label: "Servicios", icon: Briefcase, color: "text-purple-600" },
   SOFTWARE: { label: "Software", icon: Package, color: "text-blue-600" },
+  EXTERNAL_SERVICES: { label: "Servicios Externos", icon: Briefcase, color: "text-indigo-600" },
   TRAVEL: { label: "Viajes", icon: Car, color: "text-orange-600" },
   RENT: { label: "Alquiler", icon: Home, color: "text-teal-600" },
   UTILITIES: { label: "Suministros", icon: Plug, color: "text-yellow-600" },

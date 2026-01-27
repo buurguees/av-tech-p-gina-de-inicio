@@ -65,14 +65,9 @@ interface Project {
   client_name?: string;
 }
 
-const EXPENSE_CATEGORIES = [
-  { value: "MATERIAL", label: "Material" },
-  { value: "SERVICE", label: "Servicio" },
-  { value: "TRAVEL", label: "Viaje" },
-  { value: "RENT", label: "Alquiler" },
-  { value: "UTILITIES", label: "Suministros" },
-  { value: "OTHER", label: "Otros" },
-];
+import { PURCHASE_INVOICE_CATEGORIES } from "@/constants/purchaseInvoiceCategories";
+
+const EXPENSE_CATEGORIES = PURCHASE_INVOICE_CATEGORIES;
 
 // File preview component
 const FilePreview = ({ filePath }: { filePath: string }) => {

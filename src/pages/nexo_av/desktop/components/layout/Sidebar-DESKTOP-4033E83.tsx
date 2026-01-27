@@ -174,7 +174,7 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
         },
         {
           id: 'partners',
-          title: 'Socios',
+          title: 'Retribuciones',
           icon: Users,
           path: `/nexo-av/${userId}/partners`,
           available: isAdmin,

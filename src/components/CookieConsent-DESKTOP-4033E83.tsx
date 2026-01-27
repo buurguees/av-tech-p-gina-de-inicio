@@ -27,6 +27,8 @@ const CookieConsent = () => {
     setIsVisible(false);
   };
 
+  if (!isVisible) return null;
+
   return (
     <AnimatePresence>
       {isVisible && (

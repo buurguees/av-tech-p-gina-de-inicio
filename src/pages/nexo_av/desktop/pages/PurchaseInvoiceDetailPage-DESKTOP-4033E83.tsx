@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PURCHASE_INVOICE_CATEGORIES } from "@/constants/purchaseInvoiceCategories";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "../components/purchases/PurchaseInvoiceLinesEditor";
 import PurchaseInvoicePaymentsSection from "../components/purchases/PurchaseInvoicePaymentsSection";
@@ -105,14 +106,7 @@ const STATUS_OPTIONS = [
   { value: "CANCELLED", label: "Anulada", color: "status-error" },
 ];
 
-const EXPENSE_CATEGORIES = [
-  { value: "MATERIAL", label: "Material" },
-  { value: "SERVICE", label: "Servicio" },
-  { value: "TRAVEL", label: "Viaje" },
-  { value: "RENT", label: "Alquiler" },
-  { value: "UTILITIES", label: "Suministros" },
-  { value: "OTHER", label: "Otros" },
-];
+const EXPENSE_CATEGORIES = PURCHASE_INVOICE_CATEGORIES;
 
 // Simple file preview component for uploaded documents
 const FilePreview = ({ filePath }: { filePath: string }) => {
@@ -424,21 +418,21 @@ const PurchaseInvoiceDetailPageDesktop = () => {
         await handleSave();
       }
       
-      // Update status to APPROVED
-      const { error: updateError } = await supabase.rpc("update_purchase_invoice", {
+      // Use the new approve_purchase_invoice RPC which assigns definitive number
+      const { data, error: approveError } = await (supabase.rpc as any)("approve_purchase_invoice", {
         p_invoice_id: purchaseInvoiceId,
-        p_status: "APPROVED",
       });
       
-      if (updateError) throw updateError;
+      if (approveError) throw approveError;
       
-      toast.success("Factura aprobada correctamente");
+      const newNumber = data?.[0]?.invoice_number;
+      toast.success(`Factura aprobada: ${newNumber || 'OK'}`);
       setIsEditing(false);
       await fetchInvoice();
       
     } catch (error: any) {
       console.error("Error approving invoice:", error);
-      toast.error("Error al aprobar la factura");
+      toast.error(error.message || "Error al aprobar la factura");
     } finally {
       setApproving(false);
     }

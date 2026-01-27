@@ -6,6 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   ArrowLeft,
   Save,
   Loader2,
@@ -19,6 +26,7 @@ import ProjectSearchInput from "../components/projects/ProjectSearchInput";
 import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "../components/purchases/PurchaseInvoiceLinesEditor";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
+import { PURCHASE_INVOICE_CATEGORIES } from "@/constants/purchaseInvoiceCategories";
 
 const NewPurchaseInvoicePageDesktop = () => {
   const { userId } = useParams();
@@ -35,6 +43,7 @@ const NewPurchaseInvoicePageDesktop = () => {
   const [supplierInvoiceNumber, setSupplierInvoiceNumber] = useState("");
   const [issueDate, setIssueDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [dueDate, setDueDate] = useState("");
+  const [expenseCategory, setExpenseCategory] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
   const [lines, setLines] = useState<PurchaseInvoiceLine[]>([]);
@@ -75,6 +84,7 @@ const NewPurchaseInvoicePageDesktop = () => {
           p_project_id: projectId,
           p_issue_date: issueDate,
           p_due_date: dueDate || null,
+          p_expense_category: expenseCategory || null,
           p_notes: notes || null,
         } as any
       );
@@ -212,6 +222,25 @@ const NewPurchaseInvoicePageDesktop = () => {
                 onChange={(e) => setDueDate(e.target.value)}
                 className="h-11"
               />
+            </div>
+
+            {/* Categoría */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">
+                Categoría
+              </Label>
+              <Select value={expenseCategory} onValueChange={setExpenseCategory}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Seleccionar..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {PURCHASE_INVOICE_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
