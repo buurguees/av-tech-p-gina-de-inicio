@@ -21,7 +21,8 @@ import {
   Truck,
   BookOpen,
   Code2,
-  UserCog
+  UserCog,
+  Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import "../../styles/components/layout/sidebar.css";
@@ -165,8 +166,15 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
       icon: UserCog,
       items: [
         {
+          id: 'workers',
+          title: 'Trabajadores',
+          icon: Briefcase,
+          path: `/nexo-av/${userId}/workers`,
+          available: isAdmin,
+        },
+        {
           id: 'partners',
-          title: 'Socios',
+          title: 'Retribuciones',
           icon: Users,
           path: `/nexo-av/${userId}/partners`,
           available: isAdmin,
