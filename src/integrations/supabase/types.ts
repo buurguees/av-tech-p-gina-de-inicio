@@ -2429,6 +2429,7 @@ export type Database = {
         Returns: {
           entry_id: string
           entry_number: string
+          payment_id: string
         }[]
       }
       post_partner_compensation_run: {
