@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,24 +18,40 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, User, FileText, Banknote, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+interface PartnerData {
+  full_name: string;
+  tax_id: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  province?: string;
+  iban?: string;
+  email?: string;
+  irpf_rate: number;
+}
 
 interface CreatePartnerPayrollDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   partnerId: string;
-  partnerName: string;
-  defaultIrpfRate: number;
+  partnerData: PartnerData;
   onSuccess: () => void;
+}
+
+interface NetoConcept {
+  id: string;
+  label: string;
+  neto: string;
 }
 
 export default function CreatePartnerPayrollDialog({
   open,
   onOpenChange,
   partnerId,
-  partnerName,
-  defaultIrpfRate,
+  partnerData,
   onSuccess,
 }: CreatePartnerPayrollDialogProps) {
   const { toast } = useToast();
@@ -44,35 +60,90 @@ export default function CreatePartnerPayrollDialog({
   const [formData, setFormData] = useState({
     period_year: new Date().getFullYear(),
     period_month: new Date().getMonth() + 1,
-    gross_amount: "",
-    irpf_rate: defaultIrpfRate.toString(),
+    payment_date: "",
     notes: "",
   });
 
-  // Update IRPF rate when defaultIrpfRate changes (loaded from DB)
-  useEffect(() => {
-    setFormData(prev => ({ ...prev, irpf_rate: defaultIrpfRate.toString() }));
-  }, [defaultIrpfRate]);
+  // Conceptos de neto (dinámicos)
+  const [netoConcepts, setNetoConcepts] = useState<NetoConcept[]>([
+    { id: "base", label: "Neto Base", neto: "" },
+    { id: "horas", label: "Plus Horas Extra", neto: "" },
+    { id: "productividad", label: "Plus Productividad", neto: "" },
+    { id: "otros", label: "Otros Conceptos", neto: "" },
+  ]);
+
+  // Cálculos automáticos basados en IRPF del socio
+  const calculations = useMemo(() => {
+    const irpfRate = partnerData.irpf_rate || 0;
+    const t = irpfRate / 100;
+    const factor = 1 - t; // Para calcular bruto = neto / (1 - t)
+
+    const conceptDetails = netoConcepts.map((concept) => {
+      const netoValue = parseFloat(concept.neto) || 0;
+      if (netoValue === 0 || factor === 0) {
+        return { ...concept, neto: netoValue, bruto: 0, irpf: 0 };
+      }
+      const bruto = netoValue / factor;
+      const irpf = bruto - netoValue; // Calculado así para evitar descuadres por redondeo
+      return {
+        ...concept,
+        neto: netoValue,
+        bruto: Math.round(bruto * 100) / 100,
+        irpf: Math.round(irpf * 100) / 100,
+      };
+    });
+
+    const totals = conceptDetails.reduce(
+      (acc, c) => ({
+        totalNeto: acc.totalNeto + c.neto,
+        totalBruto: acc.totalBruto + c.bruto,
+        totalIrpf: acc.totalIrpf + c.irpf,
+      }),
+      { totalNeto: 0, totalBruto: 0, totalIrpf: 0 }
+    );
+
+    return {
+      conceptDetails,
+      ...totals,
+      ssEmpresa: 0, // RETA propio = 0€
+    };
+  }, [netoConcepts, partnerData.irpf_rate]);
+
+  const updateNetoConcept = (id: string, value: string) => {
+    setNetoConcepts((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, neto: value } : c))
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (calculations.totalNeto <= 0) {
+      toast({
+        title: "Error",
+        description: "Debes introducir al menos un concepto de neto",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
+      // Crear el run de compensación con el BRUTO total calculado
       const { error } = await supabase.rpc("create_partner_compensation_run", {
         p_partner_id: partnerId,
         p_period_year: formData.period_year,
         p_period_month: formData.period_month,
-        p_gross_amount: parseFloat(formData.gross_amount),
-        p_irpf_rate: parseFloat(formData.irpf_rate),
-        p_notes: formData.notes || null,
+        p_gross_amount: calculations.totalBruto,
+        p_irpf_rate: partnerData.irpf_rate,
+        p_notes: buildNotesWithBreakdown(),
       });
 
       if (error) throw error;
 
       toast({
         title: "Nómina creada",
-        description: "La nómina se ha creado en estado DRAFT. Confírmala para generar el asiento contable.",
+        description: `Nómina de ${formatCurrency(calculations.totalNeto)} neto creada en estado DRAFT`,
       });
 
       onSuccess();
@@ -90,27 +161,30 @@ export default function CreatePartnerPayrollDialog({
     }
   };
 
+  const buildNotesWithBreakdown = () => {
+    const breakdown = calculations.conceptDetails
+      .filter((c) => c.neto > 0)
+      .map((c) => `${c.label}: ${formatCurrency(c.neto)} neto → ${formatCurrency(c.bruto)} bruto`)
+      .join(" | ");
+    
+    return formData.notes 
+      ? `${formData.notes}\n\nDesglose: ${breakdown}`
+      : `Desglose: ${breakdown}`;
+  };
+
   const resetForm = () => {
     setFormData({
       period_year: new Date().getFullYear(),
       period_month: new Date().getMonth() + 1,
-      gross_amount: "",
-      irpf_rate: defaultIrpfRate.toString(),
+      payment_date: "",
       notes: "",
     });
-  };
-
-  const calculateNet = () => {
-    const gross = parseFloat(formData.gross_amount) || 0;
-    const irpfRate = parseFloat(formData.irpf_rate) || 0;
-    const irpf = gross * (irpfRate / 100);
-    return gross - irpf;
-  };
-
-  const calculateIrpf = () => {
-    const gross = parseFloat(formData.gross_amount) || 0;
-    const irpfRate = parseFloat(formData.irpf_rate) || 0;
-    return gross * (irpfRate / 100);
+    setNetoConcepts([
+      { id: "base", label: "Neto Base", neto: "" },
+      { id: "horas", label: "Plus Horas Extra", neto: "" },
+      { id: "productividad", label: "Plus Productividad", neto: "" },
+      { id: "otros", label: "Otros Conceptos", neto: "" },
+    ]);
   };
 
   const formatCurrency = (val: number) => {
@@ -120,18 +194,69 @@ export default function CreatePartnerPayrollDialog({
     }).format(val);
   };
 
+  const formatAddress = () => {
+    const parts = [
+      partnerData.address,
+      partnerData.postal_code,
+      partnerData.city,
+      partnerData.province,
+    ].filter(Boolean);
+    return parts.length > 0 ? parts.join(", ") : "No especificado";
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nueva Nómina de Socio</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Nueva Nómina de Socio
+          </DialogTitle>
           <DialogDescription>
-            Crea una nueva retribución mensual para {partnerName}
+            Introduce los importes NETOS. El sistema calculará automáticamente los brutos y retenciones.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Datos del Socio (Solo lectura) */}
+          <div className="p-4 rounded-lg bg-muted/30 border border-border/50 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+              <User className="h-4 w-4" />
+              Datos del Socio (autocargados)
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Nombre:</span>
+                <span className="ml-2 font-medium">{partnerData.full_name}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">DNI/NIE:</span>
+                <span className="ml-2 font-medium">{partnerData.tax_id || "No especificado"}</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-muted-foreground">Domicilio fiscal:</span>
+                <span className="ml-2 font-medium">{formatAddress()}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">% IRPF vigente:</span>
+                <span className="ml-2 font-bold text-primary">{partnerData.irpf_rate}%</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Régimen SS:</span>
+                <span className="ml-2 font-medium text-accent-foreground">RETA propio (SS empresa = 0€)</span>
+              </div>
+              {partnerData.iban && (
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">IBAN:</span>
+                  <span className="ml-2 font-mono text-xs">{partnerData.iban}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Periodo */}
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="period_year">Año</Label>
               <Input
@@ -163,66 +288,131 @@ export default function CreatePartnerPayrollDialog({
             </div>
 
             <div>
-              <Label htmlFor="gross_amount">
-                Retribución Bruta (€) <span className="text-destructive">*</span>
-              </Label>
+              <Label htmlFor="payment_date">Fecha de pago (opcional)</Label>
               <Input
-                id="gross_amount"
-                type="number"
-                step="0.01"
-                value={formData.gross_amount}
-                onChange={(e) => setFormData({ ...formData, gross_amount: e.target.value })}
-                placeholder="2500.00"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="irpf_rate">IRPF (%)</Label>
-              <Input
-                id="irpf_rate"
-                type="number"
-                step="0.01"
-                value={formData.irpf_rate}
-                onChange={(e) => setFormData({ ...formData, irpf_rate: e.target.value })}
+                id="payment_date"
+                type="date"
+                value={formData.payment_date}
+                onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
               />
             </div>
           </div>
 
-          {/* Preview */}
-          {formData.gross_amount && (
-            <div className="p-4 rounded-lg bg-muted/30 border border-border/50 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Retribución Bruta</span>
-                <span className="font-medium">{formatCurrency(parseFloat(formData.gross_amount) || 0)}</span>
+          {/* Conceptos de NETO */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Banknote className="h-4 w-4" />
+              Retribución en NETO (lo que quieres cobrar)
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              {netoConcepts.map((concept) => (
+                <div key={concept.id}>
+                  <Label htmlFor={concept.id} className="text-xs">
+                    {concept.label} (€)
+                  </Label>
+                  <Input
+                    id={concept.id}
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    value={concept.neto}
+                    onChange={(e) => updateNetoConcept(concept.id, e.target.value)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="text-right text-sm">
+              <span className="text-muted-foreground">Total Neto deseado: </span>
+              <span className="font-bold text-lg text-accent-foreground">
+                {formatCurrency(calculations.totalNeto)}
+              </span>
+            </div>
+          </div>
+
+          {/* Cálculo Automático */}
+          {calculations.totalNeto > 0 && (
+            <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 space-y-4">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Calculator className="h-4 w-4" />
+                Cálculo Automático (IRPF {partnerData.irpf_rate}%)
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">IRPF ({formData.irpf_rate}%)</span>
-                <span className="font-medium text-orange-400">-{formatCurrency(calculateIrpf())}</span>
+
+              {/* Desglose por concepto */}
+              <div className="space-y-2">
+                {calculations.conceptDetails
+                  .filter((c) => c.neto > 0)
+                  .map((concept) => (
+                    <div key={concept.id} className="grid grid-cols-4 gap-2 text-xs bg-background/50 p-2 rounded">
+                      <span className="font-medium">{concept.label}</span>
+                      <span className="text-right">Neto: {formatCurrency(concept.neto)}</span>
+                      <span className="text-right text-destructive">IRPF: -{formatCurrency(concept.irpf)}</span>
+                      <span className="text-right font-medium">Bruto: {formatCurrency(concept.bruto)}</span>
+                    </div>
+                  ))}
               </div>
-              <div className="flex justify-between text-sm pt-2 border-t border-border/50">
-                <span className="font-medium">Neto a Pagar</span>
-                <span className="font-bold text-green-400">{formatCurrency(calculateNet())}</span>
+
+              {/* Totales */}
+              <div className="pt-3 border-t border-primary/20 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Bruto Total (gasto empresa)</span>
+                  <span className="font-bold">{formatCurrency(calculations.totalBruto)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">IRPF Retenido ({partnerData.irpf_rate}%)</span>
+                  <span className="font-medium text-destructive">-{formatCurrency(calculations.totalIrpf)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">SS Empresa (RETA propio)</span>
+                  <span className="font-medium text-accent-foreground">0,00 €</span>
+                </div>
+                <div className="flex justify-between text-base pt-2 border-t border-primary/20">
+                  <span className="font-medium">Neto a Percibir</span>
+                  <span className="font-bold text-accent-foreground text-lg">{formatCurrency(calculations.totalNeto)}</span>
+                </div>
+              </div>
+
+              {/* Resumen Contable */}
+              <div className="pt-3 border-t border-primary/20">
+                <div className="text-xs text-muted-foreground mb-2">Asiento contable:</div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex justify-between bg-background/50 p-2 rounded">
+                    <span>640 Gasto personal</span>
+                    <span className="font-mono">{formatCurrency(calculations.totalBruto)}</span>
+                  </div>
+                  <div className="flex justify-between bg-background/50 p-2 rounded">
+                    <span>4751 HP Retenciones</span>
+                    <span className="font-mono text-destructive">{formatCurrency(calculations.totalIrpf)}</span>
+                  </div>
+                  <div className="flex justify-between bg-background/50 p-2 rounded col-span-2">
+                    <span>465/572 Pendiente pago / Banco</span>
+                    <span className="font-mono text-accent-foreground">{formatCurrency(calculations.totalNeto)}</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
+          {/* Notas */}
           <div>
-            <Label htmlFor="notes">Notas</Label>
+            <Label htmlFor="notes">Observaciones / Concepto del mes</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={2}
-              placeholder="Ej: Bonus por objetivo Q1"
+              placeholder="Ej: Bonus por objetivo Q1, horas extra proyecto X..."
             />
           </div>
 
+          {/* Botones */}
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading || !formData.gross_amount}>
+            <Button type="submit" disabled={loading || calculations.totalNeto <= 0}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Crear Nómina"}
             </Button>
           </div>
