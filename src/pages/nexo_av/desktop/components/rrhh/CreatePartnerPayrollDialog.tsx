@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -48,6 +48,11 @@ export default function CreatePartnerPayrollDialog({
     irpf_rate: defaultIrpfRate.toString(),
     notes: "",
   });
+
+  // Update IRPF rate when defaultIrpfRate changes (loaded from DB)
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, irpf_rate: defaultIrpfRate.toString() }));
+  }, [defaultIrpfRate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
