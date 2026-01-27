@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 
-const CookieConsent = React.forwardRef<HTMLDivElement>((_, ref) => {
+const CookieConsent = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -26,6 +26,8 @@ const CookieConsent = React.forwardRef<HTMLDivElement>((_, ref) => {
     localStorage.setItem('cookie-consent', 'rejected');
     setIsVisible(false);
   };
+
+  if (!isVisible) return null;
 
   return (
     <AnimatePresence>
@@ -77,7 +79,6 @@ const CookieConsent = React.forwardRef<HTMLDivElement>((_, ref) => {
       )}
     </AnimatePresence>
   );
-});
-CookieConsent.displayName = 'CookieConsent';
+};
 
 export default CookieConsent;
