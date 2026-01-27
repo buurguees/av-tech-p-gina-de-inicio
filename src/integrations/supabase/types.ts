@@ -1884,61 +1884,35 @@ export type Database = {
           updated_at: string
         }[]
       }
-      list_partner_compensation_runs:
-        | {
-            Args: {
-              p_limit?: number
-              p_offset?: number
-              p_partner_id?: string
-              p_period_month?: number
-              p_period_year?: number
-              p_status?: string
-            }
-            Returns: {
-              compensation_number: string
-              created_at: string
-              gross_amount: number
-              id: string
-              irpf_amount: number
-              irpf_rate: number
-              journal_entry_id: string
-              journal_entry_number: string
-              net_amount: number
-              partner_id: string
-              partner_name: string
-              partner_number: string
-              period_month: number
-              period_year: number
-              status: string
-            }[]
-          }
-        | {
-            Args: {
-              p_limit?: number
-              p_offset?: number
-              p_partner_id?: string
-              p_period_month?: number
-              p_period_year?: number
-              p_status?: string
-            }
-            Returns: {
-              compensation_number: string
-              created_at: string
-              gross_amount: number
-              id: string
-              irpf_amount: number
-              irpf_rate: number
-              journal_entry_id: string
-              journal_entry_number: string
-              net_amount: number
-              partner_id: string
-              partner_name: string
-              partner_number: string
-              period_month: number
-              period_year: number
-              status: string
-            }[]
-          }
+      list_partner_compensation_runs: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_partner_id?: string
+          p_period_month?: number
+          p_period_year?: number
+          p_status?: string
+        }
+        Returns: {
+          compensation_number: string
+          created_at: string
+          gross_amount: number
+          id: string
+          irpf_amount: number
+          irpf_rate: number
+          journal_entry_id: string
+          journal_entry_number: string
+          net_amount: number
+          notes: string
+          partner_id: string
+          partner_name: string
+          partner_number: string
+          period_month: number
+          period_year: number
+          ss_regime: string
+          status: string
+        }[]
+      }
       list_partners: {
         Args: { p_status?: string }
         Returns: {
