@@ -1,8 +1,10 @@
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
-// Load desktop layout directly (mobile removed)
+// Load layouts lazily
 const DesktopLayout = lazy(() => import("../desktop/layouts/NexoAvLayout"));
+const MobileLayout = lazy(() => import("../mobile/layouts/NexoAvMobileLayout"));
 
 // Loading fallback component
 const LayoutLoader = () => (
@@ -12,13 +14,14 @@ const LayoutLoader = () => (
 );
 
 /**
- * ResponsiveLayout - Now only loads Desktop Layout
- * Mobile support has been temporarily disabled for refactoring
+ * ResponsiveLayout - Loads Desktop or Mobile layout based on screen size
  */
 const ResponsiveLayout = () => {
+  const isMobile = useIsMobile();
+  
   return (
     <Suspense fallback={<LayoutLoader />}>
-      <DesktopLayout />
+      {isMobile ? <MobileLayout /> : <DesktopLayout />}
     </Suspense>
   );
 };

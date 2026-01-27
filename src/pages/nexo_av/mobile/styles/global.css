@@ -1,0 +1,96 @@
+/* ============================================
+   NEXO AV MOBILE - GLOBAL STYLES
+   Base styles, layout variables, and imports
+   
+   IMPORTANT: Import order matters!
+   1. Variables must come first
+   2. Typography second
+   3. Components last (they use variables)
+   ============================================ */
+
+/* Variables - Theme colors and design tokens */
+@import './base/variables.css';
+
+/* Typography - Headings and text styles */
+@import './base/typography.css';
+
+/* Components - All component-specific styles */
+@import './components/index.css';
+
+/* ============================================
+   BODY BASE
+   ============================================ */
+body.nexo-av-theme {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px; /* Más grande que desktop para legibilidad móvil */
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Prevenir zoom en inputs en iOS */
+  -webkit-text-size-adjust: 100%;
+}
+
+body.nexo-av-theme-dark {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* ============================================
+   LAYOUT VARIABLES
+   ============================================ */
+body.nexo-av-theme,
+body.nexo-av-theme-dark {
+  --mobile-header-height: 3.25rem;
+  --mobile-bottom-nav-height: 4rem;
+  --mobile-padding: 1rem;
+  --mobile-touch-target: 44px; /* Tamaño mínimo táctil */
+  --mobile-border-radius: 12px;
+}
+
+/* ============================================
+   MAIN CONTENT AREA
+   ============================================ */
+.mobile-main-content {
+  width: 100%;
+  min-height: calc(100dvh - var(--mobile-header-height) - var(--mobile-bottom-nav-height));
+  padding: var(--mobile-padding);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling iOS */
+}
+
+/* ============================================
+   TOUCH OPTIMIZATIONS
+   ============================================ */
+button, a, [role="button"] {
+  min-height: var(--mobile-touch-target);
+  min-width: var(--mobile-touch-target);
+  touch-action: manipulation; /* Elimina delay de 300ms en iOS */
+}
+
+/* Prevenir selección de texto accidental */
+button, .mobile-card {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ============================================
+   SCROLLBAR STYLING (Mobile)
+   ============================================ */
+.mobile-main-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.mobile-main-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mobile-main-content::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 2px;
+}
+
+.mobile-main-content::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}

@@ -1,0 +1,140 @@
+/* ============================================
+   NEXO AV MOBILE - CSS VARIABLES
+   Theme colors, shadows, and design tokens
+   (Mismas variables que desktop, con medidas móviles adicionales)
+   ============================================ */
+
+/* ============================================
+   LIGHT THEME (Default)
+   ============================================ */
+body.nexo-av-theme {
+  /* Background & Surface Colors */
+  --background: 220 16% 97%;
+  --foreground: 224 14% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 224 14% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 14% 14%;
+
+  /* Primary - Deep Navy/Blue */
+  --primary: 224 47% 21%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary */
+  --secondary: 220 13% 91%;
+  --secondary-foreground: 224 14% 14%;
+
+  /* Muted */
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
+
+  /* Accent */
+  --accent: 220 14% 93%;
+  --accent-foreground: 224 14% 14%;
+
+  /* Borders & Inputs */
+  --border: 220 13% 88%;
+  --input: 220 13% 91%;
+  --ring: 224 47% 21%;
+
+  /* Chart Colors */
+  --chart-1: 224 47% 30%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 45 93% 47%;
+  --chart-4: 43 74% 49%;
+  --chart-5: 12 76% 61%;
+
+  /* Semantic Text Colors */
+  --text-primary: 224 14% 14%;
+  --text-secondary: 220 9% 46%;
+  --text-muted: 220 8% 56%;
+
+  /* Mobile Layout Variables */
+  --mobile-header-height: 3.25rem;
+  --mobile-bottom-nav-height: 4rem;
+  --mobile-padding: 1rem;
+  --mobile-touch-target: 44px;
+  --mobile-border-radius: 12px;
+
+  /* Status Colors */
+  --status-success: 142 71% 45%;
+  --status-success-bg: 142 76% 96%;
+  --status-warning: 38 92% 50%;
+  --status-warning-bg: 45 93% 95%;
+  --status-error: 0 84% 60%;
+  --status-error-bg: 0 86% 97%;
+  --status-info: 217 91% 60%;
+  --status-info-bg: 214 95% 97%;
+  --status-special: 262 83% 58%;
+  --status-special-bg: 263 85% 97%;
+  --status-neutral: 220 9% 46%;
+  --status-neutral-bg: 220 14% 96%;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px hsl(224 14% 14% / 0.04);
+  --shadow-sm: 0 2px 4px hsl(224 14% 14% / 0.06);
+  --shadow-md: 0 4px 12px hsl(224 14% 14% / 0.08);
+  --shadow-lg: 0 8px 24px hsl(224 14% 14% / 0.12);
+}
+
+/* ============================================
+   DARK THEME — BLACK CORE
+   ============================================ */
+body.nexo-av-theme-dark {
+  /* CORE BACKGROUND (NEGRO REAL) */
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+
+  /* SURFACES */
+  --card: 0 0% 6%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 7%;
+  --popover-foreground: 0 0% 100%;
+  --secondary: 0 0% 10%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 0 0% 12%;
+  --accent-foreground: 0 0% 100%;
+
+  /* TEXT */
+  --text-primary: 0 0% 100%;
+  --text-secondary: 0 0% 72%;
+  --text-muted: 0 0% 55%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 65%;
+
+  /* PRIMARY */
+  --primary: 217 92% 62%;
+  --primary-foreground: 0 0% 0%;
+
+  /* BORDERS & INPUTS */
+  --border: 0 0% 14%;
+  --input: 0 0% 12%;
+  --ring: 217 92% 62%;
+
+  /* Mobile Layout Variables */
+  --mobile-header-height: 3.25rem;
+  --mobile-bottom-nav-height: 4rem;
+  --mobile-padding: 1rem;
+  --mobile-touch-target: 44px;
+  --mobile-border-radius: 12px;
+
+  /* STATUS COLORS */
+  --status-success: 142 70% 48%;
+  --status-success-bg: 142 45% 14%;
+  --status-warning: 38 92% 56%;
+  --status-warning-bg: 38 45% 14%;
+  --status-error: 0 84% 62%;
+  --status-error-bg: 0 45% 14%;
+  --status-info: 217 92% 66%;
+  --status-info-bg: 217 45% 14%;
+  --status-special: 262 85% 68%;
+  --status-special-bg: 262 45% 14%;
+  --status-neutral: 0 0% 65%;
+  --status-neutral-bg: 0 0% 14%;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px hsl(0 0% 0% / 0.4);
+  --shadow-sm: 0 2px 6px hsl(0 0% 0% / 0.55);
+  --shadow-md: 0 8px 20px hsl(0 0% 0% / 0.7);
+  --shadow-lg: 0 16px 40px hsl(0 0% 0% / 0.85);
+}
