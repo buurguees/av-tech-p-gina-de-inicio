@@ -973,6 +973,17 @@ const AccountingPage = () => {
               </div>
             </div>
             <button
+              onClick={() => setActiveTab("all-payroll")}
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                activeTab === "all-payroll"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              }`}
+            >
+              <Receipt className="h-3.5 w-3.5" />
+              Todas
+            </button>
+            <button
               onClick={() => setActiveTab("payroll")}
               className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
                 activeTab === "payroll"
@@ -2063,7 +2074,223 @@ const AccountingPage = () => {
           </Card>
         </TabsContent>
 
-        {/* 10. NÓMINAS DE EMPLEADOS */}
+        {/* ALL PAYROLL - Vista unificada de todas las nóminas */}
+        <TabsContent value="all-payroll" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <CardTitle>Todas las Nóminas</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setCreatePayrollDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nómina Empleado
+              </Button>
+              <Button onClick={() => setCreateCompensationDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Retribución Socio
+              </Button>
+            </div>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Listado Unificado de Nóminas</CardTitle>
+              <CardDescription>
+                Período: {selectedYear} - Todas las nóminas de empleados y retribuciones de socios
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Nº Documento</TableHead>
+                    <TableHead>Período</TableHead>
+                    <TableHead>Persona</TableHead>
+                    <TableHead className="text-right">Bruto</TableHead>
+                    <TableHead className="text-right">IRPF</TableHead>
+                    <TableHead className="text-right">Neto</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Asiento</TableHead>
+                    <TableHead>Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {/* Nóminas de empleados */}
+                  {payrollRuns.map((payroll) => (
+                    <TableRow key={`emp-${payroll.id}`}>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          <Briefcase className="h-3 w-3 mr-1" />
+                          Empleado
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">{payroll.payroll_number}</TableCell>
+                      <TableCell>{payroll.period_year}/{payroll.period_month}</TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-mono text-xs text-muted-foreground">{payroll.employee_number}</div>
+                          <div className="text-sm">{payroll.employee_name}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{formatCurrency(payroll.gross_amount)}</TableCell>
+                      <TableCell className="text-right text-orange-500">{formatCurrency(payroll.irpf_amount)}</TableCell>
+                      <TableCell className="text-right font-semibold">{formatCurrency(payroll.net_amount)}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            payroll.status === "PAID" ? "default"
+                              : payroll.status === "POSTED" ? "secondary"
+                              : "outline"
+                          }
+                        >
+                          {payroll.status === "DRAFT" && "Borrador"}
+                          {payroll.status === "POSTED" && "Confirmada"}
+                          {payroll.status === "PARTIAL" && "Parcial"}
+                          {payroll.status === "PAID" && "Pagada"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {payroll.journal_entry_number ? (
+                          <span className="font-mono text-xs">{payroll.journal_entry_number}</span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {payroll.status === "DRAFT" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  setLoading(true);
+                                  const { error } = await supabase.rpc("post_payroll_run", {
+                                    p_payroll_run_id: payroll.id,
+                                  });
+                                  if (error) throw error;
+                                  toast({ title: "Nómina confirmada", description: "Asiento generado" });
+                                  fetchPayrollRuns();
+                                } catch (error: any) {
+                                  toast({ title: "Error", description: error.message, variant: "destructive" });
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }}
+                            >
+                              Aprobar
+                            </Button>
+                          )}
+                          {(payroll.status === "POSTED" || payroll.status === "PARTIAL") && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                (window as any).__pendingPayrollId = payroll.id;
+                                setCreatePaymentDialogOpen(true);
+                              }}
+                            >
+                              Pagar
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {/* Retribuciones de socios */}
+                  {partnerCompensations.map((comp) => (
+                    <TableRow key={`comp-${comp.id}`}>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs">
+                          <UserCog className="h-3 w-3 mr-1" />
+                          Socio
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">{comp.compensation_number}</TableCell>
+                      <TableCell>{comp.period_year}/{comp.period_month}</TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-mono text-xs text-muted-foreground">{comp.partner_number}</div>
+                          <div className="text-sm">{comp.partner_name}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{formatCurrency(comp.gross_amount)}</TableCell>
+                      <TableCell className="text-right text-orange-500">{formatCurrency(comp.irpf_amount)}</TableCell>
+                      <TableCell className="text-right font-semibold">{formatCurrency(comp.net_amount)}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            comp.status === "PAID" ? "default"
+                              : comp.status === "POSTED" ? "secondary"
+                              : "outline"
+                          }
+                        >
+                          {comp.status === "DRAFT" && "Borrador"}
+                          {comp.status === "POSTED" && "Confirmada"}
+                          {comp.status === "PARTIAL" && "Parcial"}
+                          {comp.status === "PAID" && "Pagada"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {comp.journal_entry_number ? (
+                          <span className="font-mono text-xs">{comp.journal_entry_number}</span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {comp.status === "DRAFT" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  setLoading(true);
+                                  const { error } = await supabase.rpc("post_partner_compensation_run", {
+                                    p_compensation_run_id: comp.id,
+                                  });
+                                  if (error) throw error;
+                                  toast({ title: "Retribución confirmada", description: "Asiento generado" });
+                                  fetchPartnerCompensations();
+                                } catch (error: any) {
+                                  toast({ title: "Error", description: error.message, variant: "destructive" });
+                                } finally {
+                                  setLoading(false);
+                                }
+                              }}
+                            >
+                              Aprobar
+                            </Button>
+                          )}
+                          {(comp.status === "POSTED" || comp.status === "PARTIAL") && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                (window as any).__pendingCompensationId = comp.id;
+                                setCreatePaymentDialogOpen(true);
+                              }}
+                            >
+                              Pagar
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {payrollRuns.length === 0 && partnerCompensations.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                        No hay nóminas registradas en el período seleccionado
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="payroll" className="space-y-4">
           <div className="flex items-center justify-between">
             <CardTitle>Nóminas de Empleados</CardTitle>
