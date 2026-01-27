@@ -58,6 +58,8 @@ const NexoScannerDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/S
 const NexoNewPurchaseInvoicePage = lazy(() => import("./pages/nexo_av/desktop/pages/NewPurchaseInvoicePage"));
 const NexoPartnersPage = lazy(() => import("./pages/nexo_av/desktop/pages/PartnersPage"));
 const NexoPartnerDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/PartnerDetailPage"));
+const NexoWorkersPage = lazy(() => import("./pages/nexo_av/desktop/pages/WorkersPage"));
+const NexoWorkerDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/WorkerDetailPage"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -128,6 +130,8 @@ const App = () => (
                 <Route path="developer" element={<NexoDeveloperPage />} />
                 <Route path="partners" element={<NexoPartnersPage />} />
                 <Route path="partners/:partnerId" element={<NexoPartnerDetailPage />} />
+                <Route path="workers" element={<NexoWorkersPage />} />
+                <Route path="workers/:workerId" element={<NexoWorkerDetailPage />} />
                 <Route path="invoices/new" element={<NexoNewInvoicePage />} />
                 <Route path="invoices/:invoiceId" element={<NexoInvoiceDetailPage />} />
                 <Route path="invoices/:invoiceId/edit" element={<NexoEditInvoicePage />} />

@@ -171,6 +171,15 @@ export type Database = {
         Args: { p_assigned_by: string; p_role_name: string; p_user_id: string }
         Returns: boolean
       }
+      assign_worker_type: {
+        Args: {
+          p_iban?: string
+          p_tax_id?: string
+          p_user_id: string
+          p_worker_type: string
+        }
+        Returns: string
+      }
       audit_get_stats: {
         Args: { p_days?: number }
         Returns: {
@@ -1594,6 +1603,33 @@ export type Database = {
           vat_to_pay: number
         }[]
       }
+      get_worker_detail: {
+        Args: { p_user_id: string }
+        Returns: {
+          address: string
+          city: string
+          created_at: string
+          department: string
+          email: string
+          full_name: string
+          iban: string
+          id: string
+          is_active: boolean
+          job_position: string
+          last_login_at: string
+          linked_employee_id: string
+          linked_employee_number: string
+          linked_partner_account_code: string
+          linked_partner_id: string
+          linked_partner_number: string
+          phone: string
+          postal_code: string
+          province: string
+          roles: string[]
+          tax_id: string
+          worker_type: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2321,6 +2357,26 @@ export type Database = {
           updated_at: string
         }[]
       }
+      list_workers: {
+        Args: never
+        Returns: {
+          created_at: string
+          department: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          job_position: string
+          last_login_at: string
+          linked_employee_id: string
+          linked_employee_number: string
+          linked_partner_id: string
+          linked_partner_number: string
+          phone: string
+          tax_id: string
+          worker_type: string
+        }[]
+      }
       mark_invitation_token_used: {
         Args: { p_token: string }
         Returns: undefined
@@ -2750,6 +2806,21 @@ export type Database = {
           p_latitude: number
           p_longitude: number
           p_technician_id: string
+        }
+        Returns: boolean
+      }
+      update_worker: {
+        Args: {
+          p_address?: string
+          p_city?: string
+          p_department?: string
+          p_iban?: string
+          p_job_position?: string
+          p_phone?: string
+          p_postal_code?: string
+          p_province?: string
+          p_tax_id?: string
+          p_user_id: string
         }
         Returns: boolean
       }
