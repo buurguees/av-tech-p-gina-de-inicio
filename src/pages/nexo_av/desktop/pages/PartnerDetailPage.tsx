@@ -59,6 +59,7 @@ interface PartnerFullData {
   iban?: string;
   email?: string;
   irpf_rate: number;
+  ss_regime: string;
 }
 
 function PartnerDetailPage() {
@@ -79,6 +80,7 @@ function PartnerDetailPage() {
     full_name: "",
     tax_id: "",
     irpf_rate: 19,
+    ss_regime: "RETA",
   });
   const fetchPartner = async () => {
     if (!partnerId) return;
@@ -116,6 +118,7 @@ function PartnerDetailPage() {
               iban: wd.iban,
               email: wd.email,
               irpf_rate: wd.irpf_rate || 19,
+              ss_regime: wd.ss_regime || "RETA",
             });
           } else {
             // No linked worker, use partner data with default IRPF
@@ -123,6 +126,7 @@ function PartnerDetailPage() {
               full_name: found.full_name,
               tax_id: found.tax_id || "",
               irpf_rate: 19,
+              ss_regime: "RETA",
             });
           }
         } else {
@@ -131,6 +135,7 @@ function PartnerDetailPage() {
             full_name: found.full_name,
             tax_id: found.tax_id || "",
             irpf_rate: 19,
+            ss_regime: "RETA",
           });
         }
       }
