@@ -88,23 +88,16 @@ export default function WorkerDetailPage() {
         
         const foundWorker = (workersData || []).find((worker: any) => worker.id === workerId);
         if (foundWorker) {
-          // Get additional details from authorized_users table if needed
-          const { data: userData } = await supabase
-            .from("authorized_users")
-            .select("tax_id, iban, irpf_rate, ss_regime, address, city, postal_code, province")
-            .eq("id", workerId)
-            .single();
-          
           w = {
             ...foundWorker,
-            tax_id: foundWorker.tax_id || userData?.tax_id || null,
-            iban: foundWorker.iban || userData?.iban || null,
-            irpf_rate: foundWorker.irpf_rate || userData?.irpf_rate || null,
-            ss_regime: foundWorker.ss_regime || userData?.ss_regime || null,
-            address: foundWorker.address || userData?.address || null,
-            city: foundWorker.city || userData?.city || null,
-            postal_code: foundWorker.postal_code || userData?.postal_code || null,
-            province: foundWorker.province || userData?.province || null,
+            tax_id: foundWorker.tax_id || null,
+            iban: foundWorker.iban || null,
+            irpf_rate: foundWorker.irpf_rate || null,
+            ss_regime: foundWorker.ss_regime || null,
+            address: foundWorker.address || null,
+            city: foundWorker.city || null,
+            postal_code: foundWorker.postal_code || null,
+            province: foundWorker.province || null,
             roles: foundWorker.roles || [],
           };
         }
