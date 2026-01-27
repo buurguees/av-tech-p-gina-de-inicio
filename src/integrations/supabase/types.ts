@@ -661,6 +661,10 @@ export type Database = {
       delete_authorized_user: { Args: { p_user_id: string }; Returns: string }
       delete_client: { Args: { p_client_id: string }; Returns: boolean }
       delete_invoice_line: { Args: { p_line_id: string }; Returns: boolean }
+      delete_partner_compensation_run: {
+        Args: { p_compensation_run_id: string }
+        Returns: boolean
+      }
       delete_product: { Args: { p_product_id: string }; Returns: boolean }
       delete_product_category: {
         Args: { p_category_id: string }
@@ -1936,6 +1940,7 @@ export type Database = {
           journal_entry_number: string
           net_amount: number
           notes: string
+          paid_amount: number
           partner_id: string
           partner_name: string
           partner_number: string
@@ -2582,6 +2587,15 @@ export type Database = {
           }
       update_pack_item: {
         Args: { p_item_id: string; p_quantity: number }
+        Returns: boolean
+      }
+      update_partner_compensation_run: {
+        Args: {
+          p_compensation_run_id: string
+          p_gross_amount?: number
+          p_irpf_rate?: number
+          p_notes?: string
+        }
         Returns: boolean
       }
       update_product:
