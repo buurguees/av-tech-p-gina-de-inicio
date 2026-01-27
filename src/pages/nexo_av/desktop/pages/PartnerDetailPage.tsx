@@ -4,9 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import {
-  ArrowLeft,
   Plus,
   Loader2,
   User,
@@ -17,11 +16,22 @@ import {
   Clock,
   AlertCircle,
   Lock,
+  Briefcase,
+  MapPin,
+  Phone,
+  Shield,
+  Calendar,
+  Percent,
+  Building2,
+  UserCheck,
+  ArrowLeft,
 } from "lucide-react";
-import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
+import TabNav, { TabItem } from "../components/navigation/TabNav";
 import CreatePartnerPayrollDialog from "../components/rrhh/CreatePartnerPayrollDialog";
 import RegisterPartnerPayrollPaymentDialog from "../components/rrhh/RegisterPartnerPayrollPaymentDialog";
 import EditWorkerDialog from "../components/rrhh/EditWorkerDialog";
@@ -50,42 +60,50 @@ interface PartnerPayroll {
   partner_number: string;
 }
 
-// Datos extendidos del socio para el formulario de nómina
+// Datos extendidos del socio para el formulario de nómina y visualización
 interface PartnerFullData {
   full_name: string;
   tax_id: string;
+  email?: string;
+  phone?: string;
   address?: string;
   city?: string;
   postal_code?: string;
   province?: string;
   iban?: string;
-  email?: string;
   irpf_rate: number;
   ss_regime: string;
+  department?: string;
+  job_position?: string;
+  worker_type?: string;
+  roles?: string[];
+  created_at?: string;
+  last_login_at?: string;
+  linked_partner_account_code?: string;
 }
 
 function PartnerDetailPage() {
   const navigate = useNavigate();
   const { userId, partnerId } = useParams<{ userId: string; partnerId: string }>();
   const { toast } = useToast();
-  useNexoAvTheme();
 
   const [partner, setPartner] = useState<Partner | null>(null);
   const [payrolls, setPayrolls] = useState<PartnerPayroll[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("payrolls");
+  const [activeTab, setActiveTab] = useState("informacion");
   const [showCreatePayrollDialog, setShowCreatePayrollDialog] = useState(false);
   const [selectedPayrollForPayment, setSelectedPayrollForPayment] = useState<string | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [linkedWorkerId, setLinkedWorkerId] = useState<string | null>(null);
   
-  // Datos completos del socio para el formulario de nómina
+  // Datos completos del socio para el formulario de nómina y visualización
   const [partnerFullData, setPartnerFullData] = useState<PartnerFullData>({
     full_name: "",
     tax_id: "",
     irpf_rate: 19,
     ss_regime: "RETA",
   });
+
   const fetchPartner = async () => {
     if (!partnerId) return;
     setLoading(true);
@@ -108,32 +126,42 @@ function PartnerDetailPage() {
         
         if (linkedUser) {
           setLinkedWorkerId(linkedUser.id);
-          const { data: workerDetail } = await (supabase.rpc as any)("get_worker_detail", {
-            p_user_id: linkedUser.id,
-          });
-          if (workerDetail?.[0]) {
-            const wd = workerDetail[0];
-            setPartnerFullData({
-              full_name: found.full_name,
-              tax_id: found.tax_id || wd.tax_id || "",
-              address: wd.address,
-              city: wd.city,
-              postal_code: wd.postal_code,
-              province: wd.province,
-              iban: wd.iban,
-              email: wd.email,
-              irpf_rate: wd.irpf_rate || 19,
-              ss_regime: wd.ss_regime || "RETA",
+          
+          // Try to get full worker detail
+          let workerDetail: any = null;
+          try {
+            const { data: detailData } = await (supabase.rpc as any)("get_worker_detail", {
+              p_user_id: linkedUser.id,
             });
-          } else {
-            // No linked worker, use partner data with default IRPF
-            setPartnerFullData({
-              full_name: found.full_name,
-              tax_id: found.tax_id || "",
-              irpf_rate: 19,
-              ss_regime: "RETA",
-            });
+            if (detailData?.[0]) {
+              workerDetail = detailData[0];
+            }
+          } catch (rpcError) {
+            // Fallback: use data from list_workers
+            console.warn("get_worker_detail failed, using list_workers data:", rpcError);
           }
+          
+          const wd = workerDetail || linkedUser;
+          setPartnerFullData({
+            full_name: found.full_name,
+            tax_id: found.tax_id || wd.tax_id || "",
+            email: wd.email || null,
+            phone: wd.phone || null,
+            address: wd.address || null,
+            city: wd.city || null,
+            postal_code: wd.postal_code || null,
+            province: wd.province || null,
+            iban: wd.iban || null,
+            irpf_rate: wd.irpf_rate || 19,
+            ss_regime: wd.ss_regime || "RETA",
+            department: wd.department || null,
+            job_position: wd.job_position || null,
+            worker_type: wd.worker_type || null,
+            roles: wd.roles || [],
+            created_at: wd.created_at || found.created_at,
+            last_login_at: wd.last_login_at || null,
+            linked_partner_account_code: wd.linked_partner_account_code || null,
+          });
         } else {
           setLinkedWorkerId(null);
           // No linked worker, use partner data with default IRPF
@@ -142,6 +170,7 @@ function PartnerDetailPage() {
             tax_id: found.tax_id || "",
             irpf_rate: 19,
             ss_regime: "RETA",
+            created_at: found.created_at,
           });
         }
       }
@@ -202,6 +231,11 @@ function PartnerDetailPage() {
     }).format(val);
   };
 
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "Nunca";
+    return format(new Date(dateStr), "d MMM yyyy, HH:mm", { locale: es });
+  };
+
   const getMonthName = (month: number) => {
     const months = [
       "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -223,6 +257,17 @@ function PartnerDetailPage() {
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
+  };
+
+  const getDepartmentLabel = (dept: string | null | undefined) => {
+    if (!dept) return "-";
+    const labels: Record<string, string> = {
+      COMMERCIAL: "Comercial",
+      TECHNICAL: "Técnico",
+      ADMIN: "Administración",
+      DIRECTION: "Dirección",
+    };
+    return labels[dept] || dept;
   };
 
   const ytdStats = useMemo(() => {
@@ -256,6 +301,15 @@ function PartnerDetailPage() {
     );
   }
 
+  const tabs: TabItem[] = [
+    { value: "informacion", label: "Información", icon: User },
+    { value: "profesional", label: "Profesional", icon: Briefcase },
+    { value: "fiscal", label: "Fiscal", icon: CreditCard },
+    { value: "direccion", label: "Dirección", icon: MapPin },
+    { value: "nominas", label: "Nóminas", icon: Receipt },
+    { value: "documentos", label: "Documentos", icon: FileText },
+  ];
+
   return (
     <div className="w-full h-full flex flex-col">
       {/* Navigation Bar */}
@@ -273,82 +327,345 @@ function PartnerDetailPage() {
         }
       />
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid grid-cols-3 gap-6">
-          {/* Sidebar - Info del socio */}
-          <div className="space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Datos del Socio
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">NIF</span>
-                  <span className="font-medium">{partner.tax_id || "-"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Estado</span>
-                  {partner.status === "ACTIVE" ? (
-                    <Badge className="bg-green-500/20 text-green-400">Activo</Badge>
-                  ) : (
-                    <Badge variant="secondary">Inactivo</Badge>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+      <div className="flex-1 flex overflow-hidden">
+        {/* Main content with tabs */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <TabNav
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          
+          <div className="flex-1 overflow-auto">
+            {activeTab === "informacion" && (
+              <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Sidebar - Info básica */}
+                  <div className="space-y-4">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-medium flex items-center gap-2">
+                          <User className="w-4 h-4" />
+                          Información Básica
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Nº Socio</span>
+                          <span className="font-medium">{partner.partner_number}</span>
+                        </div>
+                        {partnerFullData.linked_partner_account_code && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Cuenta Contable</span>
+                            <span className="font-medium">{partnerFullData.linked_partner_account_code}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Estado</span>
+                          {partner.status === "ACTIVE" ? (
+                            <Badge className="bg-green-500/20 text-green-400">Activo</Badge>
+                          ) : (
+                            <Badge variant="secondary">Inactivo</Badge>
+                          )}
+                        </div>
+                        {partnerFullData.email && (
+                          <>
+                            <Separator />
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Email</span>
+                              <span className="font-medium">{partnerFullData.email}</span>
+                            </div>
+                          </>
+                        )}
+                        {partnerFullData.worker_type && (
+                          <>
+                            <Separator />
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Tipo</span>
+                              <span className="font-medium">
+                                {partnerFullData.worker_type === "PARTNER" ? "Socio" : 
+                                 partnerFullData.worker_type === "EMPLOYEE" ? "Empleado" : "Sin asignar"}
+                              </span>
+                            </div>
+                          </>
+                        )}
+                        {partnerFullData.department && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Departamento</span>
+                            <span className="font-medium">{getDepartmentLabel(partnerFullData.department)}</span>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
 
-            {/* YTD Stats */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <Receipt className="w-4 h-4" />
-                  Resumen Anual ({new Date().getFullYear()})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Nóminas</span>
-                  <span className="text-xl font-bold">{ytdStats.count}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Bruto Total</span>
-                  <span className="font-medium">{formatCurrency(ytdStats.totalGross)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">IRPF Retenido</span>
-                  <span className="font-medium text-orange-400">{formatCurrency(ytdStats.totalIrpf)}</span>
-                </div>
-                <div className="flex justify-between items-center pt-2 border-t border-border/50">
-                  <span className="text-sm text-muted-foreground">Neto Total</span>
-                  <span className="font-bold text-green-400">{formatCurrency(ytdStats.totalNet)}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                    {/* Roles y permisos */}
+                    {partnerFullData.roles && partnerFullData.roles.length > 0 && (
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base font-medium flex items-center gap-2">
+                            <Shield className="w-4 h-4" />
+                            Roles y Permisos
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex flex-wrap gap-2">
+                            {partnerFullData.roles.map((role) => (
+                              <Badge key={role} variant="secondary" className="text-xs">
+                                <Shield className="w-3 h-3 mr-1" />
+                                {role}
+                              </Badge>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
 
-          {/* Main content */}
-          <div className="col-span-2">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <div className="flex items-center justify-between mb-4">
-                <TabsList>
-                  <TabsTrigger value="payrolls" className="gap-2">
-                    <FileText className="w-4 h-4" />
-                    Nóminas
-                  </TabsTrigger>
-                </TabsList>
+                    {/* YTD Stats */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-medium flex items-center gap-2">
+                          <Receipt className="w-4 h-4" />
+                          Resumen Anual ({new Date().getFullYear()})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Nóminas</span>
+                          <span className="text-xl font-bold">{ytdStats.count}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Bruto Total</span>
+                          <span className="font-medium">{formatCurrency(ytdStats.totalGross)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">IRPF Retenido</span>
+                          <span className="font-medium text-orange-400">{formatCurrency(ytdStats.totalIrpf)}</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-border/50">
+                          <span className="text-sm text-muted-foreground">Neto Total</span>
+                          <span className="font-bold text-green-400">{formatCurrency(ytdStats.totalNet)}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                {activeTab === "payrolls" && (
+                    {/* Fechas */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base font-medium flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          Fechas
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Fecha de alta</span>
+                          <span className="font-medium">{formatDate(partnerFullData.created_at || partner.created_at)}</span>
+                        </div>
+                        {partnerFullData.last_login_at && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Último acceso</span>
+                            <span className="font-medium">{formatDate(partnerFullData.last_login_at)}</span>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Main content - Configuración */}
+                  <div className="lg:col-span-2 space-y-6">
+                    <Card className="border-primary/20 bg-primary/5">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Shield className="w-5 h-5 text-primary" />
+                          Configuración del Socio
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Número de Socio</p>
+                            <p className="font-medium">{partner.partner_number}</p>
+                          </div>
+                          {partnerFullData.linked_partner_account_code && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">Cuenta Contable</p>
+                              <p className="font-medium">{partnerFullData.linked_partner_account_code}</p>
+                            </div>
+                          )}
+                        </div>
+                        <Separator />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Régimen de Seguridad Social</p>
+                            <p className="font-medium">
+                              {partnerFullData.ss_regime === "RETA" ? "Autónomo (RETA propio)" : 
+                               partnerFullData.ss_regime === "SSG" ? "Régimen General (SSG)" : 
+                               partnerFullData.ss_regime || "-"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                              <Percent className="w-3 h-3" />
+                              Retención IRPF
+                            </p>
+                            <p className="font-medium">{partnerFullData.irpf_rate ? `${partnerFullData.irpf_rate}%` : "-"}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "profesional" && (
+              <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Briefcase className="w-5 h-5" />
+                      Datos Profesionales
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {partnerFullData.job_position && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Puesto de Trabajo</p>
+                          <p className="font-medium text-base">{partnerFullData.job_position}</p>
+                        </div>
+                      )}
+                      {partnerFullData.phone && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            Teléfono
+                          </p>
+                          <p className="font-medium text-base">{partnerFullData.phone}</p>
+                        </div>
+                      )}
+                      {partnerFullData.department && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                            <Building2 className="w-3 h-3" />
+                            Departamento
+                          </p>
+                          <p className="font-medium text-base">{getDepartmentLabel(partnerFullData.department)}</p>
+                        </div>
+                      )}
+                      {partnerFullData.worker_type && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                            <UserCheck className="w-3 h-3" />
+                            Tipo de Trabajador
+                          </p>
+                          <p className="font-medium text-base">
+                            {partnerFullData.worker_type === "PARTNER" ? "Socio" : 
+                             partnerFullData.worker_type === "EMPLOYEE" ? "Empleado" : "Sin asignar"}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "fiscal" && (
+              <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <CreditCard className="w-5 h-5" />
+                      Datos Fiscales y Bancarios
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">NIF/DNI</p>
+                        <p className="font-medium text-base">{partner.tax_id || partnerFullData.tax_id || "-"}</p>
+                      </div>
+                      {partnerFullData.iban && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">IBAN</p>
+                          <p className="font-medium text-base">{partnerFullData.iban}</p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Régimen de Seguridad Social</p>
+                        <p className="font-medium text-base">
+                          {partnerFullData.ss_regime === "RETA" ? "Autónomo (RETA propio)" : 
+                           partnerFullData.ss_regime === "SSG" ? "Régimen General (SSG)" : 
+                           partnerFullData.ss_regime || "-"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                          <Percent className="w-3 h-3" />
+                          Retención IRPF
+                        </p>
+                        <p className="font-medium text-base">{partnerFullData.irpf_rate ? `${partnerFullData.irpf_rate}%` : "-"}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "direccion" && (
+              <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <MapPin className="w-5 h-5" />
+                      Dirección
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {partnerFullData.address && (
+                        <div className="md:col-span-2">
+                          <p className="text-sm text-muted-foreground mb-1">Dirección</p>
+                          <p className="font-medium text-base">{partnerFullData.address}</p>
+                        </div>
+                      )}
+                      {partnerFullData.city && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Ciudad</p>
+                          <p className="font-medium text-base">{partnerFullData.city}</p>
+                        </div>
+                      )}
+                      {partnerFullData.postal_code && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Código Postal</p>
+                          <p className="font-medium text-base">{partnerFullData.postal_code}</p>
+                        </div>
+                      )}
+                      {partnerFullData.province && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Provincia</p>
+                          <p className="font-medium text-base">{partnerFullData.province}</p>
+                        </div>
+                      )}
+                    </div>
+                    {!partnerFullData.address && !partnerFullData.city && !partnerFullData.postal_code && !partnerFullData.province && (
+                      <p className="text-muted-foreground text-center py-8">No hay dirección registrada</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "nominas" && (
+              <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold">Nóminas del Socio</h2>
                   <Button onClick={() => setShowCreatePayrollDialog(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Nueva Nómina
                   </Button>
-                )}
-              </div>
-
-              <TabsContent value="payrolls" className="mt-0">
+                </div>
                 <Card>
                   <CardContent className="p-0">
                     <table className="w-full">
@@ -420,8 +737,27 @@ function PartnerDetailPage() {
                     </table>
                   </CardContent>
                 </Card>
-              </TabsContent>
-            </Tabs>
+              </div>
+            )}
+
+            {activeTab === "documentos" && (
+              <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <FileText className="w-5 h-5" />
+                      Documentos
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                      <FileText className="w-12 h-12 mb-4 opacity-50" />
+                      <p>La gestión de documentos se implementará próximamente</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </div>
       </div>

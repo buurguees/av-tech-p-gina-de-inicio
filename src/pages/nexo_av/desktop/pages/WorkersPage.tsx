@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import { Loader2, Search, Users, UserCheck, Briefcase, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -113,7 +112,6 @@ function WorkerCard({ worker, onClick }: { worker: Worker; onClick: () => void }
 export default function WorkersPage() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  useNexoAvTheme();
   
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(true);
