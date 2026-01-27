@@ -68,7 +68,7 @@ const departmentOptions = [
 ];
 
 const workerTypeOptions = [
-  { value: "", label: "Sin asignar" },
+  { value: "NONE", label: "Sin asignar" },
   { value: "PARTNER", label: "Socio" },
   { value: "EMPLOYEE", label: "Empleado" },
 ];
@@ -84,8 +84,8 @@ export default function WorkerDetailPage() {
 
   // Admin fields (only admin can change)
   const [adminData, setAdminData] = useState({
-    worker_type: "",
-    department: "",
+    worker_type: "NONE",
+    department: "COMMERCIAL",
   });
 
   // User profile fields (user fills in, admin can view/edit)
@@ -113,8 +113,8 @@ export default function WorkerDetailPage() {
       if (w) {
         setWorker(w);
         setAdminData({
-          worker_type: w.worker_type || "",
-          department: w.department || "",
+          worker_type: w.worker_type || "NONE",
+          department: w.department || "COMMERCIAL",
         });
         setProfileData({
           job_position: w.job_position || "",
@@ -162,7 +162,7 @@ export default function WorkerDetailPage() {
       if (updateError) throw updateError;
 
       // If worker type changed, assign it
-      if (adminData.worker_type !== worker?.worker_type) {
+      if (adminData.worker_type !== worker?.worker_type && adminData.worker_type !== "NONE") {
         if (adminData.worker_type) {
           const { error: assignError } = await (supabase.rpc as any)("assign_worker_type", {
             p_user_id: workerId,
