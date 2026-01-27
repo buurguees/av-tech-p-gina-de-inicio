@@ -281,6 +281,21 @@ export type Database = {
           entry_number: string
         }[]
       }
+      create_bank_transfer: {
+        Args: {
+          p_amount: number
+          p_notes?: string
+          p_source_bank_id: string
+          p_source_bank_name: string
+          p_target_bank_id: string
+          p_target_bank_name: string
+          p_transfer_date?: string
+        }
+        Returns: {
+          entry_id: string
+          entry_number: string
+        }[]
+      }
       create_canvassing_location: {
         Args: {
           p_address?: string
