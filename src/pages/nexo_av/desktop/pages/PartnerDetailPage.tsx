@@ -6,6 +6,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
+import {
   Plus,
   Loader2,
   User,
@@ -25,6 +41,10 @@ import {
   Building2,
   UserCheck,
   ArrowLeft,
+  MoreVertical,
+  Eye,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -58,6 +78,7 @@ interface PartnerPayroll {
   created_at: string;
   partner_name: string;
   partner_number: string;
+  notes?: string;
 }
 
 // Datos extendidos del socio para el formulario de nómina y visualización
@@ -95,6 +116,9 @@ function PartnerDetailPage() {
   const [selectedPayrollForPayment, setSelectedPayrollForPayment] = useState<string | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [linkedWorkerId, setLinkedWorkerId] = useState<string | null>(null);
+  const [selectedPayrollForEdit, setSelectedPayrollForEdit] = useState<PartnerPayroll | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [payrollToDelete, setPayrollToDelete] = useState<PartnerPayroll | null>(null);
   
   // Datos completos del socio para el formulario de nómina y visualización
   const [partnerFullData, setPartnerFullData] = useState<PartnerFullData>({
@@ -222,6 +246,49 @@ function PartnerDetailPage() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleDeletePayroll = async () => {
+    if (!payrollToDelete) return;
+    
+    try {
+      const { error } = await supabase
+        .from("partner_compensation_runs")
+        .delete()
+        .eq("id", payrollToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Nómina eliminada",
+        description: "La nómina se ha eliminado correctamente",
+      });
+
+      setDeleteDialogOpen(false);
+      setPayrollToDelete(null);
+      fetchPayrolls();
+    } catch (error: any) {
+      console.error("Error deleting payroll:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Error al eliminar la nómina",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditPayroll = (payroll: PartnerPayroll) => {
+    setSelectedPayrollForEdit(payroll);
+    setShowCreatePayrollDialog(true);
+  };
+
+  const handleViewPayrollDetail = (payroll: PartnerPayroll) => {
+    // Por ahora, mostrar un modal o navegar a una página de detalle
+    // Por simplicidad, mostraremos la información en un toast
+    toast({
+      title: `Nómina ${payroll.compensation_number}`,
+      description: `${getMonthName(payroll.period_month)} ${payroll.period_year} - ${formatCurrency(payroll.net_amount)} neto`,
+    });
   };
 
   const formatCurrency = (val: number) => {
@@ -661,80 +728,111 @@ function PartnerDetailPage() {
               <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold">Nóminas del Socio</h2>
-                  <Button onClick={() => setShowCreatePayrollDialog(true)}>
+                  <Button onClick={() => {
+                    setSelectedPayrollForEdit(null);
+                    setShowCreatePayrollDialog(true);
+                  }}>
                     <Plus className="w-4 h-4 mr-2" />
                     Nueva Nómina
                   </Button>
                 </div>
                 <Card>
                   <CardContent className="p-0">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-border/50">
-                          <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Período</th>
-                          <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Bruto</th>
-                          <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground uppercase">IRPF</th>
-                          <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Neto</th>
-                          <th className="text-center py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Estado</th>
-                          <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground uppercase">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-muted-foreground text-xs font-medium">Período</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium text-right">Bruto</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium text-right">IRPF</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium text-right">Neto</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium text-center">Estado</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium w-10" />
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {payrolls.map((payroll) => (
-                          <tr key={payroll.id} className="border-b border-border/30 hover:bg-muted/30">
-                            <td className="py-3 px-4">
+                          <TableRow
+                            key={payroll.id}
+                            className="border-border hover:bg-accent/50"
+                          >
+                            <TableCell className="py-3">
                               <div>
-                                <p className="font-medium">{getMonthName(payroll.period_month)} {payroll.period_year}</p>
+                                <p className="font-medium text-sm">{getMonthName(payroll.period_month)} {payroll.period_year}</p>
                                 <p className="text-xs text-muted-foreground">{payroll.compensation_number}</p>
                               </div>
-                            </td>
-                            <td className="py-3 px-4 text-right font-medium">{formatCurrency(payroll.gross_amount)}</td>
-                            <td className="py-3 px-4 text-right text-orange-400">
-                              -{formatCurrency(payroll.irpf_amount)}
-                              <span className="text-xs text-muted-foreground ml-1">({payroll.irpf_rate}%)</span>
-                            </td>
-                            <td className="py-3 px-4 text-right font-bold text-green-400">{formatCurrency(payroll.net_amount)}</td>
-                            <td className="py-3 px-4 text-center">{getStatusBadge(payroll.status)}</td>
-                            <td className="py-3 px-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                {payroll.status === "DRAFT" && (
+                            </TableCell>
+                            <TableCell className="text-right py-3">
+                              <span className="font-medium text-sm">{formatCurrency(payroll.gross_amount)}</span>
+                            </TableCell>
+                            <TableCell className="text-right py-3">
+                              <span className="text-orange-400 text-sm">
+                                -{formatCurrency(payroll.irpf_amount)}
+                                <span className="text-xs text-muted-foreground ml-1">({payroll.irpf_rate}%)</span>
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right py-3">
+                              <span className="font-bold text-green-400 text-sm">{formatCurrency(payroll.net_amount)}</span>
+                            </TableCell>
+                            <TableCell className="text-center py-3">
+                              {getStatusBadge(payroll.status)}
+                            </TableCell>
+                            <TableCell className="py-3" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
                                   <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleConfirmPayroll(payroll.id)}
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
                                   >
-                                    <Check className="w-3 h-3 mr-1" />
-                                    Confirmar
+                                    <MoreVertical className="h-4 w-4 text-muted-foreground" />
                                   </Button>
-                                )}
-                                {(payroll.status === "POSTED" || payroll.status === "PARTIAL") && (
-                                  <Button
-                                    size="sm"
-                                    onClick={() => setSelectedPayrollForPayment(payroll.id)}
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48 z-[9999] bg-card border border-border shadow-lg">
+                                  <DropdownMenuItem
+                                    onClick={() => handleViewPayrollDetail(payroll)}
+                                    className="cursor-pointer"
                                   >
-                                    <CreditCard className="w-3 h-3 mr-1" />
-                                    Pagar
-                                  </Button>
-                                )}
-                                {payroll.status === "PAID" && (
-                                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <Lock className="w-3 h-3" />
-                                    Bloqueada
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Ver detalle
+                                  </DropdownMenuItem>
+                                  {payroll.status !== "POSTED" && payroll.status !== "PAID" && (
+                                    <DropdownMenuItem
+                                      onClick={() => handleEditPayroll(payroll)}
+                                      className="cursor-pointer"
+                                    >
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      Editar
+                                    </DropdownMenuItem>
+                                  )}
+                                  {payroll.status === "DRAFT" && (
+                                    <>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        onClick={() => {
+                                          setPayrollToDelete(payroll);
+                                          setDeleteDialogOpen(true);
+                                        }}
+                                        className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Eliminar
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
                         ))}
                         {payrolls.length === 0 && (
-                          <tr>
-                            <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                          <TableRow>
+                            <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                               No hay nóminas registradas para este socio
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                         )}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </CardContent>
                 </Card>
               </div>
@@ -765,10 +863,27 @@ function PartnerDetailPage() {
       {/* Dialogs */}
       <CreatePartnerPayrollDialog
         open={showCreatePayrollDialog}
-        onOpenChange={setShowCreatePayrollDialog}
+        onOpenChange={(open) => {
+          setShowCreatePayrollDialog(open);
+          if (!open) {
+            setSelectedPayrollForEdit(null);
+          }
+        }}
         partnerId={partnerId!}
         partnerData={partnerFullData}
+        payrollToEdit={selectedPayrollForEdit}
         onSuccess={fetchPayrolls}
+      />
+
+      <ConfirmActionDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Eliminar nómina"
+        description={`¿Estás seguro de que quieres eliminar la nómina ${payrollToDelete?.compensation_number}? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={handleDeletePayroll}
+        variant="destructive"
       />
 
       {selectedPayrollForPayment && (

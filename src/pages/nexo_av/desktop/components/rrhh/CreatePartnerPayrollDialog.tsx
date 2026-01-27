@@ -34,11 +34,25 @@ interface PartnerData {
   ss_regime: string; // 'RETA' or 'SSG'
 }
 
+interface PartnerPayroll {
+  id: string;
+  compensation_number: string;
+  period_year: number;
+  period_month: number;
+  gross_amount: number;
+  irpf_rate: number;
+  irpf_amount: number;
+  net_amount: number;
+  status: string;
+  notes?: string;
+}
+
 interface CreatePartnerPayrollDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   partnerId: string;
   partnerData: PartnerData;
+  payrollToEdit?: PartnerPayroll | null;
   onSuccess: () => void;
 }
 
@@ -53,10 +67,12 @@ export default function CreatePartnerPayrollDialog({
   onOpenChange,
   partnerId,
   partnerData,
+  payrollToEdit,
   onSuccess,
 }: CreatePartnerPayrollDialogProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const isEditMode = !!payrollToEdit;
 
   const [formData, setFormData] = useState({
     period_year: new Date().getFullYear(),
@@ -130,31 +146,54 @@ export default function CreatePartnerPayrollDialog({
     setLoading(true);
 
     try {
-      // Crear el run de compensación con el BRUTO total calculado
-      const { error } = await supabase.rpc("create_partner_compensation_run", {
-        p_partner_id: partnerId,
-        p_period_year: formData.period_year,
-        p_period_month: formData.period_month,
-        p_gross_amount: calculations.totalBruto,
-        p_irpf_rate: partnerData.irpf_rate,
-        p_notes: buildNotesWithBreakdown(),
-      });
+      if (isEditMode && payrollToEdit) {
+        // Actualizar nómina existente
+        const { error } = await supabase
+          .from("partner_compensation_runs")
+          .update({
+            period_year: formData.period_year,
+            period_month: formData.period_month,
+            gross_amount: calculations.totalBruto,
+            irpf_rate: partnerData.irpf_rate,
+            irpf_amount: calculations.totalIrpf,
+            net_amount: calculations.totalNeto,
+            notes: buildNotesWithBreakdown(),
+          })
+          .eq("id", payrollToEdit.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Nómina creada",
-        description: `Nómina de ${formatCurrency(calculations.totalNeto)} neto creada en estado DRAFT`,
-      });
+        toast({
+          title: "Nómina actualizada",
+          description: `Nómina de ${formatCurrency(calculations.totalNeto)} neto actualizada correctamente`,
+        });
+      } else {
+        // Crear nueva nómina
+        const { error } = await supabase.rpc("create_partner_compensation_run", {
+          p_partner_id: partnerId,
+          p_period_year: formData.period_year,
+          p_period_month: formData.period_month,
+          p_gross_amount: calculations.totalBruto,
+          p_irpf_rate: partnerData.irpf_rate,
+          p_notes: buildNotesWithBreakdown(),
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Nómina creada",
+          description: `Nómina de ${formatCurrency(calculations.totalNeto)} neto creada en estado DRAFT`,
+        });
+      }
 
       onSuccess();
       onOpenChange(false);
       resetForm();
     } catch (error: any) {
-      console.error("Error creating payroll:", error);
+      console.error(`Error ${isEditMode ? "updating" : "creating"} payroll:`, error);
       toast({
         title: "Error",
-        description: error.message || "Error al crear la nómina",
+        description: error.message || `Error al ${isEditMode ? "actualizar" : "crear"} la nómina`,
         variant: "destructive",
       });
     } finally {
@@ -172,6 +211,82 @@ export default function CreatePartnerPayrollDialog({
       ? `${formData.notes}\n\nDesglose: ${breakdown}`
       : `Desglose: ${breakdown}`;
   };
+
+  const parseNotesForConcepts = (notes: string | undefined): NetoConcept[] => {
+    const concepts: NetoConcept[] = [
+      { id: "base", label: "Neto Base", neto: "" },
+      { id: "horas", label: "Plus Horas Extra", neto: "" },
+      { id: "productividad", label: "Plus Productividad", neto: "" },
+      { id: "otros", label: "Otros Conceptos", neto: "" },
+    ];
+
+    if (!notes) {
+      return concepts;
+    }
+
+    // Buscar la sección "Desglose:"
+    const breakdownMatch = notes.match(/Desglose:\s*(.+)/s);
+    if (breakdownMatch) {
+      const breakdown = breakdownMatch[1];
+      // Parsear cada concepto: "Concepto: X neto → Y bruto"
+      const conceptMatches = breakdown.split("|").map(s => s.trim());
+      
+      conceptMatches.forEach((match) => {
+        // Buscar el patrón "Label: X neto →" o "Label: X€ neto →"
+        const netoMatch = match.match(/(.+?):\s*([\d,\.]+)\s*(?:€\s*)?neto/i);
+        if (netoMatch) {
+          const label = netoMatch[1].trim();
+          const netoStr = netoMatch[2].replace(",", ".");
+          const netoValue = parseFloat(netoStr);
+          
+          // Buscar el concepto correspondiente por label (búsqueda flexible)
+          const concept = concepts.find(c => {
+            const labelLower = label.toLowerCase();
+            const conceptLabelLower = c.label.toLowerCase();
+            return labelLower.includes(conceptLabelLower) ||
+                   conceptLabelLower.includes(labelLower) ||
+                   (labelLower.includes("base") && c.id === "base") ||
+                   (labelLower.includes("horas") && c.id === "horas") ||
+                   (labelLower.includes("productividad") && c.id === "productividad") ||
+                   (labelLower.includes("otros") && c.id === "otros");
+          });
+          
+          if (concept && !isNaN(netoValue) && netoValue > 0) {
+            concept.neto = netoValue.toFixed(2);
+          }
+        }
+      });
+    }
+
+    return concepts;
+  };
+
+  const parseNotesForObservations = (notes: string | undefined): string => {
+    if (!notes) return "";
+    
+    // Si hay "Desglose:", extraer solo la parte anterior
+    const breakdownIndex = notes.indexOf("Desglose:");
+    if (breakdownIndex !== -1) {
+      return notes.substring(0, breakdownIndex).trim();
+    }
+    
+    return notes.trim();
+  };
+
+  // Cargar datos cuando se abre el diálogo en modo edición
+  useEffect(() => {
+    if (open && payrollToEdit) {
+      setFormData({
+        period_year: payrollToEdit.period_year,
+        period_month: payrollToEdit.period_month,
+        payment_date: "",
+        notes: parseNotesForObservations(payrollToEdit.notes),
+      });
+      setNetoConcepts(parseNotesForConcepts(payrollToEdit.notes));
+    } else if (open && !payrollToEdit) {
+      resetForm();
+    }
+  }, [open, payrollToEdit]);
 
   const resetForm = () => {
     setFormData({
@@ -211,7 +326,7 @@ export default function CreatePartnerPayrollDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Nueva Nómina de Socio
+            {isEditMode ? "Editar Nómina de Socio" : "Nueva Nómina de Socio"}
           </DialogTitle>
           <DialogDescription>
             Introduce los importes NETOS. El sistema calculará automáticamente los brutos y retenciones.
@@ -422,7 +537,7 @@ export default function CreatePartnerPayrollDialog({
               Cancelar
             </Button>
             <Button type="submit" disabled={loading || calculations.totalNeto <= 0}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Crear Nómina"}
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : isEditMode ? "Guardar Cambios" : "Crear Nómina"}
             </Button>
           </div>
         </form>
