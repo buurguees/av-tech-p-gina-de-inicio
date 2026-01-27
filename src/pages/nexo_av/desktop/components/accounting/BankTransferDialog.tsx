@@ -90,7 +90,7 @@ const BankTransferDialog = ({
     setIsSubmitting(true);
     
     try {
-      const { data, error } = await (supabase.rpc as any)("create_bank_transfer", {
+      const { data, error } = await supabase.rpc("create_bank_transfer", {
         p_source_bank_id: sourceBankId,
         p_source_bank_name: sourceBank?.bank || "",
         p_target_bank_id: targetBankId,
