@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -25,27 +25,27 @@ import { format } from "date-fns";
 
 interface BankAccount {
   id: string;
-  holder: string;
-  bank: string;
-  iban: string;
-  notes: string;
+  bank_name: string;
+  holder_name: string | null;
+  iban: string | null;
+  accounting_code: string;
 }
 
 interface BankTransferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  bankAccounts: BankAccount[];
   onSuccess: () => void;
 }
 
 const BankTransferDialog = ({
   open,
   onOpenChange,
-  bankAccounts,
   onSuccess,
 }: BankTransferDialogProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   
   const [sourceBankId, setSourceBankId] = useState<string>("");
   const [targetBankId, setTargetBankId] = useState<string>("");
@@ -55,6 +55,31 @@ const BankTransferDialog = ({
 
   const sourceBank = bankAccounts.find(acc => acc.id === sourceBankId);
   const targetBank = bankAccounts.find(acc => acc.id === targetBankId);
+
+  // Cargar cuentas bancarias
+  useEffect(() => {
+    if (open) {
+      loadBankAccounts();
+    }
+  }, [open]);
+
+  const loadBankAccounts = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await (supabase.rpc as any)("list_company_bank_accounts");
+      if (error) throw error;
+      setBankAccounts(data || []);
+    } catch (error: any) {
+      console.error("Error loading bank accounts:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las cuentas bancarias",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,9 +117,9 @@ const BankTransferDialog = ({
     try {
       const { data, error } = await (supabase.rpc as any)("create_bank_transfer", {
         p_source_bank_id: sourceBankId,
-        p_source_bank_name: sourceBank?.bank || "",
+        p_source_bank_name: sourceBank?.bank_name || "",
         p_target_bank_id: targetBankId,
-        p_target_bank_name: targetBank?.bank || "",
+        p_target_bank_name: targetBank?.bank_name || "",
         p_amount: amountValue,
         p_transfer_date: transferDate,
         p_notes: notes || null,
@@ -159,7 +184,9 @@ const BankTransferDialog = ({
                 <SelectValue placeholder="Selecciona banco origen" />
               </SelectTrigger>
               <SelectContent className="z-[99999]">
-                {bankAccounts.map((account) => (
+                {isLoading ? (
+                  <div className="p-2 text-center text-muted-foreground">Cargando...</div>
+                ) : bankAccounts.map((account) => (
                   <SelectItem 
                     key={account.id} 
                     value={account.id}
@@ -167,7 +194,7 @@ const BankTransferDialog = ({
                   >
                     <div className="flex items-center gap-2">
                       <Building2 className="h-4 w-4" />
-                      <span>{account.bank}</span>
+                      <span>{account.bank_name}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -183,7 +210,9 @@ const BankTransferDialog = ({
                 <SelectValue placeholder="Selecciona banco destino" />
               </SelectTrigger>
               <SelectContent className="z-[99999]">
-                {bankAccounts.map((account) => (
+                {isLoading ? (
+                  <div className="p-2 text-center text-muted-foreground">Cargando...</div>
+                ) : bankAccounts.map((account) => (
                   <SelectItem 
                     key={account.id} 
                     value={account.id}
@@ -191,7 +220,7 @@ const BankTransferDialog = ({
                   >
                     <div className="flex items-center gap-2">
                       <Building2 className="h-4 w-4" />
-                      <span>{account.bank}</span>
+                      <span>{account.bank_name}</span>
                     </div>
                   </SelectItem>
                 ))}
