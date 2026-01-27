@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PURCHASE_INVOICE_CATEGORIES } from "@/constants/purchaseInvoiceCategories";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "../components/purchases/PurchaseInvoiceLinesEditor";
 import PurchaseInvoicePaymentsSection from "../components/purchases/PurchaseInvoicePaymentsSection";
@@ -105,14 +106,7 @@ const STATUS_OPTIONS = [
   { value: "CANCELLED", label: "Anulada", color: "status-error" },
 ];
 
-const EXPENSE_CATEGORIES = [
-  { value: "MATERIAL", label: "Material" },
-  { value: "SERVICE", label: "Servicio" },
-  { value: "TRAVEL", label: "Viaje" },
-  { value: "RENT", label: "Alquiler" },
-  { value: "UTILITIES", label: "Suministros" },
-  { value: "OTHER", label: "Otros" },
-];
+const EXPENSE_CATEGORIES = PURCHASE_INVOICE_CATEGORIES;
 
 // Simple file preview component for uploaded documents
 const FilePreview = ({ filePath }: { filePath: string }) => {

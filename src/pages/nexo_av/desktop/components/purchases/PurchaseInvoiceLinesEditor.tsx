@@ -91,7 +91,9 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
     const quantity = line.quantity || 0;
     const unitPrice = line.unit_price || 0;
     const discountPercent = line.discount_percent || 0;
-    const taxRate = line.tax_rate || defaultTaxRate;
+    // Use the tax_rate from the line if it exists, otherwise use defaultTaxRate
+    // But if tax_rate is explicitly 0, we should use 0 (for exempt items)
+    const taxRate = line.tax_rate !== undefined && line.tax_rate !== null ? line.tax_rate : defaultTaxRate;
     const withholdingTaxRate = line.withholding_tax_rate || 0;
 
     // Calculate subtotal (before discount)
@@ -101,7 +103,7 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
     const discountAmount = (lineSubtotal * discountPercent) / 100;
     const subtotal = lineSubtotal - discountAmount;
     
-    // Calculate tax (IVA)
+    // Calculate tax (IVA) - always use the tax_rate from the line
     const taxAmount = (subtotal * taxRate) / 100;
     
     // Calculate withholding (IRPF) - this is a deduction
@@ -116,7 +118,7 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
       description: line.description || null,
       quantity,
       unit_price: unitPrice,
-      tax_rate: taxRate,
+      tax_rate: taxRate, // Ensure we always use the calculated tax_rate
       discount_percent: discountPercent,
       withholding_tax_rate: withholdingTaxRate,
       subtotal: Math.round(subtotal * 100) / 100,
@@ -141,10 +143,20 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
 
   const updateLine = (index: number, field: keyof PurchaseInvoiceLine, value: any) => {
     const updatedLines = [...lines];
-    updatedLines[index] = calculateLineValues({
-      ...updatedLines[index],
+    const currentLine = updatedLines[index];
+    
+    // When updating tax_rate, ensure we use the exact value provided
+    const updatedLine = {
+      ...currentLine,
       [field]: value,
-    });
+    };
+    
+    // If updating tax_rate, make sure it's a number
+    if (field === 'tax_rate') {
+      updatedLine.tax_rate = typeof value === 'string' ? parseFloat(value) : value;
+    }
+    
+    updatedLines[index] = calculateLineValues(updatedLine);
     onChange(updatedLines);
   };
 
@@ -436,8 +448,11 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
                       <span className="text-sm text-foreground text-right block">{line.tax_rate}%</span>
                     ) : (
                       <Select
-                        value={line.tax_rate.toString()}
-                        onValueChange={(value) => updateLine(index, "tax_rate", parseFloat(value))}
+                        value={line.tax_rate?.toString() || defaultTaxRate.toString()}
+                        onValueChange={(value) => {
+                          const taxRateValue = parseFloat(value);
+                          updateLine(index, "tax_rate", taxRateValue);
+                        }}
                       >
                         <SelectTrigger className="text-sm h-9">
                           <SelectValue />
