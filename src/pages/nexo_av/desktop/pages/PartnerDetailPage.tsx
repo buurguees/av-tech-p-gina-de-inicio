@@ -16,6 +16,7 @@ import {
   Check,
   Clock,
   AlertCircle,
+  Lock,
 } from "lucide-react";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import { useToast } from "@/hooks/use-toast";
@@ -59,7 +60,7 @@ function PartnerDetailPage() {
   const [activeTab, setActiveTab] = useState("payrolls");
   const [showCreatePayrollDialog, setShowCreatePayrollDialog] = useState(false);
   const [selectedPayrollForPayment, setSelectedPayrollForPayment] = useState<string | null>(null);
-
+  const [partnerIrpfRate, setPartnerIrpfRate] = useState<number>(19); // Default until loaded
   const fetchPartner = async () => {
     if (!partnerId) return;
     setLoading(true);
@@ -73,6 +74,21 @@ function PartnerDetailPage() {
       const found = (data || []).find((p: any) => p.id === partnerId);
       if (found) {
         setPartner(found);
+        
+        // Fetch the IRPF rate from the linked authorized_user
+        const { data: workersData } = await supabase.rpc("list_workers");
+        const linkedUser = (workersData || []).find(
+          (w: any) => w.linked_partner_id === partnerId
+        );
+        
+        if (linkedUser) {
+          const { data: workerDetail } = await (supabase.rpc as any)("get_worker_detail", {
+            p_user_id: linkedUser.id,
+          });
+          if (workerDetail?.[0]?.irpf_rate) {
+            setPartnerIrpfRate(workerDetail[0].irpf_rate);
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching partner:", error);
@@ -144,11 +160,11 @@ function PartnerDetailPage() {
       case "DRAFT":
         return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Borrador</Badge>;
       case "POSTED":
-        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30"><Check className="w-3 h-3 mr-1" />Confirmada</Badge>;
+        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30"><Lock className="w-3 h-3 mr-1" />Confirmada</Badge>;
       case "PARTIAL":
         return <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30"><AlertCircle className="w-3 h-3 mr-1" />Parcial</Badge>;
       case "PAID":
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><Check className="w-3 h-3 mr-1" />Pagada</Badge>;
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><Lock className="w-3 h-3 mr-1" />Pagada</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -320,6 +336,12 @@ function PartnerDetailPage() {
                                     Pagar
                                   </Button>
                                 )}
+                                {payroll.status === "PAID" && (
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Lock className="w-3 h-3" />
+                                    Bloqueada
+                                  </span>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -347,7 +369,7 @@ function PartnerDetailPage() {
         onOpenChange={setShowCreatePayrollDialog}
         partnerId={partnerId!}
         partnerName={partner.full_name}
-        defaultIrpfRate={19}
+        defaultIrpfRate={partnerIrpfRate}
         onSuccess={fetchPayrolls}
       />
 
