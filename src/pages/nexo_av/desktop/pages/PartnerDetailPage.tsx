@@ -48,6 +48,19 @@ interface PartnerPayroll {
   partner_number: string;
 }
 
+// Datos extendidos del socio para el formulario de nómina
+interface PartnerFullData {
+  full_name: string;
+  tax_id: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  province?: string;
+  iban?: string;
+  email?: string;
+  irpf_rate: number;
+}
+
 function PartnerDetailPage() {
   const navigate = useNavigate();
   const { userId, partnerId } = useParams<{ userId: string; partnerId: string }>();
@@ -60,7 +73,13 @@ function PartnerDetailPage() {
   const [activeTab, setActiveTab] = useState("payrolls");
   const [showCreatePayrollDialog, setShowCreatePayrollDialog] = useState(false);
   const [selectedPayrollForPayment, setSelectedPayrollForPayment] = useState<string | null>(null);
-  const [partnerIrpfRate, setPartnerIrpfRate] = useState<number>(19); // Default until loaded
+  
+  // Datos completos del socio para el formulario de nómina
+  const [partnerFullData, setPartnerFullData] = useState<PartnerFullData>({
+    full_name: "",
+    tax_id: "",
+    irpf_rate: 19,
+  });
   const fetchPartner = async () => {
     if (!partnerId) return;
     setLoading(true);
@@ -75,7 +94,7 @@ function PartnerDetailPage() {
       if (found) {
         setPartner(found);
         
-        // Fetch the IRPF rate from the linked authorized_user
+        // Fetch the full worker data (IRPF, address, etc.) from the linked authorized_user
         const { data: workersData } = await supabase.rpc("list_workers");
         const linkedUser = (workersData || []).find(
           (w: any) => w.linked_partner_id === partnerId
@@ -85,9 +104,34 @@ function PartnerDetailPage() {
           const { data: workerDetail } = await (supabase.rpc as any)("get_worker_detail", {
             p_user_id: linkedUser.id,
           });
-          if (workerDetail?.[0]?.irpf_rate) {
-            setPartnerIrpfRate(workerDetail[0].irpf_rate);
+          if (workerDetail?.[0]) {
+            const wd = workerDetail[0];
+            setPartnerFullData({
+              full_name: found.full_name,
+              tax_id: found.tax_id || wd.tax_id || "",
+              address: wd.address,
+              city: wd.city,
+              postal_code: wd.postal_code,
+              province: wd.province,
+              iban: wd.iban,
+              email: wd.email,
+              irpf_rate: wd.irpf_rate || 19,
+            });
+          } else {
+            // No linked worker, use partner data with default IRPF
+            setPartnerFullData({
+              full_name: found.full_name,
+              tax_id: found.tax_id || "",
+              irpf_rate: 19,
+            });
           }
+        } else {
+          // No linked worker, use partner data with default IRPF
+          setPartnerFullData({
+            full_name: found.full_name,
+            tax_id: found.tax_id || "",
+            irpf_rate: 19,
+          });
         }
       }
     } catch (error) {
@@ -368,8 +412,7 @@ function PartnerDetailPage() {
         open={showCreatePayrollDialog}
         onOpenChange={setShowCreatePayrollDialog}
         partnerId={partnerId!}
-        partnerName={partner.full_name}
-        defaultIrpfRate={partnerIrpfRate}
+        partnerData={partnerFullData}
         onSuccess={fetchPayrolls}
       />
 
