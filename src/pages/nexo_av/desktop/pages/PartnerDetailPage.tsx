@@ -21,8 +21,10 @@ import {
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
+import DetailActionButton from "../components/navigation/DetailActionButton";
 import CreatePartnerPayrollDialog from "../components/rrhh/CreatePartnerPayrollDialog";
 import RegisterPartnerPayrollPaymentDialog from "../components/rrhh/RegisterPartnerPayrollPaymentDialog";
+import EditWorkerDialog from "../components/rrhh/EditWorkerDialog";
 
 interface Partner {
   id: string;
@@ -74,6 +76,8 @@ function PartnerDetailPage() {
   const [activeTab, setActiveTab] = useState("payrolls");
   const [showCreatePayrollDialog, setShowCreatePayrollDialog] = useState(false);
   const [selectedPayrollForPayment, setSelectedPayrollForPayment] = useState<string | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [linkedWorkerId, setLinkedWorkerId] = useState<string | null>(null);
   
   // Datos completos del socio para el formulario de nómina
   const [partnerFullData, setPartnerFullData] = useState<PartnerFullData>({
@@ -103,6 +107,7 @@ function PartnerDetailPage() {
         );
         
         if (linkedUser) {
+          setLinkedWorkerId(linkedUser.id);
           const { data: workerDetail } = await (supabase.rpc as any)("get_worker_detail", {
             p_user_id: linkedUser.id,
           });
@@ -130,6 +135,7 @@ function PartnerDetailPage() {
             });
           }
         } else {
+          setLinkedWorkerId(null);
           // No linked worker, use partner data with default IRPF
           setPartnerFullData({
             full_name: found.full_name,
@@ -257,6 +263,14 @@ function PartnerDetailPage() {
         pageTitle={partner.full_name}
         contextInfo={partner.partner_number}
         backPath={`/nexo-av/${userId}/partners`}
+        tools={
+          linkedWorkerId ? (
+            <DetailActionButton
+              actionType="edit"
+              onClick={() => setShowEditDialog(true)}
+            />
+          ) : null
+        }
       />
 
       <div className="flex-1 overflow-y-auto p-6">
@@ -427,6 +441,18 @@ function PartnerDetailPage() {
           onOpenChange={(open) => !open && setSelectedPayrollForPayment(null)}
           payrollId={selectedPayrollForPayment}
           onSuccess={fetchPayrolls}
+        />
+      )}
+
+      {/* Edit Worker Dialog */}
+      {linkedWorkerId && (
+        <EditWorkerDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          workerId={linkedWorkerId}
+          onSuccess={() => {
+            fetchPartner();
+          }}
         />
       )}
     </div>

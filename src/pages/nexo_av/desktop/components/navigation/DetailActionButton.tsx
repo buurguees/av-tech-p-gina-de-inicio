@@ -59,7 +59,7 @@ const DetailActionButton = ({
         };
       case "edit":
         return {
-          label: "Editar Proyecto",
+          label: "Editar",
           icon: <Edit className="detail-action-button__icon" />,
           variant: "default" as const,
         };
