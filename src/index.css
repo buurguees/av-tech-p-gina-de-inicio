@@ -4,7 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* AV TECH Design System - Minimal Dark Theme */
+/* AV TECH Design System - Minimal Dark Theme v2 */
 @layer base {
   :root {
     --background: 0 0% 0%;
