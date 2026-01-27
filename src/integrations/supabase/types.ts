@@ -1634,6 +1634,7 @@ export type Database = {
           postal_code: string
           province: string
           roles: string[]
+          ss_regime: string
           tax_id: string
           worker_type: string
         }[]
@@ -2828,6 +2829,7 @@ export type Database = {
           p_phone?: string
           p_postal_code?: string
           p_province?: string
+          p_ss_regime?: string
           p_tax_id?: string
           p_user_id: string
         }

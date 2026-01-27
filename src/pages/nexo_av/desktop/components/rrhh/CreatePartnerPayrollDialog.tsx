@@ -31,6 +31,7 @@ interface PartnerData {
   iban?: string;
   email?: string;
   irpf_rate: number;
+  ss_regime: string; // 'RETA' or 'SSG'
 }
 
 interface CreatePartnerPayrollDialogProps {
@@ -244,7 +245,11 @@ export default function CreatePartnerPayrollDialog({
               </div>
               <div>
                 <span className="text-muted-foreground">Régimen SS:</span>
-                <span className="ml-2 font-medium text-accent-foreground">RETA propio (SS empresa = 0€)</span>
+                <span className="ml-2 font-medium text-accent-foreground">
+                  {partnerData.ss_regime === "RETA" 
+                    ? "RETA propio (SS empresa = 0€)" 
+                    : "Régimen General (SS trabajador + empresa)"}
+                </span>
               </div>
               {partnerData.iban && (
                 <div className="col-span-2">
@@ -365,8 +370,12 @@ export default function CreatePartnerPayrollDialog({
                   <span className="font-medium text-destructive">-{formatCurrency(calculations.totalIrpf)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">SS Empresa (RETA propio)</span>
-                  <span className="font-medium text-accent-foreground">0,00 €</span>
+                  <span className="text-muted-foreground">
+                    SS Empresa ({partnerData.ss_regime === "RETA" ? "RETA propio" : "Régimen General"})
+                  </span>
+                  <span className="font-medium text-accent-foreground">
+                    {partnerData.ss_regime === "RETA" ? "0,00 €" : "Pendiente calcular"}
+                  </span>
                 </div>
                 <div className="flex justify-between text-base pt-2 border-t border-primary/20">
                   <span className="font-medium">Neto a Percibir</span>

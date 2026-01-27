@@ -47,6 +47,7 @@ interface WorkerDetail {
   tax_id: string | null;
   iban: string | null;
   irpf_rate: number | null;
+  ss_regime: string | null;
   address: string | null;
   city: string | null;
   postal_code: string | null;
@@ -60,6 +61,11 @@ interface WorkerDetail {
   last_login_at: string | null;
   roles: string[];
 }
+
+const ssRegimeOptions = [
+  { value: "RETA", label: "Autónomo (RETA propio)", description: "SS empresa = 0€" },
+  { value: "SSG", label: "Régimen General (SSG)", description: "SS trabajador + SS empresa" },
+];
 
 const departmentOptions = [
   { value: "COMMERCIAL", label: "Comercial" },
@@ -96,6 +102,7 @@ export default function WorkerDetailPage() {
     tax_id: "",
     iban: "",
     irpf_rate: "15",
+    ss_regime: "RETA",
     address: "",
     city: "",
     postal_code: "",
@@ -123,6 +130,7 @@ export default function WorkerDetailPage() {
           tax_id: w.tax_id || "",
           iban: w.iban || "",
           irpf_rate: w.irpf_rate?.toString() || "15",
+          ss_regime: w.ss_regime || "RETA",
           address: w.address || "",
           city: w.city || "",
           postal_code: w.postal_code || "",
@@ -158,6 +166,7 @@ export default function WorkerDetailPage() {
         p_city: profileData.city || null,
         p_postal_code: profileData.postal_code || null,
         p_province: profileData.province || null,
+        p_ss_regime: profileData.ss_regime || null,
       });
 
       if (updateError) throw updateError;
@@ -343,31 +352,65 @@ export default function WorkerDetailPage() {
               </Select>
             </div>
 
-            {adminData.worker_type === "PARTNER" && (
+            {(adminData.worker_type === "PARTNER" || adminData.worker_type === "EMPLOYEE") && (
               <>
                 <Separator />
+                
+                {/* Régimen de Cotización SS */}
                 <div className="space-y-2">
-                  <Label htmlFor="irpf_rate" className="font-medium flex items-center gap-2">
-                    <Percent className="w-4 h-4" />
-                    Retención IRPF
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="irpf_rate"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      value={profileData.irpf_rate}
-                      onChange={(e) => setProfileData({ ...profileData, irpf_rate: e.target.value })}
-                      className="h-11 pr-8"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
-                  </div>
+                  <Label className="font-medium">Cotización / Seguridad Social</Label>
+                  <Select
+                    value={profileData.ss_regime}
+                    onValueChange={(value) => setProfileData({ ...profileData, ss_regime: value })}
+                  >
+                    <SelectTrigger className="h-11">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ssRegimeOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          <div className="flex flex-col">
+                            <span>{opt.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <p className="text-xs text-muted-foreground">
-                    Porcentaje de retención para el modelo 111
+                    {profileData.ss_regime === "RETA" 
+                      ? "La persona paga su cuota de autónomos. SS empresa = 0€" 
+                      : "Cotización por régimen general. Hay SS trabajador + SS empresa"}
                   </p>
                 </div>
+
+                {/* IRPF solo para socios */}
+                {adminData.worker_type === "PARTNER" && (
+                  <>
+                    <Separator />
+                    <div className="space-y-2">
+                      <Label htmlFor="irpf_rate" className="font-medium flex items-center gap-2">
+                        <Percent className="w-4 h-4" />
+                        Retención IRPF
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="irpf_rate"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          value={profileData.irpf_rate}
+                          onChange={(e) => setProfileData({ ...profileData, irpf_rate: e.target.value })}
+                          className="h-11 pr-8"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Porcentaje de retención para el modelo 111
+                      </p>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </CardContent>
