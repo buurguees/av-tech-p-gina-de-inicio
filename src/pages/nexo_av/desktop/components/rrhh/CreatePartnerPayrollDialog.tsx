@@ -147,11 +147,9 @@ export default function CreatePartnerPayrollDialog({
 
     try {
       if (isEditMode && payrollToEdit) {
-        // Actualizar nómina existente usando RPC
+        // Actualizar nómina existente usando RPC (solo campos editables en DRAFT)
         const { error } = await (supabase.rpc as any)("update_partner_compensation_run", {
           p_compensation_run_id: payrollToEdit.id,
-          p_period_year: formData.period_year,
-          p_period_month: formData.period_month,
           p_gross_amount: calculations.totalBruto,
           p_irpf_rate: partnerData.irpf_rate,
           p_notes: buildNotesWithBreakdown(),
