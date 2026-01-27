@@ -77,6 +77,7 @@ export default function WorkerDetailPage() {
   const { userId, workerId } = useParams<{ userId: string; workerId: string }>();
   const navigate = useNavigate();
   useNexoAvTheme();
+  
 
   const [worker, setWorker] = useState<WorkerDetail | null>(null);
   const [loading, setLoading] = useState(true);
