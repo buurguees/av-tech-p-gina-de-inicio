@@ -326,7 +326,6 @@ const BankDetailView = ({
       <BankTransferDialog
         open={transferDialogOpen}
         onOpenChange={setTransferDialogOpen}
-        bankAccounts={allBankAccounts}
         onSuccess={handleDialogSuccess}
       />
 

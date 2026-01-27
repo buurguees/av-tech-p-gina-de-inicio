@@ -1819,6 +1819,18 @@ export type Database = {
           notes_count: number
         }[]
       }
+      list_company_bank_accounts: {
+        Args: never
+        Returns: {
+          accounting_code: string
+          bank_name: string
+          holder_name: string
+          iban: string
+          id: string
+          is_active: boolean
+          notes: string
+        }[]
+      }
       list_employees: {
         Args: { p_status?: string }
         Returns: {

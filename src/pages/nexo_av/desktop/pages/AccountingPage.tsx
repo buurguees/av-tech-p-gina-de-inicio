@@ -2887,7 +2887,6 @@ const AccountingPage = () => {
       <BankTransferDialog
         open={bankTransferDialogOpen}
         onOpenChange={setBankTransferDialogOpen}
-        bankAccounts={companyBankAccounts}
         onSuccess={() => {
           fetchBalanceSheet();
           fetchJournalEntries();
