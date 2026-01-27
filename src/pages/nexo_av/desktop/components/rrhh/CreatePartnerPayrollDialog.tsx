@@ -147,19 +147,15 @@ export default function CreatePartnerPayrollDialog({
 
     try {
       if (isEditMode && payrollToEdit) {
-        // Actualizar nómina existente
-        const { error } = await supabase
-          .from("partner_compensation_runs")
-          .update({
-            period_year: formData.period_year,
-            period_month: formData.period_month,
-            gross_amount: calculations.totalBruto,
-            irpf_rate: partnerData.irpf_rate,
-            irpf_amount: calculations.totalIrpf,
-            net_amount: calculations.totalNeto,
-            notes: buildNotesWithBreakdown(),
-          })
-          .eq("id", payrollToEdit.id);
+        // Actualizar nómina existente usando RPC
+        const { error } = await (supabase.rpc as any)("update_partner_compensation_run", {
+          p_compensation_run_id: payrollToEdit.id,
+          p_period_year: formData.period_year,
+          p_period_month: formData.period_month,
+          p_gross_amount: calculations.totalBruto,
+          p_irpf_rate: partnerData.irpf_rate,
+          p_notes: buildNotesWithBreakdown(),
+        });
 
         if (error) throw error;
 

@@ -1718,6 +1718,38 @@ export type Database = {
           bank_name: string
         }[]
       }
+      list_cash_movements: {
+        Args: {
+          p_bank_account_code?: string
+          p_end_date?: string
+          p_limit?: number
+          p_offset?: number
+          p_start_date?: string
+        }
+        Returns: {
+          amount: number
+          bank_account_code: string
+          bank_account_name: string
+          bank_reference: string
+          counterpart_account_code: string
+          counterpart_account_name: string
+          created_at: string
+          description: string
+          entry_date: string
+          entry_id: string
+          entry_number: string
+          entry_type: string
+          is_locked: boolean
+          movement_id: string
+          movement_type: string
+          payment_method: string
+          reference_id: string
+          reference_type: string
+          third_party_id: string
+          third_party_name: string
+          third_party_type: string
+        }[]
+      }
       list_chart_of_accounts: {
         Args: { p_account_type?: string; p_only_active?: boolean }
         Returns: {
@@ -2367,9 +2399,27 @@ export type Database = {
         Args: { p_token: string }
         Returns: undefined
       }
+      pay_partner_compensation_run: {
+        Args: {
+          p_amount: number
+          p_bank_account_id: string
+          p_bank_name: string
+          p_compensation_run_id: string
+          p_notes?: string
+          p_payment_date?: string
+          p_payment_method?: string
+        }
+        Returns: {
+          entry_id: string
+          entry_number: string
+        }[]
+      }
       post_partner_compensation_run: {
         Args: { p_compensation_run_id: string }
-        Returns: string
+        Returns: {
+          entry_id: string
+          entry_number: string
+        }[]
       }
       post_payroll_run: { Args: { p_payroll_run_id: string }; Returns: string }
       reassign_client: {

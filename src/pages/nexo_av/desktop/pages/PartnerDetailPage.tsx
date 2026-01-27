@@ -252,10 +252,9 @@ function PartnerDetailPage() {
     if (!payrollToDelete) return;
     
     try {
-      const { error } = await supabase
-        .from("partner_compensation_runs")
-        .delete()
-        .eq("id", payrollToDelete.id);
+      const { error } = await (supabase.rpc as any)("delete_partner_compensation_run", {
+        p_compensation_run_id: payrollToDelete.id,
+      });
 
       if (error) throw error;
 
@@ -880,8 +879,8 @@ function PartnerDetailPage() {
         onOpenChange={setDeleteDialogOpen}
         title="Eliminar nómina"
         description={`¿Estás seguro de que quieres eliminar la nómina ${payrollToDelete?.compensation_number}? Esta acción no se puede deshacer.`}
-        confirmText="Eliminar"
-        cancelText="Cancelar"
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
         onConfirm={handleDeletePayroll}
         variant="destructive"
       />
