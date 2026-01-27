@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   Mail,
   Phone,
-  Building2,
   Briefcase,
   CreditCard,
   MapPin,
