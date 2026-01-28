@@ -30,6 +30,19 @@ Layout principal de la aplicación móvil:
 
 ---
 
+### `pages/`
+Páginas específicas para la versión móvil (separadas de desktop):
+- `MobileDashboard.tsx` - Dashboard móvil con resumen de KPIs y acceso rápido
+- `MobileProjectsPage.tsx` - Listado de proyectos optimizado para móvil
+- `MobileClientsPage.tsx` - Listado de clientes optimizado para móvil
+- `MobileQuotesPage.tsx` - Listado de presupuestos optimizado para móvil
+- `MobileScannerPage.tsx` - Escáner de documentos con cámara
+- `MobileSettingsPage.tsx` - Configuración del usuario
+- `MobileNotFound.tsx` - Página 404 para móvil
+- `index.ts` - Re-exporta todas las páginas
+
+---
+
 ### `styles/`
 Estilos globales y específicos:
 
@@ -106,9 +119,23 @@ El layout móvil se activa cuando:
 
 ## 🔄 Integración con Desktop
 
-El `ResponsiveLayout.tsx` detecta automáticamente el tamaño de pantalla y carga:
+### Sistema de Routing Responsivo
+El sistema detecta automáticamente el dispositivo y carga los componentes apropiados:
+
+**Layout (detectado por `ResponsiveLayout.tsx`):**
 - **Desktop**: `desktop/layouts/NexoAvLayout.tsx`
 - **Mobile**: `mobile/layouts/NexoAvMobileLayout.tsx`
+
+**Páginas (detectado por `ResponsivePage.tsx`):**
+Las páginas con versión móvil se cargan usando `createResponsivePage()` en `App.tsx`:
+```typescript
+const ResponsiveDashboard = createResponsivePage(
+  () => import("./desktop/pages/Dashboard"),
+  () => import("./mobile/pages/MobileDashboard")
+);
+```
+
+Las páginas que aún no tienen versión móvil cargan la versión de desktop por defecto.
 
 ---
 

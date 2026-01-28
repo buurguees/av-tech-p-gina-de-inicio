@@ -38,6 +38,7 @@ import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "../components/purchases/PurchaseInvoiceLinesEditor";
 import PurchaseInvoicePaymentsSection from "../components/purchases/PurchaseInvoicePaymentsSection";
 import SupplierSearchInput from "../components/suppliers/SupplierSearchInput";
+import { PURCHASE_INVOICE_CATEGORIES } from "@/constants/purchaseInvoiceCategories";
 import ProjectSearchInput from "../components/projects/ProjectSearchInput";
 import { cn } from "@/lib/utils";
 
@@ -103,15 +104,6 @@ const STATUS_OPTIONS = [
   { value: "APPROVED", label: "Aprobada", color: "status-success" },
   { value: "PAID", label: "Pagada", color: "status-success" },
   { value: "CANCELLED", label: "Anulada", color: "status-error" },
-];
-
-const EXPENSE_CATEGORIES = [
-  { value: "MATERIAL", label: "Material" },
-  { value: "SERVICE", label: "Servicio" },
-  { value: "TRAVEL", label: "Viaje" },
-  { value: "RENT", label: "Alquiler" },
-  { value: "UTILITIES", label: "Suministros" },
-  { value: "OTHER", label: "Otros" },
 ];
 
 // Simple file preview component for uploaded documents
@@ -380,23 +372,40 @@ const PurchaseInvoiceDetailPageDesktop = () => {
       if (updateError) throw updateError;
       
       // Update lines - delete old and add new
-      // First, delete all existing lines
-      for (const line of invoice ? lines.filter(l => l.id) : []) {
-        if (line.id) {
-          await supabase.rpc("delete_purchase_invoice_line", { p_line_id: line.id });
+      // First, get existing lines from database
+      const { data: existingLines, error: getLinesError } = await supabase.rpc("get_purchase_invoice_lines", {
+        p_invoice_id: purchaseInvoiceId,
+      });
+      
+      if (getLinesError) throw getLinesError;
+      
+      // Delete all existing lines
+      if (existingLines && existingLines.length > 0) {
+        for (const existingLine of existingLines) {
+          const { error: deleteError } = await supabase.rpc("delete_purchase_invoice_line", { 
+            p_line_id: existingLine.id 
+          });
+          if (deleteError) throw deleteError;
         }
       }
       
-      // Add all lines
-      for (const line of lines) {
-        await supabase.rpc("add_purchase_invoice_line", {
+      // Add all lines with error handling
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const { error: lineError } = await supabase.rpc("add_purchase_invoice_line", {
           p_invoice_id: purchaseInvoiceId,
           p_concept: line.concept,
           p_description: line.description || null,
           p_quantity: line.quantity,
           p_unit_price: line.unit_price,
           p_tax_rate: line.tax_rate,
+          p_withholding_tax_rate: line.withholding_tax_rate || 0,
         });
+        
+        if (lineError) {
+          console.error(`Error adding line ${i + 1}:`, lineError);
+          throw new Error(`Error al añadir línea ${i + 1}: ${lineError.message}`);
+        }
       }
       
       toast.success("Factura guardada correctamente");
@@ -424,21 +433,21 @@ const PurchaseInvoiceDetailPageDesktop = () => {
         await handleSave();
       }
       
-      // Update status to APPROVED
-      const { error: updateError } = await supabase.rpc("update_purchase_invoice", {
+      // Use approve_purchase_invoice RPC which assigns definitive number (C-YY-XXXXXX)
+      const { data, error: approveError } = await supabase.rpc("approve_purchase_invoice", {
         p_invoice_id: purchaseInvoiceId,
-        p_status: "APPROVED",
       });
       
-      if (updateError) throw updateError;
+      if (approveError) throw approveError;
       
-      toast.success("Factura aprobada correctamente");
+      const newNumber = data?.[0]?.invoice_number;
+      toast.success(`Factura aprobada: ${newNumber || 'OK'}`);
       setIsEditing(false);
       await fetchInvoice();
       
     } catch (error: any) {
       console.error("Error approving invoice:", error);
-      toast.error("Error al aprobar la factura");
+      toast.error(error.message || "Error al aprobar la factura");
     } finally {
       setApproving(false);
     }
@@ -733,7 +742,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                         <SelectValue placeholder="Seleccionar categoría" />
                       </SelectTrigger>
                       <SelectContent>
-                        {EXPENSE_CATEGORIES.map((cat) => (
+                        {PURCHASE_INVOICE_CATEGORIES.map((cat) => (
                           <SelectItem key={cat.value} value={cat.value}>
                             {cat.label}
                           </SelectItem>
@@ -942,7 +951,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                     setLines(newLines);
                     setHasChanges(true);
                   }}
-                  disabled={isLocked}
+                  disabled={!isEditing || isLocked}
                 />
               </TabsContent>
 

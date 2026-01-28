@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 import { MobileHeader } from "../components/layout/MobileHeader";
 import { BottomNavigation } from "../components/layout/BottomNavigation";
-import RoleSimulator, { type SimulatedRole } from "../components/common/RoleSimulator";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import "../styles/global.css";
 
@@ -32,7 +31,6 @@ const NexoAvMobileLayout = () => {
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
-  const [simulatedRole, setSimulatedRole] = useState<SimulatedRole>(null);
 
   // Apply nexo-av theme
   useNexoAvTheme(currentTheme);
@@ -119,10 +117,9 @@ const NexoAvMobileLayout = () => {
   };
 
   const isRealAdmin = userInfo?.roles?.includes('admin');
-  const effectiveRole = (isRealAdmin && simulatedRole) ? simulatedRole : 
-    (userInfo?.roles?.[0] || null);
+  const effectiveRole = userInfo?.roles?.[0] || null;
   
-  const isAdmin = effectiveRole === 'admin' || (!simulatedRole && isRealAdmin);
+  const isAdmin = effectiveRole === 'admin' || isRealAdmin;
   const isManager = effectiveRole === 'manager';
   const isComercial = effectiveRole === 'comercial' || effectiveRole === 'sales';
   const isTech = effectiveRole === 'tecnico' || effectiveRole === 'tech';
@@ -170,18 +167,15 @@ const NexoAvMobileLayout = () => {
         currentTheme={currentTheme}
         onLogout={handleLogout}
         onThemeChange={setCurrentTheme}
-        isRealAdmin={!!isRealAdmin}
-        simulatedRole={simulatedRole}
-        onSimulatedRoleChange={(role) => setSimulatedRole(role as SimulatedRole)}
       />
 
-      {/* Main Content */}
+      {/* Main Content - Fixed height container, no scroll here */}
       <main 
-        className="bg-background overflow-y-auto"
+        className="bg-background overflow-hidden px-[15px] w-full"
         style={{ 
-          paddingTop: 'calc(3.25rem + env(safe-area-inset-top, 0px))',
-          paddingBottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))',
-          minHeight: '100dvh'
+          paddingTop: 'calc(5rem + env(safe-area-inset-top, 0px))',
+          paddingBottom: '5px',
+          height: '100dvh'
         }}
       >
         <Outlet />

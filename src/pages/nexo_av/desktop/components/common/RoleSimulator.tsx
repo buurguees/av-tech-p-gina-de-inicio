@@ -82,7 +82,7 @@ const RoleSimulator = ({ currentRole, onRoleChange, isVisible = true }: RoleSimu
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "flex items-center gap-1.5 px-2 py-1.5 rounded-md",
+            "flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-full w-10 h-10",
             "bg-muted/30 border border-border/50 hover:bg-muted/50",
             "text-xs font-medium transition-colors",
             "focus:outline-none focus:ring-2 focus:ring-primary/20"

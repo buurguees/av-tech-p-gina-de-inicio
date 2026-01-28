@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const MOBILE_BREAKPOINT = 550; // Ajustado para incluir tablets en horizontal como desktop
+const MOBILE_BREAKPOINT = 768; // Estándar para tablets en portrait como móvil
 
 interface DeviceInfo {
   isMobile: boolean;
@@ -49,20 +49,21 @@ function detectIOS(): {
 }
 
 export function useIsMobile() {
-  // Inicializar con el valor correcto inmediatamente para evitar flash
+  // Usar matchMedia que funciona correctamente con DevTools responsive mode
   const [isMobile, setIsMobile] = React.useState<boolean>(() => {
     if (typeof window === "undefined") return false;
-    return window.innerWidth < MOBILE_BREAKPOINT;
+    // matchMedia respeta el viewport simulado de DevTools
+    return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`).matches;
   });
 
   React.useEffect(() => {
     const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    const onChange = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches);
     };
     mql.addEventListener("change", onChange);
     // Asegurar que el estado inicial sea correcto
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    setIsMobile(mql.matches);
     return () => mql.removeEventListener("change", onChange);
   }, []);
 
@@ -72,31 +73,29 @@ export function useIsMobile() {
 export function useDeviceInfo(): DeviceInfo {
   const [deviceInfo, setDeviceInfo] = React.useState<DeviceInfo>(() => {
     const iosInfo = detectIOS();
-    const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
     return {
-      isMobile,
+      isMobile: mql.matches,
       ...iosInfo,
     };
   });
 
   React.useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    
     const updateDeviceInfo = () => {
       const iosInfo = detectIOS();
-      const isMobile = window.innerWidth < MOBILE_BREAKPOINT;
       setDeviceInfo({
-        isMobile,
+        isMobile: mql.matches,
         ...iosInfo,
       });
     };
 
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
     mql.addEventListener("change", updateDeviceInfo);
-    window.addEventListener("resize", updateDeviceInfo);
     window.addEventListener("orientationchange", updateDeviceInfo);
 
     return () => {
       mql.removeEventListener("change", updateDeviceInfo);
-      window.removeEventListener("resize", updateDeviceInfo);
       window.removeEventListener("orientationchange", updateDeviceInfo);
     };
   }, []);

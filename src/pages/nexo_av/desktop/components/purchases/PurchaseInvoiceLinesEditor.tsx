@@ -66,8 +66,9 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
       const { data, error } = await supabase.rpc("list_taxes", { p_tax_type: "purchase" });
       if (error) throw error;
 
+      // Solo mostrar IVA (rate >= 0), excluir IRPF (rate < 0)
       const options: TaxOption[] = (data || [])
-        .filter((t: any) => t.is_active)
+        .filter((t: any) => t.is_active && t.rate >= 0)
         .map((t: any) => ({
           value: t.rate,
           label: t.name,
@@ -75,7 +76,7 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
 
       setTaxOptions(options.length > 0 ? options : [{ value: 21, label: "IVA 21%" }]);
 
-      const defaultTax = (data || []).find((t: any) => t.is_default && t.is_active);
+      const defaultTax = (data || []).find((t: any) => t.is_default && t.is_active && t.rate >= 0);
       if (defaultTax) {
         setDefaultTaxRate(defaultTax.rate);
       } else if (options.length > 0) {
@@ -91,7 +92,7 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
     const quantity = line.quantity || 0;
     const unitPrice = line.unit_price || 0;
     const discountPercent = line.discount_percent || 0;
-    const taxRate = line.tax_rate || defaultTaxRate;
+    const taxRate = line.tax_rate !== undefined && line.tax_rate !== null ? line.tax_rate : defaultTaxRate;
     const withholdingTaxRate = line.withholding_tax_rate || 0;
 
     // Calculate subtotal (before discount)

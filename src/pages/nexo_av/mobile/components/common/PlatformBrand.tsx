@@ -55,7 +55,7 @@ export default function PlatformBrand({
     <div className={cn("flex items-center", className)}>
       <button
         onClick={handleClick}
-        className="flex items-center gap-2 active:scale-95 transition-all duration-200"
+        className="flex items-center justify-center gap-2 active:scale-95 transition-all duration-200 w-10"
         style={{ touchAction: 'manipulation' }}
         aria-label="Ir al inicio"
       >

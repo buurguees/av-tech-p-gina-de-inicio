@@ -29,6 +29,7 @@ import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "../components/purchases/PurchaseInvoiceLinesEditor";
 import SupplierSearchInput from "../components/suppliers/SupplierSearchInput";
 import ProjectSearchInput from "../components/projects/ProjectSearchInput";
+import { PURCHASE_INVOICE_CATEGORIES } from "@/constants/purchaseInvoiceCategories";
 import { cn } from "@/lib/utils";
 
 interface ScannedDocument {
@@ -65,14 +66,6 @@ interface Project {
   client_name?: string;
 }
 
-const EXPENSE_CATEGORIES = [
-  { value: "MATERIAL", label: "Material" },
-  { value: "SERVICE", label: "Servicio" },
-  { value: "TRAVEL", label: "Viaje" },
-  { value: "RENT", label: "Alquiler" },
-  { value: "UTILITIES", label: "Suministros" },
-  { value: "OTHER", label: "Otros" },
-];
 
 // File preview component
 const FilePreview = ({ filePath }: { filePath: string }) => {
@@ -339,7 +332,7 @@ const ScannerDetailPage = () => {
         p_notes: notes || null,
         p_file_path: document.file_path,
         p_file_name: document.file_name,
-        p_status: "PENDING",
+        p_status: "PENDING_VALIDATION",
         p_document_type: "INVOICE",
       });
       
@@ -347,16 +340,28 @@ const ScannerDetailPage = () => {
       
       const purchaseInvoiceId = invoiceData;
       
-      // Add lines
-      for (const line of lines) {
-        await supabase.rpc("add_purchase_invoice_line", {
-          p_invoice_id: purchaseInvoiceId,
-          p_concept: line.concept,
-          p_description: line.description || null,
-          p_quantity: line.quantity,
-          p_unit_price: line.unit_price,
-          p_tax_rate: line.tax_rate,
-        });
+      // Add lines with error handling
+      if (lines.length > 0) {
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          const { error: lineError } = await supabase.rpc("add_purchase_invoice_line", {
+            p_invoice_id: purchaseInvoiceId,
+            p_concept: line.concept,
+            p_description: line.description || null,
+            p_quantity: line.quantity,
+            p_unit_price: line.unit_price,
+            p_tax_rate: line.tax_rate,
+            p_withholding_tax_rate: line.withholding_tax_rate || 0,
+          });
+          
+          if (lineError) {
+            console.error(`Error adding line ${i + 1}:`, lineError);
+            throw new Error(`Error al añadir línea ${i + 1}: ${lineError.message}`);
+          }
+        }
+      } else {
+        // Warn if no lines
+        console.warn("Creating purchase invoice without lines");
       }
       
       // Update scanned document status
@@ -382,12 +387,52 @@ const ScannerDetailPage = () => {
     }
   };
 
-  // Calculate totals
-  const totals = {
-    subtotal: lines.reduce((sum, l) => sum + l.subtotal, 0),
-    tax: lines.reduce((sum, l) => sum + l.tax_amount, 0),
-    total: lines.reduce((sum, l) => sum + l.total, 0),
+  // Calculate totals grouped by tax rate
+  const calculateTotals = () => {
+    const subtotal = lines.reduce((sum, l) => sum + l.subtotal, 0);
+    const total = lines.reduce((sum, l) => sum + l.total, 0);
+    const totalWithholding = lines.reduce((sum, l) => sum + (l.withholding_amount || 0), 0);
+
+    // Group taxes by rate
+    const taxesByRate: Record<number, { rate: number; amount: number; label: string }> = {};
+    lines.forEach((line) => {
+      if (line.tax_amount !== 0 && line.tax_rate !== undefined) {
+        if (!taxesByRate[line.tax_rate]) {
+          taxesByRate[line.tax_rate] = {
+            rate: line.tax_rate,
+            amount: 0,
+            label: `IVA ${line.tax_rate}%`,
+          };
+        }
+        taxesByRate[line.tax_rate].amount += line.tax_amount;
+      }
+    });
+
+    // Group withholdings by rate
+    const withholdingsByRate: Record<number, { rate: number; amount: number; label: string }> = {};
+    lines.forEach((line) => {
+      if (line.withholding_amount && line.withholding_amount !== 0) {
+        if (!withholdingsByRate[line.withholding_tax_rate]) {
+          withholdingsByRate[line.withholding_tax_rate] = {
+            rate: line.withholding_tax_rate,
+            amount: 0,
+            label: `IRPF -${line.withholding_tax_rate}%`,
+          };
+        }
+        withholdingsByRate[line.withholding_tax_rate].amount += line.withholding_amount;
+      }
+    });
+
+    return {
+      subtotal,
+      taxes: Object.values(taxesByRate).sort((a, b) => b.rate - a.rate),
+      withholdings: Object.values(withholdingsByRate).sort((a, b) => b.rate - a.rate),
+      totalWithholding,
+      total,
+    };
   };
+
+  const totals = calculateTotals();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("es-ES", {
@@ -462,7 +507,7 @@ const ScannerDetailPage = () => {
       />
 
       {/* Split View */}
-      <div className="flex-1 grid grid-cols-2 gap-6 p-6 overflow-hidden">
+      <div className="flex-1 grid grid-cols-[1fr_2fr] gap-6 p-6 overflow-hidden">
         {/* Left: Document Preview */}
         <div className="bg-card/50 border border-border rounded-xl p-4 overflow-hidden flex flex-col">
           <div className="flex items-center gap-2 mb-4">
@@ -581,7 +626,7 @@ const ScannerDetailPage = () => {
                         <SelectValue placeholder="Seleccionar..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {EXPENSE_CATEGORIES.map((cat) => (
+                        {PURCHASE_INVOICE_CATEGORIES.map((cat) => (
                           <SelectItem key={cat.value} value={cat.value}>
                             {cat.label}
                           </SelectItem>
@@ -692,10 +737,18 @@ const ScannerDetailPage = () => {
                       <span className="text-muted-foreground">Base imponible:</span>
                       <span className="text-foreground font-medium">{formatCurrency(totals.subtotal)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">IVA:</span>
-                      <span className="text-foreground font-medium">{formatCurrency(totals.tax)}</span>
-                    </div>
+                    {totals.taxes.map((tax) => (
+                      <div key={tax.rate} className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">{tax.label}:</span>
+                        <span className="text-foreground font-medium">{formatCurrency(tax.amount)}</span>
+                      </div>
+                    ))}
+                    {totals.withholdings.map((wh) => (
+                      <div key={wh.rate} className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">{wh.label}:</span>
+                        <span className="text-destructive font-medium">-{formatCurrency(wh.amount)}</span>
+                      </div>
+                    ))}
                     <div className="flex justify-between text-lg font-bold pt-2 border-t border-border">
                       <span className="text-foreground">Total:</span>
                       <span className="text-foreground">{formatCurrency(totals.total)}</span>

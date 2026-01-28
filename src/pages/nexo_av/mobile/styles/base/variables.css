@@ -69,6 +69,15 @@ body.nexo-av-theme {
   --status-special-bg: 263 85% 97%;
   --status-neutral: 220 9% 46%;
   --status-neutral-bg: 220 14% 96%;
+  /* Progress (Orange/Yellow) */
+  --status-progress: 38 92% 50%;
+  --status-progress-bg: 45 93% 95%;
+  /* Invoiced (Green) */
+  --status-invoiced: 142 71% 45%;
+  --status-invoiced-bg: 142 76% 96%;
+  /* Closed (Gray) */
+  --status-closed: 220 9% 46%;
+  --status-closed-bg: 220 14% 96%;
 
   /* Shadows */
   --shadow-xs: 0 1px 2px hsl(224 14% 14% / 0.04);
@@ -131,6 +140,15 @@ body.nexo-av-theme-dark {
   --status-special-bg: 262 45% 14%;
   --status-neutral: 0 0% 65%;
   --status-neutral-bg: 0 0% 14%;
+  /* Progress (Orange/Yellow) */
+  --status-progress: 38 92% 56%;
+  --status-progress-bg: 38 45% 14%;
+  /* Invoiced (Green) */
+  --status-invoiced: 142 70% 48%;
+  --status-invoiced-bg: 142 45% 14%;
+  /* Closed (Gray) */
+  --status-closed: 0 0% 65%;
+  --status-closed-bg: 0 0% 14%;
 
   /* Shadows */
   --shadow-xs: 0 1px 2px hsl(0 0% 0% / 0.4);

@@ -77,12 +77,15 @@ export default function UserAvatar({
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            "rounded-full flex items-center justify-center text-white font-semibold",
+            "rounded-full flex items-center justify-center text-white font-normal",
             "active:scale-95 transition-all duration-200",
             avatarColor,
-            compact ? "h-8 w-8 text-xs" : "h-10 w-10 text-sm"
+            compact ? "h-10 w-10" : "h-10 w-10"
           )}
-          style={{ touchAction: 'manipulation' }}
+          style={{ 
+            touchAction: 'manipulation', 
+            fontSize: compact ? 'clamp(1rem, 1.25rem, 1.5rem)' : 'clamp(1.125rem, 1.375rem, 1.625rem)'
+          }}
           aria-label="Menú de usuario"
         >
           {initials}

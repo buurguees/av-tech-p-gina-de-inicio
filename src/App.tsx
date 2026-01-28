@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { createResponsivePage } from "./pages/nexo_av/components/ResponsivePage";
 
 // Lazy load all pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -16,17 +17,19 @@ const SharkEventsPresentation = lazy(() => import("./pages/presentations/SharkEv
 // NEXO AV pages - lazy loaded
 const NexoLogin = lazy(() => import("./pages/nexo_av/desktop/pages/Login"));
 const ResponsiveLayout = lazy(() => import("./pages/nexo_av/layouts/ResponsiveLayout"));
-const NexoDashboard = lazy(() => import("./pages/nexo_av/desktop/pages/Dashboard"));
+const NexoAccountSetup = lazy(() => import("./pages/nexo_av/desktop/pages/AccountSetup"));
+
+// Desktop-only pages (no mobile equivalent yet)
 const NexoUsersPage = lazy(() => import("./pages/nexo_av/desktop/pages/UsersPage"));
-const NexoClientsPage = lazy(() => import("./pages/nexo_av/desktop/pages/ClientsPage"));
 const NexoClientDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/ClientDetailPage"));
-const NexoQuotesPage = lazy(() => import("./pages/nexo_av/desktop/pages/QuotesPage"));
-const NexoQuoteDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/QuoteDetailPage"));
+// Quote Detail - Desktop & Mobile (now responsive)
+const ResponsiveQuoteDetailPage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/QuoteDetailPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileQuoteDetailPage")
+);
 const NexoEditQuotePage = lazy(() => import("./pages/nexo_av/desktop/pages/EditQuotePage"));
 const NexoNewQuotePage = lazy(() => import("./pages/nexo_av/desktop/pages/NewQuotePage"));
-const NexoProjectsPage = lazy(() => import("./pages/nexo_av/desktop/pages/ProjectsPage"));
 const NexoProjectDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/ProjectDetailPage"));
-const NexoSettingsPage = lazy(() => import("./pages/nexo_av/desktop/pages/SettingsPage"));
 const NexoCatalogPage = lazy(() => import("./pages/nexo_av/desktop/pages/CatalogPage"));
 const NexoProductDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/ProductDetailPage"));
 const NexoTaxDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/TaxDetailPage"));
@@ -37,8 +40,6 @@ const NexoInvoicesPage = lazy(() => import("./pages/nexo_av/desktop/pages/Invoic
 const NexoInvoiceDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/InvoiceDetailPage"));
 const NexoNewInvoicePage = lazy(() => import("./pages/nexo_av/desktop/pages/NewInvoicePage"));
 const NexoEditInvoicePage = lazy(() => import("./pages/nexo_av/desktop/pages/EditInvoicePage"));
-const NexoNotFound = lazy(() => import("./pages/nexo_av/desktop/pages/NotFound"));
-const NexoAccountSetup = lazy(() => import("./pages/nexo_av/desktop/pages/AccountSetup"));
 const NexoLeadMapPage = lazy(() => import("./pages/nexo_av/desktop/pages/LeadMapPage"));
 const NexoClientMapPage = lazy(() => import("./pages/nexo_av/desktop/pages/ClientMapPage"));
 const NexoProjectMapPage = lazy(() => import("./pages/nexo_av/desktop/pages/ProjectMapPage"));
@@ -53,13 +54,64 @@ const NexoSuppliersPage = lazy(() => import("./pages/nexo_av/desktop/pages/Suppl
 const NexoSupplierDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/SupplierDetailPage"));
 const NexoAccountingPage = lazy(() => import("./pages/nexo_av/desktop/pages/AccountingPage"));
 const NexoDeveloperPage = lazy(() => import("./pages/nexo_av/desktop/pages/DeveloperPage"));
-const NexoScannerPage = lazy(() => import("./pages/nexo_av/desktop/pages/ScannerPage"));
 const NexoScannerDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/ScannerDetailPage"));
 const NexoNewPurchaseInvoicePage = lazy(() => import("./pages/nexo_av/desktop/pages/NewPurchaseInvoicePage"));
 const NexoPartnersPage = lazy(() => import("./pages/nexo_av/desktop/pages/PartnersPage"));
 const NexoPartnerDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/PartnerDetailPage"));
 const NexoWorkersPage = lazy(() => import("./pages/nexo_av/desktop/pages/WorkersPage"));
 const NexoWorkerDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/WorkerDetailPage"));
+
+// ============================================================
+// RESPONSIVE PAGES - Load different components for mobile/desktop
+// ============================================================
+
+// Dashboard - Desktop & Mobile
+const ResponsiveDashboard = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/Dashboard"),
+  () => import("./pages/nexo_av/mobile/pages/MobileDashboard")
+);
+
+// Projects - Desktop & Mobile
+const ResponsiveProjectsPage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/ProjectsPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileProjectsPage")
+);
+
+// Project Detail - Desktop & Mobile
+const ResponsiveProjectDetailPage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/ProjectDetailPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileProjectDetailPage")
+);
+
+// Clients - Desktop & Mobile
+const ResponsiveClientsPage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/ClientsPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileClientsPage")
+);
+
+// Quotes - Desktop & Mobile
+const ResponsiveQuotesPage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/QuotesPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileQuotesPage")
+);
+
+// Scanner - Desktop & Mobile
+const ResponsiveScannerPage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/ScannerPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileScannerPage")
+);
+
+// Settings - Desktop & Mobile
+const ResponsiveSettingsPage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/SettingsPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileSettingsPage")
+);
+
+// NotFound - Desktop & Mobile
+const ResponsiveNotFound = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/NotFound"),
+  () => import("./pages/nexo_av/mobile/pages/MobileNotFound")
+);
 
 // Loading fallback component
 const PageLoader = () => (
@@ -88,20 +140,25 @@ const App = () => (
               {/* NEXO AV Routes */}
               <Route path="/nexo-av" element={<NexoLogin />} />
               <Route path="/nexo-av/setup-account" element={<NexoAccountSetup />} />
+              
               {/* All authenticated routes use the responsive layout (auto-detects mobile/desktop) */}
               <Route path="/nexo-av/:userId" element={<ResponsiveLayout />}>
-                <Route path="dashboard" element={<NexoDashboard />} />
+                {/* RESPONSIVE PAGES - Different components for mobile & desktop */}
+                <Route path="dashboard" element={<ResponsiveDashboard />} />
+                <Route path="projects" element={<ResponsiveProjectsPage />} />
+                <Route path="clients" element={<ResponsiveClientsPage />} />
+                <Route path="quotes" element={<ResponsiveQuotesPage />} />
+                <Route path="scanner" element={<ResponsiveScannerPage />} />
+                <Route path="settings" element={<ResponsiveSettingsPage />} />
+                
+                {/* DESKTOP-ONLY PAGES (mobile versions coming soon) */}
                 <Route path="users" element={<NexoUsersPage />} />
-                <Route path="clients" element={<NexoClientsPage />} />
                 <Route path="clients/:clientId" element={<NexoClientDetailPage />} />
-                <Route path="quotes" element={<NexoQuotesPage />} />
                 <Route path="quotes/new" element={<NexoNewQuotePage />} />
-                <Route path="quotes/:quoteId" element={<NexoQuoteDetailPage />} />
+                <Route path="quotes/:quoteId" element={<ResponsiveQuoteDetailPage />} />
                 <Route path="quotes/:quoteId/edit" element={<NexoEditQuotePage />} />
                 <Route path="clients/:clientId/quotes/new" element={<NexoNewQuotePage />} />
-                <Route path="projects" element={<NexoProjectsPage />} />
-                <Route path="projects/:projectId" element={<NexoProjectDetailPage />} />
-                <Route path="settings" element={<NexoSettingsPage />} />
+                <Route path="projects/:projectId" element={<ResponsiveProjectDetailPage />} />
                 <Route path="settings/taxes/:taxId" element={<NexoTaxDetailPage />} />
                 <Route path="audit" element={<NexoAuditPage />} />
                 <Route path="audit/:eventId" element={<NexoAuditEventDetailPage />} />
@@ -117,7 +174,6 @@ const App = () => (
                 <Route path="suppliers" element={<NexoSuppliersPage />} />
                 <Route path="suppliers/:supplierId" element={<NexoSupplierDetailPage />} />
                 <Route path="invoices" element={<NexoInvoicesPage />} />
-                <Route path="scanner" element={<NexoScannerPage />} />
                 <Route path="scanner/:documentId" element={<NexoScannerDetailPage />} />
                 <Route path="purchase-invoices" element={<NexoPurchaseInvoicesPage />} />
                 <Route path="purchase-invoices/new" element={<NexoNewPurchaseInvoicePage />} />
@@ -135,11 +191,11 @@ const App = () => (
                 <Route path="invoices/new" element={<NexoNewInvoicePage />} />
                 <Route path="invoices/:invoiceId" element={<NexoInvoiceDetailPage />} />
                 <Route path="invoices/:invoiceId/edit" element={<NexoEditInvoicePage />} />
-                <Route path="*" element={<NexoNotFound />} />
+                <Route path="*" element={<ResponsiveNotFound />} />
               </Route>
               {/* Legacy route - redirects to login */}
               <Route path="/nexo-av/dashboard" element={<NexoLogin />} />
-              <Route path="/nexo-av/*" element={<NexoNotFound />} />
+              <Route path="/nexo-av/*" element={<ResponsiveNotFound />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

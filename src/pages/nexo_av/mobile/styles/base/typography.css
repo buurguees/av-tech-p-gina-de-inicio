@@ -6,11 +6,12 @@
 
 /* ============================================
    HEADINGS - Semantic hierarchy
+   NO BOLD en mobile - todos los textos normales
    ============================================ */
 body.nexo-av-theme h1,
 body.nexo-av-theme-dark h1 {
-  font-size: clamp(1.25rem, 1.5rem, 1.75rem) !important;
-  font-weight: 600 !important;
+  font-size: clamp(0.8rem, 0.9rem, 1rem) !important;
+  font-weight: 400 !important;
   color: hsl(var(--foreground)) !important;
   line-height: 1.4 !important;
   letter-spacing: -0.01em !important;
@@ -19,8 +20,8 @@ body.nexo-av-theme-dark h1 {
 
 body.nexo-av-theme h2,
 body.nexo-av-theme-dark h2 {
-  font-size: clamp(1.125rem, 1.25rem, 1.375rem) !important;
-  font-weight: 600 !important;
+  font-size: clamp(0.7rem, 0.8rem, 0.9rem) !important;
+  font-weight: 400 !important;
   color: hsl(var(--foreground)) !important;
   line-height: 1.4 !important;
   letter-spacing: -0.01em !important;
@@ -29,8 +30,8 @@ body.nexo-av-theme-dark h2 {
 
 body.nexo-av-theme h3,
 body.nexo-av-theme-dark h3 {
-  font-size: clamp(1rem, 1.125rem, 1.25rem) !important;
-  font-weight: 600 !important;
+  font-size: clamp(0.655rem, 0.8rem, 0.9rem) !important;
+  font-weight: 400 !important;
   color: hsl(var(--foreground)) !important;
   line-height: 1.45 !important;
   letter-spacing: -0.005em !important;
@@ -39,8 +40,8 @@ body.nexo-av-theme-dark h3 {
 
 body.nexo-av-theme h4,
 body.nexo-av-theme-dark h4 {
-  font-size: clamp(0.9375rem, 1rem, 1.125rem) !important;
-  font-weight: 600 !important;
+  font-size: clamp(0.6rem, 0.76rem, 0.87rem) !important;
+  font-weight: 400 !important;
   color: hsl(var(--foreground)) !important;
   line-height: 1.5 !important;
   margin: 0 !important;
@@ -51,17 +52,17 @@ body.nexo-av-theme-dark h4 {
    ============================================ */
 body.nexo-av-theme p,
 body.nexo-av-theme-dark p {
-  font-size: clamp(0.875rem, 0.9375rem, 1rem) !important;
+  font-size: clamp(0.625rem, 0.762rem, 0.795rem) !important;
   font-weight: 400 !important;
   color: hsl(var(--text-secondary)) !important;
-  line-height: 1.6 !important;
+  line-height: 1.5 !important;
   margin: 0 !important;
 }
 
 /* Small text */
 body.nexo-av-theme small,
 body.nexo-av-theme-dark small {
-  font-size: clamp(0.75rem, 0.8125rem, 0.875rem) !important;
+  font-size: clamp(0.58rem, 0.625rem, 0.715rem) !important;
   font-weight: 400 !important;
   color: hsl(var(--text-muted)) !important;
   line-height: 1.5 !important;
@@ -94,4 +95,154 @@ body.nexo-av-theme-dark .text-muted {
 body.nexo-av-theme .text-secondary,
 body.nexo-av-theme-dark .text-secondary {
   color: hsl(var(--text-secondary)) !important;
+}
+
+/* ============================================
+   CARDS, TABS, LISTINGS - Text size reduction
+   ============================================ */
+
+/* Cards */
+body.nexo-av-theme .card,
+body.nexo-av-theme-dark .card,
+body.nexo-av-theme [class*="card"],
+body.nexo-av-theme-dark [class*="card"] {
+  font-size: 0.75rem !important;
+}
+
+body.nexo-av-theme .card p,
+body.nexo-av-theme-dark .card p,
+body.nexo-av-theme [class*="card"] p,
+body.nexo-av-theme-dark [class*="card"] p {
+  font-size: 0.75rem !important;
+}
+
+body.nexo-av-theme .card h3,
+body.nexo-av-theme-dark .card h3,
+body.nexo-av-theme [class*="card"] h3,
+body.nexo-av-theme-dark [class*="card"] h3 {
+  font-size: 0.875rem !important;
+}
+
+body.nexo-av-theme .card h4,
+body.nexo-av-theme-dark .card h4,
+body.nexo-av-theme [class*="card"] h4,
+body.nexo-av-theme-dark [class*="card"] h4 {
+  font-size: 0.8125rem !important;
+}
+
+/* Tabs */
+body.nexo-av-theme [role="tab"],
+body.nexo-av-theme-dark [role="tab"],
+body.nexo-av-theme [class*="tab"],
+body.nexo-av-theme-dark [class*="tab"] {
+  font-size: 0.75rem !important;
+}
+
+/* List items and lists */
+body.nexo-av-theme li,
+body.nexo-av-theme-dark li,
+body.nexo-av-theme [class*="list"] li,
+body.nexo-av-theme-dark [class*="list"] li {
+  font-size: 0.75rem !important;
+}
+
+/* Buttons */
+body.nexo-av-theme button:not([class*="text-"]),
+body.nexo-av-theme-dark button:not([class*="text-"]),
+body.nexo-av-theme [role="button"]:not([class*="text-"]),
+body.nexo-av-theme-dark [role="button"]:not([class*="text-"]) {
+  font-size: 0.75rem !important;
+}
+
+/* Table cells */
+body.nexo-av-theme td,
+body.nexo-av-theme-dark td,
+body.nexo-av-theme th,
+body.nexo-av-theme-dark th {
+  font-size: 0.75rem !important;
+}
+
+/* Badges and labels */
+body.nexo-av-theme [class*="badge"],
+body.nexo-av-theme-dark [class*="badge"],
+body.nexo-av-theme [class*="label"],
+body.nexo-av-theme-dark [class*="label"] {
+  font-size: 0.6875rem !important;
+}
+
+/* Override Tailwind text sizes for mobile */
+body.nexo-av-theme .text-sm,
+body.nexo-av-theme-dark .text-sm {
+  font-size: 0.75rem !important;
+}
+
+body.nexo-av-theme .text-base,
+body.nexo-av-theme-dark .text-base {
+  font-size: 0.8125rem !important;
+}
+
+body.nexo-av-theme .text-lg,
+body.nexo-av-theme-dark .text-lg {
+  font-size: 0.875rem !important;
+}
+
+body.nexo-av-theme .text-xl,
+body.nexo-av-theme-dark .text-xl {
+  font-size: 0.9375rem !important;
+}
+
+body.nexo-av-theme .text-xs,
+body.nexo-av-theme-dark .text-xs {
+  font-size: 0.6875rem !important;
+}
+
+/* ============================================
+   SPANS - Siguen reglas de typography
+   ============================================ */
+body.nexo-av-theme span,
+body.nexo-av-theme-dark span {
+  font-size: clamp(0.625rem, 0.762rem, 0.795rem) !important;
+  font-weight: 400 !important;
+}
+
+/* Spans dentro de DataList */
+body.nexo-av-theme .data-list span,
+body.nexo-av-theme-dark .data-list span,
+body.nexo-av-theme .data-list__cell span,
+body.nexo-av-theme-dark .data-list__cell span {
+  font-size: clamp(0.625rem, 0.762rem, 0.795rem) !important;
+  font-weight: 400 !important;
+}
+
+/* Eliminar bold de todas las clases que lo tengan */
+body.nexo-av-theme .data-list__cell--bold,
+body.nexo-av-theme-dark .data-list__cell--bold,
+body.nexo-av-theme .data-list__cell--bold span,
+body.nexo-av-theme-dark .data-list__cell--bold span,
+body.nexo-av-theme .data-list__cell--bold .data-list__cell-content,
+body.nexo-av-theme-dark .data-list__cell--bold .data-list__cell-content {
+  font-weight: 400 !important;
+}
+
+/* ============================================
+   ELIMINAR TODOS LOS BOLD EN MOBILE
+   Solo afecta elementos de texto
+   ============================================ */
+body.nexo-av-theme h1, body.nexo-av-theme h2, body.nexo-av-theme h3, body.nexo-av-theme h4, body.nexo-av-theme h5, body.nexo-av-theme h6,
+body.nexo-av-theme-dark h1, body.nexo-av-theme-dark h2, body.nexo-av-theme-dark h3, body.nexo-av-theme-dark h4, body.nexo-av-theme-dark h5, body.nexo-av-theme-dark h6,
+body.nexo-av-theme p, body.nexo-av-theme span, body.nexo-av-theme div, body.nexo-av-theme li, body.nexo-av-theme td, body.nexo-av-theme th,
+body.nexo-av-theme-dark p, body.nexo-av-theme-dark span, body.nexo-av-theme-dark div, body.nexo-av-theme-dark li, body.nexo-av-theme-dark td, body.nexo-av-theme-dark th,
+body.nexo-av-theme button, body.nexo-av-theme label, body.nexo-av-theme a,
+body.nexo-av-theme-dark button, body.nexo-av-theme-dark label, body.nexo-av-theme-dark a {
+  font-weight: 400 !important;
+}
+
+/* Eliminar bold de clases específicas */
+body.nexo-av-theme [class*="font-bold"],
+body.nexo-av-theme-dark [class*="font-bold"],
+body.nexo-av-theme [class*="font-semibold"],
+body.nexo-av-theme-dark [class*="font-semibold"],
+body.nexo-av-theme [class*="bold"],
+body.nexo-av-theme-dark [class*="bold"] {
+  font-weight: 400 !important;
 }

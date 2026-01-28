@@ -48,6 +48,27 @@ body.nexo-av-theme-dark .status-special {
   border: 1px solid hsl(var(--status-special) / 0.2) !important;
 }
 
+body.nexo-av-theme .status-progress,
+body.nexo-av-theme-dark .status-progress {
+  background-color: hsl(var(--status-progress-bg)) !important;
+  color: hsl(var(--status-progress)) !important;
+  border: 1px solid hsl(var(--status-progress) / 0.2) !important;
+}
+
+body.nexo-av-theme .status-invoiced,
+body.nexo-av-theme-dark .status-invoiced {
+  background-color: hsl(var(--status-invoiced-bg)) !important;
+  color: hsl(var(--status-invoiced)) !important;
+  border: 1px solid hsl(var(--status-invoiced) / 0.2) !important;
+}
+
+body.nexo-av-theme .status-closed,
+body.nexo-av-theme-dark .status-closed {
+  background-color: hsl(var(--status-closed-bg)) !important;
+  color: hsl(var(--status-closed)) !important;
+  border: 1px solid hsl(var(--status-closed) / 0.2) !important;
+}
+
 /* ============================================
    STATUS DOTS - Small circle indicators
    ============================================ */

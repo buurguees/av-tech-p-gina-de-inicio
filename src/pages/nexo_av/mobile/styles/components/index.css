@@ -4,3 +4,6 @@
 
 /* Layout Components */
 @import './layout/bottom-navigation.css';
+
+/* Status Badges - Import from desktop for consistency */
+@import '../../../desktop/styles/components/common/status-badges.css';

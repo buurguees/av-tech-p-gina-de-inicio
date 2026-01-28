@@ -677,119 +677,8 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Mobile Card View */}
-      <div className="md:hidden space-y-3">
-        {/* Mobile Add Button */}
-        {isAdmin && (
-          <Button
-            onClick={handleOpenAddDialog}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white h-10"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Añadir {itemLabel}
-          </Button>
-        )}
-        
-        {/* Mobile Search and Filters */}
-        <div className="flex flex-col gap-2">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
-            <Input
-              placeholder={isProductTab ? "Buscar productos..." : "Buscar servicios..."}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-11 w-full bg-white/5 border-white/10 text-white h-9 text-xs"
-            />
-          </div>
-
-          <div className="flex gap-2">
-            <Select value={filterCategory} onValueChange={(v) => { setFilterCategory(v); setFilterSubcategory('all'); }}>
-              <SelectTrigger className="flex-1 bg-white/5 border-white/10 text-white h-8 text-xs">
-                <SelectValue placeholder="Categoría" />
-              </SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-white/10">
-                <SelectItem value="all" className="text-white text-xs">Todas</SelectItem>
-                {categories.map(c => (
-                  <SelectItem key={c.id} value={c.id} className="text-white text-xs">{c.code}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={filterSubcategory} onValueChange={setFilterSubcategory} disabled={filterCategory === 'all'}>
-              <SelectTrigger className="flex-1 bg-white/5 border-white/10 text-white h-8 text-xs">
-                <SelectValue placeholder="Subcategoría" />
-              </SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-white/10">
-                <SelectItem value="all" className="text-white text-xs">Todas</SelectItem>
-                {filteredSubcategories.map(s => (
-                  <SelectItem key={s.id} value={s.id} className="text-white text-xs">{s.code}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Mobile Product List */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin text-white/40" />
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-12 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm shadow-sm">
-            <p className="text-white/40 text-xs">No hay {isProductTab ? 'productos' : 'servicios'}</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {products.map(product => (
-              <button
-                key={product.id}
-                onClick={() => handleViewDetails(product.id)}
-                className={`w-full p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-orange-500/30 transition-all duration-200 text-left backdrop-blur-sm active:scale-[0.98] shadow-sm ${!product.is_active ? 'opacity-50' : ''}`}
-              >
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-semibold mb-1">{product.name}</p>
-                    <p className="text-white/40 text-[10px] font-mono mb-1">{product.product_number}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-white/50 text-[10px] bg-white/5 px-2 py-0.5 rounded">
-                        {product.category_code}
-                      </span>
-                      {product.subcategory_code && (
-                        <span className="text-white/40 text-[10px]">→ {product.subcategory_code}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-green-400 font-bold text-sm block mb-1">
-                      {product.price_with_tax.toFixed(2)} €
-                    </span>
-                    <span className="text-white/40 text-[10px] block">
-                      Base: {product.base_price.toFixed(2)} €
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/5">
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${product.is_active ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'}`}>
-                      {product.is_active ? 'Activo' : 'Inactivo'}
-                    </span>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-medium">
-                      IVA {product.tax_rate}%
-                    </span>
-                  </div>
-                  {isProductTab && (
-                    <span className="text-white/50 text-[10px]">Stock: {product.stock ?? 0}</span>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Desktop Toolbar */}
-      <div className="hidden md:flex flex-wrap gap-3 items-center justify-between">
+      {/* Toolbar */}
+      <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="flex flex-wrap gap-3 items-center">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
@@ -870,8 +759,8 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         </div>
       </div>
 
-      {/* Desktop Products Table */}
-      <div className="hidden md:block border border-white/10 rounded-2xl overflow-hidden bg-white/[0.02] backdrop-blur-sm shadow-lg">
+      {/* Products Table */}
+      <div className="border border-white/10 rounded-2xl overflow-hidden bg-white/[0.02] backdrop-blur-sm shadow-lg">
         <Table>
           <TableHeader>
             <TableRow className="border-white/10 hover:bg-transparent">
@@ -992,7 +881,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       </div>
 
       {isAdmin && (
-        <p className="hidden md:block text-white/40 text-xs">
+        <p className="text-white/40 text-xs">
           Haz clic en "Ver detalles" para editar un {isProductTab ? 'producto' : 'servicio'}
         </p>
       )}

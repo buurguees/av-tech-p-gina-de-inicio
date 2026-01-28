@@ -92,14 +92,10 @@ export const BottomNavigation = ({ userId, onMoreClick }: BottomNavigationProps)
               aria-label={item.label}
               style={{ touchAction: 'manipulation' }}
             >
-              <Icon className={cn(
-                "bottom-nav-icon",
-                active && "active"
-              )} />
-              <span className={cn(
-                "bottom-nav-label",
-                active && "active"
-              )}>
+              <div className="bottom-nav-icon-wrapper">
+                <Icon className="bottom-nav-icon" />
+              </div>
+              <span className="bottom-nav-label">
                 {item.label}
               </span>
             </button>

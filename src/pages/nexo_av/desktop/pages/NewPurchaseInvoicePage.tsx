@@ -83,8 +83,9 @@ const NewPurchaseInvoicePageDesktop = () => {
 
       const invoiceId = invoiceData;
 
-      // Add lines
-      for (const line of lines) {
+      // Add lines with error handling
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
         const { error: lineError } = await supabase.rpc(
           "add_purchase_invoice_line",
           {
@@ -94,10 +95,14 @@ const NewPurchaseInvoicePageDesktop = () => {
             p_quantity: line.quantity,
             p_unit_price: line.unit_price,
             p_tax_rate: line.tax_rate,
+            p_withholding_tax_rate: line.withholding_tax_rate || 0,
           }
         );
 
-        if (lineError) throw lineError;
+        if (lineError) {
+          console.error(`Error adding line ${i + 1}:`, lineError);
+          throw new Error(`Error al añadir línea ${i + 1}: ${lineError.message}`);
+        }
       }
 
       toast.success("Factura de compra creada correctamente");
