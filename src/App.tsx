@@ -22,6 +22,12 @@ const NexoAccountSetup = lazy(() => import("./pages/nexo_av/desktop/pages/Accoun
 // Desktop-only pages (no mobile equivalent yet)
 const NexoUsersPage = lazy(() => import("./pages/nexo_av/desktop/pages/UsersPage"));
 const NexoClientDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/ClientDetailPage"));
+// Client Edit - Desktop & Mobile (responsive)
+// Desktop redirige al detalle (usa diálogo), Mobile usa página de edición
+const ResponsiveEditClientPage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/EditClientRedirectPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileEditClientPage")
+);
 // Quote Detail - Desktop & Mobile (now responsive)
 const ResponsiveQuoteDetailPage = createResponsivePage(
   () => import("./pages/nexo_av/desktop/pages/QuoteDetailPage"),
@@ -83,6 +89,30 @@ const ResponsiveProjectDetailPage = createResponsivePage(
   () => import("./pages/nexo_av/mobile/pages/MobileProjectDetailPage")
 );
 
+// Client Detail - Desktop & Mobile
+const ResponsiveClientDetailPage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/ClientDetailPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileClientDetailPage")
+);
+
+// New Project - Mobile only (desktop uses dialog)
+const ResponsiveNewProjectPage = createResponsivePage(
+  () => import("./pages/nexo_av/mobile/pages/MobileNewProjectPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileNewProjectPage")
+);
+
+// New Client - Mobile only (desktop uses dialog)
+const ResponsiveNewClientPage = createResponsivePage(
+  () => import("./pages/nexo_av/mobile/pages/MobileNewClientPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileNewClientPage")
+);
+
+// New Quote - Desktop & Mobile
+const ResponsiveNewQuotePage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/NewQuotePage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileNewQuotePage")
+);
+
 // Clients - Desktop & Mobile
 const ResponsiveClientsPage = createResponsivePage(
   () => import("./pages/nexo_av/desktop/pages/ClientsPage"),
@@ -93,6 +123,18 @@ const ResponsiveClientsPage = createResponsivePage(
 const ResponsiveQuotesPage = createResponsivePage(
   () => import("./pages/nexo_av/desktop/pages/QuotesPage"),
   () => import("./pages/nexo_av/mobile/pages/MobileQuotesPage")
+);
+
+// Invoices - Desktop & Mobile (Mobile es solo consulta)
+const ResponsiveInvoicesPage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/InvoicesPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileInvoicesPage")
+);
+
+// Invoice Detail - Desktop & Mobile (Mobile es solo consulta)
+const ResponsiveInvoiceDetailPage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/InvoiceDetailPage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileInvoiceDetailPage")
 );
 
 // Scanner - Desktop & Mobile
@@ -153,11 +195,15 @@ const App = () => (
                 
                 {/* DESKTOP-ONLY PAGES (mobile versions coming soon) */}
                 <Route path="users" element={<NexoUsersPage />} />
-                <Route path="clients/:clientId" element={<NexoClientDetailPage />} />
-                <Route path="quotes/new" element={<NexoNewQuotePage />} />
+                <Route path="clients/new" element={<ResponsiveNewClientPage />} />
+                <Route path="clients/:clientId" element={<ResponsiveClientDetailPage />} />
+                <Route path="clients/:clientId/edit" element={<ResponsiveEditClientPage />} />
+                <Route path="quotes/new" element={<ResponsiveNewQuotePage />} />
                 <Route path="quotes/:quoteId" element={<ResponsiveQuoteDetailPage />} />
                 <Route path="quotes/:quoteId/edit" element={<NexoEditQuotePage />} />
-                <Route path="clients/:clientId/quotes/new" element={<NexoNewQuotePage />} />
+                <Route path="clients/:clientId/quotes/new" element={<ResponsiveNewQuotePage />} />
+                <Route path="projects/new" element={<ResponsiveNewProjectPage />} />
+                <Route path="projects/new" element={<ResponsiveNewProjectPage />} />
                 <Route path="projects/:projectId" element={<ResponsiveProjectDetailPage />} />
                 <Route path="settings/taxes/:taxId" element={<NexoTaxDetailPage />} />
                 <Route path="audit" element={<NexoAuditPage />} />
@@ -173,7 +219,7 @@ const App = () => (
                 <Route path="technicians/:technicianId" element={<NexoTechnicianDetailPage />} />
                 <Route path="suppliers" element={<NexoSuppliersPage />} />
                 <Route path="suppliers/:supplierId" element={<NexoSupplierDetailPage />} />
-                <Route path="invoices" element={<NexoInvoicesPage />} />
+                <Route path="invoices" element={<ResponsiveInvoicesPage />} />
                 <Route path="scanner/:documentId" element={<NexoScannerDetailPage />} />
                 <Route path="purchase-invoices" element={<NexoPurchaseInvoicesPage />} />
                 <Route path="purchase-invoices/new" element={<NexoNewPurchaseInvoicePage />} />
@@ -189,7 +235,7 @@ const App = () => (
                 <Route path="workers" element={<NexoWorkersPage />} />
                 <Route path="workers/:workerId" element={<NexoWorkerDetailPage />} />
                 <Route path="invoices/new" element={<NexoNewInvoicePage />} />
-                <Route path="invoices/:invoiceId" element={<NexoInvoiceDetailPage />} />
+                <Route path="invoices/:invoiceId" element={<ResponsiveInvoiceDetailPage />} />
                 <Route path="invoices/:invoiceId/edit" element={<NexoEditInvoicePage />} />
                 <Route path="*" element={<ResponsiveNotFound />} />
               </Route>

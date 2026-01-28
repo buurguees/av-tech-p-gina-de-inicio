@@ -87,8 +87,7 @@ const MobileProjectsPage = () => {
   };
 
   const handleCreateProject = () => {
-    // TODO: Implement create project modal for mobile
-    console.log('Create project clicked');
+    navigate(`/nexo-av/${userId}/projects/new`);
   };
 
   return (
