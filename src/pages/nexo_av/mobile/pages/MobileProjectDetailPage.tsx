@@ -402,10 +402,10 @@ const MobileProjectDetailPage = () => {
         </div>
       </div>
 
-      {/* ===== TABS: Navegación con estilo glass igual que BottomNavigation ===== */}
+      {/* ===== TABS: Navegación con estilo glass y distribución equitativa ===== */}
       <div className="flex-shrink-0 px-4 py-3">
         <div 
-          className="flex justify-center overflow-x-auto scrollbar-hide gap-0 p-1 rounded-full"
+          className="flex overflow-x-auto scrollbar-hide gap-1 p-1 rounded-full"
           style={{
             background: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(20px) saturate(180%)',
@@ -424,7 +424,8 @@ const MobileProjectDetailPage = () => {
                 className={cn(
                   "relative flex items-center justify-center gap-1.5 whitespace-nowrap",
                   "text-sm font-medium transition-all duration-250 ease-out",
-                  "px-3 py-2 min-[420px]:px-4",
+                  "flex-1 min-w-0",
+                  "px-2 py-2 min-[420px]:px-3",
                   "rounded-full",
                   isActive 
                     ? "text-white" 

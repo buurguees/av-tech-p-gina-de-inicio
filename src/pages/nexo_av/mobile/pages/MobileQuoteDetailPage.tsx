@@ -11,6 +11,8 @@ import {
   ChevronLeft,
   FileText,
   Eye,
+  EyeOff,
+  Download,
   LayoutDashboard,
   Send,
   Edit,
@@ -30,7 +32,7 @@ import { cn } from "@/lib/utils";
 import { getQuoteStatusInfo, QUOTE_STATUSES } from "@/constants/quoteStatuses";
 import { useToast } from "@/hooks/use-toast";
 import { QuotePDFDocument } from "@/pages/nexo_av/desktop/components/quotes/QuotePDFViewer";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import {
   Select,
   SelectContent,
@@ -462,10 +464,10 @@ const MobileQuoteDetailPage = () => {
         </div>
       </div>
 
-      {/* ===== TABS: Navegación con estilo glass ===== */}
+      {/* ===== TABS: Navegación con estilo glass y distribución equitativa ===== */}
       <div className="flex-shrink-0 px-4 py-3">
         <div 
-          className="flex justify-center overflow-x-auto scrollbar-hide gap-0 p-1 rounded-full"
+          className="flex overflow-x-auto scrollbar-hide gap-1 p-1 rounded-full"
           style={{
             background: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(20px) saturate(180%)',
@@ -484,7 +486,8 @@ const MobileQuoteDetailPage = () => {
                 className={cn(
                   "relative flex items-center justify-center gap-1.5 whitespace-nowrap",
                   "text-sm font-medium transition-all duration-250 ease-out",
-                  "px-3 py-2 min-[420px]:px-4",
+                  "flex-1 min-w-0",
+                  "px-2 py-2 min-[420px]:px-3",
                   "rounded-full",
                   isActive 
                     ? "text-white" 
@@ -787,6 +790,8 @@ interface PreviewTabProps {
 }
 
 const PreviewTab = ({ quote, lines, client, company, project, fileName }: PreviewTabProps) => {
+  const [showPreview, setShowPreview] = useState(true);
+
   if (!client || !company) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
@@ -798,10 +803,35 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
   }
 
   return (
-    <div className="px-4 py-4">
-      <div className="bg-card border border-border rounded-xl p-4 mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-foreground">Vista Previa PDF</h3>
+    <div className="w-full h-full flex flex-col">
+      {/* Barra de acciones */}
+      <div className="flex-shrink-0 px-4 py-3 border-b border-border">
+        <div className="flex items-center justify-between gap-2">
+          <button
+            onClick={() => setShowPreview(!showPreview)}
+            className={cn(
+              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
+              "text-sm font-medium whitespace-nowrap leading-none",
+              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
+              "text-white/90 hover:text-white hover:bg-white/15",
+              "active:scale-95 transition-all duration-200",
+              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+            )}
+            style={{ touchAction: 'manipulation' }}
+          >
+            {showPreview ? (
+              <>
+                <EyeOff className="h-4 w-4" />
+                <span>Ocultar</span>
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4" />
+                <span>Ver PDF</span>
+              </>
+            )}
+          </button>
+
           <PDFDownloadLink
             document={
               <QuotePDFDocument
@@ -819,37 +849,44 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
                 className={cn(
                   "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
                   "text-sm font-medium whitespace-nowrap leading-none",
-                  "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-                  "text-white/90 hover:text-white hover:bg-white/15",
+                  "bg-orange-500 hover:bg-orange-600 text-white",
                   "active:scale-95 transition-all duration-200",
-                  "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]",
                   loading && "opacity-50"
                 )}
                 style={{ touchAction: 'manipulation' }}
+                disabled={loading}
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <FileText className="h-4 w-4" />
+                  <Download className="h-4 w-4" />
                 )}
                 <span>Descargar PDF</span>
               </button>
             )}
           </PDFDownloadLink>
         </div>
-        <p className="text-xs text-muted-foreground">
-          El PDF se generará con todos los datos del presupuesto. 
-          Puedes descargarlo para enviarlo al cliente.
-        </p>
       </div>
-      
-      {/* Aquí podrías agregar un preview del PDF si es necesario */}
-      <div className="bg-card border border-border rounded-xl p-8 text-center">
-        <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-        <p className="text-sm text-muted-foreground">
-          Vista previa del PDF disponible al descargar
-        </p>
-      </div>
+
+      {/* Vista previa del PDF */}
+      {showPreview && (
+        <div className="flex-1 min-h-0 bg-gray-800 p-2">
+          <PDFViewer
+            width="100%"
+            height="100%"
+            className="rounded-lg"
+            showToolbar={false}
+          >
+            <QuotePDFDocument
+              quote={quote}
+              lines={lines}
+              client={client}
+              company={company}
+              project={project}
+            />
+          </PDFViewer>
+        </div>
+      )}
     </div>
   );
 };
@@ -892,8 +929,6 @@ const LineasTab = ({ lines, isEditable, onEdit, formatCurrency }: LineasTabProps
                   </p>
                 )}
                 <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <span>Cantidad: {line.quantity}</span>
-                  <span>•</span>
                   <span>Precio: {formatCurrency(line.unit_price)}</span>
                   {line.discount_percent > 0 && (
                     <>
@@ -901,17 +936,34 @@ const LineasTab = ({ lines, isEditable, onEdit, formatCurrency }: LineasTabProps
                       <span>Descuento: {line.discount_percent}%</span>
                     </>
                   )}
-                  <span>•</span>
-                  <span>IVA: {line.tax_rate}%</span>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-right flex-shrink-0">
                 <p className="text-sm font-semibold text-foreground">
                   {formatCurrency(line.total)}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {formatCurrency(line.subtotal)} + IVA
-                </p>
+              </div>
+            </div>
+            
+            {/* Desglose: Cantidad, Impuesto, Total */}
+            <div className="pt-2 border-t border-border/50">
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div>
+                  <p className="text-muted-foreground mb-0.5">Cantidad</p>
+                  <p className="text-foreground font-medium">{line.quantity}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-0.5">Impuesto</p>
+                  <p className="text-foreground font-medium">
+                    {formatCurrency(line.tax_amount)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-0.5">Total</p>
+                  <p className="text-foreground font-semibold">
+                    {formatCurrency(line.total)}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
