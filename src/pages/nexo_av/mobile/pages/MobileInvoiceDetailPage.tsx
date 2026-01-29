@@ -119,6 +119,9 @@ interface CompanySettings {
 
 interface CompanyPreferences {
   bank_accounts: any[];
+  default_currency?: string;
+  invoice_payment_days?: number;
+  quote_validity_days?: number;
 }
 
 type TabId = 'resumen' | 'preview' | 'lineas';
@@ -223,8 +226,14 @@ const MobileInvoiceDetailPage = () => {
 
       // Fetch company preferences
       const { data: preferencesData, error: preferencesError } = await supabase.rpc("get_company_preferences");
-      if (!preferencesError && preferencesData) {
-        setPreferences(preferencesData);
+      if (!preferencesError && preferencesData && Array.isArray(preferencesData) && preferencesData.length > 0) {
+        const prefs = preferencesData[0];
+        setPreferences({
+          bank_accounts: Array.isArray(prefs?.bank_accounts) ? prefs.bank_accounts : [],
+          default_currency: prefs?.default_currency,
+          invoice_payment_days: prefs?.invoice_payment_days,
+          quote_validity_days: prefs?.quote_validity_days,
+        });
       }
     } catch (error: any) {
       console.error("Error fetching invoice:", error);

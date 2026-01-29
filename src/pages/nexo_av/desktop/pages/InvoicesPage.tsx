@@ -297,7 +297,7 @@ const InvoicesPageDesktop = () => {
             columns={[
               {
                 key: "invoice_number",
-                label: "Nº",
+                label: "Nº Factura",
                 sortable: true,
                 align: "left",
                 priority: 1,
@@ -311,14 +311,26 @@ const InvoicesPageDesktop = () => {
                 },
               },
               {
-                key: "project_name",
-                label: "Proyecto",
+                key: "client_name",
+                label: "Empresa",
+                sortable: true,
+                align: "left",
+                priority: 2,
+                render: (invoice) => (
+                  <span className="text-foreground font-medium truncate block max-w-[180px]">
+                    {invoice.client_name || "-"}
+                  </span>
+                ),
+              },
+              {
+                key: "project_number",
+                label: "Nº Proyecto",
                 sortable: true,
                 align: "left",
                 priority: 3,
                 render: (invoice) => (
-                  <span className="text-foreground truncate block">
-                    {invoice.project_name || invoice.project_number || "-"}
+                  <span className="text-muted-foreground font-mono text-sm">
+                    {invoice.project_number || "-"}
                   </span>
                 ),
               },

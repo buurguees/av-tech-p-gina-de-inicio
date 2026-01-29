@@ -43,8 +43,13 @@ const MobileSettingsPage = () => {
         const { data, error } = await supabase.rpc('get_current_user_info');
         if (error) throw error;
         if (data && data.length > 0) {
-          setUserInfo(data[0]);
-          setCurrentTheme(data[0].theme_preference || 'light');
+          const rawData = data[0];
+          const themeValue = (rawData.theme_preference === 'dark' ? 'dark' : 'light') as 'light' | 'dark';
+          setUserInfo({
+            ...rawData,
+            theme_preference: themeValue,
+          });
+          setCurrentTheme(themeValue);
         }
       } catch (error) {
         console.error('Error fetching user info:', error);
@@ -60,22 +65,13 @@ const MobileSettingsPage = () => {
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     setCurrentTheme(newTheme);
 
-    try {
-      await supabase
-        .from('users')
-        .update({ theme_preference: newTheme })
-        .eq('id', userId);
+    // Apply theme to document immediately
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
 
-      // Apply theme to document
-      document.documentElement.classList.toggle('dark', newTheme === 'dark');
-
-      toast({
-        title: "Tema actualizado",
-        description: `Tema ${newTheme === 'dark' ? 'oscuro' : 'claro'} activado`,
-      });
-    } catch (error) {
-      console.error('Error updating theme:', error);
-    }
+    toast({
+      title: "Tema actualizado",
+      description: `Tema ${newTheme === 'dark' ? 'oscuro' : 'claro'} activado`,
+    });
   };
 
   const handleLogout = async () => {
