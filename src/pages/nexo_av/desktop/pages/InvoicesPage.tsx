@@ -435,17 +435,6 @@ const InvoicesPageDesktop = () => {
                 ),
               },
               {
-                key: "source_quote_order_number",
-                label: "Presupuesto Origen",
-                align: "left",
-                priority: 7,
-                render: (invoice) => (
-                  <span className="text-muted-foreground">
-                    {invoice.source_quote_order_number || "-"}
-                  </span>
-                ),
-              },
-              {
                 key: "subtotal",
                 label: "Subtotal",
                 sortable: true,
