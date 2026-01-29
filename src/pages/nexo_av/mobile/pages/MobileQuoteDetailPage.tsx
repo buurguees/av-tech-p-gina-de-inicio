@@ -88,6 +88,7 @@ interface Client {
   billing_postal_code: string | null;
   billing_province: string | null;
   billing_country: string | null;
+  website: string | null;
 }
 
 interface Project {

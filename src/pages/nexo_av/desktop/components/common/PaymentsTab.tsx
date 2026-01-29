@@ -239,7 +239,7 @@ const PaymentsTab = ({
             <span>Cobrado</span>
             <TrendingUp className="payments-tab__stat-icon payments-tab__stat-icon--success" />
           </div>
-          <p className="payments-tab__stat-value">{formatCurrency(paidAmount)}</p>
+          <p className="payments-tab__stat-value payments-tab__stat-value--success">{formatCurrency(paidAmount)}</p>
           <div className="payments-tab__progress-wrapper">
             <div className="payments-tab__progress-bar">
               <div
@@ -270,16 +270,16 @@ const PaymentsTab = ({
 
         <div className="payments-tab__stat-card">
           <div className="payments-tab__stat-header">
-            <span>Último Movimiento</span>
+            <span>Pagos Realizados</span>
             <History className="payments-tab__stat-icon payments-tab__stat-icon--info" />
           </div>
           <p className="payments-tab__stat-value" style={{ fontSize: 'clamp(1rem, 1.125rem, 1.25rem)' }}>
-            {payments.length > 0
-              ? format(new Date(payments[0].payment_date), "dd/MM/yyyy", { locale: es })
-              : "Sin movimientos"}
+            {payments.length} pago{payments.length !== 1 ? "s" : ""}
           </p>
           <p className="payments-tab__progress-label" style={{ textTransform: 'uppercase', letterSpacing: '0.025em' }}>
-            Estado: <span style={{ color: 'hsl(var(--foreground))' }}>{status}</span>
+            {payments.length > 0
+              ? `Último: ${format(new Date(payments[0].payment_date), "dd/MM/yyyy", { locale: es })}`
+              : "Sin movimientos"}
           </p>
         </div>
       </div>

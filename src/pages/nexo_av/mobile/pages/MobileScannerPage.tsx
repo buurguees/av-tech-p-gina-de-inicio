@@ -17,14 +17,17 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ScannedDocument {
   id: string;
-  document_number: string;
   file_name: string;
+  file_path: string;
   file_type: string;
+  file_size: number;
   status: string;
+  notes: string | null;
   created_at: string;
-  processed_at: string | null;
-  supplier_name: string | null;
-  total_amount: number | null;
+  updated_at: string;
+  created_by: string | null;
+  assigned_to_id: string | null;
+  assigned_to_type: string | null;
 }
 
 const MobileScannerPage = () => {
@@ -265,24 +268,19 @@ const MobileScannerPage = () => {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-mono text-muted-foreground">
-                        {doc.document_number || 'Sin número'}
+                      <span className="text-xs font-mono text-muted-foreground truncate max-w-[150px]">
+                        {doc.file_name}
                       </span>
                       {getStatusBadge(doc.status)}
                     </div>
                     
                     <h3 className="font-medium text-foreground truncate text-sm">
-                      {doc.supplier_name || doc.file_name}
+                      {doc.notes || 'Sin descripción'}
                     </h3>
                     
                     <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3" />
                       {formatDate(doc.created_at)}
-                      {doc.total_amount && (
-                        <span className="font-medium text-foreground">
-                          {formatCurrency(doc.total_amount)}
-                        </span>
-                      )}
                     </div>
                   </div>
                   
