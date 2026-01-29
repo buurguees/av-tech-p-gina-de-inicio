@@ -617,14 +617,6 @@ const ResumenTab = ({
           color="green"
           colSpan={invoice.discount_amount > 0 ? 1 : 2}
         />
-        {invoice.discount_amount > 0 && (
-          <MetricCard
-            label="Total"
-            value={formatCurrency(invoice.total)}
-            color="green"
-            colSpan={1}
-          />
-        )}
       </div>
 
       {/* ===== ESTADO (SOLO LECTURA) ===== */}
