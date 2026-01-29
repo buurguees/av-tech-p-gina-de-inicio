@@ -13,9 +13,9 @@ interface RoleSimulatorProps {
 
 const ROLE_OPTIONS = [
   { value: 'admin', label: 'Admin', description: 'Acceso completo a todo el sistema', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  { value: 'manager', label: 'Manager', description: 'Sin Config, Auditoría, Contabilidad', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
-  { value: 'comercial', label: 'Comercial (Sales)', description: 'Ventas, clientes, presupuestos. No emite facturas', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'tecnico', label: 'Técnico', description: 'Solo proyectos y mapa técnico', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  { value: 'manager', label: 'Manager', description: 'Sin emitir facturas ni aprobar compras. Solo Escáner de Compras', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+  { value: 'comercial', label: 'Comercial (Sales)', description: 'Ventas, clientes, presupuestos. No emite facturas. Solo Escáner', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  { value: 'tecnico', label: 'Técnico', description: 'Proyectos, mapa técnico, Escáner. Mapa: solo proyectos asignados (pendiente)', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
 ];
 
 const RoleSimulator = ({ currentRole, onRoleChange, isVisible = true }: RoleSimulatorProps) => {

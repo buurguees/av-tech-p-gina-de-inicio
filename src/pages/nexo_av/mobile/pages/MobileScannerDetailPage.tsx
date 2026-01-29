@@ -306,26 +306,29 @@ const MobileScannerDetailPage = () => {
             <h2 className="text-base font-semibold truncate">{document.file_name}</h2>
           </div>
           {!isAssigned && (
-            <Button
+            <button
               onClick={handleSave}
               disabled={saving}
               className={cn(
-                "h-8 px-3 text-xs font-medium",
-                "bg-white/10 backdrop-blur-sm border border-[rgba(79,79,79,1)]",
-                "hover:bg-white/20 active:bg-white/30",
-                "transition-all duration-200",
-                "shadow-sm"
+                "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
+                "text-sm font-medium whitespace-nowrap leading-none",
+                "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
+                "text-white/90 hover:text-white hover:bg-white/15",
+                "active:scale-95 transition-all duration-200",
+                "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]",
+                "disabled:opacity-50 disabled:cursor-not-allowed"
               )}
+              style={{ touchAction: 'manipulation', height: '32px' }}
             >
               {saving ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
-                  <Save className="h-3.5 w-3.5 mr-1.5" />
-                  Guardar
+                  <Save className="h-4 w-4" />
+                  <span>Guardar</span>
                 </>
               )}
-            </Button>
+            </button>
           )}
         </div>
       </div>

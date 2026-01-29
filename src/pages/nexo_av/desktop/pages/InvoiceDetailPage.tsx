@@ -471,9 +471,9 @@ const InvoiceDetailPageDesktop = () => {
   const availableTransitions = invoice ? getAvailableStatusTransitions(invoice.status) : [];
   const canChangeStatus = availableTransitions.length > 1;
   
-  // Sales users can only create/edit drafts but NOT issue invoices
-  const isAdminOrManager = userRoles.includes('admin') || userRoles.includes('manager');
-  const canIssueInvoice = isAdminOrManager;
+  // Solo Admin puede emitir facturas. Manager y Comercial solo pueden crear/modificar borradores.
+  const isAdmin = userRoles.includes('admin');
+  const canIssueInvoice = isAdmin;
 
   if (loading) {
     return (

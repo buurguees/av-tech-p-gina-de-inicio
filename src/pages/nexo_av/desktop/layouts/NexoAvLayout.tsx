@@ -293,6 +293,15 @@ const NexoAvLayout = () => {
       path: `/nexo-av/${userId}/calculator`,
     },
     {
+      id: 'scanner',
+      title: 'Escáner',
+      icon: Receipt,
+      color: 'from-slate-500/20 to-slate-600/10',
+      borderColor: 'border-slate-500/30',
+      available: isAdmin || isManager || hasSalesAccess || hasTechAccess,
+      path: `/nexo-av/${userId}/scanner`,
+    },
+    {
       id: 'reports',
       title: 'Informes',
       icon: BarChart3,
@@ -387,7 +396,7 @@ const NexoAvLayout = () => {
         <Sidebar
           userId={userId}
           modules={modules}
-          userRole={isAdmin ? 'admin' : isManager ? 'manager' : isComercial ? 'sales' : undefined}
+          userRole={isAdmin ? 'admin' : isManager ? 'manager' : isComercial ? 'sales' : isTech ? 'tech' : undefined}
         />
       </aside>
 

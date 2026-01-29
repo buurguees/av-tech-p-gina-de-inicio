@@ -156,7 +156,7 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           title: 'Escáner',
           icon: Receipt,
           path: `/nexo-av/${userId}/scanner`,
-          available: isAdminOrManager,
+          available: getModule('scanner')?.available || false,
         },
         {
           id: 'expenses',
