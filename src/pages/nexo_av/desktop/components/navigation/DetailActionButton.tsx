@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Plus, Users, Send, Copy, Receipt, Edit, X, Save, Loader2, Building2 } from "lucide-react";
+import { Plus, Users, Send, Copy, Receipt, Edit, X, Save, Loader2, Building2, ClipboardList } from "lucide-react";
 import "../../styles/components/navigation/detail-action-button.css";
 
-export type DetailActionType = "quote" | "invoice" | "technicians" | "purchase" | "new_version" | "send" | "edit" | "new_invoice" | "new_client" | "new_project" | "new_technician" | "cancel" | "save" | "create_project";
+export type DetailActionType = "quote" | "invoice" | "technicians" | "purchase" | "purchase-order" | "new_version" | "send" | "edit" | "new_invoice" | "new_client" | "new_project" | "new_technician" | "cancel" | "save" | "create_project";
 
 interface DetailActionButtonProps {
   actionType: DetailActionType;
@@ -43,6 +43,12 @@ const DetailActionButton = ({
         return {
           label: "Subir Factura de Compra",
           icon: <Plus className="detail-action-button__icon" />,
+          variant: "default" as const,
+        };
+      case "purchase-order":
+        return {
+          label: "Nuevo Pedido de Compra",
+          icon: <ClipboardList className="detail-action-button__icon" />,
           variant: "default" as const,
         };
       case "new_version":

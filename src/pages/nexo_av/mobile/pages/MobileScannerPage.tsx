@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import MobileDocumentScanner from "../components/MobileDocumentScanner";
 
 interface ScannedDocument {
   id: string;
@@ -39,6 +40,7 @@ const MobileScannerPage = () => {
   const [documents, setDocuments] = useState<ScannedDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   const fetchDocuments = async () => {
     try {
@@ -63,10 +65,7 @@ const MobileScannerPage = () => {
   }, []);
 
   const handleCapturePhoto = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.setAttribute('capture', 'environment');
-      fileInputRef.current.click();
-    }
+    setShowScanner(true);
   };
 
   const handleSelectFile = () => {
@@ -80,13 +79,41 @@ const MobileScannerPage = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    await handleUpload(file);
+  };
+
+  const handleUpload = async (fileOrBlob: File | Blob) => {
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "Usuario no identificado",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploading(true);
     try {
-      // Upload file to Supabase Storage
-      const fileName = `${Date.now()}_${file.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      // Get auth user id for storage path
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        toast({
+          title: "Error",
+          description: "Usuario no autenticado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Upload to storage using auth.uid() for proper RLS
+      // Always use PDF extension for scanned documents
+      const timestamp = Date.now();
+      const fileName = `scan_${timestamp}.pdf`;
+      const filePath = `${authUser.id}/scanner/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
         .from('scanned-documents')
-        .upload(fileName, file);
+        .upload(filePath, fileOrBlob);
 
       if (uploadError) throw uploadError;
 
@@ -94,11 +121,14 @@ const MobileScannerPage = () => {
       const { data: docData, error: docError } = await supabase
         .from('scanned_documents')
         .insert({
-          file_name: file.name,
-          file_path: uploadData.path,
-          file_type: file.type,
+          file_path: filePath,
+          file_name: fileOrBlob instanceof File && fileOrBlob.type === 'application/pdf' 
+            ? fileOrBlob.name 
+            : fileName,
+          file_size: fileOrBlob.size,
+          file_type: 'application/pdf',
           status: 'UNASSIGNED',
-          uploaded_by: userId,
+          created_by: userId,
         })
         .select()
         .single();
@@ -117,11 +147,11 @@ const MobileScannerPage = () => {
       if (docData) {
         navigate(`/nexo-av/${userId}/scanner/${docData.id}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading document:', error);
       toast({
         title: "Error",
-        description: "No se pudo subir el documento",
+        description: error.message || "No se pudo subir el documento",
         variant: "destructive",
       });
     } finally {
@@ -130,6 +160,11 @@ const MobileScannerPage = () => {
         fileInputRef.current.value = '';
       }
     }
+  };
+
+  const handleScannerCapture = (blob: Blob) => {
+    setShowScanner(false);
+    handleUpload(blob);
   };
 
   const handleDocumentClick = (documentId: string) => {
@@ -182,15 +217,24 @@ const MobileScannerPage = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden">
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*,application/pdf"
-        onChange={handleFileChange}
-        className="hidden"
-      />
+    <>
+      {showScanner && (
+        <MobileDocumentScanner
+          onCapture={handleScannerCapture}
+          onCancel={() => setShowScanner(false)}
+          title="Escanear Documento"
+        />
+      )}
+      
+      <div className="w-full h-full flex flex-col overflow-hidden">
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,application/pdf"
+          onChange={handleFileChange}
+          className="hidden"
+        />
 
       {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-3 mb-6 flex-shrink-0">
@@ -292,6 +336,7 @@ const MobileScannerPage = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

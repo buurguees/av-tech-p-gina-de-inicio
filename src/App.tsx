@@ -70,6 +70,9 @@ const NexoPartnersPage = lazy(() => import("./pages/nexo_av/desktop/pages/Partne
 const NexoPartnerDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/PartnerDetailPage"));
 const NexoWorkersPage = lazy(() => import("./pages/nexo_av/desktop/pages/WorkersPage"));
 const NexoWorkerDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/WorkerDetailPage"));
+const NexoPurchaseOrdersPage = lazy(() => import("./pages/nexo_av/desktop/pages/PurchaseOrdersPage"));
+const NexoPurchaseOrderDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/PurchaseOrderDetailPage"));
+const NexoNewPurchaseOrderPage = lazy(() => import("./pages/nexo_av/desktop/pages/NewPurchaseOrderPage"));
 
 // ============================================================
 // RESPONSIVE PAGES - Load different components for mobile/desktop
@@ -225,6 +228,10 @@ const App = () => (
                 <Route path="suppliers/:supplierId" element={<NexoSupplierDetailPage />} />
                 <Route path="invoices" element={<ResponsiveInvoicesPage />} />
                 <Route path="scanner/:documentId" element={<ResponsiveScannerDetailPage />} />
+                <Route path="purchase-orders" element={<NexoPurchaseOrdersPage />} />
+                <Route path="purchase-orders/new" element={<NexoNewPurchaseOrderPage />} />
+                <Route path="purchase-orders/:orderId" element={<NexoPurchaseOrderDetailPage />} />
+                <Route path="purchase-orders/:orderId/edit" element={<NexoNewPurchaseOrderPage />} />
                 <Route path="purchase-invoices" element={<NexoPurchaseInvoicesPage />} />
                 <Route path="purchase-invoices/new" element={<NexoNewPurchaseInvoicePage />} />
                 <Route path="purchase-invoices/:invoiceId" element={<NexoPurchaseInvoiceDetailPage />} />

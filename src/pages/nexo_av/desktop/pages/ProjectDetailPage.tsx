@@ -9,6 +9,7 @@ import { DetailDashboard, DetailDashboardKPIs, DetailDashboardTasks } from "../c
 import ProjectInvoicesList from "../components/projects/ProjectInvoicesList";
 import ProjectQuotesList from "../components/projects/ProjectQuotesList";
 import ProjectPurchasesList from "../components/projects/ProjectPurchasesList";
+import ProjectPurchaseOrdersList from "../components/projects/ProjectPurchaseOrdersList";
 import ProjectHistoryTab from "../components/projects/ProjectHistoryTab";
 import EditProjectDialog from "../components/projects/EditProjectDialog";
 import StatusSelector from "../components/common/StatusSelector";
@@ -21,6 +22,7 @@ import {
   FileText,
   Receipt,
   ShoppingCart,
+  ClipboardList,
   Hash,
   Mail,
   FileText as FileTextIcon,
@@ -88,6 +90,7 @@ const ProjectDetailPageDesktop = () => {
     { value: "tecnicos", label: "Técnicos", icon: Users },
     { value: "presupuestos", label: "Presupuestos", icon: FileText },
     { value: "facturas", label: "Facturas", icon: Receipt },
+    { value: "pedidos", label: "Pedidos", icon: ClipboardList },
     { value: "compras", label: "Compras", icon: ShoppingCart },
     { value: "historico", label: "Histórico", icon: History, align: "right" },
   ];
@@ -239,6 +242,8 @@ const ProjectDetailPageDesktop = () => {
         return "invoice";
       case "tecnicos":
         return "technicians";
+      case "pedidos":
+        return "purchase-order";
       case "compras":
         return "purchase";
       default:
@@ -275,10 +280,13 @@ const ProjectDetailPageDesktop = () => {
         // TODO: Abrir diálogo para asignar técnicos
         console.log("Asignar técnicos al proyecto:", projectId);
         break;
+      case "purchase-order":
+        // Navegar a crear pedido de compra con projectId
+        navigate(`/nexo-av/${userId}/purchase-orders/new?projectId=${projectId}`);
+        break;
       case "purchase":
-        // TODO: Navegar a crear compra con projectId
-        console.log("Crear compra para proyecto:", projectId);
-        // navigate(`/nexo-av/${userId}/purchase-invoices/new?projectId=${projectId}`);
+        // Navegar a crear factura de compra con projectId
+        navigate(`/nexo-av/${userId}/purchase-invoices/new?projectId=${projectId}`);
         break;
     }
   };
@@ -370,6 +378,9 @@ const ProjectDetailPageDesktop = () => {
             )}
             {activeTab === "facturas" && projectId && (
               <ProjectInvoicesList projectId={projectId} />
+            )}
+            {activeTab === "pedidos" && projectId && (
+              <ProjectPurchaseOrdersList projectId={projectId} />
             )}
             {activeTab === "compras" && projectId && (
               <ProjectPurchasesList projectId={projectId} />

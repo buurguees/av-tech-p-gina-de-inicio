@@ -138,10 +138,10 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
       icon: ShoppingCart,
       items: [
         {
-          id: 'scanner',
-          title: 'Escáner',
-          icon: Receipt,
-          path: `/nexo-av/${userId}/scanner`,
+          id: 'purchase-orders',
+          title: 'Pedidos de Compra',
+          icon: FileText,
+          path: `/nexo-av/${userId}/purchase-orders`,
           available: isAdminOrManager,
         },
         {
@@ -149,6 +149,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           title: 'Facturas de Compra',
           icon: ShoppingCart,
           path: `/nexo-av/${userId}/purchase-invoices`,
+          available: isAdminOrManager,
+        },
+        {
+          id: 'scanner',
+          title: 'Escáner',
+          icon: Receipt,
+          path: `/nexo-av/${userId}/scanner`,
           available: isAdminOrManager,
         },
         {
