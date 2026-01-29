@@ -251,7 +251,7 @@ export default function CreatePayrollPaymentDialog({
           description: `Asiento ${result?.entry_number} generado - El balance bancario se ha actualizado`,
         });
       } else {
-        // Para nóminas de empleados, usar RPC existente o crear nueva
+        // Para nóminas de empleados, usar RPC con cuenta bancaria
         const { data, error } = await supabase.rpc("create_payroll_payment", {
           p_amount: parseFloat(formData.amount),
           p_payroll_run_id: formData.payroll_run_id,
@@ -259,14 +259,15 @@ export default function CreatePayrollPaymentDialog({
           p_payment_date: formData.payment_date,
           p_payment_method: formData.payment_method,
           p_bank_reference: formData.bank_reference || null,
-          p_notes: `Banco: ${selectedBank?.bank_name || 'N/A'}. ${formData.notes || ''}`,
+          p_notes: formData.notes || null,
+          p_company_bank_account_id: formData.bank_account_id || null,
         });
 
         if (error) throw error;
 
         toast({
           title: "Pago registrado",
-          description: "El pago se ha registrado y el asiento contable se ha generado",
+          description: `El pago se ha registrado desde ${selectedBank?.bank_name || 'el banco'} y el asiento contable se ha generado`,
         });
       }
 
