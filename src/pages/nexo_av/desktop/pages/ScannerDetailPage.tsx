@@ -352,6 +352,7 @@ const ScannerDetailPage = () => {
             p_unit_price: line.unit_price,
             p_tax_rate: line.tax_rate,
             p_withholding_tax_rate: line.withholding_tax_rate || 0,
+            p_discount_percent: line.discount_percent || 0,
           });
           
           if (lineError) {
