@@ -247,7 +247,7 @@ const InvoicesPageDesktop = () => {
                 <span className="text-base font-bold text-white">
                   {formatCurrency(invoices
                     .filter(inv => inv.status !== 'PAID' && inv.status !== 'DRAFT' && inv.status !== 'CANCELLED')
-                    .reduce((sum, inv) => sum + (inv.total || 0), 0)
+                    .reduce((sum, inv) => sum + (inv.pending_amount || 0), 0)
                   )}
                 </span>
               </div>
@@ -266,9 +266,10 @@ const InvoicesPageDesktop = () => {
                     .filter(inv => {
                       if (inv.status === 'PAID' || inv.status === 'DRAFT' || inv.status === 'CANCELLED') return false;
                       if (!inv.due_date) return false;
+                      if (inv.pending_amount <= 0) return false; // Solo facturas con saldo pendiente
                       return new Date(inv.due_date) < new Date();
                     })
-                    .reduce((sum, inv) => sum + (inv.total || 0), 0)
+                    .reduce((sum, inv) => sum + (inv.pending_amount || 0), 0)
                   )}
                 </span>
                 <div className="flex items-center gap-1 mt-1 text-[9px] px-1.5 py-0.5 text-red-400/80">
