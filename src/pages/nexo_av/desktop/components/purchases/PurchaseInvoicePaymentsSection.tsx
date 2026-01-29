@@ -168,10 +168,19 @@ const PurchaseInvoicePaymentsSection = ({
     onPaymentChange();
   };
 
-  // Permitir pagos en facturas CONFIRMED, PARTIAL o PAID
+  // Permitir pagos en facturas con estados válidos para pagos
   // isLocked solo impide editar la factura, no registrar pagos
-  // Permitir pagos en facturas APPROVED, CONFIRMED, PARTIAL, REGISTERED
-  const canRegisterPayment = ["CONFIRMED", "PARTIAL", "PAID", "REGISTERED", "APPROVED"].includes(status);
+  // Incluye PENDING_VALIDATION para facturas del escáner que ya están validadas por el usuario
+  const canRegisterPayment = [
+    "CONFIRMED", 
+    "PARTIAL", 
+    "PAID", 
+    "REGISTERED", 
+    "APPROVED",
+    "PENDING_VALIDATION", // Facturas del escáner
+    "PENDING",            // Facturas pendientes
+    "DRAFT"               // Borradores
+  ].includes(status);
 
   // Permitir registrar pagos si hay saldo pendiente (positivo o negativo)
   const hasPendingBalance = Math.abs(pendingAmount) > 0.01;

@@ -13,5 +13,7 @@ export { default as MobileInvoiceDetailPage } from './MobileInvoiceDetailPage';
 export { default as MobileEditClientPage } from './MobileEditClientPage';
 export { default as MobileScannerPage } from './MobileScannerPage';
 export { default as MobileScannerDetailPage } from './MobileScannerDetailPage';
+export { default as MobileNewQuotePage } from './MobileNewQuotePage';
+export { default as MobileEditQuotePage } from './MobileEditQuotePage';
 export { default as MobileSettingsPage } from './MobileSettingsPage';
 export { default as MobileNotFound } from './MobileNotFound';

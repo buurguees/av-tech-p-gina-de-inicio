@@ -49,19 +49,10 @@ const FilePreview = ({ filePath }: { filePath: string }) => {
     const getSignedUrl = async () => {
       try {
         setLoading(true);
-        // Try scanned-documents first (mobile), then purchase-documents (desktop)
-        let data, error;
-        
-        ({ data, error } = await supabase.storage
-          .from('scanned-documents')
-          .createSignedUrl(filePath, 3600));
-        
-        if (error) {
-          // Try purchase-documents as fallback
-          ({ data, error } = await supabase.storage
-            .from('purchase-documents')
-            .createSignedUrl(filePath, 3600));
-        }
+        // Use purchase-documents bucket
+        const { data, error } = await supabase.storage
+          .from('purchase-documents')
+          .createSignedUrl(filePath, 3600);
         
         if (error) throw error;
         setFileUrl(data.signedUrl);

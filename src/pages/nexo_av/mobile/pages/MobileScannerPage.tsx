@@ -112,7 +112,7 @@ const MobileScannerPage = () => {
       const filePath = `${authUser.id}/scanner/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('scanned-documents')
+        .from('purchase-documents')
         .upload(filePath, fileOrBlob);
 
       if (uploadError) throw uploadError;

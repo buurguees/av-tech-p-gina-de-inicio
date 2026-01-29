@@ -120,6 +120,12 @@ const ResponsiveNewQuotePage = createResponsivePage(
   () => import("./pages/nexo_av/mobile/pages/MobileNewQuotePage")
 );
 
+// Edit Quote - Desktop & Mobile
+const ResponsiveEditQuotePage = createResponsivePage(
+  () => import("./pages/nexo_av/desktop/pages/EditQuotePage"),
+  () => import("./pages/nexo_av/mobile/pages/MobileEditQuotePage")
+);
+
 // Clients - Desktop & Mobile
 const ResponsiveClientsPage = createResponsivePage(
   () => import("./pages/nexo_av/desktop/pages/ClientsPage"),
@@ -207,7 +213,7 @@ const App = () => (
                 <Route path="clients/:clientId/edit" element={<ResponsiveEditClientPage />} />
                 <Route path="quotes/new" element={<ResponsiveNewQuotePage />} />
                 <Route path="quotes/:quoteId" element={<ResponsiveQuoteDetailPage />} />
-                <Route path="quotes/:quoteId/edit" element={<NexoEditQuotePage />} />
+                <Route path="quotes/:quoteId/edit" element={<ResponsiveEditQuotePage />} />
                 <Route path="clients/:clientId/quotes/new" element={<ResponsiveNewQuotePage />} />
                 <Route path="projects/new" element={<ResponsiveNewProjectPage />} />
                 <Route path="projects/new" element={<ResponsiveNewProjectPage />} />

@@ -1,0 +1,913 @@
+/**
+ * MobileEditQuotePage - Página para editar presupuesto en móvil
+ * Misma estructura que MobileNewQuotePage pero cargando datos existentes
+ */
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Loader2, 
+  ChevronLeft,
+  Save,
+  Plus,
+  Trash2,
+  ChevronDown,
+  Package,
+  Wrench,
+  Boxes
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getStatusInfo } from "@/constants/quoteStatuses";
+
+// Estados que bloquean la edición
+const LOCKED_STATES = ["SENT", "APPROVED", "REJECTED", "EXPIRED", "INVOICED"];
+
+interface Client {
+  id: string;
+  company_name: string;
+  client_number: string;
+  lead_stage?: string;
+}
+
+interface Project {
+  id: string;
+  project_name: string;
+  project_number: string;
+}
+
+interface TaxOption {
+  value: number;
+  label: string;
+}
+
+interface CatalogItem {
+  id: string;
+  type: 'product' | 'service' | 'pack';
+  name: string;
+  code: string;
+  price: number;
+  tax_rate: number;
+  description?: string;
+}
+
+interface QuoteLine {
+  id?: string;
+  tempId: string;
+  group_name?: string;
+  concept: string;
+  description?: string;
+  quantity: number;
+  unit_price: number;
+  tax_rate: number;
+  discount_percent: number;
+  subtotal: number;
+  tax_amount: number;
+  total: number;
+  isNew?: boolean;
+  isModified?: boolean;
+  isDeleted?: boolean;
+}
+
+interface Quote {
+  id: string;
+  quote_number: string;
+  client_id: string;
+  client_name: string;
+  project_id: string | null;
+  project_name: string | null;
+  status: string;
+  valid_until: string | null;
+}
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat("es-ES", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+};
+
+const MobileEditQuotePage = () => {
+  const { userId, quoteId } = useParams<{ userId: string; quoteId: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
+  const [defaultTaxRate, setDefaultTaxRate] = useState(21);
+  const [lines, setLines] = useState<QuoteLine[]>([]);
+  
+  // Search state for ProductSearchInput
+  const [searchResults, setSearchResults] = useState<CatalogItem[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (quoteId) {
+      fetchQuoteData();
+      fetchClients();
+      fetchSaleTaxes();
+    }
+  }, [quoteId]);
+
+  useEffect(() => {
+    if (selectedClientId) {
+      fetchProjects(selectedClientId);
+    } else {
+      setProjects([]);
+      setSelectedProjectId("");
+    }
+  }, [selectedClientId]);
+
+  // Set project after projects are loaded
+  useEffect(() => {
+    if (projects.length > 0 && quote?.project_id && !selectedProjectId) {
+      const projectExists = projects.some(p => p.id === quote.project_id);
+      if (projectExists) {
+        setSelectedProjectId(quote.project_id);
+      }
+    }
+  }, [projects, quote?.project_id, selectedProjectId]);
+
+  const fetchQuoteData = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch quote
+      const { data: quoteData, error: quoteError } = await supabase.rpc("get_quote", {
+        p_quote_id: quoteId
+      });
+      
+      if (quoteError) throw quoteError;
+      if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
+      
+      const quoteInfo = quoteData[0];
+
+      // Check if quote is locked
+      if (LOCKED_STATES.includes(quoteInfo.status)) {
+        toast({
+          title: "Presupuesto bloqueado",
+          description: `El presupuesto está en estado "${getStatusInfo(quoteInfo.status).label}" y no puede ser editado.`,
+          variant: "destructive"
+        });
+        navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
+        return;
+      }
+
+      setQuote(quoteInfo);
+      setSelectedClientId(quoteInfo.client_id);
+
+      // Fetch quote lines
+      const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", {
+        p_quote_id: quoteId
+      });
+      
+      if (linesError) throw linesError;
+      
+      const loadedLines: QuoteLine[] = (linesData || []).map((line: any) => ({
+        id: line.id,
+        tempId: line.id || crypto.randomUUID(),
+        group_name: line.group_name || "",
+        concept: line.concept || "",
+        description: line.description || "",
+        quantity: line.quantity || 0,
+        unit_price: line.unit_price || 0,
+        tax_rate: line.tax_rate || 21,
+        discount_percent: line.discount_percent || 0,
+        subtotal: line.subtotal || 0,
+        tax_amount: line.tax_amount || 0,
+        total: line.total || 0,
+        isNew: false,
+        isModified: false,
+        isDeleted: false,
+      }));
+
+      setLines(loadedLines.length > 0 ? loadedLines : []);
+      
+      if (loadedLines.length === 0) {
+        addEmptyLine();
+      }
+    } catch (error: any) {
+      console.error("Error fetching quote:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo cargar el presupuesto",
+        variant: "destructive"
+      });
+      navigate(`/nexo-av/${userId}/quotes`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const { data, error } = await supabase.rpc("list_clients", { p_search: null });
+      if (error) throw error;
+      setClients(
+        (data || []).map((c: any) => ({
+          id: c.id,
+          company_name: c.company_name,
+          client_number: c.client_number,
+          lead_stage: c.lead_stage,
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+    }
+  };
+
+  const fetchProjects = async (clientId: string) => {
+    try {
+      const { data, error } = await supabase.rpc("list_projects", { p_search: "" });
+      if (error) throw error;
+      const clientProjects = (data || []).filter((p: any) => p.client_id === clientId);
+      setProjects(
+        clientProjects.map((p: any) => ({
+          id: p.id,
+          project_name: p.project_name,
+          project_number: p.project_number,
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      setProjects([]);
+    }
+  };
+
+  const fetchSaleTaxes = async () => {
+    try {
+      const { data, error } = await supabase.rpc("list_taxes", { p_tax_type: "sales" });
+      if (error) throw error;
+      const options: TaxOption[] = (data || [])
+        .filter((t: any) => t.is_active)
+        .map((t: any) => ({ value: t.rate, label: t.name }));
+      setTaxOptions(options);
+      const defaultTax = (data || []).find((t: any) => t.is_default && t.is_active);
+      setDefaultTaxRate(defaultTax?.rate ?? options[0]?.value ?? 21);
+    } catch (error) {
+      console.error("Error fetching taxes:", error);
+      setTaxOptions([{ value: 21, label: "IVA 21%" }]);
+    }
+  };
+
+  const searchCatalog = async (query: string, lineIndex: number) => {
+    if (query.length < 1) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    setSearchLoading(true);
+    setActiveSearchIndex(lineIndex);
+    
+    try {
+      const keywords = query.toLowerCase().trim().split(/\s+/).filter(k => k.length > 0);
+      
+      const { data: productsData, error: productsError } = await supabase.rpc('list_products', {
+        p_search: keywords[0] || query,
+      });
+
+      const { data: packsData, error: packsError } = await supabase.rpc('list_product_packs', {
+        p_search: keywords[0] || query,
+      });
+
+      if (productsError) console.error('Error searching products:', productsError);
+      if (packsError) console.error('Error searching packs:', packsError);
+
+      const items: CatalogItem[] = [];
+
+      if (productsData) {
+        productsData.forEach((p: any) => {
+          const itemType: 'product' | 'service' = p.type === 'service' ? 'service' : 'product';
+          items.push({
+            id: p.id,
+            type: itemType,
+            name: p.name,
+            code: p.product_number,
+            price: Number(p.base_price) || 0,
+            tax_rate: Number(p.tax_rate) || 21,
+            description: p.description || '',
+          });
+        });
+      }
+
+      if (packsData) {
+        packsData.forEach((p: any) => {
+          items.push({
+            id: p.id,
+            type: 'pack',
+            name: p.name,
+            code: p.pack_number,
+            price: Number(p.final_price) || 0,
+            tax_rate: Number(p.tax_rate) || 21,
+            description: p.description || '',
+          });
+        });
+      }
+
+      const filteredItems = items.filter(item => {
+        const searchText = `${item.name} ${item.code} ${item.description}`.toLowerCase();
+        return keywords.every(keyword => searchText.includes(keyword));
+      });
+
+      setSearchResults(filteredItems.slice(0, 10));
+      setShowSearchResults(filteredItems.length > 0);
+    } catch (error) {
+      console.error('Error searching catalog:', error);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const calculateLineValues = useCallback((line: Partial<QuoteLine>): QuoteLine => {
+    const quantity = line.quantity || 0;
+    const unitPrice = line.unit_price || 0;
+    const discountPercent = line.discount_percent || 0;
+    const taxRate = line.tax_rate ?? defaultTaxRate;
+
+    const subtotal = quantity * unitPrice * (1 - discountPercent / 100);
+    const taxAmount = subtotal * (taxRate / 100);
+    const total = subtotal + taxAmount;
+
+    return {
+      id: line.id,
+      tempId: line.tempId || crypto.randomUUID(),
+      group_name: line.group_name || "",
+      concept: line.concept || "",
+      description: line.description || "",
+      quantity,
+      unit_price: unitPrice,
+      tax_rate: taxRate,
+      discount_percent: discountPercent,
+      subtotal,
+      tax_amount: taxAmount,
+      total,
+      isNew: line.isNew,
+      isModified: line.isModified,
+      isDeleted: line.isDeleted,
+    };
+  }, [defaultTaxRate]);
+
+  const addEmptyLine = useCallback(() => {
+    const newLine = calculateLineValues({
+      tempId: crypto.randomUUID(),
+      group_name: "",
+      concept: "",
+      quantity: 1,
+      unit_price: 0,
+      tax_rate: defaultTaxRate,
+      discount_percent: 0,
+      isNew: true,
+    });
+    setLines(prev => [...prev, newLine]);
+  }, [calculateLineValues, defaultTaxRate]);
+
+  const updateLine = useCallback((index: number, field: keyof QuoteLine, value: any) => {
+    setLines(prev => {
+      const updated = [...prev];
+      const line = updated[index];
+      const updatedLine = calculateLineValues({ 
+        ...line, 
+        [field]: value,
+        isModified: line.id ? true : line.isModified, // Mark as modified if it has an ID
+      });
+      updated[index] = updatedLine;
+      return updated;
+    });
+  }, [calculateLineValues]);
+
+  const removeLine = useCallback((index: number) => {
+    setLines(prev => {
+      const updated = [...prev];
+      const line = updated[index];
+      
+      if (line.id) {
+        // Mark for deletion if it exists in DB
+        updated[index] = { ...line, isDeleted: true };
+      } else {
+        // Remove from array if it's a new line
+        return prev.filter((_, i) => i !== index);
+      }
+      
+      return updated;
+    });
+  }, []);
+
+  const handleSelectCatalogItem = (item: CatalogItem, lineIndex: number) => {
+    setLines(prev => {
+      const updated = [...prev];
+      const line = updated[lineIndex];
+      updated[lineIndex] = calculateLineValues({
+        ...line,
+        concept: item.name,
+        unit_price: item.price,
+        tax_rate: item.tax_rate,
+        description: item.description || line.description,
+        isModified: line.id ? true : line.isModified,
+      });
+      return updated;
+    });
+    setShowSearchResults(false);
+    setActiveSearchIndex(null);
+  };
+
+  const visibleLines = useMemo(() => lines.filter(l => !l.isDeleted), [lines]);
+
+  const totals = useMemo(() => {
+    const validLines = visibleLines.filter(l => l.concept.trim());
+    const subtotal = validLines.reduce((acc, l) => acc + l.subtotal, 0);
+    const taxAmount = validLines.reduce((acc, l) => acc + l.tax_amount, 0);
+    const total = validLines.reduce((acc, l) => acc + l.total, 0);
+    return { subtotal, taxAmount, total };
+  }, [visibleLines]);
+
+  const handleSave = async () => {
+    if (!selectedClientId) {
+      toast({ title: "Error", description: "Selecciona un cliente", variant: "destructive" });
+      return;
+    }
+
+    const validLines = visibleLines.filter(l => l.concept.trim());
+    if (validLines.length === 0) {
+      toast({ title: "Error", description: "Añade al menos una línea", variant: "destructive" });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Update quote
+      const selectedProject = projects.find((p) => p.id === selectedProjectId);
+      
+      // Calculate valid_until (today + 30 days for DRAFT)
+      const validDate = new Date();
+      validDate.setDate(validDate.getDate() + 30);
+      const calculatedValidUntil = quote?.status === "DRAFT" 
+        ? validDate.toISOString().split("T")[0]
+        : quote?.valid_until || validDate.toISOString().split("T")[0];
+
+      const { error: quoteError } = await supabase.rpc("update_quote", {
+        p_quote_id: quoteId!,
+        p_client_id: selectedClientId,
+        p_project_name: selectedProject?.project_name || null,
+        p_valid_until: calculatedValidUntil,
+        p_status: quote?.status || "DRAFT",
+        p_project_id: selectedProjectId || null
+      });
+
+      if (quoteError) throw quoteError;
+
+      // Map to track new line IDs
+      const idMap = new Map<string, string>();
+
+      // Process lines: delete, add, update
+      for (const line of lines) {
+        if (line.isDeleted && line.id) {
+          // Delete line
+          const { error } = await supabase.rpc("delete_quote_line", {
+            p_line_id: line.id
+          });
+          if (error) throw error;
+        } else if (line.isNew && line.concept.trim()) {
+          // Add new line
+          const { data: newLineId, error } = await supabase.rpc("add_quote_line", {
+            p_quote_id: quoteId!,
+            p_concept: line.concept,
+            p_description: line.description || null,
+            p_quantity: line.quantity,
+            p_unit_price: line.unit_price,
+            p_tax_rate: line.tax_rate,
+            p_discount_percent: line.discount_percent,
+            p_group_name: line.group_name || null,
+            p_line_order: null,
+          });
+          if (error) throw error;
+          const lineId = typeof newLineId === 'string' ? newLineId : newLineId?.[0] || newLineId;
+          if (lineId) {
+            idMap.set(line.tempId, lineId);
+          }
+        } else if (line.id && line.isModified) {
+          // Update existing line
+          const { error } = await supabase.rpc("update_quote_line", {
+            p_line_id: line.id,
+            p_concept: line.concept,
+            p_description: line.description || null,
+            p_quantity: line.quantity,
+            p_unit_price: line.unit_price,
+            p_tax_rate: line.tax_rate,
+            p_discount_percent: line.discount_percent
+          });
+          if (error) throw error;
+          idMap.set(line.id, line.id);
+        } else if (line.id) {
+          idMap.set(line.id, line.id);
+        }
+      }
+
+      // Update line order
+      const lineIdsToOrder: string[] = [];
+      for (const line of visibleLines.filter(l => l.concept.trim())) {
+        const key = line.id || line.tempId;
+        if (idMap.has(key)) {
+          lineIdsToOrder.push(idMap.get(key)!);
+        }
+      }
+
+      if (lineIdsToOrder.length > 0) {
+        await supabase.rpc("update_quote_lines_order", {
+          p_quote_id: quoteId!,
+          p_line_ids: lineIdsToOrder
+        });
+      }
+
+      toast({ title: "Presupuesto actualizado", description: "Los cambios se han guardado" });
+      navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
+    } catch (error: any) {
+      console.error("Error saving quote:", error);
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleBack = () => {
+    navigate(`/nexo-av/${userId}/quotes/${quoteId}`);
+  };
+
+  const availableClients = clients.filter(client => client.lead_stage !== 'LOST');
+
+  if (loading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-full flex flex-col">
+      {/* ===== HEADER ===== */}
+      <div className="flex-shrink-0 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleBack}
+            className={cn(
+              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
+              "text-sm font-medium whitespace-nowrap leading-none",
+              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
+              "text-white/90 hover:text-white hover:bg-white/15",
+              "active:scale-95 transition-all duration-200",
+              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+            )}
+            style={{ touchAction: 'manipulation' }}
+            aria-label="Volver"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span>Atrás</span>
+          </button>
+          
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base font-medium text-foreground truncate leading-tight">
+              Editar {quote?.quote_number}
+            </h1>
+          </div>
+
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={cn(
+              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
+              "text-sm font-medium whitespace-nowrap leading-none",
+              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
+              "text-white/90 hover:text-white hover:bg-white/15",
+              "active:scale-95 transition-all duration-200",
+              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]",
+              "disabled:opacity-50 disabled:cursor-not-allowed"
+            )}
+            style={{ touchAction: 'manipulation', height: '32px' }}
+          >
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Guardando...</span>
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                <span>Guardar</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* ===== FORMULARIO ===== */}
+      <div className="flex-1 min-h-0 overflow-y-auto pb-[80px]">
+        <div className="px-4 py-4 space-y-4">
+          {/* ===== BLOQUE: CLIENTE Y PROYECTO ===== */}
+          <div className="bg-card border border-border rounded-xl p-4 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Cliente
+              </Label>
+              <Select 
+                value={selectedClientId}
+                onValueChange={(value) => {
+                  setSelectedClientId(value);
+                  setSelectedProjectId("");
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccionar cliente..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableClients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.company_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedClientId && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Proyecto
+                </Label>
+                <Select 
+                  value={selectedProjectId}
+                  onValueChange={setSelectedProjectId}
+                  disabled={projects.length === 0}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={projects.length === 0 ? "Sin proyectos" : "Seleccionar proyecto..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.project_name} ({p.project_number})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          {/* ===== BLOQUES DE LÍNEAS ===== */}
+          {visibleLines.map((line, index) => {
+            const realIndex = lines.findIndex(l => l.tempId === line.tempId);
+            return (
+              <div key={line.tempId} className="space-y-3">
+                {/* Bloque de línea */}
+                <div className="bg-card border border-border rounded-xl p-4 space-y-3 relative">
+                  {/* Botón eliminar línea */}
+                  {visibleLines.length > 1 && (
+                    <button
+                      onClick={() => removeLine(realIndex)}
+                      className="absolute top-3 right-3 p-1.5 text-destructive hover:bg-destructive/10 rounded-lg transition-colors z-10"
+                      style={{ touchAction: 'manipulation' }}
+                      aria-label="Eliminar línea"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+
+                  {/* Grupo y Concepto */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Grupo
+                      </Label>
+                      <Input
+                        placeholder="Grupo"
+                        value={line.group_name || ""}
+                        onChange={(e) => updateLine(realIndex, 'group_name', e.target.value)}
+                        className="bg-card border-border"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5 relative">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Concepto
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          placeholder="Buscar o escribir el concepto"
+                          value={line.concept}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            updateLine(realIndex, 'concept', value);
+                            if (value.length > 0) {
+                              searchCatalog(value, index);
+                            } else {
+                              setShowSearchResults(false);
+                            }
+                          }}
+                          onFocus={() => {
+                            if (line.concept.length > 0) {
+                              searchCatalog(line.concept, index);
+                            }
+                          }}
+                          className="bg-card border-border pr-10"
+                        />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        
+                        {/* Dropdown de resultados de búsqueda */}
+                        {showSearchResults && activeSearchIndex === index && (
+                          <>
+                            <div 
+                              className="fixed inset-0 z-40" 
+                              onClick={() => {
+                                setShowSearchResults(false);
+                                setActiveSearchIndex(null);
+                              }}
+                            />
+                            <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                              {searchLoading ? (
+                                <div className="p-4 text-center">
+                                  <Loader2 className="h-4 w-4 animate-spin mx-auto text-muted-foreground" />
+                                </div>
+                              ) : searchResults.length > 0 ? (
+                                searchResults.map((item) => {
+                                  const Icon = item.type === 'pack' ? Boxes : item.type === 'service' ? Wrench : Package;
+                                  return (
+                                    <button
+                                      key={item.id}
+                                      onClick={() => handleSelectCatalogItem(item, realIndex)}
+                                      className="w-full px-4 py-3 text-left hover:bg-muted transition-colors border-b border-border last:border-b-0"
+                                      style={{ touchAction: 'manipulation' }}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
+                                          <p className="text-xs text-muted-foreground">{item.code}</p>
+                                        </div>
+                                        <p className="text-sm font-medium text-foreground">{formatCurrency(item.price)}</p>
+                                      </div>
+                                    </button>
+                                  );
+                                })
+                              ) : (
+                                <div className="p-4 text-center text-sm text-muted-foreground">
+                                  Sin resultados
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Descripción */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      Descripción
+                    </Label>
+                    <Textarea
+                      placeholder="Descripción opcional..."
+                      value={line.description || ""}
+                      onChange={(e) => updateLine(realIndex, 'description', e.target.value)}
+                      rows={2}
+                      className="bg-card border-border resize-none"
+                    />
+                  </div>
+
+                  {/* Precio y Cantidad */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Precio
+                      </Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={line.unit_price || ""}
+                        onChange={(e) => updateLine(realIndex, 'unit_price', parseFloat(e.target.value) || 0)}
+                        className="bg-card border-border"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Cantidad
+                      </Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="1"
+                        value={line.quantity || ""}
+                        onChange={(e) => updateLine(realIndex, 'quantity', parseFloat(e.target.value) || 0)}
+                        className="bg-card border-border"
+                      />
+                    </div>
+                  </div>
+
+                  {/* DTO y Impuesto */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        DTO.
+                      </Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        placeholder="0"
+                        value={line.discount_percent || ""}
+                        onChange={(e) => updateLine(realIndex, 'discount_percent', parseFloat(e.target.value) || 0)}
+                        className="bg-card border-border"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Impuesto
+                      </Label>
+                      <Select 
+                        value={line.tax_rate.toString()}
+                        onValueChange={(value) => updateLine(realIndex, 'tax_rate', parseFloat(value))}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {taxOptions.map(tax => (
+                            <SelectItem key={tax.value} value={tax.value.toString()}>
+                              {tax.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Botón añadir línea debajo de cada bloque */}
+                <button
+                  onClick={addEmptyLine}
+                  className={cn(
+                    "w-full p-3 border-2 border-dashed border-border rounded-xl",
+                    "bg-card hover:bg-muted/50 transition-colors",
+                    "flex items-center justify-center gap-2",
+                    "text-sm font-medium text-muted-foreground"
+                  )}
+                  style={{ touchAction: 'manipulation' }}
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Agregar línea</span>
+                </button>
+              </div>
+            );
+          })}
+
+          {/* Totales */}
+          {visibleLines.some(l => l.concept.trim()) && (
+            <div className="bg-card border border-border rounded-xl p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-foreground font-medium">{formatCurrency(totals.subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">IVA</span>
+                <span className="text-foreground font-medium">{formatCurrency(totals.taxAmount)}</span>
+              </div>
+              <div className="pt-2 border-t border-border">
+                <div className="flex justify-between">
+                  <span className="text-base font-semibold text-foreground">Total</span>
+                  <span className="text-base font-bold text-foreground">{formatCurrency(totals.total)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MobileEditQuotePage;
