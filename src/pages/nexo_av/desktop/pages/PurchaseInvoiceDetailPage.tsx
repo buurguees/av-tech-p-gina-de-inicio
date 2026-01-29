@@ -19,7 +19,9 @@ import {
   ExternalLink,
   Download,
   Pencil,
-  CheckCircle2
+  CheckCircle2,
+  MoreHorizontal,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +36,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "../components/purchases/PurchaseInvoiceLinesEditor";
 import PurchaseInvoicePaymentsSection from "../components/purchases/PurchaseInvoicePaymentsSection";
@@ -236,6 +255,8 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [approving, setApproving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [invoice, setInvoice] = useState<PurchaseInvoice | null>(null);
   const [lines, setLines] = useState<PurchaseInvoiceLine[]>([]);
@@ -461,6 +482,64 @@ const PurchaseInvoiceDetailPageDesktop = () => {
     fetchInvoice(); // Reset to original values
   };
 
+  // Handle delete invoice/ticket
+  const handleDelete = async () => {
+    if (!purchaseInvoiceId || !invoice) return;
+    
+    try {
+      setDeleting(true);
+      
+      // First delete all lines
+      const { data: existingLines, error: getLinesError } = await supabase.rpc("get_purchase_invoice_lines", {
+        p_invoice_id: purchaseInvoiceId,
+      });
+      
+      if (getLinesError) throw getLinesError;
+      
+      if (existingLines && existingLines.length > 0) {
+        for (const line of existingLines) {
+          const { error: deleteLineError } = await supabase.rpc("delete_purchase_invoice_line", { 
+            p_line_id: line.id 
+          });
+          if (deleteLineError) {
+            console.warn("Error deleting line:", deleteLineError);
+          }
+        }
+      }
+      
+      // Delete the invoice
+      const { error: deleteError } = await supabase
+        .from("purchase_invoices")
+        .delete()
+        .eq("id", purchaseInvoiceId);
+      
+      if (deleteError) throw deleteError;
+      
+      // If there's a scanned document linked, update its status back to UNASSIGNED
+      if (invoice.file_path) {
+        await supabase
+          .from("scanned_documents")
+          .update({
+            status: "UNASSIGNED",
+            assigned_to_type: null,
+            assigned_to_id: null,
+          })
+          .eq("assigned_to_id", purchaseInvoiceId);
+      }
+      
+      const docType = invoice.document_type === "EXPENSE" ? "Ticket" : "Factura";
+      toast.success(`${docType} eliminado correctamente`);
+      navigate(`/nexo-av/${userId}/purchase-invoices`);
+      
+    } catch (error: any) {
+      console.error("Error deleting invoice:", error);
+      toast.error("Error al eliminar: " + error.message);
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
   // Handle supplier selection
   const handleSelectSupplier = (supplier: Supplier) => {
     setSelectedSupplierId(supplier.id);
@@ -536,6 +615,8 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   const statusInfo = getStatusInfo(invoice.status);
   const canApprove = !isLocked && (invoice.status === "PENDING" || invoice.status === "REGISTERED");
   const canEdit = !isLocked;
+  const canDelete = !isLocked && (invoice.status === "PENDING" || invoice.status === "PENDING_VALIDATION" || invoice.status === "DRAFT");
+  const isTicket = invoice.document_type === "EXPENSE";
 
   return (
     <div className="flex flex-col h-full">
@@ -608,6 +689,29 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                     Aprobar
                   </Button>
                 )}
+                
+                {/* More Options Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {canDelete && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => setShowDeleteDialog(true)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar {isTicket ? "Ticket" : "Factura"}
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
           </div>
@@ -971,6 +1075,38 @@ const PurchaseInvoiceDetailPageDesktop = () => {
           </Tabs>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              ¿Eliminar {isTicket ? "ticket" : "factura"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente 
+              {isTicket ? " el ticket " : " la factura "}
+              <strong>{invoice.supplier_invoice_number || invoice.invoice_number}</strong>
+              {" "}y todas sus líneas asociadas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

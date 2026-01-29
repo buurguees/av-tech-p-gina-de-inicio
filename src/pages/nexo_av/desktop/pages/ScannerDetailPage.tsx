@@ -12,6 +12,8 @@ import {
   ArrowRight,
   CheckCircle2,
   ScanLine,
+  MoreHorizontal,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +27,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "../components/purchases/PurchaseInvoiceLinesEditor";
 import TicketLinesEditor, { TicketLine } from "../components/purchases/TicketLinesEditor";
@@ -198,6 +216,8 @@ const ScannerDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [creatingInvoice, setCreatingInvoice] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [document, setDocument] = useState<ScannedDocument | null>(null);
   const [lines, setLines] = useState<PurchaseInvoiceLine[]>([]);
   const [ticketLines, setTicketLines] = useState<TicketLine[]>([]);
@@ -289,6 +309,45 @@ const ScannerDetailPage = () => {
     setSelectedProjectId(project.id);
     setProjectSearchValue(project.project_name);
     setHasChanges(true);
+  };
+
+  // Delete scanned document
+  const handleDeleteDocument = async () => {
+    if (!documentId || !document) return;
+    
+    try {
+      setDeleting(true);
+      
+      // Delete from storage first
+      if (document.file_path) {
+        const { error: storageError } = await supabase.storage
+          .from('purchase-documents')
+          .remove([document.file_path]);
+        
+        if (storageError) {
+          console.warn("Error deleting file from storage:", storageError);
+          // Continue anyway
+        }
+      }
+      
+      // Delete from database
+      const { error: deleteError } = await supabase
+        .from("scanned_documents")
+        .delete()
+        .eq("id", documentId);
+      
+      if (deleteError) throw deleteError;
+      
+      toast.success("Documento eliminado correctamente");
+      navigate(`/nexo-av/${userId}/scanner`);
+      
+    } catch (error: any) {
+      console.error("Error deleting document:", error);
+      toast.error("Error al eliminar: " + error.message);
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
+    }
   };
 
   // Update document notes
@@ -533,25 +592,45 @@ const ScannerDetailPage = () => {
           </div>
         }
         tools={
-          !isAssigned && (
-            <Button
-              onClick={handleCreatePurchaseInvoice}
-              disabled={creatingInvoice || (documentType === "INVOICE" && !selectedSupplierId && !selectedTechnicianId) || (documentType === "TICKET" && !ticketCategory)}
-              className={cn(
-                "text-white gap-2",
-                documentType === "TICKET" 
-                  ? "bg-amber-600 hover:bg-amber-700" 
-                  : "bg-emerald-600 hover:bg-emerald-700"
-              )}
-            >
-              {creatingInvoice ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCircle2 className="h-4 w-4" />
-              )}
-              {documentType === "TICKET" ? "Crear Ticket" : "Crear Factura de Compra"}
-            </Button>
-          )
+          <div className="flex items-center gap-2">
+            {!isAssigned && (
+              <Button
+                onClick={handleCreatePurchaseInvoice}
+                disabled={creatingInvoice || (documentType === "INVOICE" && !selectedSupplierId && !selectedTechnicianId) || (documentType === "TICKET" && !ticketCategory)}
+                className={cn(
+                  "text-white gap-2",
+                  documentType === "TICKET" 
+                    ? "bg-amber-600 hover:bg-amber-700" 
+                    : "bg-emerald-600 hover:bg-emerald-700"
+                )}
+              >
+                {creatingInvoice ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
+                {documentType === "TICKET" ? "Crear Ticket" : "Crear Factura de Compra"}
+              </Button>
+            )}
+            
+            {/* More Options Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Eliminar Documento
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         }
       />
 
@@ -925,6 +1004,34 @@ const ScannerDetailPage = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar documento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente el documento
+              <strong> {document?.file_name}</strong> del sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteDocument}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
