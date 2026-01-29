@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, CreditCard, Loader2, Coins, ArrowRight, Ban, CheckCircle2, Landmark, Pencil } from "lucide-react";
+import { CalendarIcon, CreditCard, Loader2, Coins, ArrowRight, Ban, CheckCircle2, Landmark, Pencil, ArrowDownCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +44,7 @@ interface BankAccount {
 interface RegisterPurchasePaymentDialogProps {
   invoiceId: string;
   pendingAmount: number;
+  totalAmount?: number; // Para detectar si es factura negativa
   onPaymentRegistered: () => void;
   trigger?: React.ReactNode;
   payment?: {
@@ -60,6 +61,7 @@ interface RegisterPurchasePaymentDialogProps {
 const RegisterPurchasePaymentDialog = ({
   invoiceId,
   pendingAmount,
+  totalAmount,
   onPaymentRegistered,
   trigger,
   payment,
@@ -71,8 +73,12 @@ const RegisterPurchasePaymentDialog = ({
     payment ? new Date(payment.payment_date) : new Date()
   );
 
+  // Detectar si es factura negativa (nota de crédito / devolución)
+  const isNegativeInvoice = (totalAmount !== undefined ? totalAmount : pendingAmount) < 0;
+  
+  // Para facturas negativas, trabajamos con el valor absoluto en el input
   const [amount, setAmount] = useState(
-    payment ? payment.amount.toString() : pendingAmount.toString()
+    payment ? Math.abs(payment.amount).toString() : Math.abs(pendingAmount).toString()
   );
 
   const [paymentMethod, setPaymentMethod] = useState(
@@ -93,7 +99,7 @@ const RegisterPurchasePaymentDialog = ({
     if (open) {
       fetchBankAccounts();
       if (!isEditing) {
-        setAmount(pendingAmount.toString());
+        setAmount(Math.abs(pendingAmount).toString());
         setPaymentDate(new Date());
       }
     }
@@ -127,7 +133,10 @@ const RegisterPurchasePaymentDialog = ({
   };
 
   const currentAmount = parseFloat(amount) || 0;
-  const maxAllowed = isEditing ? (pendingAmount + payment.amount) : pendingAmount;
+  // Trabajar siempre con valores absolutos para la lógica
+  const absPendingAmount = Math.abs(pendingAmount);
+  const absPaymentAmount = payment ? Math.abs(payment.amount) : 0;
+  const maxAllowed = isEditing ? (absPendingAmount + absPaymentAmount) : absPendingAmount;
   const remainingAfterPayment = Math.max(0, maxAllowed - currentAmount);
 
   const handleSubmit = async () => {
@@ -142,11 +151,15 @@ const RegisterPurchasePaymentDialog = ({
     }
 
     if (numAmount > (maxAllowed + 0.01)) {
-      const confirm = window.confirm(
-        `El importe (${formatCurrency(numAmount)}) supera el pendiente (${formatCurrency(maxAllowed)}). ¿Deseas registrarlo de todos modos?`
-      );
-      if (!confirm) return;
+      const confirmMsg = isNegativeInvoice
+        ? `El importe (${formatCurrency(numAmount)}) supera el reembolso pendiente (${formatCurrency(maxAllowed)}). ¿Deseas registrarlo de todos modos?`
+        : `El importe (${formatCurrency(numAmount)}) supera el pendiente (${formatCurrency(maxAllowed)}). ¿Deseas registrarlo de todos modos?`;
+      const confirmResult = window.confirm(confirmMsg);
+      if (!confirmResult) return;
     }
+
+    // Para facturas negativas, el pago registrado debe ser negativo
+    const finalAmount = isNegativeInvoice ? -numAmount : numAmount;
 
     setLoading(true);
     try {
@@ -160,7 +173,7 @@ const RegisterPurchasePaymentDialog = ({
       } else {
         const { error } = await supabase.rpc("register_purchase_payment", {
           p_invoice_id: invoiceId,
-          p_amount: numAmount,
+          p_amount: finalAmount,
           p_payment_date: format(paymentDate, "yyyy-MM-dd"),
           p_payment_method: paymentMethod,
           p_bank_reference: bankReference || null,
@@ -169,8 +182,10 @@ const RegisterPurchasePaymentDialog = ({
         });
         if (error) throw error;
         toast({
-          title: "Pago registrado",
-          description: `Se ha registrado un pago de ${formatCurrency(numAmount)}`,
+          title: isNegativeInvoice ? "Reembolso registrado" : "Pago registrado",
+          description: isNegativeInvoice 
+            ? `Se ha registrado un reembolso recibido de ${formatCurrency(numAmount)}`
+            : `Se ha registrado un pago de ${formatCurrency(numAmount)}`,
         });
       }
 
@@ -192,42 +207,74 @@ const RegisterPurchasePaymentDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="bg-red-500 hover:bg-red-600 text-white rounded-2xl shadow-lg shadow-red-500/20 gap-2 transition-all hover:scale-105 active:scale-95">
-            <CreditCard className="h-4 w-4" />
-            Registrar Pago
+          <Button className={cn(
+            "text-white rounded-2xl shadow-lg gap-2 transition-all hover:scale-105 active:scale-95",
+            isNegativeInvoice 
+              ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20"
+              : "bg-red-500 hover:bg-red-600 shadow-red-500/20"
+          )}>
+            {isNegativeInvoice ? <ArrowDownCircle className="h-4 w-4" /> : <CreditCard className="h-4 w-4" />}
+            {isNegativeInvoice ? "Registrar Reembolso" : "Registrar Pago"}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="bg-zinc-900/90 backdrop-blur-3xl border-white/10 text-white max-w-md rounded-[2.5rem] shadow-2xl p-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-transparent to-blue-500/5 pointer-events-none" />
+        <div className={cn(
+          "absolute inset-0 pointer-events-none",
+          isNegativeInvoice 
+            ? "bg-gradient-to-br from-emerald-500/10 via-transparent to-blue-500/5"
+            : "bg-gradient-to-br from-red-500/10 via-transparent to-blue-500/5"
+        )} />
 
         <div className="p-6 md:p-8 space-y-6">
           <DialogHeader className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-2xl bg-red-500/10 border border-red-500/20 shadow-inner">
-                {isEditing ? <Pencil className="h-5 w-5 text-amber-400" /> : <Coins className="h-5 w-5 text-red-400" />}
+              <div className={cn(
+                "p-2.5 rounded-2xl shadow-inner",
+                isEditing 
+                  ? "bg-amber-500/10 border border-amber-500/20"
+                  : isNegativeInvoice 
+                    ? "bg-emerald-500/10 border border-emerald-500/20"
+                    : "bg-red-500/10 border border-red-500/20"
+              )}>
+                {isEditing ? (
+                  <Pencil className="h-5 w-5 text-amber-400" />
+                ) : isNegativeInvoice ? (
+                  <ArrowDownCircle className="h-5 w-5 text-emerald-400" />
+                ) : (
+                  <Coins className="h-5 w-5 text-red-400" />
+                )}
               </div>
               <DialogTitle className="text-xl font-bold tracking-tight">
-                {isEditing ? "Editar Pago" : "Registrar Pago"}
+                {isEditing 
+                  ? (isNegativeInvoice ? "Editar Reembolso" : "Editar Pago") 
+                  : (isNegativeInvoice ? "Registrar Reembolso Recibido" : "Registrar Pago")}
               </DialogTitle>
             </div>
             <DialogDescription className="text-white/50 text-sm pl-0.5">
-              {isEditing ? `Modificando registro de pago #${payment.id.slice(0, 8)}` : "Introduce los detalles del pago realizado"}
+              {isEditing 
+                ? `Modificando registro #${payment.id.slice(0, 8)}` 
+                : isNegativeInvoice 
+                  ? "Esta es una nota de crédito. Registra el reembolso recibido del proveedor."
+                  : "Introduce los detalles del pago realizado"}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 flex flex-col justify-between">
               <span className="text-[10px] uppercase tracking-wider text-white/30 font-semibold mb-1">
-                {isEditing ? "Total Editable" : "Saldo Pendiente"}
+                {isEditing ? "Total Editable" : isNegativeInvoice ? "Reembolso Pendiente" : "Saldo Pendiente"}
               </span>
-              <p className="text-lg font-bold text-white leading-none">
+              <p className={cn(
+                "text-lg font-bold leading-none",
+                isNegativeInvoice ? "text-emerald-400" : "text-white"
+              )}>
                 {formatCurrency(maxAllowed)}
               </p>
             </div>
             <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 flex flex-col justify-between">
               <span className="text-[10px] uppercase tracking-wider text-white/30 font-semibold mb-1">
-                Restante tras pago
+                {isNegativeInvoice ? "Restante por recibir" : "Restante tras pago"}
               </span>
               <p className={`text-lg font-bold leading-none ${remainingAfterPayment < 0 ? "text-red-400" : "text-emerald-400"}`}>
                 {formatCurrency(Math.max(0, remainingAfterPayment))}
@@ -296,7 +343,9 @@ const RegisterPurchasePaymentDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pagado desde (Cuenta Banco)</Label>
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                {isNegativeInvoice ? "Recibido en (Cuenta Banco)" : "Pagado desde (Cuenta Banco)"}
+              </Label>
               <Select value={bankAccountId} onValueChange={setBankAccountId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona cuenta bancaria" />
@@ -347,7 +396,14 @@ const RegisterPurchasePaymentDialog = ({
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className={`flex-[1.5] h-12 text-white font-bold rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] ${isEditing ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' : 'bg-red-500 hover:bg-red-600 shadow-red-500/30'}`}
+            className={cn(
+              "flex-[1.5] h-12 text-white font-bold rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]",
+              isEditing 
+                ? "bg-amber-500 hover:bg-amber-600 shadow-amber-500/30" 
+                : isNegativeInvoice
+                  ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30"
+                  : "bg-red-500 hover:bg-red-600 shadow-red-500/30"
+            )}
           >
             {loading ? (
               <>
@@ -357,7 +413,11 @@ const RegisterPurchasePaymentDialog = ({
             ) : (
               <>
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                {isEditing ? "Guardar Cambios" : "Registrar Pago"}
+                {isEditing 
+                  ? "Guardar Cambios" 
+                  : isNegativeInvoice 
+                    ? "Registrar Reembolso" 
+                    : "Registrar Pago"}
               </>
             )}
           </Button>

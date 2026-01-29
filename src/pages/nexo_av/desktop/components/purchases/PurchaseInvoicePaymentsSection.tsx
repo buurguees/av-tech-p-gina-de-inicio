@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CreditCard, Trash2, AlertCircle, TrendingUp, History, User, Pencil, Landmark } from "lucide-react";
+import { CreditCard, Trash2, AlertCircle, TrendingUp, History, User, Pencil, Landmark, ArrowDownCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -72,7 +73,14 @@ const PurchaseInvoicePaymentsSection = ({
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const paymentPercentage = total > 0 ? (paidAmount / total) * 100 : 0;
+  // Detectar si es factura negativa (nota de crédito / devolución)
+  const isNegativeInvoice = total < 0;
+  
+  // Para facturas negativas, trabajar con valores absolutos para el porcentaje
+  const absTotal = Math.abs(total);
+  const absPaidAmount = Math.abs(paidAmount);
+  const absPendingAmount = Math.abs(pendingAmount);
+  const paymentPercentage = absTotal > 0 ? (absPaidAmount / absTotal) * 100 : 0;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("es-ES", {
@@ -165,27 +173,47 @@ const PurchaseInvoicePaymentsSection = ({
   // Permitir pagos en facturas APPROVED, CONFIRMED, PARTIAL, REGISTERED
   const canRegisterPayment = ["CONFIRMED", "PARTIAL", "PAID", "REGISTERED", "APPROVED"].includes(status);
 
+  // Permitir registrar pagos si hay saldo pendiente (positivo o negativo)
+  const hasPendingBalance = Math.abs(pendingAmount) > 0.01;
+
   return (
     <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 md:p-8 shadow-xl overflow-hidden relative group">
-      <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-transparent pointer-events-none" />
+      <div className={cn(
+        "absolute inset-0 pointer-events-none",
+        isNegativeInvoice 
+          ? "bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent"
+          : "bg-gradient-to-br from-red-500/5 via-transparent to-transparent"
+      )} />
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 relative z-10">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-red-500/10 rounded-2xl border border-red-500/20 shadow-inner">
-            <CreditCard className="h-6 w-6 text-red-400" />
+          <div className={cn(
+            "p-3 rounded-2xl shadow-inner",
+            isNegativeInvoice 
+              ? "bg-emerald-500/10 border border-emerald-500/20"
+              : "bg-red-500/10 border border-red-500/20"
+          )}>
+            {isNegativeInvoice ? (
+              <ArrowDownCircle className="h-6 w-6 text-emerald-400" />
+            ) : (
+              <CreditCard className="h-6 w-6 text-red-400" />
+            )}
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white tracking-tight">Registro de Pagos</h3>
+            <h3 className="text-xl font-bold text-white tracking-tight">
+              {isNegativeInvoice ? "Registro de Reembolsos" : "Registro de Pagos"}
+            </h3>
             <p className="text-sm text-white/40 font-medium">
-              {payments.length} pago{payments.length !== 1 ? "s" : ""} registrado{payments.length !== 1 ? "s" : ""}
+              {payments.length} {isNegativeInvoice ? "reembolso" : "pago"}{payments.length !== 1 ? "s" : ""} registrado{payments.length !== 1 ? "s" : ""}
             </p>
           </div>
         </div>
 
-        {canRegisterPayment && pendingAmount > 0 && (
+        {canRegisterPayment && hasPendingBalance && (
           <RegisterPurchasePaymentDialog
             invoiceId={invoiceId}
             pendingAmount={pendingAmount}
+            totalAmount={total}
             onPaymentRegistered={handlePaymentRegistered}
           />
         )}
@@ -195,9 +223,14 @@ const PurchaseInvoicePaymentsSection = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 relative z-10">
         <div className="bg-white/5 border border-white/5 rounded-[1.5rem] p-5 space-y-2">
           <div className="flex justify-between items-center text-xs uppercase tracking-wider text-white/30 font-bold">
-            <span>Pagado</span>
+            <span>{isNegativeInvoice ? "Recibido" : "Pagado"}</span>
           </div>
-          <p className="text-2xl font-bold text-red-400">{formatCurrency(paidAmount)}</p>
+          <p className={cn(
+            "text-2xl font-bold",
+            isNegativeInvoice ? "text-emerald-400" : "text-red-400"
+          )}>
+            {formatCurrency(absPaidAmount)}
+          </p>
           <div className="flex items-center gap-2 text-xs text-white/40">
             <TrendingUp className="h-3 w-3" />
             <span>{paymentPercentage.toFixed(1)}% del total</span>
@@ -206,14 +239,16 @@ const PurchaseInvoicePaymentsSection = ({
 
         <div className="bg-white/5 border border-white/5 rounded-[1.5rem] p-5 space-y-2">
           <div className="flex justify-between items-center text-xs uppercase tracking-wider text-white/30 font-bold">
-            <span>Pendiente</span>
+            <span>{isNegativeInvoice ? "Por Recibir" : "Pendiente"}</span>
           </div>
           <p className="text-2xl font-bold text-amber-500">
-            {pendingAmount > 0 ? formatCurrency(pendingAmount) : "Todo pagado"}
+            {absPendingAmount < 0.01 
+              ? (isNegativeInvoice ? "Todo recibido" : "Todo pagado") 
+              : formatCurrency(absPendingAmount)}
           </p>
           <div className="flex items-center gap-2 text-xs text-white/40">
             <AlertCircle className="h-3 w-3" />
-            <span>{formatCurrency(total - paidAmount)} restante</span>
+            <span>{formatCurrency(absPendingAmount)} restante</span>
           </div>
         </div>
 
@@ -221,7 +256,12 @@ const PurchaseInvoicePaymentsSection = ({
           <div className="flex justify-between items-center text-xs uppercase tracking-wider text-white/30 font-bold">
             <span>Total</span>
           </div>
-          <p className="text-2xl font-bold text-white">{formatCurrency(total)}</p>
+          <p className={cn(
+            "text-2xl font-bold",
+            isNegativeInvoice ? "text-emerald-400" : "text-white"
+          )}>
+            {formatCurrency(total)}
+          </p>
           <div className="flex items-center gap-2 text-xs text-white/40">
             <History className="h-3 w-3" />
             <span>Último: {payments.length > 0 ? format(new Date(payments[0].payment_date), "dd/MM/yyyy", { locale: es }) : "Sin movimientos"}</span>
@@ -232,19 +272,35 @@ const PurchaseInvoicePaymentsSection = ({
       {/* Progress Bar */}
       <div className="mb-8 relative z-10">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-xs text-white/40 font-medium">Progreso de pago</span>
+          <span className="text-xs text-white/40 font-medium">
+            {isNegativeInvoice ? "Progreso de reembolso" : "Progreso de pago"}
+          </span>
           <span className="text-xs text-white/60 font-bold">{paymentPercentage.toFixed(1)}%</span>
         </div>
-        <Progress value={paymentPercentage} className="h-2 bg-white/5" />
+        <Progress 
+          value={paymentPercentage} 
+          className={cn(
+            "h-2 bg-white/5",
+            isNegativeInvoice && "[&>div]:bg-emerald-500"
+          )} 
+        />
       </div>
 
       {/* Payments Table */}
       {loading ? (
-        <div className="text-center py-8 text-white/40">Cargando pagos...</div>
+        <div className="text-center py-8 text-white/40">
+          {isNegativeInvoice ? "Cargando reembolsos..." : "Cargando pagos..."}
+        </div>
       ) : payments.length === 0 ? (
         <div className="text-center py-8 text-white/40">
-          <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-20" />
-          <p className="text-sm">No hay pagos registrados</p>
+          {isNegativeInvoice ? (
+            <ArrowDownCircle className="h-12 w-12 mx-auto mb-4 opacity-20" />
+          ) : (
+            <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-20" />
+          )}
+          <p className="text-sm">
+            {isNegativeInvoice ? "No hay reembolsos registrados" : "No hay pagos registrados"}
+          </p>
         </div>
       ) : (
         <div className="relative z-10 overflow-x-auto">
