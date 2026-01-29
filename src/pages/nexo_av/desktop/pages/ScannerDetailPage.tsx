@@ -27,9 +27,11 @@ import {
 } from "@/components/ui/select";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "../components/purchases/PurchaseInvoiceLinesEditor";
+import TicketLinesEditor, { TicketLine } from "../components/purchases/TicketLinesEditor";
 import SupplierSearchInput from "../components/suppliers/SupplierSearchInput";
 import ProjectSearchInput from "../components/projects/ProjectSearchInput";
 import { PURCHASE_INVOICE_CATEGORIES } from "@/constants/purchaseInvoiceCategories";
+import { TICKET_CATEGORIES, getTicketCategoryInfo } from "@/constants/ticketCategories";
 import { cn } from "@/lib/utils";
 
 interface ScannedDocument {
@@ -198,20 +200,32 @@ const ScannerDetailPage = () => {
   const [creatingInvoice, setCreatingInvoice] = useState(false);
   const [document, setDocument] = useState<ScannedDocument | null>(null);
   const [lines, setLines] = useState<PurchaseInvoiceLine[]>([]);
+  const [ticketLines, setTicketLines] = useState<TicketLine[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+  
+  // Document type: INVOICE or TICKET
+  const [documentType, setDocumentType] = useState<"INVOICE" | "TICKET">("INVOICE");
   
   // Form state
   const [supplierInvoiceNumber, setSupplierInvoiceNumber] = useState("");
   const [issueDate, setIssueDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [expenseCategory, setExpenseCategory] = useState("");
+  const [ticketCategory, setTicketCategory] = useState("");
   const [notes, setNotes] = useState("");
   
-  // Entity selection
+  // Entity selection (for invoices)
   const [entityType, setEntityType] = useState<"SUPPLIER" | "TECHNICIAN">("SUPPLIER");
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
   const [selectedTechnicianId, setSelectedTechnicianId] = useState<string | null>(null);
   const [supplierSearchValue, setSupplierSearchValue] = useState("");
+  
+  // Inline supplier (for tickets - no need to create a supplier record)
+  const [inlineSupplierName, setInlineSupplierName] = useState("");
+  const [inlineSupplierTaxId, setInlineSupplierTaxId] = useState("");
+  
+  // Price includes tax (for tickets)
+  const [priceIncludesTax, setPriceIncludesTax] = useState(true);
   
   // Project selection
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -301,49 +315,78 @@ const ScannerDetailPage = () => {
     }
   };
 
-  // Create purchase invoice from this document
+  // Create purchase invoice or ticket from this document
   const handleCreatePurchaseInvoice = async () => {
     if (!document) return;
     
-    // Validate required fields
-    if (!selectedSupplierId && !selectedTechnicianId) {
-      toast.error("Selecciona un proveedor o técnico");
-      return;
-    }
-    
-    if (!supplierInvoiceNumber.trim()) {
-      toast.error("Introduce el número de factura del proveedor");
-      return;
+    // Validate required fields based on document type
+    if (documentType === "INVOICE") {
+      if (!selectedSupplierId && !selectedTechnicianId) {
+        toast.error("Selecciona un proveedor o técnico");
+        return;
+      }
+      
+      if (!supplierInvoiceNumber.trim()) {
+        toast.error("Introduce el número de factura del proveedor");
+        return;
+      }
+    } else {
+      // TICKET validation - less strict, supplier inline is optional
+      if (!ticketCategory) {
+        toast.error("Selecciona una categoría de ticket");
+        return;
+      }
     }
     
     try {
       setCreatingInvoice(true);
       
-      // Create the purchase invoice
+      const isTicket = documentType === "TICKET";
+      const currentLines = isTicket ? ticketLines : lines;
+      
+      // Create the purchase invoice/ticket
       const { data: invoiceData, error: invoiceError } = await supabase.rpc("create_purchase_invoice", {
-        p_invoice_number: `PENDIENTE-${Date.now().toString().slice(-6)}`,
-        p_supplier_invoice_number: supplierInvoiceNumber,
-        p_supplier_id: entityType === "SUPPLIER" ? selectedSupplierId : null,
-        p_technician_id: entityType === "TECHNICIAN" ? selectedTechnicianId : null,
+        p_invoice_number: isTicket 
+          ? `TICKET-${Date.now().toString().slice(-6)}` 
+          : `PENDIENTE-${Date.now().toString().slice(-6)}`,
+        p_supplier_invoice_number: isTicket ? null : supplierInvoiceNumber,
+        p_supplier_id: isTicket ? null : (entityType === "SUPPLIER" ? selectedSupplierId : null),
+        p_technician_id: isTicket ? null : (entityType === "TECHNICIAN" ? selectedTechnicianId : null),
         p_project_id: selectedProjectId || null,
         p_issue_date: issueDate || null,
         p_due_date: dueDate || null,
-        p_expense_category: expenseCategory || null,
+        p_expense_category: isTicket ? ticketCategory : (expenseCategory || null),
         p_notes: notes || null,
         p_file_path: document.file_path,
         p_file_name: document.file_name,
         p_status: "PENDING_VALIDATION",
-        p_document_type: "INVOICE",
+        p_document_type: isTicket ? "EXPENSE" : "INVOICE",
       });
       
       if (invoiceError) throw invoiceError;
       
       const purchaseInvoiceId = invoiceData;
       
+      // For tickets, update the inline supplier info (name and tax_id)
+      if (isTicket && (inlineSupplierName || inlineSupplierTaxId)) {
+        const { error: updateError } = await supabase
+          .from("purchase_invoices")
+          .update({
+            supplier_name: inlineSupplierName || null,
+            supplier_tax_id: inlineSupplierTaxId || null,
+          })
+          .eq("id", purchaseInvoiceId);
+        
+        if (updateError) {
+          console.warn("Error updating supplier info:", updateError);
+          // Don't throw, continue with the process
+        }
+      }
+      
       // Add lines with error handling
-      if (lines.length > 0) {
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i];
+      if (currentLines.length > 0) {
+        for (let i = 0; i < currentLines.length; i++) {
+          const line = currentLines[i];
           const { error: lineError } = await supabase.rpc("add_purchase_invoice_line", {
             p_invoice_id: purchaseInvoiceId,
             p_concept: line.concept,
@@ -351,7 +394,7 @@ const ScannerDetailPage = () => {
             p_quantity: line.quantity,
             p_unit_price: line.unit_price,
             p_tax_rate: line.tax_rate,
-            p_withholding_tax_rate: line.withholding_tax_rate || 0,
+            p_withholding_tax_rate: isTicket ? 0 : ((line as PurchaseInvoiceLine).withholding_tax_rate || 0),
             p_discount_percent: line.discount_percent || 0,
           });
           
@@ -362,7 +405,7 @@ const ScannerDetailPage = () => {
         }
       } else {
         // Warn if no lines
-        console.warn("Creating purchase invoice without lines");
+        console.warn("Creating purchase invoice/ticket without lines");
       }
       
       // Update scanned document status
@@ -370,19 +413,19 @@ const ScannerDetailPage = () => {
         .from("scanned_documents")
         .update({
           status: "ASSIGNED",
-          assigned_to_type: "PURCHASE_INVOICE",
+          assigned_to_type: isTicket ? "EXPENSE" : "PURCHASE_INVOICE",
           assigned_to_id: purchaseInvoiceId,
         })
         .eq("id", documentId);
       
-      toast.success("Factura de compra creada correctamente");
+      toast.success(isTicket ? "Ticket creado correctamente" : "Factura de compra creada correctamente");
       
       // Navigate to the new purchase invoice
       navigate(`/nexo-av/${userId}/purchase-invoices/${purchaseInvoiceId}`);
       
     } catch (error: any) {
-      console.error("Error creating purchase invoice:", error);
-      toast.error("Error al crear factura de compra: " + error.message);
+      console.error("Error creating purchase invoice/ticket:", error);
+      toast.error(`Error al crear ${documentType === "TICKET" ? "ticket" : "factura de compra"}: ` + error.message);
     } finally {
       setCreatingInvoice(false);
     }
@@ -493,15 +536,20 @@ const ScannerDetailPage = () => {
           !isAssigned && (
             <Button
               onClick={handleCreatePurchaseInvoice}
-              disabled={creatingInvoice || (!selectedSupplierId && !selectedTechnicianId)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+              disabled={creatingInvoice || (documentType === "INVOICE" && !selectedSupplierId && !selectedTechnicianId) || (documentType === "TICKET" && !ticketCategory)}
+              className={cn(
+                "text-white gap-2",
+                documentType === "TICKET" 
+                  ? "bg-amber-600 hover:bg-amber-700" 
+                  : "bg-emerald-600 hover:bg-emerald-700"
+              )}
             >
               {creatingInvoice ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <CheckCircle2 className="h-4 w-4" />
               )}
-              Crear Factura de Compra
+              {documentType === "TICKET" ? "Crear Ticket" : "Crear Factura de Compra"}
             </Button>
           )
         }
@@ -544,100 +592,202 @@ const ScannerDetailPage = () => {
             </div>
           ) : (
             <>
-              {/* Provider Section */}
+              {/* Document Type Selection */}
               <div className="bg-card/50 border border-border rounded-xl p-5">
                 <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">
-                  Proveedor / Técnico
+                  Tipo de Documento
                 </h3>
-                <div className="space-y-4">
-                  <div className="flex gap-2 mb-3">
-                    <button
-                      type="button"
-                      onClick={() => setEntityType("SUPPLIER")}
-                      className={cn(
-                        "px-4 py-2 text-sm rounded-lg transition-all",
-                        entityType === "SUPPLIER"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                      )}
-                    >
-                      Proveedor
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEntityType("TECHNICIAN")}
-                      className={cn(
-                        "px-4 py-2 text-sm rounded-lg transition-all",
-                        entityType === "TECHNICIAN"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                      )}
-                    >
-                      Técnico
-                    </button>
-                  </div>
-
-                  <SupplierSearchInput
-                    value={supplierSearchValue}
-                    onChange={(val) => {
-                      setSupplierSearchValue(val);
-                      if (!val) {
-                        setSelectedSupplierId(null);
-                        setSelectedTechnicianId(null);
-                      }
-                    }}
-                    onSelectSupplier={handleSelectSupplier}
-                    onSelectTechnician={handleSelectTechnician}
-                    entityType={entityType}
-                    placeholder={`Buscar ${entityType === "SUPPLIER" ? "proveedor" : "técnico"}...`}
-                    className="w-full"
-                  />
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setDocumentType("INVOICE")}
+                    className={cn(
+                      "flex-1 py-4 px-4 rounded-lg transition-all border-2 text-center",
+                      documentType === "INVOICE"
+                        ? "bg-primary/10 border-primary text-primary"
+                        : "bg-muted/30 border-transparent text-muted-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    <FileText className="h-6 w-6 mx-auto mb-2" />
+                    <span className="font-medium">Factura</span>
+                    <p className="text-xs mt-1 opacity-70">Requiere proveedor registrado</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDocumentType("TICKET")}
+                    className={cn(
+                      "flex-1 py-4 px-4 rounded-lg transition-all border-2 text-center",
+                      documentType === "TICKET"
+                        ? "bg-amber-500/10 border-amber-500 text-amber-500"
+                        : "bg-muted/30 border-transparent text-muted-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    <ScanLine className="h-6 w-6 mx-auto mb-2" />
+                    <span className="font-medium">Ticket</span>
+                    <p className="text-xs mt-1 opacity-70">Dietas, gasolina, parkings...</p>
+                  </button>
                 </div>
               </div>
 
-              {/* Invoice Data Section */}
-              <div className="bg-card/50 border border-border rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">
-                  Datos de la Factura
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-muted-foreground text-xs mb-1.5 block">
-                      Nº Factura Proveedor *
-                    </Label>
-                    <Input
-                      value={supplierInvoiceNumber}
-                      onChange={(e) => {
-                        setSupplierInvoiceNumber(e.target.value);
-                        setHasChanges(true);
+              {/* Provider Section - Different for Invoice vs Ticket */}
+              {documentType === "INVOICE" ? (
+                <div className="bg-card/50 border border-border rounded-xl p-5">
+                  <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">
+                    Proveedor / Técnico
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex gap-2 mb-3">
+                      <button
+                        type="button"
+                        onClick={() => setEntityType("SUPPLIER")}
+                        className={cn(
+                          "px-4 py-2 text-sm rounded-lg transition-all",
+                          entityType === "SUPPLIER"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                        )}
+                      >
+                        Proveedor
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEntityType("TECHNICIAN")}
+                        className={cn(
+                          "px-4 py-2 text-sm rounded-lg transition-all",
+                          entityType === "TECHNICIAN"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                        )}
+                      >
+                        Técnico
+                      </button>
+                    </div>
+
+                    <SupplierSearchInput
+                      value={supplierSearchValue}
+                      onChange={(val) => {
+                        setSupplierSearchValue(val);
+                        if (!val) {
+                          setSelectedSupplierId(null);
+                          setSelectedTechnicianId(null);
+                        }
                       }}
-                      placeholder="Ej: FA-2026-001"
-                      className="bg-background/50"
+                      onSelectSupplier={handleSelectSupplier}
+                      onSelectTechnician={handleSelectTechnician}
+                      entityType={entityType}
+                      placeholder={`Buscar ${entityType === "SUPPLIER" ? "proveedor" : "técnico"}...`}
+                      className="w-full"
                     />
                   </div>
+                </div>
+              ) : (
+                <div className="bg-card/50 border border-amber-500/20 rounded-xl p-5">
+                  <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide flex items-center gap-2">
+                    <span className="text-amber-500">🏪</span>
+                    Datos del Establecimiento (Opcional)
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Puedes introducir los datos del establecimiento. No se creará un proveedor en el sistema.
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-muted-foreground text-xs mb-1.5 block">
+                        Nombre del establecimiento
+                      </Label>
+                      <Input
+                        value={inlineSupplierName}
+                        onChange={(e) => {
+                          setInlineSupplierName(e.target.value);
+                          setHasChanges(true);
+                        }}
+                        placeholder="Ej: Restaurante El Buen Comer"
+                        className="bg-background/50"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground text-xs mb-1.5 block">
+                        CIF/NIF (Opcional)
+                      </Label>
+                      <Input
+                        value={inlineSupplierTaxId}
+                        onChange={(e) => {
+                          setInlineSupplierTaxId(e.target.value);
+                          setHasChanges(true);
+                        }}
+                        placeholder="Ej: B12345678"
+                        className="bg-background/50"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Invoice/Ticket Data Section */}
+              <div className="bg-card/50 border border-border rounded-xl p-5">
+                <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">
+                  {documentType === "TICKET" ? "Datos del Ticket" : "Datos de la Factura"}
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {documentType === "INVOICE" && (
+                    <div>
+                      <Label className="text-muted-foreground text-xs mb-1.5 block">
+                        Nº Factura Proveedor *
+                      </Label>
+                      <Input
+                        value={supplierInvoiceNumber}
+                        onChange={(e) => {
+                          setSupplierInvoiceNumber(e.target.value);
+                          setHasChanges(true);
+                        }}
+                        placeholder="Ej: FA-2026-001"
+                        className="bg-background/50"
+                      />
+                    </div>
+                  )}
                   <div>
                     <Label className="text-muted-foreground text-xs mb-1.5 block">
-                      Categoría
+                      {documentType === "TICKET" ? "Categoría *" : "Categoría"}
                     </Label>
-                    <Select value={expenseCategory} onValueChange={(val) => {
-                      setExpenseCategory(val);
-                      setHasChanges(true);
-                    }}>
-                      <SelectTrigger className="bg-background/50">
-                        <SelectValue placeholder="Seleccionar..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PURCHASE_INVOICE_CATEGORIES.map((cat) => (
-                          <SelectItem key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {documentType === "TICKET" ? (
+                      <Select value={ticketCategory} onValueChange={(val) => {
+                        setTicketCategory(val);
+                        setHasChanges(true);
+                      }}>
+                        <SelectTrigger className="bg-background/50">
+                          <SelectValue placeholder="Seleccionar categoría..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TICKET_CATEGORIES.map((cat) => (
+                            <SelectItem key={cat.value} value={cat.value}>
+                              <span className="flex items-center gap-2">
+                                <span>{cat.icon}</span>
+                                <span>{cat.label}</span>
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Select value={expenseCategory} onValueChange={(val) => {
+                        setExpenseCategory(val);
+                        setHasChanges(true);
+                      }}>
+                        <SelectTrigger className="bg-background/50">
+                          <SelectValue placeholder="Seleccionar..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PURCHASE_INVOICE_CATEGORIES.map((cat) => (
+                            <SelectItem key={cat.value} value={cat.value}>
+                              {cat.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                   <div>
                     <Label className="text-muted-foreground text-xs mb-1.5 block">
-                      Fecha Emisión
+                      Fecha {documentType === "TICKET" ? "del Ticket" : "Emisión"}
                     </Label>
                     <Input
                       type="date"
@@ -649,20 +799,22 @@ const ScannerDetailPage = () => {
                       className="bg-background/50"
                     />
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground text-xs mb-1.5 block">
-                      Fecha Vencimiento
-                    </Label>
-                    <Input
-                      type="date"
-                      value={dueDate}
-                      onChange={(e) => {
-                        setDueDate(e.target.value);
-                        setHasChanges(true);
-                      }}
-                      className="bg-background/50"
-                    />
-                  </div>
+                  {documentType === "INVOICE" && (
+                    <div>
+                      <Label className="text-muted-foreground text-xs mb-1.5 block">
+                        Fecha Vencimiento
+                      </Label>
+                      <Input
+                        type="date"
+                        value={dueDate}
+                        onChange={(e) => {
+                          setDueDate(e.target.value);
+                          setHasChanges(true);
+                        }}
+                        className="bg-background/50"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -686,15 +838,27 @@ const ScannerDetailPage = () => {
               {/* Lines Section */}
               <div className="bg-card/50 border border-border rounded-xl p-5">
                 <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">
-                  Líneas de la Factura
+                  {documentType === "TICKET" ? "Líneas del Ticket" : "Líneas de la Factura"}
                 </h3>
-                <PurchaseInvoiceLinesEditor
-                  lines={lines}
-                  onChange={(newLines) => {
-                    setLines(newLines);
-                    setHasChanges(true);
-                  }}
-                />
+                {documentType === "TICKET" ? (
+                  <TicketLinesEditor
+                    lines={ticketLines}
+                    onChange={(newLines) => {
+                      setTicketLines(newLines);
+                      setHasChanges(true);
+                    }}
+                    priceIncludesTax={priceIncludesTax}
+                    onPriceIncludesTaxChange={setPriceIncludesTax}
+                  />
+                ) : (
+                  <PurchaseInvoiceLinesEditor
+                    lines={lines}
+                    onChange={(newLines) => {
+                      setLines(newLines);
+                      setHasChanges(true);
+                    }}
+                  />
+                )}
               </div>
 
               {/* Notes Section */}
