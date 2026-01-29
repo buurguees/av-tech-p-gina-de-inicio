@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { FileText, AlertCircle, CheckCircle, Receipt } from "lucide-react";
+import { FileText, AlertCircle, CheckCircle, Receipt, Landmark } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../components/common/PaginationControls";
@@ -45,6 +45,8 @@ interface Invoice {
   created_by: string | null;
   created_by_name: string | null;
   created_at: string;
+  payment_bank_name: string | null;
+  payment_bank_id: string | null;
 }
 
 // Status options for the filter dropdown
@@ -385,6 +387,25 @@ const InvoicesPageDesktop = () => {
                       <Badge variant="outline" className={cn("sales-status-badge sales-status-badge--collection", collectionInfo.className)}>
                         {collectionInfo.label}
                       </Badge>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: "payment_bank_name",
+                label: "Pago",
+                align: "left",
+                priority: 4,
+                render: (invoice) => {
+                  if (!invoice.payment_bank_name) {
+                    return <span className="text-muted-foreground text-xs">—</span>;
+                  }
+                  return (
+                    <div className="flex items-center gap-1.5">
+                      <Landmark className="h-3 w-3 text-emerald-500 flex-shrink-0" />
+                      <span className="text-foreground/80 text-xs truncate max-w-[100px]" title={invoice.payment_bank_name}>
+                        {invoice.payment_bank_name}
+                      </span>
                     </div>
                   );
                 },
