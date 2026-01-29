@@ -95,6 +95,7 @@ const PurchaseInvoicesPageDesktop = () => {
   const [uploading, setUploading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all"); // all, pending, paid, partial
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -103,7 +104,7 @@ const PurchaseInvoicesPageDesktop = () => {
 
   useEffect(() => {
     fetchInvoices();
-  }, [debouncedSearchQuery, statusFilter, typeFilter]);
+  }, [debouncedSearchQuery, statusFilter, typeFilter, paymentFilter]);
 
   const fetchInvoices = async () => {
     try {
@@ -114,7 +115,25 @@ const PurchaseInvoicesPageDesktop = () => {
         p_document_type: typeFilter === "all" ? null : typeFilter,
       });
       if (error) throw error;
-      setInvoices(data || []);
+      
+      // Aplicar filtro de estado de pago
+      let filteredData = data || [];
+      if (paymentFilter === "pending") {
+        // Pendiente de pago: tiene saldo pendiente > 0
+        filteredData = filteredData.filter((inv: PurchaseInvoice) => inv.pending_amount > 0);
+      } else if (paymentFilter === "paid") {
+        // Pagado completamente: pending_amount = 0 o negativo (para facturas negativas)
+        filteredData = filteredData.filter((inv: PurchaseInvoice) => 
+          inv.pending_amount <= 0 || inv.status === 'PAID'
+        );
+      } else if (paymentFilter === "partial") {
+        // Parcialmente pagado: tiene pagos pero no está completo
+        filteredData = filteredData.filter((inv: PurchaseInvoice) => 
+          inv.paid_amount > 0 && inv.pending_amount > 0
+        );
+      }
+      
+      setInvoices(filteredData);
     } catch (error: any) {
       console.error("Error fetching purchase invoices:", error);
       toast({
@@ -540,14 +559,63 @@ const PurchaseInvoicesPageDesktop = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-3 text-xs"
-              >
-                <Filter className="h-3 w-3 mr-1" />
-                Filtro
-              </Button>
+              {/* Filtro de Estado de Pago */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "h-8 px-3 text-xs",
+                      paymentFilter !== "all" && "bg-amber-500/20 border-amber-500/50 text-amber-400"
+                    )}
+                  >
+                    {paymentFilter === "all" 
+                      ? "Pagos" 
+                      : paymentFilter === "pending" 
+                        ? "Pendiente" 
+                        : paymentFilter === "partial" 
+                          ? "Parcial" 
+                          : "Pagado"}
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem
+                    onClick={() => setPaymentFilter("all")}
+                    className={cn(paymentFilter === "all" && "bg-accent")}
+                  >
+                    Todos los pagos
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setPaymentFilter("pending")}
+                    className={cn(
+                      paymentFilter === "pending" && "bg-accent",
+                      "text-amber-400"
+                    )}
+                  >
+                    🔴 Pendiente de pago
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setPaymentFilter("partial")}
+                    className={cn(
+                      paymentFilter === "partial" && "bg-accent",
+                      "text-orange-400"
+                    )}
+                  >
+                    🟠 Parcialmente pagado
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setPaymentFilter("paid")}
+                    className={cn(
+                      paymentFilter === "paid" && "bg-accent",
+                      "text-emerald-400"
+                    )}
+                  >
+                    🟢 Pagado
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <div className="relative flex-1 min-w-[200px] max-w-md">
                 <Search className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
