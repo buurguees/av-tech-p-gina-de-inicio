@@ -97,7 +97,7 @@ const MobileScannerPage = () => {
           file_name: file.name,
           file_path: uploadData.path,
           file_type: file.type,
-          status: 'PENDING',
+          status: 'UNASSIGNED',
           uploaded_by: userId,
         })
         .select()
