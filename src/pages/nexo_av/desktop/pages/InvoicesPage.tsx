@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { FileText, AlertCircle, CheckCircle, Receipt, Landmark } from "lucide-react";
+import { FileText, AlertCircle, CheckCircle, Receipt, Landmark, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../components/common/PaginationControls";
@@ -18,6 +19,12 @@ import {
 } from "@/constants/salesInvoiceStatuses";
 import DataList from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 
 interface Invoice {
@@ -65,12 +72,13 @@ const InvoicesPageDesktop = () => {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchQuery = useDebounce(searchInput, 500);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all"); // all, pending, paid, partial
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     fetchInvoices();
-  }, [debouncedSearchQuery, statusFilter]);
+  }, [debouncedSearchQuery, statusFilter, paymentFilter]);
 
 
   const fetchInvoices = async () => {
@@ -81,7 +89,25 @@ const InvoicesPageDesktop = () => {
         p_status: statusFilter === "all" ? null : statusFilter,
       });
       if (error) throw error;
-      setInvoices(data || []);
+      
+      // Aplicar filtro de estado de pago
+      let filteredData = data || [];
+      if (paymentFilter === "pending") {
+        // Pendiente de cobro: tiene saldo pendiente > 0
+        filteredData = filteredData.filter((inv: Invoice) => inv.pending_amount > 0);
+      } else if (paymentFilter === "paid") {
+        // Cobrado completamente
+        filteredData = filteredData.filter((inv: Invoice) => 
+          inv.pending_amount <= 0 || inv.status === 'PAID'
+        );
+      } else if (paymentFilter === "partial") {
+        // Parcialmente cobrado: tiene cobros pero no está completo
+        filteredData = filteredData.filter((inv: Invoice) => 
+          inv.paid_amount > 0 && inv.pending_amount > 0
+        );
+      }
+      
+      setInvoices(filteredData);
     } catch (error: any) {
       console.error("Error fetching invoices:", error);
       toast({
@@ -253,7 +279,7 @@ const InvoicesPageDesktop = () => {
           </div>
 
           {/* DetailNavigationBar */}
-          <div className="mb-6 flex-shrink-0">
+          <div className="mb-4 flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Facturas"
               contextInfo={
@@ -290,6 +316,107 @@ const InvoicesPageDesktop = () => {
                 />
               }
             />
+          </div>
+
+          {/* Filtros */}
+          <div className="flex items-center gap-2 mb-4 flex-shrink-0">
+            {/* Filtro de Estado del Documento */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "h-8 px-3 text-xs",
+                    statusFilter !== "all" && "bg-accent"
+                  )}
+                >
+                  {statusFilter === "all" 
+                    ? "Estado" 
+                    : SALES_DOCUMENT_STATUSES.find(s => s.value === statusFilter)?.label || statusFilter}
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem
+                  onClick={() => setStatusFilter("all")}
+                  className={cn(statusFilter === "all" && "bg-accent")}
+                >
+                  Todos los estados
+                </DropdownMenuItem>
+                {SALES_DOCUMENT_STATUSES.map((status) => (
+                  <DropdownMenuItem
+                    key={status.value}
+                    onClick={() => setStatusFilter(status.value)}
+                    className={cn(statusFilter === status.value && "bg-accent")}
+                  >
+                    {status.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Filtro de Estado de Cobro */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "h-8 px-3 text-xs",
+                    paymentFilter !== "all" && "bg-amber-500/20 border-amber-500/50 text-amber-400"
+                  )}
+                >
+                  {paymentFilter === "all" 
+                    ? "Cobros" 
+                    : paymentFilter === "pending" 
+                      ? "Pendiente" 
+                      : paymentFilter === "partial" 
+                        ? "Parcial" 
+                        : "Cobrado"}
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem
+                  onClick={() => setPaymentFilter("all")}
+                  className={cn(paymentFilter === "all" && "bg-accent")}
+                >
+                  Todos los cobros
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setPaymentFilter("pending")}
+                  className={cn(
+                    paymentFilter === "pending" && "bg-accent",
+                    "text-amber-400"
+                  )}
+                >
+                  🔴 Pendiente de cobro
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setPaymentFilter("partial")}
+                  className={cn(
+                    paymentFilter === "partial" && "bg-accent",
+                    "text-orange-400"
+                  )}
+                >
+                  🟠 Parcialmente cobrado
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setPaymentFilter("paid")}
+                  className={cn(
+                    paymentFilter === "paid" && "bg-accent",
+                    "text-emerald-400"
+                  )}
+                >
+                  🟢 Cobrado
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <span className="text-xs text-muted-foreground ml-2">
+              {invoices.length} factura{invoices.length !== 1 ? 's' : ''}
+            </span>
           </div>
 
           {/* DataList */}
