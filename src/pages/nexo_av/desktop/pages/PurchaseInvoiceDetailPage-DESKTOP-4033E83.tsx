@@ -239,6 +239,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   const [saving, setSaving] = useState(false);
   const [approving, setApproving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
   const [invoice, setInvoice] = useState<PurchaseInvoice | null>(null);
   const [lines, setLines] = useState<PurchaseInvoiceLine[]>([]);
   const [activeTab, setActiveTab] = useState("datos");
@@ -348,6 +349,21 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   useEffect(() => {
     fetchInvoice();
   }, [fetchInvoice]);
+
+  // Fetch user roles for permission checks (solo Admin puede aprobar facturas de compra)
+  useEffect(() => {
+    const fetchUserRoles = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_current_user_info');
+        if (!error && data && data.length > 0) {
+          setUserRoles(data[0].roles || []);
+        }
+      } catch (err) {
+        console.error('Error fetching user roles:', err);
+      }
+    };
+    fetchUserRoles();
+  }, []);
 
   // Handle save
   const handleSave = async () => {
@@ -518,7 +534,9 @@ const PurchaseInvoiceDetailPageDesktop = () => {
 
   const isLocked = invoice.is_locked || invoice.status === "APPROVED" || invoice.status === "PAID";
   const statusInfo = getStatusInfo(invoice.status);
-  const canApprove = !isLocked && (invoice.status === "PENDING" || invoice.status === "REGISTERED");
+  // Solo Admin puede aprobar/confirmar facturas de compra. Manager puede crear/editar borradores pero no aprobar.
+  const isAdmin = userRoles.includes('admin');
+  const canApprove = isAdmin && !isLocked && (invoice.status === "PENDING" || invoice.status === "REGISTERED");
   const canEdit = !isLocked;
 
   return (

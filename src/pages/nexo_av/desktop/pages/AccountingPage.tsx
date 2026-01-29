@@ -327,8 +327,10 @@ const AccountingPage = () => {
   const corporateTax = corporateTaxSummary?.tax_amount || 0;
   const netProfit = profitBeforeTax - corporateTax;
 
-  // Tesorería - datos reales del balance
-  const bankBalance = balanceSheet.find((item) => item.account_code.startsWith("572"))?.net_balance || 0;
+  // Tesorería - suma de TODAS las cuentas 572xxx (no solo la primera)
+  const bankBalance = balanceSheet
+    .filter((item) => item.account_code.startsWith("572"))
+    .reduce((sum, item) => sum + (item.net_balance || 0), 0);
   const clientsPending = clientBalances.reduce((sum, c) => sum + Math.max(0, c.net_balance), 0);
   const suppliersPending = supplierBalances.reduce((sum, s) => sum + Math.max(0, Math.abs(s.net_balance)), 0);
   const techniciansPending = supplierBalances
@@ -2428,12 +2430,69 @@ const AccountingPage = () => {
 
         {/* 11. RETRIBUCIONES DE SOCIOS/ADMINISTRADORES */}
         <TabsContent value="compensations" className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <CardTitle>Retribuciones de Socios/Administradores</CardTitle>
-            <Button onClick={() => setCreateCompensationDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nueva Retribución
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    setLoading(true);
+                    const { data, error } = await (supabase.rpc as any)("generate_partner_compensations_for_month", {
+                      p_year: selectedYear,
+                      p_month: selectedMonth,
+                      p_mode: "STRICT_CLOSED_REQUIRED",
+                    });
+                    if (error) throw error;
+                    const result = data || {};
+                    const created = result.created_count ?? 0;
+                    const skipped = result.skipped_existing_count ?? 0;
+                    const skips = result.skips || [];
+                    const firstSkip = skips[0];
+                    if (created > 0) {
+                      toast({
+                        title: "Nóminas generadas",
+                        description: `Creadas ${created} retribución(es) en DRAFT. ${skipped > 0 ? `Omitidas ${skipped} (ya existían).` : ""}`,
+                      });
+                      fetchPartnerCompensations();
+                    } else if (firstSkip?.reason === "PERIOD_NOT_CLOSED") {
+                      toast({
+                        title: "Mes de referencia no cerrado",
+                        description: firstSkip.message || "Cierre el mes anterior antes de generar nóminas.",
+                        variant: "destructive",
+                      });
+                    } else if (skipped > 0) {
+                      toast({
+                        title: "Sin nuevas nóminas",
+                        description: `Todas las retribuciones de ${selectedMonth}/${selectedYear} ya existen (${skipped} omitidas).`,
+                      });
+                    } else {
+                      toast({
+                        title: "Sin socios activos",
+                        description: "No hay socios activos para generar retribuciones.",
+                        variant: "destructive",
+                      });
+                    }
+                  } catch (error: any) {
+                    toast({
+                      title: "Error",
+                      description: error.message || "Error al generar nóminas",
+                      variant: "destructive",
+                    });
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Generar DRAFT de socios ({selectedMonth}/{selectedYear})
+              </Button>
+              <Button onClick={() => setCreateCompensationDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva Retribución
+              </Button>
+            </div>
           </div>
 
           <Card>
@@ -2498,34 +2557,64 @@ const AccountingPage = () => {
                       <TableCell>
                         <div className="flex gap-1">
                           {comp.status === "DRAFT" && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={async () => {
-                                try {
-                                  setLoading(true);
-                                  const { error } = await supabase.rpc("post_partner_compensation_run", {
-                                    p_compensation_run_id: comp.id,
-                                  });
-                                  if (error) throw error;
-                                  toast({
-                                    title: "Retribución posteada",
-                                    description: "El asiento contable se ha generado automáticamente",
-                                  });
-                                  fetchPartnerCompensations();
-                                } catch (error: any) {
-                                  toast({
-                                    title: "Error",
-                                    description: error.message || "Error al postear la retribución",
-                                    variant: "destructive",
-                                  });
-                                } finally {
-                                  setLoading(false);
-                                }
-                              }}
-                            >
-                              Postear
-                            </Button>
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={async () => {
+                                  try {
+                                    setLoading(true);
+                                    const { error } = await (supabase.rpc as any)("recalculate_partner_compensation_run", {
+                                      p_run_id: comp.id,
+                                    });
+                                    if (error) throw error;
+                                    toast({
+                                      title: "Recalculado",
+                                      description: "Base y bonus actualizados según configuración actual",
+                                    });
+                                    fetchPartnerCompensations();
+                                  } catch (error: any) {
+                                    toast({
+                                      title: "Error",
+                                      description: error.message || "Error al recalcular",
+                                      variant: "destructive",
+                                    });
+                                  } finally {
+                                    setLoading(false);
+                                  }
+                                }}
+                              >
+                                Recalcular
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={async () => {
+                                  try {
+                                    setLoading(true);
+                                    const { error } = await supabase.rpc("post_partner_compensation_run", {
+                                      p_compensation_run_id: comp.id,
+                                    });
+                                    if (error) throw error;
+                                    toast({
+                                      title: "Retribución posteada",
+                                      description: "El asiento contable se ha generado automáticamente",
+                                    });
+                                    fetchPartnerCompensations();
+                                  } catch (error: any) {
+                                    toast({
+                                      title: "Error",
+                                      description: error.message || "Error al postear la retribución",
+                                      variant: "destructive",
+                                    });
+                                  } finally {
+                                    setLoading(false);
+                                  }
+                                }}
+                              >
+                                Postear
+                              </Button>
+                            </>
                           )}
                           {comp.status === "POSTED" && (
                             <Button
