@@ -185,11 +185,21 @@ export default function CreatePartnerPayrollDialog({
       resetForm();
     } catch (error: any) {
       console.error(`Error ${isEditMode ? "updating" : "creating"} payroll:`, error);
-      toast({
-        title: "Error",
-        description: error.message || `Error al ${isEditMode ? "actualizar" : "crear"} la nómina`,
-        variant: "destructive",
-      });
+      const isDuplicate = error?.code === "23505" || (error?.message || "").toLowerCase().includes("duplicate key");
+      if (isDuplicate) {
+        toast({
+          title: "Nómina ya existente",
+          description: "Ya existe una nómina para este socio y período. Recarga la página para ver el listado actualizado.",
+          variant: "destructive",
+        });
+        onSuccess();
+      } else {
+        toast({
+          title: "Error",
+          description: error?.message || `Error al ${isEditMode ? "actualizar" : "crear"} la nómina`,
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }

@@ -82,16 +82,17 @@ const RoleSimulator = ({ currentRole, onRoleChange, isVisible = true }: RoleSimu
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-full w-10 h-10",
-            "bg-muted/30 border border-border/50 hover:bg-muted/50",
-            "text-xs font-medium transition-colors",
-            "focus:outline-none focus:ring-2 focus:ring-primary/20"
+            "flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-full min-w-[100px] h-9",
+            "bg-muted/60 border border-border hover:bg-muted",
+            "text-foreground text-xs font-medium transition-colors",
+            "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-background",
+            "shadow-sm"
           )}
         >
-          <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="min-w-[70px] text-left">{currentRoleInfo?.label || 'Admin'}</span>
+          <ShieldCheck className="h-3.5 w-3.5 text-foreground/80 shrink-0" />
+          <span className="min-w-[70px] text-left text-foreground">{currentRoleInfo?.label || 'Admin'}</span>
           <ChevronDown className={cn(
-            "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+            "h-3.5 w-3.5 text-foreground/70 shrink-0 transition-transform duration-200",
             isOpen && "rotate-180"
           )} />
         </button>

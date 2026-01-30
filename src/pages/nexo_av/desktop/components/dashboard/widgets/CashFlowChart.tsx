@@ -17,7 +17,7 @@ interface CashFlowChartProps {
     data?: any[];
 }
 
-const CashFlowChart = ({ data: externalData }: CashFlowChartProps) => {
+const CashFlowChart = ({ data: _externalData }: CashFlowChartProps) => {
     const [data, setData] = useState<CashFlowData[]>([]);
     const [loading, setLoading] = useState(true);
     const currentYear = new Date().getFullYear();
@@ -27,50 +27,14 @@ const CashFlowChart = ({ data: externalData }: CashFlowChartProps) => {
             try {
                 setLoading(true);
                 
-                // Use external data if provided (from get_dashboard_metrics revenueChart)
-                if (externalData && externalData.length > 0) {
-                    const yearStart = startOfYear(new Date(currentYear, 0, 1));
-                    const yearEnd = endOfYear(new Date(currentYear, 11, 31));
-                    const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
-                    const monthNames = months.map(m => format(m, "MMM", { locale: es }));
-                    
-                    // Match by month_num (1-12) and year_num - SQL returns English month names
-                    const currentYearData = months.map((month, index) => {
-                        const monthNum = index + 1;
-                        const found = (externalData as any[]).find((item: any) => 
-                            item.year_num === currentYear && item.month_num === monthNum
-                        );
-                        if (!found) {
-                            return {
-                                month: monthNames[index],
-                                income: 0,
-                                expenses: 0,
-                                net: 0
-                            };
-                        }
-                        const income = Number(found.revenue) || 0;
-                        const expenses = Number(found.expenses) || 0;
-                        return {
-                            month: monthNames[index],
-                            income,
-                            expenses,
-                            net: income - expenses
-                        };
-                    });
-                    
-                    setData(currentYearData);
-                    setLoading(false);
-                    return;
-                }
-                
-                // Fallback: fetch income/expenses directly from invoices and purchase_invoices
+                // Siempre usar datos reales: facturas emitidas = ingresos, facturas compra = gastos (como PyG)
                 const yearStart = startOfYear(new Date(currentYear, 0, 1));
                 const yearEnd = endOfYear(new Date(currentYear, 11, 31));
                 const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
                 
                 const [invoicesRes, purchaseInvoicesRes] = await Promise.all([
                     supabase.rpc("finance_list_invoices", { p_search: null, p_status: null }),
-                    supabase.rpc("list_purchase_invoices", { p_status: null, p_page_size: 500 })
+                    supabase.rpc("list_purchase_invoices", { p_status: null, p_page_size: 2000 })
                 ]);
                 
                 const invoices = (invoicesRes.data || []).filter((inv: any) => inv.status !== 'CANCELLED');
@@ -103,7 +67,7 @@ const CashFlowChart = ({ data: externalData }: CashFlowChartProps) => {
         };
 
         fetchCashFlowData();
-    }, [externalData, currentYear]);
+    }, [currentYear]);
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
@@ -168,8 +132,9 @@ const CashFlowChart = ({ data: externalData }: CashFlowChartProps) => {
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : String(value)}
                                 width={45}
+                                domain={[0, 'dataMax + 500']}
                             />
                             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--secondary))', opacity: 0.4 }} />
                             <Legend wrapperStyle={{ paddingTop: '20px' }} />

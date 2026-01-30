@@ -28,8 +28,11 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
             try {
                 setLoading(true);
                 
-                // Fetch all invoices once
-                const { data: invoicesData, error } = await supabase.rpc("finance_list_invoices", {});
+                // Fetch all invoices - datos reales como PyG (facturas emitidas = ingresos)
+                const { data: invoicesData, error } = await supabase.rpc("finance_list_invoices", {
+                    p_search: null,
+                    p_status: null,
+                });
                 
                 if (error) throw error;
                 
@@ -45,11 +48,12 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
                     const monthStart = startOfMonth(month);
                     const monthEnd = endOfMonth(month);
                     
-                    // Filtrar facturas del mes y sumar ingresos
+                    // Filtrar facturas emitidas del mes (excluir borrador y canceladas)
                     const monthInvoices = (invoicesData || []).filter((inv: any) => {
                         if (!inv.issue_date) return false;
                         const invDate = new Date(inv.issue_date);
-                        return invDate >= monthStart && invDate <= monthEnd && inv.status !== 'CANCELLED';
+                        return invDate >= monthStart && invDate <= monthEnd 
+                            && inv.status !== 'CANCELLED' && inv.status !== 'DRAFT';
                     });
                     
                     const revenue = monthInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
@@ -165,8 +169,9 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : String(value)}
                                 width={45}
+                                domain={[0, 'dataMax + 500']}
                             />
                             <Tooltip content={renderCustomTooltip} />
                             {/* Revenue area - solid blue */}

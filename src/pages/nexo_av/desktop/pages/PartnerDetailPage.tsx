@@ -216,8 +216,14 @@ function PartnerDetailPage() {
 
       if (error) throw error;
       setPayrolls(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching payrolls:", error);
+      toast({
+        title: "Error al cargar nóminas",
+        description: error?.message || "No se pudieron cargar las nóminas. Intenta recargar la página.",
+        variant: "destructive",
+      });
+      setPayrolls([]);
     }
   };
 

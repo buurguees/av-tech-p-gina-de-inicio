@@ -2474,11 +2474,22 @@ const AccountingPage = () => {
                       });
                     }
                   } catch (error: any) {
-                    toast({
-                      title: "Error",
-                      description: error.message || "Error al generar nóminas",
-                      variant: "destructive",
-                    });
+                    const code = error?.code || error?.details?.code;
+                    const isDuplicate = code === "23505" || (error?.message || "").includes("duplicate key");
+                    if (isDuplicate) {
+                      toast({
+                        title: "Nóminas ya existentes",
+                        description: `Las retribuciones de ${selectedMonth}/${selectedYear} ya existen. Revisa el listado.`,
+                        variant: "destructive",
+                      });
+                      fetchPartnerCompensations();
+                    } else {
+                      toast({
+                        title: "Error",
+                        description: error.message || "Error al generar nóminas",
+                        variant: "destructive",
+                      });
+                    }
                   } finally {
                     setLoading(false);
                   }

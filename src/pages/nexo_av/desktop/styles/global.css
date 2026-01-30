@@ -23,7 +23,7 @@
 body.nexo-av-theme {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-sans);
   font-size: 13px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -33,6 +33,11 @@ body.nexo-av-theme {
 body.nexo-av-theme-dark {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ============================================
@@ -105,6 +110,22 @@ body.nexo-av-theme *:focus-visible,
 body.nexo-av-theme-dark *:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
+}
+
+/* ============================================
+   TYPOGRAPHY - Ensure all interactive elements use centralized font
+   ============================================ */
+body.nexo-av-theme button,
+body.nexo-av-theme input,
+body.nexo-av-theme select,
+body.nexo-av-theme textarea,
+body.nexo-av-theme label,
+body.nexo-av-theme-dark button,
+body.nexo-av-theme-dark input,
+body.nexo-av-theme-dark select,
+body.nexo-av-theme-dark textarea,
+body.nexo-av-theme-dark label {
+  font-family: var(--font-sans);
 }
 
 /* ============================================

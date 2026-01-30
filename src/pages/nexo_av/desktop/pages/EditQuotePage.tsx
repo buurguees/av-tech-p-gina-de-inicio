@@ -940,7 +940,7 @@ const EditQuotePageDesktop = () => {
                 <TableHeader>
                   <TableRow className="border-white/5 hover:bg-transparent bg-white/[0.03]">
                     <TableHead className="text-white/60 w-16 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
-                    <TableHead className="text-white/80 w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Grupo</TableHead>
+                    <TableHead className="text-white/80 w-24 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Grupo</TableHead>
                     <TableHead className="text-white/80 min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
                     <TableHead className="text-white/80 min-w-[250px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Descripción</TableHead>
                     <TableHead className="text-white/80 text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>

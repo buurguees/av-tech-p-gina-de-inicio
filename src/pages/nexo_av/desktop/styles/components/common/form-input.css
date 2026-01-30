@@ -13,6 +13,7 @@
   border: 1px solid hsl(var(--border));
   border-radius: 0.75rem;
   color: hsl(var(--foreground));
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 400;
   outline: none;
@@ -57,7 +58,7 @@
   color: hsl(var(--foreground));
   font-size: 0.875rem;
   font-weight: 400;
-  font-family: inherit;
+  font-family: var(--font-sans);
   outline: none;
   resize: vertical;
   transition: all 0.2s ease;

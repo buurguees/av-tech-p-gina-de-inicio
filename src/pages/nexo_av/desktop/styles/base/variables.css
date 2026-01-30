@@ -4,6 +4,16 @@
    ============================================ */
 
 /* ============================================
+   TYPOGRAPHY - Centralized font stack
+   Used by global.css and all component styles
+   ============================================ */
+body.nexo-av-theme,
+body.nexo-av-theme-dark {
+  --font-sans: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+/* ============================================
    LIGHT THEME (Default)
    ============================================ */
 body.nexo-av-theme {

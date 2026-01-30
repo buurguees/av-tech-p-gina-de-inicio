@@ -194,7 +194,7 @@ const DashboardListsWidget = ({ userId }: DashboardListsWidgetProps) => {
             title="Gestión Rápida"
             subtitle="Acceso directo a operaciones pendientes"
             variant="clean"
-            className="h-full"
+            className="h-full bg-card/50 border-border"
             headerClassName="pb-2"
             contentClassName="p-0"
         >

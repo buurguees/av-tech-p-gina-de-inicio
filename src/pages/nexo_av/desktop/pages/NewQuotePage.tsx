@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, GripVertical, Trash2, Plus, ChevronDown } from "lucide-react";
-import { motion } from "motion/react";
-import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -11,10 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Loader2, Plus, Trash2, ChevronUp, ChevronDown, FileText } from "lucide-react";
+import { motion } from "motion/react";
+import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import ProductSearchInput from "../components/common/ProductSearchInput";
-import { cn } from "@/lib/utils";
 
 // ============= INLINE TYPES =============
 interface Client {
@@ -54,60 +58,9 @@ interface DocumentLine {
 // ============= UTILITY FUNCTIONS =============
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("es-ES", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
+    style: "currency",
+    currency: "EUR",
   }).format(amount);
-};
-
-// ============= TAX BADGE DROPDOWN =============
-interface TaxBadgeDropdownProps {
-  value: number;
-  onChange: (value: number) => void;
-  options: TaxOption[];
-}
-
-const TaxBadgeDropdown = ({ value, onChange, options }: TaxBadgeDropdownProps) => {
-  const [open, setOpen] = useState(false);
-  const selectedOption = options.find(o => o.value === value);
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className={cn(
-          "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md",
-          "bg-muted hover:bg-muted/80 text-xs font-medium",
-          "transition-colors"
-        )}
-      >
-        <span className="text-muted-foreground">×</span>
-        <span>{selectedOption?.label || `${value}%`}</span>
-        <ChevronDown className={cn("w-3 h-3 text-muted-foreground transition-transform", open && "rotate-180")} />
-      </button>
-      
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 bg-popover border border-border rounded-lg shadow-lg min-w-[120px]">
-            {options.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => { onChange(opt.value); setOpen(false); }}
-                className={cn(
-                  "w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors",
-                  value === opt.value && "bg-primary/10 text-primary font-medium"
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
 };
 
 // ============= MAIN COMPONENT =============
@@ -134,27 +87,28 @@ const NewQuotePage = () => {
   const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
   const [defaultTaxRate, setDefaultTaxRate] = useState(21);
   const [sourceQuoteNumber, setSourceQuoteNumber] = useState<string | null>(null);
-  const [editingValues, setEditingValues] = useState<Record<string, string>>({});
+  const [expandedDescriptionIndex, setExpandedDescriptionIndex] = useState<number | null>(null);
+  const [numericInputValues, setNumericInputValues] = useState<Record<string, string>>({});
 
   // Load initial data
   useEffect(() => {
     const init = async () => {
       setLoading(true);
       await Promise.all([fetchClients(), fetchSaleTaxes()]);
-      
+
       const urlClientId = searchParams.get("clientId") || clientId;
       if (urlClientId) {
         setSelectedClientId(urlClientId);
         await fetchProjects(urlClientId);
       }
-      
+
       const sourceQuoteId = searchParams.get("sourceQuoteId");
       if (sourceQuoteId) {
         await loadSourceQuoteData(sourceQuoteId);
       } else {
         addEmptyLine();
       }
-      
+
       setLoading(false);
     };
     init();
@@ -252,11 +206,11 @@ const NewQuotePage = () => {
           quantity: line.quantity,
           unit_price: line.unit_price,
           tax_rate: line.tax_rate,
-          discount_percent: line.discount_percent,
+          discount_percent: line.discount_percent || 0,
           subtotal: line.subtotal,
           tax_amount: line.tax_amount,
           total: line.total,
-          group_name: line.group_name || null,
+          group_name: line.group_name || undefined,
           line_order: index + 1,
         }))
       );
@@ -307,12 +261,12 @@ const NewQuotePage = () => {
       discount_percent: 0,
       line_order: lines.length + 1,
     });
-    setLines(prev => [...prev, newLine]);
+    setLines((prev) => [...prev, newLine]);
   }, [calculateLineValues, defaultTaxRate, lines.length]);
 
   const updateLine = useCallback(
     (index: number, field: keyof DocumentLine, value: any) => {
-      setLines(prev => {
+      setLines((prev) => {
         const updated = [...prev];
         updated[index] = calculateLineValues({ ...updated[index], [field]: value });
         return updated;
@@ -322,42 +276,121 @@ const NewQuotePage = () => {
   );
 
   const removeLine = useCallback((index: number) => {
-    setLines(prev => prev.filter((_, i) => i !== index).map((line, i) => ({ ...line, line_order: i + 1 })));
+    setLines((prev) => prev.filter((_, i) => i !== index).map((line, i) => ({ ...line, line_order: i + 1 })));
   }, []);
 
-  const parseNumber = (value: string): number => {
-    if (!value) return 0;
-    const cleaned = value.replace(/\./g, "").replace(",", ".");
+  const moveLine = useCallback((index: number, direction: "up" | "down") => {
+    setLines((prev) => {
+      const newLines = [...prev];
+      const targetIndex = direction === "up" ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= newLines.length) return prev;
+      [newLines[index], newLines[targetIndex]] = [newLines[targetIndex], newLines[index]];
+      return newLines.map((line, i) => ({ ...line, line_order: i + 1 }));
+    });
+  }, []);
+
+  // Parse numeric input (handles . and , as decimal separator)
+  const parseNumericInput = (value: string): number => {
+    if (!value || value === "") return 0;
+    let cleaned = value.trim();
+    const dotCount = (cleaned.match(/\./g) || []).length;
+    const commaCount = (cleaned.match(/,/g) || []).length;
+    if (commaCount > 0) {
+      cleaned = cleaned.replace(/\./g, "").replace(/,/g, ".");
+    } else if (dotCount === 1) {
+      const dotIndex = cleaned.indexOf(".");
+      const afterDot = cleaned.substring(dotIndex + 1);
+      if (afterDot.length <= 2 && /^\d+$/.test(afterDot)) {
+        // keep as is
+      } else {
+        cleaned = cleaned.replace(/\./g, "");
+      }
+    } else if (dotCount > 1) {
+      cleaned = cleaned.replace(/\./g, "");
+    }
     const num = parseFloat(cleaned);
     return isNaN(num) ? 0 : num;
   };
 
-  const handleNumericFocus = (index: number, field: string, value: number) => {
-    setEditingValues(prev => ({ ...prev, [`${index}-${field}`]: value === 0 ? "" : value.toString() }));
+  const formatNumericDisplay = (value: number | string): string => {
+    if (value === "" || value === null || value === undefined) return "";
+    const num = typeof value === "string" ? parseNumericInput(value) : value;
+    if (isNaN(num) || num === 0) return "";
+    return new Intl.NumberFormat("es-ES", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(num);
   };
 
-  const handleNumericBlur = (index: number, field: string) => {
-    setEditingValues(prev => {
-      const copy = { ...prev };
-      delete copy[`${index}-${field}`];
-      return copy;
+  const handleNumericInputChange = (
+    value: string,
+    field: "quantity" | "unit_price" | "discount_percent",
+    actualIndex: number
+  ) => {
+    const inputKey = `${actualIndex}-${field}`;
+    setNumericInputValues((prev) => ({ ...prev, [inputKey]: value }));
+    if (value === "" || value === null || value === undefined) {
+      updateLine(actualIndex, field, 0);
+      return;
+    }
+    const numericValue = parseNumericInput(value);
+    updateLine(actualIndex, field, numericValue);
+  };
+
+  const getNumericDisplayValue = (
+    value: number,
+    field: "quantity" | "unit_price" | "discount_percent",
+    actualIndex: number
+  ): string => {
+    const inputKey = `${actualIndex}-${field}`;
+    const storedValue = numericInputValues[inputKey];
+    if (storedValue !== undefined) return storedValue;
+    if (value === 0) return "";
+    return formatNumericDisplay(value);
+  };
+
+  const handleProductSelect = (index: number, item: { name: string; price: number; tax_rate?: number; description?: string }) => {
+    setLines((prev) => {
+      const updated = [...prev];
+      updated[index] = calculateLineValues({
+        ...updated[index],
+        concept: item.name,
+        description: item.description || updated[index].description,
+        unit_price: item.price,
+        tax_rate: item.tax_rate ?? defaultTaxRate,
+      });
+      return updated;
     });
   };
 
-  const getDisplayValue = (index: number, field: string, value: number): string => {
-    const key = `${index}-${field}`;
-    if (editingValues[key] !== undefined) return editingValues[key];
-    return value === 0 ? "" : formatCurrency(value);
-  };
-
-  // Totals
+  // Totals (matching EditQuotePage - taxes by rate)
   const totals = useMemo(() => {
-    const validLines = lines.filter(l => l.concept.trim());
+    const validLines = lines.filter((l) => l.concept.trim());
     const subtotal = validLines.reduce((acc, l) => acc + l.subtotal, 0);
-    const taxAmount = validLines.reduce((acc, l) => acc + l.tax_amount, 0);
     const total = validLines.reduce((acc, l) => acc + l.total, 0);
-    return { subtotal, taxAmount, total };
-  }, [lines]);
+    const taxesByRate: Record<
+      number,
+      { rate: number; amount: number; label: string }
+    > = {};
+    validLines.forEach((line) => {
+      if (line.tax_amount !== 0) {
+        if (!taxesByRate[line.tax_rate]) {
+          const taxOption = taxOptions.find((t) => t.value === line.tax_rate);
+          taxesByRate[line.tax_rate] = {
+            rate: line.tax_rate,
+            amount: 0,
+            label: taxOption?.label || `IVA ${line.tax_rate}%`,
+          };
+        }
+        taxesByRate[line.tax_rate].amount += line.tax_amount;
+      }
+    });
+    return {
+      subtotal,
+      taxes: Object.values(taxesByRate).sort((a, b) => b.rate - a.rate),
+      total,
+    };
+  }, [lines, taxOptions]);
 
   const handleSave = async () => {
     if (!selectedClientId) {
@@ -365,7 +398,7 @@ const NewQuotePage = () => {
       return;
     }
 
-    const validLines = lines.filter(l => l.concept.trim());
+    const validLines = lines.filter((l) => l.concept.trim());
     if (validLines.length === 0) {
       toast({ title: "Error", description: "Añade al menos una línea", variant: "destructive" });
       return;
@@ -399,7 +432,7 @@ const NewQuotePage = () => {
           p_quantity: line.quantity,
           p_unit_price: line.unit_price,
           p_tax_rate: line.tax_rate,
-          p_discount_percent: line.discount_percent,
+          p_discount_percent: line.discount_percent || null,
           p_group_name: line.group_name || null,
           p_line_order: line.line_order || null,
         });
@@ -430,12 +463,10 @@ const NewQuotePage = () => {
     );
   }
 
-  // Filter out LOST clients
-  const availableClients = clients.filter(client => client.lead_stage !== 'LOST');
+  const availableClients = clients.filter((client) => client.lead_stage !== "LOST");
 
   return (
     <div className="h-[calc(100vh-3.25rem)] overflow-y-auto bg-background">
-      {/* Navigation Bar with DetailActionButton */}
       <DetailNavigationBar
         pageTitle={sourceQuoteNumber ? `Nueva versión de ${sourceQuoteNumber}` : "Nuevo presupuesto"}
         backPath={`/nexo-av/${userId}/quotes`}
@@ -448,232 +479,345 @@ const NewQuotePage = () => {
       />
 
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-        className="p-6 space-y-6"
+        transition={{ duration: 0.5 }}
+        className="w-full px-3 md:px-4 pb-4 md:pb-8"
       >
-        {/* Document Info Section */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-card border border-border rounded-xl">
-          {/* Cliente */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cliente</label>
-            <Select
-              value={selectedClientId || undefined}
-              onValueChange={(value) => { setSelectedClientId(value); setSelectedProjectId(""); }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Seleccionar cliente..." />
-              </SelectTrigger>
-              <SelectContent>
-                {availableClients.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {/* Document Info Section - Same structure as EditQuotePage */}
+        <div className="bg-card/80 backdrop-blur-sm rounded-xl border border-border mb-4 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-muted/30 border-b border-border">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Datos del Presupuesto</span>
+            </div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span>Fecha: {new Date(issueDate).toLocaleDateString("es-ES")}</span>
+              <span className="text-border">•</span>
+              <span>Vence: {validUntil ? new Date(validUntil).toLocaleDateString("es-ES") : "Sin fecha"}</span>
+            </div>
           </div>
 
-          {/* Proyecto */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Proyecto</label>
-            <Select
-              value={
-                !selectedClientId || projects.length === 0
-                  ? undefined
-                  : (selectedProjectId || "__none__")
-              }
-              onValueChange={(v) => setSelectedProjectId(v === "__none__" ? "" : v)}
-              disabled={!selectedClientId || projects.length === 0}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue
-                  placeholder={
-                    !selectedClientId ? "Selecciona un cliente" : projects.length === 0 ? "Sin proyectos" : "Seleccionar proyecto..."
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">— Sin proyecto —</SelectItem>
-                {projects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.project_name} ({p.project_number})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="p-5 flex items-start gap-4">
+            <div className="flex-[4] min-w-0">
+              <Label className="text-muted-foreground text-xs mb-2 block font-medium">Cliente</Label>
+              <Select
+                value={selectedClientId || undefined}
+                onValueChange={(value) => {
+                  setSelectedClientId(value);
+                  setSelectedProjectId("");
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccionar cliente..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableClients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.company_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Fecha */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Fecha</label>
-            <input
-              type="date"
-              value={issueDate}
-              disabled
-              className="w-full h-11 px-4 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground"
-            />
-          </div>
+            <div className="flex-[6] min-w-0">
+              <Label className="text-muted-foreground text-xs mb-2 block font-medium">Proyecto</Label>
+              <Select
+                value={
+                  !selectedClientId || projects.length === 0 ? undefined : selectedProjectId || "__none__"
+                }
+                onValueChange={(v) => setSelectedProjectId(v === "__none__" ? "" : v)}
+                disabled={!selectedClientId || projects.length === 0}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={
+                      !selectedClientId
+                        ? "Selecciona un cliente primero"
+                        : projects.length === 0
+                          ? "Sin proyectos disponibles"
+                          : "Seleccionar proyecto..."
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— Sin proyecto —</SelectItem>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.project_name} ({p.project_number})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Vencimiento */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Vencimiento</label>
-            <input
-              type="date"
-              value={validUntil}
-              onChange={(e) => setValidUntil(e.target.value)}
-              className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
+            <div className="flex-shrink-0 w-40">
+              <Label className="text-muted-foreground text-xs mb-1.5 block">Válido hasta</Label>
+              <Input
+                type="date"
+                value={validUntil}
+                onChange={(e) => setValidUntil(e.target.value)}
+                className="h-11 text-sm"
+                title="Fecha de validez del presupuesto"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Lines Editor - Fixed layout without horizontal scroll */}
-        <div className="border border-border rounded-xl overflow-hidden bg-card">
-          {/* Table Header */}
-          <div className="grid grid-cols-[40px_2fr_1.5fr_80px_100px_80px_100px_36px] bg-muted/50 border-b border-border">
-            <div className="px-2 py-3.5" />
-            <div className="px-3 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Concepto</div>
-            <div className="px-3 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Descripción</div>
-            <div className="px-2 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Cant.</div>
-            <div className="px-2 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Precio</div>
-            <div className="px-2 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">IVA</div>
-            <div className="px-2 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Total</div>
-            <div className="px-2 py-3.5" />
+        {/* Lines Table - Same structure as EditQuotePage */}
+        <div className="bg-gradient-to-br from-white/[0.08] to-white/[0.03] dark:from-white/[0.08] dark:to-white/[0.03] backdrop-blur-2xl rounded-2xl border border-border overflow-hidden mb-6 shadow-2xl shadow-black/40">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-gradient-to-r from-white/5 to-transparent">
+            <span className="text-foreground text-sm font-semibold uppercase tracking-wider">
+              Líneas del presupuesto
+            </span>
+            <span className="text-muted-foreground text-xs font-medium">
+              Escribe @nombre para buscar en el catálogo
+            </span>
           </div>
+          <div className="overflow-x-auto bg-white/[0.02] dark:bg-white/[0.02]">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border hover:bg-transparent bg-white/[0.03]">
+                  <TableHead className="text-muted-foreground w-16 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
+                  <TableHead className="text-muted-foreground w-24 px-5 py-3 text-xs font-semibold uppercase tracking-wider">
+                    Grupo
+                  </TableHead>
+                  <TableHead className="text-muted-foreground min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">
+                    Concepto
+                  </TableHead>
+                  <TableHead className="text-muted-foreground min-w-[250px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">
+                    Descripción
+                  </TableHead>
+                  <TableHead className="text-muted-foreground text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">
+                    Cant.
+                  </TableHead>
+                  <TableHead className="text-muted-foreground text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">
+                    Precio
+                  </TableHead>
+                  <TableHead className="text-muted-foreground text-center w-20 px-5 py-3 text-xs font-semibold uppercase tracking-wider">
+                    Dto %
+                  </TableHead>
+                  <TableHead className="text-muted-foreground w-36 px-5 py-3 text-xs font-semibold uppercase tracking-wider">
+                    IVA
+                  </TableHead>
+                  <TableHead className="text-muted-foreground text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">
+                    Subtotal
+                  </TableHead>
+                  <TableHead className="text-muted-foreground w-14 px-5 py-3"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {lines.map((line, displayIndex) => {
+                  const actualIndex = displayIndex;
+                  const isFirst = displayIndex === 0;
+                  const isLast = displayIndex === lines.length - 1;
+                  return (
+                    <TableRow
+                      key={line.tempId || line.id || displayIndex}
+                      className="border-border hover:bg-muted/20 transition-colors duration-150 group"
+                    >
+                      <TableCell className="px-5 py-3.5">
+                        <div className="flex flex-col gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => moveLine(actualIndex, "up")}
+                            disabled={isFirst}
+                            className="h-6 w-6 text-muted-foreground/50 hover:text-foreground hover:bg-muted disabled:opacity-20 disabled:cursor-not-allowed"
+                            title="Mover arriba"
+                          >
+                            <ChevronUp className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => moveLine(actualIndex, "down")}
+                            disabled={isLast}
+                            className="h-6 w-6 text-muted-foreground/50 hover:text-foreground hover:bg-muted disabled:opacity-20 disabled:cursor-not-allowed"
+                            title="Mover abajo"
+                          >
+                            <ChevronDown className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-5 py-3.5">
+                        <Input
+                          value={line.group_name || ""}
+                          onChange={(e) => updateLine(actualIndex, "group_name", e.target.value)}
+                          placeholder="Grupo"
+                          className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm pl-2 pr-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                        />
+                      </TableCell>
+                      <TableCell className="px-5 py-3.5">
+                        <ProductSearchInput
+                          value={line.concept}
+                          onChange={(value) => updateLine(actualIndex, "concept", value)}
+                          onSelectItem={(item) =>
+                            handleProductSelect(actualIndex, {
+                              name: item.name,
+                              price: item.price,
+                              tax_rate: item.tax_rate,
+                              description: item.description,
+                            })
+                          }
+                          placeholder="@buscar producto"
+                          className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                        />
+                      </TableCell>
+                      <TableCell className="px-5 py-3.5">
+                        {expandedDescriptionIndex === actualIndex ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              value={line.description || ""}
+                              onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
+                              placeholder="Descripción opcional"
+                              className="bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground text-sm px-3 py-2 min-h-[80px] resize-y focus:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
+                              onBlur={() => setExpandedDescriptionIndex(null)}
+                              autoFocus
+                            />
+                          </div>
+                        ) : (
+                          <Input
+                            value={line.description || ""}
+                            onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
+                            onClick={() => setExpandedDescriptionIndex(actualIndex)}
+                            className="bg-transparent border-0 border-b border-border text-foreground placeholder:text-muted-foreground h-auto text-sm pl-2 pr-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors cursor-text"
+                            placeholder="Descripción opcional"
+                            readOnly
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell className="px-5 py-3.5">
+                        <div className="flex justify-center">
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={getNumericDisplayValue(line.quantity, "quantity", actualIndex)}
+                            onChange={(e) => handleNumericInputChange(e.target.value, "quantity", actualIndex)}
+                            onBlur={() => {
+                              const inputKey = `${actualIndex}-quantity`;
+                              setNumericInputValues((prev) => {
+                                const newValues = { ...prev };
+                                delete newValues[inputKey];
+                                return newValues;
+                              });
+                            }}
+                            className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                            placeholder="0"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-5 py-3.5">
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          value={getNumericDisplayValue(line.unit_price, "unit_price", actualIndex)}
+                          onChange={(e) => handleNumericInputChange(e.target.value, "unit_price", actualIndex)}
+                          onBlur={() => {
+                            const inputKey = `${actualIndex}-unit_price`;
+                            setNumericInputValues((prev) => {
+                              const newValues = { ...prev };
+                              delete newValues[inputKey];
+                              return newValues;
+                            });
+                          }}
+                          className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-right font-medium px-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                          placeholder="0,00"
+                        />
+                      </TableCell>
+                      <TableCell className="px-5 py-3.5">
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          value={getNumericDisplayValue(line.discount_percent || 0, "discount_percent", actualIndex)}
+                          onChange={(e) =>
+                            handleNumericInputChange(e.target.value, "discount_percent", actualIndex)
+                          }
+                          onBlur={() => {
+                            const inputKey = `${actualIndex}-discount_percent`;
+                            setNumericInputValues((prev) => {
+                              const newValues = { ...prev };
+                              delete newValues[inputKey];
+                              return newValues;
+                            });
+                          }}
+                          className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                          placeholder="0"
+                        />
+                      </TableCell>
+                      <TableCell className="px-5 py-3.5">
+                        <div className="flex justify-center">
+                          <select
+                            value={String(line.tax_rate)}
+                            onChange={(e) => updateLine(actualIndex, "tax_rate", parseFloat(e.target.value))}
+                            className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium px-1 py-2 w-full hover:border-primary/50 focus:border-primary rounded-none transition-colors outline-none"
+                          >
+                            {taxOptions.map((tax) => (
+                              <option key={tax.value} value={String(tax.value)}>
+                                {tax.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-foreground font-semibold text-right text-sm px-5 py-3.5">
+                        {formatCurrency(line.subtotal)}
+                      </TableCell>
+                      <TableCell className="px-5 py-3.5">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeLine(actualIndex)}
+                          className="text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 h-8 w-8 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                {lines.length === 0 && (
+                  <TableRow className="border-border">
+                    <TableCell colSpan={10} className="text-center py-12">
+                      <p className="text-muted-foreground text-sm mb-2">No hay líneas en este presupuesto</p>
+                      <Button variant="link" onClick={addEmptyLine} className="text-primary text-sm">
+                        Añadir primera línea
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="p-5 border-t border-border bg-gradient-to-r from-white/5 to-transparent">
+            <Button
+              variant="outline"
+              onClick={addEmptyLine}
+              className="border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 backdrop-blur-sm rounded-lg transition-all duration-200 h-10 px-4 gap-2 font-medium"
+            >
+              <Plus className="h-4 w-4" />
+              Añadir línea
+            </Button>
+          </div>
+        </div>
 
-          {/* Lines */}
-          <div className="divide-y divide-border">
-            {lines.map((line, index) => (
-              <div
-                key={line.tempId || line.id || index}
-                className="grid grid-cols-[40px_2fr_1.5fr_80px_100px_80px_100px_36px] items-center hover:bg-muted/20 transition-colors group"
-              >
-                {/* Drag Handle */}
-                <div className="px-2 py-3 flex justify-center cursor-grab">
-                  <GripVertical className="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
-                </div>
-
-                {/* Concept */}
-                <div className="px-2 py-2">
-                  <ProductSearchInput
-                    value={line.concept}
-                    onChange={(value) => updateLine(index, "concept", value)}
-                    onSelectItem={(item) => {
-                      // Update all fields from catalog item
-                      setLines(prev => {
-                        const updated = [...prev];
-                        updated[index] = calculateLineValues({
-                          ...updated[index],
-                          concept: item.name,
-                          description: item.description || updated[index].description,
-                          unit_price: item.price,
-                          tax_rate: item.tax_rate,
-                        });
-                        return updated;
-                      });
-                    }}
-                    placeholder="@buscar o escribe..."
-                    className="w-full h-10 px-3 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm transition-all outline-none"
-                  />
-                </div>
-
-                {/* Description */}
-                <div className="px-2 py-2">
-                  <input
-                    type="text"
-                    value={line.description || ""}
-                    onChange={(e) => updateLine(index, "description", e.target.value)}
-                    placeholder="Descripción..."
-                    className="w-full h-10 px-3 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm text-muted-foreground transition-all outline-none"
-                  />
-                </div>
-
-                {/* Quantity */}
-                <div className="px-2 py-2">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={getDisplayValue(index, "quantity", line.quantity)}
-                    onFocus={() => handleNumericFocus(index, "quantity", line.quantity)}
-                    onChange={(e) => {
-                      setEditingValues(prev => ({ ...prev, [`${index}-quantity`]: e.target.value }));
-                      updateLine(index, "quantity", parseNumber(e.target.value));
-                    }}
-                    onBlur={() => handleNumericBlur(index, "quantity")}
-                    placeholder="1"
-                    className="w-full h-10 px-2 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm text-right tabular-nums font-medium transition-all outline-none"
-                  />
-                </div>
-
-                {/* Price */}
-                <div className="px-2 py-2">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={getDisplayValue(index, "unit_price", line.unit_price)}
-                    onFocus={() => handleNumericFocus(index, "unit_price", line.unit_price)}
-                    onChange={(e) => {
-                      setEditingValues(prev => ({ ...prev, [`${index}-unit_price`]: e.target.value }));
-                      updateLine(index, "unit_price", parseNumber(e.target.value));
-                    }}
-                    onBlur={() => handleNumericBlur(index, "unit_price")}
-                    placeholder="0,00"
-                    className="w-full h-10 px-2 bg-transparent border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-lg text-sm text-right tabular-nums font-medium transition-all outline-none"
-                  />
-                </div>
-
-                {/* Tax */}
-                <div className="px-2 py-2 flex justify-center">
-                  <TaxBadgeDropdown value={line.tax_rate} onChange={(v) => updateLine(index, "tax_rate", v)} options={taxOptions} />
-                </div>
-
-                {/* Total */}
-                <div className="px-3 py-2 text-right">
-                  <span className="text-sm font-semibold text-foreground tabular-nums">
-                    {line.total > 0 ? `${formatCurrency(line.total)}€` : "—"}
-                  </span>
-                </div>
-
-                {/* Delete */}
-                <div className="px-2 py-2 flex justify-center">
-                  <button
-                    onClick={() => removeLine(index)}
-                    className="p-1.5 text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-md transition-all opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+        {/* Totals - Same structure as EditQuotePage */}
+        <div className="bg-gradient-to-br from-white/[0.12] to-white/[0.06] dark:from-white/[0.12] dark:to-white/[0.06] backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-border p-5 md:p-6 shadow-2xl shadow-black/40">
+          <div className="max-w-sm ml-auto space-y-4">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground font-medium">Base imponible</span>
+              <span className="text-foreground font-semibold">{formatCurrency(totals.subtotal)}</span>
+            </div>
+            {totals.taxes.map((tax) => (
+              <div key={tax.rate} className="flex justify-between text-sm">
+                <span className="text-muted-foreground font-medium">{tax.label}</span>
+                <span className="text-foreground font-semibold">{formatCurrency(tax.amount)}</span>
               </div>
             ))}
-
-            {/* Add Line Row */}
-            <div
-              onClick={addEmptyLine}
-              className="grid grid-cols-[40px_2fr_1.5fr_80px_100px_80px_100px_36px] items-center hover:bg-muted/30 transition-colors cursor-pointer py-1"
-            >
-              <div className="px-2 py-3 flex justify-center">
-                <Plus className="w-4 h-4 text-muted-foreground/40" />
-              </div>
-              <div className="px-3 py-3 col-span-7">
-                <span className="text-sm text-muted-foreground/60 hover:text-muted-foreground transition-colors">
-                  + Añadir línea
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Totals */}
-        <div className="flex justify-end">
-          <div className="w-80 p-5 bg-card border border-border rounded-xl space-y-3">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-medium text-foreground tabular-nums">{formatCurrency(totals.subtotal)} €</span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">IVA</span>
-              <span className="font-medium text-foreground tabular-nums">{formatCurrency(totals.taxAmount)} €</span>
-            </div>
-            <div className="border-t border-border pt-3 flex justify-between items-center">
-              <span className="font-semibold text-foreground">Total</span>
-              <span className="text-xl font-bold text-foreground tabular-nums">{formatCurrency(totals.total)} €</span>
+            <div className="flex justify-between pt-4 border-t border-border">
+              <span className="text-foreground font-semibold text-lg">Total</span>
+              <span className="text-primary text-xl font-bold">{formatCurrency(totals.total)}</span>
             </div>
           </div>
         </div>

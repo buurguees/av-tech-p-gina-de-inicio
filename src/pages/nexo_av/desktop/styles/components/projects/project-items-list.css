@@ -55,7 +55,7 @@
 }
 
 .project-items-list__cell--number {
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace !important;
+  font-family: var(--font-mono) !important;
   font-weight: 600 !important;
 }
 
