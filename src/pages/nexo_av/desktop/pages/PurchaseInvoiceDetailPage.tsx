@@ -524,7 +524,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
       }
       
       // Delete the invoice
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await (supabase as any)
         .from("purchase_invoices")
         .delete()
         .eq("id", purchaseInvoiceId);

@@ -35,8 +35,8 @@ interface Project {
 
 interface Technician {
   id: string;
-  full_name: string;
-  supplier_id: string | null;
+  company_name: string;
+  technician_number: string;
 }
 
 const NewPurchaseOrderPage = () => {
@@ -75,7 +75,7 @@ const NewPurchaseOrderPage = () => {
           p_search: null,
         });
         if (error) throw error;
-        setTechnicians(data || []);
+        setTechnicians((data || []) as Technician[]);
       } catch (error) {
         console.error("Error fetching technicians:", error);
       } finally {
@@ -116,7 +116,7 @@ const NewPurchaseOrderPage = () => {
     try {
       setSaving(true);
 
-      const { data: orderId, error } = await supabase.rpc("create_purchase_order", {
+      const { data: orderId, error } = await supabase.rpc("create_purchase_order" as any, {
         p_supplier_id: selectedSupplier?.id || null,
         p_technician_id: selectedTechnician?.id || null,
         p_project_id: selectedProject?.id || null,
@@ -237,7 +237,7 @@ const NewPurchaseOrderPage = () => {
                   <option value="">Seleccionar técnico...</option>
                   {technicians.map((tech) => (
                     <option key={tech.id} value={tech.id}>
-                      {tech.full_name}
+                      {tech.company_name}
                     </option>
                   ))}
                 </select>

@@ -71,6 +71,13 @@
   line-height: 1.4 !important;
 }
 
+.metric-card__subtitle {
+  font-size: clamp(0.5rem, 0.5625rem, 0.6875rem) !important;
+  font-weight: 400 !important;
+  color: hsl(var(--text-secondary)) !important;
+  line-height: 1.2 !important;
+}
+
 
 /* Dark mode adjustments */
 body.nexo-av-theme-dark .metric-card {

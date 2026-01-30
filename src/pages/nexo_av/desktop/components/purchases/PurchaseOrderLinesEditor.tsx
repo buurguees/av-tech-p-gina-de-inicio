@@ -78,12 +78,12 @@ const PurchaseOrderLinesEditor = ({
   const fetchLines = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc("get_purchase_order_lines", {
+      const { data, error } = await supabase.rpc("get_purchase_order_lines" as any, {
         p_order_id: orderId,
       });
 
       if (error) throw error;
-      setLines(data || []);
+      setLines((data || []) as PurchaseOrderLine[]);
     } catch (error: any) {
       console.error("Error fetching lines:", error);
       toast({
@@ -149,7 +149,7 @@ const PurchaseOrderLinesEditor = ({
 
       if (editingLine) {
         // Actualizar línea existente
-        const { error } = await supabase.rpc("update_purchase_order_line", {
+        const { error } = await supabase.rpc("update_purchase_order_line" as any, {
           p_line_id: editingLine.id,
           p_concept: formData.concept,
           p_description: formData.description || null,
@@ -170,7 +170,7 @@ const PurchaseOrderLinesEditor = ({
         });
       } else {
         // Crear nueva línea
-        const { error } = await supabase.rpc("add_purchase_order_line", {
+        const { error } = await supabase.rpc("add_purchase_order_line" as any, {
           p_order_id: orderId,
           p_concept: formData.concept,
           p_description: formData.description || null,
@@ -208,7 +208,7 @@ const PurchaseOrderLinesEditor = ({
 
   const handleDeleteLine = async (lineId: string) => {
     try {
-      const { error } = await supabase.rpc("delete_purchase_order_line", {
+      const { error } = await supabase.rpc("delete_purchase_order_line" as any, {
         p_line_id: lineId,
       });
 

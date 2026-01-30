@@ -428,7 +428,7 @@ const ScannerDetailPage = () => {
       
       // For tickets, update the inline supplier info (name and tax_id)
       if (isTicket && (inlineSupplierName || inlineSupplierTaxId)) {
-        const { error: updateError } = await supabase
+        const { error: updateError } = await (supabase as any)
           .from("purchase_invoices")
           .update({
             supplier_name: inlineSupplierName || null,
