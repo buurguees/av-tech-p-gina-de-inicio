@@ -31,8 +31,8 @@ import {
 import { cn } from "@/lib/utils";
 import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo } from "@/constants/salesInvoiceStatuses";
 import { useToast } from "@/hooks/use-toast";
-import { InvoicePDFDocument } from "@/pages/nexo_av/desktop/components/invoices/InvoicePDFViewer";
-import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
+import { InvoicePDFDocument } from "@/pages/nexo_av/assets/plantillas";
+import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 
 interface Invoice {
   id: string;
@@ -703,7 +703,54 @@ interface PreviewTabProps {
 }
 
 const PreviewTab = ({ invoice, lines, client, company, project, preferences, fileName }: PreviewTabProps) => {
-  const [showPreview, setShowPreview] = useState(true);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Generar PDF como blob URL para mejor compatibilidad móvil
+  useEffect(() => {
+    const generatePdf = async () => {
+      if (!client || !company) {
+        setError("Faltan datos del cliente o empresa");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const pdfDoc = (
+          <InvoicePDFDocument
+            invoice={invoice}
+            lines={lines}
+            client={client}
+            company={company}
+            project={project}
+            preferences={preferences}
+          />
+        );
+        
+        const blob = await pdf(pdfDoc).toBlob();
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+      } catch (err) {
+        console.error("Error generating PDF:", err);
+        setError("Error al generar el PDF");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    generatePdf();
+
+    // Limpiar blob URL al desmontar
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [invoice, lines, client, company, project, preferences]);
 
   if (!client || !company) {
     return (
@@ -715,35 +762,48 @@ const PreviewTab = ({ invoice, lines, client, company, project, preferences, fil
     );
   }
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <Loader2 className="h-16 w-16 text-orange-500 mb-4 animate-spin" />
+        <p className="text-muted-foreground">Generando PDF...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
+        <p className="text-red-400">{error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full flex flex-col">
       {/* Barra de acciones */}
       <div className="flex-shrink-0 px-4 py-3 border-b border-border">
         <div className="flex items-center justify-between gap-2">
-          <button
-            onClick={() => setShowPreview(!showPreview)}
-            className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
-              "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-              "text-white/90 hover:text-white hover:bg-white/15",
-              "active:scale-95 transition-all duration-200",
-              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
-            )}
-            style={{ touchAction: 'manipulation' }}
-          >
-            {showPreview ? (
-              <>
-                <EyeOff className="h-4 w-4" />
-                <span>Ocultar</span>
-              </>
-            ) : (
-              <>
-                <Eye className="h-4 w-4" />
-                <span>Ver PDF</span>
-              </>
-            )}
-          </button>
+          {pdfUrl && (
+            <a
+              href={pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
+                "text-sm font-medium whitespace-nowrap leading-none",
+                "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
+                "text-white/90 hover:text-white hover:bg-white/15",
+                "active:scale-95 transition-all duration-200",
+                "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+              )}
+              style={{ touchAction: 'manipulation' }}
+            >
+              <Eye className="h-4 w-4" />
+              <span>Abrir PDF</span>
+            </a>
+          )}
 
           <PDFDownloadLink
             document={
@@ -758,48 +818,38 @@ const PreviewTab = ({ invoice, lines, client, company, project, preferences, fil
             }
             fileName={fileName}
           >
-            {({ loading }) => (
+            {({ loading: downloadLoading }) => (
               <button
                 className={cn(
                   "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
                   "text-sm font-medium whitespace-nowrap leading-none",
                   "bg-orange-500 hover:bg-orange-600 text-white",
                   "active:scale-95 transition-all duration-200",
-                  loading && "opacity-50"
+                  downloadLoading && "opacity-50"
                 )}
                 style={{ touchAction: 'manipulation' }}
-                disabled={loading}
+                disabled={downloadLoading}
               >
-                {loading ? (
+                {downloadLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Download className="h-4 w-4" />
                 )}
-                <span>Descargar PDF</span>
+                <span>Descargar</span>
               </button>
             )}
           </PDFDownloadLink>
         </div>
       </div>
 
-      {/* Vista previa del PDF */}
-      {showPreview && (
+      {/* Vista previa del PDF usando iframe */}
+      {pdfUrl && (
         <div className="flex-1 min-h-0 bg-gray-800 p-2">
-          <PDFViewer
-            width="100%"
-            height="100%"
-            className="rounded-lg"
-            showToolbar={false}
-          >
-            <InvoicePDFDocument
-              invoice={invoice}
-              lines={lines}
-              client={client}
-              company={company}
-              project={project}
-              preferences={preferences}
-            />
-          </PDFViewer>
+          <iframe
+            src={pdfUrl}
+            className="w-full h-full rounded-lg border-0"
+            title="Vista previa de factura"
+          />
         </div>
       )}
     </div>

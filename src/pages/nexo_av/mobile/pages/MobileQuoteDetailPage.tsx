@@ -31,7 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getQuoteStatusInfo, QUOTE_STATUSES } from "@/constants/quoteStatuses";
 import { useToast } from "@/hooks/use-toast";
-import { QuotePDFDocument } from "@/pages/nexo_av/desktop/components/quotes/QuotePDFViewer";
+import { QuotePDFDocument } from "@/pages/nexo_av/assets/plantillas";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import {
   Select,
