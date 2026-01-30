@@ -99,13 +99,13 @@ const PurchaseOrderDetailPageDesktop = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc("get_purchase_order", {
+      const { data, error } = await supabase.rpc("get_purchase_order" as any, {
         p_order_id: orderId,
       });
 
       if (error) throw error;
-      if (data && data.length > 0) {
-        setOrder(data[0]);
+      if (data && (data as any[]).length > 0) {
+        setOrder((data as any[])[0]);
       }
     } catch (error: any) {
       console.error("Error fetching purchase order:", error);
@@ -139,7 +139,7 @@ const PurchaseOrderDetailPageDesktop = () => {
     if (!order) return;
 
     try {
-      const { error } = await supabase.rpc("update_purchase_order", {
+      const { error } = await supabase.rpc("update_purchase_order" as any, {
         p_order_id: order.id,
         p_status: newStatus,
       });
@@ -166,7 +166,7 @@ const PurchaseOrderDetailPageDesktop = () => {
 
     try {
       setApproving(true);
-      const { error } = await supabase.rpc("approve_purchase_order", {
+      const { error } = await supabase.rpc("approve_purchase_order" as any, {
         p_order_id: order.id,
       });
 

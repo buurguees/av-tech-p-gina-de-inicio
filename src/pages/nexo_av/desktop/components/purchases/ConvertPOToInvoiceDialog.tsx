@@ -222,7 +222,7 @@ const ConvertPOToInvoiceDialog = ({
       if (createError) throw createError;
 
       // Vincular el PO a la factura
-      const { error: linkError } = await supabase.rpc("link_po_to_purchase_invoice", {
+      const { error: linkError } = await supabase.rpc("link_po_to_purchase_invoice" as any, {
         p_order_id: purchaseOrder.id,
         p_invoice_id: invoiceId,
       });

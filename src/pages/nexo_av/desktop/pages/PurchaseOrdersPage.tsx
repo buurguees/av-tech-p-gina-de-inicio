@@ -82,13 +82,13 @@ const PurchaseOrdersPageDesktop = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc("list_purchase_orders", {
+      const { data, error } = await supabase.rpc("list_purchase_orders" as any, {
         p_status: statusFilter,
         p_search: debouncedSearchQuery || null,
       });
 
       if (error) throw error;
-      setOrders(data || []);
+      setOrders((data || []) as PurchaseOrder[]);
     } catch (error) {
       console.error("Error fetching purchase orders:", error);
       toast({

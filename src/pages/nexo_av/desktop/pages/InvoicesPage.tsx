@@ -90,24 +90,30 @@ const InvoicesPageDesktop = () => {
       });
       if (error) throw error;
       
+      // Mapear datos agregando campos faltantes con valores por defecto
+      let mappedData: Invoice[] = (data || []).map((inv: any) => ({
+        ...inv,
+        payment_bank_name: inv.payment_bank_name || null,
+        payment_bank_id: inv.payment_bank_id || null,
+      }));
+      
       // Aplicar filtro de estado de pago
-      let filteredData = data || [];
       if (paymentFilter === "pending") {
         // Pendiente de cobro: tiene saldo pendiente > 0
-        filteredData = filteredData.filter((inv: Invoice) => inv.pending_amount > 0);
+        mappedData = mappedData.filter((inv) => inv.pending_amount > 0);
       } else if (paymentFilter === "paid") {
         // Cobrado completamente
-        filteredData = filteredData.filter((inv: Invoice) => 
+        mappedData = mappedData.filter((inv) => 
           inv.pending_amount <= 0 || inv.status === 'PAID'
         );
       } else if (paymentFilter === "partial") {
         // Parcialmente cobrado: tiene cobros pero no está completo
-        filteredData = filteredData.filter((inv: Invoice) => 
+        mappedData = mappedData.filter((inv) => 
           inv.paid_amount > 0 && inv.pending_amount > 0
         );
       }
       
-      setInvoices(filteredData);
+      setInvoices(mappedData);
     } catch (error: any) {
       console.error("Error fetching invoices:", error);
       toast({

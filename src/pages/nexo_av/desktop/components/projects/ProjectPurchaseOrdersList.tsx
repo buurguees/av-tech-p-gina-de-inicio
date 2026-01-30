@@ -47,12 +47,12 @@ const ProjectPurchaseOrdersList = ({ projectId }: ProjectPurchaseOrdersListProps
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc("list_project_purchase_orders", {
+      const { data, error } = await supabase.rpc("list_project_purchase_orders" as any, {
         p_project_id: projectId,
       });
 
       if (error) throw error;
-      setOrders(data || []);
+      setOrders((data || []) as PurchaseOrder[]);
     } catch (error) {
       console.error("Error fetching purchase orders:", error);
     } finally {
