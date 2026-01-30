@@ -78,6 +78,8 @@ interface PartnerPayroll {
   created_at: string;
   partner_name: string;
   partner_number: string;
+  journal_entry_id?: string | null;
+  journal_entry_number?: string | null;
   notes?: string;
 }
 
@@ -740,11 +742,13 @@ function PartnerDetailPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead className="text-muted-foreground text-xs font-medium">Nº Nómina</TableHead>
                           <TableHead className="text-muted-foreground text-xs font-medium">Período</TableHead>
                           <TableHead className="text-muted-foreground text-xs font-medium text-right">Bruto</TableHead>
                           <TableHead className="text-muted-foreground text-xs font-medium text-right">IRPF</TableHead>
                           <TableHead className="text-muted-foreground text-xs font-medium text-right">Neto</TableHead>
                           <TableHead className="text-muted-foreground text-xs font-medium text-center">Estado</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium">Asiento</TableHead>
                           <TableHead className="text-muted-foreground text-xs font-medium">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -755,10 +759,13 @@ function PartnerDetailPage() {
                             className="border-border hover:bg-accent/50"
                           >
                             <TableCell className="py-3">
-                              <div>
-                                <p className="font-medium text-sm">{getMonthName(payroll.period_month)} {payroll.period_year}</p>
-                                <p className="text-xs text-muted-foreground">{payroll.compensation_number}</p>
-                              </div>
+                              <p className="font-mono font-medium text-sm">{payroll.compensation_number}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {format(new Date(payroll.created_at), "d MMM yyyy", { locale: es })}
+                              </p>
+                            </TableCell>
+                            <TableCell className="py-3">
+                              <p className="font-medium text-sm">{getMonthName(payroll.period_month)} {payroll.period_year}</p>
                             </TableCell>
                             <TableCell className="text-right py-3">
                               <span className="font-medium text-sm">{formatCurrency(payroll.gross_amount)}</span>
@@ -774,6 +781,13 @@ function PartnerDetailPage() {
                             </TableCell>
                             <TableCell className="text-center py-3">
                               {getStatusBadge(payroll.status)}
+                            </TableCell>
+                            <TableCell className="py-3">
+                              {payroll.journal_entry_number ? (
+                                <span className="font-mono text-xs text-muted-foreground">{payroll.journal_entry_number}</span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
                             </TableCell>
                             <TableCell className="py-3">
                               <div className="flex items-center gap-1">
@@ -850,7 +864,7 @@ function PartnerDetailPage() {
                         ))}
                         {payrolls.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                            <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
                               No hay nóminas registradas para este socio
                             </TableCell>
                           </TableRow>

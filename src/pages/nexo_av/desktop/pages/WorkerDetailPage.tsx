@@ -17,10 +17,19 @@ import {
   Building2,
   Percent,
   FileText,
+  Receipt,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
@@ -55,11 +64,28 @@ interface WorkerDetail {
   roles: string[];
 }
 
+// Nómina unificada (empleado o socio)
+interface WorkerPayroll {
+  id: string;
+  payroll_number?: string;
+  compensation_number?: string;
+  period_year: number;
+  period_month: number;
+  gross_amount: number;
+  irpf_rate: number;
+  irpf_amount: number;
+  net_amount: number;
+  status: string;
+  created_at: string;
+  journal_entry_number?: string | null;
+}
+
 export default function WorkerDetailPage() {
   const { userId, workerId } = useParams<{ userId: string; workerId: string }>();
   const navigate = useNavigate();
 
   const [worker, setWorker] = useState<WorkerDetail | null>(null);
+  const [payrolls, setPayrolls] = useState<WorkerPayroll[]>([]);
   const [loading, setLoading] = useState(true);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("informacion");
@@ -114,9 +140,39 @@ export default function WorkerDetailPage() {
     }
   };
 
+  const fetchPayrolls = async () => {
+    if (!worker) return;
+    try {
+      if (worker.linked_employee_id) {
+        const { data, error } = await supabase.rpc("list_payroll_runs", {
+          p_employee_id: worker.linked_employee_id,
+        });
+        if (!error) setPayrolls(data || []);
+      } else if (worker.linked_partner_id) {
+        const { data, error } = await supabase.rpc("list_partner_compensation_runs", {
+          p_partner_id: worker.linked_partner_id,
+        });
+        if (!error) setPayrolls(data || []);
+      } else {
+        setPayrolls([]);
+      }
+    } catch (error) {
+      console.error("Error fetching payrolls:", error);
+      setPayrolls([]);
+    }
+  };
+
   useEffect(() => {
     fetchWorker();
   }, [workerId]);
+
+  useEffect(() => {
+    if (worker && (worker.linked_employee_id || worker.linked_partner_id)) {
+      fetchPayrolls();
+    } else {
+      setPayrolls([]);
+    }
+  }, [worker]);
 
   if (loading) {
     return (
@@ -155,11 +211,39 @@ export default function WorkerDetailPage() {
     return labels[dept] || dept;
   };
 
+  const getMonthName = (month: number) => {
+    const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    return months[month - 1];
+  };
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(val);
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "DRAFT":
+        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Borrador</Badge>;
+      case "POSTED":
+        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30"><Shield className="w-3 h-3 mr-1" />Confirmada</Badge>;
+      case "PARTIAL":
+        return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">Parcial</Badge>;
+      case "PAID":
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Pagada</Badge>;
+      case "CANCELLED":
+        return <Badge variant="destructive">Anulada</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const hasPayrolls = worker?.linked_employee_id || worker?.linked_partner_id;
+
   const tabs: TabItem[] = [
     { value: "informacion", label: "Información", icon: User },
     { value: "profesional", label: "Profesional", icon: Briefcase },
     { value: "fiscal", label: "Fiscal", icon: CreditCard },
     { value: "direccion", label: "Dirección", icon: MapPin },
+    ...(hasPayrolls ? [{ value: "nominas", label: "Nóminas", icon: Receipt }] : []),
     { value: "documentos", label: "Documentos", icon: FileText },
   ];
 
@@ -468,6 +552,78 @@ export default function WorkerDetailPage() {
                         <p className="font-medium text-base">{worker.province || "-"}</p>
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "nominas" && hasPayrolls && (
+              <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold">Nóminas del Trabajador</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {worker?.linked_partner_id ? "Retribuciones como socio" : "Nóminas como empleado"}
+                  </p>
+                </div>
+                <Card>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-muted-foreground text-xs font-medium">Nº Nómina</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium">Período</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium text-right">Bruto</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium text-right">IRPF</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium text-right">Neto</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium text-center">Estado</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium">Asiento</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {payrolls.map((payroll) => (
+                          <TableRow key={payroll.id} className="border-border hover:bg-accent/50">
+                            <TableCell className="py-3">
+                              <p className="font-mono font-medium text-sm">
+                                {payroll.payroll_number || payroll.compensation_number}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {format(new Date(payroll.created_at), "d MMM yyyy", { locale: es })}
+                              </p>
+                            </TableCell>
+                            <TableCell className="py-3">
+                              <p className="font-medium text-sm">{getMonthName(payroll.period_month)} {payroll.period_year}</p>
+                            </TableCell>
+                            <TableCell className="text-right py-3">
+                              <span className="font-medium text-sm">{formatCurrency(payroll.gross_amount)}</span>
+                            </TableCell>
+                            <TableCell className="text-right py-3">
+                              <span className="text-orange-400 text-sm">
+                                -{formatCurrency(payroll.irpf_amount)}
+                                <span className="text-xs text-muted-foreground ml-1">({payroll.irpf_rate}%)</span>
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right py-3">
+                              <span className="font-bold text-green-400 text-sm">{formatCurrency(payroll.net_amount)}</span>
+                            </TableCell>
+                            <TableCell className="text-center py-3">{getStatusBadge(payroll.status)}</TableCell>
+                            <TableCell className="py-3">
+                              {payroll.journal_entry_number ? (
+                                <span className="font-mono text-xs text-muted-foreground">{payroll.journal_entry_number}</span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {payrolls.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                              No hay nóminas registradas
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
                   </CardContent>
                 </Card>
               </div>
