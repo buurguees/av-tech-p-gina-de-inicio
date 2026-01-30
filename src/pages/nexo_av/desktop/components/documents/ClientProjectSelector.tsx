@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Building2, FolderOpen, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -112,21 +119,22 @@ export default function ClientProjectSelector({
           </Label>
         )}
         <div className="relative">
-          <select
-            value={selectedClientId}
-            onChange={(e) => handleClientChange(e.target.value)}
+          <Select
+            value={selectedClientId || undefined}
+            onValueChange={(value) => handleClientChange(value)}
             disabled={disabled || loadingClients}
-            className="form-input"
           >
-            <option value="">
-              {loadingClients ? "Cargando..." : "Seleccionar cliente"}
-            </option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>{c.company_name}</option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={loadingClients ? "Cargando..." : "Seleccionar cliente"} />
+            </SelectTrigger>
+            <SelectContent>
+              {clients.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {loadingClients && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+            <Loader2 className="absolute right-10 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground pointer-events-none" />
           )}
         </div>
       </div>
@@ -140,27 +148,37 @@ export default function ClientProjectSelector({
           </Label>
         )}
         <div className="relative">
-          <select
-            value={selectedProjectId}
-            onChange={(e) => onProjectChange(e.target.value)}
+          <Select
+            value={
+              !selectedClientId || projects.length === 0
+                ? undefined
+                : (selectedProjectId || "__none__")
+            }
+            onValueChange={(v) => onProjectChange(v === "__none__" ? "" : v)}
             disabled={disabled || !selectedClientId || loadingProjects}
-            className="form-input"
           >
-            <option value="">
-              {!selectedClientId
-                ? "Selecciona un cliente primero"
-                : loadingProjects
-                  ? "Cargando..."
-                  : projects.length === 0
-                    ? "Sin proyectos disponibles"
-                    : "Seleccionar proyecto"}
-            </option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>{p.project_name} ({p.project_number})</option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue
+                placeholder={
+                  !selectedClientId
+                    ? "Selecciona un cliente primero"
+                    : loadingProjects
+                      ? "Cargando..."
+                      : projects.length === 0
+                        ? "Sin proyectos disponibles"
+                        : "Seleccionar proyecto"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">— Sin proyecto —</SelectItem>
+              {projects.map((p) => (
+                <SelectItem key={p.id} value={p.id}>{p.project_name} ({p.project_number})</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {loadingProjects && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+            <Loader2 className="absolute right-10 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground pointer-events-none" />
           )}
         </div>
       </div>

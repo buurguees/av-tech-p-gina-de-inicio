@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
@@ -868,37 +875,50 @@ const EditQuotePageDesktop = () => {
               {/* Client selector - 40% */}
               <div className="flex-[4] min-w-0">
                 <Label className="text-muted-foreground text-xs mb-2 block font-medium">Cliente</Label>
-                <select 
-                  value={selectedClientId} 
-                  onChange={e => {
-                    setSelectedClientId(e.target.value);
+                <Select
+                  value={selectedClientId || undefined}
+                  onValueChange={(value) => {
+                    setSelectedClientId(value);
                     setSelectedProjectId("");
                   }}
-                  className="form-input"
                 >
-                  <option value="">Seleccionar cliente...</option>
-                  {availableClients.map(c => (
-                    <option key={c.id} value={c.id}>{c.company_name}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleccionar cliente..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableClients.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               {/* Project selector - 60% */}
               <div className="flex-[6] min-w-0">
                 <Label className="text-muted-foreground text-xs mb-2 block font-medium">Proyecto</Label>
-                <select 
-                  value={selectedProjectId} 
-                  onChange={e => setSelectedProjectId(e.target.value)}
+                <Select
+                  value={
+                    !selectedClientId || projects.length === 0
+                      ? undefined
+                      : (selectedProjectId || "__none__")
+                  }
+                  onValueChange={(v) => setSelectedProjectId(v === "__none__" ? "" : v)}
                   disabled={!selectedClientId || loadingProjects || projects.length === 0}
-                  className="form-input"
                 >
-                  <option value="">
-                    {!selectedClientId ? "Selecciona un cliente primero" : projects.length === 0 ? "Sin proyectos disponibles" : "Seleccionar proyecto..."}
-                  </option>
-                  {projects.map(p => (
-                    <option key={p.id} value={p.id}>{p.project_name} ({p.project_number})</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        !selectedClientId ? "Selecciona un cliente primero" : projects.length === 0 ? "Sin proyectos disponibles" : "Seleccionar proyecto..."
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— Sin proyecto —</SelectItem>
+                    {projects.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.project_name} ({p.project_number})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               {/* Validity date - only editable when not draft */}

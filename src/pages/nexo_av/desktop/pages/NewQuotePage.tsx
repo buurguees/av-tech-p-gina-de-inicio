@@ -4,6 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, GripVertical, Trash2, Plus, ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import ProductSearchInput from "../components/common/ProductSearchInput";
@@ -451,34 +458,47 @@ const NewQuotePage = () => {
           {/* Cliente */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cliente</label>
-            <select
-              value={selectedClientId}
-              onChange={(e) => { setSelectedClientId(e.target.value); setSelectedProjectId(""); }}
-              className="form-input"
+            <Select
+              value={selectedClientId || undefined}
+              onValueChange={(value) => { setSelectedClientId(value); setSelectedProjectId(""); }}
             >
-              <option value="">Seleccionar cliente...</option>
-              {availableClients.map((c) => (
-                <option key={c.id} value={c.id}>{c.company_name}</option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Seleccionar cliente..." />
+              </SelectTrigger>
+              <SelectContent>
+                {availableClients.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Proyecto */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Proyecto</label>
-            <select
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
+            <Select
+              value={
+                !selectedClientId || projects.length === 0
+                  ? undefined
+                  : (selectedProjectId || "__none__")
+              }
+              onValueChange={(v) => setSelectedProjectId(v === "__none__" ? "" : v)}
               disabled={!selectedClientId || projects.length === 0}
-              className="form-input"
             >
-              <option value="">
-                {!selectedClientId ? "Selecciona un cliente" : projects.length === 0 ? "Sin proyectos" : "Seleccionar proyecto..."}
-              </option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>{p.project_name} ({p.project_number})</option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue
+                  placeholder={
+                    !selectedClientId ? "Selecciona un cliente" : projects.length === 0 ? "Sin proyectos" : "Seleccionar proyecto..."
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">— Sin proyecto —</SelectItem>
+                {projects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.project_name} ({p.project_number})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Fecha */}

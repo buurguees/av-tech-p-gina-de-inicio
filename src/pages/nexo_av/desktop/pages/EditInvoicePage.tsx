@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -582,39 +589,55 @@ const EditInvoicePageDesktop = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                 <Label className="text-white/70 text-[10px] md:text-sm">Cliente</Label>
-                <select 
-                  value={selectedClientId} 
-                  onChange={e => setSelectedClientId(e.target.value)}
-                  className="form-input"
+                <Select
+                  value={selectedClientId || undefined}
+                  onValueChange={(value) => {
+                    setSelectedClientId(value);
+                    setSelectedProjectId("");
+                  }}
                 >
-                  <option value="">Seleccionar</option>
-                  {clients.map((client) => (
-                    <option key={client.id} value={client.id}>{client.company_name}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>{client.company_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                 <Label className="text-white/70 text-[10px] md:text-sm">Proyecto</Label>
-                <select
-                  value={selectedProjectId}
-                  onChange={e => setSelectedProjectId(e.target.value)}
+                <Select
+                  value={
+                    !selectedClientId || projects.length === 0
+                      ? undefined
+                      : (selectedProjectId || "__none__")
+                  }
+                  onValueChange={(v) => setSelectedProjectId(v === "__none__" ? "" : v)}
                   disabled={!selectedClientId || loadingProjects}
-                  className="form-input"
                 >
-                  <option value="">
-                    {!selectedClientId
-                      ? "Cliente primero"
-                      : loadingProjects
-                        ? "Cargando..."
-                        : projects.length === 0
-                          ? "Sin proyectos"
-                          : "Seleccionar"}
-                  </option>
-                  {projects.map((project) => (
-                    <option key={project.id} value={project.id}>{project.project_name}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        !selectedClientId
+                          ? "Cliente primero"
+                          : loadingProjects
+                            ? "Cargando..."
+                            : projects.length === 0
+                              ? "Sin proyectos"
+                              : "Seleccionar"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— Sin proyecto —</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>{project.project_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1 md:space-y-2">

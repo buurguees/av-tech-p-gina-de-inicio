@@ -409,6 +409,7 @@ export type Database = {
         Args: {
           p_amount: number
           p_bank_reference?: string
+          p_company_bank_account_id?: string
           p_notes?: string
           p_partner_compensation_run_id?: string
           p_payment_date?: string
@@ -2943,6 +2944,109 @@ export type Database = {
           message: string
           remaining_attempts: number
           valid: boolean
+        }[]
+      }
+      // === MONTHLY REPORTS RPCs ===
+      get_monthly_closure_report_dataset: {
+        Args: { p_year: number; p_month: number }
+        Returns: Json
+      }
+      list_journal_entry_lines_by_period: {
+        Args: { p_start_date: string; p_end_date: string }
+        Returns: {
+          entry_id: string
+          entry_number: string
+          entry_date: string
+          entry_type: string
+          description: string
+          is_locked: boolean
+          source_type: string
+          source_id: string
+          line_id: string
+          account_code: string
+          account_name: string
+          line_description: string
+          debit: number
+          credit: number
+        }[]
+      }
+      get_report_settings: {
+        Args: Record<string, never>
+        Returns: {
+          id: string
+          monthly_report_auto_send_enabled: boolean
+          recipients_to: string[]
+          recipients_cc: string[]
+          email_subject_template: string
+          from_email: string
+          include_pdf_attachment: boolean
+          use_signed_link_instead_of_attachment: boolean
+          signed_link_expiry_days: number
+          template_version: string
+          language: string
+          auto_send_on_close: boolean
+        }[]
+      }
+      admin_update_report_settings: {
+        Args: {
+          p_monthly_report_auto_send_enabled?: boolean
+          p_recipients_to?: string[]
+          p_recipients_cc?: string[]
+          p_email_subject_template?: string
+          p_from_email?: string
+          p_signed_link_expiry_days?: number
+          p_auto_send_on_close?: boolean
+        }
+        Returns: undefined
+      }
+      list_monthly_reports: {
+        Args: { p_year?: number; p_limit?: number }
+        Returns: {
+          id: string
+          year: number
+          month: number
+          status: string
+          storage_path: string
+          generated_at: string
+          sent_at: string
+          sent_to: string[]
+          error_message: string
+          retry_count: number
+          created_at: string
+        }[]
+      }
+      create_in_progress_report: {
+        Args: { p_year: number; p_month: number; p_end_day?: number }
+        Returns: string
+      }
+      retry_monthly_report: {
+        Args: { p_report_id: string }
+        Returns: undefined
+      }
+      close_period: {
+        Args: { p_year: number; p_month: number }
+        Returns: string
+      }
+      is_period_closed: {
+        Args: { p_year: number; p_month: number }
+        Returns: boolean
+      }
+      check_month_closure_readiness: {
+        Args: { p_year: number; p_month: number }
+        Returns: {
+          check_name: string
+          passed: boolean
+          detail: string
+        }[]
+      }
+      get_period_profit_summary: {
+        Args: { p_start?: string; p_end?: string }
+        Returns: {
+          total_revenue: number
+          operating_expenses: number
+          profit_before_tax: number
+          corporate_tax_amount: number
+          net_profit: number
         }[]
       }
     }
