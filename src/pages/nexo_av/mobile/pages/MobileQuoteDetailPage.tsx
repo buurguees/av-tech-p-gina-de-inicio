@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 import { getQuoteStatusInfo, QUOTE_STATUSES } from "@/constants/quoteStatuses";
 import { useToast } from "@/hooks/use-toast";
 import { QuotePDFDocument } from "@/pages/nexo_av/desktop/components/quotes/QuotePDFViewer";
-import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
+import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import {
   Select,
   SelectContent,
@@ -791,7 +791,53 @@ interface PreviewTabProps {
 }
 
 const PreviewTab = ({ quote, lines, client, company, project, fileName }: PreviewTabProps) => {
-  const [showPreview, setShowPreview] = useState(true);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [loadingPdf, setLoadingPdf] = useState(true);
+  const [error, setError] = useState(false);
+
+  // Generar el PDF como blob URL cuando el componente se monta
+  useEffect(() => {
+    const generatePdf = async () => {
+      if (!client || !company) {
+        setError(true);
+        setLoadingPdf(false);
+        return;
+      }
+      
+      try {
+        setLoadingPdf(true);
+        setError(false);
+        
+        const pdfDocument = (
+          <QuotePDFDocument
+            quote={quote}
+            lines={lines}
+            client={client}
+            company={company}
+            project={project}
+          />
+        );
+        
+        const blob = await pdf(pdfDocument).toBlob();
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+      } catch (err) {
+        console.error("Error generating PDF:", err);
+        setError(true);
+      } finally {
+        setLoadingPdf(false);
+      }
+    };
+
+    generatePdf();
+
+    // Cleanup: revocar el blob URL cuando el componente se desmonte
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [quote, lines, client, company, project]);
 
   if (!client || !company) {
     return (
@@ -803,13 +849,65 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
     );
   }
 
+  if (loadingPdf) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <Loader2 className="h-12 w-12 animate-spin text-muted-foreground mb-4" />
+        <p className="text-muted-foreground">Generando PDF...</p>
+      </div>
+    );
+  }
+
+  if (error || !pdfUrl) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <AlertCircle className="h-16 w-16 text-muted-foreground mb-4" />
+        <p className="text-muted-foreground">Error al generar el PDF</p>
+        <p className="text-muted-foreground text-sm mb-4">Intenta descargar el PDF directamente</p>
+        <PDFDownloadLink
+          document={
+            <QuotePDFDocument
+              quote={quote}
+              lines={lines}
+              client={client}
+              company={company}
+              project={project}
+            />
+          }
+          fileName={fileName}
+        >
+          {({ loading }) => (
+            <button
+              className={cn(
+                "h-10 px-4 flex items-center justify-center gap-2 rounded-full",
+                "text-sm font-medium",
+                "bg-orange-500 hover:bg-orange-600 text-white",
+                "active:scale-95 transition-all duration-200",
+                loading && "opacity-50"
+              )}
+              style={{ touchAction: 'manipulation' }}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              <span>Descargar PDF</span>
+            </button>
+          )}
+        </PDFDownloadLink>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full flex flex-col">
       {/* Barra de acciones */}
       <div className="flex-shrink-0 px-4 py-3 border-b border-border">
         <div className="flex items-center justify-between gap-2">
           <button
-            onClick={() => setShowPreview(!showPreview)}
+            onClick={() => window.open(pdfUrl, '_blank')}
             className={cn(
               "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
               "text-sm font-medium whitespace-nowrap leading-none",
@@ -820,17 +918,8 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
             )}
             style={{ touchAction: 'manipulation' }}
           >
-            {showPreview ? (
-              <>
-                <EyeOff className="h-4 w-4" />
-                <span>Ocultar</span>
-              </>
-            ) : (
-              <>
-                <Eye className="h-4 w-4" />
-                <span>Ver PDF</span>
-              </>
-            )}
+            <Eye className="h-4 w-4" />
+            <span>Abrir PDF</span>
           </button>
 
           <PDFDownloadLink
@@ -862,32 +951,21 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
                 ) : (
                   <Download className="h-4 w-4" />
                 )}
-                <span>Descargar PDF</span>
+                <span>Descargar</span>
               </button>
             )}
           </PDFDownloadLink>
         </div>
       </div>
 
-      {/* Vista previa del PDF */}
-      {showPreview && (
-        <div className="flex-1 min-h-0 bg-gray-800 p-2">
-          <PDFViewer
-            width="100%"
-            height="100%"
-            className="rounded-lg"
-            showToolbar={false}
-          >
-            <QuotePDFDocument
-              quote={quote}
-              lines={lines}
-              client={client}
-              company={company}
-              project={project}
-            />
-          </PDFViewer>
-        </div>
-      )}
+      {/* Vista previa del PDF usando iframe nativo */}
+      <div className="flex-1 min-h-0 bg-zinc-900 p-2">
+        <iframe
+          src={pdfUrl}
+          className="w-full h-full rounded-lg border border-border"
+          title="Vista previa del presupuesto"
+        />
+      </div>
     </div>
   );
 };
@@ -905,13 +983,46 @@ const LineasTab = ({ lines, isEditable, onEdit, formatCurrency }: LineasTabProps
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
         <FileText className="h-16 w-16 text-muted-foreground mb-4" />
         <h3 className="text-lg font-medium text-foreground mb-1">Líneas</h3>
-        <p className="text-sm text-muted-foreground">No hay líneas en este presupuesto</p>
+        <p className="text-sm text-muted-foreground mb-4">No hay líneas en este presupuesto</p>
+        {isEditable && (
+          <button
+            onClick={onEdit}
+            className={cn(
+              "h-10 px-4 flex items-center justify-center gap-2 rounded-full",
+              "text-sm font-medium",
+              "bg-primary text-primary-foreground",
+              "active:scale-95 transition-all duration-200"
+            )}
+            style={{ touchAction: 'manipulation' }}
+          >
+            <Edit className="h-4 w-4" />
+            <span>Añadir líneas</span>
+          </button>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="px-4 py-4 space-y-2">
+    <div className="px-4 py-4 space-y-3">
+      {/* Botón de editar líneas */}
+      {isEditable && (
+        <button
+          onClick={onEdit}
+          className={cn(
+            "w-full h-12 flex items-center justify-center gap-2 rounded-xl",
+            "text-sm font-medium",
+            "bg-primary/10 border-2 border-dashed border-primary/30 text-primary",
+            "hover:bg-primary/20 hover:border-primary/50",
+            "active:scale-[0.98] transition-all duration-200"
+          )}
+          style={{ touchAction: 'manipulation' }}
+        >
+          <Edit className="h-4 w-4" />
+          <span>Modificar líneas del presupuesto</span>
+        </button>
+      )}
+      
       {lines
         .sort((a, b) => a.line_order - b.line_order)
         .map((line) => (
