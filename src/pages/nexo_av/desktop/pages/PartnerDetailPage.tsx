@@ -312,6 +312,22 @@ function PartnerDetailPage() {
     return months[month - 1];
   };
 
+  // Extrae resumen de conceptos/pluses del desglose en notes
+  const getConceptsSummary = (notes: string | undefined): string => {
+    if (!notes) return "—";
+    const breakdownMatch = notes.match(/Desglose:\s*(.+)/s);
+    if (!breakdownMatch) return "—";
+    const breakdown = breakdownMatch[1];
+    const parts = breakdown.split("|").map(s => s.trim()).filter(Boolean);
+    if (parts.length === 0) return "—";
+    // Mostrar solo los conceptos con valor (ej: "Neto Base: 1.200€", "Plus Horas: 150€")
+    const concepts = parts.map(p => {
+      const m = p.match(/(.+?):\s*[\d,\.]+\s*(?:€\s*)?neto/i);
+      return m ? m[1].trim() : null;
+    }).filter(Boolean) as string[];
+    return concepts.length > 0 ? concepts.join(", ") : "—";
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "DRAFT":
@@ -745,11 +761,11 @@ function PartnerDetailPage() {
                           <TableHead className="text-muted-foreground text-xs font-medium">Nº Nómina</TableHead>
                           <TableHead className="text-muted-foreground text-xs font-medium">Período</TableHead>
                           <TableHead className="text-muted-foreground text-xs font-medium text-right">Bruto</TableHead>
-                          <TableHead className="text-muted-foreground text-xs font-medium text-right">IRPF</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium text-right">IRPF Retenido</TableHead>
                           <TableHead className="text-muted-foreground text-xs font-medium text-right">Neto</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium min-w-[140px]">Conceptos / Pluses</TableHead>
                           <TableHead className="text-muted-foreground text-xs font-medium text-center">Estado</TableHead>
-                          <TableHead className="text-muted-foreground text-xs font-medium">Asiento</TableHead>
-                          <TableHead className="text-muted-foreground text-xs font-medium">Acciones</TableHead>
+                          <TableHead className="text-muted-foreground text-xs font-medium w-[120px]">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -763,6 +779,11 @@ function PartnerDetailPage() {
                               <p className="text-xs text-muted-foreground mt-0.5">
                                 {format(new Date(payroll.created_at), "d MMM yyyy", { locale: es })}
                               </p>
+                              {payroll.journal_entry_number && (
+                                <p className="text-xs text-muted-foreground mt-0.5 font-mono">
+                                  Asiento: {payroll.journal_entry_number}
+                                </p>
+                              )}
                             </TableCell>
                             <TableCell className="py-3">
                               <p className="font-medium text-sm">{getMonthName(payroll.period_month)} {payroll.period_year}</p>
@@ -771,23 +792,21 @@ function PartnerDetailPage() {
                               <span className="font-medium text-sm">{formatCurrency(payroll.gross_amount)}</span>
                             </TableCell>
                             <TableCell className="text-right py-3">
-                              <span className="text-orange-400 text-sm">
+                              <span className="text-orange-400 text-sm font-medium">
                                 -{formatCurrency(payroll.irpf_amount)}
-                                <span className="text-xs text-muted-foreground ml-1">({payroll.irpf_rate}%)</span>
                               </span>
+                              <p className="text-xs text-muted-foreground mt-0.5">({payroll.irpf_rate}%)</p>
                             </TableCell>
                             <TableCell className="text-right py-3">
                               <span className="font-bold text-green-400 text-sm">{formatCurrency(payroll.net_amount)}</span>
                             </TableCell>
+                            <TableCell className="py-3">
+                              <span className="text-xs text-muted-foreground line-clamp-2" title={payroll.notes}>
+                                {getConceptsSummary(payroll.notes)}
+                              </span>
+                            </TableCell>
                             <TableCell className="text-center py-3">
                               {getStatusBadge(payroll.status)}
-                            </TableCell>
-                            <TableCell className="py-3">
-                              {payroll.journal_entry_number ? (
-                                <span className="font-mono text-xs text-muted-foreground">{payroll.journal_entry_number}</span>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">—</span>
-                              )}
                             </TableCell>
                             <TableCell className="py-3">
                               <div className="flex items-center gap-1">

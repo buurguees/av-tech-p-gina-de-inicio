@@ -8,7 +8,9 @@ import { PreferencesTab } from "../components/settings/PreferencesTab";
 import { TemplatesTab } from "../components/settings/TemplatesTab";
 import { TaxesTab } from "../components/settings/TaxesTab";
 import { ProductCategoriesTab } from "../components/settings/ProductCategoriesTab";
+import { PayrollSettingsTab } from "../components/settings/PayrollSettingsTab";
 import TabNav, { TabItem } from "../components/navigation/TabNav";
+import { Receipt } from "lucide-react";
 
 interface UserInfo {
   user_id: string;
@@ -18,6 +20,7 @@ interface UserInfo {
 const SETTINGS_TABS: TabItem[] = [
   { value: "company", label: "Datos de la Empresa", icon: Building2 },
   { value: "preferences", label: "Preferencias", icon: Settings2 },
+  { value: "nominas", label: "Nóminas", icon: Banknote },
   { value: "categories", label: "Categorías", icon: Tags },
   { value: "taxes", label: "Impuestos", icon: Receipt },
   { value: "templates", label: "Plantillas", icon: FileText },
@@ -91,6 +94,8 @@ function SettingsPageDesktop() {
         return <CompanyDataTab />;
       case "preferences":
         return <PreferencesTab />;
+      case "nominas":
+        return <PayrollSettingsTab />;
       case "categories":
         return <ProductCategoriesTab />;
       case "taxes":

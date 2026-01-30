@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -190,6 +190,16 @@ export type Database = {
       admin_update_report_settings: {
         Args: { p_patch: Json }
         Returns: undefined
+      }
+      admin_upsert_partner_payroll_profile: {
+        Args: {
+          p_base_salary?: number
+          p_bonus_cap_override?: number
+          p_bonus_enabled_override?: boolean
+          p_irpf_rate?: number
+          p_partner_id: string
+        }
+        Returns: Json
       }
       approve_purchase_invoice: {
         Args: { p_invoice_id: string }
@@ -2157,34 +2167,76 @@ export type Database = {
           updated_at: string
         }[]
       }
-      list_partner_compensation_runs: {
-        Args: {
-          p_limit?: number
-          p_offset?: number
-          p_partner_id?: string
-          p_period_month?: number
-          p_period_year?: number
-          p_status?: string
-        }
+      list_partner_compensation_runs:
+        | {
+            Args: {
+              p_limit?: number
+              p_offset?: number
+              p_partner_id?: string
+              p_period_month?: number
+              p_period_year?: number
+              p_status?: string
+            }
+            Returns: {
+              compensation_number: string
+              created_at: string
+              gross_amount: number
+              id: string
+              irpf_amount: number
+              irpf_rate: number
+              journal_entry_id: string
+              journal_entry_number: string
+              net_amount: number
+              notes: string
+              paid_amount: number
+              partner_id: string
+              partner_name: string
+              partner_number: string
+              period_month: number
+              period_year: number
+              ss_regime: string
+              status: string
+            }[]
+          }
+        | {
+            Args: {
+              p_limit?: number
+              p_offset?: number
+              p_partner_id?: string
+              p_period_month?: number
+              p_period_year?: number
+              p_status?: string
+            }
+            Returns: {
+              compensation_number: string
+              created_at: string
+              gross_amount: number
+              id: string
+              irpf_amount: number
+              irpf_rate: number
+              journal_entry_id: string
+              journal_entry_number: string
+              net_amount: number
+              notes: string
+              partner_id: string
+              partner_name: string
+              partner_number: string
+              period_month: number
+              period_year: number
+              status: string
+            }[]
+          }
+      list_partner_payroll_profiles: {
+        Args: { p_status?: string }
         Returns: {
-          compensation_number: string
-          created_at: string
-          gross_amount: number
-          id: string
-          irpf_amount: number
+          base_salary: number
+          bonus_cap_override: number
+          bonus_enabled_override: boolean
           irpf_rate: number
-          journal_entry_id: string
-          journal_entry_number: string
-          net_amount: number
-          notes: string
-          paid_amount: number
           partner_id: string
           partner_name: string
           partner_number: string
-          period_month: number
-          period_year: number
-          ss_regime: string
-          status: string
+          updated_at: string
         }[]
       }
       list_partners: {
@@ -3363,3 +3415,4 @@ export const Constants = {
     },
   },
 } as const
+
