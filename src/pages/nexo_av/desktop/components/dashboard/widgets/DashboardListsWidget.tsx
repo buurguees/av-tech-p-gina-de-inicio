@@ -54,7 +54,7 @@ const DashboardListsWidget = ({ userId }: DashboardListsWidgetProps) => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [quotes, setQuotes] = useState<Quote[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
-    const [payables, setPayables] = useState<PayableInvoice[]>([]); // Mock
+    const [payables, setPayables] = useState<PayableInvoice[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -94,16 +94,18 @@ const DashboardListsWidget = ({ userId }: DashboardListsWidgetProps) => {
     };
 
     const fetchQuotes = async () => {
-        const { data } = await supabase.rpc('list_quotes', { p_status: 'PENDING', p_search: null });
+        const { data } = await supabase.rpc('list_quotes', { p_status: null, p_search: null });
         if (data) {
-            const expiring = (data as any[])
-                .slice(0, 5)
+            // Presupuestos pendientes: DRAFT o SENT (no aprobados, rechazados, expirados ni facturados)
+            const pending = (data as any[])
+                .filter(q => ['DRAFT', 'SENT'].includes(q.status))
                 .sort((a, b) => {
                     const dateA = a.valid_until ? new Date(a.valid_until).getTime() : Infinity;
                     const dateB = b.valid_until ? new Date(b.valid_until).getTime() : Infinity;
                     return dateA - dateB;
-                });
-            setQuotes(expiring.map(q => ({
+                })
+                .slice(0, 5);
+            setQuotes(pending.map(q => ({
                 id: q.id,
                 quote_number: q.quote_number,
                 client_name: q.client_name,
@@ -137,19 +139,33 @@ const DashboardListsWidget = ({ userId }: DashboardListsWidgetProps) => {
     };
 
     const fetchPurchaseInvoices = async () => {
-        // Using the new RPC we created
-        const { data } = await supabase.rpc('list_purchase_invoices', {
-            p_status: 'PENDING_APPROVAL', // Or any non-paid status
-            p_page_size: 5
+        const { data, error } = await supabase.rpc('list_purchase_invoices', {
+            p_status: null,
+            p_page_size: 50
         });
 
+        if (error) {
+            console.error('Error fetching purchase invoices:', error);
+            return;
+        }
+
         if (data) {
-            setPayables((data as any[]).map(inv => ({
-                id: inv.id,
-                vendor_name: inv.provider_name || 'Proveedor desconocido',
-                amount: inv.total,
-                due_date: inv.due_date
-            })));
+            // Filtrar: pendientes de pago (pending_amount > 0), excluir DRAFT y CANCELLED
+            const pending = (data as any[])
+                .filter(inv => (inv.pending_amount ?? inv.total) > 0 && inv.status !== 'DRAFT' && inv.status !== 'CANCELLED')
+                .sort((a, b) => {
+                    const dateA = a.due_date ? new Date(a.due_date).getTime() : Infinity;
+                    const dateB = b.due_date ? new Date(b.due_date).getTime() : Infinity;
+                    return dateA - dateB;
+                })
+                .slice(0, 5)
+                .map(inv => ({
+                    id: inv.id,
+                    vendor_name: inv.provider_name || 'Proveedor desconocido',
+                    amount: inv.pending_amount ?? inv.total,
+                    due_date: inv.due_date
+                }));
+            setPayables(pending);
         }
     };
 
@@ -269,13 +285,14 @@ const DashboardListsWidget = ({ userId }: DashboardListsWidgetProps) => {
                             ) : <EmptyState message="No hay cobros pendientes" />
                         )}
 
-                        {/* PAYABLES CONTENT (MOCK) */}
+                        {/* PAYABLES CONTENT */}
                         {activeTab === 'payables' && (
                             payables.length > 0 ? (
                                 payables.map(pay => {
                                     const days = getDaysRemaining(pay.due_date);
+                                    const isOverdue = days !== null && days < 0;
                                     return (
-                                        <div key={pay.id} className="flex items-center justify-between p-3 hover:bg-secondary/50 rounded-lg cursor-pointer group">
+                                        <div key={pay.id} className="flex items-center justify-between p-3 hover:bg-secondary/50 rounded-lg cursor-pointer group" onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${pay.id}`)}>
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 bg-orange-500/10 text-orange-600 rounded-lg">
                                                     <ShoppingCart size={18} />
@@ -287,8 +304,8 @@ const DashboardListsWidget = ({ userId }: DashboardListsWidgetProps) => {
                                             </div>
                                             <div className="text-right">
                                                 <p className="font-semibold">{formatCurrency(pay.amount)}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    Vence en {days} días
+                                                <p className={cn("text-xs font-medium", isOverdue ? "text-red-500" : "text-muted-foreground")}>
+                                                    {days !== null ? (isOverdue ? `Vencida ${Math.abs(days)} días` : `Vence en ${days} días`) : 'Sin fecha'}
                                                 </p>
                                             </div>
                                         </div>

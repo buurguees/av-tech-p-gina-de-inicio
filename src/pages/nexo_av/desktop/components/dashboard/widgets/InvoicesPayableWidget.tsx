@@ -1,9 +1,10 @@
-import { ShoppingCart, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ShoppingCart, ArrowRight, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardWidget from "../DashboardWidget";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-// MOCK DATA structure
 interface PayableInvoice {
     id: string;
     vendor_name: string;
@@ -13,15 +14,43 @@ interface PayableInvoice {
 
 const InvoicesPayableWidget = ({ userId }: { userId: string | undefined }) => {
     const navigate = useNavigate();
+    const [invoices, setInvoices] = useState<PayableInvoice[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // MOCK DATA
-    const mockInvoices: PayableInvoice[] = [
-        { id: '1', vendor_name: 'Tech Suppliers S.L.', amount: 1250.50, due_date: '2025-02-15' },
-        { id: '2', vendor_name: 'Office Rent Corp', amount: 800.00, due_date: '2025-02-01' },
-        { id: '3', vendor_name: 'Software Licenses Inc', amount: 349.99, due_date: '2025-01-25' },
-        { id: '4', vendor_name: 'Cleaning Pros', amount: 120.00, due_date: '2025-01-20' },
-        { id: '5', vendor_name: 'Energy Provider', amount: 450.25, due_date: '2025-01-28' },
-    ].sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+    useEffect(() => {
+        const fetchPayables = async () => {
+            try {
+                setLoading(true);
+                const { data, error } = await supabase.rpc("list_purchase_invoices", {
+                    p_status: null,
+                    p_page_size: 50
+                });
+                if (error) throw error;
+                if (data) {
+                    const pending = (data as any[])
+                        .filter((inv: any) => (inv.pending_amount ?? inv.total) > 0 && inv.status !== 'DRAFT' && inv.status !== 'CANCELLED')
+                        .sort((a: any, b: any) => {
+                            const dateA = a.due_date ? new Date(a.due_date).getTime() : Infinity;
+                            const dateB = b.due_date ? new Date(b.due_date).getTime() : Infinity;
+                            return dateA - dateB;
+                        })
+                        .slice(0, 5)
+                        .map((inv: any) => ({
+                            id: inv.id,
+                            vendor_name: inv.provider_name || 'Proveedor desconocido',
+                            amount: inv.pending_amount ?? inv.total,
+                            due_date: inv.due_date
+                        }));
+                    setInvoices(pending);
+                }
+            } catch (err) {
+                console.error("Error fetching payables:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchPayables();
+    }, []);
 
     const getDaysRemaining = (dateStr: string) => {
         const today = new Date();
@@ -42,7 +71,7 @@ const InvoicesPayableWidget = ({ userId }: { userId: string | undefined }) => {
     return (
         <DashboardWidget
             title="Pagos Pendientes"
-            subtitle="Facturas de compra (Demo)"
+            subtitle="Facturas de compra pendientes de pago"
             icon={ShoppingCart}
             action={
                 <Button variant="ghost" size="sm" onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices`)} className="gap-1">
@@ -50,13 +79,23 @@ const InvoicesPayableWidget = ({ userId }: { userId: string | undefined }) => {
                 </Button>
             }
             variant="clean"
-            className="h-full border-dashed" // Dashed border to indicate semi-mock/beta status
+            className="h-full"
         >
+            {loading ? (
+                <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+            ) : (
             <div className="space-y-4">
-                {mockInvoices.map((invoice, index) => {
+                {invoices.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+                        <ShoppingCart className="h-10 w-10 mb-2 opacity-20" />
+                        <p className="text-sm">No hay pagos pendientes</p>
+                    </div>
+                ) : invoices.map((invoice) => {
                     const daysLeft = getDaysRemaining(invoice.due_date);
                     return (
-                        <div key={invoice.id} className="flex items-center justify-between group p-2 hover:bg-secondary/50 rounded-lg transition-colors">
+                        <div key={invoice.id} className="flex items-center justify-between group p-2 hover:bg-secondary/50 rounded-lg transition-colors cursor-pointer" onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}>
                             <div className="flex-1 min-w-0">
                                 <h4 className="font-medium text-foreground truncate">
                                     {invoice.vendor_name}
@@ -77,6 +116,7 @@ const InvoicesPayableWidget = ({ userId }: { userId: string | undefined }) => {
                     );
                 })}
             </div>
+            )}
         </DashboardWidget>
     );
 };

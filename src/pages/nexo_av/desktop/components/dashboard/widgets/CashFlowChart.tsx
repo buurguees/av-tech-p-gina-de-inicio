@@ -27,24 +27,34 @@ const CashFlowChart = ({ data: externalData }: CashFlowChartProps) => {
             try {
                 setLoading(true);
                 
-                // Use external data if provided, but ensure it's current year only
+                // Use external data if provided (from get_dashboard_metrics revenueChart)
                 if (externalData && externalData.length > 0) {
-                    // Get current year months
                     const yearStart = startOfYear(new Date(currentYear, 0, 1));
                     const yearEnd = endOfYear(new Date(currentYear, 11, 31));
                     const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
                     const monthNames = months.map(m => format(m, "MMM", { locale: es }));
                     
-                    // Filter only current year data by matching month names
-                    const currentYearData = monthNames.map(monthName => {
-                        const found = externalData.find((item: any) => 
-                            item.month?.toLowerCase() === monthName.toLowerCase()
+                    // Match by month_num (1-12) and year_num - SQL returns English month names
+                    const currentYearData = months.map((month, index) => {
+                        const monthNum = index + 1;
+                        const found = (externalData as any[]).find((item: any) => 
+                            item.year_num === currentYear && item.month_num === monthNum
                         );
+                        if (!found) {
+                            return {
+                                month: monthNames[index],
+                                income: 0,
+                                expenses: 0,
+                                net: 0
+                            };
+                        }
+                        const income = Number(found.revenue) || 0;
+                        const expenses = Number(found.expenses) || 0;
                         return {
-                            month: monthName,
-                            income: found?.revenue || 0,
-                            expenses: found?.expenses || 0,
-                            net: (found?.revenue || 0) - (found?.expenses || 0)
+                            month: monthNames[index],
+                            income,
+                            expenses,
+                            net: income - expenses
                         };
                     });
                     
@@ -53,17 +63,35 @@ const CashFlowChart = ({ data: externalData }: CashFlowChartProps) => {
                     return;
                 }
                 
-                // Fallback: fetch data directly for current year
+                // Fallback: fetch income/expenses directly from invoices and purchase_invoices
                 const yearStart = startOfYear(new Date(currentYear, 0, 1));
                 const yearEnd = endOfYear(new Date(currentYear, 11, 31));
                 const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
                 
-                const monthlyData = months.map(month => ({
-                    month: format(month, "MMM", { locale: es }),
-                    income: 0,
-                    expenses: 0,
-                    net: 0
-                }));
+                const [invoicesRes, purchaseInvoicesRes] = await Promise.all([
+                    supabase.rpc("finance_list_invoices", { p_search: null, p_status: null }),
+                    supabase.rpc("list_purchase_invoices", { p_status: null, p_page_size: 500 })
+                ]);
+                
+                const invoices = (invoicesRes.data || []).filter((inv: any) => inv.status !== 'CANCELLED');
+                const purchaseInvoices = (purchaseInvoicesRes.data || []).filter((inv: any) => !['DRAFT', 'CANCELLED'].includes(inv.status));
+                
+                const monthlyData = months.map((month, index) => {
+                    const monthStart = startOfMonth(month);
+                    const monthEnd = endOfMonth(month);
+                    const income = invoices
+                        .filter((inv: any) => inv.issue_date && new Date(inv.issue_date) >= monthStart && new Date(inv.issue_date) <= monthEnd)
+                        .reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+                    const expenses = purchaseInvoices
+                        .filter((inv: any) => inv.issue_date && new Date(inv.issue_date) >= monthStart && new Date(inv.issue_date) <= monthEnd)
+                        .reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+                    return {
+                        month: format(month, "MMM", { locale: es }),
+                        income,
+                        expenses,
+                        net: income - expenses
+                    };
+                });
                 
                 setData(monthlyData);
             } catch (error) {
