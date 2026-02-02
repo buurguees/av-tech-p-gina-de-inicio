@@ -1040,6 +1040,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      fix_purchase_payments_bank_to_caixabank: {
+        Args: { p_caixabank_bank_id: string; p_revolut_bank_id: string }
+        Returns: number
+      }
       generate_internal_purchase_number: {
         Args: {
           p_document_type?: string
@@ -2167,65 +2171,34 @@ export type Database = {
           updated_at: string
         }[]
       }
-      list_partner_compensation_runs:
-        | {
-            Args: {
-              p_limit?: number
-              p_offset?: number
-              p_partner_id?: string
-              p_period_month?: number
-              p_period_year?: number
-              p_status?: string
-            }
-            Returns: {
-              compensation_number: string
-              created_at: string
-              gross_amount: number
-              id: string
-              irpf_amount: number
-              irpf_rate: number
-              journal_entry_id: string
-              journal_entry_number: string
-              net_amount: number
-              notes: string
-              paid_amount: number
-              partner_id: string
-              partner_name: string
-              partner_number: string
-              period_month: number
-              period_year: number
-              ss_regime: string
-              status: string
-            }[]
-          }
-        | {
-            Args: {
-              p_limit?: number
-              p_offset?: number
-              p_partner_id?: string
-              p_period_month?: number
-              p_period_year?: number
-              p_status?: string
-            }
-            Returns: {
-              compensation_number: string
-              created_at: string
-              gross_amount: number
-              id: string
-              irpf_amount: number
-              irpf_rate: number
-              journal_entry_id: string
-              journal_entry_number: string
-              net_amount: number
-              notes: string
-              partner_id: string
-              partner_name: string
-              partner_number: string
-              period_month: number
-              period_year: number
-              status: string
-            }[]
-          }
+      list_partner_compensation_runs: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_partner_id?: string
+          p_period_month?: number
+          p_period_year?: number
+          p_status?: string
+        }
+        Returns: {
+          compensation_number: string
+          created_at: string
+          gross_amount: number
+          id: string
+          irpf_amount: number
+          irpf_rate: number
+          journal_entry_id: string
+          journal_entry_number: string
+          net_amount: number
+          notes: string
+          partner_id: string
+          partner_name: string
+          partner_number: string
+          period_month: number
+          period_year: number
+          status: string
+        }[]
+      }
       list_partner_payroll_profiles: {
         Args: { p_status?: string }
         Returns: {
@@ -2263,7 +2236,7 @@ export type Database = {
         }
         Returns: {
           amount: number
-          bank_name: string | null
+          bank_name: string
           bank_reference: string
           compensation_number: string
           created_at: string
@@ -3416,4 +3389,3 @@ export const Constants = {
     },
   },
 } as const
-

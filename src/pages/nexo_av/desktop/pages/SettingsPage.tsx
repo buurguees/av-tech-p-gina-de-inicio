@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Settings2, FileText, Tags, Receipt, Loader2 } from "lucide-react";
+import { Building2, Settings2, FileText, Tags, Receipt, Loader2, Banknote } from "lucide-react";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import { CompanyDataTab } from "../components/settings/CompanyDataTab";
 import { PreferencesTab } from "../components/settings/PreferencesTab";
@@ -10,7 +10,6 @@ import { TaxesTab } from "../components/settings/TaxesTab";
 import { ProductCategoriesTab } from "../components/settings/ProductCategoriesTab";
 import { PayrollSettingsTab } from "../components/settings/PayrollSettingsTab";
 import TabNav, { TabItem } from "../components/navigation/TabNav";
-import { Receipt } from "lucide-react";
 
 interface UserInfo {
   user_id: string;
