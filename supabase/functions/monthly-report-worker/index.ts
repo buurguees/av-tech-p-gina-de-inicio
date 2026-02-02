@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+/// <reference types="https://esm.sh/@supabase/functions-js@2.4.1/src/edge-runtime.d.ts" />
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "https://esm.sh/jspdf@2.5.2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
@@ -166,17 +166,19 @@ Deno.serve(async (req) => {
             .eq("id", pending.id);
         }
       }
-    } catch (err) {
+    } catch (err: unknown) {
       const retryIdx = Math.min(pending.retry_count || 0, BACKOFF_MINUTES.length - 1);
       const runAfter = new Date();
       runAfter.setMinutes(runAfter.getMinutes() + BACKOFF_MINUTES[retryIdx]);
+
+      const errorMessage = err instanceof Error ? err.message : String(err);
 
       await supabase
         .schema("accounting")
         .from("monthly_reports")
         .update({
           status: "FAILED",
-          error_message: String(err?.message || err),
+          error_message: errorMessage,
           retry_count: (pending.retry_count || 0) + 1,
           run_after: runAfter.toISOString(),
           updated_at: new Date().toISOString(),
@@ -190,10 +192,11 @@ Deno.serve(async (req) => {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("monthly-report-worker error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
-      JSON.stringify({ error: String(error?.message || error) }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
