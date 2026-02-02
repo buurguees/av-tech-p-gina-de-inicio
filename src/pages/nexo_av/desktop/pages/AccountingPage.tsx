@@ -190,6 +190,7 @@ interface PayrollPayment {
   journal_entry_id: string | null;
   journal_entry_number: string | null;
   created_at: string;
+  bank_name: string | null;
 }
 
 interface IRPFByPeriod {
@@ -226,6 +227,7 @@ interface CompanyBankAccount {
   bank: string;
   iban: string;
   notes: string;
+  accounting_code?: string; // Código contable 572xxx - necesario para list_bank_account_movements
 }
 
 const AccountingPage = () => {
@@ -663,16 +665,41 @@ const AccountingPage = () => {
 
   const fetchCompanyBankAccounts = async () => {
     try {
-      const { data, error } = await supabase.rpc("get_company_preferences");
+      // Usar list_company_bank_accounts (internal) para coincidir con BankTransferDialog
+      // y tener accounting_code correcto - evita que Revolut no muestre el positivo en traspasos
+      const { data, error } = await (supabase.rpc as any)("list_company_bank_accounts");
       if (error) throw error;
-      if (data && data.length > 0 && data[0].bank_accounts) {
-        const accounts = Array.isArray(data[0].bank_accounts) 
-          ? (data[0].bank_accounts as unknown as CompanyBankAccount[])
-          : [];
+      if (data && Array.isArray(data)) {
+        const accounts: CompanyBankAccount[] = data
+          .filter((a: any) => a.is_active !== false)
+          .map((a: any) => ({
+            id: a.id,
+            holder: a.holder_name || "",
+            bank: a.bank_name || "",
+            iban: a.iban || "",
+            notes: a.notes || "",
+            accounting_code: a.accounting_code || "",
+          }));
         setCompanyBankAccounts(accounts);
+        // Códigos contables directos - no hace falta get_bank_account_code
+        const codes: Record<string, string> = {};
+        accounts.forEach((acc) => {
+          if (acc.accounting_code) codes[acc.id] = acc.accounting_code;
+        });
+        setBankAccountCodes(codes);
       }
     } catch (error: any) {
       console.error("Error fetching company bank accounts:", error);
+      // Fallback a preferencias si list_company_bank_accounts falla
+      try {
+        const { data: prefs } = await supabase.rpc("get_company_preferences");
+        if (prefs?.[0]?.bank_accounts) {
+          const fallback = Array.isArray(prefs[0].bank_accounts)
+            ? (prefs[0].bank_accounts as unknown as CompanyBankAccount[])
+            : [];
+          setCompanyBankAccounts(fallback);
+        }
+      } catch (_) {}
     }
   };
 
@@ -750,6 +777,9 @@ const AccountingPage = () => {
       fetchProfitLoss();
     } else if (activeTab === "balance") {
       fetchBalanceSheet();
+    } else if (activeTab === "all-payroll") {
+      fetchPayrollRuns();
+      fetchPartnerCompensations();
     } else if (activeTab === "payroll") {
       fetchPayrollRuns();
     } else if (activeTab === "compensations") {
@@ -766,9 +796,9 @@ const AccountingPage = () => {
     }
   }, [activeTab, filterType, selectedYear, selectedQuarter, selectedMonth, balanceDate]);
 
-  // Cargar códigos de cuentas cuando se cargan los bancos
+  // Cargar códigos de cuentas solo si faltan (fallback desde preferencias)
   useEffect(() => {
-    if (companyBankAccounts.length > 0) {
+    if (companyBankAccounts.length > 0 && !companyBankAccounts.every((a) => a.accounting_code)) {
       fetchBankAccountCodes();
     }
   }, [companyBankAccounts]);
@@ -2687,6 +2717,7 @@ const AccountingPage = () => {
                     <TableHead>Tipo</TableHead>
                     <TableHead>Documento</TableHead>
                     <TableHead className="text-right">Importe</TableHead>
+                    <TableHead>Banco</TableHead>
                     <TableHead>Método</TableHead>
                     <TableHead>Asiento</TableHead>
                     <TableHead>Acciones</TableHead>
@@ -2706,6 +2737,13 @@ const AccountingPage = () => {
                         {payment.payroll_number || payment.compensation_number}
                       </TableCell>
                       <TableCell className="text-right font-semibold">{formatCurrency(payment.amount)}</TableCell>
+                      <TableCell>
+                        {payment.bank_name ? (
+                          <span className="text-sm">{payment.bank_name.replace(/^Pago desde /, "")}</span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </TableCell>
                       <TableCell>{payment.payment_method}</TableCell>
                       <TableCell>
                         {payment.journal_entry_number ? (
@@ -2895,7 +2933,7 @@ const AccountingPage = () => {
         {/* BANCOS - Vista detalle por banco */}
         {companyBankAccounts.map((bank) => {
           const bankTabId = `bank-${bank.id}`;
-          const accountCode = bankAccountCodes[bank.id] || "";
+          const accountCode = bankAccountCodes[bank.id] || bank.accounting_code || "";
           const bankBalance = bankAccountBalances[bank.id] || 0;
           
           return (

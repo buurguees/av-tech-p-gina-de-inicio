@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -2263,6 +2263,7 @@ export type Database = {
         }
         Returns: {
           amount: number
+          bank_name: string | null
           bank_reference: string
           compensation_number: string
           created_at: string

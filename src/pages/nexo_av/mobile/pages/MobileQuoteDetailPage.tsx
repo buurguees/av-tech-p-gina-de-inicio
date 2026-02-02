@@ -34,6 +34,7 @@ import { getQuoteStatusInfo, QUOTE_STATUSES } from "@/constants/quoteStatuses";
 import { useToast } from "@/hooks/use-toast";
 import { QuotePDFDocument } from "@/pages/nexo_av/assets/plantillas";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
+import { saveAs } from "file-saver";
 import {
   Select,
   SelectContent,
@@ -842,14 +843,20 @@ interface PreviewTabProps {
 
 const PreviewTab = ({ quote, lines, client, company, project, fileName }: PreviewTabProps) => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [loadingPdf, setLoadingPdf] = useState(true);
+  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Generar el PDF como blob URL cuando el componente se monta
   useEffect(() => {
+    let urlToRevoke: string | null = null;
+
     const generatePdf = async () => {
       if (!client || !company) {
         setError(true);
+        setErrorMessage("Faltan datos del cliente o empresa");
         setLoadingPdf(false);
         return;
       }
@@ -857,6 +864,7 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
       try {
         setLoadingPdf(true);
         setError(false);
+        setErrorMessage(null);
         
         const pdfDocument = (
           <QuotePDFDocument
@@ -870,10 +878,13 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
         
         const blob = await pdf(pdfDocument).toBlob();
         const url = URL.createObjectURL(blob);
+        urlToRevoke = url;
+        setPdfBlob(blob);
         setPdfUrl(url);
       } catch (err) {
         console.error("Error generating PDF:", err);
         setError(true);
+        setErrorMessage(err instanceof Error ? err.message : "Error al generar el PDF");
       } finally {
         setLoadingPdf(false);
       }
@@ -881,13 +892,27 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
 
     generatePdf();
 
-    // Cleanup: revocar el blob URL cuando el componente se desmonte
     return () => {
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
+      if (urlToRevoke) {
+        URL.revokeObjectURL(urlToRevoke);
       }
     };
   }, [quote, lines, client, company, project]);
+
+  const handleDownload = () => {
+    if (pdfBlob) {
+      setDownloading(true);
+      try {
+        saveAs(pdfBlob, fileName);
+      } catch (err) {
+        console.error("Error descargando PDF:", err);
+        // Fallback: abrir en nueva pestaña (en iOS a veces es la única opción)
+        if (pdfUrl) window.open(pdfUrl, "_blank");
+      } finally {
+        setDownloading(false);
+      }
+    }
+  };
 
   if (!client || !company) {
     return (
@@ -910,9 +935,14 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
 
   if (error || !pdfUrl) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center min-h-[300px]">
         <AlertCircle className="h-16 w-16 text-muted-foreground mb-4" />
         <p className="text-muted-foreground">Error al generar el PDF</p>
+        {errorMessage && (
+          <p className="text-muted-foreground text-xs mt-1 mb-4 max-w-xs truncate" title={errorMessage}>
+            {errorMessage}
+          </p>
+        )}
         <p className="text-muted-foreground text-sm mb-4">Intenta descargar el PDF directamente</p>
         <PDFDownloadLink
           document={
@@ -935,7 +965,7 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
                 "active:scale-95 transition-all duration-200",
                 loading && "opacity-50"
               )}
-              style={{ touchAction: 'manipulation' }}
+              style={{ touchAction: "manipulation" }}
               disabled={loading}
             >
               {loading ? (
@@ -952,12 +982,12 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
   }
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full min-h-[400px] flex flex-col">
       {/* Barra de acciones */}
       <div className="flex-shrink-0 px-4 py-3 border-b border-border">
         <div className="flex items-center justify-between gap-2">
           <button
-            onClick={() => window.open(pdfUrl, '_blank')}
+            onClick={() => pdfUrl && window.open(pdfUrl, "_blank")}
             className={cn(
               "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
               "text-sm font-medium whitespace-nowrap leading-none",
@@ -966,55 +996,67 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
               "active:scale-95 transition-all duration-200",
               "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
             )}
-            style={{ touchAction: 'manipulation' }}
+            style={{ touchAction: "manipulation" }}
           >
             <Eye className="h-4 w-4" />
-            <span>Abrir PDF</span>
+            <span>Ver PDF</span>
           </button>
 
-          <PDFDownloadLink
-            document={
-              <QuotePDFDocument
-                quote={quote}
-                lines={lines}
-                client={client}
-                company={company}
-                project={project}
-              />
-            }
-            fileName={fileName}
-          >
-            {({ loading }) => (
-              <button
-                className={cn(
-                  "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
-                  "text-sm font-medium whitespace-nowrap leading-none",
-                  "bg-orange-500 hover:bg-orange-600 text-white",
-                  "active:scale-95 transition-all duration-200",
-                  loading && "opacity-50"
-                )}
-                style={{ touchAction: 'manipulation' }}
-                disabled={loading}
-              >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4" />
-                )}
-                <span>Descargar</span>
-              </button>
+          <button
+            onClick={handleDownload}
+            disabled={!pdfBlob || downloading}
+            className={cn(
+              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
+              "text-sm font-medium whitespace-nowrap leading-none",
+              "bg-orange-500 hover:bg-orange-600 text-white",
+              "active:scale-95 transition-all duration-200",
+              (!pdfBlob || downloading) && "opacity-50"
             )}
-          </PDFDownloadLink>
+            style={{ touchAction: "manipulation" }}
+          >
+            {downloading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            <span>Descargar</span>
+          </button>
         </div>
       </div>
 
-      {/* Vista previa del PDF usando iframe nativo */}
-      <div className="flex-1 min-h-0 bg-zinc-900 p-2">
-        <iframe
-          src={pdfUrl}
-          className="w-full h-full rounded-lg border border-border"
-          title="Vista previa del presupuesto"
-        />
+      {/* En móvil el iframe puede no mostrar el PDF; ofrecemos fallback visible */}
+      <div className="flex-1 min-h-[300px] flex flex-col gap-2 p-2">
+        <div
+          className={cn(
+            "flex-shrink-0 px-4 py-3 rounded-lg",
+            "bg-amber-500/10 border border-amber-500/30",
+            "text-amber-200/90 text-sm"
+          )}
+        >
+          <p className="mb-2">
+            Si el PDF no se muestra aquí, usa el botón &quot;Ver PDF&quot; para abrirlo en una nueva pestaña.
+          </p>
+          <button
+            onClick={() => pdfUrl && window.open(pdfUrl, "_blank")}
+            className={cn(
+              "h-9 px-4 flex items-center justify-center gap-2 rounded-full",
+              "text-sm font-medium bg-amber-500/20 hover:bg-amber-500/30",
+              "border border-amber-500/40 text-amber-100",
+              "active:scale-95 transition-all"
+            )}
+            style={{ touchAction: "manipulation" }}
+          >
+            <Eye className="h-4 w-4" />
+            Abrir PDF en nueva pestaña
+          </button>
+        </div>
+        <div className="flex-1 min-h-[250px] bg-zinc-900 rounded-lg overflow-hidden">
+          <iframe
+            src={pdfUrl ?? undefined}
+            className="w-full h-full min-h-[250px] rounded-lg border border-border"
+            title="Vista previa del presupuesto"
+          />
+        </div>
       </div>
     </div>
   );

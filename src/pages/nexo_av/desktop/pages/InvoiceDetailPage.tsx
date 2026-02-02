@@ -343,11 +343,16 @@ const InvoiceDetailPageDesktop = () => {
 
     setUpdatingStatus(true);
     try {
-      const { error } = await supabase.rpc("finance_issue_invoice", {
+      const { data, error } = await supabase.rpc("finance_issue_invoice", {
         p_invoice_id: invoiceId!,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Mostrar mensaje detallado del error para facilitar diagnóstico
+        const errorMessage = error.message || error.details || "No se pudo emitir la factura";
+        console.error("Error issuing invoice:", { error, data });
+        throw new Error(errorMessage);
+      }
 
       // Refetch invoice to get updated number
       await fetchInvoiceData();
@@ -359,8 +364,8 @@ const InvoiceDetailPageDesktop = () => {
     } catch (error: any) {
       console.error("Error issuing invoice:", error);
       toast({
-        title: "Error",
-        description: error.message || "No se pudo emitir la factura",
+        title: "Error al emitir factura",
+        description: error.message || "No se pudo emitir la factura. Verifica que la migración finance_issue_invoice esté aplicada en Supabase.",
         variant: "destructive",
       });
     } finally {
@@ -474,6 +479,11 @@ const InvoiceDetailPageDesktop = () => {
   // Solo Admin puede emitir facturas. Manager y Comercial solo pueden crear/modificar borradores.
   const isAdmin = userRoles.includes('admin');
   const canIssueInvoice = isAdmin;
+  
+  // Filtrar transiciones según permisos: DRAFT→ISSUED solo si canIssueInvoice
+  const filteredTransitions = invoice?.status === "DRAFT" && !canIssueInvoice
+    ? availableTransitions.filter(t => t !== "ISSUED")
+    : availableTransitions;
 
   if (loading) {
     return (
@@ -677,18 +687,20 @@ const InvoiceDetailPageDesktop = () => {
                     )}
                   </div>
                   
-                  {/* Estado de la Factura */}
+                  {/* Estado de la Factura - Solo mostrar transiciones válidas */}
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex flex-col gap-2">
                       <span className="text-xs text-muted-foreground uppercase font-medium">Estado de la Factura</span>
                       <StatusSelector
                         currentStatus={invoice?.status || "DRAFT"}
-                        statusOptions={FINANCE_INVOICE_STATUSES.map(status => ({
-                          value: status.value,
-                          label: status.label,
-                          className: status.className,
-                          color: status.color,
-                        }))}
+                        statusOptions={FINANCE_INVOICE_STATUSES
+                          .filter(s => filteredTransitions.includes(s.value))
+                          .map(status => ({
+                            value: status.value,
+                            label: status.label,
+                            className: status.className,
+                            color: status.color,
+                          }))}
                         onStatusChange={(newStatus) => {
                           if (invoice && newStatus !== invoice.status) {
                             handleStatusChange(newStatus);

@@ -26,6 +26,10 @@ interface PayrollRun {
   payroll_number: string;
   employee_name: string;
   net_amount: number;
+  gross_amount?: number;
+  irpf_amount?: number;
+  period_year?: number;
+  period_month?: number;
   paid_amount?: number;
 }
 
@@ -34,6 +38,10 @@ interface CompensationRun {
   compensation_number: string;
   partner_name: string;
   net_amount: number;
+  gross_amount?: number;
+  irpf_amount?: number;
+  period_year?: number;
+  period_month?: number;
   paid_amount?: number;
 }
 
@@ -111,22 +119,28 @@ export default function CreatePayrollPaymentDialog({
     }
   }, [open, payrollRunId, compensationRunId]);
 
-  // Update amount when selection changes
+  // En modo directo (Pagar desde tabla): siempre pago 100% = net_amount
   useEffect(() => {
     if (formData.payment_type === "payroll" && formData.payroll_run_id) {
       const payroll = payrolls.find(p => p.id === formData.payroll_run_id);
       if (payroll) {
-        const pending = payroll.net_amount - (payroll.paid_amount || 0);
-        setFormData(prev => ({ ...prev, amount: pending.toFixed(2) }));
+        const amount = payroll.net_amount - (payroll.paid_amount || 0);
+        setFormData(prev => ({ ...prev, amount: amount > 0 ? amount.toFixed(2) : "" }));
       }
     } else if (formData.payment_type === "compensation" && formData.partner_compensation_run_id) {
       const comp = compensations.find(c => c.id === formData.partner_compensation_run_id);
       if (comp) {
-        const pending = comp.net_amount - (comp.paid_amount || 0);
-        setFormData(prev => ({ ...prev, amount: pending.toFixed(2) }));
+        const amount = comp.net_amount - (comp.paid_amount || 0);
+        setFormData(prev => ({ ...prev, amount: amount > 0 ? amount.toFixed(2) : "" }));
       }
     }
   }, [formData.payroll_run_id, formData.partner_compensation_run_id, payrolls, compensations]);
+
+  const hasPreSelectedItem = !!(
+    payrollRunId ||
+    compensationRunId ||
+    (typeof window !== "undefined" && ((window as any).__pendingPayrollId || (window as any).__pendingCompensationId))
+  );
 
   const fetchBankAccounts = async () => {
     try {
@@ -323,191 +337,187 @@ export default function CreatePayrollPaymentDialog({
         <DialogHeader>
           <DialogTitle>Registrar Pago de Nómina/Retribución</DialogTitle>
           <DialogDescription>
-            Registra un pago desde una cuenta bancaria. Se generará el asiento contable y se actualizará el saldo del banco.
+            {hasPreSelectedItem
+              ? "Indica la fecha en que se pagó la nómina. El pago se registrará al 100% del neto."
+              : "Registra un pago desde una cuenta bancaria. Se generará el asiento contable y se actualizará el saldo del banco."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="payment_type">Tipo de pago</Label>
-              <Select
-                value={formData.payment_type}
-                onValueChange={(value) => {
-                  setFormData({
-                    ...formData,
-                    payment_type: value,
-                    payroll_run_id: "",
-                    partner_compensation_run_id: "",
-                    amount: "",
-                  });
-                  if (value === "payroll") {
-                    fetchPayrolls();
-                  } else {
-                    fetchCompensations();
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="payroll">Nómina Empleado</SelectItem>
-                  <SelectItem value="compensation">Retribución Socio</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Bloque 1: Datos de la nómina/retribución (solo lectura) */}
+          {hasPreSelectedItem && loadingPayrolls && (
+            <div className="rounded-lg border bg-muted/30 p-4 flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm text-muted-foreground">Cargando datos de la nómina...</span>
             </div>
-
-            <div>
-              <Label>Cuenta Bancaria Origen *</Label>
-              <Select
-                value={formData.bank_account_id}
-                onValueChange={(value) => setFormData({ ...formData, bank_account_id: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona banco" />
-                </SelectTrigger>
-                <SelectContent>
-                  {bankAccounts.map((bank) => (
-                    <SelectItem key={bank.id} value={bank.id}>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4" />
-                        <span>{bank.bank_name}</span>
-                        <span className="text-muted-foreground text-xs">({bank.account_code})</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {formData.payment_type === "payroll" ? (
-            <div>
-              <Label htmlFor="payroll_run_id">
-                Nómina <span className="text-destructive">*</span>
-              </Label>
-              <Select
-                value={formData.payroll_run_id}
-                onValueChange={(value) => setFormData({ ...formData, payroll_run_id: value })}
-                disabled={loadingPayrolls}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona una nómina" />
-                </SelectTrigger>
-                <SelectContent>
-                  {payrolls.map((payroll) => {
-                    const pending = payroll.net_amount - (payroll.paid_amount || 0);
-                    return (
-                      <SelectItem key={payroll.id} value={payroll.id} disabled={pending <= 0}>
-                        {payroll.payroll_number} - {payroll.employee_name} (Pte: {formatCurrency(pending)})
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-              {selectedPayroll && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  Neto: {formatCurrency(selectedPayroll.net_amount)} | 
-                  Pagado: {formatCurrency(selectedPayroll.paid_amount || 0)} | 
-                  <span className="font-medium"> Pendiente: {formatCurrency(pendingAmount)}</span>
-                </p>
-              )}
-            </div>
-          ) : (
-            <div>
-              <Label htmlFor="partner_compensation_run_id">
-                Retribución <span className="text-destructive">*</span>
-              </Label>
-              <Select
-                value={formData.partner_compensation_run_id}
-                onValueChange={(value) => setFormData({ ...formData, partner_compensation_run_id: value })}
-                disabled={loadingPayrolls}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona una retribución" />
-                </SelectTrigger>
-                <SelectContent>
-                  {compensations.map((comp) => {
-                    const pending = comp.net_amount - (comp.paid_amount || 0);
-                    return (
-                      <SelectItem key={comp.id} value={comp.id} disabled={pending <= 0}>
-                        {comp.compensation_number} - {comp.partner_name} (Pte: {formatCurrency(pending)})
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-              {selectedCompensation && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  Neto: {formatCurrency(selectedCompensation.net_amount)} | 
-                  Pagado: {formatCurrency(selectedCompensation.paid_amount || 0)} | 
-                  <span className="font-medium"> Pendiente: {formatCurrency(pendingAmount)}</span>
-                </p>
-              )}
+          )}
+          {hasPreSelectedItem && !loadingPayrolls && (selectedPayroll || selectedCompensation) && (
+            <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+              <h4 className="font-medium text-sm text-muted-foreground">Datos de la nómina</h4>
+              {selectedPayroll ? (
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <span className="text-muted-foreground">Nº Nómina:</span>
+                  <span className="font-mono">{selectedPayroll.payroll_number}</span>
+                  <span className="text-muted-foreground">Empleado:</span>
+                  <span>{selectedPayroll.employee_name}</span>
+                  {selectedPayroll.period_year != null && (
+                    <>
+                      <span className="text-muted-foreground">Período:</span>
+                      <span>{selectedPayroll.period_month}/{selectedPayroll.period_year}</span>
+                    </>
+                  )}
+                  <span className="text-muted-foreground">Bruto:</span>
+                  <span>{formatCurrency(selectedPayroll.gross_amount ?? selectedPayroll.net_amount)}</span>
+                  {selectedPayroll.irpf_amount != null && selectedPayroll.irpf_amount > 0 && (
+                    <>
+                      <span className="text-muted-foreground">IRPF:</span>
+                      <span>-{formatCurrency(selectedPayroll.irpf_amount)}</span>
+                    </>
+                  )}
+                  <span className="text-muted-foreground font-medium">Neto a pagar:</span>
+                  <span className="font-semibold">{formatCurrency(selectedPayroll.net_amount)}</span>
+                </div>
+              ) : selectedCompensation ? (
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <span className="text-muted-foreground">Nº Retribución:</span>
+                  <span className="font-mono">{selectedCompensation.compensation_number}</span>
+                  <span className="text-muted-foreground">Socio:</span>
+                  <span>{selectedCompensation.partner_name}</span>
+                  {selectedCompensation.period_year != null && (
+                    <>
+                      <span className="text-muted-foreground">Período:</span>
+                      <span>{selectedCompensation.period_month}/{selectedCompensation.period_year}</span>
+                    </>
+                  )}
+                  <span className="text-muted-foreground">Bruto:</span>
+                  <span>{formatCurrency(selectedCompensation.gross_amount ?? selectedCompensation.net_amount)}</span>
+                  {selectedCompensation.irpf_amount != null && selectedCompensation.irpf_amount > 0 && (
+                    <>
+                      <span className="text-muted-foreground">IRPF:</span>
+                      <span>-{formatCurrency(selectedCompensation.irpf_amount)}</span>
+                    </>
+                  )}
+                  <span className="text-muted-foreground font-medium">Neto a pagar:</span>
+                  <span className="font-semibold">{formatCurrency(selectedCompensation.net_amount)}</span>
+                </div>
+              ) : null}
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="payment_date">Fecha de pago *</Label>
-              <Input
-                id="payment_date"
-                type="date"
-                value={formData.payment_date}
-                onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
-                required
-              />
-            </div>
+          {/* Modo manual: selector de tipo y nómina/retribución */}
+          {!hasPreSelectedItem && (
+            <>
+              <div>
+                <Label htmlFor="payment_type">Tipo de pago</Label>
+                <Select
+                  value={formData.payment_type}
+                  onValueChange={(value) => {
+                    setFormData({
+                      ...formData,
+                      payment_type: value,
+                      payroll_run_id: "",
+                      partner_compensation_run_id: "",
+                      amount: "",
+                    });
+                    if (value === "payroll") fetchPayrolls();
+                    else fetchCompensations();
+                  }}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="payroll">Nómina Empleado</SelectItem>
+                    <SelectItem value="compensation">Retribución Socio</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {formData.payment_type === "payroll" ? (
+                <div>
+                  <Label>Nómina *</Label>
+                  <Select
+                    value={formData.payroll_run_id}
+                    onValueChange={(value) => setFormData({ ...formData, payroll_run_id: value })}
+                    disabled={loadingPayrolls}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecciona una nómina" /></SelectTrigger>
+                    <SelectContent>
+                      {payrolls.map((payroll) => {
+                        const pending = payroll.net_amount - (payroll.paid_amount || 0);
+                        return (
+                          <SelectItem key={payroll.id} value={payroll.id} disabled={pending <= 0}>
+                            {payroll.payroll_number} - {payroll.employee_name} (Pte: {formatCurrency(pending)})
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div>
+                  <Label>Retribución *</Label>
+                  <Select
+                    value={formData.partner_compensation_run_id}
+                    onValueChange={(value) => setFormData({ ...formData, partner_compensation_run_id: value })}
+                    disabled={loadingPayrolls}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecciona una retribución" /></SelectTrigger>
+                    <SelectContent>
+                      {compensations.map((comp) => {
+                        const pending = comp.net_amount - (comp.paid_amount || 0);
+                        return (
+                          <SelectItem key={comp.id} value={comp.id} disabled={pending <= 0}>
+                            {comp.compensation_number} - {comp.partner_name} (Pte: {formatCurrency(pending)})
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </>
+          )}
 
-            <div>
-              <Label htmlFor="amount">Importe (€) *</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                required
-              />
+          {/* Bloque 2: Fecha de pago + Cuenta bancaria */}
+          <div className="rounded-lg border p-4 space-y-4">
+            <h4 className="font-medium text-sm text-muted-foreground">Registrar pago (100%)</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="payment_date">Fecha del pago *</Label>
+                <Input
+                  id="payment_date"
+                  type="date"
+                  value={formData.payment_date}
+                  onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Cuenta Bancaria Origen *</Label>
+                <Select
+                  value={formData.bank_account_id}
+                  onValueChange={(value) => setFormData({ ...formData, bank_account_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona banco" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bankAccounts.map((bank) => (
+                      <SelectItem key={bank.id} value={bank.id}>
+                        <div className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          <span>{bank.bank_name}</span>
+                          <span className="text-muted-foreground text-xs">({bank.account_code})</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-
-            <div>
-              <Label htmlFor="payment_method">Método de pago</Label>
-              <Select
-                value={formData.payment_method}
-                onValueChange={(value) => setFormData({ ...formData, payment_method: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TRANSFER">Transferencia</SelectItem>
-                  <SelectItem value="CASH">Efectivo</SelectItem>
-                  <SelectItem value="CHECK">Cheque</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="bank_reference">Referencia bancaria</Label>
-              <Input
-                id="bank_reference"
-                value={formData.bank_reference}
-                onChange={(e) => setFormData({ ...formData, bank_reference: e.target.value })}
-                placeholder="Nº de transferencia"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="notes">Notas</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              rows={2}
-            />
+            {hasPreSelectedItem && (selectedPayroll || selectedCompensation) && (
+              <p className="text-sm text-muted-foreground">
+                Importe a pagar: <span className="font-semibold">{formatCurrency(pendingAmount)}</span>
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end gap-2">
