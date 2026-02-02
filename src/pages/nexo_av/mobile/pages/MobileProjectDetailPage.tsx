@@ -30,6 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getProjectStatusInfo } from "@/constants/projectStatuses";
 import { getQuoteStatusInfo } from "@/constants/quoteStatuses";
+import EditProjectDialog from "../../desktop/components/projects/EditProjectDialog";
 import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo } from "@/constants/salesInvoiceStatuses";
 import { getDocumentStatusInfo, calculatePaymentStatus, getPaymentStatusInfo } from "@/constants/purchaseInvoiceStatuses";
 
@@ -110,6 +111,7 @@ const MobileProjectDetailPage = () => {
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [purchases, setPurchases] = useState<any[]>([]);
   const [loadingPurchases, setLoadingPurchases] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -312,32 +314,38 @@ const MobileProjectDetailPage = () => {
   const startDate = project.installation_start_date || project.actual_start_date || project.start_date;
   const endDate = project.delivery_date || project.actual_end_date || project.end_date;
 
-  // Determinar qué botón de acción mostrar según la pestaña activa
+  // Determinar qué botón de acción mostrar según la pestaña activa (igual que desktop)
   const getActionButton = () => {
+    const currentClientId = project.client_id;
+    if (!currentClientId && activeTab !== 'resumen') return null;
+
     switch (activeTab) {
       case 'resumen':
         return {
           label: 'Editar',
           icon: Edit,
-          onClick: () => console.log('Editar proyecto'),
+          onClick: () => setEditDialogOpen(true),
         };
       case 'presupuestos':
         return {
           label: 'Nuevo',
           icon: Plus,
-          onClick: () => console.log('Crear nuevo presupuesto'),
+          onClick: () => navigate(`/nexo-av/${userId}/quotes/new?clientId=${currentClientId}&projectId=${projectId}`),
         };
       case 'facturas':
         return {
           label: 'Nueva',
           icon: Plus,
-          onClick: () => console.log('Crear nueva factura'),
+          onClick: () => navigate(`/nexo-av/${userId}/invoices/new?clientId=${currentClientId}&projectId=${projectId}`),
         };
       case 'tecnicos':
         return {
           label: 'Asignar',
           icon: Plus,
-          onClick: () => console.log('Asignar técnico'),
+          onClick: () => {
+            // TODO: Abrir diálogo para asignar técnicos (igual que desktop)
+            console.log('Asignar técnico al proyecto:', projectId);
+          },
         };
       case 'compras':
       default:
@@ -525,6 +533,41 @@ const MobileProjectDetailPage = () => {
           />
         )}
       </div>
+
+      {/* Diálogo Editar Proyecto (igual que desktop) */}
+      {project && (
+        <EditProjectDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          project={project}
+          onSuccess={() => {
+            const fetchProject = async () => {
+              if (!projectId) return;
+              try {
+                const { data, error } = await supabase.rpc('get_project', {
+                  p_project_id: projectId
+                });
+                if (error) throw error;
+                if (data && data.length > 0) {
+                  const projectData = data[0];
+                  setProject(projectData);
+                  if (projectData.client_id) {
+                    const { data: clientData, error: clientError } = await supabase.rpc('get_client', {
+                      p_client_id: projectData.client_id
+                    });
+                    if (!clientError && clientData && clientData.length > 0) {
+                      setClient(clientData[0]);
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error('Error fetching project:', error);
+              }
+            };
+            fetchProject();
+          }}
+        />
+      )}
     </div>
   );
 };

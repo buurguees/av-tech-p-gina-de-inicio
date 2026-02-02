@@ -93,12 +93,49 @@ const MobileNewQuotePage = () => {
   const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
   const [defaultTaxRate, setDefaultTaxRate] = useState(21);
   const [lines, setLines] = useState<QuoteLine[]>([]);
+  const [sourceQuoteNumber, setSourceQuoteNumber] = useState<string | null>(null);
   
   // Search state for ProductSearchInput
   const [searchResults, setSearchResults] = useState<CatalogItem[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
+
+  const loadSourceQuoteData = useCallback(async (sourceQuoteId: string) => {
+    try {
+      const { data: quoteData, error: quoteError } = await supabase.rpc("get_quote", { p_quote_id: sourceQuoteId });
+      if (quoteError) throw quoteError;
+      if (!quoteData?.[0]) throw new Error("Presupuesto no encontrado");
+
+      const quote = quoteData[0];
+      setSourceQuoteNumber(quote.quote_number);
+      setSelectedClientId(quote.client_id);
+      if (quote.project_id) setSelectedProjectId(quote.project_id);
+
+      const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", { p_quote_id: sourceQuoteId });
+      if (linesError) throw linesError;
+
+      const mappedLines = (linesData || []).map((line: any) => ({
+        tempId: crypto.randomUUID(),
+        group_name: line.group_name || "",
+        concept: line.concept,
+        description: line.description || "",
+        quantity: line.quantity,
+        unit_price: line.unit_price,
+        tax_rate: line.tax_rate,
+        discount_percent: line.discount_percent || 0,
+        subtotal: line.subtotal,
+        tax_amount: line.tax_amount,
+        total: line.total,
+      }));
+      setLines(mappedLines);
+
+      toast({ title: "Datos importados", description: `Datos cargados de ${quote.quote_number}` });
+    } catch (error: any) {
+      console.error("Error loading source quote:", error);
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -110,8 +147,14 @@ const MobileNewQuotePage = () => {
         setSelectedClientId(urlClientId);
         await fetchProjects(urlClientId);
       }
+
+      const sourceQuoteId = searchParams.get("sourceQuoteId");
+      if (sourceQuoteId) {
+        await loadSourceQuoteData(sourceQuoteId);
+      } else {
+        addEmptyLine();
+      }
       
-      addEmptyLine();
       setLoading(false);
     };
     init();
@@ -416,7 +459,7 @@ const MobileNewQuotePage = () => {
           
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-medium text-foreground truncate leading-tight">
-              Nuevo Presupuesto
+              {sourceQuoteNumber ? `Nueva versión de ${sourceQuoteNumber}` : "Nuevo Presupuesto"}
             </h1>
           </div>
 

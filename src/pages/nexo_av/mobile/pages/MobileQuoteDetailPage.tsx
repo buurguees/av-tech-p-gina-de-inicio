@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   FileText,
   Eye,
-  EyeOff,
   Download,
   LayoutDashboard,
   Send,
@@ -26,7 +25,9 @@ import {
   ChevronDown,
   ChevronUp,
   Receipt,
-  TrendingUp
+  TrendingUp,
+  Copy,
+  Receipt as ReceiptIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getQuoteStatusInfo, QUOTE_STATUSES } from "@/constants/quoteStatuses";
@@ -318,6 +319,39 @@ const MobileQuoteDetailPage = () => {
     navigate(`/nexo-av/${userId}/quotes/${quoteId}/edit`);
   };
 
+  const handleCreateNewVersion = () => {
+    if (!quote) return;
+    navigate(`/nexo-av/${userId}/quotes/new?sourceQuoteId=${quoteId}`);
+  };
+
+  const handleInvoice = async () => {
+    if (!quote) return;
+    try {
+      const { data, error } = await supabase.rpc("create_invoice_from_quote", {
+        p_quote_id: quoteId!,
+      });
+      if (error) throw error;
+      if (!data || data.length === 0) throw new Error("No se pudo crear la factura");
+
+      const invoiceId = data[0].invoice_id;
+      const invoiceNumber = data[0].invoice_number;
+
+      toast({
+        title: "Factura creada",
+        description: `Se ha generado la factura ${invoiceNumber}`,
+      });
+
+      navigate(`/nexo-av/${userId}/invoices/${invoiceId}`);
+    } catch (error: any) {
+      console.error("Error creating invoice:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo crear la factura",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleBack = () => {
     navigate(`/nexo-av/${userId}/quotes`);
   };
@@ -375,34 +409,45 @@ const MobileQuoteDetailPage = () => {
   const isEditable = !LOCKED_STATES.includes(quote.status);
   const fileName = `${quote.quote_number}.pdf`;
 
-  // Determinar botón de acción según la pestaña
-  const getActionButton = () => {
-    switch (activeTab) {
-      case 'resumen':
-        if (quote.status === 'DRAFT') {
-          return {
-            label: 'Enviar',
-            icon: Send,
-            onClick: handleSend,
-            loading: sending,
-          };
-        }
-        return null;
-      case 'lineas':
-        if (isEditable) {
-          return {
-            label: 'Editar',
-            icon: Edit,
-            onClick: handleEdit,
-          };
-        }
-        return null;
-      default:
-        return null;
+  // Determinar botones de acción según estado (igual que desktop)
+  const getActionButtons = (): Array<{ label: string; icon: any; onClick: () => void; loading?: boolean }> => {
+    const buttons: Array<{ label: string; icon: any; onClick: () => void; loading?: boolean }> = [];
+
+    if (quote.status === 'DRAFT') {
+      buttons.push({
+        label: 'Editar',
+        icon: Edit,
+        onClick: handleEdit,
+      });
+      buttons.push({
+        label: 'Enviar',
+        icon: Send,
+        onClick: handleSend,
+        loading: sending,
+      });
+    } else if (quote.status === 'SENT') {
+      buttons.push({
+        label: 'Nueva Versión',
+        icon: Copy,
+        onClick: handleCreateNewVersion,
+      });
+      buttons.push({
+        label: 'Facturar',
+        icon: ReceiptIcon,
+        onClick: handleInvoice,
+      });
+    } else if (quote.status === 'APPROVED' || quote.status === 'REJECTED') {
+      buttons.push({
+        label: 'Nueva Versión',
+        icon: Copy,
+        onClick: handleCreateNewVersion,
+      });
     }
+
+    return buttons;
   };
 
-  const actionButton = getActionButton();
+  const actionButtons = getActionButtons();
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -437,30 +482,35 @@ const MobileQuoteDetailPage = () => {
             </p>
           </div>
           
-          {/* Columna derecha: Botón de acción contextual */}
-          {actionButton && (
-            <button
-              onClick={actionButton.onClick}
-              disabled={actionButton.loading}
-              className={cn(
-                "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
-                "text-sm font-medium whitespace-nowrap leading-none",
-                "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-                "text-white/90 hover:text-white hover:bg-white/15",
-                "active:scale-95 transition-all duration-200",
-                "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]",
-                actionButton.loading && "opacity-50"
-              )}
-              style={{ touchAction: 'manipulation' }}
-              aria-label={actionButton.label}
-            >
-              {actionButton.loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <actionButton.icon className="h-4 w-4" />
-              )}
-              <span>{actionButton.label}</span>
-            </button>
+          {/* Columna derecha: Botones de acción contextual (igual que desktop) */}
+          {actionButtons.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              {actionButtons.map((btn) => (
+                <button
+                  key={btn.label}
+                  onClick={btn.onClick}
+                  disabled={btn.loading}
+                  className={cn(
+                    "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
+                    "text-sm font-medium whitespace-nowrap leading-none",
+                    "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
+                    "text-white/90 hover:text-white hover:bg-white/15",
+                    "active:scale-95 transition-all duration-200",
+                    "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]",
+                    btn.loading && "opacity-50"
+                  )}
+                  style={{ touchAction: 'manipulation' }}
+                  aria-label={btn.label}
+                >
+                  {btn.loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <btn.icon className="h-4 w-4" />
+                  )}
+                  <span>{btn.label}</span>
+                </button>
+              ))}
+            </div>
           )}
         </div>
       </div>
