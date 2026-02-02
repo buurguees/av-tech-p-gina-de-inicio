@@ -428,6 +428,7 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
   const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
   const total = lines.reduce((acc, line) => acc + line.total, 0);
   const hasDiscount = lines.some((line) => line.discount_percent && line.discount_percent > 0.1);
+  // IBAN predeterminado en facturas: primera cuenta (SABADELL). Opción de selector por factura en el futuro si se cambia.
   const bankAccount = preferences?.bank_accounts?.[0];
   const swiftBic = extractSwiftBic(bankAccount?.notes);
 

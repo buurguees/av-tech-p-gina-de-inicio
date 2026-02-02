@@ -11,6 +11,7 @@ export const TICKET_CATEGORIES = [
   { value: "PARKING", label: "Parkings", icon: "🅿️", accountCode: "629.5" },
   { value: "TRANSPORT", label: "Transporte", icon: "🚌", accountCode: "629.6" },
   { value: "ACCOMMODATION", label: "Alojamiento", icon: "🏨", accountCode: "629.7" },
+  { value: "MULTA", label: "Multa", icon: "📄", accountCode: "629.8" },
   { value: "OTHER", label: "Otros", icon: "📋", accountCode: "629.9" },
 ] as const;
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -36,12 +36,15 @@ interface TaxPaymentDialogProps {
   onOpenChange: (open: boolean) => void;
   bankAccounts: BankAccount[];
   onSuccess: () => void;
+  /** Si se abre desde el detalle de una cuenta, preselecciona esa cuenta */
+  defaultBankId?: string;
 }
 
 const TAX_TYPES = [
-  { value: "IVA", label: "IVA (Modelo 303)", description: "Liquidación trimestral de IVA" },
-  { value: "IRPF", label: "IRPF (Modelo 111)", description: "Retenciones a trabajadores y profesionales" },
+  { value: "303", label: "Modelo 303 (IVA)", description: "Liquidación trimestral de IVA" },
+  { value: "111", label: "Modelo 111 (IRPF)", description: "Retenciones a trabajadores y profesionales" },
   { value: "IS", label: "Impuesto de Sociedades", description: "Pago a cuenta o liquidación anual" },
+  { value: "AEAT", label: "Impuestos AEAT", description: "Otros modelos: 130, 202, 347, 390, etc." },
 ];
 
 const TaxPaymentDialog = ({
@@ -49,6 +52,7 @@ const TaxPaymentDialog = ({
   onOpenChange,
   bankAccounts,
   onSuccess,
+  defaultBankId,
 }: TaxPaymentDialogProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,6 +65,21 @@ const TaxPaymentDialog = ({
   const [notes, setNotes] = useState("");
 
   const selectedBank = bankAccounts.find(acc => acc.id === selectedBankId);
+
+  // Preseleccionar banco cuando se abre desde el detalle de una cuenta
+  useEffect(() => {
+    if (open && defaultBankId && bankAccounts.some((acc) => acc.id === defaultBankId)) {
+      setSelectedBankId(defaultBankId);
+    }
+    if (!open) {
+      setSelectedBankId("");
+      setTaxType("");
+      setAmount("");
+      setPeriod("");
+      setNotes("");
+      setPaymentDate(format(new Date(), "yyyy-MM-dd"));
+    }
+  }, [open, defaultBankId, bankAccounts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,12 +104,14 @@ const TaxPaymentDialog = ({
     }
 
     setIsSubmitting(true);
-    
+    // Backend tax_config usa IVA, IRPF, IS; mapeamos 303/111 para cuentas contables. AEAT se envía tal cual (backend debe soportarlo o cuenta genérica).
+    const taxTypeForRpc = { "303": "IVA", "111": "IRPF", "IS": "IS", "AEAT": "AEAT" }[taxType] ?? taxType;
+
     try {
       const { data, error } = await (supabase.rpc as any)("create_tax_payment", {
         p_bank_account_id: selectedBankId,
         p_bank_name: selectedBank?.bank || "",
-        p_tax_type: taxType,
+        p_tax_type: taxTypeForRpc,
         p_amount: amountValue,
         p_payment_date: paymentDate,
         p_period: period || null,
@@ -101,9 +122,10 @@ const TaxPaymentDialog = ({
 
       const result = data?.[0];
 
+      const taxLabel = TAX_TYPES.find((t) => t.value === taxType)?.label ?? taxType;
       toast({
         title: "Pago de impuesto registrado",
-        description: `Asiento ${result?.entry_number} - ${taxType} ${formatCurrency(amountValue)}`,
+        description: `Asiento ${result?.entry_number} - ${taxLabel} ${formatCurrency(amountValue)}`,
       });
 
       // Reset form
@@ -144,7 +166,7 @@ const TaxPaymentDialog = ({
             Pago de Impuesto
           </DialogTitle>
           <DialogDescription>
-            Registra un pago de impuestos (IVA, IRPF, IS). Se creará un asiento contable automáticamente.
+            Registra un pago de impuestos (303, 111, IS, Impuestos AEAT). Se creará un asiento contable automáticamente.
           </DialogDescription>
         </DialogHeader>
 

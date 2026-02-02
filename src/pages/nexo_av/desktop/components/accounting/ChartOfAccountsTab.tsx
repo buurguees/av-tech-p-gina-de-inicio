@@ -36,6 +36,12 @@ import {
   Home,
   Plug,
   MoreHorizontal,
+  UtensilsCrossed,
+  Fuel,
+  Route,
+  CircleParking,
+  Bus,
+  FileWarning,
 } from "lucide-react";
 
 interface BalanceSheetItem {
@@ -97,14 +103,24 @@ interface ChartOfAccountsTabProps {
   onNavigateToTechnician?: (technicianId: string) => void;
 }
 
-// Mapeo de categorías de gasto
+// Mapeo de categorías de gasto (facturas de compra + tipos de gasto de tickets)
 const EXPENSE_CATEGORY_CONFIG: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
+  // Facturas de compra
   MATERIAL: { label: "Material", icon: Wrench, color: "text-green-600" },
   SERVICE: { label: "Servicios", icon: Briefcase, color: "text-purple-600" },
   SOFTWARE: { label: "Software", icon: Package, color: "text-blue-600" },
+  EXTERNAL_SERVICES: { label: "Servicios Externos", icon: Briefcase, color: "text-purple-500" },
   TRAVEL: { label: "Viajes", icon: Car, color: "text-orange-600" },
   RENT: { label: "Alquiler", icon: Home, color: "text-teal-600" },
   UTILITIES: { label: "Suministros", icon: Plug, color: "text-yellow-600" },
+  // Tipos de gasto (tickets)
+  DIET: { label: "Dieta", icon: UtensilsCrossed, color: "text-amber-600" },
+  FUEL: { label: "Gasolina", icon: Fuel, color: "text-orange-700" },
+  TOLL: { label: "Peajes", icon: Route, color: "text-slate-600" },
+  PARKING: { label: "Parking", icon: CircleParking, color: "text-indigo-600" },
+  TRANSPORT: { label: "Transporte", icon: Bus, color: "text-cyan-600" },
+  ACCOMMODATION: { label: "Alojamiento", icon: Building2, color: "text-rose-600" },
+  MULTA: { label: "Multa", icon: FileWarning, color: "text-red-600" },
   OTHER: { label: "Otros", icon: MoreHorizontal, color: "text-gray-600" },
 };
 

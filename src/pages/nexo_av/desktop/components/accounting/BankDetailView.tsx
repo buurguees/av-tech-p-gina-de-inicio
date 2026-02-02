@@ -334,6 +334,7 @@ const BankDetailView = ({
         onOpenChange={setTaxPaymentDialogOpen}
         bankAccounts={allBankAccounts}
         onSuccess={handleDialogSuccess}
+        defaultBankId={bankAccount.id}
       />
 
       <ManualMovementDialog

@@ -825,7 +825,7 @@ const ScannerDetailPage = () => {
                   )}
                   <div>
                     <Label className="text-muted-foreground text-xs mb-1.5 block">
-                      {documentType === "TICKET" ? "Categoría *" : "Categoría"}
+                      {documentType === "TICKET" ? "Tipo de gasto *" : "Categoría"}
                     </Label>
                     {documentType === "TICKET" ? (
                       <Select value={ticketCategory} onValueChange={(val) => {
@@ -833,7 +833,7 @@ const ScannerDetailPage = () => {
                         setHasChanges(true);
                       }}>
                         <SelectTrigger className="bg-background/50">
-                          <SelectValue placeholder="Seleccionar categoría..." />
+                          <SelectValue placeholder="Seleccionar tipo de gasto..." />
                         </SelectTrigger>
                         <SelectContent>
                           {TICKET_CATEGORIES.map((cat) => (
@@ -841,6 +841,7 @@ const ScannerDetailPage = () => {
                               <span className="flex items-center gap-2">
                                 <span>{cat.icon}</span>
                                 <span>{cat.label}</span>
+                                <span className="text-muted-foreground text-xs">({cat.accountCode})</span>
                               </span>
                             </SelectItem>
                           ))}

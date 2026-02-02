@@ -58,6 +58,7 @@ import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "../components/p
 import PurchaseInvoicePaymentsSection from "../components/purchases/PurchaseInvoicePaymentsSection";
 import SupplierSearchInput from "../components/suppliers/SupplierSearchInput";
 import { PURCHASE_INVOICE_CATEGORIES } from "@/constants/purchaseInvoiceCategories";
+import { TICKET_CATEGORIES } from "@/constants/ticketCategories";
 import ProjectSearchInput from "../components/projects/ProjectSearchInput";
 import { cn } from "@/lib/utils";
 
@@ -852,7 +853,9 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Categoría</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      {isTicket ? "Tipo de gasto" : "Categoría"}
+                    </Label>
                     <Select
                       value={expenseCategory}
                       onValueChange={(value) => {
@@ -862,14 +865,24 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                       disabled={!isEditing || isLocked}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar categoría" />
+                        <SelectValue placeholder={isTicket ? "Seleccionar tipo de gasto" : "Seleccionar categoría"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {PURCHASE_INVOICE_CATEGORIES.map((cat) => (
-                          <SelectItem key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </SelectItem>
-                        ))}
+                        {isTicket
+                          ? TICKET_CATEGORIES.map((cat) => (
+                              <SelectItem key={cat.value} value={cat.value}>
+                                <span className="flex items-center gap-2">
+                                  <span>{cat.icon}</span>
+                                  <span>{cat.label}</span>
+                                  <span className="text-muted-foreground text-xs">({cat.accountCode})</span>
+                                </span>
+                              </SelectItem>
+                            ))
+                          : PURCHASE_INVOICE_CATEGORIES.map((cat) => (
+                              <SelectItem key={cat.value} value={cat.value}>
+                                {cat.label}
+                              </SelectItem>
+                            ))}
                       </SelectContent>
                     </Select>
                   </div>
