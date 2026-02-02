@@ -30,7 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getProjectStatusInfo } from "@/constants/projectStatuses";
 import { getQuoteStatusInfo } from "@/constants/quoteStatuses";
-import EditProjectDialog from "../../desktop/components/projects/EditProjectDialog";
+import EditProjectSheet from "../components/projects/EditProjectSheet";
 import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo } from "@/constants/salesInvoiceStatuses";
 import { getDocumentStatusInfo, calculatePaymentStatus, getPaymentStatusInfo } from "@/constants/purchaseInvoiceStatuses";
 
@@ -534,9 +534,9 @@ const MobileProjectDetailPage = () => {
         )}
       </div>
 
-      {/* Diálogo Editar Proyecto (igual que desktop) */}
+      {/* Sheet Editar Proyecto (mobile) */}
       {project && (
-        <EditProjectDialog
+        <EditProjectSheet
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           project={project}
