@@ -1067,6 +1067,12 @@ export type Database = {
         }
         Returns: string
       }
+      get_next_provisional_purchase_number: {
+        Args: { p_document_type?: string }
+        Returns: string
+      }
+      get_next_ticket_number: { Args: Record<string, never>; Returns: string }
+      get_next_factura_borr_number: { Args: Record<string, never>; Returns: string }
       generate_otp: {
         Args: { p_email: string; p_ip_address?: unknown; p_user_agent?: string }
         Returns: string

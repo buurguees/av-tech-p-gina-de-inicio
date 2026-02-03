@@ -199,16 +199,22 @@ const MobileScannerDetailPage = () => {
   const handleSave = async () => {
     if (!document) return;
 
+    if (!document.file_path?.trim()) {
+      toast({
+        title: "Documento obligatorio",
+        description: "Este documento no tiene archivo asociado. No se puede asignar. Es obligatorio tener el documento para el control de gastos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setSaving(true);
 
-      // Generate invoice number based on type
-      const timestamp = Date.now().toString().slice(-6);
-      const invoiceNumber = documentType === "EXPENSE" 
-        ? `TICKET-${timestamp}`
-        : `PENDIENTE-${timestamp}`;
+      const rpcName = documentType === "EXPENSE" ? "get_next_ticket_number" : "get_next_factura_borr_number";
+      const { data: invoiceNumber, error: numError } = await supabase.rpc(rpcName, {});
+      if (numError || !invoiceNumber) throw new Error(numError?.message || "No se pudo obtener el número");
 
-      // Create the purchase invoice or expense
       const { data: invoiceData, error: invoiceError } = await supabase.rpc("create_purchase_invoice", {
         p_invoice_number: invoiceNumber,
         p_document_type: documentType,
@@ -329,7 +335,7 @@ const MobileScannerDetailPage = () => {
           {!isAssigned && (
             <button
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || !document.file_path?.trim()}
               className={cn(
                 "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
                 "text-sm font-medium whitespace-nowrap leading-none",
@@ -359,7 +365,7 @@ const MobileScannerDetailPage = () => {
         {/* Preview */}
         <div className="space-y-2">
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Vista Previa
+            Vista Previa del documento (obligatorio para control de gastos)
           </Label>
           <div className="bg-card border border-border rounded-xl p-3">
             <FilePreview filePath={document.file_path} />

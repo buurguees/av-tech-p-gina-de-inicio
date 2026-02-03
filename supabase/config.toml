@@ -17,6 +17,3 @@ verify_jwt = false
 
 [functions.send-user-invitation]
 verify_jwt = false
-
-[functions.receive-invoice-email]
-verify_jwt = false

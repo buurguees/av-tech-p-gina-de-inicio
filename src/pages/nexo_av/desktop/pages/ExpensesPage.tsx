@@ -160,8 +160,10 @@ const ExpensesPageDesktop = () => {
           if (retryError) throw retryError;
           
           // Usar el nuevo path
+          const { data: ticketNum, error: numErr } = await supabase.rpc('get_next_ticket_number', {});
+          if (numErr || !ticketNum) throw new Error(numErr?.message || 'No se pudo obtener el número');
           const { data: newInvoiceId, error: dbError } = await supabase.rpc('create_purchase_invoice', {
-            p_invoice_number: `TICKET-${timestamp.toString().slice(-6)}`,
+            p_invoice_number: ticketNum,
             p_document_type: 'EXPENSE',
             p_status: 'PENDING',
             p_file_path: newFilePath,
@@ -191,8 +193,10 @@ const ExpensesPageDesktop = () => {
         }
       } else {
         // Crear registro en la base de datos (nunca borrar el archivo si falla la BD)
+        const { data: ticketNum, error: numErr } = await supabase.rpc('get_next_ticket_number', {});
+        if (numErr || !ticketNum) throw new Error(numErr?.message || 'No se pudo obtener el número');
         const { data: createdId, error: dbError } = await supabase.rpc('create_purchase_invoice', {
-          p_invoice_number: `TICKET-${timestamp.toString().slice(-6)}`,
+          p_invoice_number: ticketNum,
           p_document_type: 'EXPENSE',
           p_status: 'PENDING',
           p_file_path: filePath,
@@ -243,9 +247,10 @@ const ExpensesPageDesktop = () => {
     if (!uploadRetryPending) return;
     try {
       setRetryingUpload(true);
-      const timestamp = Date.now();
+      const { data: ticketNum, error: numErr } = await supabase.rpc("get_next_ticket_number", {});
+      if (numErr || !ticketNum) throw new Error(numErr?.message || "No se pudo obtener el número");
       const { data: newInvoiceId, error: dbError } = await supabase.rpc("create_purchase_invoice", {
-        p_invoice_number: `TICKET-${timestamp.toString().slice(-6)}`,
+        p_invoice_number: ticketNum,
         p_document_type: "EXPENSE",
         p_status: "PENDING",
         p_file_path: uploadRetryPending.filePath,

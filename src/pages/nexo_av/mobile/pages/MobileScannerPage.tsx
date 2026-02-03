@@ -82,14 +82,14 @@ const MobileScannerPage = () => {
     await handleUpload(file);
   };
 
-  const handleUpload = async (fileOrBlob: File | Blob) => {
+  const handleUpload = async (fileOrBlob: File | Blob): Promise<void> => {
     if (!userId) {
       toast({
         title: "Error",
         description: "Usuario no identificado",
         variant: "destructive",
       });
-      return;
+      throw new Error("Usuario no identificado");
     }
 
     setUploading(true);
@@ -102,7 +102,7 @@ const MobileScannerPage = () => {
           description: "Usuario no autenticado",
           variant: "destructive",
         });
-        return;
+        throw new Error("Usuario no autenticado");
       }
 
       // Upload to storage using auth.uid() for proper RLS
@@ -136,24 +136,22 @@ const MobileScannerPage = () => {
       if (docError) throw docError;
 
       toast({
-        title: "Documento subido",
-        description: "El documento se está procesando...",
+        title: "Documento guardado",
+        description: "Obligatorio para el control de gastos. Asigna tipo (ticket/factura) en la siguiente pantalla.",
       });
 
-      // Refresh list
       fetchDocuments();
-
-      // Navigate to detail page
       if (docData) {
         navigate(`/nexo-av/${userId}/scanner/${docData.id}`);
       }
     } catch (error: any) {
       console.error('Error uploading document:', error);
       toast({
-        title: "Error",
-        description: error.message || "No se pudo subir el documento",
+        title: "Error al guardar el documento",
+        description: error.message || "Es obligatorio guardar el documento para el control de gastos. Vuelve a intentarlo.",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -162,9 +160,20 @@ const MobileScannerPage = () => {
     }
   };
 
-  const handleScannerCapture = (blob: Blob) => {
-    setShowScanner(false);
-    handleUpload(blob);
+  const handleScannerCapture = async (blob: Blob) => {
+    setUploading(true);
+    try {
+      await handleUpload(blob);
+      setShowScanner(false);
+    } catch (_) {
+      toast({
+        title: "Documento no guardado",
+        description: "Es obligatorio guardar el documento para el control de gastos. Vuelve a escanear e inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleDocumentClick = (documentId: string) => {
@@ -281,11 +290,11 @@ const MobileScannerPage = () => {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : documents.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="flex flex-col items-center justify-center py-12 text-center px-4">
               <ScanLine className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No hay documentos escaneados</p>
-              <p className="text-muted-foreground text-sm">
-                Haz una foto o sube un archivo para empezar
+              <p className="text-muted-foreground font-medium">No hay documentos escaneados</p>
+              <p className="text-muted-foreground text-sm mt-1">
+                Haz una foto o sube un archivo. Es obligatorio guardar el documento para el control de gastos.
               </p>
             </div>
           ) : (

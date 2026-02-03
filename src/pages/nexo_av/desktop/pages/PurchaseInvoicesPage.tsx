@@ -97,7 +97,7 @@ const PurchaseInvoicesPageDesktop = () => {
   const [showScanner, setShowScanner] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("INVOICE"); // Por defecto solo Facturas de compra (no tickets; tickets en Gastos)
   const [paymentFilter, setPaymentFilter] = useState("all"); // all, pending, paid, partial
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -220,9 +220,11 @@ const PurchaseInvoicesPageDesktop = () => {
           
           if (retryError) throw retryError;
           
+          const { data: provNum, error: numErr } = await supabase.rpc('get_next_provisional_purchase_number', {});
+          if (numErr || !provNum) throw new Error(numErr?.message || 'No se pudo obtener el número');
           const { data: createdId, error: dbError } = await supabase.rpc('create_purchase_invoice', {
-            p_invoice_number: `PENDIENTE-${timestamp.toString().slice(-6)}`,
-            p_document_type: typeFilter === 'EXPENSE' ? 'EXPENSE' : 'INVOICE',
+            p_invoice_number: provNum,
+            p_document_type: 'INVOICE',
             p_status: 'PENDING',
             p_file_path: newFilePath,
             p_file_name: newFileName
@@ -255,9 +257,11 @@ const PurchaseInvoicesPageDesktop = () => {
           throw uploadError;
         }
       } else {
+        const { data: provNum, error: numErr } = await supabase.rpc('get_next_provisional_purchase_number', {});
+        if (numErr || !provNum) throw new Error(numErr?.message || 'No se pudo obtener el número');
         const { data: createdId, error: dbError } = await supabase.rpc('create_purchase_invoice', {
-          p_invoice_number: `PENDIENTE-${timestamp.toString().slice(-6)}`,
-          p_document_type: typeFilter === 'EXPENSE' ? 'EXPENSE' : 'INVOICE',
+          p_invoice_number: provNum,
+          p_document_type: 'INVOICE',
           p_status: 'PENDING',
           p_file_path: filePath,
           p_file_name: fileName
@@ -312,10 +316,11 @@ const PurchaseInvoicesPageDesktop = () => {
     if (!uploadRetryPending) return;
     try {
       setRetryingUpload(true);
-      const timestamp = Date.now();
+      const { data: provNum, error: numErr } = await supabase.rpc("get_next_provisional_purchase_number", {});
+      if (numErr || !provNum) throw new Error(numErr?.message || "No se pudo obtener el número");
       const { data: newInvoiceId, error: dbError } = await supabase.rpc("create_purchase_invoice", {
-        p_invoice_number: `PENDIENTE-${timestamp.toString().slice(-6)}`,
-        p_document_type: uploadRetryPending.documentType,
+        p_invoice_number: provNum,
+        p_document_type: "INVOICE",
         p_status: "PENDING",
         p_file_path: uploadRetryPending.filePath,
         p_file_name: uploadRetryPending.fileName,
@@ -824,10 +829,11 @@ const PurchaseInvoicesPageDesktop = () => {
                       </TableHead>
                       <TableHead 
                         className="text-muted-foreground text-xs font-medium cursor-pointer w-[260px]"
+                        title="PENDIENTE/C-BORR (borrador) o C-YY-XXXXXX (aprobada). Tickets: TICKET-BORR / TICKET-YY-XXXXXX en Gastos."
                         onClick={() => handleSort("number")}
                       >
                         <div className="flex items-center gap-1">
-                          Número
+                          Nº compra
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
@@ -904,6 +910,9 @@ const PurchaseInvoicesPageDesktop = () => {
                               <span className="text-foreground font-medium">
                                 {invoice.internal_purchase_number || invoice.invoice_number || "—"}
                               </span>
+                              {!(invoice.internal_purchase_number) && invoice.invoice_number && (invoice.invoice_number.startsWith("PENDIENTE-") || invoice.invoice_number.startsWith("TICKET-BORR-") || invoice.invoice_number.startsWith("C-BORR-")) && (
+                                <span className="text-muted-foreground text-xs ml-1">(borrador)</span>
+                              )}
                               {invoice.supplier_invoice_number && (
                                 <span className="text-muted-foreground text-xs ml-1">
                                   ({invoice.supplier_invoice_number})

@@ -661,7 +661,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   const statusInfo = getStatusInfo(invoice.status);
   // Solo Admin puede aprobar/confirmar facturas de compra. Manager puede crear/editar borradores pero no aprobar.
   const isAdmin = userRoles.includes('admin');
-  const canApprove = isAdmin && !isLocked && (invoice.status === "PENDING" || invoice.status === "REGISTERED");
+  const canApprove = isAdmin && !isLocked && (invoice.status === "PENDING" || invoice.status === "REGISTERED" || invoice.status === "PENDING_VALIDATION");
   const canEdit = !isLocked;
   const canDelete = !isLocked && (invoice.status === "PENDING" || invoice.status === "PENDING_VALIDATION" || invoice.status === "DRAFT");
   const isTicket = invoice.document_type === "EXPENSE";
@@ -669,7 +669,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   return (
     <div className="flex flex-col h-full">
       <DetailNavigationBar
-        pageTitle={invoice.supplier_invoice_number || invoice.invoice_number || "Factura de Compra"}
+        pageTitle={invoice.internal_purchase_number || invoice.supplier_invoice_number || invoice.invoice_number || "Factura de Compra"}
         backPath={`/nexo-av/${userId}/purchase-invoices`}
         contextInfo={
           <div className="flex items-center gap-2">

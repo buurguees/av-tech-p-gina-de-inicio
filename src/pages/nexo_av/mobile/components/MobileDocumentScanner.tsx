@@ -187,7 +187,7 @@ const MobileDocumentScanner: React.FC<MobileDocumentScannerProps> = ({
         setCapturedImage(resultCanvas.toDataURL('image/jpeg', 0.9));
         toast({
           title: "Documento escaneado",
-          description: "Revisa el resultado y confirma para guardar.",
+          description: "Confirma para guardar. Es obligatorio para el control de gastos.",
         });
       } else {
         throw new Error("Scanner not available");
