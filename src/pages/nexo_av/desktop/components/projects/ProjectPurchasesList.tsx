@@ -62,16 +62,17 @@ const ProjectPurchasesList = ({ projectId }: ProjectPurchasesListProps) => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc("list_purchase_invoices", {
+      const params: Record<string, unknown> = {
         p_search: null,
         p_status: null,
         p_supplier_id: null,
         p_technician_id: null,
         p_document_type: null,
-        p_project_id: projectId,
         p_page: 1,
         p_page_size: 5000,
-      });
+      };
+      if (projectId != null) params.p_project_id = projectId;
+      const { data, error } = await supabase.rpc("list_purchase_invoices", params);
 
       if (error) throw error;
 

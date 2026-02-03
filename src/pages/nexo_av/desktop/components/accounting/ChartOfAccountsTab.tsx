@@ -180,7 +180,6 @@ const ChartOfAccountsTab = ({
           p_supplier_id: null,
           p_technician_id: null,
           p_document_type: null,
-          p_project_id: null,
           p_page: 1,
           p_page_size: 10000,
         }),

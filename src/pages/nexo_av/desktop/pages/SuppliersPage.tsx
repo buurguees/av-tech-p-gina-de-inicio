@@ -166,16 +166,16 @@ const SuppliersPageDesktop = () => {
             const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-            const { data: purchaseInvoicesData, error: invoicesError } = await supabase.rpc('list_purchase_invoices', {
+            const params: Record<string, unknown> = {
                 p_search: null,
                 p_status: null,
                 p_supplier_id: null,
                 p_technician_id: null,
                 p_document_type: null,
-                p_project_id: null,
                 p_page: 1,
                 p_page_size: 10000
-            });
+            };
+            const { data: purchaseInvoicesData, error: invoicesError } = await supabase.rpc('list_purchase_invoices', params);
 
             if (invoicesError) {
                 console.error('Error fetching purchase invoices:', invoicesError);

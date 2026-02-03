@@ -47,16 +47,16 @@ const PendingReviewSection = ({ onComplete }: PendingReviewSectionProps) => {
   const fetchPendingInvoices = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc("list_purchase_invoices", {
+      const params: Record<string, unknown> = {
         p_search: null,
         p_status: 'PENDING',
         p_supplier_id: null,
         p_technician_id: null,
         p_document_type: null,
-        p_project_id: null,
         p_page: 1,
         p_page_size: 5000,
-      });
+      };
+      const { data, error } = await supabase.rpc("list_purchase_invoices", params);
       if (error) throw error;
       setPendingInvoices(data || []);
 

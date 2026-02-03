@@ -60,7 +60,7 @@ BEGIN
         ELSE 'OTHER'
       END AS provider_type,
       COALESCE(s.tax_id, t.tax_id) AS provider_tax_id,
-      p.name AS proj_name
+      COALESCE(p.project_name, p.title) AS proj_name
     FROM sales.purchase_invoices pi
     LEFT JOIN internal.suppliers s ON pi.supplier_id = s.id
     LEFT JOIN internal.technicians t ON pi.technician_id = t.id

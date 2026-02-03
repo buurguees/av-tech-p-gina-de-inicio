@@ -148,16 +148,16 @@ const ProjectsPageDesktop = () => {
       setProjectTotals(totalsMap);
 
       // Obtener facturas de compra relacionadas con proyectos usando RPC
-      const { data: purchaseInvoicesData, error: purchaseInvoicesError } = await supabase.rpc('list_purchase_invoices', {
+      const params: Record<string, unknown> = {
         p_search: null,
         p_status: null,
         p_supplier_id: null,
         p_technician_id: null,
         p_document_type: null,
-        p_project_id: null,
         p_page: 1,
         p_page_size: 10000
-      });
+      };
+      const { data: purchaseInvoicesData, error: purchaseInvoicesError } = await supabase.rpc('list_purchase_invoices', params);
 
       if (purchaseInvoicesError) {
         console.error('Error fetching purchase invoices:', purchaseInvoicesError);
