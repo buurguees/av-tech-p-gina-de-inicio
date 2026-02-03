@@ -304,23 +304,7 @@ export function ProductImportDialog({
       );
       
       if (existingProduct) {
-        // Product exists - update stock if it's a product type
-        if (product.type === 'product') {
-          try {
-            const { error } = await supabase.rpc('update_product', {
-              p_product_id: existingProduct.id,
-              p_stock: product.stock,
-            });
-            
-            if (error) {
-              result.errors.push(`Producto ${product.productNumber}: Error actualizando stock - ${error.message}`);
-            } else {
-              result.stockUpdated++;
-            }
-          } catch (error: any) {
-            result.errors.push(`Producto ${product.productNumber}: ${error.message}`);
-          }
-        }
+        // Catalog V2: actualizar stock de producto existente requiere RPC de ajuste de stock (por ahora solo contamos como omitido)
         result.productsSkipped++;
         continue;
       }
@@ -332,50 +316,42 @@ export function ProductImportDialog({
         continue;
       }
 
-      // Find subcategory ID (optional but recommended)
+      // Catalog V2: subcategoría opcional; si existe se usa como category_id, si no la categoría raíz
       let subcategoryId: string | null = null;
       if (product.subcategoryCode) {
         subcategoryId = findSubcategoryId(product.subcategoryCode, categoryId);
         if (!subcategoryId) {
-          // Try to find by just the code without requiring category match
           const sub = subcategories.find(s => s.code.toLowerCase() === product.subcategoryCode.toLowerCase());
           subcategoryId = sub?.id || null;
         }
       }
+      const effectiveCategoryId = subcategoryId || categoryId;
 
-      // Important: Products MUST have a subcategory as main categories cannot have products directly
-      if (!subcategoryId) {
-        result.errors.push(`Producto ${product.productNumber}: Subcategoría "${product.subcategoryCode}" no encontrada. Los productos deben ir en subcategorías.`);
-        continue;
-      }
-
-      // Find tax ID
       const taxId = findTaxId(product.taxCode, product.taxRate);
 
       try {
-        const { data, error } = await supabase.rpc('create_product', {
-          p_category_id: categoryId,
-          p_subcategory_id: subcategoryId,
+        const { data: newId, error } = await supabase.rpc('create_catalog_product', {
+          p_sku: product.productNumber.trim() || `IMP-${Date.now()}-${result.productsCreated}`,
           p_name: product.name.toUpperCase(),
-          p_description: product.description || null,
+          p_product_type: product.type === 'service' ? 'SERVICE' : 'PRODUCT',
+          p_category_id: effectiveCategoryId,
+          p_unit: product.type === 'service' ? 'hora' : 'ud',
           p_cost_price: product.costPrice,
-          p_base_price: product.basePrice,
-          p_tax_rate: product.taxRate,
-          p_type: product.type,
-          p_stock: product.type === 'product' ? product.stock : null,
-          p_default_tax_id: taxId,
+          p_sale_price: product.basePrice,
+          p_discount_percent: 0,
+          p_tax_rate_id: taxId || null,
+          p_description: product.description || null,
+          p_track_stock: product.type === 'product',
+          p_min_stock_alert: product.type === 'product' && product.stock >= 0 ? Math.min(product.stock, 10) : null,
         });
 
         if (error) {
           result.errors.push(`Producto ${product.productNumber}: ${error.message}`);
         } else {
           result.productsCreated++;
-          
-          // If product was created but should be inactive, update it
-          const productId = (data?.[0] as any)?.out_product_id;
-          if (!product.status && productId) {
-            await supabase.rpc('update_product', {
-              p_product_id: productId,
+          if (!product.status && newId) {
+            await supabase.rpc('update_catalog_product', {
+              p_id: newId,
               p_is_active: false,
             });
           }

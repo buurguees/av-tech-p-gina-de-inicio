@@ -10,33 +10,30 @@ import { toast } from 'sonner';
 
 interface Pack {
   id: string;
-  pack_number: string;
+  sku: string;
   name: string;
   description: string | null;
-  base_price: number;
+  sale_price: number;
   discount_percent: number;
-  final_price: number;
-  price_with_tax: number;
+  sale_price_effective: number;
   tax_rate: number;
-  product_count: number;
+  component_count: number;
   is_active: boolean;
 }
 
 interface PackItem {
-  id: string;
-  product_id: string;
-  product_number: string;
-  product_name: string;
+  component_product_id: string;
+  sku: string;
+  name: string;
   quantity: number;
-  unit_price: number;
-  subtotal: number;
+  unit: string;
 }
 
 interface Product {
   id: string;
-  product_number: string;
+  sku: string;
   name: string;
-  base_price: number;
+  sale_price_effective: number;
 }
 
 interface EditingCell {
@@ -89,12 +86,23 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
   const loadPacks = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('list_product_packs', {
+      const { data, error } = await supabase.rpc('list_catalog_bundles', {
         p_search: search || null
       });
 
       if (error) throw error;
-      setPacks(data || []);
+      setPacks((data || []).map((p: any) => ({
+        id: p.id,
+        sku: p.sku,
+        name: p.name,
+        description: p.description,
+        sale_price: p.sale_price,
+        discount_percent: p.discount_percent ?? 0,
+        sale_price_effective: p.sale_price_effective,
+        tax_rate: p.tax_rate,
+        component_count: p.component_count ?? 0,
+        is_active: p.is_active,
+      })));
     } catch (error) {
       console.error('Error loading packs:', error);
       toast.error('Error al cargar packs');
@@ -105,9 +113,17 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
 
   const loadProducts = async () => {
     try {
-      const { data, error } = await supabase.rpc('list_products');
+      const { data, error } = await supabase.rpc('list_catalog_products', {
+        p_domain: 'PRODUCT',
+        p_include_inactive: false
+      });
       if (error) throw error;
-      setProducts(data || []);
+      setProducts((data || []).map((p: any) => ({
+        id: p.id,
+        sku: p.sku,
+        name: p.name,
+        sale_price_effective: p.sale_price_effective,
+      })));
     } catch (error) {
       console.error('Error loading products:', error);
     }
@@ -116,7 +132,9 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
   const loadPackItems = async (packId: string) => {
     setLoadingItems(true);
     try {
-      const { data, error } = await supabase.rpc('get_pack_items', { p_pack_id: packId });
+      const { data, error } = await supabase.rpc('list_catalog_bundle_components', {
+        p_bundle_product_id: packId
+      });
       if (error) throw error;
       setPackItems(data || []);
     } catch (error) {
@@ -134,13 +152,22 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     }
 
     try {
-      const { data, error } = await supabase.rpc('create_product_pack', {
-        p_name: 'NUEVO PACK'
+      const sku = 'PACK-' + Date.now();
+      const { data, error } = await supabase.rpc('create_catalog_product', {
+        p_sku: sku,
+        p_name: 'NUEVO PACK',
+        p_product_type: 'BUNDLE',
+        p_category_id: null,
+        p_unit: 'ud',
+        p_sale_price: 0,
+        p_discount_percent: 0,
+        p_description: null,
+        p_track_stock: false
       });
 
       if (error) throw error;
 
-      toast.success(`Pack ${data?.[0]?.pack_number} creado`);
+      toast.success(`Pack ${sku} creado`);
       await loadPacks();
     } catch (error) {
       console.error('Error creating pack:', error);
@@ -185,9 +212,9 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     if (!selectedPack || !selectedProductId) return;
 
     try {
-      const { error } = await supabase.rpc('add_pack_item', {
-        p_pack_id: selectedPack.id,
-        p_product_id: selectedProductId,
+      const { error } = await supabase.rpc('add_catalog_bundle_component', {
+        p_bundle_product_id: selectedPack.id,
+        p_component_product_id: selectedProductId,
         p_quantity: 1
       });
 
@@ -202,7 +229,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     }
   };
 
-  const handleRemovePackItem = async (itemId: string) => {
+  const handleRemovePackItem = async (componentProductId: string) => {
     if (!isAdmin) {
       toast.error('Solo los administradores pueden modificar packs');
       return;
@@ -211,7 +238,10 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     if (!selectedPack) return;
 
     try {
-      const { error } = await supabase.rpc('remove_pack_item', { p_item_id: itemId });
+      const { error } = await supabase.rpc('remove_catalog_bundle_component', {
+        p_bundle_product_id: selectedPack.id,
+        p_component_product_id: componentProductId
+      });
       if (error) throw error;
 
       toast.success('Producto eliminado del pack');
@@ -222,7 +252,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     }
   };
 
-  const handleUpdateItemQuantity = async (itemId: string, quantity: number) => {
+  const handleUpdateItemQuantity = async (componentProductId: string, quantity: number) => {
     if (!isAdmin) {
       toast.error('Solo los administradores pueden modificar packs');
       return;
@@ -231,8 +261,9 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     if (!selectedPack || quantity < 1) return;
 
     try {
-      const { error } = await supabase.rpc('update_pack_item', {
-        p_item_id: itemId,
+      const { error } = await supabase.rpc('add_catalog_bundle_component', {
+        p_bundle_product_id: selectedPack.id,
+        p_component_product_id: componentProductId,
         p_quantity: quantity
       });
 
@@ -331,15 +362,15 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
   const exportToExcel = () => {
     const headers = ['Nº Pack', 'Nombre', 'Descripción', 'Precio Base', 'Descuento %', 'Precio Final', 'Impuesto %', 'Precio con IVA', 'Nº Productos'];
     const rows = packs.map(p => [
-      p.pack_number,
+      p.sku,
       p.name,
       p.description || '',
-      p.base_price,
+      p.sale_price_effective,
       p.discount_percent,
-      p.final_price,
+      p.sale_price_effective,
       p.tax_rate,
-      p.price_with_tax,
-      p.product_count
+      (p.sale_price_effective * (1 + p.tax_rate / 100)).toFixed(2),
+      p.component_count
     ]);
 
     const csvContent = [
@@ -453,7 +484,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
             ) : (
               packs.map(pack => (
                 <TableRow key={pack.id} className="border-white/10 hover:bg-white/[0.06] transition-colors duration-200">
-                  <TableCell className="text-orange-400 font-mono text-xs">{pack.pack_number}</TableCell>
+                  <TableCell className="text-orange-400 font-mono text-xs">{pack.sku}</TableCell>
                   <TableCell className="text-white text-sm">
                     {renderEditableCell(pack, 'name', pack.name)}
                   </TableCell>
@@ -491,7 +522,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                     )}
                   </TableCell>
                   <TableCell className="text-right text-green-400 font-medium text-sm">
-                    {pack.price_with_tax.toFixed(2)} €
+                    {(pack.sale_price_effective * (1 + pack.tax_rate / 100)).toFixed(2)} €
                   </TableCell>
                   <TableCell className="text-center">
                     <Button
@@ -551,7 +582,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                   <SelectContent className="bg-zinc-900 border-white/10 max-h-60">
                     {products.map(p => (
                       <SelectItem key={p.id} value={p.id} className="text-white">
-                        {p.product_number} - {p.name} ({p.base_price.toFixed(2)} €)
+                        {p.sku} - {p.name} ({p.base_price.toFixed(2)} €)
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -595,8 +626,8 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                     </TableRow>
                   ) : (
                     packItems.map(item => (
-                      <TableRow key={item.id} className="border-white/10 hover:bg-white/5">
-                        <TableCell className="text-orange-400 font-mono text-xs">{item.product_number}</TableCell>
+                      <TableRow key={item.component_product_id} className="border-white/10 hover:bg-white/5">
+                        <TableCell className="text-orange-400 font-mono text-xs">{item.sku}</TableCell>
                         <TableCell className="text-white text-sm">{item.product_name}</TableCell>
                         <TableCell className="text-center">
                           {isAdmin ? (
@@ -604,7 +635,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                               type="number"
                               min={1}
                               value={item.quantity}
-                              onChange={(e) => handleUpdateItemQuantity(item.id, parseInt(e.target.value) || 1)}
+                              onChange={(e) => handleUpdateItemQuantity(item.component_product_id, parseFloat(e.target.value) || 1)}
                               className="h-7 w-16 mx-auto bg-white/5 border-white/10 text-white text-center text-xs"
                             />
                           ) : (
@@ -622,7 +653,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleRemovePackItem(item.id)}
+                              onClick={() => handleRemovePackItem(item.component_product_id)}
                               className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -646,7 +677,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                   Descuento: <span className="text-orange-400 font-medium">{selectedPack.discount_percent}%</span>
                 </div>
                 <div className="text-white/60">
-                  Precio Final: <span className="text-green-400 font-bold">{selectedPack.price_with_tax.toFixed(2)} €</span>
+                  Precio Final: <span className="text-green-400 font-bold">{(selectedPack.sale_price_effective * (1 + selectedPack.tax_rate / 100)).toFixed(2)} €</span>
                 </div>
               </div>
             )}

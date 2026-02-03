@@ -155,7 +155,12 @@ const ProjectDetailPageDesktop = () => {
         const { data: purchasesData } = await supabase.rpc('list_purchase_invoices', {
           p_search: null,
           p_status: null,
+          p_supplier_id: null,
+          p_technician_id: null,
           p_document_type: null,
+          p_project_id: projectId,
+          p_page: 1,
+          p_page_size: 5000,
         });
         const projectPurchases = (purchasesData || []).filter((p: any) => p.project_id === projectId);
         const purchasesTotal = projectPurchases.reduce((sum: number, p: any) => sum + (p.tax_base || p.subtotal || 0), 0);

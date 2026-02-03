@@ -57,70 +57,47 @@ export default function ProductSearchInput({
 
   const searchCatalog = useCallback(async (query: string) => {
     setLoading(true);
-    
+
     try {
-      // Split the query into individual keywords
       const keywords = query.toLowerCase().trim().split(/\s+/).filter(k => k.length > 0);
-      console.log('Search keywords:', keywords);
-      
-      // Search products and services - use the first keyword or full query
-      const { data: productsData, error: productsError } = await supabase.rpc('list_products', {
-        p_search: keywords[0] || query,
+      const searchTerm = keywords[0] || query;
+
+      // Catalog V2: una sola RPC que devuelve productos, servicios y bundles
+      const { data: catalogData, error: catalogError } = await supabase.rpc('list_catalog_products_search', {
+        p_search: searchTerm,
+        p_include_inactive: false,
       });
 
-      // Search packs
-      const { data: packsData, error: packsError } = await supabase.rpc('list_product_packs', {
-        p_search: keywords[0] || query,
+      if (catalogError) {
+        console.error('Error searching catalog:', catalogError);
+        setSearchResults([]);
+        setLoading(false);
+        return;
+      }
+
+      const items: CatalogItem[] = (catalogData || []).map((p: any) => {
+        const typeMap: Record<string, 'product' | 'service' | 'pack'> = {
+          PRODUCT: 'product',
+          SERVICE: 'service',
+          BUNDLE: 'pack',
+        };
+        const itemType = typeMap[p.product_type] || 'product';
+        return {
+          id: p.id,
+          type: itemType,
+          name: p.name || '',
+          code: p.sku || '',
+          price: Number(p.sale_price_effective) ?? 0,
+          tax_rate: Number(p.tax_rate) ?? 21,
+          description: p.description || '',
+        };
       });
 
-      if (productsError) console.error('Error searching products:', productsError);
-      if (packsError) console.error('Error searching packs:', packsError);
-
-      const items: CatalogItem[] = [];
-
-      // Add products/services
-      if (productsData) {
-        productsData.forEach((p: any) => {
-          const itemType: 'product' | 'service' = p.type === 'service' ? 'service' : 'product';
-          const item: CatalogItem = {
-            id: p.id,
-            type: itemType,
-            name: p.name,
-            code: p.product_number,
-            price: Number(p.base_price) || 0,
-            tax_rate: Number(p.tax_rate) || 21,
-            description: p.description || '',
-          };
-          items.push(item);
-        });
-      }
-
-      // Add packs
-      if (packsData) {
-        packsData.forEach((p: any) => {
-          const item = {
-            id: p.id,
-            type: 'pack' as const,
-            name: p.name,
-            code: p.pack_number,
-            price: Number(p.final_price) || 0,
-            tax_rate: Number(p.tax_rate) || 21,
-            description: p.description || '',
-          };
-          items.push(item);
-        });
-      }
-
-      // Filter results to include only items that contain ALL keywords
       const filteredItems = items.filter(item => {
         const searchText = `${item.name} ${item.code} ${item.description}`.toLowerCase();
-        // Check if ALL keywords are present in the search text
         return keywords.every(keyword => searchText.includes(keyword));
       });
 
-      console.log('Total items found:', items.length);
-      console.log('Filtered items (containing all keywords):', filteredItems.length);
-      
       const results = filteredItems.slice(0, 10);
       setSearchResults(results);
       

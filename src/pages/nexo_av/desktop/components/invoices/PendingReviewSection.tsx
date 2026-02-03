@@ -48,9 +48,14 @@ const PendingReviewSection = ({ onComplete }: PendingReviewSectionProps) => {
     try {
       setLoading(true);
       const { data, error } = await supabase.rpc("list_purchase_invoices", {
-        p_status: 'PENDING',
         p_search: null,
+        p_status: 'PENDING',
+        p_supplier_id: null,
+        p_technician_id: null,
         p_document_type: null,
+        p_project_id: null,
+        p_page: 1,
+        p_page_size: 5000,
       });
       if (error) throw error;
       setPendingInvoices(data || []);
@@ -64,8 +69,8 @@ const PendingReviewSection = ({ onComplete }: PendingReviewSectionProps) => {
             if (!path) continue;
             
             // Determinar el bucket correcto basado en la ruta
-            const isScannedDoc = path.includes('/scanner/');
-            const bucketName = isScannedDoc ? 'scanned-documents' : 'purchase-documents';
+            // Los documentos del escáner (mobile y desktop) se suben a purchase-documents con ruta .../scanner/...
+            const bucketName = 'purchase-documents';
             
             const { data: urlData, error } = await supabase.storage
               .from(bucketName)

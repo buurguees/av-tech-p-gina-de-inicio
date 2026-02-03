@@ -124,7 +124,10 @@ const PurchaseInvoicesPageDesktop = () => {
       const { data, error } = await supabase.rpc("list_purchase_invoices", {
         p_search: debouncedSearchQuery || null,
         p_status: statusFilter === "all" ? null : statusFilter,
+        p_supplier_id: null,
+        p_technician_id: null,
         p_document_type: typeFilter === "all" ? null : typeFilter,
+        p_project_id: null,
         p_page: 1,
         p_page_size: 5000,
       });

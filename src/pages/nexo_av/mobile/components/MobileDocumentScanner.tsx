@@ -26,6 +26,7 @@ const MobileDocumentScanner: React.FC<MobileDocumentScannerProps> = ({
   const [scannerReady, setScannerReady] = useState(false);
   const scannerRef = useRef<any>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
 
   // Initialize jscanify scanner
@@ -52,6 +53,7 @@ const MobileDocumentScanner: React.FC<MobileDocumentScannerProps> = ({
           height: { ideal: 1080 }
         }
       });
+      streamRef.current = mediaStream;
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
@@ -130,7 +132,10 @@ const MobileDocumentScanner: React.FC<MobileDocumentScannerProps> = ({
   useEffect(() => {
     startCamera();
     return () => {
-      stream?.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }

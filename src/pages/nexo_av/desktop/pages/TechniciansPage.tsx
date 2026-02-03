@@ -226,7 +226,10 @@ const TechniciansPageDesktop = () => {
       const { data: purchaseInvoicesData, error: invoicesError } = await supabase.rpc('list_purchase_invoices', {
         p_search: null,
         p_status: null,
+        p_supplier_id: null,
+        p_technician_id: null,
         p_document_type: null,
+        p_project_id: null,
         p_page: 1,
         p_page_size: 10000
       });

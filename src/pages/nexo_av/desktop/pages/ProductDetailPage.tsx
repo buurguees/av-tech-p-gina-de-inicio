@@ -12,27 +12,33 @@ import { toast } from 'sonner';
 import DetailNavigationBar from '../components/navigation/DetailNavigationBar';
 import TabNav, { TabItem } from '../components/navigation/TabNav';
 import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from '../components/detail';
+import SupplierSearchInput from '../components/suppliers/SupplierSearchInput';
 
 type ProductType = 'product' | 'service';
 
 interface Product {
   id: string;
-  product_number: string;
-  category_id: string;
-  category_name: string;
-  category_code: string;
-  subcategory_id: string | null;
-  subcategory_name: string | null;
-  subcategory_code: string | null;
+  sku: string;
   name: string;
   description: string | null;
-  cost_price: number;
-  base_price: number;
-  price_with_tax: number;
+  product_type: 'PRODUCT' | 'SERVICE';
+  category_id: string | null;
+  category_name: string | null;
+  subcategory_name?: string | null; // Catalog V2: opcional; detalle no devuelve subcategoría
+  unit: string;
+  cost_price: number | null;
+  sale_price: number;
+  discount_percent: number;
+  sale_price_effective: number;
+  tax_rate_id: string | null;
   tax_rate: number;
+  margin_percentage: number | null;
+  margin_amount: number;
+  track_stock: boolean;
+  stock_quantity: number;
+  min_stock_alert: number | null;
   is_active: boolean;
-  type: ProductType;
-  stock: number | null;
+  has_low_stock_alert: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -71,6 +77,8 @@ export default function ProductDetailPage() {
   const [taxId, setTaxId] = useState('');
   const [taxRate, setTaxRate] = useState('21');
   const [stock, setStock] = useState('');
+  const [supplierId, setSupplierId] = useState('');
+  const [supplierSearchValue, setSupplierSearchValue] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [activeTab, setActiveTab] = useState('resumen');
 
@@ -82,7 +90,7 @@ export default function ProductDetailPage() {
   ];
 
   const isAdmin = userInfo?.roles?.includes('admin') || false;
-  const isProductType = product?.type === 'product';
+  const isProductType = product?.product_type === 'PRODUCT';
   const itemLabel = isProductType ? 'Producto' : 'Servicio';
 
   useEffect(() => {
@@ -131,10 +139,16 @@ export default function ProductDetailPage() {
 
   const loadTaxes = async () => {
     try {
-      const { data, error } = await supabase.rpc('list_taxes', { p_tax_type: 'sales' });
+      const { data, error } = await supabase.rpc('list_catalog_tax_rates');
       if (error) throw error;
-      const taxes = (data || []).filter((t: Tax) => t.is_active);
-      setSalesTaxes(taxes);
+      setSalesTaxes((data || []).map((t: { id: string; name: string; rate: number; is_default: boolean; is_active: boolean }) => ({
+        id: t.id,
+        code: t.name,
+        name: t.name,
+        rate: t.rate,
+        is_default: t.is_default,
+        is_active: t.is_active
+      })));
     } catch (error) {
       console.error('Error loading taxes:', error);
     }
@@ -142,28 +156,25 @@ export default function ProductDetailPage() {
 
   const loadProduct = async () => {
     if (!productId) return;
-    
+
     setLoading(true);
     try {
-      // First, try to get all products and find by ID
-      const { data, error } = await supabase.rpc('list_products', {});
+      const { data, error } = await supabase.rpc('get_catalog_product_detail', { p_product_id: productId });
 
       if (error) throw error;
 
-      const found = (data || []).find((p: any) => p.id === productId);
-      
+      const found = Array.isArray(data) && data.length > 0 ? data[0] : null;
       if (found) {
         setProduct(found);
         setName(found.name);
         setDescription(found.description || '');
-        setCostPrice(String(found.cost_price));
-        setBasePrice(String(found.base_price));
-        setTaxId(found.default_tax_id || '');
-        setTaxRate(String(found.tax_rate));
-        setStock(String(found.stock ?? 0));
+        setCostPrice(String(found.cost_price ?? ''));
+        setBasePrice(String(found.sale_price_effective ?? found.sale_price));
+        setTaxId(found.tax_rate_id || '');
+        setTaxRate(String(found.tax_rate ?? 21));
+        setStock(String(found.stock_quantity ?? 0));
         setIsActive(found.is_active);
       } else {
-        console.error('Product not found with ID:', productId);
         toast.error('Producto no encontrado');
         navigate(`/nexo-av/${userId}/catalog`);
       }
@@ -188,16 +199,16 @@ export default function ProductDetailPage() {
 
     setSaving(true);
     try {
-      const { error } = await supabase.rpc('update_product', {
-        p_product_id: product.id,
+      const { error } = await supabase.rpc('update_catalog_product', {
+        p_id: product.id,
         p_name: name.trim().toUpperCase(),
         p_description: description.trim() || null,
-        p_cost_price: parseFloat(costPrice) || 0,
-        p_base_price: parseFloat(basePrice) || 0,
-        p_tax_rate: parseFloat(taxRate),
-        p_is_active: isActive,
-        p_stock: isProductType ? parseInt(stock) || 0 : null,
-        p_default_tax_id: taxId || null
+        p_cost_price: costPrice ? parseFloat(costPrice) : null,
+        p_sale_price: parseFloat(basePrice) || 0,
+        p_tax_rate_id: taxId || null,
+        p_supplier_id: supplierId || null,
+        p_clear_supplier: !supplierId,
+        p_is_active: isActive
       });
 
       if (error) throw error;
@@ -250,7 +261,7 @@ export default function ProductDetailPage() {
         pageTitle={`Detalle de ${itemLabel}`}
         contextInfo={
           <div className="flex items-center gap-2">
-            <span className="text-orange-400 font-mono text-sm">{product.product_number}</span>
+            <span className="text-orange-400 font-mono text-sm">{product.sku}</span>
             <span className="text-white/60 text-sm">
               {product.category_name}
               {product.subcategory_name && ` > ${product.subcategory_name}`}
@@ -334,6 +345,27 @@ export default function ProductDetailPage() {
                   className="bg-white/5 border-white/10 text-white resize-none disabled:opacity-50"
                 />
               </div>
+
+              {isProductType && (
+                <div className="space-y-2">
+                  <Label className="text-white/70">Proveedor (a quien compramos el material)</Label>
+                  <SupplierSearchInput
+                    entityType="SUPPLIER"
+                    value={supplierSearchValue}
+                    onChange={(v) => {
+                      setSupplierSearchValue(v);
+                      if (!v.trim()) setSupplierId('');
+                    }}
+                    onSelectSupplier={(s) => {
+                      setSupplierId(s.id);
+                      setSupplierSearchValue(s.company_name);
+                    }}
+                    placeholder="Escribe @ para buscar proveedor..."
+                    className="bg-white/5 border-white/10 text-white disabled:opacity-50"
+                    disabled={!isAdmin}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -436,7 +468,7 @@ export default function ProductDetailPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <p className="text-white/40">Número</p>
-                  <p className="text-orange-400 font-mono">{product.product_number}</p>
+                  <p className="text-orange-400 font-mono">{product.sku}</p>
                 </div>
                 <div>
                   <p className="text-white/40">Tipo</p>
@@ -510,7 +542,7 @@ export default function ProductDetailPage() {
                       <div className="flex items-center gap-2 text-sm">
                         <FileText className="w-4 h-4 text-muted-foreground" />
                         <span className="text-muted-foreground">Nº Producto:</span>
-                        <span className="font-medium font-mono">{product.product_number}</span>
+                        <span className="font-medium font-mono">{product.sku}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2 text-sm">

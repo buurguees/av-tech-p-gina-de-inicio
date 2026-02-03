@@ -218,7 +218,6 @@ const MobileScannerDetailPage = () => {
       const { data: invoiceData, error: invoiceError } = await supabase.rpc("create_purchase_invoice", {
         p_invoice_number: invoiceNumber,
         p_document_type: documentType,
-        p_status: "PENDING",
         p_project_id: selectedProjectId || null,
         p_file_path: document.file_path,
         p_file_name: document.file_name,

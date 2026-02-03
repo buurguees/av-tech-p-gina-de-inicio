@@ -5,50 +5,52 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Download, Search, Loader2, Upload, FileSpreadsheet, MoreHorizontal, Eye, Power, Archive } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Download, Search, Loader2, Upload, FileSpreadsheet, Eye, Power, Archive, Package } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import DataList, { DataListColumn, DataListAction } from '../common/DataList';
 import { ProductImportDialog } from './ProductImportDialog';
+import SupplierSearchInput from '../suppliers/SupplierSearchInput';
 
 type ProductType = 'product' | 'service';
 
 interface Product {
   id: string;
-  product_number: string;
-  category_id: string;
-  category_name: string;
-  category_code: string;
-  subcategory_id: string | null;
-  subcategory_name: string | null;
-  subcategory_code: string | null;
+  sku: string;
   name: string;
   description: string | null;
-  cost_price: number;
-  base_price: number;
-  price_with_tax: number;
+  product_type: 'PRODUCT' | 'SERVICE';
+  category_id: string | null;
+  category_name: string | null;
+  supplier_id: string | null;
+  supplier_name: string | null;
+  unit: string;
+  cost_price: number | null;
+  sale_price: number;
+  discount_percent: number;
+  sale_price_effective: number;
   tax_rate: number;
+  margin_percentage: number | null;
+  track_stock: boolean;
+  stock_quantity: number;
+  min_stock_alert: number | null;
   is_active: boolean;
-  type: ProductType;
-  stock: number | null;
+  has_low_stock_alert: boolean;
 }
 
 interface Category {
   id: string;
-  code: string;
   name: string;
-  type?: string;
-  display_order?: number;
-}
-
-interface Subcategory {
-  id: string;
-  category_id: string;
-  code: string;
-  name: string;
-  display_order?: number;
+  slug: string;
+  description: string | null;
+  parent_id: string | null;
+  sort_order: number;
+  is_active: boolean;
+  domain: string;
+  product_count: number;
 }
 
 
@@ -68,15 +70,18 @@ interface Tax {
 
 interface NewProductForm {
   categoryId: string;
-  subcategoryId: string;
-  type: ProductType;
+  supplierId: string;
+  sku: string;
   name: string;
   description: string;
   costPrice: string;
-  basePrice: string;
+  salePrice: string;
+  discountPercent: string;
   taxId: string;
   taxRate: string;
   stock: string;
+  minStockAlert: string;
+  trackStock: boolean;
 }
 
 const TYPE_OPTIONS = [
@@ -84,17 +89,20 @@ const TYPE_OPTIONS = [
   { value: 'service', label: 'Servicio', description: 'Sin stock, coste variable' },
 ];
 
-const getInitialFormState = (type: ProductType, defaultTaxId?: string, defaultTaxRate?: number): NewProductForm => ({
+const getInitialFormState = (filterType: ProductType, defaultTaxId?: string, defaultTaxRate?: number): NewProductForm => ({
   categoryId: '',
-  subcategoryId: '',
-  type,
+  supplierId: '',
+  sku: '',
   name: '',
   description: '',
   costPrice: '0',
-  basePrice: '0',
+  salePrice: '0',
+  discountPercent: '0',
   taxId: defaultTaxId || '',
   taxRate: String(defaultTaxRate ?? 21),
   stock: '0',
+  minStockAlert: '',
+  trackStock: filterType === 'product',
 });
 
 export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
@@ -102,12 +110,10 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const { userId } = useParams<{ userId: string }>();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [salesTaxes, setSalesTaxes] = useState<Tax[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [filterSubcategory, setFilterSubcategory] = useState<string>('all');
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -115,37 +121,63 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [formData, setFormData] = useState<NewProductForm>(getInitialFormState(filterType));
+  const [supplierSearchValue, setSupplierSearchValue] = useState('');
   const [saving, setSaving] = useState(false);
 
   const isProductTab = filterType === 'product';
   const itemLabel = isProductTab ? 'Producto' : 'Servicio';
 
+  /* Prioridad 1-4 = siempre visible; 5+ = según ancho (DataList oculta sin priority en viewport < 2000px) */
+  const catalogColumns: DataListColumn<Product>[] = [
+    { key: 'sku', label: `Nº ${itemLabel}`, align: 'left', width: '100px', priority: 1, render: (p) => <span className="text-foreground/80 font-mono text-[11px]">{p.sku}</span> },
+    { key: 'name', label: 'Nombre', align: 'left', width: 'minmax(180px, 2.5fr)', priority: 2, render: (p) => <span className="text-foreground font-medium truncate block">{p.name}</span> },
+    { key: 'status', label: 'Estado', align: 'center', width: '80px', priority: 3, render: (p) => <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 w-14 justify-center", p.is_active ? "status-success" : "status-error")}>{p.is_active ? 'Activo' : 'Inactivo'}</Badge> },
+    { key: 'pvp', label: 'PVP (con IVA)', align: 'right', width: 'minmax(95px, 0.9fr)', priority: 4, render: (p) => <span className="text-foreground tabular-nums font-medium">{(p.sale_price_effective * (1 + p.tax_rate / 100)).toFixed(2)} €</span> },
+    { key: 'category_name', label: 'Categoría', align: 'left', width: 'minmax(100px, 1fr)', priority: 5, render: (p) => <span className="text-muted-foreground">{p.category_name ?? '-'}</span> },
+    ...(isProductTab ? [{ key: 'supplier_name', label: 'Proveedor', align: 'left', width: 'minmax(110px, 1fr)', priority: 5, render: (p) => <span className="text-muted-foreground">{p.supplier_name ?? '-'}</span> } as DataListColumn<Product>] : []),
+    ...(isProductTab ? [{ key: 'stock_quantity', label: 'Stock', align: 'center', width: '70px', priority: 5, render: (p) => <span className="text-muted-foreground tabular-nums">{p.stock_quantity ?? 0}</span> } as DataListColumn<Product>] : []),
+    { key: 'cost_price', label: isProductTab ? 'Coste' : 'Coste Ref.', align: 'right', width: 'minmax(90px, 0.9fr)', priority: 6, render: (p) => <span className="text-muted-foreground tabular-nums">{(p.cost_price ?? 0).toFixed(2)} €</span> },
+    { key: 'sale_price_effective', label: 'Precio Base', align: 'right', width: 'minmax(90px, 0.9fr)', priority: 6, render: (p) => <span className="text-foreground tabular-nums">{p.sale_price_effective.toFixed(2)} €</span> },
+    { key: 'tax_rate', label: 'IVA', align: 'center', width: '70px', priority: 6, render: (p) => <Badge variant="outline" className="text-[10px] px-1.5 py-0 w-12 justify-center">{p.tax_rate}%</Badge> },
+  ].flat();
+
+  const catalogActions: DataListAction<Product>[] = [
+    { label: 'Ver detalles', icon: <Eye className="w-4 h-4 mr-2" />, onClick: (p) => handleViewDetails(p.id) },
+    ...(isAdmin ? [{ label: 'Desactivar', icon: <Power className="w-4 h-4 mr-2" />, onClick: (p) => handleToggleActive(p.id, p.is_active), condition: (p) => p.is_active } as DataListAction<Product>] : []),
+    ...(isAdmin ? [{ label: 'Activar', icon: <Power className="w-4 h-4 mr-2" />, onClick: (p) => handleToggleActive(p.id, p.is_active), condition: (p) => !p.is_active } as DataListAction<Product>] : []),
+    ...(isAdmin ? [{ label: 'Archivar', icon: <Archive className="w-4 h-4 mr-2" />, onClick: (p) => handleArchiveProduct(p.id), variant: 'destructive' as const } as DataListAction<Product>] : []),
+  ].flat();
+
   useEffect(() => {
     loadData();
-  }, []);
+  }, [filterType]);
 
   useEffect(() => {
     loadProducts();
-  }, [filterCategory, filterSubcategory, search]);
+  }, [filterCategory, search]);
+
+  const catalogDomain = filterType === 'product' ? 'PRODUCT' : 'SERVICE';
 
   const loadData = async () => {
     try {
-      const [categoriesRes, subcategoriesRes, taxesRes] = await Promise.all([
-        supabase.rpc('list_product_categories'),
-        supabase.rpc('list_product_subcategories'),
-        supabase.rpc('list_taxes', { p_tax_type: 'sales' })
+      const [categoriesRes, taxesRes] = await Promise.all([
+        supabase.rpc('list_catalog_categories', { p_domain: catalogDomain }),
+        supabase.rpc('list_catalog_tax_rates')
       ]);
 
       if (categoriesRes.error) throw categoriesRes.error;
-      if (subcategoriesRes.error) throw subcategoriesRes.error;
       if (taxesRes.error) throw taxesRes.error;
 
       setCategories(categoriesRes.data || []);
-      setSubcategories(subcategoriesRes.data || []);
-      
-      const taxes = (taxesRes.data || []).filter((t: Tax) => t.is_active);
-      setSalesTaxes(taxes);
-      
+      setSalesTaxes((taxesRes.data || []).map((t: { id: string; name: string; rate: number; is_default: boolean; is_active: boolean }) => ({
+        id: t.id,
+        code: t.name,
+        name: t.name,
+        rate: t.rate,
+        is_default: t.is_default,
+        is_active: t.is_active
+      })));
+
       await loadProducts();
     } catch (error) {
       console.error('Error loading data:', error);
@@ -156,16 +188,15 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('list_products', {
+      const { data, error } = await supabase.rpc('list_catalog_products', {
+        p_domain: catalogDomain,
         p_category_id: filterCategory !== 'all' ? filterCategory : null,
-        p_subcategory_id: filterSubcategory !== 'all' ? filterSubcategory : null,
-        p_search: search || null
+        p_search: search || null,
+        p_include_inactive: true
       });
 
       if (error) throw error;
-      // Filter by type
-      const filtered = (data || []).filter((p: Product) => p.type === filterType);
-      setProducts(filtered);
+      setProducts(data || []);
     } catch (error) {
       console.error('Error loading products:', error);
       toast.error(`Error al cargar ${isProductTab ? 'productos' : 'servicios'}`);
@@ -179,40 +210,44 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       toast.error('Solo los administradores pueden añadir productos');
       return;
     }
-    // Find default tax
     const defaultTax = salesTaxes.find(t => t.is_default) || salesTaxes[0];
     setFormData(getInitialFormState(filterType, defaultTax?.id, defaultTax?.rate));
+    setSupplierSearchValue('');
     setShowAddDialog(true);
   };
 
   const handleSaveProduct = async () => {
-    if (!formData.categoryId) {
-      toast.error('Selecciona una categoría');
-      return;
-    }
     if (!formData.name.trim()) {
       toast.error('El nombre es obligatorio');
+      return;
+    }
+    const sku = formData.sku.trim() || (filterType === 'product' ? `PRD-${Date.now()}` : `SRV-${Date.now()}`);
+    if (!formData.categoryId) {
+      toast.error('Selecciona una categoría');
       return;
     }
 
     setSaving(true);
     try {
-      const { data, error } = await supabase.rpc('create_product', {
-        p_category_id: formData.categoryId,
-        p_subcategory_id: formData.subcategoryId || null,
+      const { data, error } = await supabase.rpc('create_catalog_product', {
+        p_sku: sku,
         p_name: formData.name.trim().toUpperCase(),
+        p_product_type: filterType === 'product' ? 'PRODUCT' : 'SERVICE',
+        p_category_id: formData.categoryId || null,
+        p_unit: filterType === 'product' ? 'ud' : 'hora',
+        p_cost_price: parseFloat(formData.costPrice) || null,
+        p_sale_price: parseFloat(formData.salePrice) || 0,
+        p_discount_percent: parseFloat(formData.discountPercent) || 0,
+        p_tax_rate_id: formData.taxId || null,
         p_description: formData.description.trim() || null,
-        p_cost_price: parseFloat(formData.costPrice) || 0,
-        p_base_price: parseFloat(formData.basePrice) || 0,
-        p_tax_rate: parseFloat(formData.taxRate) || 21,
-        p_type: formData.type,
-        p_stock: formData.type === 'product' ? parseInt(formData.stock) || 0 : null,
-        p_default_tax_id: formData.taxId || null
+        p_track_stock: formData.trackStock,
+        p_min_stock_alert: formData.minStockAlert ? parseFloat(formData.minStockAlert) : null,
+        p_supplier_id: formData.supplierId || null
       });
 
       if (error) throw error;
 
-      toast.success(`Producto ${(data?.[0] as any)?.out_product_number} creado`);
+      toast.success(`${itemLabel} ${sku} creado`);
       setShowAddDialog(false);
       await loadProducts();
     } catch (error) {
@@ -230,8 +265,8 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
     }
 
     try {
-      const { error } = await supabase.rpc('update_product', { 
-        p_product_id: productId,
+      const { error } = await supabase.rpc('update_catalog_product', {
+        p_id: productId,
         p_is_active: !currentlyActive
       });
       if (error) throw error;
@@ -297,40 +332,34 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
     };
     headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
 
-    // Add data rows
+    // Add data rows (catalog V2: sku, category_name, sale_price_effective, stock_quantity)
     products.forEach(p => {
-      // Calculate margin percentage
-      const margin = p.cost_price > 0 
-        ? `${(((p.base_price - p.cost_price) / p.cost_price) * 100).toFixed(2)}%`
+      const cost = p.cost_price ?? 0;
+      const margin = cost > 0 && p.margin_percentage != null
+        ? `${p.margin_percentage.toFixed(2)}%`
         : '';
-      
-      // Build subcategory code in CAT-XX format
-      const subcategoryCode = p.category_code && p.subcategory_code 
-        ? `${p.category_code}-${p.subcategory_code}` 
-        : '';
-      
-      // Tax code like IVA21, IVA10, etc.
       const taxCode = `IVA${Math.round(p.tax_rate)}`;
-      
+      const priceWithTax = p.sale_price_effective * (1 + p.tax_rate / 100);
+
       worksheet.addRow([
-        p.product_number,                    // A
-        p.category_code,                     // B
-        p.category_name,                     // C
-        subcategoryCode,                     // D
-        p.subcategory_name || '',            // E
+        p.sku,                               // A
+        p.category_name ?? '',                // B
+        p.category_name ?? '',                // C
+        '',                                  // D: Subcategoría (catalog no usa)
+        '',                                  // E
         p.name,                              // F
         p.description || '',                 // G
-        p.type === 'service' ? 'Service' : 'product', // H
-        '',                                  // I: Unidad Medida
+        p.product_type === 'SERVICE' ? 'Service' : 'product', // H
+        p.unit || '',                        // I
         p.is_active ? 'Activo' : 'Inactivo', // J
-        p.cost_price > 0 ? `€ ${p.cost_price.toFixed(2)}` : '', // K
-        '',                                  // L: Proveedor
+        cost > 0 ? `€ ${cost.toFixed(2)}` : '', // K
+        '',                                  // L
         margin,                              // M
-        `€ ${p.base_price.toFixed(2)}`,      // N
+        `€ ${p.sale_price_effective.toFixed(2)}`, // N
         `${p.tax_rate}%`,                    // O
-        `€ ${p.price_with_tax.toFixed(2)}`,  // P
+        `€ ${priceWithTax.toFixed(2)}`,       // P
         taxCode,                             // Q
-        p.stock ?? 0,                        // R: Stock
+        p.stock_quantity ?? 0,               // R
       ]);
     });
 
@@ -354,12 +383,13 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   };
 
   const downloadTemplate = () => {
+    // Catalog V2: categorías pueden tener parent_id; subcategorías = categorías hijas
     const categoryInfo = categories.map(c => {
-      const subs = subcategories.filter(s => s.category_id === c.id);
-      const subInfo = subs.length > 0 
-        ? subs.map(s => `${s.code} = ${s.name}`).join(', ')
+      const subs = categories.filter(s => s.parent_id === c.id);
+      const subInfo = subs.length > 0
+        ? subs.map(s => `${s.slug} = ${s.name}`).join(', ')
         : 'Sin subcategorías';
-      return `${c.code} = ${c.name} (Subcats: ${subInfo})`;
+      return `${c.slug} = ${c.name} (Subcats: ${subInfo})`;
     }).join('\n');
 
     const headers = ['Código Categoría', 'Código Subcategoría', 'Nombre', 'Descripción', 'Precio Coste', 'Precio Base', 'Impuesto %'];
@@ -419,38 +449,34 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       let imported = 0;
       let errors = 0;
 
-      for (const line of dataLines) {
+      for (let i = 0; i < dataLines.length; i++) {
+        const line = dataLines[i];
         const cols = line.split('\t');
         if (cols.length < 6) continue;
 
-        const [catCode, subCode, name, description, costPrice, basePrice, taxRate] = cols;
-        
-        const category = categories.find(c => c.code === catCode.trim());
+        const [catCode, _subCode, name, description, costPrice, basePrice, taxRate] = cols;
+        const category = categories.find(c => c.slug === catCode.trim());
         if (!category) {
           console.error(`Categoría no encontrada: ${catCode}`);
           errors++;
           continue;
         }
 
-        let subcategoryId = null;
-        if (subCode?.trim()) {
-          const subcategory = subcategories.find(
-            s => s.category_id === category.id && s.code === subCode.trim()
-          );
-          if (subcategory) {
-            subcategoryId = subcategory.id;
-          }
-        }
-
+        const sku = (filterType === 'product' ? 'PRD' : 'SRV') + '-' + String(i + 1).padStart(4, '0');
         try {
-          const { error } = await supabase.rpc('create_product', {
+          const { error } = await supabase.rpc('create_catalog_product', {
+            p_sku: sku,
+            p_name: name?.trim() || 'IMPORTADO',
+            p_product_type: filterType === 'product' ? 'PRODUCT' : 'SERVICE',
             p_category_id: category.id,
-            p_subcategory_id: subcategoryId,
-            p_name: name?.trim() || 'PRODUCTO IMPORTADO',
+            p_unit: filterType === 'product' ? 'ud' : 'hora',
+            p_cost_price: parseFloat(costPrice) || null,
+            p_sale_price: parseFloat(basePrice) || 0,
+            p_discount_percent: 0,
+            p_tax_rate_id: null,
             p_description: description?.trim() || null,
-            p_cost_price: parseFloat(costPrice) || 0,
-            p_base_price: parseFloat(basePrice) || 0,
-            p_tax_rate: parseFloat(taxRate) || 21
+            p_track_stock: filterType === 'product',
+            p_min_stock_alert: null
           });
 
           if (error) throw error;
@@ -474,30 +500,8 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
     }
   };
 
-  const filteredSubcategories = subcategories
-    .filter(s => filterCategory === 'all' || s.category_id === filterCategory)
-    .sort((a, b) => {
-      // Primero ordenar por categoría, luego por display_order
-      if (a.category_id !== b.category_id) {
-        const categoryA = categories.find(c => c.id === a.category_id);
-        const categoryB = categories.find(c => c.id === b.category_id);
-        if (categoryA && categoryB) {
-          return categoryA.display_order - categoryB.display_order;
-        }
-        return 0;
-      }
-      return a.display_order - b.display_order;
-    });
-
-  // Filter categories by type for the form
-  const formCategories = categories.filter(c => c.type === filterType);
-
-  const formSubcategories = subcategories
-    .filter(s => s.category_id === formData.categoryId)
-    .sort((a, b) => a.display_order - b.display_order);
-
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col flex-1 min-h-0 gap-4">
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -520,7 +524,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                 <Label className="text-white/70">Categoría *</Label>
                 <Select 
                   value={formData.categoryId} 
-                  onValueChange={(v) => setFormData({ ...formData, categoryId: v, subcategoryId: '' })}
+                  onValueChange={(v) => setFormData({ ...formData, categoryId: v })}
                 >
                   <SelectTrigger className="bg-white/5 border-white/10 text-white">
                     <SelectValue placeholder="Seleccionar..." />
@@ -528,7 +532,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                   <SelectContent className="bg-zinc-900 border-white/10">
                     {categories.map(c => (
                       <SelectItem key={c.id} value={c.id} className="text-white">
-                        {c.code} - {c.name}
+                        {c.slug} - {c.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -536,26 +540,35 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white/70">Subcategoría</Label>
-                <Select 
-                  value={formData.subcategoryId || 'none'} 
-                  onValueChange={(v) => setFormData({ ...formData, subcategoryId: v === 'none' ? '' : v })}
-                  disabled={!formData.categoryId}
-                >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                    <SelectValue placeholder="Opcional..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10">
-                    <SelectItem value="none" className="text-white/60">Sin subcategoría</SelectItem>
-                    {formSubcategories.map(s => (
-                      <SelectItem key={s.id} value={s.id} className="text-white">
-                        {s.code} - {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-white/70">Código (SKU)</Label>
+                <Input
+                  value={formData.sku}
+                  onChange={(e) => setFormData({ ...formData, sku: e.target.value.toUpperCase() })}
+                  placeholder={isProductTab ? "Ej: PRD-0001" : "Ej: SRV-0001"}
+                  className="bg-white/5 border-white/10 text-white font-mono"
+                />
               </div>
             </div>
+
+            {isProductTab && (
+              <div className="space-y-2">
+                <Label className="text-white/70">Proveedor (a quien compramos el material)</Label>
+                <SupplierSearchInput
+                  entityType="SUPPLIER"
+                  value={supplierSearchValue}
+                  onChange={(v) => {
+                    setSupplierSearchValue(v);
+                    if (!v.trim()) setFormData(prev => ({ ...prev, supplierId: '' }));
+                  }}
+                  onSelectSupplier={(s) => {
+                    setFormData(prev => ({ ...prev, supplierId: s.id }));
+                    setSupplierSearchValue(s.company_name);
+                  }}
+                  placeholder="Escribe @ para buscar proveedor..."
+                  className="bg-white/5 border-white/10 text-white"
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label className="text-white/70">Nombre *</Label>
@@ -594,13 +607,25 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white/70">Precio base (€)</Label>
+                <Label className="text-white/70">Precio venta (€)</Label>
                 <Input
                   type="number"
                   step="0.01"
                   min="0"
-                  value={formData.basePrice}
-                  onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                  value={formData.salePrice}
+                  onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
+                  className="bg-white/5 border-white/10 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white/70">Dto. %</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={formData.discountPercent}
+                  onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value })}
                   className="bg-white/5 border-white/10 text-white"
                 />
               </div>
@@ -645,12 +670,12 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
               )}
             </div>
 
-            {formData.categoryId && formData.basePrice && (
+            {formData.salePrice && (
               <div className="p-3 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-white/60">Precio con IVA:</span>
                   <span className="text-green-400 font-semibold">
-                    {(parseFloat(formData.basePrice) * (1 + parseFloat(formData.taxRate) / 100)).toFixed(2)} €
+                    {(parseFloat(formData.salePrice) * (1 - parseFloat(formData.discountPercent || '0') / 100) * (1 + parseFloat(formData.taxRate) / 100)).toFixed(2)} €
                   </span>
                 </div>
               </div>
@@ -658,17 +683,12 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowAddDialog(false)}
-              className="border-white/20 text-white hover:bg-white/10"
-            >
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
               Cancelar
             </Button>
             <Button
               onClick={handleSaveProduct}
               disabled={saving || !formData.categoryId || !formData.name.trim()}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Guardar {itemLabel}
@@ -677,51 +697,34 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Toolbar */}
-      <div className="flex flex-wrap gap-3 items-center justify-between">
+      {/* Toolbar - Estilo alineado con Proyectos / Clientes */}
+      <div className="flex flex-wrap gap-3 items-center justify-between flex-shrink-0">
         <div className="flex flex-wrap gap-3 items-center">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder={isProductTab ? "Buscar productos..." : "Buscar servicios..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 w-64 bg-white/5 border-white/10 text-white"
+              className="pl-9 w-64 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
-
-          <Select value={filterCategory} onValueChange={(v) => { setFilterCategory(v); setFilterSubcategory('all'); }}>
-            <SelectTrigger className="w-48 bg-white/5 border-white/10 text-white">
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger className="w-48 bg-muted/50 border-border text-foreground">
               <SelectValue placeholder="Categoría" />
             </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-white/10">
-              <SelectItem value="all" className="text-white">Todas las categorías</SelectItem>
+            <SelectContent>
+              <SelectItem value="all">Todas las categorías</SelectItem>
               {categories.map(c => (
-                <SelectItem key={c.id} value={c.id} className="text-white">{c.code} - {c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={filterSubcategory} onValueChange={setFilterSubcategory} disabled={filterCategory === 'all'}>
-            <SelectTrigger className="w-56 bg-white/5 border-white/10 text-white">
-              <SelectValue placeholder="Subcategoría" />
-            </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-white/10">
-              <SelectItem value="all" className="text-white">Todas las subcategorías</SelectItem>
-              {filteredSubcategories.map(s => (
-                <SelectItem key={s.id} value={s.id} className="text-white">{s.code} - {s.name}</SelectItem>
+                <SelectItem key={c.id} value={c.id}>{c.slug} - {c.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-
         <div className="flex gap-2">
           {isAdmin && (
             <>
-              <Button
-                onClick={handleOpenAddDialog}
-                className="bg-orange-500 hover:bg-orange-600 text-white"
-              >
+              <Button onClick={handleOpenAddDialog}>
                 <Plus className="w-4 h-4 mr-2" />
                 Añadir {itemLabel}
               </Button>
@@ -729,7 +732,6 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                 onClick={handleImportClick}
                 disabled={importing}
                 variant="outline"
-                className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10"
               >
                 {importing ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -738,151 +740,36 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                 )}
                 Importar
               </Button>
-              <Button
-                onClick={downloadTemplate}
-                variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
-              >
+              <Button onClick={downloadTemplate} variant="outline">
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 Plantilla
               </Button>
             </>
           )}
-          <Button
-            onClick={exportToExcel}
-            variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
-          >
+          <Button onClick={exportToExcel} variant="outline">
             <Download className="w-4 h-4 mr-2" />
             Exportar
           </Button>
         </div>
       </div>
 
-      {/* Products Table */}
-      <div className="border border-white/10 rounded-2xl overflow-hidden bg-white/[0.02] backdrop-blur-sm shadow-lg">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="text-white/60 w-[140px]">Nº {itemLabel}</TableHead>
-              <TableHead className="text-white/60 w-[100px]">Categoría</TableHead>
-              <TableHead className="text-white/60">Nombre</TableHead>
-              {isProductTab && <TableHead className="text-white/60 w-[80px] text-center">Stock</TableHead>}
-              <TableHead className="text-white/60 w-[110px] text-right">{isProductTab ? 'Coste' : 'Coste Ref.'}</TableHead>
-              <TableHead className="text-white/60 w-[110px] text-right">Precio Base</TableHead>
-              <TableHead className="text-white/60 w-[90px] text-center">IVA</TableHead>
-              <TableHead className="text-white/60 w-[120px] text-right">PVP (con IVA)</TableHead>
-              <TableHead className="text-white/60 w-[100px] text-center">Estado</TableHead>
-              <TableHead className="text-white/60 w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow className="border-white/10">
-                <TableCell colSpan={isProductTab ? 10 : 9} className="text-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-white/40" />
-                </TableCell>
-              </TableRow>
-            ) : products.length === 0 ? (
-              <TableRow className="border-white/10">
-                <TableCell colSpan={isProductTab ? 10 : 9} className="text-center py-8 text-white/40">
-                  No hay {isProductTab ? 'productos' : 'servicios'}. {isAdmin && `Haz clic en "Añadir ${itemLabel}" para crear uno.`}
-                </TableCell>
-              </TableRow>
-            ) : (
-              products.map(product => (
-                <TableRow 
-                  key={product.id} 
-                  className={`border-white/10 hover:bg-white/[0.06] transition-colors duration-200 cursor-pointer ${!product.is_active ? 'opacity-50' : ''}`}
-                  onClick={() => handleViewDetails(product.id)}
-                >
-                  <TableCell className="text-orange-400 font-mono text-sm py-4">{product.product_number}</TableCell>
-                  <TableCell className="text-white/70 text-sm py-4">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-medium">{product.category_code}</span>
-                      <span className="text-white/40 text-xs">{product.category_name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-white text-sm py-4 font-medium">
-                    {product.name}
-                    {product.description && (
-                      <div className="text-white/40 text-xs mt-0.5 line-clamp-1">{product.description}</div>
-                    )}
-                  </TableCell>
-                  {isProductTab && (
-                    <TableCell className="text-center text-white/60 text-sm py-4 font-medium">
-                      {product.stock ?? 0}
-                    </TableCell>
-                  )}
-                  <TableCell className="text-right text-white/60 text-sm py-4 tabular-nums">
-                    {product.cost_price.toFixed(2)} €
-                  </TableCell>
-                  <TableCell className="text-right text-white text-sm py-4 tabular-nums font-medium">
-                    {product.base_price.toFixed(2)} €
-                  </TableCell>
-                  <TableCell className="text-center py-4">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-medium">
-                      {product.tax_rate}%
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right text-green-400 font-semibold text-sm py-4 tabular-nums">
-                    {product.price_with_tax.toFixed(2)} €
-                  </TableCell>
-                  <TableCell className="text-center py-4">
-                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium ${product.is_active ? 'bg-green-500/15 text-green-400 border border-green-500/30' : 'bg-red-500/15 text-red-400 border border-red-500/30'}`}>
-                      {product.is_active ? 'Activo' : 'Inactivo'}
-                    </span>
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10"
-                        >
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
-                        <DropdownMenuItem 
-                          onClick={() => handleViewDetails(product.id)}
-                          className="text-white hover:bg-white/10 cursor-pointer"
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          Ver detalles
-                        </DropdownMenuItem>
-                        {isAdmin && (
-                          <>
-                            <DropdownMenuItem 
-                              onClick={() => handleToggleActive(product.id, product.is_active)}
-                              className="text-white hover:bg-white/10 cursor-pointer"
-                            >
-                              <Power className="w-4 h-4 mr-2" />
-                              {product.is_active ? 'Desactivar' : 'Activar'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleArchiveProduct(product.id)}
-                              className="text-white hover:bg-white/10 cursor-pointer"
-                            >
-                              <Archive className="w-4 h-4 mr-2" />
-                              Archivar
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+      {/* Lista - DataList mismo estilo que Proyectos (compacto, colores del sistema) */}
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+        <DataList
+          data={products}
+          columns={catalogColumns}
+          actions={catalogActions}
+          onItemClick={(p) => handleViewDetails(p.id)}
+          loading={loading}
+          emptyMessage={isAdmin ? `No hay ${isProductTab ? 'productos' : 'servicios'}. Haz clic en "Añadir ${itemLabel}" para crear uno.` : `No hay ${isProductTab ? 'productos' : 'servicios'}.`}
+          emptyIcon={<Package className="h-16 w-16 text-muted-foreground" />}
+          getItemId={(p) => p.id}
+        />
       </div>
 
       {isAdmin && (
-        <p className="text-white/40 text-xs">
-          Haz clic en "Ver detalles" para editar un {isProductTab ? 'producto' : 'servicio'}
+        <p className="text-muted-foreground text-xs flex-shrink-0 mt-2">
+          Haz clic en una fila o en "Ver detalles" para editar un {isProductTab ? 'producto' : 'servicio'}
         </p>
       )}
 
@@ -891,9 +778,9 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         open={showImportDialog}
         onOpenChange={setShowImportDialog}
         onImportComplete={loadProducts}
-        existingProducts={products.map(p => ({ product_number: p.product_number, id: p.id }))}
-        categories={categories.map(c => ({ code: c.code, id: c.id, name: c.name }))}
-        subcategories={subcategories.map(s => ({ code: s.code, id: s.id, category_id: s.category_id, name: s.name }))}
+        existingProducts={products.map(p => ({ product_number: p.sku, id: p.id }))}
+        categories={categories.map(c => ({ code: c.slug, id: c.id, name: c.name }))}
+        subcategories={[]}
         taxes={salesTaxes.map(t => ({ id: t.id, code: t.code, rate: t.rate }))}
       />
     </div>

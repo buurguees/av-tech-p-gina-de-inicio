@@ -671,9 +671,9 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   // Solo Admin puede aprobar. Aprobar asigna número definitivo (C-YY-XXXXXX / TICKET-YY-XXXXXX).
   const isAdmin = userRoles.includes('admin');
   const hasDefinitiveNumber = !!invoice.internal_purchase_number;
-  // Permitir aprobar: estados previos a aprobación, o ya PAID pero sin nº definitivo (legacy)
+  // Permitir aprobar: DRAFT (escáner/nueva), PENDING, REGISTERED, PENDING_VALIDATION, o ya PAID pero sin nº definitivo (legacy)
   const canApprove = isAdmin && (
-    (!isLocked && (invoice.status === "PENDING" || invoice.status === "REGISTERED" || invoice.status === "PENDING_VALIDATION")) ||
+    (!isLocked && (invoice.status === "DRAFT" || invoice.status === "PENDING" || invoice.status === "REGISTERED" || invoice.status === "PENDING_VALIDATION")) ||
     (invoice.status === "PAID" && !hasDefinitiveNumber)
   );
   const canEdit = !isLocked;
