@@ -660,6 +660,21 @@ export type Database = {
         }
         Returns: string
       }
+      create_tax_payment: {
+        Args: {
+          p_amount: number
+          p_bank_account_id: string
+          p_bank_name: string
+          p_notes?: string
+          p_payment_date?: string
+          p_period?: string
+          p_tax_type: string
+        }
+        Returns: {
+          entry_id: string
+          entry_number: string
+        }[]
+      }
       create_technician:
         | {
             Args: {
