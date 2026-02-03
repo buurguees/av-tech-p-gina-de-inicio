@@ -62,8 +62,13 @@ const PendingReviewSection = ({ onComplete }: PendingReviewSectionProps) => {
           try {
             const path = invoice.file_path.trim().replace(/^\//, '');
             if (!path) continue;
+            
+            // Determinar el bucket correcto basado en la ruta
+            const isScannedDoc = path.includes('/scanner/');
+            const bucketName = isScannedDoc ? 'scanned-documents' : 'purchase-documents';
+            
             const { data: urlData, error } = await supabase.storage
-              .from('purchase-documents')
+              .from(bucketName)
               .createSignedUrl(path, 3600);
             if (!error && urlData?.signedUrl) {
               urls[invoice.id] = urlData.signedUrl;
