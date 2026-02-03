@@ -60,10 +60,12 @@ const PendingReviewSection = ({ onComplete }: PendingReviewSectionProps) => {
       for (const invoice of (data || [])) {
         if (invoice.file_path) {
           try {
-            const { data: urlData } = await supabase.storage
+            const path = invoice.file_path.trim().replace(/^\//, '');
+            if (!path) continue;
+            const { data: urlData, error } = await supabase.storage
               .from('purchase-documents')
-              .createSignedUrl(invoice.file_path, 3600);
-            if (urlData) {
+              .createSignedUrl(path, 3600);
+            if (!error && urlData?.signedUrl) {
               urls[invoice.id] = urlData.signedUrl;
             }
           } catch (err) {

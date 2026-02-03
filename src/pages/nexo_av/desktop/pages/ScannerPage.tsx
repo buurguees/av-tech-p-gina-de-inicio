@@ -175,17 +175,24 @@ const ScannerPage = () => {
 
   const handlePreview = async (doc: ScannedDocument) => {
     try {
+      const path = doc.file_path.trim().replace(/^\//, '');
+      if (!path) {
+        toast.error("Documento sin ruta");
+        return;
+      }
       const { data, error } = await supabase.storage
         .from("purchase-documents")
-        .createSignedUrl(doc.file_path, 3600);
+        .createSignedUrl(path, 3600);
 
       if (error) throw error;
 
-      setPreviewUrl(data.signedUrl);
+      const url = data?.signedUrl ?? null;
+      if (!url) throw new Error("No se pudo generar el enlace");
+      setPreviewUrl(url);
       setPreviewDoc(doc);
     } catch (error: any) {
       console.error("Preview error:", error);
-      toast.error("Error al previsualizar");
+      toast.error("Error al previsualizar: " + (error?.message ?? "Error desconocido"));
     }
   };
 

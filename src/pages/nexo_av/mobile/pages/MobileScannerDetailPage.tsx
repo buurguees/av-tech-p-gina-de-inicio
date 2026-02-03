@@ -41,31 +41,51 @@ const FilePreview = ({ filePath }: { filePath: string }) => {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
-  const isPdf = filePath.toLowerCase().endsWith('.pdf');
-  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filePath);
+  const normalizedPath = filePath.trim().replace(/^\//, '');
+  const isPdf = normalizedPath.toLowerCase().endsWith('.pdf');
+  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(normalizedPath);
 
   useEffect(() => {
+    if (!normalizedPath) {
+      setError(true);
+      setErrorMessage('Ruta del documento vacía');
+      setLoading(false);
+      return;
+    }
     const getSignedUrl = async () => {
       try {
         setLoading(true);
-        // Use purchase-documents bucket
-        const { data, error } = await supabase.storage
+        setError(false);
+        setErrorMessage(null);
+        const { data, error: err } = await supabase.storage
           .from('purchase-documents')
-          .createSignedUrl(filePath, 3600);
-        
-        if (error) throw error;
-        setFileUrl(data.signedUrl);
-      } catch (err) {
-        console.error('Error getting signed URL:', err);
+          .createSignedUrl(normalizedPath, 3600);
+        if (err) {
+          console.error('Storage createSignedUrl error:', err.message, { path: normalizedPath });
+          setErrorMessage(err.message || 'Error al obtener el documento');
+          setError(true);
+          return;
+        }
+        const url = data?.signedUrl ?? null;
+        if (!url) {
+          setErrorMessage('No se pudo generar el enlace al documento');
+          setError(true);
+          return;
+        }
+        setFileUrl(url);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Error desconocido';
+        console.error('Error getting signed URL:', msg, err);
+        setErrorMessage(msg);
         setError(true);
       } finally {
         setLoading(false);
       }
     };
-    
     getSignedUrl();
-  }, [filePath]);
+  }, [normalizedPath]);
 
   if (loading) {
     return (
@@ -77,9 +97,10 @@ const FilePreview = ({ filePath }: { filePath: string }) => {
 
   if (error || !fileUrl) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-muted-foreground">
+      <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-muted-foreground p-4">
         <AlertCircle className="h-12 w-12 mb-2 opacity-30" />
         <p>Error al cargar el documento</p>
+        {errorMessage && <p className="text-sm mt-1 opacity-80">{errorMessage}</p>}
       </div>
     );
   }

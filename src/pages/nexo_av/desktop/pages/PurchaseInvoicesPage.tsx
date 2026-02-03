@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,9 @@ import { usePagination } from "@/hooks/usePagination";
 import { cn } from "@/lib/utils";
 import PaginationControls from "../components/common/PaginationControls";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
 import {
   getDocumentStatusInfo,
   calculatePaymentStatus,
@@ -88,7 +91,7 @@ const PurchaseInvoicesPageDesktop = () => {
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
-  const [invoices, setInvoices] = useState<PurchaseInvoice[]>([]);
+  const [invoicesFromServer, setInvoicesFromServer] = useState<PurchaseInvoice[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchQuery = useDebounce(searchInput, 500);
   const [showScanner, setShowScanner] = useState(false);
@@ -101,6 +104,15 @@ const PurchaseInvoicesPageDesktop = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<PurchaseInvoice | null>(null);
   const [deleting, setDeleting] = useState(false);
+  /** Si falla el guardado en BD tras subir el archivo, guardamos datos para reintentar sin borrar el documento */
+  const [uploadRetryPending, setUploadRetryPending] = useState<{
+    filePath: string;
+    fileName: string;
+    documentType: "INVOICE" | "EXPENSE";
+  } | null>(null);
+  const [retryingUpload, setRetryingUpload] = useState(false);
+  const [dateFrom, setDateFrom] = useState<string | null>(null);
+  const [dateTo, setDateTo] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInvoices();
@@ -113,6 +125,8 @@ const PurchaseInvoicesPageDesktop = () => {
         p_search: debouncedSearchQuery || null,
         p_status: statusFilter === "all" ? null : statusFilter,
         p_document_type: typeFilter === "all" ? null : typeFilter,
+        p_page: 1,
+        p_page_size: 5000,
       });
       if (error) throw error;
       
@@ -133,7 +147,7 @@ const PurchaseInvoicesPageDesktop = () => {
         );
       }
       
-      setInvoices(filteredData);
+      setInvoicesFromServer(filteredData);
     } catch (error: any) {
       console.error("Error fetching purchase invoices:", error);
       toast({
@@ -186,6 +200,7 @@ const PurchaseInvoicesPageDesktop = () => {
       const randomSuffix = Math.random().toString(36).substring(2, 8);
       const fileName = `invoice_${timestamp}_${randomSuffix}.${extension}`;
       const filePath = `${authUserId}/${fileName}`;
+      let newInvoiceId: string | null = null;
 
       const { error: uploadError } = await supabase.storage
         .from('purchase-documents')
@@ -205,7 +220,7 @@ const PurchaseInvoicesPageDesktop = () => {
           
           if (retryError) throw retryError;
           
-          const { error: dbError } = await supabase.rpc('create_purchase_invoice', {
+          const { data: createdId, error: dbError } = await supabase.rpc('create_purchase_invoice', {
             p_invoice_number: `PENDIENTE-${timestamp.toString().slice(-6)}`,
             p_document_type: typeFilter === 'EXPENSE' ? 'EXPENSE' : 'INVOICE',
             p_status: 'PENDING',
@@ -213,12 +228,34 @@ const PurchaseInvoicesPageDesktop = () => {
             p_file_name: newFileName
           });
 
-          if (dbError) throw dbError;
+          if (dbError) {
+            setUploadRetryPending({
+              filePath: newFilePath,
+              fileName: newFileName,
+              documentType: typeFilter === 'EXPENSE' ? 'EXPENSE' : 'INVOICE',
+            });
+            toast({
+              title: "Error al guardar el registro",
+              description: "El documento se subió pero no se pudo guardar. Usa «Reintentar guardado».",
+              variant: "destructive",
+            });
+            return;
+          }
+          newInvoiceId = createdId ?? null;
+          setUploadRetryPending(null);
+          toast({
+            title: "Documento guardado",
+            description: "Completa los datos de la factura (proveedor, líneas, etc.) y guarda.",
+          });
+          setShowScanner(false);
+          fetchInvoices();
+          if (newInvoiceId && userId) navigate(`/nexo-av/${userId}/purchase-invoices/${newInvoiceId}`);
+          return;
         } else {
           throw uploadError;
         }
       } else {
-        const { error: dbError } = await supabase.rpc('create_purchase_invoice', {
+        const { data: createdId, error: dbError } = await supabase.rpc('create_purchase_invoice', {
           p_invoice_number: `PENDIENTE-${timestamp.toString().slice(-6)}`,
           p_document_type: typeFilter === 'EXPENSE' ? 'EXPENSE' : 'INVOICE',
           p_status: 'PENDING',
@@ -227,19 +264,30 @@ const PurchaseInvoicesPageDesktop = () => {
         });
 
         if (dbError) {
-          await supabase.storage
-            .from('purchase-documents')
-            .remove([filePath]);
-          throw dbError;
+          // NUNCA borrar el archivo: si falla la BD el documento sigue en el servidor y se puede reintentar
+          setUploadRetryPending({
+            filePath,
+            fileName,
+            documentType: typeFilter === "EXPENSE" ? "EXPENSE" : "INVOICE",
+          });
+          toast({
+            title: "Error al guardar el registro",
+            description: "El documento se subió correctamente pero no se pudo guardar en la base de datos. No se ha borrado el archivo. Usa «Reintentar guardado» para intentar de nuevo.",
+            variant: "destructive",
+          });
+          return;
         }
+        newInvoiceId = createdId ?? null;
       }
 
+      setUploadRetryPending(null);
       toast({
-        title: "Éxito",
-        description: "Documento subido correctamente. Pendiente de entrada de datos.",
+        title: "Documento guardado",
+        description: "Completa los datos de la factura (proveedor, líneas, etc.) y guarda.",
       });
       setShowScanner(false);
       fetchInvoices();
+      if (newInvoiceId && userId) navigate(`/nexo-av/${userId}/purchase-invoices/${newInvoiceId}`);
     } catch (error: any) {
       console.error("Upload error:", error);
       let errorMessage = "Error al subir el documento";
@@ -257,6 +305,38 @@ const PurchaseInvoicesPageDesktop = () => {
       });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleRetryPendingUpload = async () => {
+    if (!uploadRetryPending) return;
+    try {
+      setRetryingUpload(true);
+      const timestamp = Date.now();
+      const { data: newInvoiceId, error: dbError } = await supabase.rpc("create_purchase_invoice", {
+        p_invoice_number: `PENDIENTE-${timestamp.toString().slice(-6)}`,
+        p_document_type: uploadRetryPending.documentType,
+        p_status: "PENDING",
+        p_file_path: uploadRetryPending.filePath,
+        p_file_name: uploadRetryPending.fileName,
+      });
+      if (dbError) throw dbError;
+      setUploadRetryPending(null);
+      toast({
+        title: "Documento guardado",
+        description: "Completa los datos de la factura y guarda.",
+      });
+      fetchInvoices();
+      if (newInvoiceId && userId) navigate(`/nexo-av/${userId}/purchase-invoices/${newInvoiceId}`);
+    } catch (error: any) {
+      console.error("Retry upload error:", error);
+      toast({
+        title: "Error al reintentar",
+        description: error?.message ?? "No se pudo guardar. Vuelve a intentarlo más tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setRetryingUpload(false);
     }
   };
 
@@ -335,6 +415,18 @@ const PurchaseInvoicesPageDesktop = () => {
     }
   };
 
+  // Filtro por fecha de factura (issue_date) — aplicado en cliente
+  const invoices = useMemo(() => {
+    let list = invoicesFromServer;
+    if (dateFrom) {
+      list = list.filter((inv) => inv.issue_date && inv.issue_date >= dateFrom);
+    }
+    if (dateTo) {
+      list = list.filter((inv) => inv.issue_date && inv.issue_date <= dateTo);
+    }
+    return list;
+  }, [invoicesFromServer, dateFrom, dateTo]);
+
   const sortedInvoices = [...invoices].sort((a, b) => {
     if (!sortColumn) return 0;
 
@@ -392,6 +484,24 @@ const PurchaseInvoicesPageDesktop = () => {
   return (
     <div className="w-full h-full p-6">
       <div className="w-full h-full">
+        {uploadRetryPending && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Documento subido pero no guardado</AlertTitle>
+            <AlertDescription className="flex flex-wrap items-center gap-2 mt-1">
+              <span>El archivo está en el servidor. Puedes reintentar guardar el registro sin volver a subir.</span>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                onClick={handleRetryPendingUpload}
+                disabled={retryingUpload}
+              >
+                {retryingUpload ? <Loader2 className="h-4 w-4 animate-spin" /> : "Reintentar guardado"}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
         <div>
           {/* Summary Metric Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
@@ -627,14 +737,60 @@ const PurchaseInvoicesPageDesktop = () => {
                 />
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-3 text-xs"
-              >
-                <Calendar className="h-3 w-3 mr-1" />
-                01/12/2025 - 31/12/2025
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "h-8 px-3 text-xs",
+                      (dateFrom || dateTo) && "bg-accent"
+                    )}
+                  >
+                    <Calendar className="h-3 w-3 mr-1" />
+                    {dateFrom && dateTo
+                      ? `${dateFrom} — ${dateTo}`
+                      : dateFrom
+                        ? `Desde ${dateFrom}`
+                        : dateTo
+                          ? `Hasta ${dateTo}`
+                          : "Fechas"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64" align="end">
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Desde</Label>
+                      <Input
+                        type="date"
+                        value={dateFrom ?? ""}
+                        onChange={(e) => setDateFrom(e.target.value || null)}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Hasta</Label>
+                      <Input
+                        type="date"
+                        value={dateTo ?? ""}
+                        onChange={(e) => setDateTo(e.target.value || null)}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs w-full"
+                      onClick={() => {
+                        setDateFrom(null);
+                        setDateTo(null);
+                      }}
+                    >
+                      Limpiar fechas
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 

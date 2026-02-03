@@ -39,6 +39,7 @@ import {
   Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import PaginationControls from "../components/common/PaginationControls";
 import DocumentScanner from "../components/common/DocumentScanner";
 import RegisterPurchasePaymentDialog from "../components/purchases/RegisterPurchasePaymentDialog";
@@ -58,6 +59,11 @@ const ExpensesPageDesktop = () => {
   const [selectedExpenses, setSelectedExpenses] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [uploadRetryPending, setUploadRetryPending] = useState<{
+    filePath: string;
+    fileName: string;
+  } | null>(null);
+  const [retryingUpload, setRetryingUpload] = useState(false);
 
   useEffect(() => {
     fetchExpenses();
@@ -70,7 +76,8 @@ const ExpensesPageDesktop = () => {
         p_search: debouncedSearchQuery || null,
         p_document_type: 'EXPENSE',
         p_status: statusFilter === "all" ? null : statusFilter,
-        p_page_size: 50
+        p_page: 1,
+        p_page_size: 5000,
       });
       if (error) throw error;
       setExpenses(data || []);
@@ -130,6 +137,7 @@ const ExpensesPageDesktop = () => {
       const randomSuffix = Math.random().toString(36).substring(2, 8);
       const fileName = `expense_${timestamp}_${randomSuffix}.${extension}`;
       const filePath = `${authUserId}/${fileName}`;
+      let newInvoiceId: string | null = null;
 
       // Subir archivo a Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -152,7 +160,7 @@ const ExpensesPageDesktop = () => {
           if (retryError) throw retryError;
           
           // Usar el nuevo path
-          const { error: dbError } = await supabase.rpc('create_purchase_invoice', {
+          const { data: newInvoiceId, error: dbError } = await supabase.rpc('create_purchase_invoice', {
             p_invoice_number: `TICKET-${timestamp.toString().slice(-6)}`,
             p_document_type: 'EXPENSE',
             p_status: 'PENDING',
@@ -160,13 +168,30 @@ const ExpensesPageDesktop = () => {
             p_file_name: newFileName
           });
 
-          if (dbError) throw dbError;
+          if (dbError) {
+            setUploadRetryPending({ filePath: newFilePath, fileName: newFileName });
+            toast({
+              title: "Error al guardar el registro",
+              description: "El documento se subió pero no se pudo guardar. Usa «Reintentar guardado».",
+              variant: "destructive",
+            });
+            return;
+          }
+          setUploadRetryPending(null);
+          toast({
+            title: "Ticket guardado",
+            description: "Completa los datos del ticket (proveedor, líneas, etc.) y guarda.",
+          });
+          setShowScanner(false);
+          fetchExpenses();
+          if (newInvoiceId && userId) navigate(`/nexo-av/${userId}/purchase-invoices/${newInvoiceId}`);
+          return;
         } else {
           throw uploadError;
         }
       } else {
-        // Crear registro en la base de datos
-        const { error: dbError } = await supabase.rpc('create_purchase_invoice', {
+        // Crear registro en la base de datos (nunca borrar el archivo si falla la BD)
+        const { data: createdId, error: dbError } = await supabase.rpc('create_purchase_invoice', {
           p_invoice_number: `TICKET-${timestamp.toString().slice(-6)}`,
           p_document_type: 'EXPENSE',
           p_status: 'PENDING',
@@ -175,20 +200,25 @@ const ExpensesPageDesktop = () => {
         });
 
         if (dbError) {
-          // Si falla la creación en BD, eliminar el archivo subido
-          await supabase.storage
-            .from('purchase-documents')
-            .remove([filePath]);
-          throw dbError;
+          setUploadRetryPending({ filePath, fileName });
+          toast({
+            title: "Error al guardar el registro",
+            description: "El documento se subió pero no se pudo guardar en la base de datos. No se ha borrado el archivo. Usa «Reintentar guardado».",
+            variant: "destructive",
+          });
+          return;
         }
+        newInvoiceId = createdId ?? null;
       }
 
+      setUploadRetryPending(null);
       toast({
-        title: "Éxito",
-        description: "Ticket subido correctamente. Pendiente de entrada de datos.",
+        title: "Ticket guardado",
+        description: "Completa los datos del ticket (proveedor, líneas, etc.) y guarda.",
       });
       setShowScanner(false);
       fetchExpenses();
+      if (newInvoiceId && userId) navigate(`/nexo-av/${userId}/purchase-invoices/${newInvoiceId}`);
     } catch (error: any) {
       console.error("Upload error:", error);
       let errorMessage = "Error al subir el ticket";
@@ -206,6 +236,35 @@ const ExpensesPageDesktop = () => {
       });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleRetryPendingUpload = async () => {
+    if (!uploadRetryPending) return;
+    try {
+      setRetryingUpload(true);
+      const timestamp = Date.now();
+      const { data: newInvoiceId, error: dbError } = await supabase.rpc("create_purchase_invoice", {
+        p_invoice_number: `TICKET-${timestamp.toString().slice(-6)}`,
+        p_document_type: "EXPENSE",
+        p_status: "PENDING",
+        p_file_path: uploadRetryPending.filePath,
+        p_file_name: uploadRetryPending.fileName,
+      });
+      if (dbError) throw dbError;
+      setUploadRetryPending(null);
+      toast({ title: "Ticket guardado", description: "Completa los datos y guarda." });
+      fetchExpenses();
+      if (newInvoiceId && userId) navigate(`/nexo-av/${userId}/purchase-invoices/${newInvoiceId}`);
+    } catch (error: any) {
+      console.error("Retry upload error:", error);
+      toast({
+        title: "Error al reintentar",
+        description: error?.message ?? "No se pudo guardar. Vuelve a intentarlo más tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setRetryingUpload(false);
     }
   };
 
@@ -310,6 +369,24 @@ const ExpensesPageDesktop = () => {
   return (
     <div className="w-full h-full p-6">
       <div className="w-full h-full">
+        {uploadRetryPending && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Ticket subido pero no guardado</AlertTitle>
+            <AlertDescription className="flex flex-wrap items-center gap-2 mt-1">
+              <span>El archivo está en el servidor. Puedes reintentar guardar el registro sin volver a subir.</span>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                onClick={handleRetryPendingUpload}
+                disabled={retryingUpload}
+              >
+                {retryingUpload ? <Loader2 className="h-4 w-4 animate-spin" /> : "Reintentar guardado"}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

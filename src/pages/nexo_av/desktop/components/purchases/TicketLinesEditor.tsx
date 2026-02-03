@@ -111,23 +111,24 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
     let unitPrice: number;
 
     if (includesTax) {
-      // El precio introducido INCLUYE IVA
+      // El precio introducido INCLUYE IVA (ej. 1,50 del ticket)
       // Total por línea = cantidad * precio_con_iva
       const lineTotal = quantity * inputPrice;
       
       // Aplicar descuento al total
       const discountAmount = (lineTotal * discountPercent) / 100;
-      total = lineTotal - discountAmount;
+      total = Math.round((lineTotal - discountAmount) * 100) / 100;
       
       // Calcular subtotal (base imponible) desde el total
-      // total = subtotal + (subtotal * taxRate / 100)
-      // total = subtotal * (1 + taxRate / 100)
-      // subtotal = total / (1 + taxRate / 100)
+      // total = subtotal * (1 + taxRate / 100)  =>  subtotal = total / (1 + taxRate / 100)
       subtotal = total / (1 + taxRate / 100);
-      taxAmount = total - subtotal;
+      taxAmount = Math.round((total - subtotal) * 100) / 100;
       
-      // El precio unitario guardado es SIN IVA
-      unitPrice = subtotal / (quantity || 1);
+      // Precio unitario SIN IVA: guardar con 4 decimales para que al recalcular
+      // en backend (total = unit_price * quantity * (1+tax)) coincida el total con el ticket.
+      // Si redondeamos a 2 (ej. 1,37), el backend devuelve 1,37*1,10 = 1,51 en vez de 1,50.
+      unitPrice = quantity ? subtotal / quantity : 0;
+      unitPrice = Math.round(unitPrice * 10000) / 10000;
     } else {
       // El precio introducido NO incluye IVA (modo normal)
       unitPrice = inputPrice;
@@ -151,7 +152,8 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
       concept: line.concept || "",
       description: line.description || null,
       quantity,
-      unit_price: Math.round(unitPrice * 100) / 100,
+      // Con IVA incluido usamos 4 decimales en unit_price para que el backend no cambie el total
+      unit_price: includesTax ? unitPrice : Math.round(unitPrice * 100) / 100,
       tax_rate: taxRate,
       discount_percent: discountPercent,
       subtotal: Math.round(subtotal * 100) / 100,
