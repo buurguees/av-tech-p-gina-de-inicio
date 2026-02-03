@@ -1,119 +1,221 @@
 
-# Plan: Verificación y Corrección del Sistema de Nóminas
+# Plan: Sistema de Email-to-Scanner con Resend Inbound
 
-## Resumen del Análisis
+## Resumen
 
-He realizado una revisión exhaustiva del sistema de nóminas. El sistema de **nóminas de socios está funcionando correctamente al 100%**, con los asientos contables generándose de forma precisa.
+Implementaremos un sistema donde los emails enviados a una dirección específica (como `scanner@avtechesdeveniments.com`) carguen automáticamente los PDF adjuntos en la bandeja del Escáner.
 
 ---
 
-## Estado Actual del Sistema
+## Problema con facturacion@avtechesdeveniments.com
 
-### Flujo de Nóminas de Socios (VALIDADO)
+Este email ya existe como grupo de Microsoft 365/Sharepoint. Resend Inbound requiere un registro **MX** propio, lo que entraría en conflicto con los registros MX de Microsoft.
 
-| Paso | Función RPC | Estado | Evidencia |
-|------|------------|--------|-----------|
-| Crear DRAFT | `create_partner_compensation_run` | CORRECTO | Nóminas RET-2026-0001 y RET-2026-0002 existen |
-| Aprobar (POSTED) | `post_partner_compensation_run` | CORRECTO | Asientos AS-2026-3427 y AS-2026-3431 generados |
-| Pagar | `pay_partner_compensation_run` | CORRECTO | Asientos AS-2026-3447 y AS-2026-3450 generados |
+### Soluciones disponibles
 
-### Asientos Contables Generados (Verificados)
+| Opción | Email | Pros | Contras |
+|--------|-------|------|---------|
+| **A (Recomendada)** | `scanner@avtechesdeveniments.com` | Sin conflictos, dedicado al sistema | Nuevo subdominio no necesario |
+| **B** | `facturas.avtechesdeveniments.com` | Subdominio separado | Requiere registro DNS adicional |
+| **C** | Reenvío desde facturacion@ | Usa el email existente | Configuración manual en Microsoft 365 |
 
-**Devengo (Aprobación):**
+**Recomendación**: Usar un subdominio como `inbound.avtechesdeveniments.com` y el email sería `facturas@inbound.avtechesdeveniments.com`. Esto evita cualquier conflicto con los registros MX existentes de Microsoft.
+
+---
+
+## Arquitectura del Sistema
+
 ```text
-DEBE  640200 - Retribuciones socios          1.578,95€ / 1.812,87€
-HABER 475100 - Retenciones IRPF                228,95€ /   262,87€
-HABER 465001/002 - Cuenta socio              1.350,00€ / 1.550,00€
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              FLUJO COMPLETO                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. Técnico/Proveedor                                                       │
+│         │                                                                   │
+│         ▼                                                                   │
+│  ┌─────────────────┐                                                        │
+│  │  Email + PDF    │  ───────────────────────────────────────┐              │
+│  │  adjunto        │                                         │              │
+│  └─────────────────┘                                         │              │
+│         │                                                    │              │
+│         ▼                                                    │              │
+│  ┌─────────────────┐                                         ▼              │
+│  │  Resend Inbound │                                 ┌───────────────┐      │
+│  │  MX Record      │                                 │  Dashboard    │      │
+│  └─────────────────┘                                 │  Resend       │      │
+│         │                                            └───────────────┘      │
+│         │ Webhook POST                                                      │
+│         ▼                                                                   │
+│  ┌─────────────────────────────────────────────────────────┐               │
+│  │           Supabase Edge Function                         │               │
+│  │           "receive-invoice-email"                        │               │
+│  ├─────────────────────────────────────────────────────────┤               │
+│  │  1. Verificar firma webhook (svix)                      │               │
+│  │  2. Obtener adjuntos PDF vía API Resend                 │               │
+│  │  3. Subir PDFs a Storage bucket                         │               │
+│  │  4. Crear registro en scanned_documents                 │               │
+│  │  5. (Opcional) Enviar notificación                      │               │
+│  └─────────────────────────────────────────────────────────┘               │
+│         │                                                                   │
+│         ▼                                                                   │
+│  ┌─────────────────┐    ┌─────────────────┐                                │
+│  │  Supabase       │    │  scanned_       │                                │
+│  │  Storage        │    │  documents      │                                │
+│  │  (PDFs)         │    │  (DB)           │                                │
+│  └─────────────────┘    └─────────────────┘                                │
+│         │                      │                                            │
+│         └──────────┬───────────┘                                            │
+│                    ▼                                                        │
+│           ┌─────────────────┐                                              │
+│           │   NexoAV UI     │                                              │
+│           │   Escáner Tab   │                                              │
+│           └─────────────────┘                                              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Pago:**
+---
+
+## Pasos de Implementación
+
+### PASO 1: Configuración en Resend (Manual - Tú)
+
+1. **Ir a Resend Dashboard** → Domains
+2. **Añadir subdominio** `inbound.avtechesdeveniments.com` (o similar)
+3. **Habilitar "Receiving"** para ese dominio
+4. **Copiar el registro MX** que proporciona Resend
+5. **Añadir registro MX en tu DNS** (Microsoft 365 Admin o proveedor DNS):
+   ```
+   inbound.avtechesdeveniments.com  MX  10  inbound-smtp.us-east-1.amazonaws.com
+   ```
+6. **Crear Webhook** en Resend → Webhooks:
+   - URL: `https://takvthfatlcjsqgssnta.supabase.co/functions/v1/receive-invoice-email`
+   - Evento: `email.received`
+   - Copiar el **Webhook Secret** para añadirlo como secret
+
+### PASO 2: Añadir Secrets en Supabase
+
+Necesitaremos añadir un nuevo secret:
+
+| Secret | Descripción |
+|--------|-------------|
+| `RESEND_WEBHOOK_SECRET` | Secret para verificar webhooks de Resend |
+
+(Usaremos el `RESEND_API_KEY` existente para llamar a la API de Resend)
+
+### PASO 3: Crear Edge Function "receive-invoice-email"
+
+Nueva Edge Function que:
+
+1. **Verifica la firma del webhook** usando `svix` para seguridad
+2. **Procesa eventos `email.received`**
+3. **Obtiene los adjuntos** via `resend.emails.receiving.attachments.list()`
+4. **Filtra solo PDFs** e imágenes (jpg, png)
+5. **Descarga cada adjunto** desde la URL proporcionada
+6. **Sube a Supabase Storage** en el bucket `scanned-documents`
+7. **Crea registro** en `scanned_documents` con status `UNASSIGNED`
+8. **Opcional**: Añade metadatos del email (remitente, asunto) en el campo `notes`
+
+### PASO 4: Actualizar UI del Escáner (Opcional)
+
+- Mostrar origen del documento (manual vs email)
+- Mostrar remitente del email si aplica
+- Icono diferente para documentos recibidos por email
+
+---
+
+## Detalle Técnico de la Edge Function
+
 ```text
-DEBE  465001/002 - Cuenta socio              1.350,00€ / 1.550,00€
-HABER 572002 - Banco Revolut Business        1.350,00€ / 1.550,00€
+receive-invoice-email/index.ts
+├── Importaciones
+│   ├── Resend SDK
+│   ├── Supabase client (service role)
+│   └── Verificación webhook (svix pattern)
+├── Handler POST
+│   ├── Verificar headers svix (id, timestamp, signature)
+│   ├── Parsear evento JSON
+│   ├── Guardar payload si event.type === 'email.received'
+│   ├── Llamar resend.emails.receiving.attachments.list()
+│   ├── Para cada adjunto PDF/imagen:
+│   │   ├── Descargar desde download_url
+│   │   ├── Subir a storage bucket
+│   │   └── Insertar en scanned_documents
+│   └── Responder 200 OK
+└── Handler OPTIONS (CORS)
 ```
 
-Estos asientos cumplen con el **Flujo Contable Profesional** documentado.
+### Campos que se guardarán
 
-### Traspasos Bancarios (VALIDADO)
-
-- `create_bank_transfer` funciona correctamente
-- Asiento AS-2026-3453 registrado (SABADELL → REVOLUT)
-
----
-
-## Problema Detectado: Tabla Duplicada
-
-Existen dos tablas `partner_compensation_runs`:
-- `internal.partner_compensation_runs` - **Datos reales aquí**
-- `accounting.partner_compensation_runs` - **Vacía**
-
-**Impacto:** La función `accounting.create_payroll_payment_entry` busca en `accounting.partner_compensation_runs`, lo que podría causar errores si se usa esa ruta para pagos. Sin embargo, el flujo actual usa `pay_partner_compensation_run` que lee de `internal`, por lo que el sistema funciona correctamente.
+| Campo | Valor |
+|-------|-------|
+| `file_path` | `email-inbox/{email_id}/{filename}` |
+| `file_name` | Nombre original del adjunto |
+| `file_size` | Tamaño en bytes |
+| `file_type` | MIME type (application/pdf, image/jpeg, etc.) |
+| `status` | `UNASSIGNED` |
+| `notes` | `De: {from} | Asunto: {subject}` |
+| `created_by` | NULL (sistema automático) |
 
 ---
 
-## Nóminas de Empleados (No Probadas)
+## Consideraciones de Seguridad
 
-No hay empleados en el sistema (`internal.employees` vacía), por lo que el flujo de nóminas de empleados no puede ser verificado. La lógica existe pero no hay datos para probar:
-
-- `create_payroll_run` - Estructura correcta
-- `post_payroll_run` - Llama a `accounting.create_payroll_entry`
-- `create_payroll_payment` - Genera asiento de pago
-
----
-
-## Recomendaciones para Garantizar 100% de Funcionamiento
-
-### 1. Consolidar Tablas de partner_compensation_runs
-
-La tabla `accounting.partner_compensation_runs` está vacía y la función de pago antiguo la referencia. Hay dos opciones:
-
-**Opción A (Recomendada):** Eliminar la tabla vacía de `accounting` y actualizar cualquier referencia residual.
-
-**Opción B:** Crear un VIEW en `accounting` que apunte a `internal.partner_compensation_runs`.
-
-### 2. Verificar Flujo de Empleados (Cuando Existan Empleados)
-
-Cuando se cree el primer empleado, verificar:
-- Creación de nómina DRAFT
-- Aprobación con generación de asiento
-- Registro de pago con actualización de banco
-
-### 3. Añadir Cuenta Genérica de Empleados
-
-Actualmente la función `create_payroll_entry` usa `640000` para empleados, mientras que socios usan `640200`. Esto es correcto para diferenciación contable.
+1. **Verificación de Webhook**: Validamos la firma svix para asegurar que los requests vienen de Resend
+2. **Sin JWT**: El endpoint debe ser público (`verify_jwt = false`) porque Resend no envía auth tokens
+3. **Límite de tamaño**: Resend tiene un límite de ~25MB por email, alineado con nuestro límite de 50MB
+4. **Tipos permitidos**: Solo procesamos PDF, JPG, PNG para evitar archivos maliciosos
 
 ---
 
-## Resumen Técnico
+## Resumen de Cambios
 
-| Componente | Estado | Notas |
-|------------|--------|-------|
-| `create_partner_compensation_run` | OK | Crea en `internal` |
-| `post_partner_compensation_run` | OK | Lee de `internal`, genera asiento |
-| `pay_partner_compensation_run` | OK | Lee de `internal`, genera asiento pago |
-| `create_payroll_run` | OK | Para empleados |
-| `post_payroll_run` | OK | Llama a `accounting.create_payroll_entry` |
-| `create_bank_transfer` | OK | Genera asiento de traspaso |
-| Restricción UNIQUE (socio+mes+año) | OK | Evita duplicados |
-| Trigger de inmutabilidad POSTED | OK | Protege documentos aprobados |
+### Archivos a crear
+
+| Archivo | Descripción |
+|---------|-------------|
+| `supabase/functions/receive-invoice-email/index.ts` | Edge function para procesar webhooks |
+
+### Archivos a modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `supabase/config.toml` | Añadir configuración de la nueva function |
+
+### Secrets a añadir
+
+| Secret | Fuente |
+|--------|--------|
+| `RESEND_WEBHOOK_SECRET` | Dashboard Resend → Webhooks |
+
+### Configuración DNS (Manual)
+
+| Tipo | Host | Valor | Prioridad |
+|------|------|-------|-----------|
+| MX | `inbound.avtechesdeveniments.com` | `inbound-smtp.us-east-1.amazonaws.com` | 10 |
 
 ---
 
-## Conclusión
+## Email Final de Recepción
 
-El sistema de nóminas de socios está **100% funcional** y correctamente integrado con el sistema contable. Los asientos se generan según el flujo contable profesional documentado.
+Una vez configurado, podrás recibir facturas en:
 
-**Único punto de atención:** La tabla `accounting.partner_compensation_runs` está vacía y podría causar confusión. Se recomienda consolidarla con `internal.partner_compensation_runs` mediante un VIEW o eliminando la tabla vacía.
+```
+facturas@inbound.avtechesdeveniments.com
+```
+
+O si prefieres sin subdominio adicional y puedes configurar reenvío en Microsoft 365:
+
+```
+facturacion@avtechesdeveniments.com → reenvío → facturas@inbound.avtechesdeveniments.com
+```
 
 ---
 
-## Acciones Sugeridas
+## Próximos Pasos Después de Aprobar
 
-1. **Inmediata:** No se requiere ninguna corrección urgente, el sistema funciona correctamente.
-
-2. **Mejora técnica:** Consolidar las dos tablas `partner_compensation_runs` para evitar confusión futura.
-
-3. **Prueba manual:** Verificar el flujo completo en la UI:
-   - Crear retribución de socio (DRAFT)
-   - Aprobarla (ver asiento generado en Libro Diario)
-   - Registrar pago (ver movimiento en Libro de Caja)
+1. Añadir el secret `RESEND_WEBHOOK_SECRET`
+2. Crear la Edge Function
+3. Actualizar config.toml
+4. Probar enviando un email con PDF adjunto
+5. Verificar que aparece en la bandeja del Escáner
