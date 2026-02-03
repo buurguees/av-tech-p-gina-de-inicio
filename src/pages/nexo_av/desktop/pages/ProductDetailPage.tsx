@@ -159,13 +159,13 @@ export default function ProductDetailPage() {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('get_catalog_product_detail', { p_product_id: productId });
+      const { data, error } = await (supabase.rpc as any)('get_catalog_product_detail', { p_product_id: productId });
 
       if (error) throw error;
 
       const found = Array.isArray(data) && data.length > 0 ? data[0] : null;
       if (found) {
-        setProduct(found);
+        setProduct(found as Product);
         setName(found.name);
         setDescription(found.description || '');
         setCostPrice(String(found.cost_price ?? ''));
@@ -538,7 +538,7 @@ export default function ProductDetailPage() {
                   subtitle={product ? `${product.category_name}${product.subcategory_name ? ` > ${product.subcategory_name}` : ''}` : undefined}
                 >
                   <div className="flex flex-col gap-2 mt-2">
-                    {product?.product_number && (
+                    {product?.sku && (
                       <div className="flex items-center gap-2 text-sm">
                         <FileText className="w-4 h-4 text-muted-foreground" />
                         <span className="text-muted-foreground">Nº Producto:</span>

@@ -330,7 +330,7 @@ export function ProductImportDialog({
       const taxId = findTaxId(product.taxCode, product.taxRate);
 
       try {
-        const { data: newId, error } = await supabase.rpc('create_catalog_product', {
+        const { data: newId, error } = await (supabase.rpc as any)('create_catalog_product', {
           p_sku: product.productNumber.trim() || `IMP-${Date.now()}-${result.productsCreated}`,
           p_name: product.name.toUpperCase(),
           p_product_type: product.type === 'service' ? 'SERVICE' : 'PRODUCT',
@@ -350,7 +350,7 @@ export function ProductImportDialog({
         } else {
           result.productsCreated++;
           if (!product.status && newId) {
-            await supabase.rpc('update_catalog_product', {
+            await (supabase.rpc as any)('update_catalog_product', {
               p_id: newId,
               p_is_active: false,
             });
