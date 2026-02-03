@@ -974,7 +974,7 @@ const ExpensesPageDesktop = () => {
           if (!open) setExpenseToDelete(null);
         }}
         title="Eliminar gasto"
-        description={`¿Eliminar el ticket "${expenseToDelete?.internal_purchase_number || expenseToDelete?.invoice_number ?? ''}"? Solo se pueden eliminar gastos que aún no tienen número definitivo. Esta acción no se puede deshacer.`}
+        description={`¿Eliminar el ticket "${(expenseToDelete?.internal_purchase_number || expenseToDelete?.invoice_number) ?? ''}"? Solo se pueden eliminar gastos que aún no tienen número definitivo. Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
         variant="destructive"
