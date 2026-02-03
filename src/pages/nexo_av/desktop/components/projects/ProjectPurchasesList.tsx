@@ -81,7 +81,7 @@ const ProjectPurchasesList = ({ projectId }: ProjectPurchasesListProps) => {
         (p: any) => p.project_id === projectId
       );
 
-      setPurchases(projectPurchases);
+      setPurchases(projectPurchases as unknown as PurchaseInvoice[]);
     } catch (error: any) {
       console.error("Error fetching purchases:", error);
     } finally {

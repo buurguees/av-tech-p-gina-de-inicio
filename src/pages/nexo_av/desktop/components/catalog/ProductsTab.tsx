@@ -129,16 +129,16 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
   /* Prioridad 1-4 = siempre visible; 5+ = según ancho (DataList oculta sin priority en viewport < 2000px) */
   const catalogColumns: DataListColumn<Product>[] = [
-    { key: 'sku', label: `Nº ${itemLabel}`, align: 'left', width: '100px', priority: 1, render: (p) => <span className="text-foreground/80 font-mono text-[11px]">{p.sku}</span> },
-    { key: 'name', label: 'Nombre', align: 'left', width: 'minmax(180px, 2.5fr)', priority: 2, render: (p) => <span className="text-foreground font-medium truncate block">{p.name}</span> },
-    { key: 'status', label: 'Estado', align: 'center', width: '80px', priority: 3, render: (p) => <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 w-14 justify-center", p.is_active ? "status-success" : "status-error")}>{p.is_active ? 'Activo' : 'Inactivo'}</Badge> },
-    { key: 'pvp', label: 'PVP (con IVA)', align: 'right', width: 'minmax(95px, 0.9fr)', priority: 4, render: (p) => <span className="text-foreground tabular-nums font-medium">{(p.sale_price_effective * (1 + p.tax_rate / 100)).toFixed(2)} €</span> },
-    { key: 'category_name', label: 'Categoría', align: 'left', width: 'minmax(100px, 1fr)', priority: 5, render: (p) => <span className="text-muted-foreground">{p.category_name ?? '-'}</span> },
-    ...(isProductTab ? [{ key: 'supplier_name', label: 'Proveedor', align: 'left', width: 'minmax(110px, 1fr)', priority: 5, render: (p) => <span className="text-muted-foreground">{p.supplier_name ?? '-'}</span> } as DataListColumn<Product>] : []),
-    ...(isProductTab ? [{ key: 'stock_quantity', label: 'Stock', align: 'center', width: '70px', priority: 5, render: (p) => <span className="text-muted-foreground tabular-nums">{p.stock_quantity ?? 0}</span> } as DataListColumn<Product>] : []),
-    { key: 'cost_price', label: isProductTab ? 'Coste' : 'Coste Ref.', align: 'right', width: 'minmax(90px, 0.9fr)', priority: 6, render: (p) => <span className="text-muted-foreground tabular-nums">{(p.cost_price ?? 0).toFixed(2)} €</span> },
-    { key: 'sale_price_effective', label: 'Precio Base', align: 'right', width: 'minmax(90px, 0.9fr)', priority: 6, render: (p) => <span className="text-foreground tabular-nums">{p.sale_price_effective.toFixed(2)} €</span> },
-    { key: 'tax_rate', label: 'IVA', align: 'center', width: '70px', priority: 6, render: (p) => <Badge variant="outline" className="text-[10px] px-1.5 py-0 w-12 justify-center">{p.tax_rate}%</Badge> },
+    { key: 'sku', label: `Nº ${itemLabel}`, align: 'left' as const, width: '100px', priority: 1, render: (p) => <span className="text-foreground/80 font-mono text-[11px]">{p.sku}</span> },
+    { key: 'name', label: 'Nombre', align: 'left' as const, width: 'minmax(180px, 2.5fr)', priority: 2, render: (p) => <span className="text-foreground font-medium truncate block">{p.name}</span> },
+    { key: 'status', label: 'Estado', align: 'center' as const, width: '80px', priority: 3, render: (p) => <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 w-14 justify-center", p.is_active ? "status-success" : "status-error")}>{p.is_active ? 'Activo' : 'Inactivo'}</Badge> },
+    { key: 'pvp', label: 'PVP (con IVA)', align: 'right' as const, width: 'minmax(95px, 0.9fr)', priority: 4, render: (p) => <span className="text-foreground tabular-nums font-medium">{(p.sale_price_effective * (1 + p.tax_rate / 100)).toFixed(2)} €</span> },
+    { key: 'category_name', label: 'Categoría', align: 'left' as const, width: 'minmax(100px, 1fr)', priority: 5, render: (p) => <span className="text-muted-foreground">{p.category_name ?? '-'}</span> },
+    ...(isProductTab ? [{ key: 'supplier_name', label: 'Proveedor', align: 'left' as const, width: 'minmax(110px, 1fr)', priority: 5, render: (p: Product) => <span className="text-muted-foreground">{p.supplier_name ?? '-'}</span> } as DataListColumn<Product>] : []),
+    ...(isProductTab ? [{ key: 'stock_quantity', label: 'Stock', align: 'center' as const, width: '70px', priority: 5, render: (p: Product) => <span className="text-muted-foreground tabular-nums">{p.stock_quantity ?? 0}</span> } as DataListColumn<Product>] : []),
+    { key: 'cost_price', label: isProductTab ? 'Coste' : 'Coste Ref.', align: 'right' as const, width: 'minmax(90px, 0.9fr)', priority: 6, render: (p) => <span className="text-muted-foreground tabular-nums">{(p.cost_price ?? 0).toFixed(2)} €</span> },
+    { key: 'sale_price_effective', label: 'Precio Base', align: 'right' as const, width: 'minmax(90px, 0.9fr)', priority: 6, render: (p) => <span className="text-foreground tabular-nums">{p.sale_price_effective.toFixed(2)} €</span> },
+    { key: 'tax_rate', label: 'IVA', align: 'center' as const, width: '70px', priority: 6, render: (p) => <Badge variant="outline" className="text-[10px] px-1.5 py-0 w-12 justify-center">{p.tax_rate}%</Badge> },
   ].flat();
 
   const catalogActions: DataListAction<Product>[] = [
@@ -161,8 +161,8 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const loadData = async () => {
     try {
       const [categoriesRes, taxesRes] = await Promise.all([
-        supabase.rpc('list_catalog_categories', { p_domain: catalogDomain }),
-        supabase.rpc('list_catalog_tax_rates')
+        (supabase.rpc as any)('list_catalog_categories', { p_domain: catalogDomain }),
+        (supabase.rpc as any)('list_catalog_tax_rates')
       ]);
 
       if (categoriesRes.error) throw categoriesRes.error;
@@ -188,7 +188,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('list_catalog_products', {
+      const { data, error } = await (supabase.rpc as any)('list_catalog_products', {
         p_domain: catalogDomain,
         p_category_id: filterCategory !== 'all' ? filterCategory : null,
         p_search: search || null,
@@ -196,7 +196,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       });
 
       if (error) throw error;
-      setProducts(data || []);
+      setProducts((data || []) as Product[]);
     } catch (error) {
       console.error('Error loading products:', error);
       toast.error(`Error al cargar ${isProductTab ? 'productos' : 'servicios'}`);
@@ -229,7 +229,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
     setSaving(true);
     try {
-      const { data, error } = await supabase.rpc('create_catalog_product', {
+      const { data, error } = await (supabase.rpc as any)('create_catalog_product', {
         p_sku: sku,
         p_name: formData.name.trim().toUpperCase(),
         p_product_type: filterType === 'product' ? 'PRODUCT' : 'SERVICE',
@@ -265,7 +265,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
     }
 
     try {
-      const { error } = await supabase.rpc('update_catalog_product', {
+      const { error } = await (supabase.rpc as any)('update_catalog_product', {
         p_id: productId,
         p_is_active: !currentlyActive
       });
@@ -464,7 +464,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
         const sku = (filterType === 'product' ? 'PRD' : 'SRV') + '-' + String(i + 1).padStart(4, '0');
         try {
-          const { error } = await supabase.rpc('create_catalog_product', {
+          const { error } = await (supabase.rpc as any)('create_catalog_product', {
             p_sku: sku,
             p_name: name?.trim() || 'IMPORTADO',
             p_product_type: filterType === 'product' ? 'PRODUCT' : 'SERVICE',

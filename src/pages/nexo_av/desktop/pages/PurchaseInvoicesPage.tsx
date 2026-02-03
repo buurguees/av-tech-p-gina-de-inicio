@@ -134,23 +134,23 @@ const PurchaseInvoicesPageDesktop = () => {
       if (error) throw error;
       
       // Aplicar filtro de estado de pago
-      let filteredData = data || [];
+      let filteredData = (data || []) as any[];
       if (paymentFilter === "pending") {
         // Pendiente de pago: tiene saldo pendiente > 0
-        filteredData = filteredData.filter((inv: PurchaseInvoice) => inv.pending_amount > 0);
+        filteredData = filteredData.filter((inv: any) => inv.pending_amount > 0);
       } else if (paymentFilter === "paid") {
         // Pagado completamente: pending_amount = 0 o negativo (para facturas negativas)
-        filteredData = filteredData.filter((inv: PurchaseInvoice) => 
+        filteredData = filteredData.filter((inv: any) => 
           inv.pending_amount <= 0 || inv.status === 'PAID'
         );
       } else if (paymentFilter === "partial") {
         // Parcialmente pagado: tiene pagos pero no está completo
-        filteredData = filteredData.filter((inv: PurchaseInvoice) => 
+        filteredData = filteredData.filter((inv: any) => 
           inv.paid_amount > 0 && inv.pending_amount > 0
         );
       }
       
-      setInvoicesFromServer(filteredData);
+      setInvoicesFromServer(filteredData as PurchaseInvoice[]);
     } catch (error: any) {
       console.error("Error fetching purchase invoices:", error);
       toast({

@@ -58,7 +58,7 @@ const PendingReviewSection = ({ onComplete }: PendingReviewSectionProps) => {
       };
       const { data, error } = await supabase.rpc("list_purchase_invoices", params);
       if (error) throw error;
-      setPendingInvoices(data || []);
+      setPendingInvoices((data || []) as unknown as PendingInvoice[]);
 
       // Obtener thumbnails para documentos con file_path
       const urls: Record<string, string> = {};

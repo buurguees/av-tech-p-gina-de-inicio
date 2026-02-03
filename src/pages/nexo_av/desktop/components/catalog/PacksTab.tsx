@@ -27,6 +27,8 @@ interface PackItem {
   name: string;
   quantity: number;
   unit: string;
+  unit_price?: number;
+  subtotal?: number;
 }
 
 interface Product {
@@ -86,7 +88,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
   const loadPacks = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('list_catalog_bundles', {
+      const { data, error } = await (supabase.rpc as any)('list_catalog_bundles', {
         p_search: search || null
       });
 
@@ -113,7 +115,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
 
   const loadProducts = async () => {
     try {
-      const { data, error } = await supabase.rpc('list_catalog_products', {
+      const { data, error } = await (supabase.rpc as any)('list_catalog_products', {
         p_domain: 'PRODUCT',
         p_include_inactive: false
       });
@@ -132,11 +134,19 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
   const loadPackItems = async (packId: string) => {
     setLoadingItems(true);
     try {
-      const { data, error } = await supabase.rpc('list_catalog_bundle_components', {
+      const { data, error } = await (supabase.rpc as any)('list_catalog_bundle_components', {
         p_bundle_product_id: packId
       });
       if (error) throw error;
-      setPackItems(data || []);
+      setPackItems((data || []).map((item: any) => ({
+        component_product_id: item.component_product_id,
+        sku: item.sku,
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        unit_price: item.unit_price ?? item.sale_price_effective ?? 0,
+        subtotal: item.subtotal ?? (item.quantity * (item.unit_price ?? item.sale_price_effective ?? 0)),
+      })));
     } catch (error) {
       console.error('Error loading pack items:', error);
       toast.error('Error al cargar productos del pack');
@@ -153,7 +163,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
 
     try {
       const sku = 'PACK-' + Date.now();
-      const { data, error } = await supabase.rpc('create_catalog_product', {
+      const { data, error } = await (supabase.rpc as any)('create_catalog_product', {
         p_sku: sku,
         p_name: 'NUEVO PACK',
         p_product_type: 'BUNDLE',
@@ -212,7 +222,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     if (!selectedPack || !selectedProductId) return;
 
     try {
-      const { error } = await supabase.rpc('add_catalog_bundle_component', {
+      const { error } = await (supabase.rpc as any)('add_catalog_bundle_component', {
         p_bundle_product_id: selectedPack.id,
         p_component_product_id: selectedProductId,
         p_quantity: 1
@@ -238,7 +248,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     if (!selectedPack) return;
 
     try {
-      const { error } = await supabase.rpc('remove_catalog_bundle_component', {
+      const { error } = await (supabase.rpc as any)('remove_catalog_bundle_component', {
         p_bundle_product_id: selectedPack.id,
         p_component_product_id: componentProductId
       });
@@ -261,7 +271,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     if (!selectedPack || quantity < 1) return;
 
     try {
-      const { error } = await supabase.rpc('add_catalog_bundle_component', {
+      const { error } = await (supabase.rpc as any)('add_catalog_bundle_component', {
         p_bundle_product_id: selectedPack.id,
         p_component_product_id: componentProductId,
         p_quantity: quantity
@@ -492,13 +502,13 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                     {renderEditableCell(pack, 'description', pack.description)}
                   </TableCell>
                   <TableCell className="text-right text-white/60 text-sm">
-                    {pack.base_price.toFixed(2)} €
+                    {pack.sale_price.toFixed(2)} €
                   </TableCell>
                   <TableCell className="text-right">
                     {renderEditableCell(pack, 'discount_percent', pack.discount_percent, true, ' %')}
                   </TableCell>
                   <TableCell className="text-right text-white font-medium text-sm">
-                    {pack.final_price.toFixed(2)} €
+                    {pack.sale_price_effective.toFixed(2)} €
                   </TableCell>
                   <TableCell>
                     {isAdmin ? (
@@ -532,7 +542,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                       className="text-white/60 hover:text-white hover:bg-white/10"
                     >
                       <Package className="w-4 h-4 mr-1" />
-                      {pack.product_count}
+                      {pack.component_count}
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </TableCell>
@@ -567,7 +577,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package className="w-5 h-5 text-orange-400" />
-              {selectedPack?.pack_number} - {selectedPack?.name}
+              {selectedPack?.sku} - {selectedPack?.name}
             </DialogTitle>
           </DialogHeader>
 
@@ -582,7 +592,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                   <SelectContent className="bg-zinc-900 border-white/10 max-h-60">
                     {products.map(p => (
                       <SelectItem key={p.id} value={p.id} className="text-white">
-                        {p.sku} - {p.name} ({p.base_price.toFixed(2)} €)
+                        {p.sku} - {p.name} ({p.sale_price_effective.toFixed(2)} €)
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -628,7 +638,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                     packItems.map(item => (
                       <TableRow key={item.component_product_id} className="border-white/10 hover:bg-white/5">
                         <TableCell className="text-orange-400 font-mono text-xs">{item.sku}</TableCell>
-                        <TableCell className="text-white text-sm">{item.product_name}</TableCell>
+                        <TableCell className="text-white text-sm">{item.name}</TableCell>
                         <TableCell className="text-center">
                           {isAdmin ? (
                             <Input
@@ -643,10 +653,10 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                           )}
                         </TableCell>
                         <TableCell className="text-right text-white/60 text-sm">
-                          {item.unit_price.toFixed(2)} €
+                          {(item.unit_price ?? 0).toFixed(2)} €
                         </TableCell>
                         <TableCell className="text-right text-white font-medium text-sm">
-                          {item.subtotal.toFixed(2)} €
+                          {(item.subtotal ?? 0).toFixed(2)} €
                         </TableCell>
                         {isAdmin && (
                           <TableCell>
@@ -671,7 +681,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
             {selectedPack && (
               <div className="flex justify-end gap-6 text-sm pt-2 border-t border-white/10">
                 <div className="text-white/60">
-                  Total Base: <span className="text-white font-medium">{selectedPack.base_price.toFixed(2)} €</span>
+                  Total Base: <span className="text-white font-medium">{selectedPack.sale_price.toFixed(2)} €</span>
                 </div>
                 <div className="text-white/60">
                   Descuento: <span className="text-orange-400 font-medium">{selectedPack.discount_percent}%</span>
