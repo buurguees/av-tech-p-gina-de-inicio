@@ -104,6 +104,7 @@ interface PurchaseInvoice {
   technician_name: string | null;
   technician_number: string | null;
   technician_tax_id: string | null;
+  manual_beneficiary_name?: string | null;
   project_id: string | null;
   project_name: string | null;
   project_number: string | null;
@@ -307,6 +308,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
   const [selectedTechnicianId, setSelectedTechnicianId] = useState<string | null>(null);
   const [supplierSearchValue, setSupplierSearchValue] = useState("");
+  const [manualBeneficiaryName, setManualBeneficiaryName] = useState("");
   
   // Project selection
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -343,17 +345,20 @@ const PurchaseInvoiceDetailPageDesktop = () => {
       setNotes(inv.notes || "");
       setInternalNotes(inv.internal_notes || "");
       
-      // Set entity
+      // Set entity (tickets pueden tener concepto manual en vez de proveedor/técnico)
       if (inv.supplier_id) {
         setEntityType("SUPPLIER");
         setSelectedSupplierId(inv.supplier_id);
         setSupplierSearchValue(inv.supplier_name || "");
+        setManualBeneficiaryName("");
       } else if (inv.technician_id) {
         setEntityType("TECHNICIAN");
         setSelectedTechnicianId(inv.technician_id);
         setSupplierSearchValue(inv.technician_name || "");
+        setManualBeneficiaryName("");
       } else {
         setSupplierSearchValue("");
+        setManualBeneficiaryName((inv as any).manual_beneficiary_name ?? inv.supplier_name ?? inv.technician_name ?? "");
       }
       
       // Set project
@@ -416,7 +421,10 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   // Handle save
   const handleSave = async () => {
     if (!purchaseInvoiceId || !invoice) return;
-    
+    if (invoice.document_type === "EXPENSE" && !manualBeneficiaryName?.trim()) {
+      toast.error("Indica el concepto del gasto (parking, peajes, dietas, gasolina, etc.).");
+      return;
+    }
     try {
       setSaving(true);
       
@@ -430,9 +438,10 @@ const PurchaseInvoiceDetailPageDesktop = () => {
         p_expense_category: expenseCategory || null,
         p_notes: notes || null,
         p_internal_notes: internalNotes || null,
-        p_supplier_id: entityType === "SUPPLIER" ? selectedSupplierId : null,
-        p_technician_id: entityType === "TECHNICIAN" ? selectedTechnicianId : null,
+        p_supplier_id: isTicket ? null : (entityType === "SUPPLIER" ? selectedSupplierId : null),
+        p_technician_id: isTicket ? null : (entityType === "TECHNICIAN" ? selectedTechnicianId : null),
         p_project_id: selectedProjectId || null,
+        p_manual_beneficiary_name: isTicket ? (manualBeneficiaryName?.trim() || null) : null,
       });
       
       if (updateError) throw updateError;
@@ -575,7 +584,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
       
       const docType = invoice.document_type === "EXPENSE" ? "Ticket" : "Factura";
       toast.success(`${docType} eliminado correctamente`);
-      navigate(`/nexo-av/${userId}/purchase-invoices`);
+      navigate(invoice.document_type === "EXPENSE" ? `/nexo-av/${userId}/expenses` : `/nexo-av/${userId}/purchase-invoices`);
       
     } catch (error: any) {
       console.error("Error deleting invoice:", error);
@@ -659,9 +668,14 @@ const PurchaseInvoiceDetailPageDesktop = () => {
 
   const isLocked = invoice.is_locked || invoice.status === "APPROVED" || invoice.status === "PAID";
   const statusInfo = getStatusInfo(invoice.status);
-  // Solo Admin puede aprobar/confirmar facturas de compra. Manager puede crear/editar borradores pero no aprobar.
+  // Solo Admin puede aprobar. Aprobar asigna número definitivo (C-YY-XXXXXX / TICKET-YY-XXXXXX).
   const isAdmin = userRoles.includes('admin');
-  const canApprove = isAdmin && !isLocked && (invoice.status === "PENDING" || invoice.status === "REGISTERED" || invoice.status === "PENDING_VALIDATION");
+  const hasDefinitiveNumber = !!invoice.internal_purchase_number;
+  // Permitir aprobar: estados previos a aprobación, o ya PAID pero sin nº definitivo (legacy)
+  const canApprove = isAdmin && (
+    (!isLocked && (invoice.status === "PENDING" || invoice.status === "REGISTERED" || invoice.status === "PENDING_VALIDATION")) ||
+    (invoice.status === "PAID" && !hasDefinitiveNumber)
+  );
   const canEdit = !isLocked;
   const canDelete = !isLocked && (invoice.status === "PENDING" || invoice.status === "PENDING_VALIDATION" || invoice.status === "DRAFT");
   const isTicket = invoice.document_type === "EXPENSE";
@@ -669,8 +683,8 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   return (
     <div className="flex flex-col h-full">
       <DetailNavigationBar
-        pageTitle={invoice.internal_purchase_number || invoice.supplier_invoice_number || invoice.invoice_number || "Factura de Compra"}
-        backPath={`/nexo-av/${userId}/purchase-invoices`}
+        pageTitle={invoice.internal_purchase_number || invoice.supplier_invoice_number || invoice.invoice_number || (isTicket ? "Ticket" : "Factura de Compra")}
+        backPath={isTicket ? `/nexo-av/${userId}/expenses` : `/nexo-av/${userId}/purchase-invoices`}
         contextInfo={
           <div className="flex items-center gap-2">
             <Badge variant="outline" className={statusInfo.color}>
@@ -917,93 +931,114 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                   </div>
                 </motion.div>
 
-                {/* Provider */}
+                {/* Tickets: concepto manual. Facturas: proveedor o técnico */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
                   className="space-y-4"
                 >
-                  <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-                    {entityType === "SUPPLIER" ? (
-                      <Building2 className="h-4 w-4" />
-                    ) : (
-                      <UserRound className="h-4 w-4" />
-                    )}
-                    Proveedor / Técnico
-                  </h4>
-
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant={entityType === "SUPPLIER" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => {
-                          setEntityType("SUPPLIER");
-                          setSelectedTechnicianId(null);
+                  {isTicket ? (
+                    <>
+                      <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Concepto del gasto
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        Indica el tipo de gasto: parking, peajes, dietas, gasolina, etc.
+                      </p>
+                      <Input
+                        value={manualBeneficiaryName}
+                        onChange={(e) => {
+                          setManualBeneficiaryName(e.target.value);
                           setHasChanges(true);
                         }}
+                        placeholder="Ej: Parking, Peaje A-2, Dietas, Gasolina..."
                         disabled={!isEditing || isLocked}
-                        className="gap-2"
-                      >
-                        <Building2 className="h-4 w-4" />
-                        Proveedor
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={entityType === "TECHNICIAN" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => {
-                          setEntityType("TECHNICIAN");
-                          setSelectedSupplierId(null);
-                          setHasChanges(true);
-                        }}
-                        disabled={!isEditing || isLocked}
-                        className="gap-2"
-                      >
-                        <UserRound className="h-4 w-4" />
-                        Técnico
-                      </Button>
-                    </div>
-
-                    <SupplierSearchInput
-                      value={supplierSearchValue}
-                      onChange={setSupplierSearchValue}
-                      onSelectSupplier={handleSelectSupplier}
-                      onSelectTechnician={handleSelectTechnician}
-                      entityType={entityType === "SUPPLIER" ? "SUPPLIER" : "TECHNICIAN"}
-                      placeholder={`Escribe @ para buscar ${entityType === "SUPPLIER" ? "proveedores" : "técnicos"}`}
-                      disabled={!isEditing || isLocked}
-                    />
-
-                    {(selectedSupplierId || selectedTechnicianId) && (
-                      <div className="flex items-center gap-2 p-2 bg-accent/50 rounded-lg">
+                        className="max-w-md"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
                         {entityType === "SUPPLIER" ? (
-                          <Building2 className="h-4 w-4 text-primary" />
+                          <Building2 className="h-4 w-4" />
                         ) : (
-                          <UserRound className="h-4 w-4 text-primary" />
+                          <UserRound className="h-4 w-4" />
                         )}
-                        <span className="text-sm font-medium">{supplierSearchValue}</span>
-                        {isEditing && !isLocked && (
+                        Proveedor / Técnico
+                      </h4>
+                      <div className="space-y-3">
+                        <div className="flex gap-2">
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant={entityType === "SUPPLIER" ? "default" : "outline"}
                             size="sm"
-                            className="ml-auto h-6 w-6 p-0"
                             onClick={() => {
-                              setSelectedSupplierId(null);
+                              setEntityType("SUPPLIER");
                               setSelectedTechnicianId(null);
-                              setSupplierSearchValue("");
                               setHasChanges(true);
                             }}
+                            disabled={!isEditing || isLocked}
+                            className="gap-2"
                           >
-                            <X className="h-3 w-3" />
+                            <Building2 className="h-4 w-4" />
+                            Proveedor
                           </Button>
+                          <Button
+                            type="button"
+                            variant={entityType === "TECHNICIAN" ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              setEntityType("TECHNICIAN");
+                              setSelectedSupplierId(null);
+                              setHasChanges(true);
+                            }}
+                            disabled={!isEditing || isLocked}
+                            className="gap-2"
+                          >
+                            <UserRound className="h-4 w-4" />
+                            Técnico
+                          </Button>
+                        </div>
+                        <SupplierSearchInput
+                          value={supplierSearchValue}
+                          onChange={setSupplierSearchValue}
+                          onSelectSupplier={handleSelectSupplier}
+                          onSelectTechnician={handleSelectTechnician}
+                          entityType={entityType === "SUPPLIER" ? "SUPPLIER" : "TECHNICIAN"}
+                          placeholder={`Escribe @ para buscar ${entityType === "SUPPLIER" ? "proveedores" : "técnicos"}`}
+                          disabled={!isEditing || isLocked}
+                        />
+                        {(selectedSupplierId || selectedTechnicianId) && (
+                          <div className="flex items-center gap-2 p-2 bg-accent/50 rounded-lg">
+                            {entityType === "SUPPLIER" ? (
+                              <Building2 className="h-4 w-4 text-primary" />
+                            ) : (
+                              <UserRound className="h-4 w-4 text-primary" />
+                            )}
+                            <span className="text-sm font-medium">{supplierSearchValue}</span>
+                            {isEditing && !isLocked && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="ml-auto h-6 w-6 p-0"
+                                onClick={() => {
+                                  setSelectedSupplierId(null);
+                                  setSelectedTechnicianId(null);
+                                  setSupplierSearchValue("");
+                                  setHasChanges(true);
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
+                    </>
+                  )}
                 </motion.div>
 
                 {/* Project */}
@@ -1128,6 +1163,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                   pendingAmount={invoice.pending_amount}
                   status={invoice.status}
                   isLocked={isLocked}
+                  hasDefinitiveNumber={hasDefinitiveNumber}
                   onPaymentChange={fetchInvoice}
                 />
               </TabsContent>

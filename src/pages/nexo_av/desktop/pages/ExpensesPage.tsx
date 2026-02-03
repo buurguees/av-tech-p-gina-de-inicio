@@ -21,6 +21,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -37,10 +38,12 @@ import {
   MoreVertical,
   CreditCard,
   Info,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import PaginationControls from "../components/common/PaginationControls";
+import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import DocumentScanner from "../components/common/DocumentScanner";
 import RegisterPurchasePaymentDialog from "../components/purchases/RegisterPurchasePaymentDialog";
 
@@ -64,6 +67,14 @@ const ExpensesPageDesktop = () => {
     fileName: string;
   } | null>(null);
   const [retryingUpload, setRetryingUpload] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<any | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [deletingBulk, setDeletingBulk] = useState(false);
+
+  /** Solo se pueden eliminar gastos que aún no tienen número definitivo (internal_purchase_number) */
+  const canDeleteExpense = (expense: any) => !expense?.internal_purchase_number;
 
   useEffect(() => {
     fetchExpenses();
@@ -307,6 +318,95 @@ const ExpensesPageDesktop = () => {
     setSelectedExpenses(newSelected);
   };
 
+  const handleRequestDeleteExpense = (e: React.MouseEvent, expense: any) => {
+    e.stopPropagation();
+    if (!canDeleteExpense(expense)) return;
+    setExpenseToDelete(expense);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDeleteExpense = async () => {
+    if (!expenseToDelete) return;
+    try {
+      setDeleting(true);
+      const { error } = await supabase.rpc("delete_purchase_invoice", {
+        p_invoice_id: expenseToDelete.id,
+      });
+      if (error) throw error;
+      if (expenseToDelete.file_path) {
+        await supabase.storage
+          .from("purchase-documents")
+          .remove([expenseToDelete.file_path]);
+      }
+      toast({
+        title: "Gasto eliminado",
+        description: "El ticket ha sido eliminado correctamente.",
+      });
+      fetchExpenses();
+      setDeleteDialogOpen(false);
+      setExpenseToDelete(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.message ?? "No se pudo eliminar el gasto",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const selectedDeletable = expenses.filter(
+    (e) => selectedExpenses.has(e.id) && canDeleteExpense(e)
+  );
+  const handleRequestBulkDelete = () => {
+    if (selectedDeletable.length === 0) return;
+    setBulkDeleteDialogOpen(true);
+  };
+  const handleConfirmBulkDelete = async () => {
+    try {
+      setDeletingBulk(true);
+      let errors = 0;
+      for (const expense of selectedDeletable) {
+        const { error } = await supabase.rpc("delete_purchase_invoice", {
+          p_invoice_id: expense.id,
+        });
+        if (error) {
+          errors++;
+          continue;
+        }
+        if (expense.file_path) {
+          await supabase.storage
+            .from("purchase-documents")
+            .remove([expense.file_path]);
+        }
+      }
+      if (errors > 0) {
+        toast({
+          title: "Eliminación parcial",
+          description: `Se eliminaron ${selectedDeletable.length - errors} de ${selectedDeletable.length}. ${errors} no se pudieron eliminar.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Gastos eliminados",
+          description: `Se han eliminado ${selectedDeletable.length} gasto(s) correctamente.`,
+        });
+      }
+      fetchExpenses();
+      setSelectedExpenses(new Set());
+      setBulkDeleteDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.message ?? "No se pudo eliminar",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingBulk(false);
+    }
+  };
+
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -502,6 +602,18 @@ const ExpensesPageDesktop = () => {
                     <DropdownMenuItem className="text-white hover:bg-white/10">
                       Duplicar seleccionados
                     </DropdownMenuItem>
+                    {selectedDeletable.length > 0 && (
+                      <>
+                        <DropdownMenuSeparator className="bg-white/10" />
+                        <DropdownMenuItem
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 focus:text-red-300 focus:bg-red-500/10"
+                          onClick={handleRequestBulkDelete}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar seleccionados sin nº definitivo ({selectedDeletable.length})
+                        </DropdownMenuItem>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button
@@ -746,7 +858,8 @@ const ExpensesPageDesktop = () => {
                               {(() => {
                                 const canRegisterPayment = ["CONFIRMED", "PARTIAL", "PAID"].includes(expense.status) 
                                   && !expense.is_locked 
-                                  && expense.pending_amount > 0;
+                                  && expense.pending_amount > 0
+                                  && !!expense.internal_purchase_number;
                                 
                                 return canRegisterPayment ? (
                                   <RegisterPurchasePaymentDialog
@@ -792,6 +905,18 @@ const ExpensesPageDesktop = () => {
                                   <DropdownMenuItem className="text-white hover:bg-white/10">
                                     Duplicar
                                   </DropdownMenuItem>
+                                  {canDeleteExpense(expense) && (
+                                    <>
+                                      <DropdownMenuSeparator className="bg-white/10" />
+                                      <DropdownMenuItem
+                                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 focus:text-red-300 focus:bg-red-500/10"
+                                        onClick={(e) => handleRequestDeleteExpense(e, expense)}
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Eliminar (sin nº definitivo)
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
@@ -838,6 +963,33 @@ const ExpensesPageDesktop = () => {
           </Suspense>
         )}
       </AnimatePresence>
+
+      <ConfirmActionDialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setExpenseToDelete(null);
+        }}
+        title="Eliminar gasto"
+        description={`¿Eliminar el ticket "${expenseToDelete?.invoice_number ?? ''}"? Solo se pueden eliminar gastos que aún no tienen número definitivo. Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        variant="destructive"
+        onConfirm={handleConfirmDeleteExpense}
+        loading={deleting}
+      />
+
+      <ConfirmActionDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={setBulkDeleteDialogOpen}
+        title="Eliminar gastos sin nº definitivo"
+        description={`¿Eliminar ${selectedDeletable.length} gasto(s) seleccionado(s) que no tienen número definitivo? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        variant="destructive"
+        onConfirm={handleConfirmBulkDelete}
+        loading={deletingBulk}
+      />
     </div>
   );
 };

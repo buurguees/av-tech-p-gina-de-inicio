@@ -45,11 +45,13 @@ const MobileScannerPage = () => {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
+      // Solo documentos sin asignar (mismo criterio que escáner desktop)
       const { data, error } = await supabase
         .from('scanned_documents')
         .select('*')
+        .eq('status', 'UNASSIGNED')
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (error) throw error;
       setDocuments(data || []);
@@ -198,6 +200,12 @@ const MobileScannerPage = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'UNASSIGNED':
+        return (
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
+            Sin asignar
+          </span>
+        );
       case 'PROCESSED':
         return (
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-600">
@@ -278,10 +286,10 @@ const MobileScannerPage = () => {
         </Button>
       </div>
 
-      {/* Recent Documents */}
+      {/* Solo documentos sin asignar (igual que escáner desktop) */}
       <div className="flex-1 min-h-0 flex flex-col">
         <h2 className="text-sm font-medium text-muted-foreground mb-3 flex-shrink-0">
-          Documentos recientes
+          Documentos sin asignar
         </h2>
         
         <div className="flex-1 overflow-y-auto space-y-2 pb-4">
@@ -292,9 +300,9 @@ const MobileScannerPage = () => {
           ) : documents.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center px-4">
               <ScanLine className="h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground font-medium">No hay documentos escaneados</p>
+              <p className="text-muted-foreground font-medium">No hay documentos sin asignar</p>
               <p className="text-muted-foreground text-sm mt-1">
-                Haz una foto o sube un archivo. Es obligatorio guardar el documento para el control de gastos.
+                Haz una foto o sube un archivo. Luego asigna tipo (ticket o factura) y proyecto si quieres.
               </p>
             </div>
           ) : (

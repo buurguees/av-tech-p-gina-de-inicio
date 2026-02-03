@@ -55,6 +55,8 @@ interface PurchaseInvoicePaymentsSectionProps {
   pendingAmount: number;
   status: string;
   isLocked: boolean;
+  /** Si tiene número definitivo (aprobado). Solo entonces se permite registrar pagos. */
+  hasDefinitiveNumber?: boolean;
   onPaymentChange: () => void;
 }
 
@@ -65,6 +67,7 @@ const PurchaseInvoicePaymentsSection = ({
   pendingAmount,
   status,
   isLocked,
+  hasDefinitiveNumber = true,
   onPaymentChange,
 }: PurchaseInvoicePaymentsSectionProps) => {
   const { toast } = useToast();
@@ -168,22 +171,24 @@ const PurchaseInvoicePaymentsSection = ({
     onPaymentChange();
   };
 
-  // Permitir pagos en facturas con estados válidos para pagos
-  // isLocked solo impide editar la factura, no registrar pagos
-  // Incluye PENDING_VALIDATION para facturas del escáner que ya están validadas por el usuario
-  const canRegisterPayment = [
-    "CONFIRMED", 
-    "PARTIAL", 
-    "PAID", 
-    "REGISTERED", 
+  // Mismo flujo que facturas de compra: primero aprobar (número definitivo), luego registrar pagos
+  const canRegisterPaymentByStatus = [
+    "CONFIRMED",
+    "PARTIAL",
+    "PAID",
+    "REGISTERED",
     "APPROVED",
-    "PENDING_VALIDATION", // Facturas del escáner
-    "PENDING",            // Facturas pendientes
-    "DRAFT"               // Borradores
+    "PENDING_VALIDATION",
+    "PENDING",
+    "DRAFT",
   ].includes(status);
+  const canRegisterPayment = canRegisterPaymentByStatus && hasDefinitiveNumber;
 
   // Permitir registrar pagos si hay saldo pendiente (positivo o negativo)
   const hasPendingBalance = Math.abs(pendingAmount) > 0.01;
+
+  // Mensaje cuando hay pendiente pero no se puede pagar por no tener nº definitivo
+  const showApproveFirstMessage = hasPendingBalance && canRegisterPaymentByStatus && !hasDefinitiveNumber;
 
   return (
     <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 md:p-8 shadow-xl overflow-hidden relative group">
@@ -218,7 +223,13 @@ const PurchaseInvoicePaymentsSection = ({
           </div>
         </div>
 
-        {canRegisterPayment && hasPendingBalance && (
+        {showApproveFirstMessage && (
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-sm">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span>Aprobar primero la factura o ticket para asignar el número definitivo y poder registrar pagos.</span>
+          </div>
+        )}
+        {canRegisterPayment && hasPendingBalance && !showApproveFirstMessage && (
           <RegisterPurchasePaymentDialog
             invoiceId={invoiceId}
             pendingAmount={pendingAmount}
