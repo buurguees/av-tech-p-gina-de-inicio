@@ -61,12 +61,25 @@ serve(async (req) => {
     const body = await req.json();
     const { email } = body;
 
-    if (!email) {
+    // Validate email presence
+    if (!email || typeof email !== 'string') {
       return new Response(
         JSON.stringify({ error: 'Email es requerido' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Validate email format (defense-in-depth)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return new Response(
+        JSON.stringify({ error: 'Formato de email inválido' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Sanitize email
+    const sanitizedEmail = email.trim().toLowerCase();
 
     // Get client info
     const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() 
@@ -74,11 +87,11 @@ serve(async (req) => {
       || null;
     const userAgent = req.headers.get('user-agent') || null;
 
-    console.log(`Generating OTP for: ${email}`);
+    console.log(`Generating OTP for: ${sanitizedEmail}`);
 
     // Generate OTP code
     const { data: otpCode, error: otpError } = await supabaseAdmin.rpc('generate_otp', {
-      p_email: email.toLowerCase(),
+      p_email: sanitizedEmail,
       p_ip_address: clientIp,
       p_user_agent: userAgent
     });
@@ -88,7 +101,7 @@ serve(async (req) => {
       throw otpError;
     }
 
-    console.log(`OTP generated for ${email}: ${otpCode}`);
+    console.log(`OTP generated for ${sanitizedEmail}`);
 
     // Send email with Resend
     const emailResponse = await resend.emails.send({

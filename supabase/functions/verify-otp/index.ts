@@ -58,19 +58,42 @@ serve(async (req) => {
     const body = await req.json();
     const { email, code } = body;
 
-    if (!email || !code) {
+    // Validate presence
+    if (!email || typeof email !== 'string' || !code || typeof code !== 'string') {
       return new Response(
         JSON.stringify({ error: 'Email y código son requeridos' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Verifying OTP for: ${email}, code: ${code}`);
+    // Validate email format (defense-in-depth)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return new Response(
+        JSON.stringify({ error: 'Formato de email inválido' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate OTP code format (6 digits)
+    const otpRegex = /^\d{6}$/;
+    if (!otpRegex.test(code.trim())) {
+      return new Response(
+        JSON.stringify({ error: 'Código debe ser de 6 dígitos' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Sanitize inputs
+    const sanitizedEmail = email.trim().toLowerCase();
+    const sanitizedCode = code.trim();
+
+    console.log(`Verifying OTP for: ${sanitizedEmail}`);
 
     // Verify OTP code
     const { data, error } = await supabaseAdmin.rpc('verify_otp', {
-      p_email: email.toLowerCase(),
-      p_code: code
+      p_email: sanitizedEmail,
+      p_code: sanitizedCode
     });
 
     if (error) {
