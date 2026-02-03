@@ -431,8 +431,8 @@ const ExpensesPageDesktop = () => {
         bValue = b.issue_date ? new Date(b.issue_date).getTime() : 0;
         break;
       case "number":
-        aValue = a.invoice_number || "";
-        bValue = b.invoice_number || "";
+        aValue = a.internal_purchase_number || a.invoice_number || "";
+        bValue = b.internal_purchase_number || b.invoice_number || "";
         break;
       case "provider":
         aValue = a.provider_name || "";
@@ -825,7 +825,7 @@ const ExpensesPageDesktop = () => {
                             {expense.issue_date ? formatDate(expense.issue_date) : "-"}
                           </TableCell>
                           <TableCell className="font-mono text-amber-500 font-medium text-sm">
-                            {expense.invoice_number}
+                            {expense.internal_purchase_number || expense.invoice_number}
                           </TableCell>
                           <TableCell className="text-white text-sm">
                             {expense.provider_name || "-"}
@@ -974,7 +974,7 @@ const ExpensesPageDesktop = () => {
           if (!open) setExpenseToDelete(null);
         }}
         title="Eliminar gasto"
-        description={`¿Eliminar el ticket "${expenseToDelete?.invoice_number ?? ''}"? Solo se pueden eliminar gastos que aún no tienen número definitivo. Esta acción no se puede deshacer.`}
+        description={`¿Eliminar el ticket "${expenseToDelete?.internal_purchase_number || expenseToDelete?.invoice_number ?? ''}"? Solo se pueden eliminar gastos que aún no tienen número definitivo. Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
         variant="destructive"

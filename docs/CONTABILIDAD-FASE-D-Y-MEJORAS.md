@@ -11,6 +11,15 @@
 | D | `20260203180400_validate_month_consistency_rpc.sql` | RPC `accounting.validate_month_consistency(p_year, p_month)` + wrapper `public.validate_month_consistency`. |
 | Auditoría | `20260203180500_accounting_audit_hardening.sql` | **UNIQUE** índice `uq_tax_provision_period` (evita 2 TAX_PROVISION mismo período). Helpers `raise_if_period_closed_for_date` / `_for_ym`. **Trigger** `trigger_check_journal_entry_period_closed`: bloquea INSERT/UPDATE de asientos con `entry_date` en periodo cerrado. |
 | D+ | `20260203180600_validate_month_consistency_extra_checks.sql` | Validator ampliado: compras por `COALESCE(issue_date, updated_at::date)`; check **JE_HAS_LINES** (asientos sin líneas); check **CASH_BOOK_COUNTERPART** (572 + 430/400/410/465). |
+| Cierres | `20260206110000_open_period_and_auto_close_on_tenth.sql` | **open_period(p_year, p_month)**: reabre un mes cerrado para seguir registrando. **auto_close_previous_month_if_tenth()**: regla de negocio — el mes anterior se cierra el día 10 del mes actual (margen para tickets/facturas colgadas). Invocar diariamente (pg_cron, Edge Function o cron externo). |
+
+---
+
+## Regla de cierre: mes anterior se cierra el día 10
+
+- **Regla**: La contabilidad del mes anterior se cierra automáticamente el **día 10** del mes actual. Ejemplo: enero se cierra el 10 de febrero; así hay margen para subir tickets y facturas pendientes.
+- **Reabrir un mes**: Si necesitas volver a abrir un mes ya cerrado (p. ej. para subir más tickets), usa la RPC **open_period(p_year, p_month)** desde la app (Contabilidad) o desde SQL. Luego puedes cerrar de nuevo con **close_period**.
+- **Cierre automático el día 10**: La función **auto_close_previous_month_if_tenth()** cierra el mes anterior solo si hoy es día 10. Para que sea automático, hay que invocarla **cada día** (p. ej. pg_cron a las 00:05, Supabase Edge Function programada, o un cron externo que llame al RPC).
 
 ---
 

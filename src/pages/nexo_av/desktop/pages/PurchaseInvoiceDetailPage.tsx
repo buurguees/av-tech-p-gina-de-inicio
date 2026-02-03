@@ -524,7 +524,16 @@ const PurchaseInvoiceDetailPageDesktop = () => {
       
     } catch (error: any) {
       console.error("Error approving invoice:", error);
-      toast.error(error.message || "Error al aprobar la factura");
+      const msg = error?.message || "";
+      if (msg.includes("Periodo cerrado") || msg.includes("periodo cerrado")) {
+        toast.error(
+          "No se puede aprobar: el mes de la factura está cerrado en Contabilidad. " +
+          "Cambia la fecha de emisión a un mes abierto o reabre el periodo en Contabilidad.",
+          { duration: 8000 }
+        );
+      } else {
+        toast.error(msg || "Error al aprobar la factura");
+      }
     } finally {
       setApproving(false);
     }

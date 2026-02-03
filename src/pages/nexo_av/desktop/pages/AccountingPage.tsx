@@ -26,6 +26,8 @@ import {
   Loader2,
   Download,
   Calendar,
+  Lock,
+  Unlock,
   TrendingUp,
   TrendingDown,
   DollarSign,
@@ -113,6 +115,15 @@ interface CorporateTaxSummary {
   provision_entry_id: string | null;
   provision_entry_number: string | null;
   provision_date: string | null;
+}
+
+interface PeriodForClosure {
+  year: number;
+  month: number;
+  period_start: string;
+  period_end: string;
+  is_closed: boolean;
+  closed_at: string | null;
 }
 
 interface JournalEntry {
@@ -287,6 +298,9 @@ const AccountingPage = () => {
   const [irpfByPerson, setIrpfByPerson] = useState<IRPFByPerson[]>([]);
   const [irpfModel111Summary, setIrpfModel111Summary] = useState<IRPFModel111Summary | null>(null);
   const [companyBankAccounts, setCompanyBankAccounts] = useState<CompanyBankAccount[]>([]);
+  const [periodsForClosure, setPeriodsForClosure] = useState<PeriodForClosure[]>([]);
+  const [loadingPeriods, setLoadingPeriods] = useState(false);
+  const [periodActionLoading, setPeriodActionLoading] = useState<string | null>(null);
 
   // Diálogos
   const [createPayrollDialogOpen, setCreatePayrollDialogOpen] = useState(false);
@@ -378,6 +392,65 @@ const AccountingPage = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPeriodsForClosure = async () => {
+    setLoadingPeriods(true);
+    try {
+      const { data, error } = await supabase.rpc("list_periods_for_closure", {
+        p_months_back: 24,
+      });
+      if (error) throw error;
+      setPeriodsForClosure((data || []) as PeriodForClosure[]);
+    } catch (error: any) {
+      console.error("Error fetching periods for closure:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Error al cargar el listado de periodos",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingPeriods(false);
+    }
+  };
+
+  const handleOpenPeriod = async (year: number, month: number) => {
+    const key = `${year}-${month}`;
+    setPeriodActionLoading(key);
+    try {
+      const { error } = await supabase.rpc("open_period", { p_year: year, p_month: month });
+      if (error) throw error;
+      toast({ title: "Periodo reabierto", description: `Se puede volver a registrar en ${format(new Date(year, month - 1, 1), "MMMM yyyy", { locale: es })}.` });
+      await fetchPeriodsForClosure();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo reabrir el periodo",
+        variant: "destructive",
+      });
+    } finally {
+      setPeriodActionLoading(null);
+    }
+  };
+
+  const handleClosePeriod = async (year: number, month: number) => {
+    const key = `${year}-${month}`;
+    setPeriodActionLoading(key);
+    try {
+      const { error } = await supabase.rpc("close_period", { p_year: year, p_month: month });
+      if (error) throw error;
+      toast({ title: "Periodo cerrado", description: `Contabilidad de ${format(new Date(year, month - 1, 1), "MMMM yyyy", { locale: es })} cerrada.` });
+      await fetchPeriodsForClosure();
+      if (activeTab === "profit-loss") fetchProfitLoss();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo cerrar el periodo",
+        variant: "destructive",
+      });
+    } finally {
+      setPeriodActionLoading(null);
     }
   };
 
@@ -775,6 +848,7 @@ const AccountingPage = () => {
       fetchCorporateTaxSummary();
     } else if (activeTab === "profit-loss") {
       fetchProfitLoss();
+      fetchPeriodsForClosure();
     } else if (activeTab === "balance") {
       fetchBalanceSheet();
     } else if (activeTab === "all-payroll") {
@@ -2062,6 +2136,110 @@ const AccountingPage = () => {
                   </span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Cierres por mes: listado y acciones Reabrir / Cerrar */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Cierres por mes
+              </CardTitle>
+              <CardDescription>
+                Meses cerrados o por cerrar. El mes anterior se cierra automáticamente el día 10. Puedes reabrir un mes para subir tickets/facturas y volver a cerrarlo.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingPeriods ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : periodsForClosure.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No hay periodos disponibles</p>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Mes</TableHead>
+                        <TableHead>Periodo</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead className="text-right">Acción</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {periodsForClosure.map((p) => {
+                        const monthName = format(new Date(p.year, p.month - 1, 1), "MMMM yyyy", { locale: es });
+                        const monthNameCapitalized = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                        const key = `${p.year}-${p.month}`;
+                        const isActionLoading = periodActionLoading === key;
+                        return (
+                          <TableRow key={key}>
+                            <TableCell className="font-medium">{monthNameCapitalized}</TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {format(new Date(p.period_start), "dd/MM/yyyy", { locale: es })} – {format(new Date(p.period_end), "dd/MM/yyyy", { locale: es })}
+                            </TableCell>
+                            <TableCell>
+                              {p.is_closed ? (
+                                <Badge variant="secondary" className="gap-1">
+                                  <Lock className="h-3 w-3" />
+                                  Cerrado
+                                  {p.closed_at && (
+                                    <span className="text-xs opacity-80">
+                                      {format(new Date(p.closed_at), "dd/MM/yy")}
+                                    </span>
+                                  )}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="gap-1">
+                                  <Unlock className="h-3 w-3" />
+                                  Abierto
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {p.is_closed ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={isActionLoading}
+                                  onClick={() => handleOpenPeriod(p.year, p.month)}
+                                >
+                                  {isActionLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <Unlock className="h-3.5 w-3.5 mr-1" />
+                                      Reabrir
+                                    </>
+                                  )}
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  disabled={isActionLoading}
+                                  onClick={() => handleClosePeriod(p.year, p.month)}
+                                >
+                                  {isActionLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <Lock className="h-3.5 w-3.5 mr-1" />
+                                      Cerrar
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
