@@ -65,6 +65,8 @@ yarn-audit.json
 # ===================================
 # Dumps de base de datos
 *.sql
+# Incluir migraciones de Supabase en el repo
+!supabase/migrations/*.sql
 *.sqlite
 *.sqlite3
 *.db
