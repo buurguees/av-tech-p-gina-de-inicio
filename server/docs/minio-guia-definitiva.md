@@ -496,7 +496,143 @@ mc du nexo/nexo-prod/clients/
 | **Transacción atómica** | Primero subir a MinIO, luego registrar en Supabase; si falla Supabase, borrar de MinIO |
 | **Naming consistente** | Usar IDs de negocio (client_number, project_number, etc.), no UUIDs en rutas |
 
-### 7.3 Operaciones
+### 7.3 Inmutabilidad de keys (IMPORTANTE)
+
+> **Principio fundamental:** Una vez asignada, la **key de un archivo NO debe cambiar**.
+
+#### ¿Por qué inmutabilidad?
+
+| Problema sin inmutabilidad | Consecuencia |
+|---------------------------|--------------|
+| URLs firmadas en emails/PDFs | Dejan de funcionar |
+| Referencias en BD | Quedan huérfanas |
+| Logs de auditoría | Pierden trazabilidad |
+| Backups/snapshots | Inconsistencias |
+
+#### Reglas de inmutabilidad
+
+1. **Key = permanente desde el primer upload**
+   - Una vez que el archivo está en `clients/124030/projects/000008/docs/plano.pdf`, **no se mueve**.
+
+2. **"Mover" = cambiar referencia lógica, no física**
+   - Si un archivo cambia de proyecto, solo se actualiza `owner_id` en `storage.files`.
+   - El binario **permanece en su key original**.
+
+3. **Excepciones (raras y justificadas)**
+   - Corrección de error grave en la ruta inicial.
+   - Migración masiva planificada (con script que actualiza todas las referencias).
+   - En estos casos: **copy → update refs → delete original**.
+
+4. **La UI muestra "ubicación lógica", no física**
+   ```typescript
+   // La UI puede mostrar el archivo bajo "Proyecto B" aunque físicamente esté en:
+   // clients/124030/projects/000008/docs/plano.pdf (Proyecto A original)
+   // Porque storage.files.owner_id apunta a Proyecto B
+   ```
+
+#### Campo adicional recomendado (futuro)
+
+```sql
+-- Añadir a storage.files para casos donde la ruta lógica difiera de la física
+ALTER TABLE storage.files ADD COLUMN logical_path TEXT;
+-- Si es NULL, la UI usa "key" como ruta. Si tiene valor, usa "logical_path" para mostrar.
+```
+
+### 7.4 Versionado de documentos (futuro)
+
+> **Estado:** diseño previsto, no implementar aún.
+
+Para documentos que requieren histórico de versiones (facturas rectificativas, presupuestos, contratos), el esquema de prefijos permite versionado elegante:
+
+#### Estrategia de versionado con prefijos
+
+```text
+billing/invoices/F-26-000001/
+├── v1/
+│   └── F-26-000001_v1.pdf          ← Original
+├── v2/
+│   └── F-26-000001_v2.pdf          ← Corrección
+├── v3/
+│   └── F-26-000001_v3_rectificativa.pdf
+└── current -> v3                    ← Symlink lógico (en BD)
+```
+
+#### Modelo de datos para versiones
+
+```sql
+-- Añadir a storage.files cuando se implemente versionado
+ALTER TABLE storage.files ADD COLUMN version INTEGER DEFAULT 1;
+ALTER TABLE storage.files ADD COLUMN is_current BOOLEAN DEFAULT true;
+ALTER TABLE storage.files ADD COLUMN parent_file_id UUID REFERENCES storage.files(id);
+
+-- Constraint: solo una versión "current" por grupo
+CREATE UNIQUE INDEX idx_files_current_version 
+  ON storage.files(owner_type, owner_id, document_type) 
+  WHERE is_current = true AND deleted_at IS NULL;
+```
+
+#### Casos de uso de versionado
+
+| Entidad | Necesita versionado | Razón |
+|---------|---------------------|-------|
+| Factura de venta | ✅ Sí | Rectificativas legales |
+| Presupuesto | ✅ Sí | Revisiones con cliente |
+| Contrato | ✅ Sí | Adendas, modificaciones |
+| Foto de proyecto | ❌ No | Cada foto es única |
+| Ticket de gasto | ❌ No | Documento original único |
+| Ficha de producto | ⚠️ Opcional | Si cambian especificaciones |
+
+### 7.5 Diferenciación de buckets (futuro)
+
+> **Estado:** diseño previsto para escalar.
+
+Actualmente usamos un bucket único (`nexo-prod`), pero la arquitectura prevé separación futura:
+
+#### Buckets planificados
+
+| Bucket | Propósito | Acceso | Cuándo activar |
+|--------|-----------|--------|----------------|
+| `nexo-prod` | Documentos internos, facturas, proyectos | Privado (presigned URLs) | **Activo** |
+| `nexo-staging` | Pruebas y desarrollo | Privado | **Activo** |
+| `nexo-public` | Assets públicos (catálogo web, logos) | Público (CDN opcional) | Cuando haya web pública |
+| `nexo-archive` | Histórico > 2 años (cold storage) | Privado, solo lectura | Cuando crezca el volumen |
+
+#### Política de bucket público (cuando se active)
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": ["s3:GetObject"],
+      "Resource": ["arn:aws:s3:::nexo-public/*"]
+    }
+  ]
+}
+```
+
+#### Contenido por bucket
+
+```text
+nexo-public/ (futuro)
+├── catalog/
+│   └── {sku}/
+│       ├── main.jpg
+│       ├── thumb.jpg
+│       └── gallery/
+├── logos/
+│   ├── logo-main.svg
+│   └── logo-white.svg
+├── marketing/
+│   ├── banners/
+│   └── social/
+└── downloads/
+    └── catalogo-2026.pdf
+```
+
+### 7.6 Operaciones
 
 | Práctica | Descripción |
 |----------|-------------|
@@ -505,7 +641,7 @@ mc du nexo/nexo-prod/clients/
 | **Actualizaciones** | Actualizar imagen MinIO mensualmente, probar en staging primero |
 | **Monitorización** | Revisar health checks, espacio en disco, uso de CPU |
 
-### 7.4 Backups
+### 7.7 Backups
 
 | Elemento | Estrategia |
 |----------|------------|
