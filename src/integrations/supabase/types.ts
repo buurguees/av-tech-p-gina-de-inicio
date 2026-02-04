@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      minio_files: {
+        Row: {
+          bucket: string
+          checksum: string | null
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          document_type: string | null
+          id: string
+          key: string
+          mime_type: string
+          original_name: string
+          owner_id: string
+          owner_type: string
+          size_bytes: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bucket?: string
+          checksum?: string | null
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          document_type?: string | null
+          id?: string
+          key: string
+          mime_type: string
+          original_name: string
+          owner_id: string
+          owner_type: string
+          size_bytes?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bucket?: string
+          checksum?: string | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          document_type?: string | null
+          id?: string
+          key?: string
+          mime_type?: string
+          original_name?: string
+          owner_id?: string
+          owner_type?: string
+          size_bytes?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       scanned_documents: {
         Row: {
           assigned_to_id: string | null
