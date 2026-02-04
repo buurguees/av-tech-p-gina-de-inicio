@@ -46,10 +46,7 @@ const NexoInvoicesPage = lazy(() => import("./pages/nexo_av/desktop/pages/Invoic
 const NexoInvoiceDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/InvoiceDetailPage"));
 const NexoNewInvoicePage = lazy(() => import("./pages/nexo_av/desktop/pages/NewInvoicePage"));
 const NexoEditInvoicePage = lazy(() => import("./pages/nexo_av/desktop/pages/EditInvoicePage"));
-const NexoLeadMapPage = lazy(() => import("./pages/nexo_av/desktop/pages/LeadMapPage"));
-const NexoClientMapPage = lazy(() => import("./pages/nexo_av/desktop/pages/ClientMapPage"));
-const NexoProjectMapPage = lazy(() => import("./pages/nexo_av/desktop/pages/ProjectMapPage"));
-const NexoTechMapPage = lazy(() => import("./pages/nexo_av/desktop/pages/TechMapPage"));
+const NexoMapPage = lazy(() => import("./pages/nexo_av/desktop/pages/MapPage"));
 const NexoPurchaseInvoicesPage = lazy(() => import("./pages/nexo_av/desktop/pages/PurchaseInvoicesPage"));
 const NexoPurchaseInvoiceDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/PurchaseInvoiceDetailPage"));
 const NexoExpensesPage = lazy(() => import("./pages/nexo_av/desktop/pages/ExpensesPage"));
@@ -224,10 +221,7 @@ const App = () => (
                 <Route path="catalog" element={<NexoCatalogPage />} />
                 <Route path="catalog/:productId" element={<NexoProductDetailPage />} />
                 <Route path="calculator" element={<NexoCalculatorPage />} />
-                <Route path="lead-map" element={<NexoLeadMapPage />} />
-                <Route path="client-map" element={<NexoClientMapPage />} />
-                <Route path="project-map" element={<NexoProjectMapPage />} />
-                <Route path="tech-map" element={<NexoTechMapPage />} />
+                <Route path="mapa" element={<NexoMapPage />} />
                 <Route path="technicians" element={<NexoTechniciansPage />} />
                 <Route path="technicians/:technicianId" element={<NexoTechnicianDetailPage />} />
                 <Route path="suppliers" element={<NexoSuppliersPage />} />

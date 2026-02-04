@@ -14,6 +14,8 @@
  * - status-invoiced: INVOICED
  * - status-closed: CLOSED
  * - status-error: CANCELLED
+ *
+ * markerColorHex: mismo color que las etiquetas (variables --status-* en variables.css) para mapa/charts.
  */
 
 export const PROJECT_STATUSES = [
@@ -22,6 +24,7 @@ export const PROJECT_STATUSES = [
     label: "Planificado", 
     color: "status-info",
     className: "status-info",
+    markerColorHex: "#2563eb",  /* hsl(217 91% 60%) */
     priority: 0
   },
   { 
@@ -29,6 +32,7 @@ export const PROJECT_STATUSES = [
     label: "En Progreso", 
     color: "status-progress",
     className: "status-progress",
+    markerColorHex: "#eab308",  /* hsl(38 92% 50%) */
     priority: 1
   },
   { 
@@ -36,6 +40,7 @@ export const PROJECT_STATUSES = [
     label: "Pausado", 
     color: "status-warning",
     className: "status-warning",
+    markerColorHex: "#eab308",  /* hsl(38 92% 50%) */
     priority: 2
   },
   { 
@@ -43,6 +48,7 @@ export const PROJECT_STATUSES = [
     label: "Completado", 
     color: "status-special",
     className: "status-special",
+    markerColorHex: "#7c3aed",  /* hsl(262 83% 58%) */
     priority: 3
   },
   { 
@@ -50,6 +56,7 @@ export const PROJECT_STATUSES = [
     label: "Facturado", 
     color: "status-invoiced",
     className: "status-invoiced",
+    markerColorHex: "#16a34a",  /* hsl(142 71% 45%) */
     priority: 4
   },
   { 
@@ -57,6 +64,7 @@ export const PROJECT_STATUSES = [
     label: "Cerrado", 
     color: "status-closed",
     className: "status-closed",
+    markerColorHex: "#64748b",  /* hsl(220 9% 46%) */
     priority: 5
   },
   { 
@@ -64,6 +72,7 @@ export const PROJECT_STATUSES = [
     label: "Cancelado", 
     color: "status-error",
     className: "status-error",
+    markerColorHex: "#dc2626",  /* hsl(0 84% 60%) */
     priority: 6
   },
 ] as const;

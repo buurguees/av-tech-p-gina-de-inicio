@@ -230,13 +230,13 @@ const NexoAvLayout = () => {
   // Build modules list - Memoizado para evitar recálculos innecesarios
   const modules = useMemo(() => [
     {
-      id: 'lead-map',
-      title: 'Mapa Comercial',
+      id: 'mapa',
+      title: 'Mapa',
       icon: MapPin,
       color: 'from-teal-500/20 to-teal-600/10',
       borderColor: 'border-teal-500/30',
-      available: isAdmin || isManager || hasSalesAccess,
-      path: `/nexo-av/${userId}/lead-map`,
+      available: isAdmin || isManager || hasSalesAccess || hasTechAccess,
+      path: `/nexo-av/${userId}/mapa`,
     },
     {
       id: 'clients',

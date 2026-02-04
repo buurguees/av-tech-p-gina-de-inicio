@@ -54,10 +54,7 @@ export const MobileHeader = ({
     if (pathname.includes('/audit')) return 'Auditoría';
     if (pathname.includes('/catalog')) return 'Catálogo';
     if (pathname.includes('/calculator')) return 'Calculadora';
-    if (pathname.includes('/lead-map')) return 'Mapa Comercial';
-    if (pathname.includes('/client-map')) return 'Mapa Clientes';
-    if (pathname.includes('/project-map')) return 'Mapa Proyectos';
-    if (pathname.includes('/tech-map')) return 'Mapa Técnico';
+    if (pathname.includes('/mapa')) return 'Mapa';
     if (pathname.includes('/technicians')) {
       if (pathname.match(/\/technicians\/[^/]+$/)) return 'Detalle Técnico';
       return 'Técnicos';

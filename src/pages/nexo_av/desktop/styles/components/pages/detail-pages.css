@@ -3,7 +3,7 @@
    ProjectDetailPage, ClientDetailPage, etc.
    ============================================ */
 
-/* LeadMapPage - 60/40 split for map and sidebar */
+/* Map page - 60/40 split for map and sidebar (legacy; used when map content is added) */
 body.nexo-av-theme [class*="flex-1"][class*="flex"][class*="gap-4"] {
   width: 100% !important;
 }
@@ -30,7 +30,7 @@ body.nexo-av-theme-dark div[class*="h-full"][class*="w-full"][class*="relative"]
   min-height: 500px !important;
 }
 
-/* Force LeadMapPage container to use full space */
+/* Force map page container to use full space */
 body.nexo-av-theme div[class*="w-full"][class*="flex"][class*="flex-col"],
 body.nexo-av-theme-dark div[class*="w-full"][class*="flex"][class*="flex-col"] {
   width: 100% !important;
@@ -52,6 +52,41 @@ body.nexo-av-theme-dark .leaflet-container {
   height: 100% !important;
   width: 100% !important;
   min-height: 500px !important;
+}
+
+/* ============================================
+   MAP PAGE - Layout (Mapa, pestañas, listado)
+   ============================================ */
+body.nexo-av-theme .map-page,
+body.nexo-av-theme-dark .map-page {
+  min-height: 0;
+}
+
+body.nexo-av-theme .map-page__tabs-content,
+body.nexo-av-theme-dark .map-page__tabs-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.nexo-av-theme .map-page__content,
+body.nexo-av-theme-dark .map-page__content {
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+}
+
+body.nexo-av-theme .map-page__map,
+body.nexo-av-theme-dark .map-page__map {
+  min-height: 300px;
+  flex: 0 0 60%;
+}
+
+body.nexo-av-theme .map-page__list,
+body.nexo-av-theme-dark .map-page__list {
+  flex: 0 0 40%;
+  min-height: 0;
 }
 
 /* ============================================

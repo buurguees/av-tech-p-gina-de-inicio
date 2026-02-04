@@ -70,41 +70,6 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
   // Construir estructura de carpetas
   const folders: Folder[] = [
     {
-      id: 'mapas',
-      title: 'Mapas',
-      icon: MapPin,
-      items: [
-        {
-          id: 'lead-map',
-          title: 'Mapa Comercial',
-          icon: MapPin,
-          path: `/nexo-av/${userId}/lead-map`,
-          available: getModule('lead-map')?.available || false,
-        },
-        {
-          id: 'client-map',
-          title: 'Mapa Clientes',
-          icon: Users,
-          path: `/nexo-av/${userId}/client-map`,
-          available: getModule('clients')?.available || false,
-        },
-        {
-          id: 'project-map',
-          title: 'Mapa Proyectos',
-          icon: FolderKanban,
-          path: `/nexo-av/${userId}/project-map`,
-          available: getModule('projects')?.available || false,
-        },
-        {
-          id: 'tech-map',
-          title: 'Mapa Técnicos',
-          icon: Wrench,
-          path: `/nexo-av/${userId}/tech-map`,
-          available: getModule('projects')?.available || false,
-        },
-      ],
-    },
-    {
       id: 'ventas',
       title: 'Ventas',
       icon: FileText,
@@ -185,6 +150,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
 
   // Módulos individuales (no en carpetas)
   const individualModules = [
+    {
+      id: 'mapa',
+      title: 'Mapa',
+      icon: MapPin,
+      path: `/nexo-av/${userId}/mapa`,
+      available: getModule('mapa')?.available || false,
+    },
     {
       id: 'clients',
       title: 'Clientes',
