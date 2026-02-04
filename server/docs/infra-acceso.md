@@ -1,227 +1,188 @@
-# Arquitectura de acceso seguro – AV TECH (sin Cloudflare)
+# Arquitectura de acceso AV TECH – conexión plataforma ↔ server
 
 ## Objetivo
-Definir y documentar una arquitectura de acceso seguro a la infraestructura de AV TECH
-sin exponer servicios públicos, utilizando **Tailscale** como red privada (Zero Trust simple).
 
-Esta documentación parte de **cero**, asumiendo que:
-- No hay nada configurado en Tailscale
-- No se usa Cloudflare
-- El acceso se controla por identidad, no por IP pública
+Documentar el modelo final de conexión entre la plataforma NEXO y el servidor, priorizando:
 
----
+- Seguridad real (sin brechas típicas)
+- Simplicidad operativa
+- Escalabilidad futura (IA local, CSM, storage)
 
-## 1. Estado actual del proyecto
-
-### 1.1 Servidor
-- Sistema: Ubuntu Server
-- Rol:
-  - Backend / storage interno
-  - Servicios privados (no expuestos a internet)
-- Acceso actual:
-  - SSH local
-  - Sin túneles públicos
-  - Sin proxy inverso externo
+Este modelo **NO usa Cloudflare** y **NO requiere VPN para usuarios finales**.
 
 ---
 
-### 1.2 Frontend
-- Hosting: Firebase Hosting
-- Dominio público:
-  - `www.avtechesdeveniments.com`
-- Rutas públicas:
-  - Landing web corporativa
-- Rutas privadas (objetivo):
-  - `/nexo-av`
-  - `/admin`
-- El frontend **no debe** acceder directamente al servidor por IP pública
+## 1. Principios base (decisión final)
+
+- El frontend **nunca** entra en la red privada.
+- El servidor **no confía** en el frontend, solo en JWT válidos.
+- Supabase es la **autoridad de identidad** (OTP + JWT).
+- El servidor es el único que **autoriza acceso** a recursos críticos.
+- Tailscale se usa **solo para administración interna**, no para usuarios.
 
 ---
 
-## 2. Decisión arquitectónica
-
-### ❌ Qué descartamos
-- Cloudflare Zero Trust
-- DNS complejos
-- Proxy inverso externo
-- Exposición de puertos públicos
-
-### ✅ Qué usamos
-- **Tailscale**
-- Red privada tipo VPN mesh
-- Acceso por usuario / dispositivo
-- Seguridad por identidad
-
----
-
-## 3. Concepto clave: cómo funcionará el acceso
-
-### Principio base
-> Ningún servicio crítico está expuesto a internet  
-> Todo acceso pasa por Tailscale
-
----
-
-### Flujo general
+## 2. Arquitectura general
 
 ```text
-Usuario autorizado
+Usuario (web)
         ↓
-Tailscale (login por cuenta AV TECH)
+Login plataforma (OTP + Supabase Auth)
+        ↓
+Frontend (Firebase Hosting)
+        ↓  HTTPS + Authorization: Bearer <JWT>
+Servidor AV TECH (API privada)
+        ↓
+├── Storage (MinIO / disco)
+├── IA local
+└── CSM / gestión de dispositivos
+```
+
+```text
+(Admin / Dev)
+        ↓
+Tailscale
         ↓
 Red privada 100.x.x.x
         ↓
 Servidor Ubuntu
-        ↓
-Servicios internos (API, storage, admin)
 ```
 
 ---
 
-## 4. Diseño de la red Tailscale
+## 3. Rol de cada componente
 
-### 4.1 Tailnet
+### 3.1 Frontend (Firebase)
 
-| Atributo | Valor |
-|----------|-------|
-| Organización | avtechesdeveniments.com |
-| Tipo | empresa |
-| Autenticación | Cuenta corporativa / Acceso por usuario |
+- UI y experiencia de usuario
+- Nunca almacena secretos
+- Nunca accede a IPs privadas
+- Siempre envía JWT en peticiones privadas
 
-### 4.2 Dispositivos esperados
+### 3.2 Supabase
 
-| Tipo | Nombre ejemplo | Rol |
-|------|----------------|-----|
-| Servidor | nexo-storage | Backend / Storage |
-| Portátil | alex-laptop | Desarrollo / Admin |
-| Móvil | alex-phone | Acceso puntual |
-| VM | nexo-dev | Testing |
+- Autenticación (email + OTP)
+- Emisión de JWT de sesión
+- Base de datos
+- RLS para metadatos
+
+### 3.3 Servidor AV TECH
+
+- Autoridad de acceso a:
+  - Documentos
+  - IA local
+  - CSM
+- Valida JWT en cada request
+- Aplica reglas de autorización (rol, empresa, proyecto)
+- Genera URLs firmadas para storage
+
+### 3.4 Tailscale (solo admins)
+
+- SSH
+- Consolas internas
+- Debug / mantenimiento
+- **Nunca** en el flujo del usuario final
 
 ---
 
-## 5. Instalación de Tailscale (desde cero)
+## 4. Conexión plataforma ↔ servidor
 
-### 5.1 En el servidor Ubuntu
+### 4.1 Autenticación
 
-```bash
-curl -fsSL https://tailscale.com/install.sh | sh
+1. El usuario se autentica mediante OTP
+2. Supabase emite JWT
+3. El frontend adjunta el JWT en cada request:
 
-sudo tailscale up
+```http
+Authorization: Bearer <access_token>
 ```
 
-- Se abre un enlace de login
-- Se autoriza el servidor en el tailnet correcto
+### 4.2 Validación en el servidor
 
-### 5.2 En equipos de trabajo
+En todos los endpoints privados, el servidor:
 
-1. Instalar Tailscale (Windows / macOS / iOS / Android)
-2. Login con la misma cuenta
-3. El dispositivo aparece automáticamente en la red privada
+1. Verifica la firma del JWT
+2. Extrae:
+   - `user_id`
+   - `role`
+   - `company_id` / `tenant_id`
+3. Verifica permisos
+4. Ejecuta la acción
 
----
-
-## 6. Direccionamiento interno
-
-Cada dispositivo obtiene una IP privada:
-
-- **Rango:** `100.x.x.x`
-- **Ejemplo:**
-  - Servidor: `100.101.233.19`
-  - Portátil: `100.89.11.61`
-
-Estas IPs:
-- Son estables
-- No son públicas
-- Solo accesibles dentro del tailnet
+> ⚠️ El servidor **nunca** acepta IDs críticos desde el body del cliente.
 
 ---
 
-## 7. Acceso al servidor
+## 5. Gestión de documentos (modelo seguro)
 
-### 7.1 SSH seguro (recomendado)
+### 5.1 Subida de archivos
 
-```bash
-ssh usuario@100.xxx.xxx.xxx
-```
+1. Frontend → `POST /files/presign-upload`
+2. Servidor valida JWT y permisos
+3. Servidor crea registro en DB (`minio_files`)
+4. Servidor devuelve URL firmada (PUT)
+5. Frontend sube el archivo
 
-O directamente:
+### 5.2 Descarga de archivos
 
-```bash
-tailscale ssh usuario@hostname
-```
+1. Frontend → `POST /files/presign-download`
+2. Servidor valida JWT y permisos
+3. Servidor devuelve URL firmada (GET)
 
-> Sin abrir puerto 22 en internet
+**Reglas clave:**
 
-### 7.2 Servicios internos
-
-Ejemplos:
-
-| Servicio | URL interna |
-|----------|-------------|
-| API backend | `http://100.101.233.19:3000` |
-| Storage (MinIO) | `http://100.101.233.19:9000` |
-| Admin panel | `http://100.101.233.19:8080` |
-
-Solo accesibles:
-- Si estás conectado a Tailscale
-- Si tu usuario está autorizado
+- URLs con expiración corta
+- Rutas generadas solo por el servidor
+- Buckets privados
 
 ---
 
-## 8. Relación con el frontend (Firebase)
+## 6. IA local
 
-### ⚠️ Importante
-
-> El frontend público **NO** accede directamente al servidor.
-
-### Opciones correctas
-
-- El frontend solo muestra UI
-- Las acciones sensibles:
-  - Se ejecutan desde backend interno
-  - O desde un panel accesible solo por Tailscale
-
-### Ejemplo correcto
-
-| Ruta | Comportamiento |
-|------|----------------|
-| `/nexo-av` | Requiere estar en Tailscale, accede a backend por IP `100.x` |
-| Usuario externo | Nunca toca el servidor directamente |
+- Endpoint protegido: `/ai/*`
+- Requiere JWT
+- Permisos por rol
+- Auditoría de uso (quién, cuándo, para qué)
 
 ---
 
-## 9. Seguridad
+## 7. CSM / gestión de dispositivos
 
-### ✅ Qué ganamos
-
-- Sin IP pública
-- Sin firewall complejo
-- Sin ataques de fuerza bruta
-- Acceso revocable por usuario
-- Logs por dispositivo
-
-### ❌ Qué NO hace falta
-
-- VPN tradicional
-- Port forwarding
-- Certificados manuales
-- Proxy inverso externo
+- Dispositivos se registran con token propio
+- Comunicación device → server (pull)
+- El frontend solo gestiona:
+  - Assets
+  - Playlists
+  - Asignaciones
 
 ---
 
-## 10. Próximos pasos (no implementados aún)
+## 8. Seguridad (resumen)
 
-- [ ] ACLs de Tailscale (roles)
-- [ ] Separación prod / dev
-- [ ] Integración con auth del backend
-- [ ] Panel interno solo accesible por tailnet
+### ✅ Protecciones clave
+
+| Capa | Protección |
+|------|------------|
+| Autenticación | OTP con expiración + rate limit |
+| Sesión | JWT obligatorio |
+| Backend | Autorización en servidor |
+| Storage | URLs firmadas, buckets privados |
+| Admin | Consolas solo por Tailscale |
+
+### ❌ Qué NO se usa
+
+- VPN para usuarios
+- Acceso directo a IP privada
+- Tokens permanentes en URLs
+- Confianza en el frontend
 
 ---
 
-## 11. Regla de oro
+## 9. Regla de oro
 
-> **Si no estás en Tailscale, no existes para la infraestructura.**
+> **La plataforma identifica. El servidor autoriza.**
 
 ---
 
+**Estado:** arquitectura final aprobada  
 **Última actualización:** Febrero 2026
