@@ -812,7 +812,7 @@ const ExpensesPageDesktop = () => {
                             "border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200",
                             isSelected && "bg-white/10"
                           )}
-                          onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${expense.id}`)}
+                          onClick={() => navigate(`/nexo-av/${userId}/expenses/${expense.id}`)}
                         >
                           <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
                             <Checkbox

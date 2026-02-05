@@ -508,8 +508,12 @@ const ScannerDetailPage = () => {
       
       toast.success(isTicket ? "Ticket creado correctamente" : "Factura de compra creada correctamente");
       
-      // Navigate to the new purchase invoice
-      navigate(`/nexo-av/${userId}/purchase-invoices/${purchaseInvoiceId}`);
+      // Navigate to the appropriate detail page based on document type
+      if (isTicket) {
+        navigate(`/nexo-av/${userId}/expenses/${purchaseInvoiceId}`);
+      } else {
+        navigate(`/nexo-av/${userId}/purchase-invoices/${purchaseInvoiceId}`);
+      }
       
     } catch (error: any) {
       console.error("Error creating purchase invoice/ticket:", error);

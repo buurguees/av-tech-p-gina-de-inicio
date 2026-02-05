@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Search, GripVertical, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ProductSearchInput from "../common/ProductSearchInput";
 
 export interface DocumentLine {
   id?: string;
@@ -108,6 +109,22 @@ export default function DocumentLinesEditor({
       onLinesChange(lines.filter((_, i) => i !== index).map((line, i) => ({ ...line, line_order: i + 1 })));
     },
     [lines, onLinesChange]
+  );
+
+  // Handler for when a product is selected from catalog search
+  const handleSelectProduct = useCallback(
+    (index: number, item: { name: string; price: number; tax_rate: number; description?: string }) => {
+      const updatedLines = [...lines];
+      updatedLines[index] = calculateLineValues({
+        ...updatedLines[index],
+        concept: item.name,
+        description: item.description || "",
+        unit_price: item.price,
+        tax_rate: item.tax_rate,
+      });
+      onLinesChange(updatedLines);
+    },
+    [lines, onLinesChange, calculateLineValues]
   );
 
   const parseNumber = (value: string): number => {
@@ -230,16 +247,13 @@ export default function DocumentLinesEditor({
 
                 {/* Concept */}
                 <div className="px-1 py-2">
-                  <div className="flex items-center gap-2 px-2">
-                    <input
-                      type="text"
-                      value={line.concept}
-                      onChange={(e) => updateLine(index, "concept", e.target.value)}
-                      placeholder="Escribe el concepto o usa @ para buscar"
-                      className={cn(inputBase, "flex-1")}
-                    />
-                    <Search className="w-4 h-4 text-muted-foreground/40 flex-shrink-0" />
-                  </div>
+                  <ProductSearchInput
+                    value={line.concept}
+                    onChange={(value) => updateLine(index, "concept", value)}
+                    onSelectItem={(item) => handleSelectProduct(index, item)}
+                    placeholder="Concepto o @buscar"
+                    className={cn(inputBase, "flex-1")}
+                  />
                 </div>
 
                 {/* Description */}

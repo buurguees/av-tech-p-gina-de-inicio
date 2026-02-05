@@ -12,6 +12,7 @@ import {
   Phone,
   MapPin,
   Star,
+  Trash2,
 } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,7 @@ import DetailActionButton from "../components/navigation/DetailActionButton";
 import CreateTechnicianDialog from "../components/technicians/CreateTechnicianDialog";
 import DataList, { DataListColumn } from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
+import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 
 interface Technician {
   id: string;
@@ -88,6 +90,13 @@ const TechniciansPageDesktop = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  
+  // Delete state
+  const [technicianToDelete, setTechnicianToDelete] = useState<Technician | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  
   const [technicianKPIs, setTechnicianKPIs] = useState({
     byType: {} as Record<string, number>,
     byStatus: {} as Record<string, number>,
@@ -187,6 +196,22 @@ const TechniciansPageDesktop = () => {
     }
   };
 
+  // Check if user is admin
+  useEffect(() => {
+    const checkUserRole = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_current_user_info');
+        if (!error && data && data.length > 0) {
+          const roles = data[0].roles || [];
+          setIsAdmin(roles.includes('admin'));
+        }
+      } catch (err) {
+        console.error('Error checking user role:', err);
+      }
+    };
+    checkUserRole();
+  }, []);
+
   useEffect(() => {
     fetchTechnicians();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -197,6 +222,37 @@ const TechniciansPageDesktop = () => {
       calculateTechnicianKPIs();
     }
   }, [technicians]);
+
+  const handleDeleteTechnician = async () => {
+    if (!technicianToDelete) return;
+    
+    try {
+      setDeleting(true);
+      const { error } = await supabase.rpc("delete_technician", {
+        p_technician_id: technicianToDelete.id,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Técnico eliminado",
+        description: `El técnico ${technicianToDelete.company_name} ha sido eliminado correctamente.`,
+      });
+
+      setDeleteDialogOpen(false);
+      setTechnicianToDelete(null);
+      fetchTechnicians();
+    } catch (err: any) {
+      console.error("Error deleting technician:", err);
+      toast({
+        title: "Error",
+        description: err.message || "No se pudo eliminar el técnico. Puede tener facturas o proyectos asociados.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const calculateTechnicianKPIs = async () => {
     try {
@@ -617,6 +673,14 @@ const TechniciansPageDesktop = () => {
                 label: "Duplicar",
                 onClick: () => {},
               },
+              ...(isAdmin ? [{
+                label: "Eliminar",
+                onClick: (tech: Technician) => {
+                  setTechnicianToDelete(tech);
+                  setDeleteDialogOpen(true);
+                },
+                variant: "destructive" as const,
+              }] : []),
             ]}
             onItemClick={(tech) => navigate(`/nexo-av/${userId}/technicians/${tech.id}`)}
             sortColumn={sortColumn}
@@ -656,6 +720,19 @@ const TechniciansPageDesktop = () => {
             description: "El técnico se ha creado correctamente.",
           });
         }}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmActionDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteTechnician}
+        title="¿Eliminar técnico?"
+        description={`Estás a punto de eliminar el técnico "${technicianToDelete?.company_name || ''}". Esta acción no se puede deshacer. Si el técnico tiene facturas o proyectos asociados, no podrá ser eliminado.`}
+        confirmLabel="Eliminar técnico"
+        variant="destructive"
+        loading={deleting}
+        icon={<Trash2 className="h-6 w-6" />}
       />
     </div>
   );

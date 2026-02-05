@@ -50,6 +50,7 @@ const NexoMapPage = lazy(() => import("./pages/nexo_av/desktop/pages/MapPage"));
 const NexoPurchaseInvoicesPage = lazy(() => import("./pages/nexo_av/desktop/pages/PurchaseInvoicesPage"));
 const NexoPurchaseInvoiceDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/PurchaseInvoiceDetailPage"));
 const NexoExpensesPage = lazy(() => import("./pages/nexo_av/desktop/pages/ExpensesPage"));
+const NexoExpenseDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/ExpenseDetailPage"));
 const NexoReportsPage = lazy(() => import("./pages/nexo_av/desktop/pages/ReportsPage"));
 const NexoTechniciansPage = lazy(() => import("./pages/nexo_av/desktop/pages/TechniciansPage"));
 const NexoTechnicianDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/TechnicianDetailPage"));
@@ -237,7 +238,7 @@ const App = () => (
                 <Route path="purchase-invoices/:invoiceId" element={<NexoPurchaseInvoiceDetailPage />} />
                 <Route path="expenses" element={<NexoExpensesPage />} />
                 <Route path="expenses/new" element={<NexoNewPurchaseInvoicePage />} />
-                <Route path="expenses/:invoiceId" element={<NexoPurchaseInvoiceDetailPage />} />
+                <Route path="expenses/:invoiceId" element={<NexoExpenseDetailPage />} />
                 <Route path="reports" element={<NexoReportsPage />} />
                 <Route path="accounting" element={<NexoAccountingPage />} />
                 <Route path="developer" element={<NexoDeveloperPage />} />
