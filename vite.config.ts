@@ -76,7 +76,7 @@ export default defineConfig(({ mode }) => ({
     exclude: ['jscanify'],
   },
   build: {
-    outDir: "build",
+    outDir: "dist",
     chunkSizeWarningLimit: 2000,
     commonjsOptions: {
       ignore: nodeModulesToExternalize,
