@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Line, ComposedChart } from "recharts";
+import { Area, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Line, ComposedChart } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardWidget from "../DashboardWidget";
 import { TrendingUp } from "lucide-react";
@@ -13,22 +13,17 @@ interface MonthlyRevenue {
     forecast: number | null;
 }
 
-interface RevenueChartProps {
-    data?: any[];
-}
-
-const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
+const RevenueChart = () => {
     const [data, setData] = useState<MonthlyRevenue[]>([]);
     const [loading, setLoading] = useState(true);
     const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth(); // 0-indexed
+    const currentMonth = new Date().getMonth();
 
     useEffect(() => {
         const fetchYearlyData = async () => {
             try {
                 setLoading(true);
                 
-                // Fetch all invoices - datos reales como PyG (facturas emitidas = ingresos)
                 const { data: invoicesData, error } = await supabase.rpc("finance_list_invoices", {
                     p_search: null,
                     p_status: null,
@@ -36,19 +31,14 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
                 
                 if (error) throw error;
                 
-                // Obtener el año actual
                 const yearStart = startOfYear(new Date(currentYear, 0, 1));
                 const yearEnd = endOfYear(new Date(currentYear, 11, 31));
-                
-                // Crear array con todos los meses del año
                 const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
                 
-                // Process invoices by month
                 const monthlyData = months.map((month, index) => {
                     const monthStart = startOfMonth(month);
                     const monthEnd = endOfMonth(month);
                     
-                    // Filtrar facturas emitidas del mes (excluir borrador y canceladas)
                     const monthInvoices = (invoicesData || []).filter((inv: any) => {
                         if (!inv.issue_date) return false;
                         const invDate = new Date(inv.issue_date);
@@ -61,34 +51,43 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
                     return {
                         month: format(month, "MMM", { locale: es }),
                         monthIndex: index,
-                        revenue: revenue,
+                        revenue,
                         forecast: null as number | null,
                     };
                 });
                 
-                // Calculate forecast based on current month's projection
-                const currentMonthData = monthlyData[currentMonth];
-                const dayOfMonth = new Date().getDate();
-                const daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-                
-                // Project current month's revenue to full month
-                const projectedCurrentMonthRevenue = currentMonthData.revenue > 0 
-                    ? (currentMonthData.revenue / dayOfMonth) * daysInCurrentMonth 
-                    : 0;
-                
-                // Calculate average monthly revenue from past months with data
+                // Improved forecast: weighted moving average (recent months weigh more)
                 const pastMonthsWithRevenue = monthlyData
                     .filter((m, idx) => idx < currentMonth && m.revenue > 0);
-                const avgMonthlyRevenue = pastMonthsWithRevenue.length > 0
-                    ? pastMonthsWithRevenue.reduce((sum, m) => sum + m.revenue, 0) / pastMonthsWithRevenue.length
-                    : projectedCurrentMonthRevenue;
-                
-                // Set forecast values for current and future months
+
+                let forecastBase = 0;
+                if (pastMonthsWithRevenue.length > 0) {
+                    // Weighted average: more recent months have higher weight
+                    let totalWeight = 0;
+                    let weightedSum = 0;
+                    pastMonthsWithRevenue.forEach((m, i) => {
+                        const weight = i + 1; // increasing weight
+                        weightedSum += m.revenue * weight;
+                        totalWeight += weight;
+                    });
+                    forecastBase = weightedSum / totalWeight;
+                }
+
+                // Project current month
+                const dayOfMonth = new Date().getDate();
+                const daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                const currentMonthRevenue = monthlyData[currentMonth]?.revenue || 0;
+                const projectedCurrentMonth = currentMonthRevenue > 0
+                    ? (currentMonthRevenue / dayOfMonth) * daysInCurrentMonth
+                    : forecastBase;
+
                 const dataWithForecast = monthlyData.map((m, idx) => ({
                     ...m,
-                    forecast: idx >= currentMonth 
-                        ? (idx === currentMonth ? projectedCurrentMonthRevenue : avgMonthlyRevenue)
-                        : null,
+                    forecast: idx === currentMonth 
+                        ? Math.round(projectedCurrentMonth)
+                        : idx > currentMonth 
+                            ? Math.round(forecastBase) 
+                            : null,
                 }));
                 
                 setData(dataWithForecast);
@@ -141,9 +140,8 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
             subtitle={`Año ${currentYear}`}
             icon={TrendingUp}
             variant="clean"
-            className="h-full"
         >
-            <div className="h-[300px] w-full mt-4">
+            <div className="h-[280px] w-full">
                 {loading ? (
                     <div className="h-full w-full flex items-center justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
@@ -174,7 +172,6 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
                                 domain={[0, 'dataMax + 500']}
                             />
                             <Tooltip content={renderCustomTooltip} />
-                            {/* Revenue area - solid blue */}
                             <Area
                                 type="monotone"
                                 dataKey="revenue"
@@ -183,7 +180,6 @@ const RevenueChart = ({ data: externalData }: RevenueChartProps) => {
                                 fill="url(#colorRevenue)"
                                 strokeWidth={2.5}
                             />
-                            {/* Forecast line - dashed teal/green, no fill */}
                             <Line
                                 type="monotone"
                                 dataKey="forecast"
