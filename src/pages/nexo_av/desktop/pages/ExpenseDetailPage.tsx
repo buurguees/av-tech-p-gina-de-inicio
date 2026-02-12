@@ -289,7 +289,7 @@ const ExpenseDetailPage = () => {
         return;
       }
       
-      const exp = expenseData[0] as Expense;
+      const exp = expenseData[0] as unknown as Expense;
       setExpense(exp);
       
       // Set form values
