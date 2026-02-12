@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { parseDecimalInput } from "@/pages/nexo_av/utils/parseDecimalInput";
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -235,13 +236,13 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         p_product_type: filterType === 'product' ? 'PRODUCT' : 'SERVICE',
         p_category_id: formData.categoryId || null,
         p_unit: filterType === 'product' ? 'ud' : 'hora',
-        p_cost_price: parseFloat(formData.costPrice) || null,
-        p_sale_price: parseFloat(formData.salePrice) || 0,
-        p_discount_percent: parseFloat(formData.discountPercent) || 0,
+        p_cost_price: parseDecimalInput(formData.costPrice) || null,
+        p_sale_price: parseDecimalInput(formData.salePrice) || 0,
+        p_discount_percent: parseDecimalInput(formData.discountPercent) || 0,
         p_tax_rate_id: formData.taxId || null,
         p_description: formData.description.trim() || null,
         p_track_stock: formData.trackStock,
-        p_min_stock_alert: formData.minStockAlert ? parseFloat(formData.minStockAlert) : null,
+        p_min_stock_alert: formData.minStockAlert ? parseDecimalInput(formData.minStockAlert) : null,
         p_supplier_id: formData.supplierId || null
       });
 
@@ -597,9 +598,8 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                   {isProductTab ? 'Precio coste (€)' : 'Coste ref. (€)'}
                 </Label>
                 <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
+                  inputMode="decimal"
                   value={formData.costPrice}
                   onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
                   className="bg-white/5 border-white/10 text-white"
@@ -609,9 +609,8 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
               <div className="space-y-2">
                 <Label className="text-white/70">Precio venta (€)</Label>
                 <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
+                  inputMode="decimal"
                   value={formData.salePrice}
                   onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
                   className="bg-white/5 border-white/10 text-white"
@@ -620,10 +619,8 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
               <div className="space-y-2">
                 <Label className="text-white/70">Dto. %</Label>
                 <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="100"
+                  type="text"
+                  inputMode="decimal"
                   value={formData.discountPercent}
                   onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value })}
                   className="bg-white/5 border-white/10 text-white"
@@ -659,13 +656,13 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
               {isProductTab && (
                 <div className="space-y-2">
                   <Label className="text-white/70">Stock</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                    className="bg-white/5 border-white/10 text-white"
-                  />
+                    <Input
+                      type="text"
+                      inputMode="decimal"
+                      value={formData.stock}
+                      onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                      className="bg-white/5 border-white/10 text-white"
+                    />
                 </div>
               )}
             </div>
@@ -675,7 +672,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-white/60">Precio con IVA:</span>
                   <span className="text-green-400 font-semibold">
-                    {(parseFloat(formData.salePrice) * (1 - parseFloat(formData.discountPercent || '0') / 100) * (1 + parseFloat(formData.taxRate) / 100)).toFixed(2)} €
+                    {(parseDecimalInput(formData.salePrice) * (1 - parseDecimalInput(formData.discountPercent || '0') / 100) * (1 + parseDecimalInput(formData.taxRate) / 100)).toFixed(2)} €
                   </span>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
+import { parseDecimalInput } from "@/pages/nexo_av/utils/parseDecimalInput";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Search, GripVertical, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -128,10 +129,7 @@ export default function DocumentLinesEditor({
   );
 
   const parseNumber = (value: string): number => {
-    if (!value) return 0;
-    const cleaned = value.replace(/\./g, "").replace(",", ".");
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? 0 : num;
+    return parseDecimalInput(value);
   };
 
   const handleNumericBlur = (index: number, field: string) => {

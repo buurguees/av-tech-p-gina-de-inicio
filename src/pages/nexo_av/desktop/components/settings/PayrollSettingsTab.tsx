@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { parseDecimalInput } from "@/pages/nexo_av/utils/parseDecimalInput";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -203,13 +204,11 @@ export function PayrollSettingsTab() {
                   </Label>
                   <Input
                     id="bonus_percent"
-                    type="number"
-                    min={0}
-                    max={100}
-                    step={0.5}
+                    type="text"
+                    inputMode="decimal"
                     value={settings.bonus_percent}
                     onChange={(e) =>
-                      setSettings({ ...settings, bonus_percent: parseFloat(e.target.value) || 0 })
+                      setSettings({ ...settings, bonus_percent: parseDecimalInput(e.target.value) })
                     }
                   />
                 </div>
@@ -220,12 +219,11 @@ export function PayrollSettingsTab() {
                   </Label>
                   <Input
                     id="bonus_cap_amount"
-                    type="number"
-                    min={0}
-                    step={10}
+                    type="text"
+                    inputMode="decimal"
                     value={settings.bonus_cap_amount}
                     onChange={(e) =>
-                      setSettings({ ...settings, bonus_cap_amount: parseFloat(e.target.value) || 0 })
+                      setSettings({ ...settings, bonus_cap_amount: parseDecimalInput(e.target.value) })
                     }
                   />
                 </div>
@@ -233,14 +231,13 @@ export function PayrollSettingsTab() {
                   <Label htmlFor="min_profit">Beneficio mínimo para pagar plus (€)</Label>
                   <Input
                     id="min_profit"
-                    type="number"
-                    min={0}
-                    step={100}
+                    type="text"
+                    inputMode="decimal"
                     value={settings.min_profit_to_pay_bonus}
                     onChange={(e) =>
                       setSettings({
                         ...settings,
-                        min_profit_to_pay_bonus: parseFloat(e.target.value) || 0,
+                        min_profit_to_pay_bonus: parseDecimalInput(e.target.value),
                       })
                     }
                   />
@@ -249,17 +246,15 @@ export function PayrollSettingsTab() {
                   <Label htmlFor="default_irpf">IRPF por defecto (%)</Label>
                   <Input
                     id="default_irpf"
-                    type="number"
-                    min={0}
-                    max={100}
-                    step={0.5}
+                    type="text"
+                    inputMode="decimal"
                     placeholder="19"
                     value={settings.default_irpf_rate ?? ""}
                     onChange={(e) => {
                       const v = e.target.value;
                       setSettings({
                         ...settings,
-                        default_irpf_rate: v === "" ? null : parseFloat(v) || 19,
+                        default_irpf_rate: v === "" ? null : parseDecimalInput(v) || 19,
                       });
                     }}
                   />
@@ -341,33 +336,30 @@ export function PayrollSettingsTab() {
                     </TableCell>
                     <TableCell className="text-right">
                       <Input
-                        type="number"
-                        min={0}
-                        step={50}
+                        type="text"
+                        inputMode="decimal"
                         className="w-28 text-right"
                         value={profile.base_salary}
                         onChange={(e) =>
                           updateProfile(
                             profile.partner_id,
                             "base_salary",
-                            parseFloat(e.target.value) || 0
+                            parseDecimalInput(e.target.value)
                           )
                         }
                       />
                     </TableCell>
                     <TableCell className="text-right">
                       <Input
-                        type="number"
-                        min={0}
-                        max={100}
-                        step={0.5}
+                        type="text"
+                        inputMode="decimal"
                         className="w-20 text-right"
                         value={profile.irpf_rate}
                         onChange={(e) =>
                           updateProfile(
                             profile.partner_id,
                             "irpf_rate",
-                            parseFloat(e.target.value) || 19
+                            parseDecimalInput(e.target.value) || 19
                           )
                         }
                       />

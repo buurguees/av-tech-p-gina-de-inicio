@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { parseDecimalInput } from "@/pages/nexo_av/utils/parseDecimalInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -170,41 +171,9 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
     onChange(lines.filter((_, i) => i !== index));
   };
 
-  // Helper: Parse input value (handles both . and , as decimal separator)
+  // Helper: Parse input value — both "." and "," are decimal separators
   const parseNumericInput = (value: string): number => {
-    if (!value || value === '') return 0;
-
-    let cleaned = value.trim();
-
-    // Count dots and commas
-    const dotCount = (cleaned.match(/\./g) || []).length;
-    const commaCount = (cleaned.match(/,/g) || []).length;
-
-    // If there's a comma, it's definitely the decimal separator (European format)
-    if (commaCount > 0) {
-      // Remove all dots (thousand separators) and replace comma with dot for parsing
-      cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.');
-    } else if (dotCount === 1) {
-      // Single dot: check if it's likely a decimal (has digits after) or thousand separator
-      const dotIndex = cleaned.indexOf('.');
-      const afterDot = cleaned.substring(dotIndex + 1);
-
-      // If there are 1-2 digits after the dot, treat it as decimal separator
-      // Otherwise, treat it as thousand separator
-      if (afterDot.length <= 2 && /^\d+$/.test(afterDot)) {
-        // Decimal separator - keep as is for parsing
-        cleaned = cleaned;
-      } else {
-        // Thousand separator - remove it
-        cleaned = cleaned.replace(/\./g, '');
-      }
-    } else if (dotCount > 1) {
-      // Multiple dots: all are thousand separators, remove them
-      cleaned = cleaned.replace(/\./g, '');
-    }
-
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? 0 : num;
+    return parseDecimalInput(value);
   };
 
   // Helper: Format number for display (with thousand separators and comma decimal)

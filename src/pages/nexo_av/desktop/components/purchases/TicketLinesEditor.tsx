@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { parseDecimalInput } from "@/pages/nexo_av/utils/parseDecimalInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -198,32 +199,9 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
     }
   }, [priceIncludesTax]);
 
-  // Helper: Parse input value (handles both . and , as decimal separator)
+  // Helper: Parse input value — both "." and "," are decimal separators
   const parseNumericInput = (value: string): number => {
-    if (!value || value === '') return 0;
-
-    let cleaned = value.trim();
-
-    // Count dots and commas
-    const dotCount = (cleaned.match(/\./g) || []).length;
-    const commaCount = (cleaned.match(/,/g) || []).length;
-
-    if (commaCount > 0) {
-      cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.');
-    } else if (dotCount === 1) {
-      const dotIndex = cleaned.indexOf('.');
-      const afterDot = cleaned.substring(dotIndex + 1);
-      if (afterDot.length <= 2 && /^\d+$/.test(afterDot)) {
-        cleaned = cleaned;
-      } else {
-        cleaned = cleaned.replace(/\./g, '');
-      }
-    } else if (dotCount > 1) {
-      cleaned = cleaned.replace(/\./g, '');
-    }
-
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? 0 : num;
+    return parseDecimalInput(value);
   };
 
   const formatNumericDisplay = (value: number | string): string => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { parseDecimalInput } from "@/pages/nexo_av/utils/parseDecimalInput";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -162,15 +163,14 @@ export default function EditTechnicianDialog({
         p_province: formData.province || null,
         p_postal_code: formData.postal_code.trim() || null,
         p_specialties: formData.specialties,
-        p_hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
-        p_daily_rate: formData.daily_rate ? parseFloat(formData.daily_rate) : null,
+        p_hourly_rate: formData.hourly_rate ? parseDecimalInput(formData.hourly_rate) : null,
+        p_daily_rate: formData.daily_rate ? parseDecimalInput(formData.daily_rate) : null,
         p_iban: formData.iban.trim() || null,
         p_payment_terms: formData.payment_terms.trim() || null,
-        p_status: formData.status,
         p_rating: formData.rating && formData.rating !== "" ? parseInt(formData.rating) : null,
         p_notes: formData.notes.trim() || null,
-        p_vat_rate: formData.vat_rate && formData.vat_rate !== "" ? parseFloat(formData.vat_rate) : null,
-        p_withholding_tax_rate: formData.withholding_tax_rate && formData.withholding_tax_rate !== "" ? parseFloat(formData.withholding_tax_rate) : null,
+        p_vat_rate: formData.vat_rate && formData.vat_rate !== "" ? parseDecimalInput(formData.vat_rate) : null,
+        p_withholding_tax_rate: formData.withholding_tax_rate && formData.withholding_tax_rate !== "" ? parseDecimalInput(formData.withholding_tax_rate) : null,
       });
 
       if (error) throw error;

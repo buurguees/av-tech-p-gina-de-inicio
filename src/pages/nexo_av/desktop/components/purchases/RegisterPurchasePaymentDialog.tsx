@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { parseDecimalInput } from "@/pages/nexo_av/utils/parseDecimalInput";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, CreditCard, Loader2, Coins, ArrowRight, Ban, CheckCircle2, Landmark, Pencil, ArrowDownCircle } from "lucide-react";
@@ -132,7 +133,7 @@ const RegisterPurchasePaymentDialog = ({
     }
   };
 
-  const currentAmount = parseFloat(amount) || 0;
+  const currentAmount = parseDecimalInput(amount);
   // Trabajar siempre con valores absolutos para la lógica
   const absPendingAmount = Math.abs(pendingAmount);
   const absPaymentAmount = payment ? Math.abs(payment.amount) : 0;
@@ -140,7 +141,7 @@ const RegisterPurchasePaymentDialog = ({
   const remainingAfterPayment = Math.max(0, maxAllowed - currentAmount);
 
   const handleSubmit = async () => {
-    const numAmount = parseFloat(amount);
+    const numAmount = parseDecimalInput(amount);
     if (isNaN(numAmount) || numAmount <= 0) {
       toast({
         variant: "destructive",
