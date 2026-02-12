@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Settings2, FileText, Tags, Receipt, Loader2, Banknote } from "lucide-react";
+import { Building2, Settings2, FileText, Tags, Receipt, Loader2, Banknote, Landmark } from "lucide-react";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import { CompanyDataTab } from "../components/settings/CompanyDataTab";
 import { PreferencesTab } from "../components/settings/PreferencesTab";
@@ -9,6 +9,7 @@ import { TemplatesTab } from "../components/settings/TemplatesTab";
 import { TaxesTab } from "../components/settings/TaxesTab";
 import { ProductCategoriesTab } from "../components/settings/ProductCategoriesTab";
 import { PayrollSettingsTab } from "../components/settings/PayrollSettingsTab";
+import { ExternalCreditProvidersTab } from "../components/settings/ExternalCreditProvidersTab";
 import TabNav, { TabItem } from "../components/navigation/TabNav";
 
 interface UserInfo {
@@ -20,6 +21,7 @@ const SETTINGS_TABS: TabItem[] = [
   { value: "company", label: "Datos de la Empresa", icon: Building2 },
   { value: "preferences", label: "Preferencias", icon: Settings2 },
   { value: "nominas", label: "Nóminas", icon: Banknote },
+  { value: "financing", label: "Financiación", icon: Landmark },
   { value: "categories", label: "Categorías", icon: Tags },
   { value: "taxes", label: "Impuestos", icon: Receipt },
   { value: "templates", label: "Plantillas", icon: FileText },
@@ -95,6 +97,8 @@ function SettingsPageDesktop() {
         return <PreferencesTab />;
       case "nominas":
         return <PayrollSettingsTab />;
+      case "financing":
+        return <ExternalCreditProvidersTab />;
       case "categories":
         return <ProductCategoriesTab />;
       case "taxes":

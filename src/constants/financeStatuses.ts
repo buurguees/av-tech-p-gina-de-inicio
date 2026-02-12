@@ -76,6 +76,8 @@ export const PAYMENT_METHODS = [
   { value: "CASH", label: "Efectivo" },
   { value: "DIRECT_DEBIT", label: "Domiciliación" },
   { value: "CHECK", label: "Cheque" },
+  { value: "PERSONAL", label: "Pagado por socio (personal)" },
+  { value: "EXTERNAL_CREDIT", label: "Financiación externa (Aplazame)" },
   { value: "OTHER", label: "Otro" },
 ];
 
