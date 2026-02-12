@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { parseDecimalInput } from "@/pages/nexo_av/utils/parseDecimalInput";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -99,14 +100,14 @@ export default function CreateTechnicianDialog({
         p_province: formData.province || null,
         p_postal_code: formData.postal_code.trim() || null,
         p_specialties: formData.specialties,
-        p_hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null,
-        p_daily_rate: formData.daily_rate ? parseFloat(formData.daily_rate) : null,
-        p_monthly_salary: formData.monthly_salary ? parseFloat(formData.monthly_salary) : null,
+        p_hourly_rate: formData.hourly_rate ? parseDecimalInput(formData.hourly_rate) : null,
+        p_daily_rate: formData.daily_rate ? parseDecimalInput(formData.daily_rate) : null,
+        p_monthly_salary: formData.monthly_salary ? parseDecimalInput(formData.monthly_salary) : null,
         p_iban: formData.iban.trim() || null,
         p_payment_terms: formData.payment_terms.trim() || null,
         p_notes: formData.notes.trim() || null,
-        p_vat_rate: formData.vat_rate && formData.vat_rate !== "" ? parseFloat(formData.vat_rate) : null,
-        p_withholding_tax_rate: formData.withholding_tax_rate && formData.withholding_tax_rate !== "" ? parseFloat(formData.withholding_tax_rate) : null,
+        p_vat_rate: formData.vat_rate && formData.vat_rate !== "" ? parseDecimalInput(formData.vat_rate) : null,
+        p_withholding_tax_rate: formData.withholding_tax_rate && formData.withholding_tax_rate !== "" ? parseDecimalInput(formData.withholding_tax_rate) : null,
       });
 
       if (error) throw error;
@@ -342,9 +343,8 @@ export default function CreateTechnicianDialog({
                   <Label htmlFor="monthly_salary">Sueldo mensual (€)</Label>
                   <Input
                     id="monthly_salary"
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    inputMode="decimal"
                     value={formData.monthly_salary}
                     onChange={(e) => handleChange("monthly_salary", e.target.value)}
                     placeholder="2000.00"
@@ -366,9 +366,8 @@ export default function CreateTechnicianDialog({
                   <Label htmlFor="hourly_rate">Tarifa por hora (€)</Label>
                   <Input
                     id="hourly_rate"
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    inputMode="decimal"
                     value={formData.hourly_rate}
                     onChange={(e) => handleChange("hourly_rate", e.target.value)}
                     placeholder="25.00"
@@ -378,9 +377,8 @@ export default function CreateTechnicianDialog({
                   <Label htmlFor="daily_rate">Tarifa por día (€)</Label>
                   <Input
                     id="daily_rate"
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    inputMode="decimal"
                     value={formData.daily_rate}
                     onChange={(e) => handleChange("daily_rate", e.target.value)}
                     placeholder="200.00"
@@ -408,10 +406,8 @@ export default function CreateTechnicianDialog({
                   <Label htmlFor="vat_rate">IVA (%)</Label>
                   <Input
                     id="vat_rate"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
+                    type="text"
+                    inputMode="decimal"
                     value={formData.vat_rate}
                     onChange={(e) => handleChange("vat_rate", e.target.value)}
                     placeholder="Ej: 21, 10, 0"
@@ -422,10 +418,8 @@ export default function CreateTechnicianDialog({
                   <Label htmlFor="withholding_tax_rate">IRPF a retener (%)</Label>
                   <Input
                     id="withholding_tax_rate"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
+                    type="text"
+                    inputMode="decimal"
                     value={formData.withholding_tax_rate}
                     onChange={(e) => handleChange("withholding_tax_rate", e.target.value)}
                     placeholder="Ej: 15, 7, 19"

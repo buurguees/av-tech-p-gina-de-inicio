@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { parseDecimalInput } from "@/pages/nexo_av/utils/parseDecimalInput";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -464,12 +465,11 @@ const PurchaseOrderLinesEditor = ({
                 <Label htmlFor="quantity">Cantidad</Label>
                 <Input
                   id="quantity"
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
+                  inputMode="decimal"
                   value={formData.quantity}
                   onChange={(e) =>
-                    setFormData({ ...formData, quantity: parseFloat(e.target.value) || 0 })
+                    setFormData({ ...formData, quantity: parseDecimalInput(e.target.value) })
                   }
                 />
               </div>
@@ -488,12 +488,11 @@ const PurchaseOrderLinesEditor = ({
                 <Label htmlFor="unit_price">Precio unit.</Label>
                 <Input
                   id="unit_price"
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
+                  inputMode="decimal"
                   value={formData.unit_price}
                   onChange={(e) =>
-                    setFormData({ ...formData, unit_price: parseFloat(e.target.value) || 0 })
+                    setFormData({ ...formData, unit_price: parseDecimalInput(e.target.value) })
                   }
                 />
               </div>
@@ -505,13 +504,11 @@ const PurchaseOrderLinesEditor = ({
                 <Label htmlFor="tax_rate">IVA %</Label>
                 <Input
                   id="tax_rate"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="100"
+                  type="text"
+                  inputMode="decimal"
                   value={formData.tax_rate}
                   onChange={(e) =>
-                    setFormData({ ...formData, tax_rate: parseFloat(e.target.value) || 0 })
+                    setFormData({ ...formData, tax_rate: parseDecimalInput(e.target.value) })
                   }
                 />
               </div>
@@ -519,13 +516,11 @@ const PurchaseOrderLinesEditor = ({
                 <Label htmlFor="withholding_rate">IRPF %</Label>
                 <Input
                   id="withholding_rate"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="100"
+                  type="text"
+                  inputMode="decimal"
                   value={formData.withholding_rate}
                   onChange={(e) =>
-                    setFormData({ ...formData, withholding_rate: parseFloat(e.target.value) || 0 })
+                    setFormData({ ...formData, withholding_rate: parseDecimalInput(e.target.value) })
                   }
                 />
               </div>
@@ -533,13 +528,11 @@ const PurchaseOrderLinesEditor = ({
                 <Label htmlFor="discount_percent">Dto. %</Label>
                 <Input
                   id="discount_percent"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="100"
+                  type="text"
+                  inputMode="decimal"
                   value={formData.discount_percent}
                   onChange={(e) =>
-                    setFormData({ ...formData, discount_percent: parseFloat(e.target.value) || 0 })
+                    setFormData({ ...formData, discount_percent: parseDecimalInput(e.target.value) })
                   }
                 />
               </div>

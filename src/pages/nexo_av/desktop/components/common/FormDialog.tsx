@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, ReactNode } from "react";
+import { parseDecimalInput } from "@/pages/nexo_av/utils/parseDecimalInput";
 import {
   Dialog,
   DialogContent,
@@ -127,7 +128,7 @@ export default function FormDialog({
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Email no válido";
     }
     if (field.type === "number" && value !== "" && value !== null && value !== undefined) {
-      const numValue = Number(value);
+      const numValue = parseDecimalInput(value);
       if (isNaN(numValue)) return `${field.label} debe ser un número`;
       if (field.min !== undefined && numValue < field.min) return `${field.label} debe ser mayor o igual a ${field.min}`;
       if (field.max !== undefined && numValue > field.max) return `${field.label} debe ser menor o igual a ${field.max}`;

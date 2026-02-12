@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { parseDecimalInput } from "@/pages/nexo_av/utils/parseDecimalInput";
 import {
   Dialog,
   DialogContent,
@@ -92,8 +93,8 @@ export default function CreatePayrollDialog({
         p_employee_id: formData.employee_id,
         p_period_year: formData.period_year,
         p_period_month: formData.period_month,
-        p_gross_amount: parseFloat(formData.gross_amount),
-        p_irpf_rate: parseFloat(formData.irpf_rate),
+        p_gross_amount: parseDecimalInput(formData.gross_amount),
+        p_irpf_rate: parseDecimalInput(formData.irpf_rate),
         p_notes: formData.notes || null,
       });
 
@@ -131,8 +132,8 @@ export default function CreatePayrollDialog({
   };
 
   const calculateNet = () => {
-    const gross = parseFloat(formData.gross_amount) || 0;
-    const irpfRate = parseFloat(formData.irpf_rate) || 0;
+    const gross = parseDecimalInput(formData.gross_amount);
+    const irpfRate = parseDecimalInput(formData.irpf_rate);
     const irpf = gross * (irpfRate / 100);
     return gross - irpf;
   };
@@ -207,8 +208,8 @@ export default function CreatePayrollDialog({
               </Label>
               <Input
                 id="gross_amount"
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 value={formData.gross_amount}
                 onChange={(e) => setFormData({ ...formData, gross_amount: e.target.value })}
                 required
@@ -219,8 +220,8 @@ export default function CreatePayrollDialog({
               <Label htmlFor="irpf_rate">IRPF (%)</Label>
               <Input
                 id="irpf_rate"
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 value={formData.irpf_rate}
                 onChange={(e) => setFormData({ ...formData, irpf_rate: e.target.value })}
               />
