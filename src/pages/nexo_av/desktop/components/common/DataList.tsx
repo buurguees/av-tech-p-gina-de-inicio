@@ -31,6 +31,12 @@ export interface DataListAction<T = any> {
   condition?: (item: T) => boolean;
 }
 
+export interface DataListFooterCell {
+  key: string;
+  value: ReactNode;
+  align?: "left" | "center" | "right";
+}
+
 export interface DataListProps<T = any> {
   data: T[];
   columns: DataListColumn<T>[];
@@ -44,6 +50,8 @@ export interface DataListProps<T = any> {
   emptyIcon?: ReactNode;
   getItemId: (item: T) => string;
   className?: string;
+  /** Summary footer row: map column keys to values */
+  footerCells?: DataListFooterCell[];
 }
 
 // Hook to detect screen breakpoint and filter columns accordingly
@@ -188,6 +196,7 @@ export default function DataList<T = any>({
   emptyIcon,
   getItemId,
   className,
+  footerCells,
 }: DataListProps<T>) {
   // Ref para el contenedor del data-list
   const containerRef = useRef<HTMLDivElement>(null);
@@ -343,6 +352,30 @@ export default function DataList<T = any>({
           );
         })}
       </div>
+
+      {/* Summary Footer */}
+      {footerCells && footerCells.length > 0 && (
+        <div 
+          className="data-list__footer"
+          style={{ gridTemplateColumns: gridColumns }}
+        >
+          {visibleColumns.map((column) => {
+            const footerCell = footerCells.find(fc => fc.key === column.key);
+            return (
+              <div
+                key={column.key}
+                className={cn(
+                  "data-list__footer-cell",
+                  `data-list__footer-cell--${footerCell?.align || column.align || "left"}`
+                )}
+              >
+                {footerCell ? footerCell.value : null}
+              </div>
+            );
+          })}
+          {hasActions && <div className="data-list__footer-cell" />}
+        </div>
+      )}
     </div>
   );
 }

@@ -2765,6 +2765,7 @@ export type Database = {
           pending_amount: number
           project_id: string
           project_name: string
+          project_number: string
           provider_id: string
           provider_name: string
           provider_tax_id: string

@@ -511,43 +511,61 @@ const PurchaseInvoicesPageDesktop = () => {
           </Alert>
         )}
         <div>
-          {/* Summary Metric Cards */}
+          {/* Summary Metric Cards - Clickable Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
-            <div className="bg-card/50 border border-border rounded-lg p-2">
+            <div 
+              className={cn(
+                "border rounded-lg p-2 cursor-pointer transition-all",
+                paymentFilter === "all" && statusFilter === "all"
+                  ? "bg-card/50 border-border"
+                  : "bg-card/30 border-border/30 opacity-60 hover:opacity-80"
+              )}
+              onClick={() => { setPaymentFilter("all"); setStatusFilter("all"); }}
+            >
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-red-500/10 rounded text-red-500">
                   <TrendingDown className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-xs font-medium">Gasto Total</span>
+                <span className="text-muted-foreground text-xs font-medium">Total Compras</span>
               </div>
               <div>
                 <span className="text-base font-bold text-foreground">
-                  {formatCurrency(invoices.reduce((sum, inv) => sum + (inv.total || 0), 0))}
+                  {invoices.length}
                 </span>
-                <span className="text-[10px] text-muted-foreground ml-1">
-                  ({invoices.length} documentos)
-                </span>
+                <span className="text-[10px] text-muted-foreground ml-1">documentos</span>
               </div>
             </div>
 
-            <div className="bg-card/50 border border-border rounded-lg p-2">
+            <div 
+              className={cn(
+                "border rounded-lg p-2 cursor-pointer transition-all",
+                paymentFilter === "pending"
+                  ? "bg-card/50 border-amber-500/30 ring-1 ring-amber-500/20"
+                  : "bg-card/30 border-border/30 opacity-60 hover:opacity-80"
+              )}
+              onClick={() => { setPaymentFilter("pending"); setStatusFilter("all"); }}
+            >
               <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-blue-500/10 rounded text-blue-500">
+                <div className="p-1 bg-amber-500/10 rounded text-amber-500">
                   <AlertCircle className="h-3.5 w-3.5" />
                 </div>
                 <span className="text-muted-foreground text-xs font-medium">Pendiente de Pago</span>
               </div>
               <div>
                 <span className="text-base font-bold text-foreground">
-                  {formatCurrency(invoices.reduce((sum, inv) => sum + (inv.pending_amount || 0), 0))}
+                  {invoices.filter(i => i.pending_amount > 0 && i.status !== 'DRAFT' && i.status !== 'CANCELLED').length}
                 </span>
-                <span className="text-[10px] text-muted-foreground ml-1">
-                  ({invoices.filter(i => i.pending_amount > 0).length} facturas)
-                </span>
+                <span className="text-[10px] text-muted-foreground ml-1">facturas</span>
               </div>
             </div>
 
-            <div className="bg-card/50 border border-border rounded-lg p-2">
+            <div 
+              className={cn(
+                "border rounded-lg p-2 cursor-pointer transition-all",
+                "bg-card/30 border-border/30 opacity-60 hover:opacity-80"
+              )}
+              onClick={() => { setPaymentFilter("all"); setStatusFilter("all"); }}
+            >
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-red-500/10 rounded text-red-500">
                   <AlertCircle className="h-3.5 w-3.5" />
@@ -556,14 +574,11 @@ const PurchaseInvoicesPageDesktop = () => {
               </div>
               <div>
                 <span className="text-base font-bold text-red-500">
-                  {formatCurrency(invoices
-                    .filter(inv => {
-                      if (inv.status === 'PAID' || inv.status === 'DRAFT' || inv.status === 'CANCELLED') return false;
-                      if (!inv.due_date) return false;
-                      return new Date(inv.due_date) < new Date();
-                    })
-                    .reduce((sum, inv) => sum + (inv.total || 0), 0)
-                  )}
+                  {invoices.filter(inv => {
+                    if (inv.status === 'PAID' || inv.status === 'DRAFT' || inv.status === 'CANCELLED') return false;
+                    if (!inv.due_date || inv.pending_amount <= 0) return false;
+                    return new Date(inv.due_date) < new Date();
+                  }).length}
                 </span>
                 <span className="text-[10px] text-muted-foreground ml-1">
                   Requiere atención
@@ -1015,6 +1030,20 @@ const PurchaseInvoicesPageDesktop = () => {
                       );
                     })}
                   </TableBody>
+                  <tfoot>
+                    <tr className="border-t-2 border-border bg-muted/50">
+                      <td className="text-xs font-bold text-muted-foreground py-2.5 px-3 uppercase" colSpan={7}>
+                        Totales ({invoices.length})
+                      </td>
+                      <td className="text-sm font-bold text-foreground text-right py-2.5 px-3">
+                        {formatCurrency(invoices.reduce((s, i) => s + (i.total || 0), 0))}
+                      </td>
+                      <td className="text-sm font-bold text-muted-foreground text-right py-2.5 px-3">
+                        {formatCurrency(invoices.reduce((s, i) => s + (i.pending_amount || 0), 0))}
+                      </td>
+                      <td className="py-2.5 px-3"></td>
+                    </tr>
+                  </tfoot>
                 </Table>
               </div>
 

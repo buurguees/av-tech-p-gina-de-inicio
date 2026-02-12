@@ -22,7 +22,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
-import DataList, { DataListAction } from "../components/common/DataList";
+import DataList, { DataListAction, DataListFooterCell } from "../components/common/DataList";
 
 
 interface Quote {
@@ -238,9 +238,17 @@ const QuotesPageDesktop = () => {
     <div className="w-full h-full flex flex-col overflow-hidden p-6">
       <div className="w-full h-full flex flex-col overflow-hidden">
         <div className="flex flex-col h-full overflow-hidden">
-          {/* Stats Cards - Optimizado */}
+          {/* Stats Cards - Clickable Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 flex-shrink-0">
-            <div className="bg-card/50 border border-white/10 rounded-lg p-2">
+            <div 
+              className={cn(
+                "border rounded-lg p-2 cursor-pointer transition-all",
+                !statusFilter
+                  ? "bg-card/50 border-white/10"
+                  : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
+              )}
+              onClick={() => setStatusFilter(null)}
+            >
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-orange-500/10 rounded text-orange-500 text-[10px] font-bold uppercase tracking-wider">
                   Pipeline Activo
@@ -248,51 +256,53 @@ const QuotesPageDesktop = () => {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-bold text-foreground">
-                  {formatCurrency(quotes
-                    .filter(q => q.status === 'SENT' || q.status === 'VIEWED' || q.status === 'PENDING')
-                    .reduce((sum, q) => sum + (q.total || 0), 0)
-                  )}
+                  {quotes.filter(q => q.status === 'SENT' || q.status === 'VIEWED' || q.status === 'PENDING').length}
                 </span>
-                <span className="text-[10px] text-muted-foreground">
-                  ({quotes.filter(q => q.status === 'SENT' || q.status === 'VIEWED' || q.status === 'PENDING').length} presup.)
-                </span>
+                <span className="text-[10px] text-muted-foreground">presupuestos activos</span>
               </div>
             </div>
 
-            <div className="bg-card/50 border border-white/10 rounded-lg p-2">
+            <div 
+              className={cn(
+                "border rounded-lg p-2 cursor-pointer transition-all",
+                statusFilter === 'ACCEPTED'
+                  ? "bg-card/50 border-green-500/30 ring-1 ring-green-500/20"
+                  : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
+              )}
+              onClick={() => setStatusFilter(statusFilter === 'ACCEPTED' ? null : 'ACCEPTED')}
+            >
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-green-500/10 rounded text-green-500 text-[10px] font-bold uppercase tracking-wider">
-                  Tasa Aceptación
+                  Aceptados
                 </div>
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-bold text-foreground">
-                  {(() => {
-                    const closed = quotes.filter(q => q.status === 'ACCEPTED' || q.status === 'REJECTED');
-                    if (closed.length === 0) return '0%';
-                    const won = closed.filter(q => q.status === 'ACCEPTED').length;
-                    return `${Math.round((won / closed.length) * 100)}%`;
-                  })()}
+                  {quotes.filter(q => q.status === 'ACCEPTED').length}
                 </span>
-                <span className="text-[10px] text-muted-foreground">conversión                </span>
+                <span className="text-[10px] text-muted-foreground">presupuestos</span>
               </div>
             </div>
 
-            <div className="bg-card/50 border border-white/10 rounded-lg p-2">
+            <div 
+              className={cn(
+                "border rounded-lg p-2 cursor-pointer transition-all",
+                statusFilter === 'DRAFT'
+                  ? "bg-card/50 border-purple-500/30 ring-1 ring-purple-500/20"
+                  : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
+              )}
+              onClick={() => setStatusFilter(statusFilter === 'DRAFT' ? null : 'DRAFT')}
+            >
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-purple-500/10 rounded text-purple-500 text-[10px] font-bold uppercase tracking-wider">
-                  Ticket Medio
+                  Borradores
                 </div>
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-bold text-foreground">
-                  {formatCurrency(
-                    quotes.length > 0
-                      ? quotes.reduce((sum, q) => sum + (q.total || 0), 0) / quotes.length
-                      : 0
-                  )}
+                  {quotes.filter(q => q.status === 'DRAFT').length}
                 </span>
-                <span className="text-[10px] text-muted-foreground">por presupuesto                </span>
+                <span className="text-[10px] text-muted-foreground">pendientes de enviar</span>
               </div>
             </div>
           </div>
@@ -500,6 +510,11 @@ const QuotesPageDesktop = () => {
             emptyMessage="No hay presupuestos"
             emptyIcon={<FileText className="h-16 w-16 text-muted-foreground" />}
             getItemId={(quote) => quote.id}
+            footerCells={[
+              { key: "quote_number", value: <span className="text-muted-foreground text-xs uppercase">Totales ({quotes.length})</span>, align: "left" },
+              { key: "subtotal", value: <span>{formatCurrency(quotes.reduce((s, q) => s + (q.subtotal || 0), 0))}</span>, align: "right" },
+              { key: "total", value: <span>{formatCurrency(quotes.reduce((s, q) => s + (q.total || 0), 0))}</span>, align: "right" },
+            ]}
           />
           </div>
 

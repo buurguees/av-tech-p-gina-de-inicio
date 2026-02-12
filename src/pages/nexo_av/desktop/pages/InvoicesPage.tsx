@@ -17,7 +17,7 @@ import {
   getCollectionStatusInfo,
   SALES_DOCUMENT_STATUSES,
 } from "@/constants/salesInvoiceStatuses";
-import DataList from "../components/common/DataList";
+import DataList, { DataListFooterCell } from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
 import {
   DropdownMenu,
@@ -209,57 +209,61 @@ const InvoicesPageDesktop = () => {
     <div className="w-full h-full flex flex-col overflow-hidden p-6">
       <div className="w-full h-full flex flex-col overflow-hidden">
         <div className="flex flex-col h-full overflow-hidden">
-          {/* Summary Metric Cards - Optimizado */}
+          {/* Summary Metric Cards - Clickable Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 flex-shrink-0">
-            <div className="bg-zinc-900/50 border border-white/10 rounded-lg p-2 flex flex-col justify-between">
+            <div 
+              className={cn(
+                "border rounded-lg p-2 flex flex-col justify-between cursor-pointer transition-all",
+                paymentFilter === "all" && statusFilter === "all"
+                  ? "bg-zinc-900/50 border-white/10"
+                  : "bg-zinc-900/30 border-white/5 opacity-60 hover:opacity-80"
+              )}
+              onClick={() => { setPaymentFilter("all"); setStatusFilter("all"); }}
+            >
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-emerald-500/10 rounded text-emerald-500">
                   <FileText className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-white/60 text-[9px] px-1.5 py-0.5 font-medium">Facturado este mes</span>
+                <span className="text-white/60 text-[9px] px-1.5 py-0.5 font-medium">Todas las facturas</span>
               </div>
               <div>
                 <span className="text-base font-bold text-white">
-                  {formatCurrency(invoices
-                    .filter(inv => {
-                      if (!inv.issue_date) return false;
-                      const invoiceDate = new Date(inv.issue_date);
-                      const now = new Date();
-                      // Calcular primer día del mes actual (día 1)
-                      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                      // Calcular último día del mes actual (día 0 del siguiente mes)
-                      const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-                      // Normalizar fechas a medianoche para comparación precisa
-                      firstDayOfMonth.setHours(0, 0, 0, 0);
-                      lastDayOfMonth.setHours(23, 59, 59, 999);
-                      invoiceDate.setHours(0, 0, 0, 0);
-                      // Verificar que la fecha esté dentro del rango del mes (del 1 al último día)
-                      return invoiceDate >= firstDayOfMonth && invoiceDate <= lastDayOfMonth;
-                    })
-                    .reduce((sum, inv) => sum + (inv.total || 0), 0)
-                  )}
+                  {invoices.length}
                 </span>
+                <span className="text-[10px] text-white/40 ml-1">facturas</span>
               </div>
             </div>
 
-            <div className="bg-zinc-900/50 border border-white/10 rounded-lg p-2 flex flex-col justify-between">
+            <div 
+              className={cn(
+                "border rounded-lg p-2 flex flex-col justify-between cursor-pointer transition-all",
+                paymentFilter === "pending"
+                  ? "bg-zinc-900/50 border-amber-500/30 ring-1 ring-amber-500/20"
+                  : "bg-zinc-900/30 border-white/5 opacity-60 hover:opacity-80"
+              )}
+              onClick={() => { setPaymentFilter("pending"); setStatusFilter("all"); }}
+            >
               <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-blue-500/10 rounded text-blue-500">
+                <div className="p-1 bg-amber-500/10 rounded text-amber-500">
                   <CheckCircle className="h-3.5 w-3.5" />
                 </div>
                 <span className="text-white/60 text-[9px] px-1.5 py-0.5 font-medium">Pendiente de Cobro</span>
               </div>
               <div>
                 <span className="text-base font-bold text-white">
-                  {formatCurrency(invoices
-                    .filter(inv => inv.status !== 'PAID' && inv.status !== 'DRAFT' && inv.status !== 'CANCELLED')
-                    .reduce((sum, inv) => sum + (inv.pending_amount || 0), 0)
-                  )}
+                  {invoices.filter(inv => inv.pending_amount > 0).length}
                 </span>
+                <span className="text-[10px] text-white/40 ml-1">facturas</span>
               </div>
             </div>
 
-            <div className="bg-zinc-900/50 border border-white/10 rounded-lg p-2 flex flex-col justify-between">
+            <div 
+              className={cn(
+                "border rounded-lg p-2 flex flex-col justify-between cursor-pointer transition-all",
+                paymentFilter === "all" && statusFilter === "all" ? "bg-zinc-900/30 border-white/5 opacity-60 hover:opacity-80" : "bg-zinc-900/30 border-white/5 opacity-60 hover:opacity-80"
+              )}
+              onClick={() => { setPaymentFilter("all"); setStatusFilter("all"); }}
+            >
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-red-500/10 rounded text-red-500">
                   <AlertCircle className="h-3.5 w-3.5" />
@@ -268,19 +272,13 @@ const InvoicesPageDesktop = () => {
               </div>
               <div>
                 <span className="text-base font-bold text-red-500">
-                  {formatCurrency(invoices
-                    .filter(inv => {
-                      if (inv.status === 'PAID' || inv.status === 'DRAFT' || inv.status === 'CANCELLED') return false;
-                      if (!inv.due_date) return false;
-                      if (inv.pending_amount <= 0) return false; // Solo facturas con saldo pendiente
-                      return new Date(inv.due_date) < new Date();
-                    })
-                    .reduce((sum, inv) => sum + (inv.pending_amount || 0), 0)
-                  )}
+                  {invoices.filter(inv => {
+                    if (inv.status === 'PAID' || inv.status === 'DRAFT' || inv.status === 'CANCELLED') return false;
+                    if (!inv.due_date || inv.pending_amount <= 0) return false;
+                    return new Date(inv.due_date) < new Date();
+                  }).length}
                 </span>
-                <div className="flex items-center gap-1 mt-1 text-[9px] px-1.5 py-0.5 text-red-400/80">
-                  <span>Requiere atención inmediata</span>
-                </div>
+                <span className="text-[10px] text-red-400/60 ml-1">facturas vencidas</span>
               </div>
             </div>
           </div>
@@ -641,6 +639,13 @@ const InvoicesPageDesktop = () => {
             emptyMessage="No hay facturas"
             emptyIcon={<FileText className="h-16 w-16 text-muted-foreground" />}
             getItemId={(invoice) => invoice.id}
+            footerCells={[
+              { key: "invoice_number", value: <span className="text-muted-foreground text-xs uppercase">Totales ({invoices.length})</span>, align: "left" },
+              { key: "subtotal", value: <span>{formatCurrency(invoices.reduce((s, i) => s + (i.subtotal || 0), 0))}</span>, align: "right" },
+              { key: "tax_amount", value: <span>{formatCurrency(invoices.reduce((s, i) => s + (i.tax_amount || 0), 0))}</span>, align: "right" },
+              { key: "total", value: <span>{formatCurrency(invoices.reduce((s, i) => s + (i.total || 0), 0))}</span>, align: "right" },
+              { key: "paid_amount", value: <span className="text-muted-foreground">{formatCurrency(invoices.reduce((s, i) => s + (i.paid_amount || 0), 0))}</span>, align: "right" },
+            ]}
           />
           </div>
 
