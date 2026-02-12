@@ -531,6 +531,28 @@ export type Database = {
           client_number: string
         }[]
       }
+      create_credit_operation: {
+        Args: {
+          p_fee_amount?: number
+          p_first_due_date?: string
+          p_gross_amount: number
+          p_num_installments?: number
+          p_provider_id: string
+          p_purchase_invoice_id: string
+          p_settlement_bank_account_id?: string
+        }
+        Returns: string
+      }
+      create_external_credit_provider: {
+        Args: {
+          p_code: string
+          p_creditor_account_code?: string
+          p_expense_account_code?: string
+          p_name: string
+          p_provider_type?: string
+        }
+        Returns: string
+      }
       create_invitation_token: {
         Args: { p_expires_at: string; p_token: string; p_user_id: string }
         Returns: undefined
@@ -891,6 +913,10 @@ export type Database = {
       delete_catalog_category: { Args: { p_id: string }; Returns: boolean }
       delete_catalog_product: { Args: { p_id: string }; Returns: boolean }
       delete_client: { Args: { p_client_id: string }; Returns: boolean }
+      delete_external_credit_provider: {
+        Args: { p_id: string }
+        Returns: boolean
+      }
       delete_invoice_line: { Args: { p_line_id: string }; Returns: boolean }
       delete_partner_compensation_run: {
         Args: { p_compensation_run_id: string }
@@ -1458,6 +1484,36 @@ export type Database = {
           provision_entry_number: string
           tax_amount: number
           tax_rate: number
+        }[]
+      }
+      get_credit_installments: {
+        Args: { p_operation_id: string }
+        Returns: {
+          amount: number
+          due_date: string
+          id: string
+          installment_number: number
+          status: string
+        }[]
+      }
+      get_credit_operations: {
+        Args: { p_purchase_invoice_id?: string }
+        Returns: {
+          created_at: string
+          direction: string
+          fee_amount: number
+          gross_amount: number
+          id: string
+          net_amount: number
+          num_installments: number
+          pending_installments: number
+          provider_code: string
+          provider_id: string
+          provider_name: string
+          purchase_invoice_id: string
+          settlement_bank_account_id: string
+          status: string
+          total_settled: number
         }[]
       }
       get_current_user_info: {
@@ -2368,6 +2424,19 @@ export type Database = {
           tax_id: string
         }[]
       }
+      list_external_credit_providers: {
+        Args: never
+        Returns: {
+          code: string
+          created_at: string
+          creditor_account_code: string
+          expense_account_code: string
+          id: string
+          is_active: boolean
+          name: string
+          provider_type: string
+        }[]
+      }
       list_invoices:
         | {
             Args: { p_search?: string }
@@ -2510,6 +2579,15 @@ export type Database = {
           tax_id: string
         }[]
       }
+      list_partners_for_selector: {
+        Args: never
+        Returns: {
+          account_code: string
+          full_name: string
+          id: string
+          partner_number: string
+        }[]
+      }
       list_payroll_payments: {
         Args: {
           p_end_date?: string
@@ -2561,6 +2639,22 @@ export type Database = {
           period_month: number
           period_year: number
           status: string
+        }[]
+      }
+      list_pending_reimbursements: {
+        Args: never
+        Returns: {
+          amount: number
+          created_at: string
+          invoice_number: string
+          notes: string
+          partner_number: string
+          payer_name: string
+          payer_person_id: string
+          payment_date: string
+          payment_id: string
+          purchase_invoice_id: string
+          supplier_name: string
         }[]
       }
       list_periods_for_closure: {
@@ -3036,6 +3130,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      register_personal_purchase_payment: {
+        Args: {
+          p_amount: number
+          p_notes?: string
+          p_payer_person_id: string
+          p_payment_date?: string
+          p_purchase_invoice_id: string
+        }
+        Returns: string
+      }
       register_purchase_invoice: {
         Args: { p_invoice_id: string }
         Returns: boolean
@@ -3052,6 +3156,14 @@ export type Database = {
         }
         Returns: string
       }
+      reimburse_personal_purchase: {
+        Args: {
+          p_bank_account_id: string
+          p_payment_id: string
+          p_reimbursement_date?: string
+        }
+        Returns: boolean
+      }
       remove_catalog_bundle_component: {
         Args: { p_bundle_product_id: string; p_component_product_id: string }
         Returns: boolean
@@ -3064,6 +3176,16 @@ export type Database = {
       reset_rate_limit: {
         Args: { p_identifier: string; p_identifier_type: string }
         Returns: undefined
+      }
+      settle_credit_installment: {
+        Args: {
+          p_bank_account_id?: string
+          p_fee_amount?: number
+          p_gross_amount: number
+          p_operation_id: string
+          p_settlement_date?: string
+        }
+        Returns: string
       }
       toggle_user_status: {
         Args: { p_is_active: boolean; p_user_id: string }
@@ -3174,6 +3296,16 @@ export type Database = {
       }
       update_client_status: {
         Args: { p_client_id: string; p_new_status: string; p_note?: string }
+        Returns: boolean
+      }
+      update_external_credit_provider: {
+        Args: {
+          p_creditor_account_code?: string
+          p_expense_account_code?: string
+          p_id: string
+          p_is_active?: boolean
+          p_name?: string
+        }
         Returns: boolean
       }
       update_invoice: {

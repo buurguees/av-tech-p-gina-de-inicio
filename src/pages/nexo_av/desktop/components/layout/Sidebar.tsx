@@ -22,7 +22,8 @@ import {
   BookOpen,
   Code2,
   UserCog,
-  Briefcase
+  Briefcase,
+  HandCoins
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import "../../styles/components/layout/sidebar.css";
@@ -128,6 +129,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           title: 'Gastos',
           icon: DollarSign,
           path: `/nexo-av/${userId}/expenses`,
+          available: isAdminOrManager,
+        },
+        {
+          id: 'reimbursements',
+          title: 'Reembolsos Pendientes',
+          icon: HandCoins,
+          path: `/nexo-av/${userId}/reimbursements`,
           available: isAdminOrManager,
         },
       ],

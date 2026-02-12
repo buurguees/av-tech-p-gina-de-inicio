@@ -71,6 +71,7 @@ const NexoWorkerDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/Wo
 const NexoPurchaseOrdersPage = lazy(() => import("./pages/nexo_av/desktop/pages/PurchaseOrdersPage"));
 const NexoPurchaseOrderDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/PurchaseOrderDetailPage"));
 const NexoNewPurchaseOrderPage = lazy(() => import("./pages/nexo_av/desktop/pages/NewPurchaseOrderPage"));
+const NexoPendingReimbursementsPage = lazy(() => import("./pages/nexo_av/desktop/pages/PendingReimbursementsPage"));
 
 // ============================================================
 // RESPONSIVE PAGES - Load different components for mobile/desktop
@@ -241,6 +242,7 @@ const App = () => (
                 <Route path="expenses/:invoiceId" element={<NexoExpenseDetailPage />} />
                 <Route path="reports" element={<NexoReportsPage />} />
                 <Route path="accounting" element={<NexoAccountingPage />} />
+                <Route path="reimbursements" element={<NexoPendingReimbursementsPage />} />
                 <Route path="developer" element={<NexoDeveloperPage />} />
                 <Route path="partners" element={<NexoPartnersPage />} />
                 <Route path="partners/:partnerId" element={<NexoPartnerDetailPage />} />
