@@ -212,47 +212,41 @@ const DashboardView = ({ userId }: DashboardViewProps) => {
           {/* Financial Side Column (1/3) - Chart Blocks Square */}
           <div className="space-y-6">
             <motion.div
-              className="h-auto chart-block-square"
-              data-chart-type="square"
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.35 }}
             >
-              <TaxSummaryWidget data={dashboardData.taxes} period={selectedPeriod} />
+              <TaxSummaryWidget period={selectedPeriod} />
             </motion.div>
 
             <motion.div
-              className="h-[300px] chart-block-square"
-              data-chart-type="square"
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <ProfitMarginWidget data={dashboardData.profitability} />
+              <ProfitMarginWidget period={selectedPeriod} />
             </motion.div>
           </div>
         </div>
 
-        {/* Row 3: Full Width Revenue Chart - Chart Block Horizontal */}
+        {/* Row 3: Full Width Revenue Chart */}
         <motion.div
-          className="h-[350px] chart-block-horizontal mb-6"
-          data-chart-type="horizontal"
+          className="mb-6"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <RevenueChart data={dashboardData.revenueChart} />
+          <RevenueChart />
         </motion.div>
 
-        {/* Row 4: Cash Flow Chart - Chart Block Horizontal */}
+        {/* Row 4: Cash Flow Chart */}
         <motion.div
-          className="h-[350px] chart-block-horizontal"
-          data-chart-type="horizontal"
+          className="mb-6"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55 }}
         >
-          <CashFlowChart data={dashboardData.revenueChart} />
+          <CashFlowChart />
         </motion.div>
       </div>
     </div>

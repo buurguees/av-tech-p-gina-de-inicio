@@ -13,11 +13,7 @@ interface CashFlowData {
     net: number;
 }
 
-interface CashFlowChartProps {
-    data?: any[];
-}
-
-const CashFlowChart = ({ data: _externalData }: CashFlowChartProps) => {
+const CashFlowChart = () => {
     const [data, setData] = useState<CashFlowData[]>([]);
     const [loading, setLoading] = useState(true);
     const currentYear = new Date().getFullYear();
@@ -27,7 +23,6 @@ const CashFlowChart = ({ data: _externalData }: CashFlowChartProps) => {
             try {
                 setLoading(true);
                 
-                // Siempre usar datos reales: facturas emitidas = ingresos, facturas compra = gastos (como PyG)
                 const yearStart = startOfYear(new Date(currentYear, 0, 1));
                 const yearEnd = endOfYear(new Date(currentYear, 11, 31));
                 const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
@@ -45,18 +40,31 @@ const CashFlowChart = ({ data: _externalData }: CashFlowChartProps) => {
                     })
                 ]);
                 
-                const invoices = (invoicesRes.data || []).filter((inv: any) => inv.status !== 'CANCELLED');
-                const purchaseInvoices = (purchaseInvoicesRes.data || []).filter((inv: any) => !['DRAFT', 'CANCELLED'].includes(inv.status));
+                const invoices = (invoicesRes.data || []).filter((inv: any) => 
+                    inv.status !== 'CANCELLED' && inv.status !== 'DRAFT'
+                );
+                const purchaseInvoices = (purchaseInvoicesRes.data || []).filter((inv: any) => 
+                    !['DRAFT', 'CANCELLED'].includes(inv.status)
+                );
                 
-                const monthlyData = months.map((month, index) => {
+                const monthlyData = months.map((month) => {
                     const monthStart = startOfMonth(month);
                     const monthEnd = endOfMonth(month);
+                    
                     const income = invoices
-                        .filter((inv: any) => inv.issue_date && new Date(inv.issue_date) >= monthStart && new Date(inv.issue_date) <= monthEnd)
+                        .filter((inv: any) => {
+                            const d = new Date(inv.issue_date);
+                            return inv.issue_date && d >= monthStart && d <= monthEnd;
+                        })
                         .reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+                    
                     const expenses = purchaseInvoices
-                        .filter((inv: any) => inv.issue_date && new Date(inv.issue_date) >= monthStart && new Date(inv.issue_date) <= monthEnd)
+                        .filter((inv: any) => {
+                            const d = new Date(inv.issue_date);
+                            return inv.issue_date && d >= monthStart && d <= monthEnd;
+                        })
                         .reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+                    
                     return {
                         month: format(month, "MMM", { locale: es }),
                         income,
@@ -84,7 +92,7 @@ const CashFlowChart = ({ data: _externalData }: CashFlowChartProps) => {
             const net = income - expenses;
             
             return (
-                <div className="bg-popover border border-border p-3 rounded-xl shadow-lg z-50">
+                <div className="bg-popover border border-border p-3 rounded-xl shadow-lg">
                     <p className="font-semibold text-foreground mb-2">{label}</p>
                     <div className="space-y-1">
                         <p className="text-sm flex items-center justify-between gap-4" style={{ color: 'hsl(var(--status-success))' }}>
@@ -101,7 +109,7 @@ const CashFlowChart = ({ data: _externalData }: CashFlowChartProps) => {
                         </p>
                         <div className="h-px bg-border my-1" />
                         <p className="text-sm flex items-center justify-between gap-4">
-                            <span>Beneficio:</span>
+                            <span>Neto:</span>
                             <span className={`font-bold ${net >= 0 ? 'text-foreground' : 'text-destructive'}`}>
                                 {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(net)}
                             </span>
@@ -118,9 +126,8 @@ const CashFlowChart = ({ data: _externalData }: CashFlowChartProps) => {
             title="Flujo de Caja"
             subtitle={`Ingresos vs Gastos - Año ${currentYear}`}
             icon={ArrowUpRight}
-            className="h-full"
         >
-            <div className="h-[250px] w-full mt-4">
+            <div className="h-[280px] w-full">
                 {loading ? (
                     <div className="flex items-center justify-center h-full">
                         <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary"></div>
