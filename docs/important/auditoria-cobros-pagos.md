@@ -672,30 +672,40 @@ Todos los asientos generados automáticamente están equilibrados (2 líneas, mi
 
 ## 9. Recomendaciones de Mejora
 
-### Prioridad 1: Correcciones Críticas
+### Prioridad 1: Correcciones Críticas — ✅ IMPLEMENTADAS (2026-02-13)
 
-1. **Corregir trigger de pago personal:** El trigger `auto_create_purchase_payment_entry` debe verificar `NEW.payer_type`. Si es `'PERSONAL'`, debe generar asiento D.400 / H.465xxx (deuda con socio), NO D.400 / H.572.
+1. **✅ Trigger de pago personal corregido:** `auto_create_purchase_payment_entry` ahora ramifica por `NEW.payer_type`:
+   - `COMPANY` → D.400 / H.572xxx (banco) — sin cambios
+   - `PERSONAL` → D.400 / H.551xxx (cuenta corriente con socio) — **corregido**
+   - Los pagos personales usan cuenta 551xxx (derivada de 465→551 del partner), NO tocan tesorería.
+   - No hay datos históricos incorrectos (no existían pagos PERSONAL en producción).
 
-2. **Implementar flujo de pago de cuotas de financiación:**
-   - Crear RPC `settle_credit_installment(p_installment_id, p_bank_account_id, p_settlement_date)`.
-   - Asiento: D.520xxx (capital) + D.669xxx (gastos financieros por fee) / H.572xxx.
-   - Actualizar `credit_installments.status = 'PAID'`.
-   - UI en el detalle de la operación de crédito.
+2. **✅ Flujo de pago de cuotas de financiación implementado:**
+   - Nueva RPC `settle_credit_installment(p_installment_id, p_bank_account_id, p_settlement_date, p_bank_reference, p_notes)`.
+   - Asiento generado: D.520xxx (capital) + D.669xxx (gastos financieros proporcionales) / H.572xxx.
+   - Actualiza `credit_installments.status = 'PAID'`, `settlement_id`, `paid_date`.
+   - Actualiza `credit_operations.pending_installments` automáticamente.
+   - **Pendiente:** UI frontend para gestionar cuotas desde el detalle de la operación de crédito.
 
-3. **Añadir constraint de equilibrio de asientos:**
-   ```sql
-   CREATE OR REPLACE FUNCTION accounting.validate_entry_balance()
-   RETURNS TRIGGER AS $$
-   BEGIN
-     IF (SELECT SUM(CASE WHEN debit_credit='DEBIT' THEN amount ELSE -amount END)
-         FROM accounting.journal_entry_lines WHERE journal_entry_id = NEW.journal_entry_id) != 0
-     THEN RAISE EXCEPTION 'Asiento desequilibrado'; END IF;
-     RETURN NEW;
-   END;
-   $$ LANGUAGE plpgsql;
-   ```
+3. **✅ Función de validación de equilibrio de asientos creada:**
+   - `accounting.assert_entry_balanced(p_entry_id)` — valida que SUM(DEBIT) = SUM(CREDIT) con tolerancia 0.01€.
+   - Disponible para ser llamada al final de cada función `create_*_entry`.
+   - **Pendiente:** Inyectar llamada en todas las funciones existentes (refactor progresivo).
 
-### Prioridad 2: Mejoras de Arquitectura
+4. **✅ Nuevas columnas en credit_installments:**
+   - `settlement_id UUID FK → credit_settlements(id)` — trazabilidad cuota→liquidación.
+   - `paid_date DATE` — fecha real de pago.
+
+### Decisiones Contables Adoptadas
+
+| Concepto | Cuenta | Justificación |
+|----------|--------|--------------|
+| Pagos personales de gastos (socio paga factura) | **551xxx** | Cuenta corriente con socios y administradores |
+| Retribuciones / nóminas socios | **465xxx** | Remuneraciones pendientes de pago |
+| Capital financiación (Aplazame) | **520xxx** | Deudas a corto plazo con entidades de crédito |
+| Gastos financieros (fee Aplazame) | **669xxx** | Otros gastos financieros |
+
+### Prioridad 2: Mejoras de Arquitectura (PENDIENTES)
 
 4. **Unificar fuente de cuentas bancarias:** Eliminar `company_preferences.bank_accounts` JSONB y usar exclusivamente `internal.company_bank_accounts`. Actualizar `create_invoice_payment_entry` para buscar directamente por UUID.
 
@@ -705,15 +715,15 @@ Todos los asientos generados automáticamente están equilibrados (2 líneas, mi
    - RPC `pay_all_pending_compensations(p_bank_account_id, p_payment_date)`.
    - Itera todas las retribuciones en estado `POSTED`.
 
-### Prioridad 3: Funcionalidades Avanzadas
+### Prioridad 3: Funcionalidades Avanzadas (PENDIENTES)
 
 7. **Conciliación bancaria por punteo:** Tabla `accounting.bank_reconciliation_items` con match entre movimientos del extracto y asientos contables.
 
-8. **Calendario de pagos de financiación:** Vista frontend que muestre todas las cuotas pendientes con sus fechas de vencimiento y permita registrar pagos individuales.
+8. **Calendario de pagos de financiación (UI):** Vista frontend que muestre todas las cuotas pendientes con sus fechas de vencimiento y permita registrar pagos individuales con `settle_credit_installment`.
 
 9. **Dashboard de tesorería:** Proyección de cash flow basada en cobros pendientes + cuotas de crédito + nóminas futuras.
 
 ---
 
 > **Última actualización:** 2026-02-13  
-> **Estado:** Auditoría completada. Pendientes correcciones críticas #1, #2, #3.
+> **Estado:** Correcciones críticas #1, #2, #3 implementadas. Pendiente UI de cuotas y mejoras de arquitectura (prioridad 2-3).
