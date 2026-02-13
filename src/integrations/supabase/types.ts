@@ -3179,10 +3179,10 @@ export type Database = {
       }
       settle_credit_installment: {
         Args: {
-          p_bank_account_id?: string
-          p_fee_amount?: number
-          p_gross_amount: number
-          p_operation_id: string
+          p_bank_account_id: string
+          p_bank_reference?: string
+          p_installment_id: string
+          p_notes?: string
           p_settlement_date?: string
         }
         Returns: string
