@@ -1,13 +1,15 @@
 /**
  * Purchase Invoice Status System
  * 
- * Two independent status systems:
- * 1. DOCUMENT STATUS - Administrative state of the invoice
- * 2. PAYMENT STATUS - Financial state (only applies when document is APPROVED)
+ * Three independent concepts:
+ * 1. DOCUMENT STATUS (doc_status) - Administrative: PENDING_VALIDATION, APPROVED, CANCELLED
+ * 2. PAYMENT STATUS (payment_status) - Calculated from payments: PENDING, PARTIAL, PAID
+ * 3. OVERDUE CONDITION (is_overdue) - Calculated: APPROVED + not PAID + past due_date
  * 
- * Rule: Invoice State ≠ Payment State
- * An invoice can be: Aprobada + Pendiente, Aprobada + Parcial, Aprobada + Pagada
- * An invoice not approved never enters payment processing
+ * Rules:
+ * - payment_status is NEVER manually set — always derived from registered payments
+ * - is_overdue is NEVER stored — always derived
+ * - Category is MANDATORY for purchases and tickets (determines accounting account)
  */
 
 // ============================================
@@ -15,108 +17,84 @@
 // ============================================
 
 export type PurchaseDocumentStatus = 
-  | "SCANNED"           // PDF uploaded but not yet assigned to invoice
-  | "DRAFT"             // Manual forecast/order, may not have PDF
-  | "PENDING_VALIDATION"// Has supplier, lines, PDF but not approved
-  | "APPROVED"          // Ready for payment processing
-  | "BLOCKED";          // Error/dispute
+  | "PENDING_VALIDATION"  // Has supplier, lines, PDF but not approved
+  | "APPROVED"            // Validated, accounting entry generated, locked
+  | "CANCELLED";          // Voided
 
 export const PURCHASE_DOCUMENT_STATUSES = [
   {
-    value: "SCANNED" as const,
-    label: "Escaneado",
-    description: "PDF subido, pendiente de asignar",
-    className: "purchase-doc-scanned",
-    priority: 0,
-  },
-  {
-    value: "DRAFT" as const,
-    label: "Borrador",
-    description: "Previsión o pedido de compra",
-    className: "purchase-doc-draft",
-    priority: 1,
-  },
-  {
     value: "PENDING_VALIDATION" as const,
     label: "Pendiente",
-    description: "Requiere validación",
+    description: "Pendiente de aprobación",
     className: "purchase-doc-pending",
-    priority: 2,
+    priority: 0,
   },
   {
     value: "APPROVED" as const,
     label: "Aprobada",
-    description: "Lista para pagos",
+    description: "Validada y contabilizada",
     className: "purchase-doc-approved",
-    priority: 3,
+    priority: 1,
   },
   {
-    value: "BLOCKED" as const,
-    label: "Bloqueada",
-    description: "Error o disputa",
-    className: "purchase-doc-blocked",
-    priority: 4,
+    value: "CANCELLED" as const,
+    label: "Anulada",
+    description: "Factura anulada",
+    className: "status-error",
+    priority: 2,
   },
 ];
 
 // ============================================
-// PAYMENT STATUSES (Financial)
+// PAYMENT STATUSES (Financial — calculated)
 // Only applies when document is APPROVED
 // ============================================
 
 export type PurchasePaymentStatus = 
-  | "PENDING"   // 0€ paid, not overdue
-  | "OVERDUE"   // 0€ paid, past due date
-  | "PARTIAL"   // Partial payment
-  | "PAID";     // 100% paid
+  | "PENDING"    // 0€ paid
+  | "PARTIAL"    // Partial payment (installments, external credit, etc.)
+  | "PAID";      // 100% paid
 
 export const PURCHASE_PAYMENT_STATUSES = [
   {
     value: "PENDING" as const,
     label: "Pendiente",
-    description: "Dentro de plazo",
+    description: "Sin pagos registrados",
     className: "purchase-pay-pending",
     priority: 0,
   },
   {
-    value: "OVERDUE" as const,
-    label: "Vencido",
-    description: "Fuera de plazo",
-    className: "purchase-pay-overdue",
-    priority: 1,
-  },
-  {
     value: "PARTIAL" as const,
     label: "Parcial",
-    description: "Pago incompleto",
+    description: "Pago incompleto (fraccionado, crédito, etc.)",
     className: "purchase-pay-partial",
-    priority: 2,
+    priority: 1,
   },
   {
     value: "PAID" as const,
     label: "Pagado",
     description: "100% pagado",
     className: "purchase-pay-paid",
-    priority: 3,
+    priority: 2,
   },
 ];
 
 // ============================================
 // LEGACY STATUS MAPPING
-// Maps old DB statuses to new dual-status system
+// Maps old DB statuses to new system
 // ============================================
 
 export const LEGACY_STATUS_TO_DOCUMENT: Record<string, PurchaseDocumentStatus> = {
   "PENDING": "PENDING_VALIDATION",
   "REGISTERED": "APPROVED",
-  "DRAFT": "DRAFT",
+  "DRAFT": "PENDING_VALIDATION",
   "PARTIAL": "APPROVED",
   "PAID": "APPROVED",
-  "CANCELLED": "BLOCKED",
+  "CANCELLED": "CANCELLED",
   "APPROVED": "APPROVED",
-  "SCANNED": "SCANNED",
+  "SCANNED": "PENDING_VALIDATION",
   "PENDING_VALIDATION": "PENDING_VALIDATION",
-  "BLOCKED": "BLOCKED",
+  "BLOCKED": "CANCELLED",
 };
 
 // ============================================
@@ -128,15 +106,11 @@ export const LEGACY_STATUS_TO_DOCUMENT: Record<string, PurchaseDocumentStatus> =
  */
 export const getDocumentStatusInfo = (status: string) => {
   const mapped = LEGACY_STATUS_TO_DOCUMENT[status] || "PENDING_VALIDATION";
-  return PURCHASE_DOCUMENT_STATUSES.find(s => s.value === mapped) || PURCHASE_DOCUMENT_STATUSES[2];
+  return PURCHASE_DOCUMENT_STATUSES.find(s => s.value === mapped) || PURCHASE_DOCUMENT_STATUSES[0];
 };
 
 /**
- * Calculate payment status based on financial data
- * @param paidAmount Amount already paid
- * @param totalAmount Total invoice amount
- * @param dueDate Due date of the invoice
- * @param documentStatus Current document status
+ * Calculate payment status from financial data (NEVER manually set)
  */
 export const calculatePaymentStatus = (
   paidAmount: number,
@@ -144,35 +118,32 @@ export const calculatePaymentStatus = (
   dueDate: string | null,
   documentStatus: string
 ): PurchasePaymentStatus | null => {
-  // Only calculate payment status for approved invoices
   const docStatus = LEGACY_STATUS_TO_DOCUMENT[documentStatus];
-  if (docStatus !== "APPROVED") {
-    return null;
-  }
+  if (docStatus !== "APPROVED") return null;
 
-  // 100% paid
-  if (paidAmount >= totalAmount) {
-    return "PAID";
-  }
-
-  // Partial payment
-  if (paidAmount > 0) {
-    return "PARTIAL";
-  }
-
-  // Check if overdue
-  if (dueDate) {
-    const due = new Date(dueDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    due.setHours(0, 0, 0, 0);
-    
-    if (due < today) {
-      return "OVERDUE";
-    }
-  }
-
+  if (totalAmount > 0 && paidAmount >= totalAmount) return "PAID";
+  if (paidAmount > 0) return "PARTIAL";
   return "PENDING";
+};
+
+/**
+ * Calculate overdue condition (NEVER stored — always derived)
+ */
+export const isPurchaseOverdue = (
+  documentStatus: string,
+  paymentStatus: PurchasePaymentStatus | null,
+  dueDate: string | null
+): boolean => {
+  const docStatus = LEGACY_STATUS_TO_DOCUMENT[documentStatus];
+  if (docStatus !== "APPROVED") return false;
+  if (paymentStatus === "PAID") return false;
+  if (!dueDate) return false;
+
+  const due = new Date(dueDate);
+  const today = new Date();
+  due.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  return due < today;
 };
 
 /**
@@ -187,8 +158,6 @@ export const getPaymentStatusInfo = (status: PurchasePaymentStatus | null) => {
  * Document statuses that allow editing
  */
 export const EDITABLE_DOCUMENT_STATUSES: PurchaseDocumentStatus[] = [
-  "SCANNED",
-  "DRAFT", 
   "PENDING_VALIDATION",
 ];
 
@@ -197,7 +166,7 @@ export const EDITABLE_DOCUMENT_STATUSES: PurchaseDocumentStatus[] = [
  */
 export const LOCKED_DOCUMENT_STATUSES: PurchaseDocumentStatus[] = [
   "APPROVED",
-  "BLOCKED",
+  "CANCELLED",
 ];
 
 /**

@@ -88,7 +88,7 @@ const MobileInvoicesPage = () => {
           inv.due_date,
           inv.status
         );
-        return collectionStatus === 'COLLECTED';
+        return collectionStatus === 'PAID';
       }).length;
       
       setInvoiceStats({ pending, issued, paid });
