@@ -1,6 +1,6 @@
-# Estados del Sistema — Proyectos y Clientes
+# Estados del Sistema — Nexo AV
 
-> Documento de referencia para los estados utilizados en la aplicación.  
+> Documento de referencia para todos los estados utilizados en la aplicación.  
 > Última actualización: 2026-02-13
 
 ---
@@ -64,9 +64,118 @@ NEGOTIATION → WON → RECURRING (si repite proyectos)
 
 ---
 
+## 3. Estados de Presupuesto
+
+| Valor DB | Etiqueta | Clase CSS | Descripción |
+|---|---|---|---|
+| `DRAFT` | Borrador | `status-neutral` | Presupuesto en edición, no enviado al cliente. |
+| `SENT` | Enviado | `status-info` | Enviado al cliente, pendiente de respuesta. |
+| `APPROVED` | Aprobado | `status-success` | El cliente ha aceptado el presupuesto. |
+| `REJECTED` | Rechazado | `status-error` | El cliente ha rechazado el presupuesto. |
+| `EXPIRED` | Expirado | `status-warning` | Se ha superado la fecha de validez sin respuesta. |
+| `INVOICED` | Facturado | `status-invoiced` | Se ha generado una factura a partir de este presupuesto. |
+
+### Flujo típico
+
+```
+DRAFT → SENT → APPROVED → INVOICED
+                  ↓
+              REJECTED
+                  ↓
+              EXPIRED (automático por fecha)
+```
+
+### Notas
+
+- Al aprobar un presupuesto, el proyecto asociado puede pasar a `IN_PROGRESS`.
+- Al facturar un presupuesto, se genera una factura de venta con las mismas líneas.
+- Los presupuestos `APPROVED` e `INVOICED` quedan bloqueados (inmutables).
+
+---
+
+## 4. Estados de Factura de Venta
+
+Sistema de estado único que combina el estado documental y de cobro.
+
+| Valor DB | Etiqueta | Clase CSS | Descripción |
+|---|---|---|---|
+| `DRAFT` | Borrador | `status-neutral` | Número preliminar, editable. Proforma o previsión. |
+| `ISSUED` | Emitida | `status-info` | Número definitivo asignado. Documento bloqueado y enviado al cliente. |
+| `PARTIAL` | Cobro Parcial | `status-warning` | Se han recibido pagos parciales. |
+| `PAID` | Cobrada | `status-success` | 100% del importe cobrado. |
+| `OVERDUE` | Vencida | `status-error` | Fecha de vencimiento superada sin cobro completo. |
+| `CANCELLED` | Cancelada | `status-error` | Factura anulada. Se conserva para auditoría. |
+
+### Flujo típico
+
+```
+DRAFT → ISSUED → PARTIAL → PAID
+                    ↓
+                 OVERDUE (automático por fecha)
+                    ↓
+                CANCELLED (en cualquier punto antes de PAID)
+```
+
+### Notas
+
+- Solo las facturas en estado `DRAFT` son editables.
+- A partir de `ISSUED`, todos los campos financieros quedan **permanentemente inmutables**.
+- El estado `OVERDUE` se calcula automáticamente comparando la fecha de vencimiento.
+
+---
+
+## 5. Estados de Factura de Compra
+
+Sistema dual: estado documental (administrativo) + estado de pago (financiero).
+
+### 5.1 Estado Documental
+
+| Valor DB | Etiqueta | Clase CSS | Descripción |
+|---|---|---|---|
+| `SCANNED` | Escaneado | `purchase-doc-scanned` | PDF subido pero no asignado a factura aún. |
+| `DRAFT` | Borrador | `purchase-doc-draft` | Previsión o pedido de compra manual. Puede no tener PDF. |
+| `PENDING_VALIDATION` | Pendiente | `purchase-doc-pending` | Tiene proveedor, líneas y PDF pero no está aprobada. |
+| `APPROVED` | Aprobada | `purchase-doc-approved` | Validada y lista para procesamiento de pagos. |
+| `BLOCKED` | Bloqueada | `purchase-doc-blocked` | Error o disputa. No se procesa. |
+
+### 5.2 Estado de Pago (solo cuando documento = `APPROVED`)
+
+| Valor DB | Etiqueta | Clase CSS | Descripción |
+|---|---|---|---|
+| `PENDING` | Pendiente | `purchase-pay-pending` | 0 € pagado, dentro de plazo. |
+| `OVERDUE` | Vencido | `purchase-pay-overdue` | 0 € pagado, fuera de plazo de vencimiento. |
+| `PARTIAL` | Parcial | `purchase-pay-partial` | Pago incompleto. Se ha abonado parte del importe (pagos fraccionados, créditos, etc.). |
+| `PAID` | Pagado | `purchase-pay-paid` | 100% del importe pagado. |
+
+### Flujo típico
+
+```
+Documental:  SCANNED → DRAFT → PENDING_VALIDATION → APPROVED
+                                                        ↓
+                                                     BLOCKED (error)
+
+Pago (solo si APPROVED):  PENDING → PARTIAL → PAID
+                             ↓
+                          OVERDUE (automático por fecha)
+```
+
+### Notas
+
+- **Regla fundamental**: Estado de documento ≠ Estado de pago. Una factura puede ser `APPROVED + PENDING`, `APPROVED + PARTIAL`, `APPROVED + PAID`.
+- Solo las facturas con estado documental `SCANNED`, `DRAFT` o `PENDING_VALIDATION` son editables.
+- A partir de `APPROVED`, todos los campos financieros quedan **permanentemente inmutables**.
+- El estado `PARTIAL` contempla pagos fraccionados y operaciones de crédito externo.
+
+---
+
 ## Referencia técnica
 
 - **Constantes de proyecto**: `src/constants/projectStatuses.ts`
 - **Constantes de cliente**: `src/pages/nexo_av/desktop/constants/leadStages.ts`
+- **Constantes de presupuesto**: `src/constants/quoteStatuses.ts`
+- **Constantes factura venta**: `src/constants/financeStatuses.ts` / `src/constants/salesInvoiceStatuses.ts`
+- **Constantes factura compra**: `src/constants/purchaseInvoiceStatuses.ts`
+- **Reglas de inmutabilidad**: `src/constants/documentImmutabilityRules.ts`
 - **Enum DB proyecto**: `projects.project_status`
 - **Enum DB cliente**: `crm.lead_stage`
+- **Enum DB presupuesto**: `quotes.quote_status`
