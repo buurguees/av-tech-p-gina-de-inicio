@@ -4,10 +4,10 @@
  * IMPORTANTE: Estos estados deben coincidir exactamente con el enum projects.project_status en la base de datos.
  * Cualquier cambio aquí debe reflejarse también en la base de datos y viceversa.
  * 
- * Enum en DB: projects.project_status ('PLANNED', 'IN_PROGRESS', 'PAUSED', 'COMPLETED', 'CANCELLED')
+ * Enum en DB: projects.project_status ('NEGOTIATION', 'IN_PROGRESS', 'PAUSED', 'COMPLETED', 'CANCELLED', 'INVOICED', 'CLOSED')
  * 
  * Traffic Light System (uses global.css status classes):
- * - status-info: PLANNED
+ * - status-info: NEGOTIATION
  * - status-progress: IN_PROGRESS
  * - status-warning: PAUSED
  * - status-special: COMPLETED
@@ -20,8 +20,8 @@
 
 export const PROJECT_STATUSES = [
   { 
-    value: "PLANNED", 
-    label: "Planificado", 
+    value: "NEGOTIATION", 
+    label: "Negociación", 
     color: "status-info",
     className: "status-info",
     markerColorHex: "#2563eb",  /* hsl(217 91% 60%) */

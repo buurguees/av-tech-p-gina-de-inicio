@@ -1,22 +1,17 @@
 // Lead Stage Colors and Labels
+// Solo 4 estados: NEGOTIATION, WON, LOST, RECURRING
 export const LEAD_STAGE_COLORS: Record<string, string> = {
-  'prospect': 'bg-blue-100 text-blue-800 border-blue-300',
-  'contacted': 'bg-purple-100 text-purple-800 border-purple-300',
-  'qualified': 'bg-green-100 text-green-800 border-green-300',
-  'negotiating': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  'closed_won': 'bg-emerald-100 text-emerald-800 border-emerald-300',
-  'closed_lost': 'bg-red-100 text-red-800 border-red-300',
-  'on_hold': 'bg-gray-100 text-gray-800 border-gray-300',
+  'NEGOTIATION': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+  'WON': 'bg-green-500/20 text-green-400 border-green-500/30',
+  'LOST': 'bg-red-500/20 text-red-400 border-red-500/30',
+  'RECURRING': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
 };
 
 export const LEAD_STAGE_LABELS: Record<string, string> = {
-  'prospect': 'Prospecto',
-  'contacted': 'Contactado',
-  'qualified': 'Calificado',
-  'negotiating': 'Negociando',
-  'closed_won': 'Ganado',
-  'closed_lost': 'Perdido',
-  'on_hold': 'En Espera',
+  'NEGOTIATION': 'En Negociación',
+  'WON': 'Ganado',
+  'LOST': 'Perdido',
+  'RECURRING': 'Recurrente',
 };
 
 export type LeadStage = keyof typeof LEAD_STAGE_LABELS;

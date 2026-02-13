@@ -29,15 +29,10 @@ const INDUSTRY_SECTORS = [
 ];
 
 const LEAD_STAGES = [
-  { value: 'NEW', label: 'Nuevo Lead' },
-  { value: 'CONTACTED', label: 'Contactado' },
-  { value: 'MEETING', label: 'Reunión Programada' },
-  { value: 'PROPOSAL', label: 'Propuesta Enviada' },
   { value: 'NEGOTIATION', label: 'En Negociación' },
-  { value: 'WON', label: 'Cliente (Ganado)' },
-  { value: 'RECURRING', label: 'Recurrente' },
+  { value: 'WON', label: 'Ganado' },
   { value: 'LOST', label: 'Perdido' },
-  { value: 'PAUSED', label: 'Pausado' },
+  { value: 'RECURRING', label: 'Recurrente' },
 ];
 
 interface AssignableUser {
@@ -248,7 +243,7 @@ const CreateClientDialog = ({
             type: "select",
             placeholder: "Seleccionar estado",
             options: LEAD_STAGES,
-            defaultValue: "NEW",
+            defaultValue: "NEGOTIATION",
             required: true,
             colSpan: 1,
           },
@@ -325,7 +320,7 @@ const CreateClientDialog = ({
         p_company_name: data.company_name.toUpperCase(),
         p_contact_phone: data.contact_phone,
         p_contact_email: data.contact_email,
-        p_lead_stage: data.lead_stage || 'NEW',
+        p_lead_stage: data.lead_stage || 'NEGOTIATION',
         p_lead_source: data.lead_source || null,
         p_industry_sector: data.industry_sector || null,
         p_tax_id: data.tax_id || null,
