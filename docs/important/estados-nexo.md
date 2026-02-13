@@ -1,7 +1,25 @@
 # Estados del Sistema — Nexo AV
 
-> Documento de referencia para todos los estados utilizados en la aplicación.  
+> Documento de referencia para todos los estados y categorías utilizados en la aplicación.  
 > Última actualización: 2026-02-13
+
+---
+
+## Principios fundamentales
+
+El sistema separa estrictamente tres conceptos independientes:
+
+1. **Estado del documento** (`doc_status`) — Fase administrativa/contable del documento.
+2. **Estado del pago** (`payment_status`) — Grado de liquidación económica. **Siempre calculado**, nunca editable manualmente.
+3. **Categoría contable** (`expense_category`) — Naturaleza del gasto. Solo aplica a compras y tickets.
+
+### Reglas de consistencia obligatorias
+
+- `payment_status` se calcula automáticamente a partir de los pagos registrados.
+- `is_overdue` se calcula automáticamente (no es un estado almacenado).
+- No se permite cambiar categoría tras aprobación sin recalcular asiento.
+- No se permite modificar documentos de periodos cerrados.
+- El sistema debe evitar incoherencias entre importe total y estado de pago.
 
 ---
 
@@ -56,12 +74,6 @@ NEGOTIATION → WON → RECURRING (si repite proyectos)
     LOST
 ```
 
-### Notas
-
-- **En Negociación** es el estado por defecto al crear un nuevo cliente.
-- Los clientes con estado `LOST` no aparecen en los selectores de creación de proyectos ni presupuestos.
-- Los clientes `RECURRING` son los de mayor valor: generan proyectos de forma recurrente.
-
 ---
 
 ## 3. Estados de Presupuesto
@@ -93,78 +105,158 @@ DRAFT → SENT → APPROVED → INVOICED
 
 ---
 
-## 4. Estados de Factura de Venta
+## 4. Facturas de Venta
 
-Sistema de estado único que combina el estado documental y de cobro.
+### 4.1 Estado del documento (`doc_status`)
 
 | Valor DB | Etiqueta | Clase CSS | Descripción |
 |---|---|---|---|
 | `DRAFT` | Borrador | `status-neutral` | Número preliminar, editable. Proforma o previsión. |
-| `ISSUED` | Emitida | `status-info` | Número definitivo asignado. Documento bloqueado y enviado al cliente. |
-| `PARTIAL` | Cobro Parcial | `status-warning` | Se han recibido pagos parciales. |
-| `PAID` | Cobrada | `status-success` | 100% del importe cobrado. |
-| `OVERDUE` | Vencida | `status-error` | Fecha de vencimiento superada sin cobro completo. |
-| `CANCELLED` | Cancelada | `status-error` | Factura anulada. Se conserva para auditoría. |
+| `ISSUED` | Emitida | `status-info` | Número definitivo asignado. Documento bloqueado y asiento contable generado. |
+| `CANCELLED` | Anulada | `status-error` | Factura anulada. Se conserva para auditoría. |
+
+⚠️ **"Cobrada" y "Vencida" NO son estados de documento.** Son condiciones calculadas.
+
+### 4.2 Estado del pago (`payment_status`) — Solo si `ISSUED`
+
+| Valor | Etiqueta | Clase CSS | Descripción |
+|---|---|---|---|
+| `PENDING` | Pendiente | `status-warning` | Sin cobros registrados. |
+| `PARTIAL` | Parcial | `status-warning` | Cobro incompleto. |
+| `PAID` | Cobrada | `status-success` | 100% cobrado. |
+
+⚠️ Este estado se calcula automáticamente. **No es editable manualmente.**
+
+### 4.3 Condición "Vencida" (`is_overdue`) — Campo derivado
+
+Una factura está vencida cuando se cumplen **todas** estas condiciones:
+- `doc_status = ISSUED`
+- `payment_status ≠ PAID`
+- `due_date < fecha actual`
+
+**No se almacena como estado.** Se calcula en cada renderizado.
 
 ### Flujo típico
 
 ```
-DRAFT → ISSUED → PARTIAL → PAID
-                    ↓
-                 OVERDUE (automático por fecha)
-                    ↓
-                CANCELLED (en cualquier punto antes de PAID)
+Documento:  DRAFT → ISSUED → (CANCELLED si error)
+Pago:       PENDING → PARTIAL → PAID
+Vencida:    is_overdue = true (automático por fecha)
 ```
 
 ### Notas
 
 - Solo las facturas en estado `DRAFT` son editables.
 - A partir de `ISSUED`, todos los campos financieros quedan **permanentemente inmutables**.
-- El estado `OVERDUE` se calcula automáticamente comparando la fecha de vencimiento.
+- Las facturas de venta **NO tienen categoría contable**.
 
 ---
 
-## 5. Estados de Factura de Compra
+## 5. Facturas de Compra
 
-Sistema dual: estado documental (administrativo) + estado de pago (financiero).
-
-### 5.1 Estado Documental
+### 5.1 Estado del documento (`doc_status`)
 
 | Valor DB | Etiqueta | Clase CSS | Descripción |
 |---|---|---|---|
-| `SCANNED` | Escaneado | `purchase-doc-scanned` | PDF subido pero no asignado a factura aún. |
-| `DRAFT` | Borrador | `purchase-doc-draft` | Previsión o pedido de compra manual. Puede no tener PDF. |
-| `PENDING_VALIDATION` | Pendiente | `purchase-doc-pending` | Tiene proveedor, líneas y PDF pero no está aprobada. |
-| `APPROVED` | Aprobada | `purchase-doc-approved` | Validada y lista para procesamiento de pagos. |
-| `BLOCKED` | Bloqueada | `purchase-doc-blocked` | Error o disputa. No se procesa. |
+| `PENDING_VALIDATION` | Pendiente | `purchase-doc-pending` | Documento creado con líneas y escaneo, pendiente de aprobación. |
+| `APPROVED` | Aprobada | `purchase-doc-approved` | Validada, contabilizada y bloqueada. |
+| `CANCELLED` | Anulada | `status-error` | Factura anulada. |
 
-### 5.2 Estado de Pago (solo cuando documento = `APPROVED`)
+⚠️ **"Pagada" y "Vencida" NO son estados de documento.**
 
-| Valor DB | Etiqueta | Clase CSS | Descripción |
+### 5.2 Estado del pago (`payment_status`) — Solo si `APPROVED`
+
+| Valor | Etiqueta | Clase CSS | Descripción |
 |---|---|---|---|
-| `PENDING` | Pendiente | `purchase-pay-pending` | 0 € pagado, dentro de plazo. |
-| `OVERDUE` | Vencido | `purchase-pay-overdue` | 0 € pagado, fuera de plazo de vencimiento. |
-| `PARTIAL` | Parcial | `purchase-pay-partial` | Pago incompleto. Se ha abonado parte del importe (pagos fraccionados, créditos, etc.). |
-| `PAID` | Pagado | `purchase-pay-paid` | 100% del importe pagado. |
+| `PENDING` | Pendiente | `purchase-pay-pending` | Sin pagos registrados. |
+| `PARTIAL` | Parcial | `purchase-pay-partial` | Pago incompleto (fraccionado, crédito externo, etc.). |
+| `PAID` | Pagado | `purchase-pay-paid` | 100% pagado. |
+
+⚠️ Este estado se calcula automáticamente.
+
+### 5.3 Condición "Vencida" (`is_overdue`) — Campo derivado
+
+Una factura de compra está vencida cuando:
+- `doc_status = APPROVED`
+- `payment_status ≠ PAID`
+- `due_date < fecha actual`
 
 ### Flujo típico
 
 ```
-Documental:  SCANNED → DRAFT → PENDING_VALIDATION → APPROVED
-                                                        ↓
-                                                     BLOCKED (error)
-
-Pago (solo si APPROVED):  PENDING → PARTIAL → PAID
-                             ↓
-                          OVERDUE (automático por fecha)
+Documento:  PENDING_VALIDATION → APPROVED → (CANCELLED si error)
+Pago:       PENDING → PARTIAL → PAID
+Vencida:    is_overdue = true (automático por fecha)
 ```
 
 ### Notas
 
-- **Regla fundamental**: Estado de documento ≠ Estado de pago. Una factura puede ser `APPROVED + PENDING`, `APPROVED + PARTIAL`, `APPROVED + PAID`.
-- Solo las facturas con estado documental `SCANNED`, `DRAFT` o `PENDING_VALIDATION` son editables.
+- Solo las facturas con estado `PENDING_VALIDATION` son editables.
 - A partir de `APPROVED`, todos los campos financieros quedan **permanentemente inmutables**.
-- El estado `PARTIAL` contempla pagos fraccionados y operaciones de crédito externo.
+- Las facturas de compra **requieren categoría contable obligatoria**.
+- El estado `PARTIAL` contempla pagos fraccionados y operaciones de crédito externo (Aplazame).
+
+---
+
+## 6. Categorías Contables
+
+Las categorías determinan la cuenta contable asociada al gasto. **Solo aplican a compras y tickets.**
+
+### 6.1 Categorías de Facturas de Compra
+
+| Valor | Etiqueta | Cuenta Contable | Descripción |
+|---|---|---|---|
+| `EXTERNAL_SERVICES` | Servicios Externos | `623000` | Gestoría, abogados, notaría, etc. |
+| `LABOR` | Mano de Obra | `600` | Solo técnicos / subcontratación. |
+| `MATERIAL` | Material | `629.3` | Material de instalación o consumo. |
+| `SOFTWARE` | Software | `629` | Licencias y herramientas digitales. |
+| `UTILITIES` | Suministros | `628` | Luz, agua, gas, internet. |
+| `RENT` | Alquiler | `621` | Alquiler de local, vehículo, etc. |
+
+Cuenta por defecto (sin mapeo): `623000`
+
+### 6.2 Categorías de Tickets (Gastos Rápidos)
+
+| Valor | Etiqueta | Icono | Cuenta Contable |
+|---|---|---|---|
+| `DIET` | Dietas | 🍽️ | `629.1` |
+| `FUEL` | Gasolina | ⛽ | `629.2` |
+| `MATERIAL` | Material | 🔧 | `629.3` |
+| `PARKING` | Parking | 🅿️ | `629.5` |
+| `TRANSPORT` | Transporte | 🚌 | `629.6` |
+| `ACCOMMODATION` | Alojamiento | 🏨 | `629.7` |
+| `FINE` | Multa | 📄 | `629.8` |
+| `OTHER` | Otros | 📋 | `629.9` |
+
+Cuenta por defecto: `629`
+
+### 6.3 Reglas de categorías
+
+- La categoría `MATERIAL` en facturas de compra y en tickets usa la **misma cuenta contable** (`629.3`).
+- No se permite asignar cuentas manualmente si existe una categoría.
+- El asiento contable de una factura de compra usa la cuenta asociada a su categoría.
+- No se permite cambiar categoría tras aprobación sin recalcular asiento.
+
+### 6.4 Objetivo del sistema de categorías
+
+Las categorías permiten:
+- Filtrar gastos por tipo.
+- Obtener el total gastado por categoría.
+- Calcular el porcentaje de gasto por sección.
+- Generar informes mensuales y trimestrales.
+- Analizar en qué se está gastando el dinero.
+- Comparar periodos (ej. Material vs Software).
+- Unificar analítica entre facturas de compra y tickets.
+
+---
+
+## 7. Estados de Proveedores
+
+| Valor DB | Etiqueta | Descripción |
+|---|---|---|
+| `ACTIVE` | Activo | Proveedor operativo, puede recibir facturas y pedidos. |
+| `INACTIVE` | Inactivo | Proveedor sin actividad, no aparece en selectores. |
+| `BLOCKED` | Bloqueado | Proveedor con incidencias, no se puede operar. |
 
 ---
 
@@ -175,6 +267,8 @@ Pago (solo si APPROVED):  PENDING → PARTIAL → PAID
 - **Constantes de presupuesto**: `src/constants/quoteStatuses.ts`
 - **Constantes factura venta**: `src/constants/financeStatuses.ts` / `src/constants/salesInvoiceStatuses.ts`
 - **Constantes factura compra**: `src/constants/purchaseInvoiceStatuses.ts`
+- **Categorías factura compra**: `src/constants/purchaseInvoiceCategories.ts`
+- **Categorías tickets**: `src/constants/ticketCategories.ts`
 - **Reglas de inmutabilidad**: `src/constants/documentImmutabilityRules.ts`
 - **Enum DB proyecto**: `projects.project_status`
 - **Enum DB cliente**: `crm.lead_stage`

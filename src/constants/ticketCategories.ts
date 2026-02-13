@@ -1,17 +1,21 @@
 /**
  * Ticket Categories
- * Categorías específicas para tickets de gastos
+ * Categorías contables para tickets de gastos rápidos.
+ * Cada categoría mapea a una cuenta contable del grupo 629.
+ * La categoría es OBLIGATORIA en tickets.
+ * 
+ * IMPORTANTE: La categoría "MATERIAL" comparte cuenta contable (629.3)
+ * con la categoría "MATERIAL" de facturas de compra para unificar analítica.
  */
 
 export const TICKET_CATEGORIES = [
-  { value: "DIET", label: "Dieta", icon: "🍽️", accountCode: "629.1" },
+  { value: "DIET", label: "Dietas", icon: "🍽️", accountCode: "629.1" },
   { value: "FUEL", label: "Gasolina", icon: "⛽", accountCode: "629.2" },
   { value: "MATERIAL", label: "Material", icon: "🔧", accountCode: "629.3" },
-  { value: "TOLL", label: "Peajes", icon: "🛣️", accountCode: "629.4" },
-  { value: "PARKING", label: "Parkings", icon: "🅿️", accountCode: "629.5" },
+  { value: "PARKING", label: "Parking", icon: "🅿️", accountCode: "629.5" },
   { value: "TRANSPORT", label: "Transporte", icon: "🚌", accountCode: "629.6" },
   { value: "ACCOMMODATION", label: "Alojamiento", icon: "🏨", accountCode: "629.7" },
-  { value: "MULTA", label: "Multa", icon: "📄", accountCode: "629.8" },
+  { value: "FINE", label: "Multa", icon: "📄", accountCode: "629.8" },
   { value: "OTHER", label: "Otros", icon: "📋", accountCode: "629.9" },
 ] as const;
 
@@ -26,6 +30,5 @@ export const getTicketCategoryInfo = (category: string) => {
 
 /**
  * Cuenta contable por defecto para tickets
- * Los tickets usan cuentas del grupo 629 (Otros servicios)
  */
 export const TICKET_DEFAULT_ACCOUNT = "629";
