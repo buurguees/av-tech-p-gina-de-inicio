@@ -128,7 +128,7 @@ export const EditProjectForm = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       client_id: project.client_id || "",
-      status: project.status || "PLANNED",
+      status: project.status || "NEGOTIATION",
       project_address: project.project_address || "",
       project_city: project.project_city || "",
       postal_code: "",

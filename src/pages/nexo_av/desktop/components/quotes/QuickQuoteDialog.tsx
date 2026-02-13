@@ -123,7 +123,7 @@ const QuickQuoteDialog = ({ trigger }: QuickQuoteDialogProps) => {
         p_company_name: data.name.toUpperCase(),
         p_contact_email: data.email,
         p_contact_phone: data.phone,
-        p_lead_stage: 'NEW',
+        p_lead_stage: 'NEGOTIATION',
         p_lead_source: 'OTHER',
         p_assigned_to: assignedTo,
       });

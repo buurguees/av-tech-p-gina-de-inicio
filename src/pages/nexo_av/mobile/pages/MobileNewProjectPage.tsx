@@ -48,7 +48,7 @@ const MobileNewProjectPage = () => {
 
   // Form state
   const [clientId, setClientId] = useState<string>("");
-  const [status, setStatus] = useState("PLANNED");
+  const [status, setStatus] = useState("NEGOTIATION");
   const [projectAddress, setProjectAddress] = useState("");
   const [projectCity, setProjectCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
@@ -121,7 +121,7 @@ const MobileNewProjectPage = () => {
 
       const { error } = await supabase.rpc("create_project", {
         p_client_id: clientId,
-        p_status: status || "PLANNED",
+        p_status: status || "NEGOTIATION",
         p_project_address: sanitize(projectAddress),
         p_project_city: sanitize(projectCity),
         p_local_name: sanitize(localName),

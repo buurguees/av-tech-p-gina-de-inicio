@@ -35,7 +35,7 @@ const CreateLeadDialog = ({ open, onOpenChange, onSuccess, currentUserId }: Crea
     contactPerson: "",
     phone: "",
     email: "",
-    status: "NEW",
+    status: "NEGOTIATION",
     notes: "",
   });
 
@@ -177,7 +177,7 @@ const CreateLeadDialog = ({ open, onOpenChange, onSuccess, currentUserId }: Crea
         contactPerson: "",
         phone: "",
         email: "",
-        status: "NEW",
+        status: "NEGOTIATION",
         notes: "",
       });
       setGeocodeError(null);
