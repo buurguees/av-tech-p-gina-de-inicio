@@ -54,6 +54,7 @@ export interface Project {
   project_city: string | null;
   local_name: string | null;
   client_order_number: string | null;
+  site_name?: string | null;
 }
 
 export interface Client {
@@ -446,7 +447,7 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project }: Quo
         {project && (
           <View style={styles.projectBox}>
             <Text style={styles.boxTitle}>Datos del Proyecto</Text>
-            <Text style={styles.boxName}>{project.project_name}</Text>
+            <Text style={styles.boxName}>{project.project_name}{project.site_name ? ` — ${project.site_name}` : ""}</Text>
             {project.client_order_number && (
               <Text style={styles.boxDetail}>Nº Pedido Cliente: {project.client_order_number}</Text>
             )}

@@ -86,6 +86,7 @@ interface Project {
   project_city: string | null;
   local_name: string | null;
   client_order_number: string | null;
+  site_name?: string | null;
 }
 
 interface InvoiceLine {
@@ -269,6 +270,7 @@ const InvoiceDetailPageDesktop = () => {
               project_city: projectInfo.project_city,
               local_name: projectInfo.local_name,
               client_order_number: projectInfo.client_order_number,
+              site_name: invoiceInfo.site_name || null,
             });
           }
         }
@@ -721,25 +723,13 @@ const InvoiceDetailPageDesktop = () => {
                     <div className="flex items-start gap-2">
                       <FolderKanban className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground mb-1">Nombre del proyecto</p>
+                         <p className="text-xs text-muted-foreground mb-1">Proyecto</p>
                         <p className="text-sm font-medium">
                           {project?.project_name || invoice?.project_name || "Sin proyecto asignado"}
+                          {invoice?.site_name ? ` — ${invoice.site_name}` : ""}
                         </p>
                       </div>
                     </div>
-
-                    {/* Site info */}
-                    {invoice?.site_name && (
-                      <div className="flex items-start gap-2">
-                        <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-muted-foreground mb-1">Sitio de instalación</p>
-                          <p className="text-sm font-medium">
-                            {invoice.site_name}{invoice.site_city ? ` — ${invoice.site_city}` : ""}
-                          </p>
-                        </div>
-                      </div>
-                    )}
                     
                     <div className="flex items-start gap-2">
                       <User className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
