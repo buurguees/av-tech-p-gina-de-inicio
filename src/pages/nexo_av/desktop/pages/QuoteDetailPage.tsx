@@ -75,6 +75,7 @@ interface Project {
   project_city: string | null;
   local_name: string | null;
   client_order_number: string | null;
+  site_name?: string | null;
 }
 
 interface QuoteLine {
@@ -233,6 +234,7 @@ const QuoteDetailPageDesktop = () => {
             project_city: projectData[0].project_city,
             local_name: projectData[0].local_name,
             client_order_number: projectData[0].client_order_number,
+            site_name: quoteInfo.site_name || null,
           });
         }
       }
@@ -716,25 +718,13 @@ const QuoteDetailPageDesktop = () => {
                     <div className="flex items-start gap-2">
                       <FolderOpen className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground mb-1">Nombre del proyecto</p>
+                         <p className="text-xs text-muted-foreground mb-1">Proyecto</p>
                         <p className="text-sm font-medium">
                           {project?.project_name || quote?.project_name || "Sin proyecto asignado"}
+                          {quote?.site_name ? ` — ${quote.site_name}` : ""}
                         </p>
                       </div>
                     </div>
-
-                    {/* Site info */}
-                    {quote?.site_name && (
-                      <div className="flex items-start gap-2">
-                        <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-muted-foreground mb-1">Sitio de instalación</p>
-                          <p className="text-sm font-medium">
-                            {quote.site_name}{quote.site_city ? ` — ${quote.site_city}` : ""}
-                          </p>
-                        </div>
-                      </div>
-                    )}
                     
                     <div className="flex items-start gap-2">
                       <User className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
