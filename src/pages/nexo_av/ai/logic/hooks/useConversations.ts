@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Conversation } from '../types';
 
+// Helper to call RPCs not yet in generated types
+const rpc = (name: string, params?: Record<string, unknown>) =>
+  (supabase.rpc as any)(name, params);
+
 export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [personalConversation, setPersonalConversation] = useState<Conversation | null>(null);
@@ -11,11 +15,9 @@ export function useConversations() {
   const fetchConversations = useCallback(async () => {
     try {
       setLoading(true);
-      const { data, error: err } = await supabase.rpc('ai_list_conversations', {
-        p_limit: 50,
-      });
+      const { data, error: err } = await rpc('ai_list_conversations', { p_limit: 50 });
       if (err) throw err;
-      setConversations((data as unknown as Conversation[]) || []);
+      setConversations((data as Conversation[]) || []);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -25,9 +27,9 @@ export function useConversations() {
 
   const getOrCreatePersonal = useCallback(async () => {
     try {
-      const { data, error: err } = await supabase.rpc('ai_get_or_create_personal_conversation');
+      const { data, error: err } = await rpc('ai_get_or_create_personal_conversation');
       if (err) throw err;
-      const conv = (data as unknown as Conversation[])?.[0];
+      const conv = (data as any[])?.[0];
       if (conv) {
         setPersonalConversation({
           ...conv,
@@ -46,14 +48,14 @@ export function useConversations() {
 
   const createConversation = useCallback(async (title: string, scope: string, department: string) => {
     try {
-      const { data, error: err } = await supabase.rpc('ai_create_conversation', {
+      const { data, error: err } = await rpc('ai_create_conversation', {
         p_title: title,
         p_scope: scope,
         p_department: department,
       });
       if (err) throw err;
       await fetchConversations();
-      return (data as unknown as { id: string; title: string }[])?.[0];
+      return (data as any[])?.[0];
     } catch (e: any) {
       setError(e.message);
       return null;
