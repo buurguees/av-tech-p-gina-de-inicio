@@ -92,12 +92,14 @@ const CreateProjectDialog = ({
   // Form state
   const [clientId, setClientId] = useState<string>(preselectedClientId || "");
   const [status, setStatus] = useState("NEGOTIATION");
+  const [siteMode, setSiteMode] = useState<"SINGLE_SITE" | "MULTI_SITE">("SINGLE_SITE");
   const [projectAddress, setProjectAddress] = useState("");
   const [projectCity, setProjectCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [province, setProvince] = useState("");
   const [country, setCountry] = useState("España");
   const [localName, setLocalName] = useState("");
+  const [siteName, setSiteName] = useState("");
   const [clientOrderNumber, setClientOrderNumber] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
 
@@ -144,12 +146,14 @@ const CreateProjectDialog = ({
     if (open) {
       setClientId(preselectedClientId || "");
       setStatus("NEGOTIATION");
+      setSiteMode("SINGLE_SITE");
       setProjectAddress("");
       setProjectCity("");
       setPostalCode("");
       setProvince("");
       setCountry("España");
       setLocalName("");
+      setSiteName("");
       setClientOrderNumber("");
       setInternalNotes("");
     }
@@ -173,6 +177,8 @@ const CreateProjectDialog = ({
         p_local_name: sanitize(localName),
         p_client_order_number: sanitize(clientOrderNumber),
         p_notes: sanitize(internalNotes),
+        p_site_mode: siteMode,
+        p_site_name: sanitize(siteName),
       });
 
       if (error) throw error;
@@ -227,6 +233,43 @@ const CreateProjectDialog = ({
                 <label className="text-xs font-medium text-muted-foreground">Estado inicial</label>
                 <StatusSelector currentStatus={status} statusOptions={statusOptions} onStatusChange={setStatus} />
               </div>
+            </InlineFormSection>
+
+            {/* Sección: Tipo de proyecto */}
+            <InlineFormSection title="Tipo de Proyecto" icon={<Building2 className="h-4 w-4" />}>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSiteMode("SINGLE_SITE")}
+                  className={cn(
+                    "flex-1 p-3 rounded-lg border text-left transition-all text-sm",
+                    siteMode === "SINGLE_SITE"
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-border bg-muted/20 text-muted-foreground hover:border-primary/50"
+                  )}
+                >
+                  <div className="font-medium">Sitio Único</div>
+                  <div className="text-xs mt-0.5 opacity-70">Una sola instalación / ubicación</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSiteMode("MULTI_SITE")}
+                  className={cn(
+                    "flex-1 p-3 rounded-lg border text-left transition-all text-sm",
+                    siteMode === "MULTI_SITE"
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-border bg-muted/20 text-muted-foreground hover:border-primary/50"
+                  )}
+                >
+                  <div className="font-medium">Multi-Sitio</div>
+                  <div className="text-xs mt-0.5 opacity-70">Múltiples ubicaciones de instalación</div>
+                </button>
+              </div>
+              {siteMode === "SINGLE_SITE" && (
+                <LabeledInput label="Nombre del sitio principal">
+                  <Input placeholder="Ej: Tienda Centro, Oficina Principal..." value={siteName} onChange={(e) => setSiteName(e.target.value)} />
+                </LabeledInput>
+              )}
             </InlineFormSection>
 
             {/* Sección: Ubicación */}
