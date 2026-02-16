@@ -329,10 +329,10 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
 
           {/* NEXO AI */}
           <motion.button
-            onClick={() => navigate(`/nexo-av/${userId}/nexo-ai`)}
+            onClick={() => navigate(`/nexo-av/${userId}/ai/chat`)}
             className={cn(
               "nexo-sidebar__item",
-              isActive(`/nexo-av/${userId}/nexo-ai`) && "nexo-sidebar__item--active"
+              isActive(`/nexo-av/${userId}/ai/chat`) && "nexo-sidebar__item--active"
             )}
             whileTap={{ scale: 0.98 }}
           >
