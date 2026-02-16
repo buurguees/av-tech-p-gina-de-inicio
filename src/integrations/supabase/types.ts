@@ -3286,6 +3286,38 @@ export type Database = {
         Args: { p_token: string }
         Returns: undefined
       }
+      notifications_count_unread: {
+        Args: { p_user_id?: string }
+        Returns: number
+      }
+      notifications_list: {
+        Args: { p_limit?: number; p_only_unread?: boolean; p_user_id?: string }
+        Returns: {
+          action_url: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          is_read: boolean
+          message: string
+          read_at: string
+          severity: string
+          title: string
+          type: string
+        }[]
+      }
+      notifications_mark_all_read: {
+        Args: { p_user_id?: string }
+        Returns: number
+      }
+      notifications_mark_read: {
+        Args: { p_notification_id: string }
+        Returns: boolean
+      }
+      notifications_refresh_for_user: {
+        Args: { p_user_id?: string }
+        Returns: number
+      }
       open_period: {
         Args: { p_month: number; p_year: number }
         Returns: undefined
@@ -3424,6 +3456,137 @@ export type Database = {
           p_settlement_date?: string
         }
         Returns: string
+      }
+      tasks_add_comment: {
+        Args: { p_message: string; p_task_id: string }
+        Returns: string
+      }
+      tasks_assign: {
+        Args: { p_role?: string; p_task_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      tasks_create: {
+        Args: {
+          p_assignee_ids?: string[]
+          p_description?: string
+          p_due_date?: string
+          p_invoice_id?: string
+          p_priority?: string
+          p_project_id?: string
+          p_quote_id?: string
+          p_site_id?: string
+          p_start_date?: string
+          p_tags?: string[]
+          p_title: string
+          p_visit_id?: string
+        }
+        Returns: string
+      }
+      tasks_get: {
+        Args: { p_task_id: string }
+        Returns: {
+          completed_at: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          description: string
+          due_date: string
+          id: string
+          invoice_id: string
+          is_archived: boolean
+          priority: string
+          project_id: string
+          project_name: string
+          quote_id: string
+          site_id: string
+          site_name: string
+          source: string
+          start_date: string
+          status: string
+          tags: string[]
+          title: string
+          updated_at: string
+          visit_id: string
+        }[]
+      }
+      tasks_get_activity: {
+        Args: { p_task_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          created_by_name: string
+          id: string
+          message: string
+          meta: Json
+          type: string
+        }[]
+      }
+      tasks_get_assignees: {
+        Args: { p_task_id: string }
+        Returns: {
+          assigned_at: string
+          role_in_task: string
+          user_id: string
+          user_name: string
+        }[]
+      }
+      tasks_list_for_user: {
+        Args: {
+          p_due_today?: boolean
+          p_include_archived?: boolean
+          p_limit?: number
+          p_offset?: number
+          p_priority?: string
+          p_project_id?: string
+          p_site_id?: string
+          p_status?: string
+          p_user_id?: string
+        }
+        Returns: {
+          assignee_count: number
+          completed_at: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          description: string
+          due_date: string
+          id: string
+          invoice_id: string
+          is_archived: boolean
+          priority: string
+          project_id: string
+          project_name: string
+          quote_id: string
+          site_id: string
+          site_name: string
+          source: string
+          start_date: string
+          status: string
+          tags: string[]
+          title: string
+          updated_at: string
+          visit_id: string
+        }[]
+      }
+      tasks_set_status: {
+        Args: { p_status: string; p_task_id: string }
+        Returns: boolean
+      }
+      tasks_unassign: {
+        Args: { p_task_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      tasks_update: {
+        Args: {
+          p_description?: string
+          p_due_date?: string
+          p_priority?: string
+          p_start_date?: string
+          p_tags?: string[]
+          p_task_id: string
+          p_title?: string
+        }
+        Returns: boolean
       }
       toggle_user_status: {
         Args: { p_is_active: boolean; p_user_id: string }
