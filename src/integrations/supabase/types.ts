@@ -286,22 +286,50 @@ export type Database = {
           id: string
         }[]
       }
-      ai_create_chat_request: {
+      ai_complete_chat_request: {
         Args: {
-          p_conversation_id: string
-          p_latest_user_message_id?: string
-          p_mode?: string
+          p_latency_ms?: number
+          p_lock_owner: string
+          p_model?: string
+          p_request_id: string
         }
-        Returns: {
-          id: string
-        }[]
+        Returns: boolean
       }
+      ai_create_chat_request:
+        | {
+            Args: {
+              p_conversation_id: string
+              p_latest_user_message_id?: string
+              p_mode?: string
+            }
+            Returns: {
+              id: string
+            }[]
+          }
+        | {
+            Args: {
+              p_conversation_id: string
+              p_latest_user_message_id?: string
+              p_max_tokens?: number
+              p_mode?: string
+              p_model?: string
+              p_processor?: string
+              p_temperature?: number
+            }
+            Returns: {
+              id: string
+            }[]
+          }
       ai_create_conversation: {
         Args: { p_department?: string; p_scope?: string; p_title: string }
         Returns: {
           id: string
           title: string
         }[]
+      }
+      ai_fail_chat_request: {
+        Args: { p_error: string; p_request_id: string }
+        Returns: boolean
       }
       ai_get_chat_request_for_processing: {
         Args: { p_request_id: string }
@@ -323,6 +351,16 @@ export type Database = {
       ai_get_context_general: { Args: { p_user_id: string }; Returns: Json }
       ai_get_context_marketing: { Args: { p_user_id: string }; Returns: Json }
       ai_get_context_programming: { Args: { p_user_id: string }; Returns: Json }
+      ai_get_latest_request_status: {
+        Args: { p_conversation_id: string }
+        Returns: {
+          attempt_count: number
+          created_at: string
+          error: string
+          id: string
+          status: string
+        }[]
+      }
       ai_get_message_content: {
         Args: { p_message_id: string }
         Returns: {
@@ -368,12 +406,33 @@ export type Database = {
           sender: string
         }[]
       }
+      ai_lock_next_chat_request: {
+        Args: { p_lock_owner: string; p_processor: string }
+        Returns: {
+          attempt_count: number
+          conversation_id: string
+          created_at: string
+          id: string
+          latest_user_message_id: string
+          max_tokens: number
+          mode: string
+          model: string
+          processor: string
+          status: string
+          temperature: number
+          user_id: string
+        }[]
+      }
       ai_mark_request_done: { Args: { p_request_id: string }; Returns: boolean }
       ai_mark_request_error: {
         Args: { p_error: string; p_request_id: string }
         Returns: boolean
       }
       ai_mark_request_processing: {
+        Args: { p_request_id: string }
+        Returns: boolean
+      }
+      ai_retry_chat_request: {
         Args: { p_request_id: string }
         Returns: boolean
       }

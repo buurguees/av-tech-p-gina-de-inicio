@@ -30,32 +30,16 @@ export function useSendMessage() {
       if (msgErr) throw msgErr;
       const messageId = (msgData as any[])?.[0]?.id;
 
-      // 2. Create chat request
-      const { data: reqData, error: reqErr } = await rpc('ai_create_chat_request', {
+      // 2. Create chat request — V2: processor='alb357', no Edge Function call
+      const { error: reqErr } = await rpc('ai_create_chat_request', {
         p_conversation_id: conversationId,
         p_mode: mode,
         p_latest_user_message_id: messageId || null,
+        p_processor: 'alb357',
       });
       if (reqErr) throw reqErr;
-      const requestId = (reqData as any[])?.[0]?.id;
 
-      // 3. Invoke edge function (fire-and-forget, response via Realtime)
-      if (requestId) {
-        const { data: session } = await supabase.auth.getSession();
-        const token = session?.session?.access_token;
-
-        fetch(
-          `https://takvthfatlcjsqgssnta.supabase.co/functions/v1/ai-chat-processor`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({ request_id: requestId }),
-          }
-        ).catch((e) => console.error('Edge function call failed:', e));
-      }
+      // Request stays queued — ALB357 worker picks it up via polling
     } catch (e: any) {
       setError(e.message);
       console.error('Send message error:', e);
