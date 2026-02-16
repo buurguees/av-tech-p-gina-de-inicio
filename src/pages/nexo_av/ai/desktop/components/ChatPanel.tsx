@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, Clock, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Send, Loader2, Clock, AlertTriangle, RefreshCw, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { Conversation, Message, DepartmentScope } from '../../logic/types';
@@ -16,6 +16,7 @@ interface ChatPanelProps {
   requestStatus?: RequestStatusValue;
   requestError?: string | null;
   onRetry?: () => void;
+  isAutoGroup?: boolean;
 }
 
 const ChatPanel = ({
@@ -27,6 +28,7 @@ const ChatPanel = ({
   requestStatus = 'idle',
   requestError,
   onRetry,
+  isAutoGroup = false,
 }: ChatPanelProps) => {
   const [input, setInput] = useState('');
   const [mode, setMode] = useState<DepartmentScope>('general');
@@ -72,6 +74,14 @@ const ChatPanel = ({
         </h2>
         <ModeSelector value={mode} onChange={setMode} />
       </div>
+
+      {/* V3: Banner modo automático */}
+      {isAutoGroup && (
+        <div className="flex items-center gap-2 px-4 py-1.5 bg-green-500/10 border-b border-green-500/20 text-green-600 dark:text-green-400">
+          <Bot className="h-3.5 w-3.5" />
+          <span className="text-xs font-medium">Modo Automático Activo — El agente interviene en esta bandeja</span>
+        </div>
+      )}
 
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto px-4 py-3">
