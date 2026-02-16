@@ -291,35 +291,25 @@ export type Database = {
           p_latency_ms?: number
           p_lock_owner: string
           p_model?: string
+          p_processed_by?: string
           p_request_id: string
         }
         Returns: boolean
       }
-      ai_create_chat_request:
-        | {
-            Args: {
-              p_conversation_id: string
-              p_latest_user_message_id?: string
-              p_mode?: string
-            }
-            Returns: {
-              id: string
-            }[]
-          }
-        | {
-            Args: {
-              p_conversation_id: string
-              p_latest_user_message_id?: string
-              p_max_tokens?: number
-              p_mode?: string
-              p_model?: string
-              p_processor?: string
-              p_temperature?: number
-            }
-            Returns: {
-              id: string
-            }[]
-          }
+      ai_create_chat_request: {
+        Args: {
+          p_conversation_id: string
+          p_latest_user_message_id?: string
+          p_max_tokens?: number
+          p_mode?: string
+          p_model?: string
+          p_processor?: string
+          p_temperature?: number
+        }
+        Returns: {
+          id: string
+        }[]
+      }
       ai_create_conversation: {
         Args: { p_department?: string; p_scope?: string; p_title: string }
         Returns: {
@@ -327,10 +317,15 @@ export type Database = {
           title: string
         }[]
       }
+      ai_delete_conversation: {
+        Args: { p_conversation_id: string }
+        Returns: boolean
+      }
       ai_fail_chat_request: {
         Args: { p_error: string; p_request_id: string }
         Returns: boolean
       }
+      ai_get_agent_config: { Args: { p_profile?: string }; Returns: Json }
       ai_get_chat_request_for_processing: {
         Args: { p_request_id: string }
         Returns: {
@@ -351,6 +346,10 @@ export type Database = {
       ai_get_context_general: { Args: { p_user_id: string }; Returns: Json }
       ai_get_context_marketing: { Args: { p_user_id: string }; Returns: Json }
       ai_get_context_programming: { Args: { p_user_id: string }; Returns: Json }
+      ai_get_group_settings: {
+        Args: { p_conversation_id: string }
+        Returns: Json
+      }
       ai_get_latest_request_status: {
         Args: { p_conversation_id: string }
         Returns: {
@@ -367,6 +366,10 @@ export type Database = {
           content: string
         }[]
       }
+      ai_get_or_create_department_conversation: {
+        Args: { p_department?: string }
+        Returns: Json
+      }
       ai_get_or_create_personal_conversation: {
         Args: never
         Returns: {
@@ -374,6 +377,11 @@ export type Database = {
           id: string
           title: string
         }[]
+      }
+      ai_get_suggestion_stats: { Args: never; Returns: Json }
+      ai_join_department_conversation: {
+        Args: { p_conversation_id: string }
+        Returns: boolean
       }
       ai_list_conversations: {
         Args: {
@@ -394,6 +402,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      ai_list_department_conversations: { Args: never; Returns: Json }
       ai_list_messages: {
         Args: { p_before?: string; p_conversation_id: string; p_limit?: number }
         Returns: {
@@ -405,6 +414,15 @@ export type Database = {
           mode: string
           sender: string
         }[]
+      }
+      ai_list_suggestions: {
+        Args: {
+          p_category?: string
+          p_limit?: number
+          p_offset?: number
+          p_status?: string
+        }
+        Returns: Json
       }
       ai_lock_next_chat_request: {
         Args: { p_lock_owner: string; p_processor: string }
@@ -435,6 +453,36 @@ export type Database = {
       ai_retry_chat_request: {
         Args: { p_request_id: string }
         Returns: boolean
+      }
+      ai_review_suggestion: {
+        Args: {
+          p_admin_notes?: string
+          p_status: string
+          p_suggestion_id: string
+        }
+        Returns: boolean
+      }
+      ai_save_suggestion: {
+        Args: {
+          p_category?: string
+          p_content: string
+          p_context_summary?: string
+          p_conversation_id: string
+          p_message_id: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      ai_set_group_settings: {
+        Args: {
+          p_agent_name?: string
+          p_auto_mode?: boolean
+          p_conversation_id: string
+          p_cooldown_minutes?: number
+          p_intervention_level?: string
+          p_model?: string
+        }
+        Returns: Json
       }
       approve_purchase_invoice: {
         Args: { p_invoice_id: string }
@@ -3184,12 +3232,14 @@ export type Database = {
           created_at: string
           created_by: string
           created_by_name: string
+          default_site_id: string
           id: string
           local_name: string
           project_address: string
           project_city: string
           project_name: string
           project_number: string
+          site_mode: string
           status: string
         }[]
       }
