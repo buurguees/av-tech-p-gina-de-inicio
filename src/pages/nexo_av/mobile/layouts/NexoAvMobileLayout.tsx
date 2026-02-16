@@ -5,7 +5,7 @@ import { ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
-import { Receipt, FileCheck } from "lucide-react";
+import { Receipt, FileCheck, Truck, UserRound } from "lucide-react";
 import { MobileHeader } from "../components/layout/MobileHeader";
 import { BottomNavigation, MoreMenuItem } from "../components/layout/BottomNavigation";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
@@ -199,6 +199,18 @@ const NexoAvMobileLayout = () => {
               label: 'Tickets / Gastos',
               icon: FileCheck,
               path: `/nexo-av/${userId}/expenses`
+            });
+            items.push({
+              id: 'suppliers',
+              label: 'Proveedores',
+              icon: Truck,
+              path: `/nexo-av/${userId}/suppliers`
+            });
+            items.push({
+              id: 'technicians',
+              label: 'Técnicos',
+              icon: UserRound,
+              path: `/nexo-av/${userId}/technicians`
             });
           }
           return items;
