@@ -25,6 +25,8 @@ import {
   Briefcase,
   HandCoins,
   Sparkles,
+  Lightbulb,
+  ScrollText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import "../../styles/components/layout/sidebar.css";
@@ -217,7 +219,32 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
     },
   ];
 
-  // Módulos admin
+  // Carpetas admin (Auditoría ahora es carpeta con sub-items)
+  const adminFolders: Folder[] = [
+    {
+      id: 'audit',
+      title: 'Auditoría',
+      icon: Shield,
+      items: [
+        {
+          id: 'audit-events',
+          title: 'Eventos',
+          icon: ScrollText,
+          path: `/nexo-av/${userId}/audit`,
+          available: getModule('audit')?.available || false,
+        },
+        {
+          id: 'audit-suggestions',
+          title: 'Sugerencias',
+          icon: Lightbulb,
+          path: `/nexo-av/${userId}/audit/suggestions`,
+          available: getModule('audit')?.available || false,
+        },
+      ],
+    },
+  ];
+
+  // Módulos admin (sin Auditoría, que ahora es carpeta)
   const adminModules = [
     {
       id: 'accounting',
@@ -232,13 +259,6 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
       icon: Settings,
       path: `/nexo-av/${userId}/settings`,
       available: getModule('settings')?.available || false,
-    },
-    {
-      id: 'audit',
-      title: 'Auditoría',
-      icon: Shield,
-      path: `/nexo-av/${userId}/audit`,
-      available: getModule('audit')?.available || false,
     },
     {
       id: 'developer',
@@ -293,7 +313,7 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
   // Auto-abrir carpetas si alguna de sus rutas está activa
   useEffect(() => {
     const foldersToOpen = new Set<string>();
-    folders.forEach(folder => {
+    [...folders, ...adminFolders].forEach(folder => {
       if (isFolderActive(folder)) {
         foldersToOpen.add(folder.id);
       }
@@ -440,7 +460,7 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
         </div>
 
         {/* Separador Visual y Sección Admin - Fija en la parte inferior */}
-        {isAdmin && adminModules.some(m => m.available) && (
+        {isAdmin && (adminModules.some(m => m.available) || adminFolders.some(f => f.items.some(i => i.available))) && (
           <>
             <hr className="nexo-sidebar__divider" />
             <div className="nexo-sidebar__admin">
@@ -465,6 +485,76 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                     </motion.button>
                   );
                 })}
+
+              {/* Admin folders (Auditoría) */}
+              {adminFolders.map((folder) => {
+                const hasAvailableItems = folder.items.some(item => item.available);
+                if (!hasAvailableItems) return null;
+
+                const isOpen = openFolders.has(folder.id);
+                const folderActive = isFolderActive(folder);
+                const FolderIcon = folder.icon;
+
+                return (
+                  <div key={folder.id} className="nexo-sidebar__folder">
+                    <motion.button
+                      type="button"
+                      onClick={() => toggleFolder(folder.id)}
+                      className={cn(
+                        "nexo-sidebar__item nexo-sidebar__item--folder",
+                        folderActive && "nexo-sidebar__item--folder-active"
+                      )}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <FolderIcon className="nexo-sidebar__icon" />
+                      <span className="nexo-sidebar__text">{folder.title}</span>
+                      <ChevronRight
+                        className={cn(
+                          "nexo-sidebar__chevron",
+                          isOpen && "nexo-sidebar__chevron--open"
+                        )}
+                      />
+                    </motion.button>
+
+                    <AnimatePresence>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="nexo-sidebar__folder-items">
+                            {folder.items
+                              .filter(item => item.available)
+                              .map((item) => {
+                                const ItemIcon = item.icon;
+                                const active = isActive(item.path);
+
+                                return (
+                                  <motion.button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => navigate(item.path)}
+                                    className={cn(
+                                      "nexo-sidebar__item nexo-sidebar__item--nested",
+                                      active && "nexo-sidebar__item--active"
+                                    )}
+                                    whileTap={{ scale: 0.98 }}
+                                  >
+                                    <ItemIcon className="nexo-sidebar__icon nexo-sidebar__icon--nested" />
+                                    <span className="nexo-sidebar__text">{item.title}</span>
+                                  </motion.button>
+                                );
+                              })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
             </div>
           </>
         )}

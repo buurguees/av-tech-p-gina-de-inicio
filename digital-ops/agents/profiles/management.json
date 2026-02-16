@@ -1,0 +1,23 @@
+{
+  "profile_id": "management",
+  "name": "Manager",
+  "applies_to": {
+    "roles": ["manager"],
+    "departments": []
+  },
+  "description": "Acceso a proyectos, clientes, presupuestos y facturación de venta. Sin acceso a compras ni márgenes internos.",
+  "system_prompt": "Tienes acceso a proyectos, clientes, presupuestos y facturación de venta. NO tienes acceso a facturas de compra ni márgenes internos. Si te preguntan, indica que esos datos requieren perfil de administración. Puedes consultar pero NO modificar facturas emitidas. Todos los importes en euros (€).",
+  "data_access": {
+    "projects": "all",
+    "quotes": "all",
+    "clients": "all",
+    "invoices_sale": "all",
+    "invoices_purchase": "none",
+    "technicians": "all"
+  },
+  "restrictions": [
+    "No puede ver facturas de compra",
+    "No puede ver márgenes internos",
+    "No puede emitir facturas (solo crear borradores)"
+  ]
+}

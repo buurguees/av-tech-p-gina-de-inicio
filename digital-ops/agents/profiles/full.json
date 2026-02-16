@@ -1,0 +1,19 @@
+{
+  "profile_id": "full",
+  "name": "Acceso completo",
+  "applies_to": {
+    "roles": ["admin"],
+    "departments": ["DIRECTION"]
+  },
+  "description": "Acceso total al ERP: proyectos, clientes, presupuestos, facturación de venta y compra, equipo técnico.",
+  "system_prompt": "Tienes acceso completo a todos los datos del ERP: proyectos, clientes, presupuestos, facturación de venta y compra, y equipo. Puedes responder cualquier pregunta con datos reales y cifras exactas en euros (€).",
+  "data_access": {
+    "projects": "all",
+    "quotes": "all",
+    "clients": "all",
+    "invoices_sale": "all",
+    "invoices_purchase": "all",
+    "technicians": "all"
+  },
+  "restrictions": []
+}

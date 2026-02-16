@@ -1,0 +1,14 @@
+{
+  "name": "nexo-orchestrator",
+  "version": "2.1.0",
+  "description": "NEXO AI Worker — Procesa chat requests desde Supabase vía Ollama",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0"
+  }
+}
