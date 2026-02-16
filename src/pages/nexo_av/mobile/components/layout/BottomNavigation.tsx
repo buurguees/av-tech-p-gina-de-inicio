@@ -1,12 +1,7 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FolderKanban, FileText, ScanLine, Users, Plus, Receipt, FileCheck } from "lucide-react";
+import { FolderKanban, FileText, ScanLine, Users, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import "../../styles/components/layout/bottom-navigation.css";
 
 interface BottomNavItem {
@@ -32,6 +27,7 @@ interface BottomNavigationProps {
 export const BottomNavigation = ({ userId, moreMenuItems = [] }: BottomNavigationProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [showMore, setShowMore] = useState(false);
   
   const items: BottomNavItem[] = [
     {
@@ -75,82 +71,105 @@ export const BottomNavigation = ({ userId, moreMenuItems = [] }: BottomNavigatio
   const isMoreActive = moreMenuItems.some(mi => location.pathname.includes(mi.id));
   
   return (
-    <nav 
-      className="mobile-bottom-nav"
-      style={{
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-      }}
-    >
-      <div className="mobile-bottom-nav-container">
-        {items.map((item) => {
-          const Icon = item.icon;
-          const active = item.id === 'more' ? isMoreActive : isActive(item.id);
-          
-          if (item.isAction && item.id === 'more' && moreMenuItems.length > 0) {
-            return (
-              <DropdownMenu key={item.id}>
-                <DropdownMenuTrigger asChild>
+    <>
+      {/* Overlay + floating menu */}
+      {showMore && moreMenuItems.length > 0 && (
+        <div className="fixed inset-0 z-[9998]" onClick={() => setShowMore(false)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div 
+            className="absolute bottom-[100px] right-4 z-[9999]"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden min-w-[220px]">
+              {moreMenuItems.map((menuItem, idx) => {
+                const MenuIcon = menuItem.icon;
+                return (
                   <button
+                    key={menuItem.id}
+                    onClick={() => {
+                      setShowMore(false);
+                      navigate(menuItem.path);
+                    }}
                     className={cn(
-                      "bottom-nav-item",
-                      active && "active"
+                      "w-full flex items-center gap-3 px-5 py-4 text-sm font-medium text-foreground",
+                      "active:bg-secondary/80 transition-colors",
+                      idx < moreMenuItems.length - 1 && "border-b border-border/50"
                     )}
-                    aria-label={item.label}
                     style={{ touchAction: 'manipulation' }}
                   >
-                    <div className="bottom-nav-icon-wrapper">
-                      <Icon className="bottom-nav-icon" />
-                    </div>
-                    <span className="bottom-nav-label">
-                      {item.label}
-                    </span>
+                    <MenuIcon className="h-5 w-5 text-muted-foreground" />
+                    <span>{menuItem.label}</span>
                   </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  side="top"
-                  align="end"
-                  sideOffset={12}
-                  className="min-w-[200px] z-[9999] bg-card border border-border shadow-xl mb-1"
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <nav 
+        className="mobile-bottom-nav"
+        style={{
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
+      >
+        <div className="mobile-bottom-nav-container">
+          {items.map((item) => {
+            const Icon = item.icon;
+            const active = item.id === 'more' ? (isMoreActive || showMore) : isActive(item.id);
+            
+            if (item.isAction && item.id === 'more' && moreMenuItems.length > 0) {
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setShowMore(!showMore)}
+                  className={cn(
+                    "bottom-nav-item",
+                    active && "active"
+                  )}
+                  aria-label={item.label}
+                  style={{ touchAction: 'manipulation' }}
                 >
-                  {moreMenuItems.map((menuItem) => {
-                    const MenuIcon = menuItem.icon;
-                    return (
-                      <DropdownMenuItem
-                        key={menuItem.id}
-                        onClick={() => navigate(menuItem.path)}
-                        className="cursor-pointer py-3 px-4 text-sm"
-                      >
-                        <MenuIcon className="h-4 w-4 mr-3 flex-shrink-0" />
-                        <span>{menuItem.label}</span>
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <div className="bottom-nav-icon-wrapper">
+                    {showMore ? (
+                      <X className="bottom-nav-icon" />
+                    ) : (
+                      <Icon className="bottom-nav-icon" />
+                    )}
+                  </div>
+                  <span className="bottom-nav-label">
+                    {item.label}
+                  </span>
+                </button>
+              );
+            }
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setShowMore(false);
+                  navigate(item.path);
+                }}
+                className={cn(
+                  "bottom-nav-item",
+                  active && "active"
+                )}
+                aria-label={item.label}
+                style={{ touchAction: 'manipulation' }}
+              >
+                <div className="bottom-nav-icon-wrapper">
+                  <Icon className="bottom-nav-icon" />
+                </div>
+                <span className="bottom-nav-label">
+                  {item.label}
+                </span>
+              </button>
             );
-          }
-          
-          return (
-            <button
-              key={item.id}
-              onClick={() => navigate(item.path)}
-              className={cn(
-                "bottom-nav-item",
-                active && "active"
-              )}
-              aria-label={item.label}
-              style={{ touchAction: 'manipulation' }}
-            >
-              <div className="bottom-nav-icon-wrapper">
-                <Icon className="bottom-nav-icon" />
-              </div>
-              <span className="bottom-nav-label">
-                {item.label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </nav>
+          })}
+        </div>
+      </nav>
+    </>
   );
 };
