@@ -1,8 +1,5 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-
-const rpc = (name: string, params?: Record<string, unknown>) =>
-  (supabase.rpc as any)(name, params);
+import { aiProxy } from '../aiProxy';
 
 export interface GroupAgentSettings {
   exists: boolean;
@@ -38,12 +35,12 @@ export function useGroupAgentSettings() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: err } = await rpc('ai_get_group_settings', {
-        p_conversation_id: conversationId,
+      const { data, error: err } = await aiProxy<GroupAgentSettings>('get_group_settings', {
+        conversation_id: conversationId,
       });
-      if (err) throw err;
-      if (data?.error) {
-        setError(data.error);
+      if (err) throw new Error(err);
+      if ((data as any)?.error) {
+        setError((data as any).error);
         setSettings(DEFAULTS);
       } else {
         setSettings(data as GroupAgentSettings);
@@ -69,15 +66,15 @@ export function useGroupAgentSettings() {
     setSaving(true);
     setError(null);
     try {
-      const { data, error: err } = await rpc('ai_set_group_settings', {
-        p_conversation_id: conversationId,
-        p_agent_name: updates.agent_name ?? null,
-        p_model: updates.model ?? null,
-        p_auto_mode: updates.auto_mode ?? null,
-        p_intervention_level: updates.intervention_level ?? null,
-        p_cooldown_minutes: updates.cooldown_minutes ?? null,
+      const { data, error: err } = await aiProxy('set_group_settings', {
+        conversation_id: conversationId,
+        agent_name: updates.agent_name ?? null,
+        model: updates.model ?? null,
+        auto_mode: updates.auto_mode ?? null,
+        intervention_level: updates.intervention_level ?? null,
+        cooldown_minutes: updates.cooldown_minutes ?? null,
       });
-      if (err) throw err;
+      if (err) throw new Error(err);
       await fetchSettings(conversationId);
       return true;
     } catch (e: any) {

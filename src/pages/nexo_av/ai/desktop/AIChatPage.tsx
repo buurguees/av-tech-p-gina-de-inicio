@@ -6,6 +6,7 @@ import { useMessages } from '../logic/hooks/useMessages';
 import { useSendMessage } from '../logic/hooks/useSendMessage';
 import { useRequestStatus } from '../logic/hooks/useRequestStatus';
 import { useGroupAgentSettings } from '../logic/hooks/useGroupAgentSettings';
+import { aiProxy } from '../logic/aiProxy';
 import ConversationList from './components/ConversationList';
 import type { GroupAutoModeMap } from './components/ConversationList';
 import GroupAgentSettingsDialog from './components/GroupAgentSettingsDialog';
@@ -76,8 +77,8 @@ const AIChatPage = () => {
       const modes: GroupAutoModeMap = {};
       for (const dept of departmentConversations) {
         try {
-          const { data, error } = await rpc('ai_get_group_settings', {
-            p_conversation_id: dept.id,
+          const { data, error } = await aiProxy<{ auto_mode?: boolean }>('get_group_settings', {
+            conversation_id: dept.id,
           });
           if (error) {
             modes[dept.id] = false;

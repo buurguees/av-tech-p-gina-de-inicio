@@ -47,10 +47,11 @@ export function useConversations() {
 
   const joinDepartmentConversation = useCallback(async (conversationId: string) => {
     try {
-      const { error: err } = await rpc('ai_join_department_conversation', {
-        p_conversation_id: conversationId,
+      const { aiProxy } = await import('../aiProxy');
+      const { error: err } = await aiProxy('join_department_conversation', {
+        conversation_id: conversationId,
       });
-      if (err) throw err;
+      if (err) throw new Error(err);
       await fetchDepartmentConversations();
       await fetchConversations();
     } catch (e: any) {
