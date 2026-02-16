@@ -5,8 +5,9 @@ import { ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
+import { Receipt, FileCheck } from "lucide-react";
 import { MobileHeader } from "../components/layout/MobileHeader";
-import { BottomNavigation } from "../components/layout/BottomNavigation";
+import { BottomNavigation, MoreMenuItem } from "../components/layout/BottomNavigation";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import "../styles/global.css";
 
@@ -184,10 +185,24 @@ const NexoAvMobileLayout = () => {
       {/* Bottom Navigation */}
       <BottomNavigation 
         userId={userId || ''}
-        onMoreClick={() => {
-          // TODO: Implementar drawer o menú para "Más"
-          console.log('Más clicked');
-        }}
+        moreMenuItems={(() => {
+          const items: MoreMenuItem[] = [];
+          if (isAdmin || isManager) {
+            items.push({
+              id: 'purchase-invoices',
+              label: 'Facturas de Compra',
+              icon: Receipt,
+              path: `/nexo-av/${userId}/purchase-invoices`
+            });
+            items.push({
+              id: 'expenses',
+              label: 'Tickets / Gastos',
+              icon: FileCheck,
+              path: `/nexo-av/${userId}/expenses`
+            });
+          }
+          return items;
+        })()}
       />
     </div>
   );
