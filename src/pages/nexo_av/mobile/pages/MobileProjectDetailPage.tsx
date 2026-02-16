@@ -919,6 +919,9 @@ const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency }: QuotesLis
     );
   }
 
+  const totalSubtotal = quotes.reduce((s: number, q: any) => s + (q.subtotal || 0), 0);
+  const totalAmount = quotes.reduce((s: number, q: any) => s + (q.total || 0), 0);
+
   return (
     <div className="px-4 py-4 space-y-2">
       {quotes.map((quote) => {
@@ -928,46 +931,50 @@ const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency }: QuotesLis
             key={quote.id}
             onClick={() => onQuoteClick(quote.id)}
             className={cn(
-              "w-full text-left px-3 py-2 rounded-xl",
+              "w-full text-left p-3 rounded-xl",
               "bg-card border border-border",
               "active:scale-[0.98] transition-all duration-200",
               "hover:border-primary/30"
             )}
             style={{ touchAction: 'manipulation' }}
           >
-            <div className="flex items-center gap-2">
-              {/* Nº Documento - Columna fija */}
-              <span className="font-mono text-xs text-muted-foreground w-[100px] flex-shrink-0 truncate">
-                {quote.quote_number}
-              </span>
-              
-              {/* Estado */}
-              <Badge 
-                variant="outline" 
-                className={cn(
-                  statusInfo.className,
-                  "text-[10px] px-1.5 py-0 w-[70px] justify-center flex-shrink-0"
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-mono text-xs text-muted-foreground truncate">
+                    {quote.quote_number}
+                  </span>
+                  <Badge variant="outline" className={cn(statusInfo.className, "text-[10px] px-1.5 py-0")}>
+                    {statusInfo.label}
+                  </Badge>
+                </div>
+                <h4 className="text-sm font-medium text-foreground truncate">
+                  {quote.client_name || "Sin cliente"}
+                </h4>
+                {quote.issue_date && (
+                  <p className="text-xs text-muted-foreground/70 mt-0.5">
+                    {new Date(quote.issue_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
+                  </p>
                 )}
-              >
-                {statusInfo.label}
-              </Badge>
-              
-              {/* Subtotal - Columna flexible */}
-              <span className="text-sm text-foreground flex-1 text-right">
-                {formatCurrency(quote.subtotal || 0)}
-              </span>
-              
-              {/* Total - Columna fija */}
-              <span className="text-sm font-semibold text-foreground w-[80px] text-right flex-shrink-0">
-                {formatCurrency(quote.total || 0)}
-              </span>
-              
-              {/* Arrow */}
-              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-1" />
+              </div>
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                <span className="text-xs text-muted-foreground">{formatCurrency(quote.subtotal || 0)}</span>
+                <span className="text-sm font-semibold text-foreground">{formatCurrency(quote.total || 0)}</span>
+              </div>
             </div>
           </button>
         );
       })}
+      {/* Summary footer */}
+      <div className="bg-card/50 border border-border rounded-xl p-3 mt-3">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>{quotes.length} presupuesto{quotes.length !== 1 ? 's' : ''}</span>
+          <div className="flex items-center gap-3">
+            <span>Base: {formatCurrency(totalSubtotal)}</span>
+            <span className="font-semibold text-foreground">Total: {formatCurrency(totalAmount)}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -1000,6 +1007,9 @@ const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency }: Inv
     );
   }
 
+  const totalAmount = invoices.reduce((s: number, i: any) => s + (i.total || 0), 0);
+  const totalPaid = invoices.reduce((s: number, i: any) => s + (i.paid_amount || 0), 0);
+
   return (
     <div className="px-4 py-4 space-y-2">
       {invoices.map((invoice) => {
@@ -1012,67 +1022,63 @@ const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency }: Inv
           invoice.status
         );
         const collectionInfo = getCollectionStatusInfo(collectionStatus);
-        
+
         return (
           <button
             key={invoice.id}
             onClick={() => onInvoiceClick(invoice.id)}
             className={cn(
-              "w-full text-left px-3 py-2 rounded-xl",
+              "w-full text-left p-3 rounded-xl",
               "bg-card border border-border",
               "active:scale-[0.98] transition-all duration-200",
               "hover:border-primary/30"
             )}
             style={{ touchAction: 'manipulation' }}
           >
-            <div className="flex items-center gap-2">
-              {/* Nº Documento - Columna fija */}
-              <span className="font-mono text-xs text-muted-foreground w-[90px] flex-shrink-0 truncate">
-                {displayNumber}
-              </span>
-              
-              {/* Estado del documento */}
-              <Badge 
-                variant="outline" 
-                className={cn(
-                  "sales-status-badge sales-status-badge--document",
-                  docStatusInfo.className,
-                  "text-[10px] px-1.5 py-0 w-[65px] justify-center flex-shrink-0"
-                )}
-              >
-                {docStatusInfo.label}
-              </Badge>
-              
-              {/* Estado de cobro (solo si está emitida) */}
-              {collectionInfo && (
-                <Badge 
-                  variant="outline" 
-                  className={cn(
-                    "sales-status-badge sales-status-badge--collection",
-                    collectionInfo.className,
-                    "text-[10px] px-1.5 py-0 w-[60px] justify-center flex-shrink-0"
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span className="font-mono text-xs text-muted-foreground truncate">
+                    {displayNumber}
+                  </span>
+                  <Badge variant="outline" className={cn("sales-status-badge sales-status-badge--document", docStatusInfo.className, "text-[10px] px-1.5 py-0")}>
+                    {docStatusInfo.label}
+                  </Badge>
+                  {collectionInfo && (
+                    <Badge variant="outline" className={cn("sales-status-badge sales-status-badge--collection", collectionInfo.className, "text-[10px] px-1.5 py-0")}>
+                      {collectionInfo.label}
+                    </Badge>
                   )}
-                >
-                  {collectionInfo.label}
-                </Badge>
-              )}
-              
-              {/* Subtotal - Columna flexible */}
-              <span className="text-sm text-foreground flex-1 text-right">
-                {formatCurrency(invoice.subtotal || 0)}
-              </span>
-              
-              {/* Total - Columna fija */}
-              <span className="text-sm font-semibold text-foreground w-[75px] text-right flex-shrink-0">
-                {formatCurrency(invoice.total || 0)}
-              </span>
-              
-              {/* Arrow */}
-              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-1" />
+                </div>
+                <h4 className="text-sm font-medium text-foreground truncate">
+                  {invoice.client_name || "Sin cliente"}
+                </h4>
+                {invoice.issue_date && (
+                  <p className="text-xs text-muted-foreground/70 mt-0.5">
+                    {new Date(invoice.issue_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                {invoice.pending_amount > 0 && (
+                  <span className="text-[10px] text-amber-500">Pend. {formatCurrency(invoice.pending_amount)}</span>
+                )}
+                <span className="text-sm font-semibold text-foreground">{formatCurrency(invoice.total || 0)}</span>
+              </div>
             </div>
           </button>
         );
       })}
+      {/* Summary footer */}
+      <div className="bg-card/50 border border-border rounded-xl p-3 mt-3">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>{invoices.length} factura{invoices.length !== 1 ? 's' : ''}</span>
+          <div className="flex items-center gap-3">
+            <span>Cobrado: {formatCurrency(totalPaid)}</span>
+            <span className="font-semibold text-foreground">Total: {formatCurrency(totalAmount)}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -1105,11 +1111,13 @@ const PurchasesList = ({ purchases, loading, onPurchaseClick, formatCurrency }: 
     );
   }
 
+  const totalAmount = purchases.reduce((s: number, p: any) => s + (p.total || 0), 0);
+  const totalPaid = purchases.reduce((s: number, p: any) => s + (p.paid_amount || 0), 0);
+
   return (
     <div className="px-4 py-4 space-y-2">
       {purchases.map((purchase) => {
         const displayNumber = purchase.internal_purchase_number || purchase.invoice_number || 'Sin número';
-        const subtotal = purchase.tax_base || purchase.subtotal || 0;
         const docStatusInfo = getDocumentStatusInfo(purchase.status);
         const paymentStatus = calculatePaymentStatus(
           purchase.paid_amount || 0,
@@ -1118,65 +1126,63 @@ const PurchasesList = ({ purchases, loading, onPurchaseClick, formatCurrency }: 
           purchase.status
         );
         const paymentInfo = getPaymentStatusInfo(paymentStatus);
-        
+
         return (
           <button
             key={purchase.id}
             onClick={() => onPurchaseClick(purchase.id)}
             className={cn(
-              "w-full text-left px-3 py-2 rounded-xl",
+              "w-full text-left p-3 rounded-xl",
               "bg-card border border-border",
               "active:scale-[0.98] transition-all duration-200",
               "hover:border-primary/30"
             )}
             style={{ touchAction: 'manipulation' }}
           >
-            <div className="flex items-center gap-2">
-              {/* Nº Documento - Columna fija */}
-              <span className="font-mono text-xs text-muted-foreground w-[90px] flex-shrink-0 truncate">
-                {displayNumber}
-              </span>
-              
-              {/* Estado del documento */}
-              <Badge 
-                variant="outline" 
-                className={cn(
-                  docStatusInfo.className,
-                  "text-[10px] px-1.5 py-0 w-[65px] justify-center flex-shrink-0"
-                )}
-              >
-                {docStatusInfo.label}
-              </Badge>
-              
-              {/* Estado de pago (solo si está aprobada) */}
-              {paymentInfo && (
-                <Badge 
-                  variant="outline" 
-                  className={cn(
-                    paymentInfo.className,
-                    "text-[10px] px-1.5 py-0 w-[60px] justify-center flex-shrink-0"
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span className="font-mono text-xs text-muted-foreground truncate">
+                    {displayNumber}
+                  </span>
+                  <Badge variant="outline" className={cn(docStatusInfo.className, "text-[10px] px-1.5 py-0")}>
+                    {docStatusInfo.label}
+                  </Badge>
+                  {paymentInfo && (
+                    <Badge variant="outline" className={cn(paymentInfo.className, "text-[10px] px-1.5 py-0")}>
+                      {paymentInfo.label}
+                    </Badge>
                   )}
-                >
-                  {paymentInfo.label}
-                </Badge>
-              )}
-              
-              {/* Subtotal - Columna flexible */}
-              <span className="text-sm text-foreground flex-1 text-right">
-                {formatCurrency(subtotal)}
-              </span>
-              
-              {/* Total - Columna fija */}
-              <span className="text-sm font-semibold text-foreground w-[75px] text-right flex-shrink-0">
-                {formatCurrency(purchase.total || 0)}
-              </span>
-              
-              {/* Arrow */}
-              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-1" />
+                </div>
+                <h4 className="text-sm font-medium text-foreground truncate">
+                  {purchase.provider_name || purchase.supplier_name || "Sin proveedor"}
+                </h4>
+                {purchase.issue_date && (
+                  <p className="text-xs text-muted-foreground/70 mt-0.5">
+                    {new Date(purchase.issue_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                {purchase.pending_amount > 0 && (
+                  <span className="text-[10px] text-amber-500">Pend. {formatCurrency(purchase.pending_amount)}</span>
+                )}
+                <span className="text-sm font-semibold text-foreground">{formatCurrency(purchase.total || 0)}</span>
+              </div>
             </div>
           </button>
         );
       })}
+      {/* Summary footer */}
+      <div className="bg-card/50 border border-border rounded-xl p-3 mt-3">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>{purchases.length} compra{purchases.length !== 1 ? 's' : ''}</span>
+          <div className="flex items-center gap-3">
+            <span>Pagado: {formatCurrency(totalPaid)}</span>
+            <span className="font-semibold text-foreground">Total: {formatCurrency(totalAmount)}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
