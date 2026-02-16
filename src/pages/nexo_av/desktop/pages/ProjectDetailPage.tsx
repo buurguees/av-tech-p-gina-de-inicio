@@ -12,6 +12,8 @@ import ProjectPurchasesList from "../components/projects/ProjectPurchasesList";
 import ProjectPurchaseOrdersList from "../components/projects/ProjectPurchaseOrdersList";
 import ProjectHistoryTab from "../components/projects/ProjectHistoryTab";
 import ProjectSitesTab from "../components/projects/ProjectSitesTab";
+import ProjectPlanningTab from "../components/projects/ProjectPlanningTab";
+import ProjectTechniciansTab from "../components/projects/ProjectTechniciansTab";
 import EditProjectDialog from "../components/projects/EditProjectDialog";
 import StatusSelector from "../components/common/StatusSelector";
 import { PROJECT_STATUSES } from "@/constants/projectStatuses";
@@ -379,15 +381,11 @@ const ProjectDetailPageDesktop = () => {
             {activeTab === "sitios" && projectId && (
               <ProjectSitesTab projectId={projectId} siteMode={project?.site_mode} />
             )}
-            {activeTab === "planificacion" && (
-              <div className="p-6">
-                <p className="text-muted-foreground">Planificación - Se trabajará más adelante</p>
-              </div>
+            {activeTab === "planificacion" && projectId && (
+              <ProjectPlanningTab projectId={projectId} siteMode={project?.site_mode} />
             )}
-            {activeTab === "tecnicos" && (
-              <div className="p-6">
-                <p className="text-muted-foreground">Técnicos - Se trabajará más adelante</p>
-              </div>
+            {activeTab === "tecnicos" && projectId && (
+              <ProjectTechniciansTab projectId={projectId} />
             )}
             {activeTab === "presupuestos" && projectId && (
               <ProjectQuotesList projectId={projectId} />
