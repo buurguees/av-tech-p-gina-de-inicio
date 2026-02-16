@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
         );
         await serviceClient.rpc("ai_mark_request_error", {
           p_request_id: request_id,
-          p_error: error.message || "Unknown error",
+          p_error: error instanceof Error ? error.message : "Unknown error",
         });
       }
     } catch (_) { /* best effort */ }
