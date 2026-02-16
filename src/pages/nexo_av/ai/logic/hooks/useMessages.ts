@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Message } from '../types';
 
+// Helper to call RPCs not yet in generated types
+const rpc = (name: string, params?: Record<string, unknown>) =>
+  (supabase.rpc as any)(name, params);
+
 export function useMessages(conversationId: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -14,12 +18,12 @@ export function useMessages(conversationId: string | null) {
     }
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc('ai_list_messages', {
+      const { data, error } = await rpc('ai_list_messages', {
         p_conversation_id: conversationId,
         p_limit: 100,
       });
       if (error) throw error;
-      setMessages((data as unknown as Message[]) || []);
+      setMessages((data as Message[]) || []);
     } catch (e) {
       console.error('Failed to load messages:', e);
     } finally {
@@ -31,7 +35,6 @@ export function useMessages(conversationId: string | null) {
   useEffect(() => {
     if (!conversationId) return;
 
-    // Clean up previous channel
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
@@ -49,7 +52,6 @@ export function useMessages(conversationId: string | null) {
         (payload) => {
           const newMsg = payload.new as Message;
           setMessages((prev) => {
-            // Avoid duplicates
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
           });
@@ -64,7 +66,6 @@ export function useMessages(conversationId: string | null) {
     };
   }, [conversationId]);
 
-  // Initial load
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
