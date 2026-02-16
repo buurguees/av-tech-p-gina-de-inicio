@@ -23,7 +23,8 @@ import {
   Code2,
   UserCog,
   Briefcase,
-  HandCoins
+  HandCoins,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import "../../styles/components/layout/sidebar.css";
@@ -324,6 +325,19 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           >
             <Home className="nexo-sidebar__icon" />
             <span className="nexo-sidebar__text">Dashboard</span>
+          </motion.button>
+
+          {/* NEXO AI */}
+          <motion.button
+            onClick={() => navigate(`/nexo-av/${userId}/nexo-ai`)}
+            className={cn(
+              "nexo-sidebar__item",
+              isActive(`/nexo-av/${userId}/nexo-ai`) && "nexo-sidebar__item--active"
+            )}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Sparkles className="nexo-sidebar__icon" />
+            <span className="nexo-sidebar__text">NEXO AI</span>
           </motion.button>
 
           {/* Divider */}
