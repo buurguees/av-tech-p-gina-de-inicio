@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import TasksWidget from "../../desktop/components/dashboard/widgets/TasksWidget";
+import NotificationsWidget from "../../desktop/components/dashboard/widgets/NotificationsWidget";
 
 const MobileDashboard = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -180,6 +182,13 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
         </div>
       )}
 
+      {/* Notificaciones */}
+      <NotificationsWidget maxItems={5} />
+
+      {/* Tareas hoy */}
+      <TasksWidget variant="today" maxItems={5} />
+      <TasksWidget variant="urgent" maxItems={5} />
+
       {/* Quick actions */}
       <div className="space-y-2">
         <h2 className="text-sm font-medium text-muted-foreground">Operativa</h2>
@@ -254,6 +263,12 @@ const MobileManagerDashboard = ({ userName, userId, navigate }: DashboardProps) 
         ))}
       </div>
 
+      {/* Notificaciones */}
+      <NotificationsWidget maxItems={5} />
+
+      {/* Tareas */}
+      <TasksWidget variant="today" maxItems={5} />
+
       {/* Agenda */}
       <div className="space-y-2">
         {filtered.length === 0 ? (
@@ -310,6 +325,12 @@ const MobileCommercialDashboard = ({ userName, userId, navigate }: DashboardProp
         <MiniKpi icon={Target} label="En negociación" value={k.quotes_in_negotiation} color="bg-amber-500/10 text-amber-500" />
         <MiniKpi icon={CheckCircle} label="Sites p/ facturar" value={data.sites_ready?.length || 0} color="bg-emerald-500/10 text-emerald-500" />
       </div>
+
+      {/* Notificaciones */}
+      <NotificationsWidget maxItems={5} />
+
+      {/* Tareas */}
+      <TasksWidget variant="today" maxItems={5} />
 
       {/* Pipeline */}
       {data.pipeline?.length > 0 && (
@@ -387,6 +408,12 @@ const MobileTechnicianDashboard = ({ userName, userId, navigate }: DashboardProp
         <MiniKpi icon={Clock} label="7 días" value={k.sites_next_7_days} color="bg-cyan-500/10 text-cyan-500" />
         <MiniKpi icon={MapPin} label="En curso" value={k.sites_in_progress} color="bg-amber-500/10 text-amber-500" />
       </div>
+
+      {/* Notificaciones */}
+      <NotificationsWidget maxItems={5} />
+
+      {/* Tareas */}
+      <TasksWidget variant="today" maxItems={5} />
 
       {/* Open visits */}
       {data.open_visits?.length > 0 && (
