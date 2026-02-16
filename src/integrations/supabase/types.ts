@@ -2944,6 +2944,8 @@ export type Database = {
           project_name: string
           project_number: string
           quote_number: string
+          site_id: string
+          site_name: string
           status: string
           subtotal: number
           tax_amount: number

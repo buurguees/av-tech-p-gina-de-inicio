@@ -390,7 +390,7 @@ const ProjectDetailPageDesktop = () => {
               <ProjectTechniciansTab projectId={projectId} />
             )}
             {activeTab === "presupuestos" && projectId && (
-              <ProjectQuotesList projectId={projectId} />
+              <ProjectQuotesList projectId={projectId} siteMode={project?.site_mode} />
             )}
             {activeTab === "facturas" && projectId && (
               <ProjectInvoicesList projectId={projectId} />

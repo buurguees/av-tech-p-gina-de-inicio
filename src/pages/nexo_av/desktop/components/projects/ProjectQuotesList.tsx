@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Loader2 } from "lucide-react";
+import { MoreVertical, Loader2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import { usePagination } from "@/hooks/usePagination";
@@ -33,17 +33,22 @@ interface Quote {
   subtotal: number;
   total: number;
   created_at: string;
+  site_id: string | null;
+  site_name: string | null;
 }
 
 interface ProjectQuotesListProps {
   projectId: string;
+  siteMode?: string | null;
 }
 
-const ProjectQuotesList = ({ projectId }: ProjectQuotesListProps) => {
+const ProjectQuotesList = ({ projectId, siteMode }: ProjectQuotesListProps) => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const [loading, setLoading] = useState(true);
   const [quotes, setQuotes] = useState<Quote[]>([]);
+
+  const isMultiSite = siteMode === "MULTI_SITE";
 
   useEffect(() => {
     fetchQuotes();
@@ -54,18 +59,12 @@ const ProjectQuotesList = ({ projectId }: ProjectQuotesListProps) => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc("list_quotes", {
-        p_search: null,
+      const { data, error } = await supabase.rpc("list_project_quotes", {
+        p_project_id: projectId,
       });
 
       if (error) throw error;
-
-      // Filtrar solo los presupuestos del proyecto
-      const projectQuotes = (data || []).filter(
-        (q: any) => q.project_id === projectId
-      );
-
-      setQuotes(projectQuotes);
+      setQuotes((data || []) as Quote[]);
     } catch (error: any) {
       console.error("Error fetching quotes:", error);
     } finally {
@@ -136,6 +135,9 @@ const ProjectQuotesList = ({ projectId }: ProjectQuotesListProps) => {
                 <TableHead className="project-items-list__header">Fecha</TableHead>
                 <TableHead className="project-items-list__header">Nº Presupuesto</TableHead>
                 <TableHead className="project-items-list__header">Cliente</TableHead>
+                {isMultiSite && (
+                  <TableHead className="project-items-list__header">Sitio</TableHead>
+                )}
                 <TableHead className="project-items-list__header">Válido hasta</TableHead>
                 <TableHead className="project-items-list__header text-right">Subtotal</TableHead>
                 <TableHead className="project-items-list__header text-right">Total</TableHead>
@@ -162,6 +164,18 @@ const ProjectQuotesList = ({ projectId }: ProjectQuotesListProps) => {
                     <TableCell className="project-items-list__cell">
                       {quote.client_name}
                     </TableCell>
+                    {isMultiSite && (
+                      <TableCell className="project-items-list__cell">
+                        {quote.site_name ? (
+                          <span className="inline-flex items-center gap-1.5 text-sm">
+                            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                            {quote.site_name}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">Sin asignar</span>
+                        )}
+                      </TableCell>
+                    )}
                     <TableCell className="project-items-list__cell">
                       {formatDate(quote.valid_until)}
                     </TableCell>
