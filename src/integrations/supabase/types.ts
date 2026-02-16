@@ -405,6 +405,10 @@ export type Database = {
         Args: { p_closed_by?: string; p_month: number; p_year: number }
         Returns: string
       }
+      close_site_visit: {
+        Args: { p_check_out_at?: string; p_notes?: string; p_visit_id: string }
+        Returns: boolean
+      }
       confirm_purchase_invoice: {
         Args: { p_invoice_id: string }
         Returns: string
@@ -1041,6 +1045,10 @@ export type Database = {
         Returns: boolean
       }
       delete_quote_line: { Args: { p_line_id: string }; Returns: boolean }
+      delete_site_assignment: {
+        Args: { p_assignment_id: string }
+        Returns: boolean
+      }
       delete_supplier: { Args: { p_supplier_id: string }; Returns: boolean }
       delete_tax: { Args: { p_tax_id: string }; Returns: boolean }
       delete_technician: { Args: { p_technician_id: string }; Returns: boolean }
@@ -2912,7 +2920,10 @@ export type Database = {
       list_project_sites: {
         Args: { p_project_id: string }
         Returns: {
+          actual_end_at: string
+          actual_start_at: string
           address: string
+          assignment_count: number
           city: string
           contact_email: string
           contact_name: string
@@ -2926,12 +2937,17 @@ export type Database = {
           latitude: number
           longitude: number
           notes: string
+          planned_days: number
+          planned_end_date: string
+          planned_start_date: string
           postal_code: string
           project_id: string
           province: string
           site_name: string
           site_reference: string
+          site_status: string
           updated_at: string
+          visit_count: number
         }[]
       }
       list_project_technicians: {
@@ -3065,6 +3081,36 @@ export type Database = {
           id: string
           level: number
           name: string
+        }[]
+      }
+      list_site_assignments: {
+        Args: { p_site_id: string }
+        Returns: {
+          created_at: string
+          date_from: string
+          date_to: string
+          id: string
+          notes: string
+          role: string
+          site_id: string
+          technician_id: string
+          technician_name: string
+          technician_number: string
+        }[]
+      }
+      list_site_visits: {
+        Args: { p_site_id: string }
+        Returns: {
+          check_in_at: string
+          check_out_at: string
+          created_at: string
+          id: string
+          notes: string
+          site_id: string
+          technician_id: string
+          technician_name: string
+          technician_number: string
+          visit_date: string
         }[]
       }
       list_suppliers: {
@@ -3290,6 +3336,17 @@ export type Database = {
         }
         Returns: string
       }
+      register_site_visit: {
+        Args: {
+          p_check_in_at?: string
+          p_check_out_at?: string
+          p_notes?: string
+          p_site_id: string
+          p_technician_id: string
+          p_visit_date?: string
+        }
+        Returns: string
+      }
       reimburse_personal_purchase: {
         Args: {
           p_bank_account_id: string
@@ -3314,6 +3371,15 @@ export type Database = {
       set_default_project_site: {
         Args: { p_project_id: string; p_site_id: string }
         Returns: boolean
+      }
+      set_site_actual_dates: {
+        Args: {
+          p_actual_end_at?: string
+          p_actual_start_at?: string
+          p_mark_ready_to_invoice?: boolean
+          p_site_id: string
+        }
+        Returns: Json
       }
       settle_credit_installment: {
         Args: {
@@ -3738,6 +3804,15 @@ export type Database = {
         Args: { p_line_ids: string[]; p_quote_id: string }
         Returns: boolean
       }
+      update_site_planning: {
+        Args: {
+          p_planned_days?: number
+          p_planned_end_date?: string
+          p_planned_start_date?: string
+          p_site_id: string
+        }
+        Returns: Json
+      }
       update_supplier: {
         Args: {
           p_address?: string
@@ -3894,6 +3969,18 @@ export type Database = {
           p_tax_id: string
           p_vat_number?: string
           p_website?: string
+        }
+        Returns: string
+      }
+      upsert_site_assignment: {
+        Args: {
+          p_assignment_id?: string
+          p_date_from?: string
+          p_date_to?: string
+          p_notes?: string
+          p_role?: string
+          p_site_id: string
+          p_technician_id: string
         }
         Returns: string
       }
