@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { getProjectStatusInfo } from "@/constants/projectStatuses";
 import { getQuoteStatusInfo } from "@/constants/quoteStatuses";
 import EditProjectSheet from "../components/projects/EditProjectSheet";
+import MobilePlanningTab from "../components/projects/MobilePlanningTab";
 import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo } from "@/constants/salesInvoiceStatuses";
 import { getDocumentStatusInfo, calculatePaymentStatus, getPaymentStatusInfo } from "@/constants/purchaseInvoiceStatuses";
 
@@ -46,6 +47,7 @@ interface ProjectDetail {
   client_order_number: string | null;
   local_name: string | null;
   notes: string | null;
+  site_mode: string | null;
   installation_start_date?: string | null;
   delivery_date?: string | null;
   start_date?: string | null;
@@ -71,7 +73,7 @@ interface ProjectMetrics {
   margin: number;
 }
 
-type TabId = 'resumen' | 'presupuestos' | 'facturas' | 'compras' | 'tecnicos';
+type TabId = 'resumen' | 'planificacion' | 'presupuestos' | 'facturas' | 'compras' | 'tecnicos';
 
 interface Tab {
   id: TabId;
@@ -79,9 +81,10 @@ interface Tab {
   icon: any;
 }
 
-// Pestañas de navegación (sin Histórico en mobile)
+// Pestañas de navegación
 const TABS: Tab[] = [
   { id: 'resumen', label: 'Resumen', icon: LayoutDashboard },
+  { id: 'planificacion', label: 'Planificación', icon: Calendar },
   { id: 'presupuestos', label: 'Presupuestos', icon: FileText },
   { id: 'facturas', label: 'Facturas', icon: Receipt },
   { id: 'compras', label: 'Compras', icon: ShoppingCart },
@@ -507,6 +510,13 @@ const MobileProjectDetailPage = () => {
             endDate={endDate}
             formatCurrency={formatCurrency}
             formatDate={formatDate}
+          />
+        )}
+        
+        {activeTab === 'planificacion' && (
+          <MobilePlanningTab 
+            projectId={projectId!}
+            siteMode={project?.site_mode}
           />
         )}
         
