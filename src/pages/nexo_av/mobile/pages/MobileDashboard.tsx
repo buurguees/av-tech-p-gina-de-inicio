@@ -5,7 +5,7 @@ import {
   FolderKanban, Users, FileText, TrendingUp, Clock,
   CheckCircle, Euro, ArrowRight, MapPin, CalendarDays,
   Target, AlertCircle, Phone, PenLine, Receipt,
-  AlertTriangle, CreditCard, Banknote
+  AlertTriangle, CreditCard, Banknote, CalendarClock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -162,25 +162,88 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
       </div>
 
       {/* Collection risk */}
-      {(data.collection_risk.overdue.count > 0 || data.collection_risk.due_7_days.count > 0) && (
-        <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-4 space-y-2">
-          <h3 className="text-sm font-semibold text-destructive flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" /> Riesgo de cobro
-          </h3>
-          {data.collection_risk.overdue.count > 0 && (
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">{data.collection_risk.overdue.count} vencidas</span>
-              <span className="font-semibold text-destructive">{fmt(data.collection_risk.overdue.amount)}</span>
-            </div>
-          )}
-          {data.collection_risk.due_7_days.count > 0 && (
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">{data.collection_risk.due_7_days.count} vencen en 7d</span>
-              <span className="font-semibold text-amber-500">{fmt(data.collection_risk.due_7_days.amount)}</span>
-            </div>
-          )}
+      <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-destructive" /> Riesgo de cobro
+        </h3>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
+            <div className="text-[11px] text-muted-foreground mb-0.5">Vencidas</div>
+            <div className="text-lg font-bold text-destructive">{fmt(data.collection_risk.overdue.amount)}</div>
+            <div className="text-[10px] text-muted-foreground">{data.collection_risk.overdue.count} facturas</div>
+          </div>
+          <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
+            <div className="text-[11px] text-muted-foreground mb-0.5">Vencen en 7 días</div>
+            <div className="text-lg font-bold text-amber-500">{fmt(data.collection_risk.due_7_days.amount)}</div>
+            <div className="text-[10px] text-muted-foreground">{data.collection_risk.due_7_days.count} facturas</div>
+          </div>
         </div>
-      )}
+        {/* Top debtors */}
+        {data.collection_risk.top_debtors?.length > 0 && (
+          <div className="space-y-1.5 pt-1">
+            <div className="text-[11px] text-muted-foreground font-medium">Top deudores</div>
+            {data.collection_risk.top_debtors.slice(0, 5).map((d: any) => (
+              <button key={d.client_id} onClick={() => navigate(`/nexo-av/${userId}/clients/${d.client_id}`)}
+                className="w-full flex justify-between items-center text-xs py-1 active:opacity-70"
+                style={{ touchAction: "manipulation" }}>
+                <span className="text-foreground truncate max-w-[60%]">{d.client_name}</span>
+                <span className="font-semibold text-destructive">{fmt(d.total_debt)}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Upcoming payments */}
+      <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <CalendarClock className="h-4 w-4 text-amber-500" /> Pagos próximos 7 días
+        </h3>
+        <MobilePaymentList title="Facturas de compra" icon={FileText} items={data.upcoming_payments?.purchase_invoices || []}
+          renderItem={(item: any) => (
+            <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0">
+              <div className="truncate max-w-[60%]">
+                <span className="text-foreground font-medium">{item.supplier_name}</span>
+                <span className="text-muted-foreground ml-1">#{item.reference}</span>
+              </div>
+              <div className="text-right">
+                <div className="font-semibold text-foreground">{fmt(item.amount)}</div>
+                <div className="text-[10px] text-muted-foreground">{new Date(item.due_date).toLocaleDateString("es-ES")}</div>
+              </div>
+            </div>
+          )}
+        />
+        <MobilePaymentList title="Cuotas financiación" icon={Banknote} items={data.upcoming_payments?.credit_installments || []}
+          renderItem={(item: any) => (
+            <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0">
+              <div className="truncate max-w-[60%]">
+                <span className="text-foreground font-medium">{item.provider_name}</span>
+                <span className="text-muted-foreground ml-1">Cuota {item.installment_number}</span>
+              </div>
+              <div className="text-right">
+                <div className="font-semibold text-foreground">{fmt(item.amount)}</div>
+                <div className="text-[10px] text-muted-foreground">{new Date(item.due_date).toLocaleDateString("es-ES")}</div>
+              </div>
+            </div>
+          )}
+        />
+        <MobilePaymentList title="Nóminas pendientes" icon={Users} items={data.upcoming_payments?.payrolls || []}
+          renderItem={(item: any) => (
+            <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0">
+              <span className="text-foreground font-medium truncate max-w-[60%]">{item.employee_name}</span>
+              <span className="font-semibold text-foreground">{fmt(item.net_amount)}</span>
+            </div>
+          )}
+        />
+        <MobilePaymentList title="Compensaciones socios" icon={Users} items={data.upcoming_payments?.partner_compensations || []}
+          renderItem={(item: any) => (
+            <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0">
+              <span className="text-foreground font-medium truncate max-w-[60%]">{item.partner_name}</span>
+              <span className="font-semibold text-foreground">{fmt(item.net_amount)}</span>
+            </div>
+          )}
+        />
+      </div>
 
       {/* Notificaciones */}
       <NotificationsWidget maxItems={5} />
@@ -189,6 +252,21 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
       <TasksWidget variant="today" maxItems={5} />
       <TasksWidget variant="urgent" maxItems={5} />
 
+      {/* Large quotes in negotiation */}
+      {data.operations.large_quotes_negotiation?.length > 0 && (
+        <div className="bg-card border border-border rounded-xl p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">Presupuestos grandes en negociación</h3>
+          {data.operations.large_quotes_negotiation.map((q: any) => (
+            <button key={q.id} onClick={() => navigate(`/nexo-av/${userId}/quotes/${q.id}`)}
+              className="w-full flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0 active:opacity-70"
+              style={{ touchAction: "manipulation" }}>
+              <span className="text-foreground truncate max-w-[60%]">{q.client_name}</span>
+              <span className="font-semibold text-primary">{fmt(q.total)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Quick actions */}
       <div className="space-y-2">
         <h2 className="text-sm font-medium text-muted-foreground">Operativa</h2>
@@ -196,8 +274,6 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
           color="bg-emerald-500/10 text-emerald-500" onPress={() => navigate(`/nexo-av/${userId}/projects`)} />
         <QuickAction icon={Clock} label="Proyectos en curso" stat={data.operations.projects_in_progress}
           color="bg-blue-500/10 text-blue-500" onPress={() => navigate(`/nexo-av/${userId}/projects`)} />
-        <QuickAction icon={FileText} label="Presupuestos en negociación" stat={data.operations.large_quotes_negotiation?.length || 0}
-          color="bg-amber-500/10 text-amber-500" onPress={() => navigate(`/nexo-av/${userId}/quotes`)} />
       </div>
     </div>
   );
@@ -523,6 +599,25 @@ const QuickAction = ({ icon: Icon, label, stat, color, onPress }: {
     </div>
     <ArrowRight className="h-5 w-5 text-muted-foreground" />
   </button>
+);
+
+const MobilePaymentList = ({ title, icon: Icon, items, renderItem }: {
+  title: string; icon: any; items: any[]; renderItem: (item: any) => React.ReactNode;
+}) => (
+  <div>
+    <div className="flex items-center gap-1.5 mb-1.5">
+      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+      <span className="text-[11px] font-medium text-muted-foreground">{title}</span>
+      {items.length > 0 && (
+        <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full">{items.length}</span>
+      )}
+    </div>
+    {items.length === 0 ? (
+      <div className="text-[11px] text-muted-foreground/60 italic">Sin pagos pendientes</div>
+    ) : (
+      <div>{items.map(renderItem)}</div>
+    )}
+  </div>
 );
 
 const LoadingSkeleton = () => (
