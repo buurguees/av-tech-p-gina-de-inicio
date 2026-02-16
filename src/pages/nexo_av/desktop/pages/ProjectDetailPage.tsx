@@ -438,12 +438,21 @@ const ProjectDetailPageDesktop = () => {
                       <StatusSelector
                         currentStatus={project?.status || "PLANNED"}
                         statusOptions={[...PROJECT_STATUSES]}
-                        onStatusChange={(newStatus) => {
-                          // TODO: Implementar actualización en base de datos
-                          console.log("Cambiar estado del proyecto a:", newStatus);
-                          // Por ahora solo actualizamos el estado local
-                          if (project) {
-                            setProject({ ...project, status: newStatus });
+                        onStatusChange={async (newStatus) => {
+                          if (!project) return;
+                          const previousStatus = project.status;
+                          setProject({ ...project, status: newStatus });
+                          try {
+                            const { error, data } = await supabase.rpc("update_project", {
+                              p_project_id: project.id,
+                              p_status: newStatus,
+                            });
+                            if (error) throw error;
+                            if (data === false) throw new Error("No se pudo actualizar el estado.");
+                            toast({ title: "Estado actualizado", description: "El estado del proyecto se ha guardado correctamente." });
+                          } catch (err: any) {
+                            setProject({ ...project, status: previousStatus });
+                            toast({ title: "Error", description: err.message || "Error al actualizar el estado", variant: "destructive" });
                           }
                         }}
                         size="md"
