@@ -163,15 +163,13 @@ const MobileEditQuotePage = () => {
   useEffect(() => {
     if (selectedProjectId) {
       const project = projects.find(p => p.id === selectedProjectId);
-      if (project?.site_mode === "MULTI_SITE") {
+      if (project?.site_mode === "MULTI_SITE" || project?.site_mode === "SINGLE_SITE") {
         fetchSitesForProject(selectedProjectId);
       } else {
         setSites([]);
-        setSelectedSiteId("");
       }
     } else {
       setSites([]);
-      setSelectedSiteId("");
     }
   }, [selectedProjectId, projects]);
 
@@ -289,13 +287,23 @@ const MobileEditQuotePage = () => {
       const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
       if (error) throw error;
       const activeSites = ((data || []) as any[]).filter((s: any) => s.is_active);
-      setSites(activeSites.map((s: any) => ({
+      const mappedSites = activeSites.map((s: any) => ({
         id: s.id,
         site_name: s.site_name,
         city: s.city,
         is_default: s.is_default,
         is_active: s.is_active,
-      })));
+      }));
+      setSites(mappedSites);
+
+      // If quote already has a site_id and it's in the loaded sites, keep it
+      if (quote?.site_id && mappedSites.some(s => s.id === quote.site_id)) {
+        setSelectedSiteId(quote.site_id);
+      } else if (!selectedSiteId) {
+        // Otherwise auto-select default site
+        const defaultSite = mappedSites.find(s => s.is_default);
+        if (defaultSite) setSelectedSiteId(defaultSite.id);
+      }
     } catch (error) {
       console.error("Error fetching sites:", error);
       setSites([]);
@@ -685,6 +693,8 @@ const MobileEditQuotePage = () => {
                 onValueChange={(value) => {
                   setSelectedClientId(value);
                   setSelectedProjectId("");
+                  setSites([]);
+                  setSelectedSiteId("");
                 }}
               >
                 <SelectTrigger className="w-full">
@@ -707,7 +717,11 @@ const MobileEditQuotePage = () => {
                 </Label>
                 <Select 
                   value={selectedProjectId}
-                  onValueChange={setSelectedProjectId}
+                  onValueChange={(value) => {
+                    setSelectedProjectId(value);
+                    setSelectedSiteId("");
+                    setSites([]);
+                  }}
                   disabled={projects.length === 0}
                 >
                   <SelectTrigger className="w-full">
@@ -748,6 +762,35 @@ const MobileEditQuotePage = () => {
                 </Select>
                 <p className="text-[11px] text-muted-foreground">
                   Proyecto multi-sitio: selecciona el sitio para este presupuesto.
+                </p>
+              </div>
+            )}
+
+            {/* Info display for SINGLE_SITE projects */}
+            {selectedProjectId && projects.find(p => p.id === selectedProjectId)?.site_mode === "SINGLE_SITE" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Sitio de instalación
+                </Label>
+                {loadingSites ? (
+                  <div className="flex items-center gap-2 p-2.5 bg-muted/30 rounded-lg border border-border">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Cargando...</span>
+                  </div>
+                ) : selectedSiteId && sites.length > 0 ? (
+                  <div className="p-2.5 bg-muted/30 rounded-lg border border-border">
+                    <p className="text-sm text-foreground">
+                      {sites.find(s => s.id === selectedSiteId)?.site_name || "Sitio por defecto"}
+                      {sites.find(s => s.id === selectedSiteId)?.city ? ` — ${sites.find(s => s.id === selectedSiteId)?.city}` : ""}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-2.5 bg-muted/30 rounded-lg border border-border">
+                    <p className="text-sm text-muted-foreground">Se asignará automáticamente</p>
+                  </div>
+                )}
+                <p className="text-[11px] text-muted-foreground">
+                  Proyecto sitio único: se asigna el sitio por defecto automáticamente.
                 </p>
               </div>
             )}

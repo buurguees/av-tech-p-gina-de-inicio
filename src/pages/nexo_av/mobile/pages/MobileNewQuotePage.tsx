@@ -544,6 +544,8 @@ const MobileNewQuotePage = () => {
                 onValueChange={(value) => {
                   setSelectedClientId(value);
                   setSelectedProjectId("");
+                  setSites([]);
+                  setSelectedSiteId("");
                 }}
               >
                 <SelectTrigger className="w-full">
@@ -571,7 +573,7 @@ const MobileNewQuotePage = () => {
                     setSelectedSiteId("");
                     setSites([]);
                     const proj = projects.find(p => p.id === value);
-                    if (proj?.site_mode === "MULTI_SITE") {
+                    if (proj?.site_mode === "MULTI_SITE" || proj?.site_mode === "SINGLE_SITE") {
                       fetchSitesForProject(value);
                     }
                   }}
@@ -615,6 +617,35 @@ const MobileNewQuotePage = () => {
                 </Select>
                 <p className="text-[11px] text-muted-foreground">
                   Proyecto multi-sitio: selecciona el sitio para este presupuesto.
+                </p>
+              </div>
+            )}
+
+            {/* Info display for SINGLE_SITE projects */}
+            {selectedProjectId && projects.find(p => p.id === selectedProjectId)?.site_mode === "SINGLE_SITE" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Sitio de instalación
+                </Label>
+                {loadingSites ? (
+                  <div className="flex items-center gap-2 p-2.5 bg-muted/30 rounded-lg border border-border">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Cargando...</span>
+                  </div>
+                ) : selectedSiteId && sites.length > 0 ? (
+                  <div className="p-2.5 bg-muted/30 rounded-lg border border-border">
+                    <p className="text-sm text-foreground">
+                      {sites.find(s => s.id === selectedSiteId)?.site_name || "Sitio por defecto"}
+                      {sites.find(s => s.id === selectedSiteId)?.city ? ` — ${sites.find(s => s.id === selectedSiteId)?.city}` : ""}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-2.5 bg-muted/30 rounded-lg border border-border">
+                    <p className="text-sm text-muted-foreground">Se asignará automáticamente</p>
+                  </div>
+                )}
+                <p className="text-[11px] text-muted-foreground">
+                  Proyecto sitio único: se asigna el sitio por defecto automáticamente.
                 </p>
               </div>
             )}
