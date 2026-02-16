@@ -303,6 +303,18 @@ export type Database = {
           title: string
         }[]
       }
+      ai_get_chat_request_for_processing: {
+        Args: { p_request_id: string }
+        Returns: {
+          conversation_id: string
+          error: string
+          id: string
+          latest_user_message_id: string
+          mode: string
+          status: string
+          user_id: string
+        }[]
+      }
       ai_get_context_administration: {
         Args: { p_user_id: string }
         Returns: Json
@@ -311,6 +323,12 @@ export type Database = {
       ai_get_context_general: { Args: { p_user_id: string }; Returns: Json }
       ai_get_context_marketing: { Args: { p_user_id: string }; Returns: Json }
       ai_get_context_programming: { Args: { p_user_id: string }; Returns: Json }
+      ai_get_message_content: {
+        Args: { p_message_id: string }
+        Returns: {
+          content: string
+        }[]
+      }
       ai_get_or_create_personal_conversation: {
         Args: never
         Returns: {
