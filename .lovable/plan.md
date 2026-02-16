@@ -1,198 +1,192 @@
 
 
-# Plan: NEXO AI Chat V1 (Read-Only) — Corregido y Listo para Implementar
+# Plan: NEXO AI Chat V2 — ALB357 + Ollama via Supabase Bus
 
-## Correcciones aplicadas (5 puntos criticos + 2 mejoras)
+## Resumen
 
-1. **Edge Function con JWT validado en codigo** — `verify_jwt = false` en config (requerido por signing-keys), pero `getClaims()` valida JWT obligatoriamente en codigo. Sin JWT valido = 401.
-2. **Schema `ai` dedicado** — Como `crm`, `sales`, `accounting`, `projects`. No `public` con prefijo.
-3. **Ruta integrada: `ai/chat`** bajo `/nexo-av/:userId/` dentro del layout existente. Sidebar corregido de `nexo-ai` a `ai/chat`.
-4. **UI 100% Tailwind + shadcn** — Sin CSS BEM nuevo.
-5. **Realtime controlado** — Solo `ai.messages` en publication, RLS estricta por conversacion accesible.
-6. **Campo `mode` en `ai.messages`** — Para trazabilidad.
-7. **RPC `ai_get_or_create_personal_conversation()`** — Evita duplicados de "Mi chat".
+Evolucionar V1 para que un worker externo en ALB357 procese requests con Ollama. Supabase actua como bus asincrono. El frontend deja de llamar la Edge Function, muestra estados (queued/processing/error) y permite reintentar. Se incorporan los 4 ajustes criticos del review.
 
 ---
 
-## Fase 1: Migracion SQL completa
+## Fase 1: Migracion SQL
 
-Una sola migracion que crea todo:
+Una sola migracion que:
 
-### Schema y Enums
-- `CREATE SCHEMA IF NOT EXISTS ai`
-- Enums en schema `ai`: `conversation_scope`, `department_scope`, `message_sender`, `request_status`
+### 1.1 Nuevas columnas en `ai.chat_requests`
 
-### Tablas (todas en `ai.*`)
-
-**ai.conversations** — id, title, scope, department, owner_user_id, created_at, updated_at
-
-**ai.conversation_members** — id, conversation_id (fk), user_id, role (owner|member), unique(conversation_id, user_id)
-
-**ai.messages** — id, conversation_id (fk), sender, content, mode (department_scope), metadata (jsonb), created_at. Index: (conversation_id, created_at)
-
-**ai.chat_requests** — id, conversation_id (fk), user_id, mode, latest_user_message_id (fk), status, error, created_at, updated_at. Index: (status, created_at)
-
-### RLS (patron existente con `internal.get_authorized_user_id(auth.uid())`, `internal.is_admin()`, `internal.is_manager()`)
-
-- **ai.conversations**: SELECT donde owner = usuario autenticado (scope=user) O es miembro (scope=department) O admin/manager
-- **ai.conversation_members**: SELECT donde user_id = usuario O admin/manager
-- **ai.messages**: SELECT solo en conversaciones accesibles; INSERT solo sender=user en conversaciones accesibles
-- **ai.chat_requests**: INSERT en conversaciones accesibles; SELECT propio o admin/manager
-
-### RPCs (SECURITY DEFINER, en schema public, operan sobre ai.*)
-
-**Conversaciones**
-- `ai_list_conversations(p_scope, p_department, p_limit, p_cursor)`
-- `ai_create_conversation(p_title, p_scope, p_department)`
-- `ai_get_or_create_personal_conversation()` — Devuelve siempre la misma conversacion personal; la crea si no existe (idempotente)
-- `ai_add_member(p_conversation_id, p_user_id)` — Solo admin/manager/owner
-
-**Mensajes**
-- `ai_list_messages(p_conversation_id, p_limit, p_before)`
-- `ai_add_user_message(p_conversation_id, p_content, p_mode)` — Con mode para trazabilidad
-- `ai_add_assistant_message(p_conversation_id, p_content, p_mode, p_metadata)` — SECURITY DEFINER, uso exclusivo de service_role
-
-**Requests**
-- `ai_create_chat_request(p_conversation_id, p_mode, p_latest_user_message_id)`
-- `ai_mark_request_processing(p_request_id)`
-- `ai_mark_request_done(p_request_id)`
-- `ai_mark_request_error(p_request_id, p_error)`
-
-**Contexto (solo lectura)**
-- `ai_get_context_general(p_user_id)` — Usuario, rol, proyectos activos, presupuestos abiertos
-- `ai_get_context_administration(p_user_id)` — Facturas venta/compra pendientes (top 10, conteos)
-- `ai_get_context_commercial(p_user_id)` — Clientes recientes, presupuestos abiertos
-- `ai_get_context_marketing(p_user_id)` — Placeholder V1 (contrato definido, arrays vacios)
-- `ai_get_context_programming(p_user_id)` — Placeholder V1 (contrato definido, arrays vacios)
-
-### Realtime
 ```text
-ALTER PUBLICATION supabase_realtime ADD TABLE ai.messages;
+processor text NOT NULL DEFAULT 'alb357'
+model text
+temperature numeric DEFAULT 0.2
+max_tokens int DEFAULT 450
+context_payload jsonb
+latency_ms int
+processed_by text
+attempt_count int NOT NULL DEFAULT 0
+locked_at timestamptz
+locked_by text
 ```
 
-### Backup (ya aplicado)
-La funcion `backup.run_daily_backup()` ya incluye las 4 tablas `ai.*` (migracion anterior).
+### 1.2 Nuevas RPCs
+
+**`ai_lock_next_chat_request(p_processor text, p_lock_owner text)`**
+- SECURITY DEFINER (solo service_role puede ejecutarlo)
+- Filtra `WHERE status = 'queued' AND processor = p_processor` (ajuste critico 1: filtra por processor)
+- Tambien recoge stale locks: `OR (status = 'processing' AND locked_at < now() - interval '5 minutes')` (ajuste critico 2: timeout de locks)
+- Usa `FOR UPDATE SKIP LOCKED LIMIT 1`
+- UPDATE: status='processing', locked_at=now(), locked_by=p_lock_owner, attempt_count+1
+- Retorna el request completo con los campos V2
+
+**`ai_complete_chat_request(p_request_id uuid, p_lock_owner text, p_latency_ms int, p_model text)`**
+- Valida `WHERE id = p_request_id AND status = 'processing' AND locked_by = p_lock_owner` (ajuste critico 3: validar locked_by)
+- UPDATE: status='done', latency_ms, model, processed_by=p_lock_owner, updated_at
+
+**`ai_fail_chat_request(p_request_id uuid, p_error text)`**
+- UPDATE: status='error', error, updated_at, locked_at=NULL, locked_by=NULL
+
+**`ai_retry_chat_request(p_request_id uuid)`**
+- Valida ownership (usuario original o admin/manager)
+- Solo si status='error'
+- UPDATE: status='queued', error=NULL, locked_at=NULL, locked_by=NULL, attempt_count mantenido
+
+### 1.3 Modificar `ai_create_chat_request` existente
+
+Anadir parametro `p_processor text DEFAULT 'alb357'` y los opcionales (model, temperature, max_tokens).
+
+### 1.4 Realtime: NO anadir ai.chat_requests (ajuste critico 4)
+
+Se mantiene realtime solo en `ai.messages` (INSERT). El estado del request se consulta por RPC puntual o se infiere del flujo de mensajes.
 
 ---
 
-## Fase 2: Edge Function `ai-chat-processor`
+## Fase 2: Frontend — Cambios minimos
 
-Archivo: `supabase/functions/ai-chat-processor/index.ts`
+### 2.1 `types.ts` — Extender ChatRequest
 
-Config (`supabase/config.toml`):
+Anadir campos V2:
+
 ```text
-[functions.ai-chat-processor]
-verify_jwt = false
+processor: 'edge' | 'alb357';
+model: string | null;
+latency_ms: number | null;
+processed_by: string | null;
+attempt_count: number;
 ```
 
-Validacion JWT en codigo (patron `getClaims()`):
-1. Extrae `Authorization: Bearer <jwt>` del header
-2. Valida con `supabase.auth.getClaims(token)` — rechaza si invalido (401)
-3. Extrae `userId` de `claims.sub`
-4. Crea cliente con `SUPABASE_SERVICE_ROLE_KEY` para operaciones privilegiadas
-5. Verifica que el `chat_request` pertenece al usuario autenticado
-6. Marca request `processing`
-7. Carga ultimo mensaje y llama RPC de contexto segun `mode`
-8. Genera respuesta V1 (template basado en contexto, sin LLM)
-9. Guarda mensaje assistant via `ai_add_assistant_message` (service_role)
-10. Marca request `done` (o `error` si falla)
+### 2.2 `useSendMessage.ts` — Eliminar fetch a Edge Function
 
-Usa `_shared/cors.ts` existente.
+- Llamar `ai_create_chat_request` con `p_processor: 'alb357'`
+- Eliminar completamente el bloque fetch() a la Edge Function
+- El request queda `queued` y ALB357 lo recoge
+
+### 2.3 Nuevo hook: `useRequestStatus.ts`
+
+Hook ligero que tras enviar un mensaje:
+- Hace polling (cada 3s, max 60s) al ultimo request activo de la conversacion via RPC
+- Devuelve: `requestStatus` ('idle' | 'queued' | 'processing' | 'done' | 'error'), `requestError`, `retryRequest()`
+- Se detiene cuando llega un mensaje assistant (via messages) o status='done'/'error'
+- `retryRequest()` llama `ai_retry_chat_request`
+
+Nueva RPC necesaria: `ai_get_latest_request_status(p_conversation_id uuid)` que retorna status y error del ultimo request de esa conversacion.
+
+### 2.4 `ChatPanel.tsx` — Indicadores de estado + Reintentar
+
+- Banner entre mensajes y input:
+  - `queued`: icono reloj + "Esperando agente..."
+  - `processing`: spinner + "Analizando..."
+  - `error`: icono alerta + mensaje error + boton "Reintentar"
+- Se oculta cuando status='idle' o 'done'
+
+### 2.5 `AIChatPage.tsx` — Integrar useRequestStatus
+
+- Conectar el hook con la conversacion activa
+- Pasar props de estado al ChatPanel
 
 ---
 
-## Fase 3: Logic Layer
+## Fase 3: Edge Function — Sin cambios
 
-Estructura:
-```text
-src/pages/nexo_av/ai/logic/
-  types.ts           -- Conversation, Message, ChatRequest, enums TS
-  constants.ts       -- AI_MODES array con labels
-  hooks/
-    useConversations.ts  -- supabase.rpc('ai_list_conversations') + ai_get_or_create_personal_conversation
-    useMessages.ts       -- supabase.rpc('ai_list_messages') + Realtime subscription INSERT en ai.messages
-    useSendMessage.ts    -- ai_add_user_message + ai_create_chat_request + invoke Edge Function
-```
+La Edge Function `ai-chat-processor` se mantiene intacta como fallback manual. El frontend simplemente deja de invocarla. No se elimina ni modifica.
 
 ---
 
-## Fase 4: Frontend Desktop (solo Tailwind + shadcn)
+## Fase 4: Documentacion
 
-```text
-src/pages/nexo_av/ai/desktop/
-  AIChatPage.tsx
-  components/
-    ConversationList.tsx
-    ChatPanel.tsx
-    ModeSelector.tsx
-    MessageBubble.tsx
-    NewConversationDialog.tsx
-```
+### Crear `docs/important/NEXO-AI-CHAT-V2-ALB357.md`
 
-**AIChatPage**: Layout flex 2 columnas (w-72 border-r | flex-1). Sin CSS BEM nuevo.
-
-**ConversationList**: Seccion "Personal" (Mi chat, autocreado via RPC) + Seccion "Departamentos" + Boton "+" (NewConversationDialog)
-
-**ChatPanel**: Header (titulo + ModeSelector) + Area mensajes (scroll, auto-scroll) + Input textarea + boton enviar. Estado "procesando..." mientras request en curso.
-
-**ModeSelector**: shadcn Select con 5 modos.
-
-**MessageBubble**: User = derecha fondo primary, Assistant = izquierda fondo muted. Markdown basico con `prose` classes.
+Contenido:
+1. Flujo V2 completo (ERP -> Supabase queue -> ALB357 -> Supabase -> ERP via Realtime)
+2. Contrato del worker externo: RPCs en orden, parametros, errores
+3. Esquema ai.chat_requests con campos V2
+4. Ejemplo de polling loop para el worker
+5. Manejo de stale locks y recovery
+6. Seguridad: service_role solo en servidor
+7. Configuracion Ollama esperada
+8. Diferencias V1 vs V2
+9. Metadata recomendada en ai.messages (request_id, mode, model, latency_ms, processor)
 
 ---
 
-## Fase 5: Routing y Sidebar
+## Archivos a crear (2)
 
-### Sidebar.tsx
-Cambiar linea 332: `navigate(\`/nexo-av/\${userId}/nexo-ai\`)` a `navigate(\`/nexo-av/\${userId}/ai/chat\`)`
-Cambiar lineas 333-335: isActive path de `nexo-ai` a `ai/chat`
-
-### App.tsx
-Anadir lazy import:
 ```text
-const NexoAIChatPage = lazy(() => import("./pages/nexo_av/ai/desktop/AIChatPage"));
-```
-Anadir ruta dentro del bloque `<Route path="/nexo-av/:userId" element={<ResponsiveLayout />}>`:
-```text
-<Route path="ai/chat" element={<NexoAIChatPage />} />
+src/pages/nexo_av/ai/logic/hooks/useRequestStatus.ts
+docs/important/NEXO-AI-CHAT-V2-ALB357.md
 ```
 
----
-
-## Fase 6: Documentacion
+## Archivos a modificar (4)
 
 ```text
-src/pages/nexo_av/ai/docs/
-  architecture.md   -- Flujo asincrono, preparacion ALB357, diagrama
-  api-reference.md  -- RPCs con parametros y respuestas
+src/pages/nexo_av/ai/logic/types.ts                    -- Campos V2 en ChatRequest
+src/pages/nexo_av/ai/logic/hooks/useSendMessage.ts      -- Eliminar fetch Edge Fn, anadir p_processor
+src/pages/nexo_av/ai/desktop/components/ChatPanel.tsx   -- UI estados + reintentar
+src/pages/nexo_av/ai/desktop/AIChatPage.tsx             -- Integrar useRequestStatus
+```
+
+## Migracion SQL (1)
+
+```text
+- ALTER TABLE ai.chat_requests ADD COLUMN (10 columnas V2)
+- CREATE/REPLACE ai_lock_next_chat_request (con filtro processor + stale lock recovery)
+- CREATE/REPLACE ai_complete_chat_request (con validacion locked_by)
+- CREATE/REPLACE ai_fail_chat_request
+- CREATE/REPLACE ai_retry_chat_request
+- CREATE ai_get_latest_request_status
+- ALTER ai_create_chat_request (nuevo parametro p_processor)
 ```
 
 ---
 
-## Resumen de archivos
+## Detalles tecnicos
 
-**Nuevos (14)**
-- 5 componentes UI desktop
-- 3 hooks + types + constants (logic)
-- 1 Edge Function
-- 2 docs
+### Polling vs Realtime para estados
 
-**Modificados (3)**
-- `src/App.tsx` — Ruta ai/chat
-- `src/pages/nexo_av/desktop/components/layout/Sidebar.tsx` — Corregir ruta nexo-ai a ai/chat
-- `supabase/config.toml` — Config edge function
+Se usa polling ligero (RPC cada 3s) en lugar de Realtime en ai.chat_requests porque:
+- Evita problemas de RLS con Realtime en tablas que el worker modifica via service_role
+- El volumen es minimo (1 query cada 3s solo mientras hay request activo)
+- La respuesta final llega via Realtime de ai.messages (ya funciona en V1)
 
-**Migracion SQL (1)**
-- Schema ai completo + enums + tablas + indices + RLS + RPCs + Realtime
+### Worker contract (para documentacion)
+
+```text
+1. supabase.rpc('ai_lock_next_chat_request', { p_processor: 'alb357', p_lock_owner: 'nexo-orchestrator@alb357' })
+2. Si retorna request:
+   a. rpc('ai_get_message_content', { p_message_id: request.latest_user_message_id })
+   b. rpc('ai_get_context_{mode}', { p_user_id: request.user_id })
+   c. POST http://127.0.0.1:11434/api/chat (Ollama)
+   d. rpc('ai_add_assistant_message', { ..., p_metadata: { request_id, mode, model, latency_ms, processor: 'alb357' } })
+   e. rpc('ai_complete_chat_request', { p_request_id, p_lock_owner, p_latency_ms, p_model })
+3. Si falla: rpc('ai_fail_chat_request', { p_request_id, p_error })
+```
 
 ---
 
 ## Orden de implementacion
 
-1. Migracion SQL (schema + tablas + RLS + RPCs + Realtime)
-2. Edge Function ai-chat-processor
-3. Logic layer (types, constants, hooks)
-4. Componentes UI desktop
-5. AIChatPage + Sidebar fix + ruta App.tsx
-6. Documentacion
+1. Migracion SQL (columnas V2 + RPCs locking + retry + status)
+2. types.ts (campos V2)
+3. useSendMessage (quitar fetch, anadir processor)
+4. useRequestStatus (nuevo hook polling)
+5. ChatPanel + AIChatPage (UI estados + retry)
+6. Documentacion V2
 
