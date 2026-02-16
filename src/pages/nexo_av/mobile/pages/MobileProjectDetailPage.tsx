@@ -83,16 +83,15 @@ interface Tab {
 }
 
 // Pestañas de navegación
-const BASE_TABS: Tab[] = [
+const TABS: Tab[] = [
   { id: 'resumen', label: 'Resumen', icon: LayoutDashboard },
   { id: 'planificacion', label: 'Planificación', icon: Calendar },
+  { id: 'sitios', label: 'Sitios', icon: MapPin },
   { id: 'presupuestos', label: 'Presupuestos', icon: FileText },
   { id: 'facturas', label: 'Facturas', icon: Receipt },
   { id: 'compras', label: 'Compras', icon: ShoppingCart },
   { id: 'tecnicos', label: 'Técnicos', icon: Users },
 ];
-
-const SITES_TAB: Tab = { id: 'sitios', label: 'Sitios', icon: MapPin };
 
 const MobileProjectDetailPage = () => {
   const { userId, projectId } = useParams<{ userId: string; projectId: string }>();
@@ -332,10 +331,7 @@ const MobileProjectDetailPage = () => {
   const startDate = project.installation_start_date || project.actual_start_date || project.start_date;
   const endDate = project.delivery_date || project.actual_end_date || project.end_date;
 
-  // Build tabs dynamically based on site_mode
-  const TABS = project.site_mode === "MULTI_SITE"
-    ? [BASE_TABS[0], BASE_TABS[1], SITES_TAB, ...BASE_TABS.slice(2)]
-    : BASE_TABS;
+  // TABS is now a static constant with Sitios always visible
 
   // Determinar qué botón de acción mostrar según la pestaña activa (igual que desktop)
   const getActionButton = () => {
