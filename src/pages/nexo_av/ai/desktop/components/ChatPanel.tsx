@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, Clock, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { Conversation, Message, DepartmentScope } from '../../logic/types';
+import type { RequestStatusValue } from '../../logic/hooks/useRequestStatus';
 import ModeSelector from './ModeSelector';
 import MessageBubble from './MessageBubble';
 
@@ -12,6 +13,9 @@ interface ChatPanelProps {
   messagesLoading: boolean;
   sending: boolean;
   onSendMessage: (conversationId: string, content: string, mode: DepartmentScope) => Promise<void>;
+  requestStatus?: RequestStatusValue;
+  requestError?: string | null;
+  onRetry?: () => void;
 }
 
 const ChatPanel = ({
@@ -20,12 +24,14 @@ const ChatPanel = ({
   messagesLoading,
   sending,
   onSendMessage,
+  requestStatus = 'idle',
+  requestError,
+  onRetry,
 }: ChatPanelProps) => {
   const [input, setInput] = useState('');
   const [mode, setMode] = useState<DepartmentScope>('general');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -55,6 +61,8 @@ const ChatPanel = ({
     );
   }
 
+  const showStatusBanner = requestStatus === 'queued' || requestStatus === 'processing' || requestStatus === 'error';
+
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Header */}
@@ -80,6 +88,36 @@ const ChatPanel = ({
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Status banner */}
+      {showStatusBanner && (
+        <div className="px-4 py-2 border-t border-border">
+          {requestStatus === 'queued' && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              <span>Esperando agente...</span>
+            </div>
+          )}
+          {requestStatus === 'processing' && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span>Analizando...</span>
+            </div>
+          )}
+          {requestStatus === 'error' && (
+            <div className="flex items-center gap-2 text-xs text-destructive">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              <span className="flex-1 truncate">{requestError || 'Error al procesar'}</span>
+              {onRetry && (
+                <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={onRetry}>
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Reintentar
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Input area */}
       <div className="border-t border-border p-3">

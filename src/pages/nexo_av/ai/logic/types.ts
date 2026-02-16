@@ -35,4 +35,10 @@ export interface ChatRequest {
   error: string | null;
   created_at: string;
   updated_at: string;
+  // V2 fields
+  processor: 'edge' | 'alb357';
+  model: string | null;
+  latency_ms: number | null;
+  processed_by: string | null;
+  attempt_count: number;
 }
