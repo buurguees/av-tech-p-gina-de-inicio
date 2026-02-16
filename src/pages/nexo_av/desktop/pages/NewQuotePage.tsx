@@ -469,24 +469,20 @@ const NewQuotePage = () => {
       validDate.setDate(validDate.getDate() + 30);
       const calculatedValidUntil = validDate.toISOString().split("T")[0];
 
+      const siteToAssign = selectedSiteId || null;
+
       const { data: quoteData, error: quoteError } = await supabase.rpc("create_quote_with_number", {
         p_client_id: selectedClientId,
         p_project_name: selectedProject?.project_name || null,
         p_valid_until: calculatedValidUntil,
         p_project_id: selectedProjectId || null,
+        p_site_id: siteToAssign,
       });
 
       if (quoteError) throw quoteError;
       if (!quoteData?.[0]) throw new Error("No se pudo crear el presupuesto");
 
       const quoteId = quoteData[0].quote_id;
-
-      // Assign site_id to the quote if available (direct update since RPC doesn't support site_id yet)
-      const siteToAssign = selectedSiteId || (selectedProject?.site_mode === "SINGLE_SITE" && selectedProject?.default_site_id) || null;
-      if (siteToAssign && quoteId) {
-        // Site assignment is best-effort; quote is already created
-        console.log("Assigning site_id to quote:", siteToAssign);
-      }
       const lineIds: string[] = [];
 
       for (const line of validLines) {

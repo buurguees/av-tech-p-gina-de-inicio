@@ -35,6 +35,7 @@ import {
   Link as LinkIcon,
   ExternalLink,
   ArrowRight,
+  MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -71,6 +72,9 @@ interface PurchaseOrderDetail {
   project_number: string | null;
   project_name: string | null;
   technician_name: string | null;
+  site_id?: string | null;
+  site_name?: string | null;
+  site_city?: string | null;
 }
 
 const PurchaseOrderDetailPageDesktop = () => {
@@ -465,6 +469,17 @@ const PurchaseOrderDetailPageDesktop = () => {
                         <div>
                           <span className="text-muted-foreground text-xs uppercase">Fin previsto</span>
                           <p className="font-medium">{formatDate(order.expected_end_date)}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Sitio de instalación */}
+                    {order?.site_name && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <MapPin className="w-4 h-4 text-primary mt-0.5" />
+                        <div>
+                          <span className="text-muted-foreground text-xs uppercase">Sitio de instalación</span>
+                          <p className="font-medium">{order.site_name}{order.site_city ? ` — ${order.site_city}` : ""}</p>
                         </div>
                       </div>
                     )}

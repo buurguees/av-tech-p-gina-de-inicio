@@ -6,11 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   ArrowLeft,
   Save,
   Loader2,
   ShoppingCart,
   FileText,
+  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -19,6 +27,13 @@ import ProjectSearchInput from "../components/projects/ProjectSearchInput";
 import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "../components/purchases/PurchaseInvoiceLinesEditor";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
+
+interface ProjectSite {
+  id: string;
+  site_name: string;
+  city: string | null;
+  is_default: boolean;
+}
 
 const NewPurchaseInvoicePageDesktop = () => {
   const { userId } = useParams();
@@ -32,6 +47,10 @@ const NewPurchaseInvoicePageDesktop = () => {
   const [technicianId, setTechnicianId] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("");
+  const [projectSiteMode, setProjectSiteMode] = useState<string | null>(null);
+  const [projectDefaultSiteId, setProjectDefaultSiteId] = useState<string | null>(null);
+  const [projectSites, setProjectSites] = useState<ProjectSite[]>([]);
+  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
   const [supplierInvoiceNumber, setSupplierInvoiceNumber] = useState("");
   const [issueDate, setIssueDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [dueDate, setDueDate] = useState("");
@@ -48,6 +67,46 @@ const NewPurchaseInvoicePageDesktop = () => {
     return { subtotal, taxAmount, total };
   }, [lines]);
 
+  // Load sites when project changes
+  useEffect(() => {
+    if (projectId) {
+      fetchProjectSites(projectId);
+    } else {
+      setProjectSites([]);
+      setSelectedSiteId("");
+      setProjectSiteMode(null);
+      setProjectDefaultSiteId(null);
+    }
+  }, [projectId]);
+
+  const fetchProjectSites = async (pid: string) => {
+    try {
+      // Get project details for site_mode
+      const { data: projData } = await supabase.rpc("get_project", { p_project_id: pid });
+      if (projData?.[0]) {
+        setProjectSiteMode(projData[0].site_mode || null);
+        setProjectDefaultSiteId(projData[0].default_site_id || null);
+      }
+      // Get sites
+      const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: pid });
+      if (error) throw error;
+      const sites: ProjectSite[] = (data || [])
+        .filter((s: any) => s.is_active)
+        .map((s: any) => ({ id: s.id, site_name: s.site_name, city: s.city, is_default: s.is_default }));
+      setProjectSites(sites);
+      // Auto-select for SINGLE_SITE
+      if (projData?.[0]?.site_mode === "SINGLE_SITE" && sites.length > 0) {
+        const defaultSite = sites.find(s => s.is_default) || sites[0];
+        setSelectedSiteId(defaultSite.id);
+      } else {
+        setSelectedSiteId("");
+      }
+    } catch (error) {
+      console.error("Error fetching project sites:", error);
+      setProjectSites([]);
+    }
+  };
+
   const handleSave = async () => {
     // Validation
     if (!supplierId && !technicianId) {
@@ -57,6 +116,11 @@ const NewPurchaseInvoicePageDesktop = () => {
 
     if (lines.length === 0) {
       toast.error("Añade al menos una línea de factura");
+      return;
+    }
+
+    if (projectSiteMode === "MULTI_SITE" && !selectedSiteId) {
+      toast.error("Selecciona un sitio para este proyecto multi-sitio");
       return;
     }
 
@@ -76,6 +140,7 @@ const NewPurchaseInvoicePageDesktop = () => {
           p_issue_date: issueDate,
           p_due_date: dueDate || null,
           p_notes: notes || null,
+          p_site_id: selectedSiteId || null,
         } as any
       );
 
@@ -180,6 +245,41 @@ const NewPurchaseInvoicePageDesktop = () => {
                 showDropdown={true}
               />
             </div>
+
+            {/* Site selector - MULTI_SITE */}
+            {projectSiteMode === "MULTI_SITE" && projectSites.length > 0 && (
+              <div className="lg:col-span-2 space-y-2">
+                <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5" />
+                  Sitio de instalación *
+                </Label>
+                <Select value={selectedSiteId || undefined} onValueChange={setSelectedSiteId}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Seleccionar sitio..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projectSites.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.site_name}{s.city ? ` — ${s.city}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Site info - SINGLE_SITE */}
+            {projectSiteMode === "SINGLE_SITE" && projectSites.length > 0 && (
+              <div className="lg:col-span-2 space-y-2">
+                <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5" />
+                  Sitio
+                </Label>
+                <div className="h-11 flex items-center px-3 rounded-md border border-border bg-muted/30 text-sm text-foreground">
+                  {projectSites[0]?.site_name}{projectSites[0]?.city ? ` — ${projectSites[0].city}` : ""}
+                </div>
+              </div>
+            )}
 
             {/* Nº Factura Proveedor */}
             <div className="space-y-2">

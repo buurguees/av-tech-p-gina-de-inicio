@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, MessageSquare, Clock, Send, MoreVertical, Share2, Save, LayoutDashboard, Mail } from "lucide-react";
+import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, MessageSquare, Clock, Send, MoreVertical, Share2, Save, LayoutDashboard, Mail, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
@@ -63,6 +63,9 @@ interface Quote {
   created_by_name: string | null;
   created_at: string;
   updated_at: string;
+  site_id?: string | null;
+  site_name?: string | null;
+  site_city?: string | null;
 }
 
 interface Project {
@@ -719,6 +722,19 @@ const QuoteDetailPageDesktop = () => {
                         </p>
                       </div>
                     </div>
+
+                    {/* Site info */}
+                    {quote?.site_name && (
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-muted-foreground mb-1">Sitio de instalación</p>
+                          <p className="text-sm font-medium">
+                            {quote.site_name}{quote.site_city ? ` — ${quote.site_city}` : ""}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     
                     <div className="flex items-start gap-2">
                       <User className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />

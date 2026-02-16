@@ -565,21 +565,38 @@ export type Database = {
           invoice_number: string
         }[]
       }
-      create_invoice_with_number: {
-        Args: {
-          p_client_id: string
-          p_due_date?: string
-          p_issue_date?: string
-          p_project_id?: string
-          p_project_name?: string
-          p_source_quote_id?: string
-        }
-        Returns: {
-          invoice_id: string
-          invoice_number: string
-          preliminary_number: string
-        }[]
-      }
+      create_invoice_with_number:
+        | {
+            Args: {
+              p_client_id: string
+              p_due_date?: string
+              p_issue_date?: string
+              p_project_id?: string
+              p_project_name?: string
+              p_source_quote_id?: string
+            }
+            Returns: {
+              invoice_id: string
+              invoice_number: string
+              preliminary_number: string
+            }[]
+          }
+        | {
+            Args: {
+              p_client_id: string
+              p_due_date?: string
+              p_issue_date?: string
+              p_project_id?: string
+              p_project_name?: string
+              p_site_id?: string
+              p_source_quote_id?: string
+            }
+            Returns: {
+              invoice_id: string
+              invoice_number: string
+              preliminary_number: string
+            }[]
+          }
       create_irpf_settlement_entry: {
         Args: {
           p_period_end?: string
@@ -741,38 +758,74 @@ export type Database = {
         }
         Returns: string
       }
-      create_purchase_invoice: {
-        Args: {
-          p_client_id?: string
-          p_document_type?: string
-          p_due_date?: string
-          p_expense_category?: string
-          p_file_name?: string
-          p_file_path?: string
-          p_invoice_number: string
-          p_issue_date?: string
-          p_notes?: string
-          p_project_id?: string
-          p_status?: string
-          p_supplier_id?: string
-          p_supplier_invoice_number?: string
-          p_technician_id?: string
-        }
-        Returns: string
-      }
-      create_purchase_order: {
-        Args: {
-          p_expected_end_date?: string
-          p_expected_start_date?: string
-          p_internal_notes?: string
-          p_issue_date?: string
-          p_notes?: string
-          p_project_id?: string
-          p_supplier_id?: string
-          p_technician_id?: string
-        }
-        Returns: string
-      }
+      create_purchase_invoice:
+        | {
+            Args: {
+              p_client_id?: string
+              p_document_type?: string
+              p_due_date?: string
+              p_expense_category?: string
+              p_file_name?: string
+              p_file_path?: string
+              p_invoice_number: string
+              p_issue_date?: string
+              p_notes?: string
+              p_project_id?: string
+              p_site_id?: string
+              p_status?: string
+              p_supplier_id?: string
+              p_supplier_invoice_number?: string
+              p_technician_id?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_client_id?: string
+              p_document_type?: string
+              p_due_date?: string
+              p_expense_category?: string
+              p_file_name?: string
+              p_file_path?: string
+              p_invoice_number: string
+              p_issue_date?: string
+              p_notes?: string
+              p_project_id?: string
+              p_status?: string
+              p_supplier_id?: string
+              p_supplier_invoice_number?: string
+              p_technician_id?: string
+            }
+            Returns: string
+          }
+      create_purchase_order:
+        | {
+            Args: {
+              p_expected_end_date?: string
+              p_expected_start_date?: string
+              p_internal_notes?: string
+              p_issue_date?: string
+              p_notes?: string
+              p_project_id?: string
+              p_supplier_id?: string
+              p_technician_id?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_expected_end_date?: string
+              p_expected_start_date?: string
+              p_internal_notes?: string
+              p_issue_date?: string
+              p_notes?: string
+              p_project_id?: string
+              p_site_id?: string
+              p_supplier_id?: string
+              p_technician_id?: string
+            }
+            Returns: string
+          }
       create_quote: {
         Args: {
           p_client_id: string
@@ -781,18 +834,32 @@ export type Database = {
         }
         Returns: string
       }
-      create_quote_with_number: {
-        Args: {
-          p_client_id: string
-          p_project_id?: string
-          p_project_name?: string
-          p_valid_until?: string
-        }
-        Returns: {
-          quote_id: string
-          quote_number: string
-        }[]
-      }
+      create_quote_with_number:
+        | {
+            Args: {
+              p_client_id: string
+              p_project_id?: string
+              p_project_name?: string
+              p_site_id?: string
+              p_valid_until?: string
+            }
+            Returns: {
+              quote_id: string
+              quote_number: string
+            }[]
+          }
+        | {
+            Args: {
+              p_client_id: string
+              p_project_id?: string
+              p_project_name?: string
+              p_valid_until?: string
+            }
+            Returns: {
+              quote_id: string
+              quote_number: string
+            }[]
+          }
       create_supplier: {
         Args: {
           p_address?: string
@@ -1053,6 +1120,9 @@ export type Database = {
           project_id: string
           project_name: string
           project_number: string
+          site_city: string
+          site_id: string
+          site_name: string
           source_quote_id: string
           source_quote_number: string
           status: string
@@ -1838,6 +1908,9 @@ export type Database = {
           project_id: string
           project_name: string
           project_number: string
+          site_city: string
+          site_id: string
+          site_name: string
           status: string
           supplier_id: string
           supplier_invoice_number: string
@@ -1852,6 +1925,7 @@ export type Database = {
           technician_tax_id: string
           total: number
           updated_at: string
+          withholding_amount: number
         }[]
       }
       get_purchase_invoice_lines: {
@@ -1910,6 +1984,9 @@ export type Database = {
           project_id: string
           project_name: string
           project_number: string
+          site_city: string
+          site_id: string
+          site_name: string
           status: string
           subtotal: number
           supplier_id: string
@@ -1960,6 +2037,9 @@ export type Database = {
           project_id: string
           project_name: string
           quote_number: string
+          site_city: string
+          site_id: string
+          site_name: string
           status: string
           subtotal: number
           tax_amount: number
