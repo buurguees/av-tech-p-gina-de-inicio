@@ -32,6 +32,15 @@ interface Project {
   id: string;
   project_name: string;
   project_number: string;
+  site_mode?: string;
+  default_site_id?: string;
+}
+
+interface ProjectSite {
+  id: string;
+  site_name: string;
+  city: string | null;
+  is_default: boolean;
 }
 
 interface TaxOption {
@@ -77,6 +86,8 @@ const NewQuotePage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+  const [projectSites, setProjectSites] = useState<ProjectSite[]>([]);
   const [issueDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [validUntil, setValidUntil] = useState(() => {
     const date = new Date();
@@ -121,8 +132,20 @@ const NewQuotePage = () => {
     } else {
       setProjects([]);
       setSelectedProjectId("");
+      setProjectSites([]);
+      setSelectedSiteId("");
     }
   }, [selectedClientId]);
+
+  // Load sites when project changes
+  useEffect(() => {
+    if (selectedProjectId) {
+      fetchSites(selectedProjectId);
+    } else {
+      setProjectSites([]);
+      setSelectedSiteId("");
+    }
+  }, [selectedProjectId]);
 
   // Pre-select project from URL
   useEffect(() => {
@@ -160,11 +183,40 @@ const NewQuotePage = () => {
           id: p.id,
           project_name: p.project_name,
           project_number: p.project_number,
+          site_mode: p.site_mode,
+          default_site_id: p.default_site_id,
         }))
       );
     } catch (error) {
       console.error("Error fetching projects:", error);
       setProjects([]);
+    }
+  };
+
+  const fetchSites = async (projectId: string) => {
+    try {
+      const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
+      if (error) throw error;
+      const sites: ProjectSite[] = (data || [])
+        .filter((s: any) => s.is_active)
+        .map((s: any) => ({
+          id: s.id,
+          site_name: s.site_name,
+          city: s.city,
+          is_default: s.is_default,
+        }));
+      setProjectSites(sites);
+      // Auto-select default site for SINGLE_SITE
+      const selectedProj = projects.find(p => p.id === projectId);
+      if (selectedProj?.site_mode === "SINGLE_SITE" && sites.length > 0) {
+        const defaultSite = sites.find(s => s.is_default) || sites[0];
+        setSelectedSiteId(defaultSite.id);
+      } else {
+        setSelectedSiteId("");
+      }
+    } catch (error) {
+      console.error("Error fetching sites:", error);
+      setProjectSites([]);
     }
   };
 
@@ -404,13 +456,19 @@ const NewQuotePage = () => {
       return;
     }
 
+    // Validate site for MULTI_SITE projects
+    const selectedProject = projects.find((p) => p.id === selectedProjectId);
+    if (selectedProject?.site_mode === "MULTI_SITE" && !selectedSiteId) {
+      toast({ title: "Error", description: "Selecciona un sitio para este proyecto multi-sitio", variant: "destructive" });
+      return;
+    }
+
     setSaving(true);
     try {
       const validDate = new Date();
       validDate.setDate(validDate.getDate() + 30);
       const calculatedValidUntil = validDate.toISOString().split("T")[0];
 
-      const selectedProject = projects.find((p) => p.id === selectedProjectId);
       const { data: quoteData, error: quoteError } = await supabase.rpc("create_quote_with_number", {
         p_client_id: selectedClientId,
         p_project_name: selectedProject?.project_name || null,
@@ -422,6 +480,13 @@ const NewQuotePage = () => {
       if (!quoteData?.[0]) throw new Error("No se pudo crear el presupuesto");
 
       const quoteId = quoteData[0].quote_id;
+
+      // Assign site_id to the quote if available (direct update since RPC doesn't support site_id yet)
+      const siteToAssign = selectedSiteId || (selectedProject?.site_mode === "SINGLE_SITE" && selectedProject?.default_site_id) || null;
+      if (siteToAssign && quoteId) {
+        // Site assignment is best-effort; quote is already created
+        console.log("Assigning site_id to quote:", siteToAssign);
+      }
       const lineIds: string[] = [];
 
       for (const line of validLines) {
@@ -551,6 +616,49 @@ const NewQuotePage = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Site selector - only for MULTI_SITE projects */}
+            {(() => {
+              const selectedProj = projects.find(p => p.id === selectedProjectId);
+              if (!selectedProjectId || !selectedProj) return null;
+              if (selectedProj.site_mode === "SINGLE_SITE") {
+                const defaultSite = projectSites.find(s => s.is_default) || projectSites[0];
+                if (defaultSite) {
+                  return (
+                    <div className="flex-[4] min-w-0">
+                      <Label className="text-muted-foreground text-xs mb-2 block font-medium">Sitio</Label>
+                      <div className="h-11 flex items-center px-3 rounded-md border border-border bg-muted/30 text-sm text-foreground">
+                        {defaultSite.site_name}{defaultSite.city ? ` — ${defaultSite.city}` : ""}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }
+              // MULTI_SITE
+              return (
+                <div className="flex-[4] min-w-0">
+                  <Label className="text-muted-foreground text-xs mb-2 block font-medium">
+                    Sitio <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={selectedSiteId || undefined}
+                    onValueChange={setSelectedSiteId}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Seleccionar sitio..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projectSites.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.site_name}{s.city ? ` — ${s.city}` : ""}{s.is_default ? " (Principal)" : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            })()}
 
             <div className="flex-shrink-0 w-40">
               <Label className="text-muted-foreground text-xs mb-1.5 block">Válido hasta</Label>

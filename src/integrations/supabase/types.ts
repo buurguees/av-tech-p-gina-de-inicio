@@ -271,6 +271,7 @@ export type Database = {
         }[]
       }
       approve_purchase_order: { Args: { p_order_id: string }; Returns: boolean }
+      archive_project_site: { Args: { p_site_id: string }; Returns: boolean }
       assert_period_not_closed: { Args: { p_date: string }; Returns: boolean }
       assign_user_role: {
         Args: { p_assigned_by: string; p_role_name: string; p_user_id: string }
@@ -709,6 +710,8 @@ export type Database = {
           p_notes?: string
           p_project_address?: string
           p_project_city?: string
+          p_site_mode?: string
+          p_site_name?: string
           p_status?: string
         }
         Returns: {
@@ -716,6 +719,27 @@ export type Database = {
           project_name: string
           project_number: string
         }[]
+      }
+      create_project_site: {
+        Args: {
+          p_address?: string
+          p_city?: string
+          p_contact_email?: string
+          p_contact_name?: string
+          p_contact_phone?: string
+          p_country?: string
+          p_floor_area?: string
+          p_latitude?: number
+          p_longitude?: number
+          p_notes?: string
+          p_postal_code?: string
+          p_project_id: string
+          p_province?: string
+          p_set_as_default?: boolean
+          p_site_name: string
+          p_site_reference?: string
+        }
+        Returns: string
       }
       create_purchase_invoice: {
         Args: {
@@ -1709,6 +1733,10 @@ export type Database = {
           created_at: string
           created_by: string
           created_by_name: string
+          default_site_address: string
+          default_site_city: string
+          default_site_id: string
+          default_site_name: string
           id: string
           local_name: string
           notes: string
@@ -1717,6 +1745,7 @@ export type Database = {
           project_name: string
           project_number: string
           quote_id: string
+          site_mode: string
           status: string
           updated_at: string
         }[]
@@ -2800,6 +2829,31 @@ export type Database = {
           valid_until: string
         }[]
       }
+      list_project_sites: {
+        Args: { p_project_id: string }
+        Returns: {
+          address: string
+          city: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          country: string
+          created_at: string
+          floor_area: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          latitude: number
+          longitude: number
+          notes: string
+          postal_code: string
+          project_id: string
+          province: string
+          site_name: string
+          site_reference: string
+          updated_at: string
+        }[]
+      }
       list_project_technicians: {
         Args: { p_project_id: string }
         Returns: {
@@ -3177,6 +3231,10 @@ export type Database = {
         Args: { p_identifier: string; p_identifier_type: string }
         Returns: undefined
       }
+      set_default_project_site: {
+        Args: { p_project_id: string; p_site_id: string }
+        Returns: boolean
+      }
       settle_credit_installment: {
         Args: {
           p_bank_account_id: string
@@ -3464,7 +3522,28 @@ export type Database = {
           p_project_address?: string
           p_project_city?: string
           p_project_id: string
+          p_site_mode?: string
           p_status?: string
+        }
+        Returns: boolean
+      }
+      update_project_site: {
+        Args: {
+          p_address?: string
+          p_city?: string
+          p_contact_email?: string
+          p_contact_name?: string
+          p_contact_phone?: string
+          p_country?: string
+          p_floor_area?: string
+          p_latitude?: number
+          p_longitude?: number
+          p_notes?: string
+          p_postal_code?: string
+          p_province?: string
+          p_site_id: string
+          p_site_name?: string
+          p_site_reference?: string
         }
         Returns: boolean
       }

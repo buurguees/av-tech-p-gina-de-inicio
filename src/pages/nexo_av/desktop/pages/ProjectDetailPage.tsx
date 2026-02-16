@@ -54,6 +54,11 @@ interface ProjectDetail {
   end_date?: string | null;
   actual_start_date?: string | null;
   actual_end_date?: string | null;
+  site_mode?: string | null;
+  default_site_id?: string | null;
+  default_site_name?: string | null;
+  default_site_address?: string | null;
+  default_site_city?: string | null;
 }
 
 interface ClientDetail {
@@ -522,6 +527,22 @@ const ProjectDetailPageDesktop = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Sitio / Modo */}
+                  {project?.default_site_name && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <span className="text-muted-foreground text-xs uppercase block">
+                          Sitio {project.site_mode === "MULTI_SITE" ? "(Multi-sitio)" : "(Principal)"}
+                        </span>
+                        <p className="font-medium truncate">
+                          {project.default_site_name}
+                          {project.default_site_city ? ` — ${project.default_site_city}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Fechas */}
                   {(project?.installation_start_date || project?.actual_start_date || project?.start_date) && (
