@@ -263,6 +263,102 @@ export type Database = {
         }
         Returns: Json
       }
+      ai_add_assistant_message: {
+        Args: {
+          p_content: string
+          p_conversation_id: string
+          p_metadata?: Json
+          p_mode?: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+        }[]
+      }
+      ai_add_member: {
+        Args: { p_conversation_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      ai_add_user_message: {
+        Args: { p_content: string; p_conversation_id: string; p_mode?: string }
+        Returns: {
+          created_at: string
+          id: string
+        }[]
+      }
+      ai_create_chat_request: {
+        Args: {
+          p_conversation_id: string
+          p_latest_user_message_id?: string
+          p_mode?: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
+      ai_create_conversation: {
+        Args: { p_department?: string; p_scope?: string; p_title: string }
+        Returns: {
+          id: string
+          title: string
+        }[]
+      }
+      ai_get_context_administration: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      ai_get_context_commercial: { Args: { p_user_id: string }; Returns: Json }
+      ai_get_context_general: { Args: { p_user_id: string }; Returns: Json }
+      ai_get_context_marketing: { Args: { p_user_id: string }; Returns: Json }
+      ai_get_context_programming: { Args: { p_user_id: string }; Returns: Json }
+      ai_get_or_create_personal_conversation: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          title: string
+        }[]
+      }
+      ai_list_conversations: {
+        Args: {
+          p_cursor?: string
+          p_department?: string
+          p_limit?: number
+          p_scope?: string
+        }
+        Returns: {
+          created_at: string
+          department: string
+          id: string
+          last_message_at: string
+          message_count: number
+          owner_user_id: string
+          scope: string
+          title: string
+          updated_at: string
+        }[]
+      }
+      ai_list_messages: {
+        Args: { p_before?: string; p_conversation_id: string; p_limit?: number }
+        Returns: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          metadata: Json
+          mode: string
+          sender: string
+        }[]
+      }
+      ai_mark_request_done: { Args: { p_request_id: string }; Returns: boolean }
+      ai_mark_request_error: {
+        Args: { p_error: string; p_request_id: string }
+        Returns: boolean
+      }
+      ai_mark_request_processing: {
+        Args: { p_request_id: string }
+        Returns: boolean
+      }
       approve_purchase_invoice: {
         Args: { p_invoice_id: string }
         Returns: {
