@@ -49,6 +49,8 @@ const MobileNewProjectPage = () => {
   // Form state
   const [clientId, setClientId] = useState<string>("");
   const [status, setStatus] = useState("NEGOTIATION");
+  const [siteMode, setSiteMode] = useState<"SINGLE_SITE" | "MULTI_SITE">("SINGLE_SITE");
+  const [siteName, setSiteName] = useState("");
   const [projectAddress, setProjectAddress] = useState("");
   const [projectCity, setProjectCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
@@ -122,6 +124,8 @@ const MobileNewProjectPage = () => {
       const { error } = await supabase.rpc("create_project", {
         p_client_id: clientId,
         p_status: status || "NEGOTIATION",
+        p_site_mode: siteMode,
+        p_site_name: siteMode === "MULTI_SITE" ? sanitize(siteName) : null,
         p_project_address: sanitize(projectAddress),
         p_project_city: sanitize(projectCity),
         p_local_name: sanitize(localName),
@@ -251,6 +255,48 @@ const MobileNewProjectPage = () => {
                   </div>
                 )}
               </div>
+            </div>
+          </SectionCard>
+
+          {/* ===== SECCIÓN: MODO DE SITIOS ===== */}
+          <SectionCard title="Instalaciones" icon={MapPin}>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">
+                  Tipo de proyecto
+                </Label>
+                <Select
+                  value={siteMode}
+                  onValueChange={(v) => setSiteMode(v as "SINGLE_SITE" | "MULTI_SITE")}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SINGLE_SITE">Un solo sitio</SelectItem>
+                    <SelectItem value="MULTI_SITE">Múltiples sitios</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  {siteMode === "MULTI_SITE"
+                    ? "Cada instalación tendrá su propia planificación, técnicos y facturación."
+                    : "Proyecto con una sola ubicación de instalación."}
+                </p>
+              </div>
+
+              {siteMode === "MULTI_SITE" && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    Nombre del primer sitio
+                  </Label>
+                  <Input
+                    placeholder="Ej: Tienda Centro"
+                    value={siteName}
+                    onChange={(e) => setSiteName(e.target.value)}
+                    className="bg-card border-border"
+                  />
+                </div>
+              )}
             </div>
           </SectionCard>
 

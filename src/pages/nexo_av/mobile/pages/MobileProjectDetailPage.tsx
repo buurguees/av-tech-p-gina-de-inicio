@@ -32,6 +32,7 @@ import { getProjectStatusInfo } from "@/constants/projectStatuses";
 import { getQuoteStatusInfo } from "@/constants/quoteStatuses";
 import EditProjectSheet from "../components/projects/EditProjectSheet";
 import MobilePlanningTab from "../components/projects/MobilePlanningTab";
+import MobileSitesTab from "../components/projects/MobileSitesTab";
 import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo } from "@/constants/salesInvoiceStatuses";
 import { getDocumentStatusInfo, calculatePaymentStatus, getPaymentStatusInfo } from "@/constants/purchaseInvoiceStatuses";
 
@@ -73,7 +74,7 @@ interface ProjectMetrics {
   margin: number;
 }
 
-type TabId = 'resumen' | 'planificacion' | 'presupuestos' | 'facturas' | 'compras' | 'tecnicos';
+type TabId = 'resumen' | 'planificacion' | 'sitios' | 'presupuestos' | 'facturas' | 'compras' | 'tecnicos';
 
 interface Tab {
   id: TabId;
@@ -82,7 +83,7 @@ interface Tab {
 }
 
 // Pestañas de navegación
-const TABS: Tab[] = [
+const BASE_TABS: Tab[] = [
   { id: 'resumen', label: 'Resumen', icon: LayoutDashboard },
   { id: 'planificacion', label: 'Planificación', icon: Calendar },
   { id: 'presupuestos', label: 'Presupuestos', icon: FileText },
@@ -90,6 +91,8 @@ const TABS: Tab[] = [
   { id: 'compras', label: 'Compras', icon: ShoppingCart },
   { id: 'tecnicos', label: 'Técnicos', icon: Users },
 ];
+
+const SITES_TAB: Tab = { id: 'sitios', label: 'Sitios', icon: MapPin };
 
 const MobileProjectDetailPage = () => {
   const { userId, projectId } = useParams<{ userId: string; projectId: string }>();
@@ -329,6 +332,11 @@ const MobileProjectDetailPage = () => {
   const startDate = project.installation_start_date || project.actual_start_date || project.start_date;
   const endDate = project.delivery_date || project.actual_end_date || project.end_date;
 
+  // Build tabs dynamically based on site_mode
+  const TABS = project.site_mode === "MULTI_SITE"
+    ? [BASE_TABS[0], BASE_TABS[1], SITES_TAB, ...BASE_TABS.slice(2)]
+    : BASE_TABS;
+
   // Determinar qué botón de acción mostrar según la pestaña activa (igual que desktop)
   const getActionButton = () => {
     const currentClientId = project.client_id;
@@ -515,6 +523,13 @@ const MobileProjectDetailPage = () => {
         
         {activeTab === 'planificacion' && (
           <MobilePlanningTab 
+            projectId={projectId!}
+            siteMode={project?.site_mode}
+          />
+        )}
+
+        {activeTab === 'sitios' && (
+          <MobileSitesTab
             projectId={projectId!}
             siteMode={project?.site_mode}
           />

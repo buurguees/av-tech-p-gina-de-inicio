@@ -40,6 +40,15 @@ interface Project {
   id: string;
   project_name: string;
   project_number: string;
+  site_mode?: string | null;
+}
+
+interface ProjectSite {
+  id: string;
+  site_name: string;
+  city: string | null;
+  is_default: boolean;
+  is_active: boolean;
 }
 
 interface TaxOption {
@@ -90,6 +99,9 @@ const MobileNewQuotePage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [sites, setSites] = useState<ProjectSite[]>([]);
+  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+  const [loadingSites, setLoadingSites] = useState(false);
   const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
   const [defaultTaxRate, setDefaultTaxRate] = useState(21);
   const [lines, setLines] = useState<QuoteLine[]>([]);
@@ -196,11 +208,36 @@ const MobileNewQuotePage = () => {
           id: p.id,
           project_name: p.project_name,
           project_number: p.project_number,
+          site_mode: p.site_mode || null,
         }))
       );
     } catch (error) {
       console.error("Error fetching projects:", error);
       setProjects([]);
+    }
+  };
+
+  const fetchSitesForProject = async (projectId: string) => {
+    try {
+      setLoadingSites(true);
+      const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
+      if (error) throw error;
+      const activeSites = ((data || []) as any[]).filter((s: any) => s.is_active);
+      setSites(activeSites.map((s: any) => ({
+        id: s.id,
+        site_name: s.site_name,
+        city: s.city,
+        is_default: s.is_default,
+        is_active: s.is_active,
+      })));
+      // Auto-select default site
+      const defaultSite = activeSites.find((s: any) => s.is_default);
+      if (defaultSite) setSelectedSiteId(defaultSite.id);
+    } catch (error) {
+      console.error("Error fetching sites:", error);
+      setSites([]);
+    } finally {
+      setLoadingSites(false);
     }
   };
 
@@ -382,6 +419,7 @@ const MobileNewQuotePage = () => {
         p_project_name: selectedProject?.project_name || null,
         p_valid_until: calculatedValidUntil,
         p_project_id: selectedProjectId || null,
+        p_site_id: selectedSiteId || null,
       });
 
       if (quoteError) throw quoteError;
@@ -528,7 +566,15 @@ const MobileNewQuotePage = () => {
                 </Label>
                 <Select 
                   value={selectedProjectId}
-                  onValueChange={setSelectedProjectId}
+                  onValueChange={(value) => {
+                    setSelectedProjectId(value);
+                    setSelectedSiteId("");
+                    setSites([]);
+                    const proj = projects.find(p => p.id === value);
+                    if (proj?.site_mode === "MULTI_SITE") {
+                      fetchSitesForProject(value);
+                    }
+                  }}
                   disabled={projects.length === 0}
                 >
                   <SelectTrigger className="w-full">
@@ -542,6 +588,34 @@ const MobileNewQuotePage = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            {/* Site selector for MULTI_SITE projects */}
+            {selectedProjectId && projects.find(p => p.id === selectedProjectId)?.site_mode === "MULTI_SITE" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Sitio de instalación <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={selectedSiteId}
+                  onValueChange={setSelectedSiteId}
+                  disabled={loadingSites || sites.length === 0}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={loadingSites ? "Cargando sitios..." : sites.length === 0 ? "Sin sitios" : "Seleccionar sitio..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sites.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.site_name}{s.city ? ` — ${s.city}` : ""}{s.is_default ? " ★" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  Proyecto multi-sitio: selecciona el sitio para este presupuesto.
+                </p>
               </div>
             )}
           </div>
