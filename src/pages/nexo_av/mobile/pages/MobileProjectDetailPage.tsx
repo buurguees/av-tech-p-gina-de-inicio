@@ -228,10 +228,11 @@ const MobileProjectDetailPage = () => {
     if (!projectId) return;
     try {
       setLoadingQuotes(true);
-      const { data, error } = await supabase.rpc('list_quotes', { p_search: null });
+      const { data, error } = await supabase.rpc('list_project_quotes', {
+        p_project_id: projectId,
+      });
       if (error) throw error;
-      const projectQuotes = (data || []).filter((q: any) => q.project_id === projectId);
-      setQuotes(projectQuotes);
+      setQuotes((data || []) as any[]);
     } catch (error) {
       console.error('Error fetching quotes:', error);
     } finally {
@@ -537,6 +538,7 @@ const MobileProjectDetailPage = () => {
             loading={loadingQuotes}
             onQuoteClick={(quoteId) => navigate(`/nexo-av/${userId}/quotes/${quoteId}`)}
             formatCurrency={formatCurrency}
+            isMultiSite={project?.site_mode === 'MULTI_SITE'}
           />
         )}
         
@@ -896,9 +898,10 @@ interface QuotesListProps {
   loading: boolean;
   onQuoteClick: (quoteId: string) => void;
   formatCurrency: (amount: number) => string;
+  isMultiSite?: boolean;
 }
 
-const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency }: QuotesListProps) => {
+const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency, isMultiSite }: QuotesListProps) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -951,6 +954,12 @@ const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency }: QuotesLis
                 <h4 className="text-sm font-medium text-foreground truncate">
                   {quote.client_name || "Sin cliente"}
                 </h4>
+                {isMultiSite && (
+                  <p className="text-xs text-muted-foreground/70 mt-0.5 flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {quote.site_name || "Sin asignar"}
+                  </p>
+                )}
                 {quote.issue_date && (
                   <p className="text-xs text-muted-foreground/70 mt-0.5">
                     {new Date(quote.issue_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
