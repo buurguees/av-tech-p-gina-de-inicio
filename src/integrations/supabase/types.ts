@@ -2111,6 +2111,24 @@ export type Database = {
           total_tax: number
         }[]
       }
+      get_site_financials: {
+        Args: { p_site_id: string }
+        Returns: {
+          invoiced_count: number
+          invoiced_total: number
+          paid_total: number
+          quoted_count: number
+          quoted_total: number
+        }[]
+      }
+      get_suggested_project_status: {
+        Args: { p_project_id: string }
+        Returns: {
+          reason: string
+          site_summary: Json
+          suggested_status: string
+        }[]
+      }
       get_supplier: {
         Args: { p_supplier_id: string }
         Returns: {

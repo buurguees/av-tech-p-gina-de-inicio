@@ -14,6 +14,7 @@ import ProjectHistoryTab from "../components/projects/ProjectHistoryTab";
 import ProjectSitesTab from "../components/projects/ProjectSitesTab";
 import ProjectPlanningTab from "../components/projects/ProjectPlanningTab";
 import ProjectTechniciansTab from "../components/projects/ProjectTechniciansTab";
+import ProjectStatusSuggestion from "../components/projects/ProjectStatusSuggestion";
 import EditProjectDialog from "../components/projects/EditProjectDialog";
 import StatusSelector from "../components/common/StatusSelector";
 import { PROJECT_STATUSES } from "@/constants/projectStatuses";
@@ -91,6 +92,7 @@ const ProjectDetailPageDesktop = () => {
   const [loadingMetrics, setLoadingMetrics] = useState(true);
   const [tasks, setTasks] = useState<any[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(false);
+  const [suggestedStatus, setSuggestedStatus] = useState<{ suggested_status: string; reason: string } | null>(null);
 
   const tabs: TabItem[] = [
     { value: "resumen", label: "Resumen", icon: LayoutDashboard },
@@ -467,6 +469,30 @@ const ProjectDetailPageDesktop = () => {
                       />
                     </div>
                   </div>
+                  {/* Status Suggestion */}
+                  {project && projectId && (
+                    <ProjectStatusSuggestion
+                      projectId={projectId}
+                      currentStatus={project.status}
+                      onApply={async (newStatus) => {
+                        if (!project) return;
+                        const previousStatus = project.status;
+                        setProject({ ...project, status: newStatus });
+                        try {
+                          const { error, data } = await supabase.rpc("update_project", {
+                            p_project_id: project.id,
+                            p_status: newStatus,
+                          });
+                          if (error) throw error;
+                          if (data === false) throw new Error("No se pudo actualizar.");
+                          toast({ title: "Estado actualizado" });
+                        } catch (err: any) {
+                          setProject({ ...project, status: previousStatus });
+                          toast({ title: "Error", description: err.message, variant: "destructive" });
+                        }
+                      }}
+                    />
+                  )}
                 </div>
               </DetailInfoHeader>
             }

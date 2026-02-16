@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,10 @@ import {
   ChevronRight,
   CalendarCheck,
   ClipboardList,
+  Receipt,
+  Eye,
+  Filter,
+  Lock,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -51,6 +56,14 @@ interface PlanSite {
   is_default: boolean;
   assignment_count: number;
   visit_count: number;
+}
+
+interface SiteFinancials {
+  quoted_total: number;
+  quoted_count: number;
+  invoiced_total: number;
+  invoiced_count: number;
+  paid_total: number;
 }
 
 interface Assignment {
@@ -86,6 +99,16 @@ interface ProjectPlanningTabProps {
 }
 
 // ─── Status helpers ──────────────────────────────────
+const SITE_STATUSES = [
+  { value: "ALL", label: "Todos" },
+  { value: "PLANNED", label: "Planificado" },
+  { value: "SCHEDULED", label: "Programado" },
+  { value: "IN_PROGRESS", label: "En ejecución" },
+  { value: "READY_TO_INVOICE", label: "Listo p/ facturar" },
+  { value: "INVOICED", label: "Facturado" },
+  { value: "CLOSED", label: "Cerrado" },
+] as const;
+
 const STATUS_COLORS: Record<string, string> = {
   PLANNED: "bg-muted text-muted-foreground",
   SCHEDULED: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
@@ -110,12 +133,26 @@ const StatusBadge = ({ status }: { status: string }) => (
   </Badge>
 );
 
+const formatCurrency = (n: number) =>
+  new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(n);
+
+// CTA label & icon per status
+const STATUS_CTA: Record<string, { label: string; icon: React.ElementType }> = {
+  PLANNED: { label: "Planificar", icon: CalendarCheck },
+  SCHEDULED: { label: "Asignar equipo", icon: Users },
+  IN_PROGRESS: { label: "Marcar fin", icon: Square },
+  READY_TO_INVOICE: { label: "Crear factura", icon: Receipt },
+  INVOICED: { label: "Ver factura", icon: Eye },
+  CLOSED: { label: "Ver resumen", icon: Eye },
+};
+
 // ─── Main Component ──────────────────────────────────
 const ProjectPlanningTab = ({ projectId, siteMode }: ProjectPlanningTabProps) => {
   const { toast } = useToast();
   const [sites, setSites] = useState<PlanSite[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   useEffect(() => {
     fetchSites();
@@ -141,7 +178,6 @@ const ProjectPlanningTab = ({ projectId, siteMode }: ProjectPlanningTabProps) =>
         visit_count: Number(s.visit_count || 0),
       }));
       setSites(activeSites);
-      // Auto-select first/default
       if (activeSites.length > 0 && !selectedSiteId) {
         const def = activeSites.find((s) => s.is_default) || activeSites[0];
         setSelectedSiteId(def.id);
@@ -153,8 +189,15 @@ const ProjectPlanningTab = ({ projectId, siteMode }: ProjectPlanningTabProps) =>
     }
   };
 
+  const filteredSites = statusFilter === "ALL" ? sites : sites.filter((s) => s.site_status === statusFilter);
   const selectedSite = sites.find((s) => s.id === selectedSiteId) || null;
   const isSingle = siteMode === "SINGLE_SITE" || sites.length <= 1;
+
+  // Status counts for filter badges
+  const statusCounts = sites.reduce<Record<string, number>>((acc, s) => {
+    acc[s.site_status] = (acc[s.site_status] || 0) + 1;
+    return acc;
+  }, {});
 
   if (loading) {
     return (
@@ -178,38 +221,71 @@ const ProjectPlanningTab = ({ projectId, siteMode }: ProjectPlanningTabProps) =>
     <div className="flex h-full min-h-[500px]">
       {/* Left panel: site list (only for multi-site) */}
       {!isSingle && (
-        <div className="w-72 border-r border-border overflow-y-auto">
-          <div className="p-4 border-b border-border">
-            <h3 className="text-sm font-semibold text-foreground">Sitios</h3>
+        <div className="w-72 border-r border-border overflow-y-auto flex flex-col">
+          {/* Filter bar */}
+          <div className="p-3 border-b border-border space-y-2">
+            <div className="flex items-center gap-2">
+              <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">Filtrar por estado</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {SITE_STATUSES.map((st) => {
+                const count = st.value === "ALL" ? sites.length : (statusCounts[st.value] || 0);
+                if (st.value !== "ALL" && count === 0) return null;
+                const isActive = statusFilter === st.value;
+                return (
+                  <button
+                    key={st.value}
+                    onClick={() => setStatusFilter(st.value)}
+                    className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
+                      isActive
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+                    }`}
+                  >
+                    {st.label} ({count})
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          {sites.map((site) => (
-            <button
-              key={site.id}
-              onClick={() => setSelectedSiteId(site.id)}
-              className={`w-full text-left px-4 py-3 border-b border-border transition-colors hover:bg-accent/50 ${
-                selectedSiteId === site.id ? "bg-accent" : ""
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-medium text-sm text-foreground truncate">{site.site_name}</span>
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+
+          {/* Site list */}
+          <div className="flex-1 overflow-y-auto">
+            {filteredSites.map((site) => (
+              <button
+                key={site.id}
+                onClick={() => setSelectedSiteId(site.id)}
+                className={`w-full text-left px-4 py-3 border-b border-border transition-colors hover:bg-accent/50 ${
+                  selectedSiteId === site.id ? "bg-accent" : ""
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-medium text-sm text-foreground truncate">{site.site_name}</span>
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <StatusBadge status={site.site_status} />
+                  {site.city && <span className="text-xs text-muted-foreground truncate">{site.city}</span>}
+                </div>
+                <div className="flex gap-3 mt-1.5 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Users className="h-3 w-3" />{site.assignment_count}</span>
+                  <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{site.visit_count}</span>
+                  {site.planned_start_date && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {format(new Date(site.planned_start_date), "dd/MM")}
+                    </span>
+                  )}
+                </div>
+              </button>
+            ))}
+            {filteredSites.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                Sin sitios en este estado
               </div>
-              <div className="flex items-center gap-2">
-                <StatusBadge status={site.site_status} />
-                {site.city && <span className="text-xs text-muted-foreground truncate">{site.city}</span>}
-              </div>
-              <div className="flex gap-3 mt-1.5 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><Users className="h-3 w-3" />{site.assignment_count}</span>
-                <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{site.visit_count}</span>
-                {site.planned_start_date && (
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(site.planned_start_date), "dd/MM")}
-                  </span>
-                )}
-              </div>
-            </button>
-          ))}
+            )}
+          </div>
         </div>
       )}
 
@@ -218,6 +294,7 @@ const ProjectPlanningTab = ({ projectId, siteMode }: ProjectPlanningTabProps) =>
         {selectedSite ? (
           <SiteDetailPanel
             site={selectedSite}
+            projectId={projectId}
             onRefresh={fetchSites}
           />
         ) : (
@@ -233,16 +310,23 @@ const ProjectPlanningTab = ({ projectId, siteMode }: ProjectPlanningTabProps) =>
 // ─── Site Detail Panel ───────────────────────────────
 const SiteDetailPanel = ({
   site,
+  projectId,
   onRefresh,
 }: {
   site: PlanSite;
+  projectId: string;
   onRefresh: () => void;
 }) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { userId } = useParams<{ userId: string }>();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
+  const [financials, setFinancials] = useState<SiteFinancials | null>(null);
   const [loadingData, setLoadingData] = useState(true);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
+
+  const isLocked = site.site_status === "INVOICED" || site.site_status === "CLOSED";
 
   // Planning form
   const [planStart, setPlanStart] = useState(site.planned_start_date || "");
@@ -264,7 +348,6 @@ const SiteDetailPanel = ({
   const [savingAssign, setSavingAssign] = useState(false);
   const [savingVisit, setSavingVisit] = useState(false);
 
-  // Reset form when site changes
   useEffect(() => {
     setPlanStart(site.planned_start_date || "");
     setPlanDays(site.planned_days?.toString() || "");
@@ -288,12 +371,23 @@ const SiteDetailPanel = ({
   const loadData = async () => {
     setLoadingData(true);
     try {
-      const [assignRes, visitRes] = await Promise.all([
+      const [assignRes, visitRes, finRes] = await Promise.all([
         supabase.rpc("list_site_assignments", { p_site_id: site.id }),
         supabase.rpc("list_site_visits", { p_site_id: site.id }),
+        supabase.rpc("get_site_financials", { p_site_id: site.id }),
       ]);
       setAssignments((assignRes.data || []) as Assignment[]);
       setVisits((visitRes.data || []) as Visit[]);
+      if (finRes.data && (finRes.data as any[]).length > 0) {
+        const f = (finRes.data as any[])[0];
+        setFinancials({
+          quoted_total: Number(f.quoted_total || 0),
+          quoted_count: Number(f.quoted_count || 0),
+          invoiced_total: Number(f.invoiced_total || 0),
+          invoiced_count: Number(f.invoiced_count || 0),
+          paid_total: Number(f.paid_total || 0),
+        });
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -440,9 +534,35 @@ const SiteDetailPanel = ({
     }
   };
 
+  // CTA handler
+  const handleCTA = () => {
+    switch (site.site_status) {
+      case "PLANNED":
+        // Focus on planning inputs (already visible)
+        break;
+      case "SCHEDULED":
+        setAssignDialog(true);
+        break;
+      case "IN_PROGRESS":
+        handleMarkActualEnd(true);
+        break;
+      case "READY_TO_INVOICE":
+        if (userId) {
+          navigate(`/nexo-av/${userId}/invoices/new?projectId=${projectId}&siteId=${site.id}`);
+        }
+        break;
+      case "INVOICED":
+      case "CLOSED":
+        // Could navigate to invoice detail - for now just scroll
+        break;
+    }
+  };
+
+  const cta = STATUS_CTA[site.site_status];
+
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* Header with CTA */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <MapPin className="h-5 w-5 text-primary" />
@@ -451,45 +571,78 @@ const SiteDetailPanel = ({
             {site.city && <p className="text-sm text-muted-foreground">{site.city}</p>}
           </div>
           <StatusBadge status={site.site_status} />
+          {isLocked && (
+            <Badge variant="outline" className="text-xs gap-1 text-muted-foreground">
+              <Lock className="h-3 w-3" /> Bloqueado
+            </Badge>
+          )}
         </div>
+        {cta && !isLocked && (
+          <Button size="sm" onClick={handleCTA} className="gap-1.5">
+            <cta.icon className="h-3.5 w-3.5" />
+            {cta.label}
+          </Button>
+        )}
       </div>
 
+      {/* Financial Summary */}
+      {financials && (
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-card border border-border rounded-xl p-3">
+            <p className="text-[10px] uppercase text-muted-foreground font-medium">Presupuestado</p>
+            <p className="text-lg font-bold text-foreground">{formatCurrency(financials.quoted_total)}</p>
+            <p className="text-[10px] text-muted-foreground">{financials.quoted_count} presupuesto{financials.quoted_count !== 1 ? "s" : ""}</p>
+          </div>
+          <div className="bg-card border border-border rounded-xl p-3">
+            <p className="text-[10px] uppercase text-muted-foreground font-medium">Facturado</p>
+            <p className="text-lg font-bold text-foreground">{formatCurrency(financials.invoiced_total)}</p>
+            <p className="text-[10px] text-muted-foreground">{financials.invoiced_count} factura{financials.invoiced_count !== 1 ? "s" : ""}</p>
+          </div>
+          <div className="bg-card border border-border rounded-xl p-3">
+            <p className="text-[10px] uppercase text-muted-foreground font-medium">Cobrado</p>
+            <p className="text-lg font-bold text-foreground">{formatCurrency(financials.paid_total)}</p>
+            {financials.invoiced_total > 0 && (
+              <p className="text-[10px] text-muted-foreground">
+                {((financials.paid_total / financials.invoiced_total) * 100).toFixed(0)}% cobrado
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Planning Section */}
-      <div className="bg-card border border-border rounded-xl p-5">
+      <div className={`bg-card border border-border rounded-xl p-5 ${isLocked ? "opacity-60" : ""}`}>
         <div className="flex items-center gap-2 mb-4">
           <CalendarCheck className="h-4 w-4 text-primary" />
           <h4 className="font-semibold text-foreground text-sm">Fechas planificadas</h4>
+          {isLocked && <Lock className="h-3.5 w-3.5 text-muted-foreground ml-auto" />}
         </div>
         <div className="grid grid-cols-3 gap-3">
           <div className="space-y-1.5">
             <Label className="text-xs">Fecha inicio</Label>
-            <Input type="date" value={planStart} onChange={(e) => setPlanStart(e.target.value)} />
+            <Input type="date" value={planStart} onChange={(e) => setPlanStart(e.target.value)} disabled={isLocked} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Días de trabajo</Label>
-            <Input
-              type="number"
-              min={1}
-              value={planDays}
-              onChange={(e) => setPlanDays(e.target.value)}
-              placeholder="Nº días"
-            />
+            <Input type="number" min={1} value={planDays} onChange={(e) => setPlanDays(e.target.value)} placeholder="Nº días" disabled={isLocked} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Fecha fin (calculada)</Label>
-            <Input type="date" value={planEnd} onChange={(e) => setPlanEnd(e.target.value)} />
+            <Input type="date" value={planEnd} onChange={(e) => setPlanEnd(e.target.value)} disabled={isLocked} />
           </div>
         </div>
-        <div className="flex justify-end mt-3">
-          <Button size="sm" onClick={handleSavePlanning} disabled={savingPlan}>
-            {savingPlan && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
-            Guardar planificación
-          </Button>
-        </div>
+        {!isLocked && (
+          <div className="flex justify-end mt-3">
+            <Button size="sm" onClick={handleSavePlanning} disabled={savingPlan}>
+              {savingPlan && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
+              Guardar planificación
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Actual Dates / Actions */}
-      <div className="bg-card border border-border rounded-xl p-5">
+      <div className={`bg-card border border-border rounded-xl p-5 ${isLocked ? "opacity-60" : ""}`}>
         <div className="flex items-center gap-2 mb-4">
           <Clock className="h-4 w-4 text-primary" />
           <h4 className="font-semibold text-foreground text-sm">Ejecución real</h4>
@@ -499,38 +652,36 @@ const SiteDetailPanel = ({
           <div>
             <p className="text-xs text-muted-foreground mb-1">Inicio real</p>
             <p className="text-sm font-medium">
-              {site.actual_start_at
-                ? format(new Date(site.actual_start_at), "dd/MM/yyyy HH:mm")
-                : "—"}
+              {site.actual_start_at ? format(new Date(site.actual_start_at), "dd/MM/yyyy HH:mm") : "—"}
             </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1">Fin real</p>
             <p className="text-sm font-medium">
-              {site.actual_end_at
-                ? format(new Date(site.actual_end_at), "dd/MM/yyyy HH:mm")
-                : "—"}
+              {site.actual_end_at ? format(new Date(site.actual_end_at), "dd/MM/yyyy HH:mm") : "—"}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {!site.actual_start_at && site.site_status !== "CLOSED" && (
-            <Button size="sm" variant="outline" onClick={handleMarkActualStart} className="gap-1.5">
-              <Play className="h-3.5 w-3.5" /> Marcar inicio real
-            </Button>
-          )}
-          {site.actual_start_at && !site.actual_end_at && (
-            <>
-              <Button size="sm" variant="outline" onClick={() => handleMarkActualEnd(false)} className="gap-1.5">
-                <Square className="h-3.5 w-3.5" /> Marcar fin real
+        {!isLocked && (
+          <div className="flex flex-wrap gap-2">
+            {!site.actual_start_at && (
+              <Button size="sm" variant="outline" onClick={handleMarkActualStart} className="gap-1.5">
+                <Play className="h-3.5 w-3.5" /> Marcar inicio real
               </Button>
-              <Button size="sm" onClick={() => handleMarkActualEnd(true)} className="gap-1.5">
-                <CheckCircle className="h-3.5 w-3.5" /> Listo para facturar
-              </Button>
-            </>
-          )}
-        </div>
+            )}
+            {site.actual_start_at && !site.actual_end_at && (
+              <>
+                <Button size="sm" variant="outline" onClick={() => handleMarkActualEnd(false)} className="gap-1.5">
+                  <Square className="h-3.5 w-3.5" /> Marcar fin real
+                </Button>
+                <Button size="sm" onClick={() => handleMarkActualEnd(true)} className="gap-1.5">
+                  <CheckCircle className="h-3.5 w-3.5" /> Listo para facturar
+                </Button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Assignments */}
@@ -541,9 +692,11 @@ const SiteDetailPanel = ({
             <h4 className="font-semibold text-foreground text-sm">Equipo asignado</h4>
             <span className="text-xs text-muted-foreground">({assignments.length})</span>
           </div>
-          <Button size="sm" variant="outline" onClick={() => setAssignDialog(true)} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> Asignar
-          </Button>
+          {!isLocked && (
+            <Button size="sm" variant="outline" onClick={() => setAssignDialog(true)} className="gap-1.5">
+              <Plus className="h-3.5 w-3.5" /> Asignar
+            </Button>
+          )}
         </div>
 
         {loadingData ? (
@@ -564,14 +717,11 @@ const SiteDetailPanel = ({
                     </p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-xs text-destructive hover:text-destructive"
-                  onClick={() => handleDeleteAssignment(a.id)}
-                >
-                  Quitar
-                </Button>
+                {!isLocked && (
+                  <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive hover:text-destructive" onClick={() => handleDeleteAssignment(a.id)}>
+                    Quitar
+                  </Button>
+                )}
               </div>
             ))}
           </div>
@@ -586,9 +736,11 @@ const SiteDetailPanel = ({
             <h4 className="font-semibold text-foreground text-sm">Visitas</h4>
             <span className="text-xs text-muted-foreground">({visits.length})</span>
           </div>
-          <Button size="sm" variant="outline" onClick={() => setVisitDialog(true)} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" /> Registrar visita
-          </Button>
+          {!isLocked && (
+            <Button size="sm" variant="outline" onClick={() => setVisitDialog(true)} className="gap-1.5">
+              <Plus className="h-3.5 w-3.5" /> Registrar visita
+            </Button>
+          )}
         </div>
 
         {loadingData ? (
@@ -617,7 +769,7 @@ const SiteDetailPanel = ({
                     </p>
                     {v.notes && <p className="text-xs text-muted-foreground mt-0.5">{v.notes}</p>}
                   </div>
-                  {isOpen && (
+                  {isOpen && !isLocked && (
                     <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleCloseVisit(v.id)}>
                       Cerrar visita
                     </Button>
