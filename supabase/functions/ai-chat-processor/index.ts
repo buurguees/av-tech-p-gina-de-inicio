@@ -63,15 +63,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 5. Load chat request and verify ownership
-    const { data: reqData } = await serviceClient
-      .schema("ai")
-      .from("chat_requests")
-      .select("*")
-      .eq("id", request_id)
-      .single();
+    // 5. Load chat request and verify ownership (use raw SQL via rpc since ai schema isn't exposed via API)
+    const { data: reqRows, error: reqError } = await serviceClient.rpc('ai_get_chat_request_for_processing', {
+      p_request_id: request_id,
+    });
 
-    if (!reqData) {
+    const reqData = reqRows?.[0];
+    if (reqError || !reqData) {
       return new Response(JSON.stringify({ error: "Request not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -91,13 +89,10 @@ Deno.serve(async (req) => {
     // 7. Load latest user message
     let userMessage = "";
     if (reqData.latest_user_message_id) {
-      const { data: msgData } = await serviceClient
-        .schema("ai")
-        .from("messages")
-        .select("content")
-        .eq("id", reqData.latest_user_message_id)
-        .single();
-      userMessage = msgData?.content || "";
+      const { data: msgRows } = await serviceClient.rpc('ai_get_message_content', {
+        p_message_id: reqData.latest_user_message_id,
+      });
+      userMessage = msgRows?.[0]?.content || "";
     }
 
     // 8. Load context based on mode
