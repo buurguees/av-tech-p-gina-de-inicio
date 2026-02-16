@@ -1004,6 +1004,22 @@ export type Database = {
         }
         Returns: string
       }
+      dashboard_get_admin_overview: {
+        Args: { p_period?: string }
+        Returns: Json
+      }
+      dashboard_get_commercial_overview: {
+        Args: { p_user_id?: string }
+        Returns: Json
+      }
+      dashboard_get_manager_overview: {
+        Args: { p_days_ahead?: number }
+        Returns: Json
+      }
+      dashboard_get_technician_overview: {
+        Args: { p_user_id?: string }
+        Returns: Json
+      }
       delete_authorized_user: { Args: { p_user_id: string }; Returns: string }
       delete_catalog_category: { Args: { p_id: string }; Returns: boolean }
       delete_catalog_product: { Args: { p_id: string }; Returns: boolean }
