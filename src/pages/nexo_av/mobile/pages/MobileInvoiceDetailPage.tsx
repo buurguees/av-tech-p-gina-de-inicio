@@ -99,6 +99,7 @@ interface Project {
   project_city: string | null;
   local_name: string | null;
   client_order_number: string | null;
+  site_name?: string | null;
 }
 
 interface CompanySettings {
@@ -215,6 +216,7 @@ const MobileInvoiceDetailPage = () => {
             project_city: projectData[0].project_city,
             local_name: projectData[0].local_name,
             client_order_number: projectData[0].client_order_number,
+            site_name: invoiceInfo.site_name || null,
           });
         }
       }
@@ -541,7 +543,7 @@ const ResumenTab = ({
               <InfoRow 
                 icon={FileText} 
                 label="Proyecto" 
-                value={project.project_name}
+                value={`${project.project_name}${project.site_name ? ` — ${project.site_name}` : ''}`}
                 subValue={project.project_number ? `#${project.project_number}` : undefined}
               />
             )}
