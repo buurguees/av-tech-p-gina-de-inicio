@@ -11,6 +11,7 @@ import ProjectQuotesList from "../components/projects/ProjectQuotesList";
 import ProjectPurchasesList from "../components/projects/ProjectPurchasesList";
 import ProjectPurchaseOrdersList from "../components/projects/ProjectPurchaseOrdersList";
 import ProjectHistoryTab from "../components/projects/ProjectHistoryTab";
+import ProjectSitesTab from "../components/projects/ProjectSitesTab";
 import EditProjectDialog from "../components/projects/EditProjectDialog";
 import StatusSelector from "../components/common/StatusSelector";
 import { PROJECT_STATUSES } from "@/constants/projectStatuses";
@@ -91,6 +92,7 @@ const ProjectDetailPageDesktop = () => {
 
   const tabs: TabItem[] = [
     { value: "resumen", label: "Resumen", icon: LayoutDashboard },
+    { value: "sitios", label: "Sitios", icon: MapPin },
     { value: "planificacion", label: "Planificación", icon: Calendar },
     { value: "tecnicos", label: "Técnicos", icon: Users },
     { value: "presupuestos", label: "Presupuestos", icon: FileText },
@@ -373,6 +375,9 @@ const ProjectDetailPageDesktop = () => {
                   />
                 }
               />
+            )}
+            {activeTab === "sitios" && projectId && (
+              <ProjectSitesTab projectId={projectId} siteMode={project?.site_mode} />
             )}
             {activeTab === "planificacion" && (
               <div className="p-6">
