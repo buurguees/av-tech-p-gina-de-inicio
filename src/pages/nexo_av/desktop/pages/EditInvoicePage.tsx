@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, GripVertical, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, GripVertical, FileText, MapPin } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "../components/common/ProductSearchInput";
@@ -35,6 +35,14 @@ interface Project {
   id: string;
   project_number: string;
   project_name: string;
+  site_mode?: string | null;
+}
+
+interface ProjectSite {
+  id: string;
+  site_name: string;
+  city: string | null;
+  is_default: boolean;
 }
 
 interface InvoiceLine {
@@ -65,6 +73,7 @@ interface Invoice {
   client_name: string;
   project_id: string | null;
   project_name: string | null;
+  site_id: string | null;
   issue_date: string;
   due_date: string;
   status: string;
@@ -83,6 +92,9 @@ const EditInvoicePageDesktop = () => {
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+  const [projectSites, setProjectSites] = useState<ProjectSite[]>([]);
+  const [loadingSites, setLoadingSites] = useState(false);
   const [issueDate, setIssueDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [lines, setLines] = useState<InvoiceLine[]>([]);
@@ -156,6 +168,7 @@ const EditInvoicePageDesktop = () => {
         client_name: inv.client_name,
         project_id: inv.project_id,
         project_name: inv.project_name,
+        site_id: inv.site_id || null,
         issue_date: inv.issue_date,
         due_date: inv.due_date,
         status: inv.status,
@@ -163,6 +176,7 @@ const EditInvoicePageDesktop = () => {
 
       setSelectedClientId(inv.client_id);
       setSelectedProjectId(inv.project_id || "");
+      if (inv.site_id) setSelectedSiteId(inv.site_id);
       setIssueDate(inv.issue_date?.split("T")[0] || "");
       setDueDate(inv.due_date?.split("T")[0] || "");
 
@@ -226,6 +240,7 @@ const EditInvoicePageDesktop = () => {
         id: p.id,
         project_number: p.project_number,
         project_name: p.project_name,
+        site_mode: p.site_mode || null,
       })));
       return clientProjects;
     } catch (error) {
@@ -237,6 +252,28 @@ const EditInvoicePageDesktop = () => {
     }
   };
 
+  const fetchSitesForProject = async (projectId: string) => {
+    try {
+      setLoadingSites(true);
+      const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
+      if (error) throw error;
+      const sites: ProjectSite[] = (data || [])
+        .filter((s: any) => s.is_active)
+        .map((s: any) => ({ id: s.id, site_name: s.site_name, city: s.city, is_default: s.is_default }));
+      setProjectSites(sites);
+      const proj = projects.find(p => p.id === projectId);
+      if (proj?.site_mode === "SINGLE_SITE" && sites.length > 0) {
+        const defaultSite = sites.find(s => s.is_default) || sites[0];
+        setSelectedSiteId(defaultSite.id);
+      }
+    } catch (error) {
+      console.error("Error fetching sites:", error);
+      setProjectSites([]);
+    } finally {
+      setLoadingSites(false);
+    }
+  };
+
   // Fetch projects when client changes
   useEffect(() => {
     if (selectedClientId && !loading) {
@@ -244,9 +281,27 @@ const EditInvoicePageDesktop = () => {
       // Clear project selection if client changes
       if (invoice && selectedClientId !== invoice.client_id) {
         setSelectedProjectId("");
+        setSelectedSiteId("");
+        setProjectSites([]);
       }
     }
   }, [selectedClientId]);
+
+  // Fetch sites when project changes
+  useEffect(() => {
+    if (selectedProjectId) {
+      const project = projects.find(p => p.id === selectedProjectId);
+      if (project?.site_mode === "MULTI_SITE" || project?.site_mode === "SINGLE_SITE") {
+        fetchSitesForProject(selectedProjectId);
+      } else {
+        setProjectSites([]);
+        setSelectedSiteId("");
+      }
+    } else {
+      setProjectSites([]);
+      setSelectedSiteId("");
+    }
+  }, [selectedProjectId, projects]);
 
   const calculateLineValues = (line: Partial<InvoiceLine>): InvoiceLine => {
     const quantity = line.quantity || 0;
@@ -467,6 +522,8 @@ const EditInvoicePageDesktop = () => {
         p_project_name: selectedProject?.project_name || null,
         p_issue_date: issueDate,
         p_due_date: dueDate,
+        // @ts-ignore - p_site_id added via migration
+        p_site_id: selectedSiteId || null,
       });
       if (updateError) throw updateError;
 
@@ -639,6 +696,41 @@ const EditInvoicePageDesktop = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Site Selector - MULTI_SITE */}
+              {selectedProjectId && projects.find(p => p.id === selectedProjectId)?.site_mode === "MULTI_SITE" && projectSites.length > 0 && (
+                <div className="space-y-1 md:space-y-2 col-span-2">
+                  <Label className="text-white/70 text-[10px] md:text-sm flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Sitio de instalación *
+                  </Label>
+                  <Select value={selectedSiteId || undefined} onValueChange={setSelectedSiteId} disabled={loadingSites}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={loadingSites ? "Cargando sitios..." : "Seleccionar sitio..."} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projectSites.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.site_name}{s.city ? ` — ${s.city}` : ""}{s.is_default ? " ★" : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Site info - SINGLE_SITE */}
+              {selectedProjectId && projects.find(p => p.id === selectedProjectId)?.site_mode === "SINGLE_SITE" && projectSites.length > 0 && (
+                <div className="space-y-1 md:space-y-2 col-span-2">
+                  <Label className="text-white/70 text-[10px] md:text-sm flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Sitio
+                  </Label>
+                  <div className="text-sm font-medium text-white/80 px-3 py-2 bg-white/5 rounded-xl border border-white/10">
+                    {projectSites[0]?.site_name}{projectSites[0]?.city ? ` — ${projectSites[0].city}` : ""}
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-1 md:space-y-2">
                 <Label className="text-white/70 text-[10px] md:text-sm">Fecha emisión</Label>

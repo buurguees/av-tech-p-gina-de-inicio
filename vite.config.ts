@@ -71,6 +71,7 @@ export default defineConfig(({ mode }) => ({
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/~oauth/],
         cleanupOutdatedCaches: true,
+        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
@@ -120,7 +121,7 @@ export default defineConfig(({ mode }) => ({
     exclude: ['jscanify'],
   },
   build: {
-    outDir: "dist",
+    outDir: "build",
     chunkSizeWarningLimit: 2000,
     commonjsOptions: {
       ignore: nodeModulesToExternalize,

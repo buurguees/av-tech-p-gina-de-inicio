@@ -44,6 +44,15 @@ interface Project {
   id: string;
   project_name: string;
   project_number: string;
+  site_mode?: string | null;
+}
+
+interface ProjectSite {
+  id: string;
+  site_name: string;
+  city: string | null;
+  is_default: boolean;
+  is_active: boolean;
 }
 
 interface TaxOption {
@@ -86,6 +95,7 @@ interface Quote {
   client_name: string;
   project_id: string | null;
   project_name: string | null;
+  site_id: string | null;
   status: string;
   valid_until: string | null;
 }
@@ -109,6 +119,9 @@ const MobileEditQuotePage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [sites, setSites] = useState<ProjectSite[]>([]);
+  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+  const [loadingSites, setLoadingSites] = useState(false);
   const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
   const [defaultTaxRate, setDefaultTaxRate] = useState(21);
   const [lines, setLines] = useState<QuoteLine[]>([]);
@@ -146,6 +159,22 @@ const MobileEditQuotePage = () => {
     }
   }, [projects, quote?.project_id, selectedProjectId]);
 
+  // Fetch sites when project changes
+  useEffect(() => {
+    if (selectedProjectId) {
+      const project = projects.find(p => p.id === selectedProjectId);
+      if (project?.site_mode === "MULTI_SITE") {
+        fetchSitesForProject(selectedProjectId);
+      } else {
+        setSites([]);
+        setSelectedSiteId("");
+      }
+    } else {
+      setSites([]);
+      setSelectedSiteId("");
+    }
+  }, [selectedProjectId, projects]);
+
   const fetchQuoteData = async () => {
     try {
       setLoading(true);
@@ -173,6 +202,7 @@ const MobileEditQuotePage = () => {
 
       setQuote(quoteInfo);
       setSelectedClientId(quoteInfo.client_id);
+      if (quoteInfo.site_id) setSelectedSiteId(quoteInfo.site_id);
 
       // Fetch quote lines
       const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", {
@@ -244,11 +274,33 @@ const MobileEditQuotePage = () => {
           id: p.id,
           project_name: p.project_name,
           project_number: p.project_number,
+          site_mode: p.site_mode || null,
         }))
       );
     } catch (error) {
       console.error("Error fetching projects:", error);
       setProjects([]);
+    }
+  };
+
+  const fetchSitesForProject = async (projectId: string) => {
+    try {
+      setLoadingSites(true);
+      const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
+      if (error) throw error;
+      const activeSites = ((data || []) as any[]).filter((s: any) => s.is_active);
+      setSites(activeSites.map((s: any) => ({
+        id: s.id,
+        site_name: s.site_name,
+        city: s.city,
+        is_default: s.is_default,
+        is_active: s.is_active,
+      })));
+    } catch (error) {
+      console.error("Error fetching sites:", error);
+      setSites([]);
+    } finally {
+      setLoadingSites(false);
     }
   };
 
@@ -469,7 +521,8 @@ const MobileEditQuotePage = () => {
         p_project_name: selectedProject?.project_name || null,
         p_valid_until: calculatedValidUntil,
         p_status: quote?.status || "DRAFT",
-        p_project_id: selectedProjectId || null
+        p_project_id: selectedProjectId || null,
+        p_site_id: selectedSiteId || null,
       });
 
       if (quoteError) throw quoteError;
@@ -668,6 +721,34 @@ const MobileEditQuotePage = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            {/* Site selector for MULTI_SITE projects */}
+            {selectedProjectId && projects.find(p => p.id === selectedProjectId)?.site_mode === "MULTI_SITE" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Sitio de instalación <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={selectedSiteId}
+                  onValueChange={setSelectedSiteId}
+                  disabled={loadingSites || sites.length === 0}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={loadingSites ? "Cargando sitios..." : sites.length === 0 ? "Sin sitios" : "Seleccionar sitio..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sites.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.site_name}{s.city ? ` — ${s.city}` : ""}{s.is_default ? " ★" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  Proyecto multi-sitio: selecciona el sitio para este presupuesto.
+                </p>
               </div>
             )}
           </div>
