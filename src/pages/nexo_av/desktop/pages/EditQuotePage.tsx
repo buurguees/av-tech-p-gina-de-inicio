@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown, MapPin } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "../components/common/ProductSearchInput";
@@ -32,6 +32,13 @@ interface Project {
   id: string;
   project_number: string;
   project_name: string;
+  site_mode?: string;
+}
+interface ProjectSite {
+  id: string;
+  site_name: string;
+  city: string | null;
+  is_default: boolean;
 }
 interface QuoteLine {
   id?: string;
@@ -62,6 +69,8 @@ interface Quote {
   client_name: string;
   project_id: string | null;
   project_name: string | null;
+  site_id: string | null;
+  site_name: string | null;
   status: string;
   valid_until: string | null;
   created_at: string;
@@ -86,6 +95,8 @@ const EditQuotePageDesktop = () => {
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+  const [projectSites, setProjectSites] = useState<ProjectSite[]>([]);
   const [currentStatus, setCurrentStatus] = useState<string>("DRAFT");
   const [validUntil, setValidUntil] = useState("");
   const [lines, setLines] = useState<QuoteLine[]>([]);
@@ -121,13 +132,38 @@ const EditQuotePageDesktop = () => {
   // Set project after projects are loaded and quote has project_id
   useEffect(() => {
     if (projects.length > 0 && quote?.project_id && !selectedProjectId) {
-      // Only set if project exists in the loaded projects
       const projectExists = projects.some(p => p.id === quote.project_id);
       if (projectExists) {
         setSelectedProjectId(quote.project_id);
       }
     }
   }, [projects, quote?.project_id, selectedProjectId]);
+
+  // Load sites when project changes
+  useEffect(() => {
+    if (selectedProjectId) {
+      const proj = projects.find(p => p.id === selectedProjectId);
+      if (proj?.site_mode === "MULTI_SITE" || proj?.site_mode === "SINGLE_SITE") {
+        fetchSites(selectedProjectId);
+      } else {
+        setProjectSites([]);
+        setSelectedSiteId("");
+      }
+    } else {
+      setProjectSites([]);
+      setSelectedSiteId("");
+    }
+  }, [selectedProjectId, projects]);
+
+  // Set site_id from quote after sites are loaded
+  useEffect(() => {
+    if (projectSites.length > 0 && quote?.site_id && !selectedSiteId) {
+      const siteExists = projectSites.some(s => s.id === quote.site_id);
+      if (siteExists) {
+        setSelectedSiteId(quote.site_id);
+      }
+    }
+  }, [projectSites, quote?.site_id]);
 
   // Update valid_until when status changes to DRAFT
   // This ensures that whenever we're in DRAFT status, the date is recalculated
@@ -244,7 +280,8 @@ const EditQuotePageDesktop = () => {
       setProjects(clientProjects.map((p: any) => ({
         id: p.id,
         project_number: p.project_number,
-        project_name: p.project_name
+        project_name: p.project_name,
+        site_mode: p.site_mode || undefined,
       })));
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -253,6 +290,31 @@ const EditQuotePageDesktop = () => {
       setLoadingProjects(false);
     }
   };
+  const fetchSites = async (projectId: string) => {
+    try {
+      const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
+      if (error) throw error;
+      const sites: ProjectSite[] = (data || [])
+        .filter((s: any) => s.is_active)
+        .map((s: any) => ({
+          id: s.id,
+          site_name: s.site_name,
+          city: s.city,
+          is_default: s.is_default,
+        }));
+      setProjectSites(sites);
+      // Auto-select for SINGLE_SITE
+      const proj = projects.find(p => p.id === projectId);
+      if (proj?.site_mode === "SINGLE_SITE" && sites.length > 0) {
+        const defaultSite = sites.find(s => s.is_default) || sites[0];
+        setSelectedSiteId(defaultSite.id);
+      }
+    } catch (error) {
+      console.error("Error fetching sites:", error);
+      setProjectSites([]);
+    }
+  };
+
   const fetchSaleTaxes = async () => {
     try {
       const {
@@ -646,13 +708,15 @@ const EditQuotePageDesktop = () => {
       }
       const {
         error: quoteError
+      // @ts-ignore - p_site_id added via migration
       } = await supabase.rpc("update_quote", {
         p_quote_id: quoteId!,
         p_client_id: selectedClientId,
         p_project_name: selectedProject?.project_name || null,
         p_valid_until: calculatedValidUntil,
         p_status: currentStatus,
-        p_project_id: selectedProjectId || null
+        p_project_id: selectedProjectId || null,
+        p_site_id: selectedSiteId || null,
       });
       if (quoteError) throw quoteError;
 
@@ -880,6 +944,8 @@ const EditQuotePageDesktop = () => {
                   onValueChange={(value) => {
                     setSelectedClientId(value);
                     setSelectedProjectId("");
+                    setSelectedSiteId("");
+                    setProjectSites([]);
                   }}
                 >
                   <SelectTrigger className="w-full">
@@ -902,7 +968,11 @@ const EditQuotePageDesktop = () => {
                       ? undefined
                       : (selectedProjectId || "__none__")
                   }
-                  onValueChange={(v) => setSelectedProjectId(v === "__none__" ? "" : v)}
+                  onValueChange={(v) => {
+                    setSelectedProjectId(v === "__none__" ? "" : v);
+                    setSelectedSiteId("");
+                    setProjectSites([]);
+                  }}
                   disabled={!selectedClientId || loadingProjects || projects.length === 0}
                 >
                   <SelectTrigger className="w-full">
@@ -927,6 +997,50 @@ const EditQuotePageDesktop = () => {
                   <Input type="date" value={validUntil} onChange={e => setValidUntil(e.target.value)} className="h-11 text-sm" title="Fecha de validez del presupuesto" />
                 </div>}
             </div>
+
+            {/* Site selector for MULTI_SITE projects */}
+            {(() => {
+              const selectedProject = projects.find(p => p.id === selectedProjectId);
+              const isMultiSite = selectedProject?.site_mode === "MULTI_SITE" && projectSites.length > 0;
+              const isSingleSite = selectedProject?.site_mode === "SINGLE_SITE" && projectSites.length > 0;
+              
+              if (isMultiSite) {
+                return (
+                  <div className="px-5 pb-4">
+                    <Label className="text-muted-foreground text-xs mb-2 block font-medium flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Sitio de instalación
+                    </Label>
+                    <Select value={selectedSiteId || undefined} onValueChange={setSelectedSiteId}>
+                      <SelectTrigger className="w-full max-w-md">
+                        <SelectValue placeholder="Seleccionar sitio..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projectSites.map(s => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.site_name}{s.city ? ` — ${s.city}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              }
+              if (isSingleSite) {
+                return (
+                  <div className="px-5 pb-4">
+                    <Label className="text-muted-foreground text-xs mb-2 block font-medium flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Sitio
+                    </Label>
+                    <div className="text-sm font-medium text-foreground px-3 py-2 bg-muted/30 rounded-md border border-border max-w-md">
+                      {projectSites[0]?.site_name}{projectSites[0]?.city ? ` — ${projectSites[0].city}` : ""}
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
 
           {/* Lines Table */}
