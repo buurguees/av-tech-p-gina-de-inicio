@@ -16,6 +16,7 @@ import ProjectPlanningTab from "../components/projects/ProjectPlanningTab";
 import ProjectTechniciansTab from "../components/projects/ProjectTechniciansTab";
 import ProjectStatusSuggestion from "../components/projects/ProjectStatusSuggestion";
 import EditProjectDialog from "../components/projects/EditProjectDialog";
+import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
 import StatusSelector from "../components/common/StatusSelector";
 import { PROJECT_STATUSES } from "@/constants/projectStatuses";
 import { useToast } from "@/hooks/use-toast";
@@ -335,50 +336,57 @@ const ProjectDetailPageDesktop = () => {
           
           <div className="flex-1 overflow-auto">
             {activeTab === "resumen" && (
-              <DetailDashboard
-                kpis={
-                  <DetailDashboardKPIs
-                    title="Métricas del Proyecto"
-                    columns={4}
-                    kpis={[
-                      {
-                        title: "Presupuesto",
-                        value: loadingMetrics ? "..." : formatCurrency(metrics.quotesTotal),
-                        icon: <FileText className="w-5 h-5" />,
-                        subtitle: "Total presupuestado",
-                      },
-                      {
-                        title: "Facturación",
-                        value: loadingMetrics ? "..." : formatCurrency(metrics.invoicesTotal),
-                        icon: <Receipt className="w-5 h-5" />,
-                        subtitle: "Total facturado",
-                      },
-                      {
-                        title: "Compras",
-                        value: loadingMetrics ? "..." : formatCurrency(metrics.purchasesTotal),
-                        icon: <ShoppingCart className="w-5 h-5" />,
-                        subtitle: "Total compras",
-                      },
-                      {
-                        title: "Margen",
-                        value: loadingMetrics 
-                          ? "..." 
-                          : `${formatCurrency(metrics.margin)} (${formatPercentage(metrics.margin, metrics.invoicesTotal || 1)})`,
-                        icon: <TrendingUp className="w-5 h-5" />,
-                        subtitle: "Facturación - Compras",
-                      },
-                    ]}
-                  />
-                }
-                tasks={
-                  <DetailDashboardTasks
-                    title="Tareas del Proyecto"
-                    tasks={tasks}
-                    loading={loadingTasks}
-                    emptyMessage="No hay tareas asociadas a este proyecto"
-                  />
-                }
-              />
+              <div className="space-y-6">
+                <DetailDashboard
+                  kpis={
+                    <DetailDashboardKPIs
+                      title="Métricas del Proyecto"
+                      columns={4}
+                      kpis={[
+                        {
+                          title: "Presupuesto",
+                          value: loadingMetrics ? "..." : formatCurrency(metrics.quotesTotal),
+                          icon: <FileText className="w-5 h-5" />,
+                          subtitle: "Total presupuestado",
+                        },
+                        {
+                          title: "Facturación",
+                          value: loadingMetrics ? "..." : formatCurrency(metrics.invoicesTotal),
+                          icon: <Receipt className="w-5 h-5" />,
+                          subtitle: "Total facturado",
+                        },
+                        {
+                          title: "Compras",
+                          value: loadingMetrics ? "..." : formatCurrency(metrics.purchasesTotal),
+                          icon: <ShoppingCart className="w-5 h-5" />,
+                          subtitle: "Total compras",
+                        },
+                        {
+                          title: "Margen",
+                          value: loadingMetrics 
+                            ? "..." 
+                            : `${formatCurrency(metrics.margin)} (${formatPercentage(metrics.margin, metrics.invoicesTotal || 1)})`,
+                          icon: <TrendingUp className="w-5 h-5" />,
+                          subtitle: "Facturación - Compras",
+                        },
+                      ]}
+                    />
+                  }
+                  tasks={
+                    <DetailDashboardTasks
+                      title="Tareas del Proyecto"
+                      tasks={tasks}
+                      loading={loadingTasks}
+                      emptyMessage="No hay tareas asociadas a este proyecto"
+                    />
+                  }
+                />
+                {projectId && (
+                  <div className="px-6 pb-6">
+                    <ActivityTimeline entityType="project" entityId={projectId} />
+                  </div>
+                )}
+              </div>
             )}
             {activeTab === "sitios" && projectId && (
               <ProjectSitesTab projectId={projectId} siteMode={project?.site_mode} />

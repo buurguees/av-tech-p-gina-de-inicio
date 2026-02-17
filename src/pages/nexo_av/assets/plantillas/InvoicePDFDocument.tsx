@@ -517,7 +517,7 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
         {project && (
           <View style={styles.projectBox}>
             <Text style={styles.projectTitle}>Proyecto</Text>
-            <Text style={styles.projectName}>{project.project_name}{project.site_name ? ` — ${project.site_name}` : ""}</Text>
+            <Text style={styles.projectName}>{project.project_name.replace(/^\d{6}\s*-\s*/, "")}{project.site_name ? ` — ${project.site_name}` : ""}</Text>
             {project.client_order_number && (
               <Text style={styles.projectDetail}>Nº Pedido Cliente: {project.client_order_number}</Text>
             )}

@@ -42,6 +42,7 @@ import DetailActionButton from "../components/navigation/DetailActionButton";
 import { QuotePDFDocument } from "../components/quotes/QuotePDFViewer";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
+import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
 
 
 interface Quote {
@@ -655,9 +656,9 @@ const QuoteDetailPageDesktop = () => {
                 <p className="text-muted-foreground">Lineas - Se trabajará más adelante</p>
               </div>
             )}
-            {activeTab === "auditoria" && (
+            {activeTab === "auditoria" && quoteId && (
               <div className="p-6">
-                <p className="text-muted-foreground">Auditoria - Se trabajará más adelante</p>
+                <ActivityTimeline entityType="quote" entityId={quoteId} />
               </div>
             )}
           </div>

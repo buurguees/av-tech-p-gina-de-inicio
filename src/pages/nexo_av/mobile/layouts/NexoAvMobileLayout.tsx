@@ -5,7 +5,7 @@ import { ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
-import { Receipt, FileCheck, Truck, UserRound } from "lucide-react";
+import { Receipt, FileCheck, Truck, UserRound, FileText } from "lucide-react";
 import { MobileHeader } from "../components/layout/MobileHeader";
 import { BottomNavigation, MoreMenuItem } from "../components/layout/BottomNavigation";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
@@ -188,6 +188,12 @@ const NexoAvMobileLayout = () => {
         moreMenuItems={(() => {
           const items: MoreMenuItem[] = [];
           if (isAdmin || isManager) {
+            items.push({
+              id: 'invoices',
+              label: 'Facturas',
+              icon: FileText,
+              path: `/nexo-av/${userId}/invoices`
+            });
             items.push({
               id: 'purchase-invoices',
               label: 'Facturas de Compra',

@@ -27,10 +27,12 @@ import {
   Receipt,
   TrendingUp,
   Copy,
-  Receipt as ReceiptIcon
+  Receipt as ReceiptIcon,
+  Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getQuoteStatusInfo, QUOTE_STATUSES } from "@/constants/quoteStatuses";
+import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
 import { useToast } from "@/hooks/use-toast";
 import { QuotePDFDocument } from "@/pages/nexo_av/assets/plantillas";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
@@ -123,7 +125,7 @@ interface CompanySettings {
   logo_url: string | null;
 }
 
-type TabId = 'resumen' | 'preview' | 'lineas';
+type TabId = 'resumen' | 'preview' | 'lineas' | 'auditoria';
 
 interface Tab {
   id: TabId;
@@ -135,6 +137,7 @@ const TABS: Tab[] = [
   { id: 'resumen', label: 'Resumen', icon: LayoutDashboard },
   { id: 'preview', label: 'Preview', icon: Eye },
   { id: 'lineas', label: 'Líneas', icon: FileText },
+  { id: 'auditoria', label: 'Auditoría', icon: Clock },
 ];
 
 // Estados que bloquean edición
@@ -629,6 +632,12 @@ const MobileQuoteDetailPage = () => {
             onEdit={handleEdit}
             formatCurrency={formatCurrency}
           />
+        )}
+
+        {activeTab === 'auditoria' && quoteId && (
+          <div className="px-4 py-4">
+            <ActivityTimeline entityType="quote" entityId={quoteId} compact />
+          </div>
         )}
       </div>
     </div>

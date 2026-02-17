@@ -448,7 +448,7 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project }: Quo
         {project && (
           <View style={styles.projectBox}>
             <Text style={styles.boxTitle}>Datos del Proyecto</Text>
-            <Text style={styles.boxName}>{project.project_name}{project.site_name ? ` — ${project.site_name}` : ""}</Text>
+            <Text style={styles.boxName}>{project.project_name.replace(/^\d{6}\s*-\s*/, "")}{project.site_name ? ` — ${project.site_name}` : ""}</Text>
             {project.client_order_number && (
               <Text style={styles.boxDetail}>Nº Pedido Cliente: {project.client_order_number}</Text>
             )}

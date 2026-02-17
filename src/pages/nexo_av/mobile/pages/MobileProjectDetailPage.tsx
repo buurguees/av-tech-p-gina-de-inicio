@@ -34,7 +34,7 @@ import EditProjectSheet from "../components/projects/EditProjectSheet";
 import MobilePlanningTab from "../components/projects/MobilePlanningTab";
 import MobileSitesTab from "../components/projects/MobileSitesTab";
 import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo } from "@/constants/salesInvoiceStatuses";
-import { getDocumentStatusInfo, calculatePaymentStatus, getPaymentStatusInfo } from "@/constants/purchaseInvoiceStatuses";
+import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
 
 interface ProjectDetail {
   id: string;
@@ -74,23 +74,23 @@ interface ProjectMetrics {
   margin: number;
 }
 
-type TabId = 'resumen' | 'planificacion' | 'sitios' | 'presupuestos' | 'facturas' | 'compras' | 'tecnicos';
+type TabId = 'resumen' | 'planificacion' | 'sitios' | 'presupuestos' | 'facturas' | 'tecnicos';
 
 interface Tab {
   id: TabId;
   label: string;
   icon: any;
+  iconOnly?: boolean;
 }
 
-// Pestañas de navegación
+// Pestañas de navegación (mobile optimizado: iconOnly para ahorrar espacio)
 const TABS: Tab[] = [
-  { id: 'resumen', label: 'Resumen', icon: LayoutDashboard },
-  { id: 'planificacion', label: 'Planificación', icon: Calendar },
-  { id: 'sitios', label: 'Sitios', icon: MapPin },
+  { id: 'resumen', label: 'Resumen', icon: LayoutDashboard, iconOnly: true },
+  { id: 'planificacion', label: 'Planificación', icon: Calendar, iconOnly: true },
+  { id: 'sitios', label: 'Sitios', icon: MapPin, iconOnly: true },
   { id: 'presupuestos', label: 'Presupuestos', icon: FileText },
   { id: 'facturas', label: 'Facturas', icon: Receipt },
-  { id: 'compras', label: 'Compras', icon: ShoppingCart },
-  { id: 'tecnicos', label: 'Técnicos', icon: Users },
+  { id: 'tecnicos', label: 'Técnicos', icon: Users, iconOnly: true },
 ];
 
 const MobileProjectDetailPage = () => {
@@ -114,8 +114,6 @@ const MobileProjectDetailPage = () => {
   const [loadingQuotes, setLoadingQuotes] = useState(false);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
-  const [purchases, setPurchases] = useState<any[]>([]);
-  const [loadingPurchases, setLoadingPurchases] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -217,12 +215,6 @@ const MobileProjectDetailPage = () => {
     }
   }, [activeTab, projectId]);
 
-  // Fetch purchases cuando se activa la pestaña
-  useEffect(() => {
-    if (activeTab === 'compras' && projectId) {
-      fetchPurchases();
-    }
-  }, [activeTab, projectId]);
 
   const fetchQuotes = async () => {
     if (!projectId) return;
@@ -258,30 +250,6 @@ const MobileProjectDetailPage = () => {
     }
   };
 
-  const fetchPurchases = async () => {
-    if (!projectId) return;
-    try {
-      setLoadingPurchases(true);
-      const params: Record<string, unknown> = {
-        p_search: null,
-        p_status: null,
-        p_supplier_id: null,
-        p_technician_id: null,
-        p_document_type: null,
-        p_page: 1,
-        p_page_size: 5000,
-      };
-      if (projectId != null) params.p_project_id = projectId;
-      const { data, error } = await supabase.rpc('list_purchase_invoices', params);
-      if (error) throw error;
-      const projectPurchases = (data || []).filter((p: any) => p.project_id === projectId);
-      setPurchases(projectPurchases);
-    } catch (error) {
-      console.error('Error fetching purchases:', error);
-    } finally {
-      setLoadingPurchases(false);
-    }
-  };
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return null;
@@ -367,9 +335,8 @@ const MobileProjectDetailPage = () => {
             console.log('Asignar técnico al proyecto:', projectId);
           },
         };
-      case 'compras':
       default:
-        return null; // Sin botón para compras
+        return null;
     }
   };
 
@@ -450,10 +417,10 @@ const MobileProjectDetailPage = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "relative flex items-center justify-center gap-1.5 whitespace-nowrap",
+                  "relative flex items-center justify-center whitespace-nowrap",
                   "text-sm font-medium transition-all duration-250 ease-out",
-                  "flex-1 min-w-0",
-                  "px-2 py-2 min-[420px]:px-3",
+                  tab.iconOnly ? "flex-shrink-0" : "flex-1 min-w-0",
+                  tab.iconOnly ? "w-10 h-10" : "px-3 py-2",
                   "rounded-full",
                   isActive 
                     ? "text-white" 
@@ -483,18 +450,19 @@ const MobileProjectDetailPage = () => {
                   "relative z-10 flex items-center justify-center gap-1.5",
                   "transition-all duration-250"
                 )}>
-                  {/* Icono: visible solo en pantallas estrechas (<420px) */}
-                  <Icon className={cn(
-                    "min-[420px]:hidden transition-all duration-250",
-                    isActive ? "h-5 w-5 drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]" : "h-5 w-5"
-                  )} />
-                  {/* Texto: visible solo en pantallas anchas (>=420px) */}
-                  <span className={cn(
-                    "hidden min-[420px]:inline transition-all duration-250",
-                    isActive && "drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]"
-                  )}>
-                    {tab.label}
-                  </span>
+                  {tab.iconOnly ? (
+                    <Icon className={cn(
+                      "h-[18px] w-[18px] transition-all duration-250",
+                      isActive && "drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]"
+                    )} />
+                  ) : (
+                    <span className={cn(
+                      "text-[13px] transition-all duration-250",
+                      isActive && "drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]"
+                    )}>
+                      {tab.label}
+                    </span>
+                  )}
                 </div>
               </button>
             );
@@ -515,6 +483,7 @@ const MobileProjectDetailPage = () => {
             endDate={endDate}
             formatCurrency={formatCurrency}
             formatDate={formatDate}
+            projectId={projectId!}
           />
         )}
         
@@ -551,14 +520,6 @@ const MobileProjectDetailPage = () => {
           />
         )}
         
-        {activeTab === 'compras' && (
-          <PurchasesList 
-            purchases={purchases}
-            loading={loadingPurchases}
-            onPurchaseClick={(purchaseId) => navigate(`/nexo-av/${userId}/purchase-invoices/${purchaseId}`)}
-            formatCurrency={formatCurrency}
-          />
-        )}
         
         {activeTab === 'tecnicos' && (
           <EmptyTabContent 
@@ -619,6 +580,7 @@ interface ResumenTabProps {
   endDate: string | null | undefined;
   formatCurrency: (amount: number) => string;
   formatDate: (date: string | null | undefined) => string | null;
+  projectId: string;
 }
 
 const ResumenTab = ({ 
@@ -630,7 +592,8 @@ const ResumenTab = ({
   startDate,
   endDate,
   formatCurrency,
-  formatDate 
+  formatDate,
+  projectId
 }: ResumenTabProps) => (
   <div className="px-4 py-4 space-y-4">
     {/* ===== INFORMACIÓN DEL PROYECTO ===== */}
@@ -769,14 +732,19 @@ const ResumenTab = ({
       />
     </div>
 
-    {/* ===== NOTAS ===== */}
+    {/* ===== NOTAS ORIGINALES DEL PROYECTO ===== */}
     {project.notes && (
-      <SectionCard title="Notas">
+      <SectionCard title="Notas del Proyecto">
         <p className="text-sm text-foreground whitespace-pre-wrap">
           {project.notes}
         </p>
       </SectionCard>
     )}
+
+    {/* ===== NOTAS INTERNAS & ACTIVIDAD ===== */}
+    <SectionCard title="">
+      <ActivityTimeline entityType="project" entityId={projectId} compact />
+    </SectionCard>
   </div>
 );
 
@@ -1084,110 +1052,6 @@ const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency }: Inv
           <span>{invoices.length} factura{invoices.length !== 1 ? 's' : ''}</span>
           <div className="flex items-center gap-3">
             <span>Cobrado: {formatCurrency(totalPaid)}</span>
-            <span className="font-semibold text-foreground">Total: {formatCurrency(totalAmount)}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-interface PurchasesListProps {
-  purchases: any[];
-  loading: boolean;
-  onPurchaseClick: (purchaseId: string) => void;
-  formatCurrency: (amount: number) => string;
-}
-
-const PurchasesList = ({ purchases, loading, onPurchaseClick, formatCurrency }: PurchasesListProps) => {
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (purchases.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="p-4 bg-white/5 rounded-full mb-4">
-          <ShoppingCart className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-medium text-foreground mb-1">Compras</h3>
-        <p className="text-sm text-muted-foreground">No hay compras para este proyecto</p>
-      </div>
-    );
-  }
-
-  const totalAmount = purchases.reduce((s: number, p: any) => s + (p.total || 0), 0);
-  const totalPaid = purchases.reduce((s: number, p: any) => s + (p.paid_amount || 0), 0);
-
-  return (
-    <div className="px-4 py-4 space-y-2">
-      {purchases.map((purchase) => {
-        const displayNumber = purchase.internal_purchase_number || purchase.invoice_number || 'Sin número';
-        const docStatusInfo = getDocumentStatusInfo(purchase.status);
-        const paymentStatus = calculatePaymentStatus(
-          purchase.paid_amount || 0,
-          purchase.total || 0,
-          purchase.due_date,
-          purchase.status
-        );
-        const paymentInfo = getPaymentStatusInfo(paymentStatus);
-
-        return (
-          <button
-            key={purchase.id}
-            onClick={() => onPurchaseClick(purchase.id)}
-            className={cn(
-              "w-full text-left p-3 rounded-xl",
-              "bg-card border border-border",
-              "active:scale-[0.98] transition-all duration-200",
-              "hover:border-primary/30"
-            )}
-            style={{ touchAction: 'manipulation' }}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="font-mono text-xs text-muted-foreground truncate">
-                    {displayNumber}
-                  </span>
-                  <Badge variant="outline" className={cn(docStatusInfo.className, "text-[10px] px-1.5 py-0")}>
-                    {docStatusInfo.label}
-                  </Badge>
-                  {paymentInfo && (
-                    <Badge variant="outline" className={cn(paymentInfo.className, "text-[10px] px-1.5 py-0")}>
-                      {paymentInfo.label}
-                    </Badge>
-                  )}
-                </div>
-                <h4 className="text-sm font-medium text-foreground truncate">
-                  {purchase.provider_name || purchase.supplier_name || "Sin proveedor"}
-                </h4>
-                {purchase.issue_date && (
-                  <p className="text-xs text-muted-foreground/70 mt-0.5">
-                    {new Date(purchase.issue_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                {purchase.pending_amount > 0 && (
-                  <span className="text-[10px] text-amber-500">Pend. {formatCurrency(purchase.pending_amount)}</span>
-                )}
-                <span className="text-sm font-semibold text-foreground">{formatCurrency(purchase.total || 0)}</span>
-              </div>
-            </div>
-          </button>
-        );
-      })}
-      {/* Summary footer */}
-      <div className="bg-card/50 border border-border rounded-xl p-3 mt-3">
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{purchases.length} compra{purchases.length !== 1 ? 's' : ''}</span>
-          <div className="flex items-center gap-3">
-            <span>Pagado: {formatCurrency(totalPaid)}</span>
             <span className="font-semibold text-foreground">Total: {formatCurrency(totalAmount)}</span>
           </div>
         </div>

@@ -379,7 +379,7 @@ const ChartOfAccountsTab = ({
                 ) : (
                   clientBalances.map((client) => (
                     <TableRow key={client.client_id}>
-                      <TableCell className="font-mono text-sm">430-{client.client_number}</TableCell>
+                      <TableCell className="font-mono text-sm">430-{client.client_number.replace(/^[A-Z]+-/, '')}</TableCell>
                       <TableCell>
                         <div>
                           <p className="font-medium">{client.client_name}</p>
