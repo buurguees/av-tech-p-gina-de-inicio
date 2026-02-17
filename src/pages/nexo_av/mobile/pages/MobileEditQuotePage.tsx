@@ -481,6 +481,7 @@ const MobileEditQuotePage = () => {
         unit_price: item.price,
         tax_rate: item.tax_rate,
         description: item.description || line.description,
+        group_name: item.code || line.group_name,
         isModified: line.id ? true : line.isModified,
       });
       return updated;

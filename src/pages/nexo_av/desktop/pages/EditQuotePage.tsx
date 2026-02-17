@@ -462,13 +462,9 @@ const EditQuotePageDesktop = () => {
     price: number;
     tax_rate: number;
     description?: string;
+    category_name?: string;
+    subcategory_name?: string;
   }) => {
-    console.log('=== HANDLE PRODUCT SELECT (EditQuotePage) ===');
-    console.log('Index:', index);
-    console.log('Item received:', item);
-    console.log('Item price:', item.price, typeof item.price);
-    console.log('Item tax_rate:', item.tax_rate, typeof item.tax_rate);
-    console.log('Item description:', item.description);
     const updatedLines = [...lines];
     const currentQuantity = updatedLines[index].quantity;
     const lineData = {
@@ -478,11 +474,10 @@ const EditQuotePageDesktop = () => {
       unit_price: item.price,
       tax_rate: item.tax_rate || defaultTaxRate,
       quantity: currentQuantity,
+      group_name: item.code || updatedLines[index].group_name,
       isModified: !updatedLines[index].isNew
     };
-    console.log('Line data before calculate:', lineData);
     updatedLines[index] = calculateLineValues(lineData);
-    console.log('Line after calculate:', updatedLines[index]);
     setLines(updatedLines);
   };
   const removeLine = (index: number) => {
@@ -500,48 +495,12 @@ const EditQuotePageDesktop = () => {
       setLines(lines.filter((_, i) => i !== index));
     }
   };
-  const moveLine = async (index: number, direction: 'up' | 'down') => {
-    const line = lines[index];
-    if (!line.id) {
-      // For new lines, just reorder in memory
-      const newLines = [...lines];
-      const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= newLines.length) return;
-      [newLines[index], newLines[targetIndex]] = [newLines[targetIndex], newLines[index]];
-      setLines(newLines);
-      return;
-    }
-
-    // For existing lines, call the RPC function
-    try {
-      const {
-        error
-      } = await supabase.rpc('reorder_quote_line', {
-        p_line_id: line.id,
-        p_direction: direction
-      });
-      if (error) throw error;
-
-      // Reload lines to get updated order
-      const {
-        data: linesData,
-        error: linesError
-      } = await supabase.rpc("get_quote_lines", {
-        p_quote_id: quoteId!
-      });
-      if (linesError) throw linesError;
-      setLines((linesData || []).map((l: any) => ({
-        ...l,
-        description: l.description || ""
-      })));
-    } catch (error: any) {
-      console.error("Error reordering line:", error);
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo reordenar la línea",
-        variant: "destructive"
-      });
-    }
+  const moveLine = (index: number, direction: 'up' | 'down') => {
+    const newLines = [...lines];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newLines.length) return;
+    [newLines[index], newLines[targetIndex]] = [newLines[targetIndex], newLines[index]];
+    setLines(newLines);
   };
   const getTotals = () => {
     const activeLines = lines.filter(l => !l.isDeleted);

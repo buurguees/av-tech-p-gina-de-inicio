@@ -548,12 +548,9 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
 
           {lines.map((line) => (
             <View key={line.id} style={styles.tableRow}>
-              <View style={{ flex: hasDiscount ? 2.5 : 3 }}>
-                <Text style={styles.cellText}>{line.concept}</Text>
-                {line.description && (
-                  <Text style={styles.cellDescription}>{line.description}</Text>
-                )}
-              </View>
+              <Text style={[styles.cellText, { flex: hasDiscount ? 2.5 : 3 }]}>
+                {line.concept}
+              </Text>
               <Text style={[styles.cellText, { flex: hasDiscount ? 0.8 : 1, textAlign: "center" }]}>
                 {line.quantity}
               </Text>

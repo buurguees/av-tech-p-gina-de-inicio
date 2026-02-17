@@ -401,7 +401,7 @@ const NewQuotePage = () => {
     return formatNumericDisplay(value);
   };
 
-  const handleProductSelect = (index: number, item: { name: string; price: number; tax_rate?: number; description?: string }) => {
+  const handleProductSelect = (index: number, item: { name: string; code?: string; price: number; tax_rate?: number; description?: string }) => {
     setLines((prev) => {
       const updated = [...prev];
       updated[index] = calculateLineValues({
@@ -410,6 +410,7 @@ const NewQuotePage = () => {
         description: item.description || updated[index].description,
         unit_price: item.price,
         tax_rate: item.tax_rate ?? defaultTaxRate,
+        group_name: item.code || updated[index].group_name,
       });
       return updated;
     });
@@ -760,6 +761,7 @@ const NewQuotePage = () => {
                           onSelectItem={(item) =>
                             handleProductSelect(actualIndex, {
                               name: item.name,
+                              code: item.code,
                               price: item.price,
                               tax_rate: item.tax_rate,
                               description: item.description,

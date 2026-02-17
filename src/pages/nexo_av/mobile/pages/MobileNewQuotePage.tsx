@@ -383,6 +383,9 @@ const MobileNewQuotePage = () => {
     if (item.description) {
       updateLine(lineIndex, 'description', item.description);
     }
+    if (item.code) {
+      updateLine(lineIndex, 'group_name', item.code);
+    }
     setShowSearchResults(false);
     setActiveSearchIndex(null);
   };

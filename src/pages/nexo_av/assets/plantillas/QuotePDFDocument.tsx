@@ -32,6 +32,7 @@ export interface QuoteLine {
   tax_amount: number;
   total: number;
   line_order: number;
+  group_name?: string | null;
 }
 
 export interface Quote {
@@ -466,8 +467,9 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project }: Quo
         {/* Table */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.headerText, { flex: hasDiscount ? 2.5 : 3 }]}>CONCEPTO</Text>
-            <Text style={[styles.headerText, { flex: hasDiscount ? 0.8 : 1, textAlign: "center" }]}>CANTIDAD</Text>
+            <Text style={[styles.headerText, { width: 55 }]}>REF.</Text>
+            <Text style={[styles.headerText, { flex: hasDiscount ? 2.2 : 2.7 }]}>CONCEPTO</Text>
+            <Text style={[styles.headerText, { flex: hasDiscount ? 0.8 : 1, textAlign: "center" }]}>CANT.</Text>
             <Text style={[styles.headerText, styles.colPrice]}>PRECIO</Text>
             {hasDiscount && (
               <Text style={[styles.headerText, styles.colDiscount]}>DTO %</Text>
@@ -478,7 +480,10 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project }: Quo
 
           {lines.map((line) => (
             <View key={line.id} style={styles.tableRow}>
-              <View style={{ flex: hasDiscount ? 2.5 : 3 }}>
+              <Text style={[styles.cellText, { width: 55, fontSize: 7, color: "#888", fontFamily: "Courier" }]}>
+                {line.group_name || ""}
+              </Text>
+              <View style={{ flex: hasDiscount ? 2.2 : 2.7 }}>
                 <Text style={styles.cellText}>{line.concept}</Text>
                 {line.description && (
                   <Text style={styles.cellDescription}>{line.description}</Text>

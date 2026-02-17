@@ -13,6 +13,8 @@ interface CatalogItem {
   price: number;
   tax_rate: number;
   description?: string;
+  category_name?: string;
+  subcategory_name?: string;
 }
 
 interface ProductSearchInputProps {
@@ -90,6 +92,8 @@ export default function ProductSearchInput({
           price: Number(p.sale_price_effective) ?? 0,
           tax_rate: Number(p.tax_rate) ?? 21,
           description: p.description || '',
+          category_name: p.category_name || '',
+          subcategory_name: p.subcategory_name || '',
         };
       });
 
@@ -185,7 +189,6 @@ export default function ProductSearchInput({
     console.log('Tax rate:', item.tax_rate, typeof item.tax_rate);
     console.log('Description:', item.description);
     
-    // Ensure all data is passed correctly with fallbacks
     const itemToPass: CatalogItem = {
       id: item.id,
       type: item.type,
@@ -194,6 +197,8 @@ export default function ProductSearchInput({
       price: Number(item.price) || 0,
       tax_rate: Number(item.tax_rate) || 21,
       description: item.description || '',
+      category_name: item.category_name || '',
+      subcategory_name: item.subcategory_name || '',
     };
     
     console.log('Item to pass (after conversion):', itemToPass);
