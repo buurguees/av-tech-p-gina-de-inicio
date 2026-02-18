@@ -36,6 +36,7 @@ import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import TabNav, { TabItem } from "../components/navigation/TabNav";
 import EditWorkerDialog from "../components/rrhh/EditWorkerDialog";
+import EmployeePayrollCalculator from "../components/rrhh/EmployeePayrollCalculator";
 
 interface WorkerDetail {
   id: string;
@@ -559,6 +560,19 @@ export default function WorkerDetailPage() {
 
             {activeTab === "nominas" && hasPayrolls && (
               <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                {/* Calculadora de nómina con SS para empleados vinculados */}
+                {worker?.linked_employee_id && !worker?.linked_partner_id && (
+                  <div className="mb-6">
+                    <EmployeePayrollCalculator
+                      employeeId={worker.linked_employee_id}
+                      employeeName={worker.full_name}
+                      defaultGrossSalary={worker.irpf_rate ? undefined : undefined}
+                      defaultIrpfRate={worker.irpf_rate ?? undefined}
+                      onPayrollCreated={fetchPayrolls}
+                    />
+                  </div>
+                )}
+
                 <div className="mb-4">
                   <h2 className="text-xl font-bold">Nóminas del Trabajador</h2>
                   <p className="text-sm text-muted-foreground mt-1">

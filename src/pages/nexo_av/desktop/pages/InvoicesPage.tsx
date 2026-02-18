@@ -16,6 +16,7 @@ import {
   calculateCollectionStatus,
   getCollectionStatusInfo,
   SALES_DOCUMENT_STATUSES,
+  displayInvoiceNumber,
 } from "@/constants/salesInvoiceStatuses";
 import DataList, { DataListFooterCell } from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
@@ -297,10 +298,9 @@ const InvoicesPageDesktop = () => {
                     return `${displayNumber} ${invoice.client_name || ''} ${invoice.project_number || ''} ${invoice.client_order_number || ''}`;
                   }}
                   renderResult={(invoice) => {
-                    const displayNumber = invoice.invoice_number || invoice.preliminary_number || '';
                     return {
                       id: invoice.id,
-                      label: displayNumber,
+                      label: displayInvoiceNumber(invoice.invoice_number, invoice.preliminary_number, invoice.status),
                       subtitle: `${invoice.client_name || 'Sin cliente'} - ${formatCurrency(invoice.total)}`,
                       icon: <Receipt className="h-4 w-4" />,
                       data: invoice,
@@ -435,14 +435,11 @@ const InvoicesPageDesktop = () => {
                 sortable: true,
                 align: "left",
                 priority: 1,
-                render: (invoice) => {
-                  const displayNumber = invoice.invoice_number || invoice.preliminary_number;
-                  return (
-                    <span className="text-foreground/80">
-                      {displayNumber}
-                    </span>
-                  );
-                },
+                render: (invoice) => (
+                  <span className="text-foreground/80">
+                    {displayInvoiceNumber(invoice.invoice_number, invoice.preliminary_number, invoice.status)}
+                  </span>
+                ),
               },
               {
                 key: "client_name",

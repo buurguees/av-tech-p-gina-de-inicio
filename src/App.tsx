@@ -43,6 +43,7 @@ const NexoAuditPage = lazy(() => import("./pages/nexo_av/desktop/pages/AuditPage
 const NexoAuditEventDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/AuditEventDetailPage"));
 const NexoCalculatorPage = lazy(() => import("./pages/nexo_av/desktop/pages/CalculatorPage"));
 const NexoInvoicesPage = lazy(() => import("./pages/nexo_av/desktop/pages/InvoicesPage"));
+const NexoRectificativasPage = lazy(() => import("./pages/nexo_av/desktop/pages/RectificativasPage"));
 const NexoInvoiceDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/InvoiceDetailPage"));
 const NexoNewInvoicePage = lazy(() => import("./pages/nexo_av/desktop/pages/NewInvoicePage"));
 const NexoEditInvoicePage = lazy(() => import("./pages/nexo_av/desktop/pages/EditInvoicePage"));
@@ -98,6 +99,8 @@ const NexoNewPurchaseOrderPage = lazy(() => import("./pages/nexo_av/desktop/page
 const NexoPendingReimbursementsPage = lazy(() => import("./pages/nexo_av/desktop/pages/PendingReimbursementsPage"));
 const NexoAIChatPage = lazy(() => import("./pages/nexo_av/ai/desktop/AIChatPage"));
 const NexoSuggestionsPage = lazy(() => import("./pages/nexo_av/desktop/pages/SuggestionsPage"));
+const NexoFinancingPage = lazy(() => import("./pages/nexo_av/desktop/pages/FinancingPage"));
+const NexoFinancingDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/FinancingDetailPage"));
 
 // ============================================================
 // RESPONSIVE PAGES - Load different components for mobile/desktop
@@ -279,6 +282,9 @@ const App = () => (
                 <Route path="invoices/new" element={<NexoNewInvoicePage />} />
                 <Route path="invoices/:invoiceId" element={<ResponsiveInvoiceDetailPage />} />
                 <Route path="invoices/:invoiceId/edit" element={<NexoEditInvoicePage />} />
+                <Route path="rectificativas" element={<NexoRectificativasPage />} />
+                <Route path="financing" element={<NexoFinancingPage />} />
+                <Route path="financing/:operationId" element={<NexoFinancingDetailPage />} />
                 <Route path="*" element={<ResponsiveNotFound />} />
               </Route>
               {/* Legacy route - redirects to login */}

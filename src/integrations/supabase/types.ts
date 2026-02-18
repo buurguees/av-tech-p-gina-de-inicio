@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -16,12 +16,18 @@ export type Database = {
     Tables: {
       minio_files: {
         Row: {
+          archived_from_status: string | null
+          auto_generated: boolean | null
           bucket: string
           checksum: string | null
           created_at: string
           created_by: string
           deleted_at: string | null
+          document_date: string | null
           document_type: string | null
+          fiscal_month: number | null
+          fiscal_quarter: number | null
+          fiscal_year: number | null
           id: string
           key: string
           mime_type: string
@@ -29,16 +35,25 @@ export type Database = {
           owner_id: string
           owner_type: string
           size_bytes: number | null
+          source_id: string | null
+          source_table: string | null
           status: string
+          tax_model: string | null
           updated_at: string
         }
         Insert: {
+          archived_from_status?: string | null
+          auto_generated?: boolean | null
           bucket?: string
           checksum?: string | null
           created_at?: string
           created_by: string
           deleted_at?: string | null
+          document_date?: string | null
           document_type?: string | null
+          fiscal_month?: number | null
+          fiscal_quarter?: number | null
+          fiscal_year?: number | null
           id?: string
           key: string
           mime_type: string
@@ -46,16 +61,25 @@ export type Database = {
           owner_id: string
           owner_type: string
           size_bytes?: number | null
+          source_id?: string | null
+          source_table?: string | null
           status?: string
+          tax_model?: string | null
           updated_at?: string
         }
         Update: {
+          archived_from_status?: string | null
+          auto_generated?: boolean | null
           bucket?: string
           checksum?: string | null
           created_at?: string
           created_by?: string
           deleted_at?: string | null
+          document_date?: string | null
           document_type?: string | null
+          fiscal_month?: number | null
+          fiscal_quarter?: number | null
+          fiscal_year?: number | null
           id?: string
           key?: string
           mime_type?: string
@@ -63,7 +87,10 @@ export type Database = {
           owner_id?: string
           owner_type?: string
           size_bytes?: number | null
+          source_id?: string | null
+          source_table?: string | null
           status?: string
+          tax_model?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -189,6 +216,10 @@ export type Database = {
         }
         Returns: string
       }
+      add_project_note: {
+        Args: { p_content: string; p_project_id: string }
+        Returns: string
+      }
       add_purchase_invoice_line: {
         Args: {
           p_concept: string
@@ -245,6 +276,10 @@ export type Database = {
             }
             Returns: string
           }
+      add_quote_note: {
+        Args: { p_content: string; p_quote_id: string }
+        Returns: string
+      }
       admin_update_payroll_settings: {
         Args: { p_patch: Json; p_reason: string }
         Returns: undefined
@@ -952,6 +987,7 @@ export type Database = {
           p_notes?: string
           p_project_address?: string
           p_project_city?: string
+          p_project_type?: string
           p_site_mode?: string
           p_site_name?: string
           p_status?: string
@@ -1130,93 +1166,37 @@ export type Database = {
           entry_number: string
         }[]
       }
-      create_technician:
-        | {
-            Args: {
-              p_address?: string
-              p_billing_email?: string
-              p_city?: string
-              p_company_name: string
-              p_contact_email?: string
-              p_contact_name?: string
-              p_contact_phone?: string
-              p_contact_phone_secondary?: string
-              p_country?: string
-              p_daily_rate?: number
-              p_hourly_rate?: number
-              p_iban?: string
-              p_legal_name?: string
-              p_notes?: string
-              p_payment_terms?: string
-              p_postal_code?: string
-              p_province?: string
-              p_specialties?: string[]
-              p_tax_id?: string
-              p_type?: string
-            }
-            Returns: {
-              technician_id: string
-              technician_number: string
-            }[]
-          }
-        | {
-            Args: {
-              p_address?: string
-              p_billing_email?: string
-              p_city?: string
-              p_company_name: string
-              p_contact_email?: string
-              p_contact_name?: string
-              p_contact_phone?: string
-              p_contact_phone_secondary?: string
-              p_country?: string
-              p_daily_rate?: number
-              p_hourly_rate?: number
-              p_iban?: string
-              p_legal_name?: string
-              p_notes?: string
-              p_payment_terms?: string
-              p_postal_code?: string
-              p_province?: string
-              p_specialties?: string[]
-              p_tax_id?: string
-              p_type?: string
-              p_vat_rate?: number
-              p_withholding_tax_rate?: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_address?: string
-              p_billing_email?: string
-              p_city?: string
-              p_company_name: string
-              p_contact_email?: string
-              p_contact_name?: string
-              p_contact_phone?: string
-              p_contact_phone_secondary?: string
-              p_country?: string
-              p_daily_rate?: number
-              p_hourly_rate?: number
-              p_iban?: string
-              p_legal_name?: string
-              p_monthly_salary?: number
-              p_notes?: string
-              p_payment_terms?: string
-              p_postal_code?: string
-              p_province?: string
-              p_specialties?: string[]
-              p_tax_id?: string
-              p_type?: string
-              p_vat_rate?: number
-              p_withholding_tax_rate?: number
-            }
-            Returns: {
-              technician_id: string
-              technician_number: string
-            }[]
-          }
+      create_technician: {
+        Args: {
+          p_address?: string
+          p_billing_email?: string
+          p_city?: string
+          p_company_name: string
+          p_contact_email?: string
+          p_contact_name?: string
+          p_contact_phone?: string
+          p_contact_phone_secondary?: string
+          p_country?: string
+          p_daily_rate?: number
+          p_hourly_rate?: number
+          p_iban?: string
+          p_legal_name?: string
+          p_monthly_salary?: number
+          p_notes?: string
+          p_payment_terms?: string
+          p_postal_code?: string
+          p_province?: string
+          p_specialties?: string[]
+          p_tax_id?: string
+          p_type?: string
+          p_vat_rate?: number
+          p_withholding_tax_rate?: number
+        }
+        Returns: {
+          technician_id: string
+          technician_number: string
+        }[]
+      }
       create_vat_settlement_entry: {
         Args: {
           p_period_end?: string
@@ -3119,6 +3099,18 @@ export type Database = {
           updated_at: string
         }[]
       }
+      list_project_activity: {
+        Args: { p_limit?: number; p_project_id: string }
+        Returns: {
+          activity_type: string
+          content: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          id: string
+          metadata: Json
+        }[]
+      }
       list_project_expenses: {
         Args: { p_project_id: string }
         Returns: {
@@ -3309,6 +3301,18 @@ export type Database = {
           technician_id: string
           technician_name: string
           total: number
+        }[]
+      }
+      list_quote_activity: {
+        Args: { p_limit?: number; p_quote_id: string }
+        Returns: {
+          activity_type: string
+          content: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          id: string
+          metadata: Json
         }[]
       }
       list_quotes: {
@@ -4198,32 +4202,19 @@ export type Database = {
         }
         Returns: boolean
       }
-      update_quote:
-        | {
-            Args: {
-              p_client_id?: string
-              p_notes?: string
-              p_project_id?: string
-              p_project_name?: string
-              p_quote_id: string
-              p_status?: string
-              p_valid_until?: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_client_id?: string
-              p_notes?: string
-              p_project_id?: string
-              p_project_name?: string
-              p_quote_id: string
-              p_site_id?: string
-              p_status?: string
-              p_valid_until?: string
-            }
-            Returns: undefined
-          }
+      update_quote: {
+        Args: {
+          p_client_id?: string
+          p_notes?: string
+          p_project_id?: string
+          p_project_name?: string
+          p_quote_id: string
+          p_site_id?: string
+          p_status?: string
+          p_valid_until?: string
+        }
+        Returns: undefined
+      }
       update_quote_line: {
         Args: {
           p_concept?: string
@@ -4420,6 +4411,25 @@ export type Database = {
         }
         Returns: string
       }
+      v4_get_group_settings: {
+        Args: { p_conversation_id: string }
+        Returns: Json
+      }
+      v4_join_department_conversation: {
+        Args: { p_conversation_id: string }
+        Returns: boolean
+      }
+      v4_set_group_settings: {
+        Args: {
+          p_agent_name?: string
+          p_auto_mode?: boolean
+          p_conversation_id: string
+          p_cooldown_minutes?: number
+          p_intervention_level?: string
+          p_model?: string
+        }
+        Returns: Json
+      }
       validate_invitation_token: {
         Args: { p_email: string; p_token: string }
         Returns: {
@@ -4583,3 +4593,4 @@ export const Constants = {
     },
   },
 } as const
+

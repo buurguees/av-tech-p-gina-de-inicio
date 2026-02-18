@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, MessageSquare, Clock, Send, MoreVertical, Share2, Save, LayoutDashboard, Mail, CheckCircle2, FolderKanban, TrendingUp, CreditCard, MapPin } from "lucide-react";
+import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, MessageSquare, Clock, Send, MoreVertical, Share2, Save, LayoutDashboard, Mail, CheckCircle2, FolderKanban, TrendingUp, CreditCard, MapPin, ScrollText, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
@@ -37,6 +37,7 @@ import TabNav, { TabItem } from "../components/navigation/TabNav";
 import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from "../components/detail";
 import StatusSelector from "../components/common/StatusSelector";
 import DocumentPDFViewer from "../components/common/DocumentPDFViewer";
+import ArchivedPDFViewer from "../components/common/ArchivedPDFViewer";
 import LockedIndicator from "../components/common/LockedIndicator";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import { InvoicePDFDocument } from "../components/invoices/InvoicePDFViewer";
@@ -44,6 +45,8 @@ import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import PaymentsTab from "../components/common/PaymentsTab";
 import RegisterPaymentDialog from "../components/invoices/RegisterPaymentDialog";
+import { archiveDocumentToMinio } from "@/pages/nexo_av/utils/archiveDocument";
+import CreateRectificativaDialog from "../components/invoices/CreateRectificativaDialog";
 
 
 interface Invoice {
@@ -77,6 +80,8 @@ interface Invoice {
   site_id?: string | null;
   site_name?: string | null;
   site_city?: string | null;
+  storage_key?: string | null;
+  locked_at?: string | null;
 }
 
 interface Project {
@@ -179,6 +184,7 @@ const InvoiceDetailPageDesktop = () => {
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [activeTab, setActiveTab] = useState("resumen");
   const [showIssueConfirm, setShowIssueConfirm] = useState(false);
+  const [showRectificativaDialog, setShowRectificativaDialog] = useState(false);
   const [userRoles, setUserRoles] = useState<string[]>([]);
 
   const tabs: TabItem[] = [
@@ -209,6 +215,40 @@ const InvoiceDetailPageDesktop = () => {
     }
   }, [invoiceId]);
 
+  // Auto-archive: if invoice is locked but has no storage_key, archive it
+  const archivingRef = useRef(false);
+  useEffect(() => {
+    if (!invoice || !lines.length || !company) return;
+    if (invoice.storage_key) return;
+    if (!invoice.is_locked) return;
+    if (archivingRef.current) return;
+
+    archivingRef.current = true;
+    (async () => {
+      try {
+        const pdfEl = (
+          <InvoicePDFDocument
+            invoice={invoice}
+            lines={lines}
+            client={client}
+            company={company}
+            project={project}
+            preferences={preferences}
+          />
+        );
+        const result = await archiveDocumentToMinio("ventas", invoice.id, pdfEl);
+        if (result.ok) {
+          await fetchInvoiceData();
+          toast({ title: "PDF archivado", description: "Documento inmutable generado automáticamente" });
+        }
+      } catch (err) {
+        console.error("Auto-archive invoice error:", err);
+      } finally {
+        archivingRef.current = false;
+      }
+    })();
+  }, [invoice?.id, invoice?.is_locked, invoice?.storage_key, lines.length, company]);
+
   useEffect(() => {
     if (invoice) {
       setCurrentNote(invoice.notes || "");
@@ -216,6 +256,7 @@ const InvoiceDetailPageDesktop = () => {
   }, [invoice]);
 
   const fetchInvoiceData = async () => {
+    let result: { invoice: Invoice; lines: InvoiceLine[]; client: Client | null; company: CompanySettings | null; project: Project | null; preferences: CompanyPreferences | null } | null = null;
     try {
       setLoading(true);
 
@@ -236,11 +277,15 @@ const InvoiceDetailPageDesktop = () => {
         p_invoice_id: invoiceId,
       });
       if (linesError) throw linesError;
-      // Sort lines by line_order
       const sortedLines = (linesData || []).sort((a: any, b: any) =>
         (a.line_order || 0) - (b.line_order || 0)
       );
       setLines(sortedLines);
+
+      let fetchedClient: Client | null = null;
+      let fetchedProject: Project | null = null;
+      let fetchedCompany: CompanySettings | null = null;
+      let fetchedPreferences: CompanyPreferences | null = null;
 
       // Fetch client details
       if (invoiceInfo.client_id) {
@@ -251,6 +296,7 @@ const InvoiceDetailPageDesktop = () => {
           const clientInfo = Array.isArray(clientData) ? clientData[0] : clientData;
           if (clientInfo) {
             setClient(clientInfo);
+            fetchedClient = clientInfo;
           }
         }
       }
@@ -263,7 +309,7 @@ const InvoiceDetailPageDesktop = () => {
         if (!projectError && projectData) {
           const projectInfo = Array.isArray(projectData) ? projectData[0] : projectData;
           if (projectInfo) {
-            setProject({
+            const proj = {
               project_number: projectInfo.project_number,
               project_name: projectInfo.project_name,
               project_address: projectInfo.project_address,
@@ -271,7 +317,9 @@ const InvoiceDetailPageDesktop = () => {
               local_name: projectInfo.local_name,
               client_order_number: projectInfo.client_order_number,
               site_name: invoiceInfo.site_name || null,
-            });
+            };
+            setProject(proj);
+            fetchedProject = proj;
           }
         }
       }
@@ -282,6 +330,7 @@ const InvoiceDetailPageDesktop = () => {
         const companyInfo = Array.isArray(companyData) ? companyData[0] : companyData;
         if (companyInfo) {
           setCompany(companyInfo);
+          fetchedCompany = companyInfo;
         }
       }
 
@@ -289,10 +338,12 @@ const InvoiceDetailPageDesktop = () => {
       const { data: preferencesData } = await supabase.rpc("get_company_preferences");
       if (preferencesData) {
         const prefs = Array.isArray(preferencesData) ? preferencesData[0] : preferencesData;
-        setPreferences({
-          bank_accounts: Array.isArray(prefs?.bank_accounts) ? prefs.bank_accounts : []
-        });
+        const pref = { bank_accounts: Array.isArray(prefs?.bank_accounts) ? prefs.bank_accounts : [] };
+        setPreferences(pref);
+        fetchedPreferences = pref;
       }
+
+      result = { invoice: invoiceInfo, lines: sortedLines, client: fetchedClient, company: fetchedCompany, project: fetchedProject, preferences: fetchedPreferences };
 
     } catch (error: any) {
       console.error("Error fetching invoice:", error);
@@ -304,6 +355,7 @@ const InvoiceDetailPageDesktop = () => {
     } finally {
       setLoading(false);
     }
+    return result;
   };
 
   const handleStatusChange = async (newStatus: string) => {
@@ -353,24 +405,61 @@ const InvoiceDetailPageDesktop = () => {
       });
 
       if (error) {
-        // Mostrar mensaje detallado del error para facilitar diagnóstico
         const errorMessage = error.message || error.details || "No se pudo emitir la factura";
         console.error("Error issuing invoice:", { error, data });
         throw new Error(errorMessage);
       }
 
-      // Refetch invoice to get updated number
-      await fetchInvoiceData();
+      // Refetch invoice with definitive number
+      const freshData = await fetchInvoiceData();
 
       toast({
         title: "Factura emitida",
-        description: "La factura se ha bloqueado y se ha asignado el número definitivo",
+        description: "Archivando PDF inmutable...",
       });
+
+      // Generate and archive PDF to MinIO
+      if (freshData) {
+        try {
+          const pdfEl = (
+            <InvoicePDFDocument
+              invoice={freshData.invoice}
+              lines={freshData.lines}
+              client={freshData.client}
+              company={freshData.company}
+              project={freshData.project}
+              preferences={freshData.preferences}
+            />
+          );
+          const result = await archiveDocumentToMinio("ventas", invoiceId!, pdfEl);
+          if (result.ok) {
+            await fetchInvoiceData();
+            toast({
+              title: "PDF archivado",
+              description: "Documento inmutable guardado correctamente",
+            });
+          } else {
+            console.error("Archive failed:", result.error);
+            toast({
+              title: "Factura emitida",
+              description: "La factura se emitió pero el PDF no se pudo archivar. Se archivará automáticamente.",
+              variant: "destructive",
+            });
+          }
+        } catch (archiveErr) {
+          console.error("Error archiving invoice PDF:", archiveErr);
+          toast({
+            title: "Factura emitida",
+            description: "La factura se emitió pero el PDF no se pudo archivar. Se archivará automáticamente.",
+            variant: "destructive",
+          });
+        }
+      }
     } catch (error: any) {
       console.error("Error issuing invoice:", error);
       toast({
         title: "Error al emitir factura",
-        description: error.message || "No se pudo emitir la factura. Verifica que la migración finance_issue_invoice esté aplicada en Supabase.",
+        description: error.message || "No se pudo emitir la factura.",
         variant: "destructive",
       });
     } finally {
@@ -575,16 +664,64 @@ const InvoiceDetailPageDesktop = () => {
               loading={updatingStatus}
             />
 
-            {/* Estado ISSUED: mostrar acciones según necesidad */}
-            {invoice?.status === "ISSUED" && (
-              <>
-                {/* Puedes agregar más acciones aquí si es necesario */}
-              </>
+            {/* Estado ISSUED/PAID/PARTIAL/SENT/OVERDUE: boton rectificativa */}
+            {invoice && ['ISSUED', 'PAID', 'PARTIAL', 'SENT', 'OVERDUE'].includes(invoice.status) && isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowRectificativaDialog(true)}
+                className="text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
+              >
+                <ScrollText className="h-4 w-4 mr-1" />
+                Rectificar
+              </Button>
+            )}
+
+            {/* Dialog de rectificativa */}
+            {invoice && (
+              <CreateRectificativaDialog
+                open={showRectificativaDialog}
+                onOpenChange={setShowRectificativaDialog}
+                invoice={{
+                  id: invoice.id,
+                  invoice_number: invoice.invoice_number || invoice.preliminary_number || '',
+                  status: invoice.status,
+                  total: invoice.total,
+                  paid_amount: invoice.paid_amount,
+                  lines: lines.map(l => ({
+                    id: l.id,
+                    concept: l.concept,
+                    description: l.description,
+                    quantity: l.quantity,
+                    unit_price: l.unit_price,
+                    tax_rate: l.tax_rate,
+                    discount_percent: l.discount_percent,
+                  })),
+                }}
+                onSuccess={(rectId, rectNumber) => {
+                  toast({
+                    title: "Rectificativa creada",
+                    description: `Se ha creado la factura rectificativa ${rectNumber}`,
+                  });
+                  fetchInvoice();
+                }}
+              />
             )}
           </div>
         }
       />
       
+      {/* Banner RECTIFIED */}
+      {invoice.status === "RECTIFIED" && (
+        <div className="mx-6 mt-2 flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-3">
+          <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />
+          <div className="text-sm">
+            <span className="text-amber-400 font-medium">Esta factura ha sido rectificada.</span>
+            <span className="text-amber-400/70 ml-1">Los importes han sido anulados mediante una factura rectificativa.</span>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 flex overflow-hidden">
         {/* Columna izquierda - TabNav y contenido */}
         <div className="flex-1 flex flex-col min-w-0">
@@ -602,24 +739,33 @@ const InvoiceDetailPageDesktop = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  {/* Desktop Layout: PDF Preview */}
+                  {/* Desktop Layout: PDF Preview — dual logic */}
                   <div className="hidden md:block bg-white/5 border border-white/10 overflow-hidden flex flex-col h-[calc(100vh-180px)]">
-                    <DocumentPDFViewer
-                      document={
-                        <InvoicePDFDocument
-                          invoice={invoice}
-                          lines={lines}
-                          client={client}
-                          company={company}
-                          project={project}
-                          preferences={preferences}
-                        />
-                      }
-                      fileName={pdfFileName.replace('.pdf', '')}
-                      defaultShowPreview={true}
-                      showToolbar={false}
-                      className="h-full"
-                    />
+                    {invoice.storage_key ? (
+                      <ArchivedPDFViewer
+                        storageKey={invoice.storage_key}
+                        archivedAt={invoice.locked_at || invoice.updated_at}
+                        fileName={pdfFileName}
+                        className="h-full"
+                      />
+                    ) : (
+                      <DocumentPDFViewer
+                        document={
+                          <InvoicePDFDocument
+                            invoice={invoice}
+                            lines={lines}
+                            client={client}
+                            company={company}
+                            project={project}
+                            preferences={preferences}
+                          />
+                        }
+                        fileName={pdfFileName.replace('.pdf', '')}
+                        defaultShowPreview={true}
+                        showToolbar={false}
+                        className="h-full"
+                      />
+                    )}
                   </div>
                 </motion.div>
               </div>

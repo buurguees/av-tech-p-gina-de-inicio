@@ -514,25 +514,25 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
       {/* Add Product Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="bg-zinc-900/95 backdrop-blur-2xl border-white/10 text-white max-w-lg rounded-3xl shadow-2xl">
+        <DialogContent className="bg-background border-border max-w-lg rounded-2xl shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Nuevo {itemLabel}</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">Nuevo {itemLabel}</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-white/70">Categoría *</Label>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-muted-foreground text-xs">Categoría *</Label>
                 <Select 
                   value={formData.categoryId} 
                   onValueChange={(v) => setFormData({ ...formData, categoryId: v })}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectTrigger className="h-9 bg-muted/50 border-border">
                     <SelectValue placeholder="Seleccionar..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10">
+                  <SelectContent>
                     {categories.map(c => (
-                      <SelectItem key={c.id} value={c.id} className="text-white">
+                      <SelectItem key={c.id} value={c.id}>
                         {c.slug} - {c.name}
                       </SelectItem>
                     ))}
@@ -540,20 +540,20 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-white/70">Código (SKU)</Label>
+              <div className="space-y-1.5">
+                <Label className="text-muted-foreground text-xs">Código (SKU)</Label>
                 <Input
                   value={formData.sku}
                   onChange={(e) => setFormData({ ...formData, sku: e.target.value.toUpperCase() })}
                   placeholder={isProductTab ? "Ej: PRD-0001" : "Ej: SRV-0001"}
-                  className="bg-white/5 border-white/10 text-white font-mono"
+                  className="h-9 bg-muted/50 border-border font-mono text-sm"
                 />
               </div>
             </div>
 
             {isProductTab && (
-              <div className="space-y-2">
-                <Label className="text-white/70">Proveedor (a quien compramos el material)</Label>
+              <div className="space-y-1.5">
+                <Label className="text-muted-foreground text-xs">Proveedor (a quien compramos el material)</Label>
                 <SupplierSearchInput
                   entityType="SUPPLIER"
                   value={supplierSearchValue}
@@ -566,35 +566,35 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                     setSupplierSearchValue(s.company_name);
                   }}
                   placeholder="Escribe @ para buscar proveedor..."
-                  className="bg-white/5 border-white/10 text-white"
+                  className="bg-muted/50 border-border"
                 />
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label className="text-white/70">Nombre *</Label>
+            <div className="space-y-1.5">
+              <Label className="text-muted-foreground text-xs">Nombre *</Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value.toUpperCase() })}
                 placeholder={isProductTab ? "Ej: PANTALLA LED 6MM" : "Ej: INSTALACIÓN TÉCNICA"}
-                className="bg-white/5 border-white/10 text-white uppercase"
+                className="h-9 bg-muted/50 border-border uppercase text-sm"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-white/70">Descripción</Label>
+            <div className="space-y-1.5">
+              <Label className="text-muted-foreground text-xs">Descripción</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Descripción opcional..."
                 rows={2}
-                className="bg-white/5 border-white/10 text-white resize-none"
+                className="bg-muted/50 border-border resize-none text-sm"
               />
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label className="text-white/70">
+            <div className="grid grid-cols-4 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-muted-foreground text-xs">
                   {isProductTab ? 'Precio coste (€)' : 'Coste ref. (€)'}
                 </Label>
                 <Input
@@ -602,33 +602,33 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                   inputMode="decimal"
                   value={formData.costPrice}
                   onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="h-9 bg-muted/50 border-border text-sm"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-white/70">Precio venta (€)</Label>
+              <div className="space-y-1.5">
+                <Label className="text-muted-foreground text-xs">Precio venta (€)</Label>
                 <Input
                   type="text"
                   inputMode="decimal"
                   value={formData.salePrice}
                   onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="h-9 bg-muted/50 border-border text-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="text-white/70">Dto. %</Label>
+              <div className="space-y-1.5">
+                <Label className="text-muted-foreground text-xs">Dto. %</Label>
                 <Input
                   type="text"
                   inputMode="decimal"
                   value={formData.discountPercent}
                   onChange={(e) => setFormData({ ...formData, discountPercent: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white"
+                  className="h-9 bg-muted/50 border-border text-sm"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-white/70">Impuesto</Label>
+              <div className="space-y-1.5">
+                <Label className="text-muted-foreground text-xs">Impuesto</Label>
                 <Select 
                   value={formData.taxId} 
                   onValueChange={(v) => {
@@ -640,12 +640,12 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                     });
                   }}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                    <SelectValue placeholder="Seleccionar impuesto..." />
+                  <SelectTrigger className="h-9 bg-muted/50 border-border">
+                    <SelectValue placeholder="Seleccionar..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10">
+                  <SelectContent>
                     {salesTaxes.map(tax => (
-                      <SelectItem key={tax.id} value={tax.id} className="text-white">
+                      <SelectItem key={tax.id} value={tax.id}>
                         {tax.name} ({tax.rate}%)
                       </SelectItem>
                     ))}
@@ -654,24 +654,24 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
               </div>
 
               {isProductTab && (
-                <div className="space-y-2">
-                  <Label className="text-white/70">Stock</Label>
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      value={formData.stock}
-                      onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                      className="bg-white/5 border-white/10 text-white"
-                    />
+                <div className="space-y-1.5">
+                  <Label className="text-muted-foreground text-xs">Stock</Label>
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={formData.stock}
+                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                    className="h-9 bg-muted/50 border-border text-sm"
+                  />
                 </div>
               )}
             </div>
 
             {formData.salePrice && (
-              <div className="p-3 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
+              <div className="p-3 bg-muted/50 rounded-lg border border-border">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-white/60">Precio con IVA:</span>
-                  <span className="text-green-400 font-semibold">
+                  <span className="text-muted-foreground">Precio con IVA:</span>
+                  <span className="text-foreground font-semibold">
                     {(parseDecimalInput(formData.salePrice) * (1 - parseDecimalInput(formData.discountPercent || '0') / 100) * (1 + parseDecimalInput(formData.taxRate) / 100)).toFixed(2)} €
                   </span>
                 </div>
@@ -694,20 +694,20 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Toolbar - Estilo alineado con Proyectos / Clientes */}
+      {/* Toolbar */}
       <div className="flex flex-wrap gap-3 items-center justify-between flex-shrink-0">
-        <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex flex-wrap gap-2 items-center flex-1 min-w-0">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <Input
               placeholder={isProductTab ? "Buscar productos..." : "Buscar servicios..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 w-64 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground"
+              className="pl-9 w-56 lg:w-64 h-9 bg-muted/50 border-border text-sm"
             />
           </div>
           <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-48 bg-muted/50 border-border text-foreground">
+            <SelectTrigger className="w-44 lg:w-48 h-9 bg-muted/50 border-border text-sm">
               <SelectValue placeholder="Categoría" />
             </SelectTrigger>
             <SelectContent>
@@ -718,39 +718,42 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           {isAdmin && (
             <>
-              <Button onClick={handleOpenAddDialog}>
-                <Plus className="w-4 h-4 mr-2" />
-                Añadir {itemLabel}
+              <Button size="sm" onClick={handleOpenAddDialog} className="h-9">
+                <Plus className="w-4 h-4 mr-1.5" />
+                <span className="hidden sm:inline">Añadir {itemLabel}</span>
+                <span className="sm:hidden">Añadir</span>
               </Button>
               <Button
+                size="sm"
                 onClick={handleImportClick}
                 disabled={importing}
                 variant="outline"
+                className="h-9"
               >
                 {importing ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  <Upload className="w-4 h-4 mr-2" />
+                  <Upload className="w-4 h-4" />
                 )}
-                Importar
+                <span className="hidden lg:inline ml-1.5">Importar</span>
               </Button>
-              <Button onClick={downloadTemplate} variant="outline">
-                <FileSpreadsheet className="w-4 h-4 mr-2" />
-                Plantilla
+              <Button size="sm" onClick={downloadTemplate} variant="outline" className="h-9">
+                <FileSpreadsheet className="w-4 h-4" />
+                <span className="hidden lg:inline ml-1.5">Plantilla</span>
               </Button>
             </>
           )}
-          <Button onClick={exportToExcel} variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            Exportar
+          <Button size="sm" onClick={exportToExcel} variant="outline" className="h-9">
+            <Download className="w-4 h-4" />
+            <span className="hidden lg:inline ml-1.5">Exportar</span>
           </Button>
         </div>
       </div>
 
-      {/* Lista - DataList mismo estilo que Proyectos (compacto, colores del sistema) */}
+      {/* Lista */}
       <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
         <DataList
           data={products}
@@ -759,16 +762,10 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
           onItemClick={(p) => handleViewDetails(p.id)}
           loading={loading}
           emptyMessage={isAdmin ? `No hay ${isProductTab ? 'productos' : 'servicios'}. Haz clic en "Añadir ${itemLabel}" para crear uno.` : `No hay ${isProductTab ? 'productos' : 'servicios'}.`}
-          emptyIcon={<Package className="h-16 w-16 text-muted-foreground" />}
+          emptyIcon={<Package className="h-12 w-12 text-muted-foreground/50" />}
           getItemId={(p) => p.id}
         />
       </div>
-
-      {isAdmin && (
-        <p className="text-muted-foreground text-xs flex-shrink-0 mt-2">
-          Haz clic en una fila o en "Ver detalles" para editar un {isProductTab ? 'producto' : 'servicio'}
-        </p>
-      )}
 
       {/* Product Import Dialog */}
       <ProductImportDialog

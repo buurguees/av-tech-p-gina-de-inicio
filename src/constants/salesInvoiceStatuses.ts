@@ -152,6 +152,33 @@ export const getPaymentStatusInfo = (status: SalesPaymentStatus | null) => {
 };
 
 // ============================================
+// INVOICE NUMBER DISPLAY HELPER
+// ============================================
+
+/**
+ * Returns the display-ready invoice number.
+ * - DRAFT / no definitive number → "BORRADOR"
+ * - Has definitive number → the number as-is
+ * - Preliminary only (F-BORR-XXXX) → shows preliminary with "(borrador)" suffix
+ */
+export const displayInvoiceNumber = (
+  invoiceNumber: string | null | undefined,
+  preliminaryNumber: string | null | undefined,
+  status: string
+): string => {
+  if (status === "DRAFT") {
+    return preliminaryNumber || "BORRADOR";
+  }
+  if (invoiceNumber && !invoiceNumber.includes("BORR")) {
+    return invoiceNumber;
+  }
+  if (preliminaryNumber) {
+    return `${preliminaryNumber} (borrador)`;
+  }
+  return "Sin número";
+};
+
+// ============================================
 // Backward-compatible aliases
 // ============================================
 

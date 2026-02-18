@@ -411,7 +411,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
           onKeyDown={handleKeyDown}
           type={isNumeric ? 'number' : 'text'}
           step={isNumeric ? '0.01' : undefined}
-          className="h-7 bg-white/10 border-orange-500 text-white text-xs"
+          className="h-7 bg-muted/50 border-primary text-foreground text-xs"
         />
       );
     }
@@ -419,7 +419,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     return (
       <div
         onClick={() => isAdmin && startEditing(pack.id, field, value ?? '')}
-        className={`px-2 py-1 rounded-lg min-h-[28px] flex items-center transition-colors ${isAdmin ? 'cursor-pointer hover:bg-white/10' : 'cursor-default'}`}
+        className={`px-2 py-1 rounded-lg min-h-[28px] flex items-center transition-colors ${isAdmin ? 'cursor-pointer hover:bg-muted/50' : 'cursor-default'}`}
       >
         {isNumeric && value !== null ? Number(value).toFixed(2) + suffix : (value || '-')}
       </div>
@@ -427,87 +427,80 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col flex-1 min-h-0 gap-4">
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-3 items-center justify-between">
+      <div className="flex flex-wrap gap-3 items-center justify-between flex-shrink-0">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Buscar packs..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-11 w-64 bg-white/5 border-white/10 text-white"
+            className="pl-9 w-56 lg:w-64 h-9 bg-muted/50 border-border text-sm"
           />
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           {isAdmin && (
-            <Button
-              onClick={handleAddPack}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
+            <Button size="sm" onClick={handleAddPack} className="h-9">
+              <Plus className="w-4 h-4 mr-1.5" />
               Añadir Pack
             </Button>
           )}
-          <Button
-            onClick={exportToExcel}
-            variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Exportar
+          <Button size="sm" onClick={exportToExcel} variant="outline" className="h-9">
+            <Download className="w-4 h-4" />
+            <span className="hidden lg:inline ml-1.5">Exportar</span>
           </Button>
         </div>
       </div>
 
       {/* Packs Table */}
-      <div className="border border-white/10 rounded-2xl overflow-hidden bg-white/[0.02] backdrop-blur-sm shadow-lg">
+      <div className="flex-1 min-h-0 overflow-auto border border-border rounded-lg">
         <Table>
           <TableHeader>
-            <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="text-white/60 w-28">Nº Pack</TableHead>
-              <TableHead className="text-white/60">Nombre</TableHead>
-              <TableHead className="text-white/60 w-40">Descripción</TableHead>
-              <TableHead className="text-white/60 w-24 text-right">P. Base</TableHead>
-              <TableHead className="text-white/60 w-24 text-right">Dto. %</TableHead>
-              <TableHead className="text-white/60 w-24 text-right">P. Final</TableHead>
-              <TableHead className="text-white/60 w-28">Impuesto</TableHead>
-              <TableHead className="text-white/60 w-24 text-right">P. con IVA</TableHead>
-              <TableHead className="text-white/60 w-20 text-center">Prods.</TableHead>
-              {isAdmin && <TableHead className="text-white/60 w-20"></TableHead>}
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground text-xs w-28">Nº Pack</TableHead>
+              <TableHead className="text-muted-foreground text-xs">Nombre</TableHead>
+              <TableHead className="text-muted-foreground text-xs w-40">Descripción</TableHead>
+              <TableHead className="text-muted-foreground text-xs w-24 text-right">P. Base</TableHead>
+              <TableHead className="text-muted-foreground text-xs w-24 text-right">Dto. %</TableHead>
+              <TableHead className="text-muted-foreground text-xs w-24 text-right">P. Final</TableHead>
+              <TableHead className="text-muted-foreground text-xs w-28">Impuesto</TableHead>
+              <TableHead className="text-muted-foreground text-xs w-24 text-right">P. con IVA</TableHead>
+              <TableHead className="text-muted-foreground text-xs w-20 text-center">Prods.</TableHead>
+              {isAdmin && <TableHead className="text-muted-foreground text-xs w-20"></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow className="border-white/10">
+              <TableRow className="border-border">
                 <TableCell colSpan={isAdmin ? 10 : 9} className="text-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-white/40" />
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto text-muted-foreground" />
                 </TableCell>
               </TableRow>
             ) : packs.length === 0 ? (
-              <TableRow className="border-white/10">
-                <TableCell colSpan={isAdmin ? 10 : 9} className="text-center py-8 text-white/40">
+              <TableRow className="border-border">
+                <TableCell colSpan={isAdmin ? 10 : 9} className="text-center py-8 text-muted-foreground">
                   No hay packs creados.
                 </TableCell>
               </TableRow>
             ) : (
               packs.map(pack => (
-                <TableRow key={pack.id} className="border-white/10 hover:bg-white/[0.06] transition-colors duration-200">
-                  <TableCell className="text-orange-400 font-mono text-xs">{pack.sku}</TableCell>
-                  <TableCell className="text-white text-sm">
+                <TableRow key={pack.id} className="border-border hover:bg-muted/50 transition-colors">
+                  <TableCell className="text-foreground/70 font-mono text-xs">{pack.sku}</TableCell>
+                  <TableCell className="text-foreground text-sm">
                     {renderEditableCell(pack, 'name', pack.name)}
                   </TableCell>
-                  <TableCell className="text-white/60 text-xs">
+                  <TableCell className="text-muted-foreground text-xs">
                     {renderEditableCell(pack, 'description', pack.description)}
                   </TableCell>
-                  <TableCell className="text-right text-white/60 text-sm">
+                  <TableCell className="text-right text-muted-foreground text-sm tabular-nums">
                     {pack.sale_price.toFixed(2)} €
                   </TableCell>
                   <TableCell className="text-right">
                     {renderEditableCell(pack, 'discount_percent', pack.discount_percent, true, ' %')}
                   </TableCell>
-                  <TableCell className="text-right text-white font-medium text-sm">
+                  <TableCell className="text-right text-foreground font-medium text-sm tabular-nums">
                     {pack.sale_price_effective.toFixed(2)} €
                   </TableCell>
                   <TableCell>
@@ -516,22 +509,22 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                         value={String(pack.tax_rate)}
                         onValueChange={(v) => handleTaxChange(pack.id, v)}
                       >
-                        <SelectTrigger className="h-7 bg-white/5 border-white/10 text-white text-xs w-24">
+                        <SelectTrigger className="h-7 bg-muted/50 border-border text-xs w-24">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-900 border-white/10">
+                        <SelectContent>
                           {TAX_OPTIONS.map(opt => (
-                            <SelectItem key={opt.value} value={opt.value} className="text-white text-xs">
+                            <SelectItem key={opt.value} value={opt.value} className="text-xs">
                               {opt.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     ) : (
-                      <span className="text-white/60 text-xs">{pack.tax_rate}%</span>
+                      <span className="text-muted-foreground text-xs">{pack.tax_rate}%</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right text-green-400 font-medium text-sm">
+                  <TableCell className="text-right text-foreground font-medium text-sm tabular-nums">
                     {(pack.sale_price_effective * (1 + pack.tax_rate / 100)).toFixed(2)} €
                   </TableCell>
                   <TableCell className="text-center">
@@ -539,7 +532,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => openPackDetail(pack)}
-                      className="text-white/60 hover:text-white hover:bg-white/10"
+                      className="text-muted-foreground hover:text-foreground"
                     >
                       <Package className="w-4 h-4 mr-1" />
                       {pack.component_count}
@@ -552,7 +545,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDeletePack(pack.id)}
-                        className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -565,33 +558,27 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
         </Table>
       </div>
 
-      <p className="text-white/40 text-xs">
-        {isAdmin 
-          ? 'Haz clic en cualquier celda para editarla • Pulsa Enter para guardar o Escape para cancelar'
-          : 'Modo lectura • Solo los administradores pueden modificar el catálogo'}
-      </p>
-
       {/* Pack Detail Dialog */}
       <Dialog open={!!selectedPack} onOpenChange={() => closePackDetail()}>
-        <DialogContent className="bg-zinc-900/95 backdrop-blur-2xl border-white/10 text-white max-w-3xl rounded-3xl shadow-2xl">
+        <DialogContent className="bg-background border-border max-w-3xl rounded-2xl shadow-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5 text-orange-400" />
+              <Package className="w-5 h-5 text-primary" />
               {selectedPack?.sku} - {selectedPack?.name}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Add product to pack - only for admins */}
+            {/* Add product to pack */}
             {isAdmin && (
               <div className="flex gap-2">
                 <Select value={selectedProductId} onValueChange={setSelectedProductId}>
-                  <SelectTrigger className="flex-1 bg-white/5 border-white/10 text-white">
+                  <SelectTrigger className="flex-1 bg-muted/50 border-border">
                     <SelectValue placeholder="Seleccionar producto para añadir..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10 max-h-60">
+                  <SelectContent className="max-h-60">
                     {products.map(p => (
-                      <SelectItem key={p.id} value={p.id} className="text-white">
+                      <SelectItem key={p.id} value={p.id}>
                         {p.sku} - {p.name} ({p.sale_price_effective.toFixed(2)} €)
                       </SelectItem>
                     ))}
@@ -600,45 +587,44 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                 <Button
                   onClick={handleAddProductToPack}
                   disabled={!selectedProductId}
-                  className="bg-orange-500 hover:bg-orange-600"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="w-4 h-4 mr-1.5" />
                   Añadir
                 </Button>
               </div>
             )}
 
             {/* Pack items table */}
-            <div className="border border-white/10 rounded-lg overflow-hidden">
+            <div className="border border-border rounded-lg overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="text-white/60">Nº Producto</TableHead>
-                    <TableHead className="text-white/60">Nombre</TableHead>
-                    <TableHead className="text-white/60 w-24 text-center">Cantidad</TableHead>
-                    <TableHead className="text-white/60 w-24 text-right">P. Unidad</TableHead>
-                    <TableHead className="text-white/60 w-24 text-right">Subtotal</TableHead>
-                    {isAdmin && <TableHead className="text-white/60 w-12"></TableHead>}
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="text-muted-foreground text-xs">Nº Producto</TableHead>
+                    <TableHead className="text-muted-foreground text-xs">Nombre</TableHead>
+                    <TableHead className="text-muted-foreground text-xs w-24 text-center">Cantidad</TableHead>
+                    <TableHead className="text-muted-foreground text-xs w-24 text-right">P. Unidad</TableHead>
+                    <TableHead className="text-muted-foreground text-xs w-24 text-right">Subtotal</TableHead>
+                    {isAdmin && <TableHead className="text-muted-foreground text-xs w-12"></TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loadingItems ? (
-                    <TableRow className="border-white/10">
+                    <TableRow className="border-border">
                       <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-4">
-                        <Loader2 className="w-5 h-5 animate-spin mx-auto text-white/40" />
+                        <Loader2 className="w-5 h-5 animate-spin mx-auto text-muted-foreground" />
                       </TableCell>
                     </TableRow>
                   ) : packItems.length === 0 ? (
-                    <TableRow className="border-white/10">
-                      <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-4 text-white/40">
+                    <TableRow className="border-border">
+                      <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-4 text-muted-foreground">
                         Este pack no tiene productos.
                       </TableCell>
                     </TableRow>
                   ) : (
                     packItems.map(item => (
-                      <TableRow key={item.component_product_id} className="border-white/10 hover:bg-white/5">
-                        <TableCell className="text-orange-400 font-mono text-xs">{item.sku}</TableCell>
-                        <TableCell className="text-white text-sm">{item.name}</TableCell>
+                      <TableRow key={item.component_product_id} className="border-border hover:bg-muted/50">
+                        <TableCell className="text-foreground/70 font-mono text-xs">{item.sku}</TableCell>
+                        <TableCell className="text-foreground text-sm">{item.name}</TableCell>
                         <TableCell className="text-center">
                           {isAdmin ? (
                             <Input
@@ -646,16 +632,16 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                               min={1}
                               value={item.quantity}
                               onChange={(e) => handleUpdateItemQuantity(item.component_product_id, parseFloat(e.target.value) || 1)}
-                              className="h-7 w-16 mx-auto bg-white/5 border-white/10 text-white text-center text-xs"
+                              className="h-7 w-16 mx-auto bg-muted/50 border-border text-center text-xs"
                             />
                           ) : (
-                            <span className="text-white">{item.quantity}</span>
+                            <span className="text-foreground">{item.quantity}</span>
                           )}
                         </TableCell>
-                        <TableCell className="text-right text-white/60 text-sm">
+                        <TableCell className="text-right text-muted-foreground text-sm tabular-nums">
                           {(item.unit_price ?? 0).toFixed(2)} €
                         </TableCell>
-                        <TableCell className="text-right text-white font-medium text-sm">
+                        <TableCell className="text-right text-foreground font-medium text-sm tabular-nums">
                           {(item.subtotal ?? 0).toFixed(2)} €
                         </TableCell>
                         {isAdmin && (
@@ -664,7 +650,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleRemovePackItem(item.component_product_id)}
-                              className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -679,15 +665,15 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
 
             {/* Pack summary */}
             {selectedPack && (
-              <div className="flex justify-end gap-6 text-sm pt-2 border-t border-white/10">
-                <div className="text-white/60">
-                  Total Base: <span className="text-white font-medium">{selectedPack.sale_price.toFixed(2)} €</span>
+              <div className="flex justify-end gap-6 text-sm pt-2 border-t border-border">
+                <div className="text-muted-foreground">
+                  Total Base: <span className="text-foreground font-medium tabular-nums">{selectedPack.sale_price.toFixed(2)} €</span>
                 </div>
-                <div className="text-white/60">
-                  Descuento: <span className="text-orange-400 font-medium">{selectedPack.discount_percent}%</span>
+                <div className="text-muted-foreground">
+                  Descuento: <span className="text-foreground font-medium">{selectedPack.discount_percent}%</span>
                 </div>
-                <div className="text-white/60">
-                  Precio Final: <span className="text-green-400 font-bold">{(selectedPack.sale_price_effective * (1 + selectedPack.tax_rate / 100)).toFixed(2)} €</span>
+                <div className="text-muted-foreground">
+                  Precio Final: <span className="text-foreground font-bold tabular-nums">{(selectedPack.sale_price_effective * (1 + selectedPack.tax_rate / 100)).toFixed(2)} €</span>
                 </div>
               </div>
             )}

@@ -18,13 +18,13 @@ import {
   FolderKanban,
   Package,
   Settings,
-  BarChart3,
   UserCog,
   Calculator,
   Shield,
   Receipt,
   MapPin,
   BookOpen,
+  FolderOpen,
 } from "lucide-react";
 
 interface UserInfo {
@@ -303,8 +303,8 @@ const NexoAvLayout = () => {
     },
     {
       id: 'reports',
-      title: 'Informes',
-      icon: BarChart3,
+      title: 'Documentación',
+      icon: FolderOpen,
       color: 'from-cyan-500/20 to-cyan-600/10',
       borderColor: 'border-cyan-500/30',
       available: isAdmin || isManager,

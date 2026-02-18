@@ -1,0 +1,720 @@
+/* ==========================================================
+   File Explorer — Documentación (Archivo Fiscal MinIO)
+   ========================================================== */
+
+.file-explorer {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 64px);
+  background: var(--color-bg-primary, hsl(var(--background)));
+  overflow: hidden;
+}
+
+/* ---- Header ---- */
+.file-explorer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+  flex-shrink: 0;
+}
+
+.file-explorer__title-area {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.file-explorer__title-icon {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+.file-explorer__title-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.file-explorer__title-text h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  line-height: 1.3;
+}
+
+.file-explorer__title-text p {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  margin-top: 0.125rem;
+}
+
+.file-explorer__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.file-explorer__search {
+  width: 240px;
+  height: 2rem;
+  font-size: 0.8125rem;
+}
+
+/* ---- Body (sidebar + content) ---- */
+.file-explorer__body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ---- Tree Sidebar ---- */
+.file-explorer__sidebar {
+  width: 280px;
+  min-width: 280px;
+  border-right: 1px solid hsl(var(--border));
+  overflow-y: auto;
+  padding: 0.5rem;
+  background: hsl(var(--card));
+}
+
+.file-explorer__sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.file-explorer__sidebar::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 2px;
+}
+
+/* Tree nodes */
+.fe-tree-node {
+  user-select: none;
+}
+
+.fe-tree-node__header {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-size: 0.8125rem;
+  color: hsl(var(--foreground));
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+}
+
+.fe-tree-node__header:hover {
+  background: hsl(var(--accent));
+}
+
+.fe-tree-node__header--active {
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+
+.fe-tree-node__chevron {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+  color: hsl(var(--muted-foreground));
+}
+
+.fe-tree-node__chevron--open {
+  transform: rotate(90deg);
+}
+
+.fe-tree-node__icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.fe-tree-node__icon--year {
+  color: hsl(var(--primary));
+}
+
+.fe-tree-node__icon--quarter {
+  color: hsl(142 71% 45%);
+}
+
+.fe-tree-node__icon--ventas {
+  color: hsl(217 91% 60%);
+}
+
+.fe-tree-node__icon--compras {
+  color: hsl(25 95% 53%);
+}
+
+.fe-tree-node__icon--presupuestos {
+  color: hsl(262 83% 58%);
+}
+
+.fe-tree-node__icon--gastos,
+.fe-tree-node__icon--tickets {
+  color: hsl(0 84% 60%);
+}
+
+.fe-tree-node__icon--nominas {
+  color: hsl(142 71% 45%);
+}
+
+.fe-tree-node__icon--modelos {
+  color: hsl(47 96% 53%);
+}
+
+.fe-tree-node__icon--resumenes {
+  color: hsl(199 89% 48%);
+}
+
+.fe-tree-node__icon--informes {
+  color: hsl(330 81% 60%);
+}
+
+.fe-tree-node__label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fe-tree-node__count {
+  font-size: 0.6875rem;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.5);
+  padding: 0.0625rem 0.375rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  min-width: 1.25rem;
+  text-align: center;
+}
+
+.fe-tree-node__children {
+  margin-left: 0.75rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid hsl(var(--border) / 0.5);
+}
+
+/* ---- Main Content ---- */
+.file-explorer__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Breadcrumb */
+.file-explorer__breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+  min-height: 2.25rem;
+  background: hsl(var(--card));
+}
+
+.file-explorer__breadcrumb-item {
+  cursor: pointer;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.file-explorer__breadcrumb-item:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+
+.file-explorer__breadcrumb-item--current {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  cursor: default;
+}
+
+.file-explorer__breadcrumb-item--current:hover {
+  background: transparent;
+}
+
+.file-explorer__breadcrumb-sep {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+  color: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Main split (file list + preview panel) */
+.file-explorer__main-split {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* File list area */
+.file-explorer__file-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  min-width: 0;
+}
+
+.file-explorer__file-area--with-preview {
+  flex: 1;
+  min-width: 280px;
+}
+
+.file-explorer__file-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.file-explorer__file-area::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+
+/* File table */
+.fe-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.fe-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.fe-table th {
+  padding: 0.5rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--card));
+  border-bottom: 1px solid hsl(var(--border));
+  white-space: nowrap;
+}
+
+.fe-table td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.4);
+  vertical-align: middle;
+}
+
+.fe-table tbody tr {
+  transition: background 0.12s;
+  cursor: pointer;
+}
+
+.fe-table tbody tr:hover {
+  background: hsl(var(--accent) / 0.6);
+}
+
+.fe-table tbody tr.fe-table__row--selected {
+  background: hsl(var(--primary) / 0.08);
+}
+
+/* File name cell */
+.fe-file-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.fe-file-name__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.fe-file-name__icon--pdf {
+  color: hsl(0 72% 51%);
+}
+
+.fe-file-name__icon--excel {
+  color: hsl(142 71% 45%);
+}
+
+.fe-file-name__icon--other {
+  color: hsl(var(--muted-foreground));
+}
+
+.fe-file-name__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: hsl(var(--foreground));
+}
+
+/* Actions cell */
+.fe-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.fe-table tbody tr:hover .fe-actions {
+  opacity: 1;
+}
+
+/* Status bar */
+.file-explorer__statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.375rem 1rem;
+  border-top: 1px solid hsl(var(--border));
+  font-size: 0.6875rem;
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+  background: hsl(var(--card));
+  gap: 1rem;
+}
+
+.file-explorer__statusbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.file-explorer__statusbar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.file-explorer__statusbar-item svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* Empty state */
+.file-explorer__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  padding: 2rem;
+}
+
+.file-explorer__empty svg {
+  width: 3rem;
+  height: 3rem;
+  opacity: 0.25;
+}
+
+.file-explorer__empty p {
+  font-size: 0.875rem;
+  text-align: center;
+  max-width: 20rem;
+}
+
+/* Loading */
+.file-explorer__loading {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.file-explorer__loading svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* ---- Preview Side Panel ---- */
+.fe-preview-panel {
+  width: 420px;
+  min-width: 320px;
+  border-left: 1px solid hsl(var(--border));
+  display: flex;
+  flex-direction: column;
+  background: hsl(var(--card));
+  overflow: hidden;
+}
+
+.fe-preview-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid hsl(var(--border));
+  flex-shrink: 0;
+  gap: 0.5rem;
+}
+
+.fe-preview-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: hsl(var(--foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.fe-preview-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  flex-shrink: 0;
+}
+
+.fe-preview-panel__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.6875rem;
+  color: hsl(var(--muted-foreground));
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+  flex-shrink: 0;
+}
+
+.fe-preview-panel__body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.fe-preview-panel__iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.fe-preview-panel__loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: hsl(var(--background));
+}
+
+/* Date column */
+.fe-date {
+  white-space: nowrap;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+}
+
+/* Size column */
+.fe-size {
+  white-space: nowrap;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  text-align: right;
+}
+
+/* Type badge */
+.fe-type-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.6875rem;
+  padding: 0.0625rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.fe-type-badge--pdf {
+  background: hsl(0 72% 51% / 0.12);
+  color: hsl(0 72% 51%);
+}
+
+.fe-type-badge--xlsx {
+  background: hsl(142 71% 45% / 0.12);
+  color: hsl(142 71% 45%);
+}
+
+.fe-type-badge--other {
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--muted-foreground));
+}
+
+/* ---- Contabilidad root icon ---- */
+.fe-tree-node__icon--contabilidad {
+  color: hsl(217 91% 50%);
+}
+
+.fe-tree-node__label--root {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* ---- Custom folder icons ---- */
+.fe-tree-node__icon--custom {
+  color: hsl(47 96% 45%);
+}
+
+.fe-tree-node__icon--custom-active {
+  color: hsl(var(--primary));
+}
+
+/* ---- Hidden file input ---- */
+.fe-hidden-input {
+  display: none;
+}
+
+/* ---- Upload progress bar ---- */
+.fe-upload-bar {
+  height: 3px;
+  width: 100%;
+  background: hsl(var(--border));
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.fe-upload-bar__fill {
+  height: 100%;
+  background: hsl(var(--primary));
+  transition: width 0.2s ease;
+}
+
+/* ---- New Folder Dialog ---- */
+.fe-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: hsl(0 0% 0% / 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fe-fade-in 0.15s ease;
+}
+
+.fe-dialog {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  width: 360px;
+  max-width: 90vw;
+  box-shadow: 0 10px 40px hsl(0 0% 0% / 0.25);
+  animation: fe-scale-in 0.15s ease;
+}
+
+.fe-dialog__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 0.25rem;
+}
+
+.fe-dialog__subtitle {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 0.5rem;
+}
+
+.fe-dialog__input {
+  margin: 0.75rem 0;
+}
+
+.fe-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* ---- Catálogo tree icons ---- */
+.fe-tree-node__icon--catalog {
+  color: hsl(262 83% 58%);
+}
+
+.fe-tree-node__icon--domain-product {
+  color: hsl(217 91% 60%);
+}
+
+.fe-tree-node__icon--domain-service {
+  color: hsl(25 95% 53%);
+}
+
+.fe-tree-node__icon--cat-folder {
+  color: hsl(199 89% 48%);
+}
+
+.fe-tree-node__icon--product {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.7;
+}
+
+.fe-tree-node__icon--product-active {
+  color: hsl(var(--primary));
+  opacity: 1;
+}
+
+/* Image file icon */
+.fe-file-name__icon--image {
+  color: hsl(262 83% 58%);
+}
+
+/* Image type badge */
+.fe-type-badge--img {
+  background: hsl(262 83% 58% / 0.12);
+  color: hsl(262 83% 58%);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .file-explorer__sidebar {
+    display: none;
+  }
+
+  .file-explorer__search {
+    width: 160px;
+  }
+}
+
+/* ---- Animations ---- */
+@keyframes fe-spin {
+  to { transform: rotate(360deg); }
+}
+
+.fe-spin {
+  animation: fe-spin 1s linear infinite;
+}
+
+@keyframes fe-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fe-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}

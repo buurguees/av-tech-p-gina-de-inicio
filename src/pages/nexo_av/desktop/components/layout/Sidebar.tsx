@@ -27,6 +27,7 @@ import {
   Sparkles,
   Lightbulb,
   ScrollText,
+  FolderOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import "../../styles/components/layout/sidebar.css";
@@ -99,6 +100,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           path: `/nexo-av/${userId}/invoices`,
           available: getModule('invoices')?.available || false,
         },
+        {
+          id: 'rectificativas',
+          title: 'Rectificativas',
+          icon: ScrollText,
+          path: `/nexo-av/${userId}/rectificativas`,
+          available: getModule('invoices')?.available || false,
+        },
       ],
     },
     {
@@ -139,6 +147,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           title: 'Reembolsos Pendientes',
           icon: HandCoins,
           path: `/nexo-av/${userId}/reimbursements`,
+          available: isAdminOrManager,
+        },
+        {
+          id: 'financing',
+          title: 'Financiación',
+          icon: Calculator,
+          path: `/nexo-av/${userId}/financing`,
           available: isAdminOrManager,
         },
       ],
@@ -212,8 +227,8 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
     },
     {
       id: 'reports',
-      title: 'Informes',
-      icon: BarChart3,
+      title: 'Documentación',
+      icon: FolderOpen,
       path: `/nexo-av/${userId}/reports`,
       available: getModule('reports')?.available || false,
     },

@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy } from "react";
+import { useState, useEffect, lazy, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -37,12 +37,14 @@ import TabNav, { TabItem } from "../components/navigation/TabNav";
 import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from "../components/detail";
 import StatusSelector from "../components/common/StatusSelector";
 import DocumentPDFViewer from "../components/common/DocumentPDFViewer";
+import ArchivedPDFViewer from "../components/common/ArchivedPDFViewer";
 import LockedIndicator from "../components/common/LockedIndicator";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import { QuotePDFDocument } from "../components/quotes/QuotePDFViewer";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
+import { archiveDocumentToMinio } from "@/pages/nexo_av/utils/archiveDocument";
 
 
 interface Quote {
@@ -67,6 +69,7 @@ interface Quote {
   site_id?: string | null;
   site_name?: string | null;
   site_city?: string | null;
+  storage_key?: string | null;
 }
 
 interface Project {
@@ -191,7 +194,41 @@ const QuoteDetailPageDesktop = () => {
     }
   }, [quote]);
 
+  // Auto-archive: if quote is in a locked status but has no storage_key, archive it
+  const archivingRef = useRef(false);
+  useEffect(() => {
+    if (!quote || !lines.length || !company) return;
+    if (quote.storage_key) return;
+    if (!LOCKED_STATES.includes(quote.status)) return;
+    if (archivingRef.current) return;
+
+    archivingRef.current = true;
+    (async () => {
+      try {
+        const pdfEl = (
+          <QuotePDFDocument
+            quote={quote}
+            lines={lines}
+            client={client}
+            company={company}
+            project={project}
+          />
+        );
+        const result = await archiveDocumentToMinio("presupuestos", quote.id, pdfEl);
+        if (result.ok) {
+          await fetchQuoteData();
+          toast({ title: "PDF archivado", description: "Documento inmutable generado automáticamente" });
+        }
+      } catch (err) {
+        console.error("Auto-archive quote error:", err);
+      } finally {
+        archivingRef.current = false;
+      }
+    })();
+  }, [quote?.id, quote?.status, quote?.storage_key, lines.length, company]);
+
   const fetchQuoteData = async () => {
+    let result: { quote: Quote; lines: QuoteLine[]; client: Client | null; company: CompanySettings | null; project: Project | null } | null = null;
     try {
       setLoading(true);
 
@@ -210,7 +247,12 @@ const QuoteDetailPageDesktop = () => {
         p_quote_id: quoteId,
       });
       if (linesError) throw linesError;
-      setLines(linesData || []);
+      const fetchedLines = linesData || [];
+      setLines(fetchedLines);
+
+      let fetchedClient: Client | null = null;
+      let fetchedProject: Project | null = null;
+      let fetchedCompany: CompanySettings | null = null;
 
       // Fetch client details
       if (quoteInfo.client_id) {
@@ -219,16 +261,17 @@ const QuoteDetailPageDesktop = () => {
         });
         if (!clientError && clientData && clientData.length > 0) {
           setClient(clientData[0]);
+          fetchedClient = clientData[0];
         }
       }
 
-      // Fetch project details if project exists (project_id now comes from get_quote)
+      // Fetch project details if project exists
       if (quoteInfo.project_id) {
         const { data: projectData, error: projectError } = await supabase.rpc("get_project", {
           p_project_id: quoteInfo.project_id,
         });
         if (!projectError && projectData && projectData.length > 0) {
-          setProject({
+          const proj = {
             project_number: projectData[0].project_number,
             project_name: projectData[0].project_name,
             project_address: projectData[0].project_address,
@@ -236,7 +279,9 @@ const QuoteDetailPageDesktop = () => {
             local_name: projectData[0].local_name,
             client_order_number: projectData[0].client_order_number,
             site_name: quoteInfo.site_name || null,
-          });
+          };
+          setProject(proj);
+          fetchedProject = proj;
         }
       }
 
@@ -244,7 +289,10 @@ const QuoteDetailPageDesktop = () => {
       const { data: companyData, error: companyError } = await supabase.rpc("get_company_settings");
       if (!companyError && companyData && companyData.length > 0) {
         setCompany(companyData[0]);
+        fetchedCompany = companyData[0];
       }
+
+      result = { quote: quoteInfo, lines: fetchedLines, client: fetchedClient, company: fetchedCompany, project: fetchedProject };
 
     } catch (error: any) {
       console.error("Error fetching quote:", error);
@@ -256,6 +304,7 @@ const QuoteDetailPageDesktop = () => {
     } finally {
       setLoading(false);
     }
+    return result;
   };
 
   const handleStatusChange = async (newStatus: string) => {
@@ -304,13 +353,50 @@ const QuoteDetailPageDesktop = () => {
 
       if (error) throw error;
 
-      // Refetch quote to get updated number
-      await fetchQuoteData();
+      // Refetch quote with definitive number
+      const freshData = await fetchQuoteData();
 
       toast({
         title: "Presupuesto enviado",
-        description: "El presupuesto se ha bloqueado y se ha asignado el número definitivo",
+        description: "Archivando PDF inmutable...",
       });
+
+      // Generate and archive PDF to MinIO
+      if (freshData) {
+        try {
+          const pdfEl = (
+            <QuotePDFDocument
+              quote={freshData.quote}
+              lines={freshData.lines}
+              client={freshData.client}
+              company={freshData.company}
+              project={freshData.project}
+            />
+          );
+          const result = await archiveDocumentToMinio("presupuestos", quoteId!, pdfEl);
+          if (result.ok) {
+            await fetchQuoteData();
+            toast({
+              title: "PDF archivado",
+              description: "Documento inmutable guardado correctamente",
+            });
+          } else {
+            console.error("Archive failed:", result.error);
+            toast({
+              title: "Presupuesto enviado",
+              description: "El presupuesto se envió pero el PDF no se pudo archivar. Se archivará automáticamente.",
+              variant: "destructive",
+            });
+          }
+        } catch (archiveErr) {
+          console.error("Error archiving quote PDF:", archiveErr);
+          toast({
+            title: "Presupuesto enviado",
+            description: "El presupuesto se envió pero el PDF no se pudo archivar. Se archivará automáticamente.",
+            variant: "destructive",
+          });
+        }
+      }
     } catch (error: any) {
       console.error("Error sending quote:", error);
       toast({
@@ -630,23 +716,32 @@ const QuoteDetailPageDesktop = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  {/* Desktop Layout: PDF Preview */}
+                  {/* Desktop Layout: PDF Preview — dual logic */}
                   <div className="hidden md:block bg-white/5 border border-white/10 overflow-hidden flex flex-col h-[calc(100vh-180px)]">
-                    <DocumentPDFViewer
-                      document={
-                        <QuotePDFDocument
-                          quote={quote}
-                          lines={lines}
-                          client={client}
-                          company={company}
-                          project={project}
-                        />
-                      }
-                      fileName={pdfFileName.replace('.pdf', '')}
-                      defaultShowPreview={true}
-                      showToolbar={false}
-                      className="h-full"
-                    />
+                    {quote.storage_key ? (
+                      <ArchivedPDFViewer
+                        storageKey={quote.storage_key}
+                        archivedAt={quote.updated_at}
+                        fileName={pdfFileName}
+                        className="h-full"
+                      />
+                    ) : (
+                      <DocumentPDFViewer
+                        document={
+                          <QuotePDFDocument
+                            quote={quote}
+                            lines={lines}
+                            client={client}
+                            company={company}
+                            project={project}
+                          />
+                        }
+                        fileName={pdfFileName.replace('.pdf', '')}
+                        defaultShowPreview={true}
+                        showToolbar={false}
+                        className="h-full"
+                      />
+                    )}
                   </div>
                 </motion.div>
               </div>

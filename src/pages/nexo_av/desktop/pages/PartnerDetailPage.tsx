@@ -53,6 +53,7 @@ import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import TabNav, { TabItem } from "../components/navigation/TabNav";
 import CreatePartnerPayrollDialog from "../components/rrhh/CreatePartnerPayrollDialog";
+import PayrollCalculatorPanel from "../components/rrhh/PayrollCalculatorPanel";
 import RegisterPartnerPayrollPaymentDialog from "../components/rrhh/RegisterPartnerPayrollPaymentDialog";
 import EditWorkerDialog from "../components/rrhh/EditWorkerDialog";
 
@@ -749,6 +750,15 @@ function PartnerDetailPage() {
 
             {activeTab === "nominas" && (
               <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
+                {/* Calculadora de nómina basada en PyG */}
+                <div className="mb-6">
+                  <PayrollCalculatorPanel
+                    partnerId={partnerId!}
+                    partnerName={partnerFullData.full_name || "Socio"}
+                    onCompensationCreated={fetchPayrolls}
+                  />
+                </div>
+
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold">Nóminas del Socio</h2>
                   <Button onClick={() => {
