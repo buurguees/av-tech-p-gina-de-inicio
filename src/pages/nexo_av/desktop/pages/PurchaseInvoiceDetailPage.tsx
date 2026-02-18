@@ -61,7 +61,6 @@ import { PURCHASE_INVOICE_CATEGORIES } from "@/constants/purchaseInvoiceCategori
 import { TICKET_CATEGORIES } from "@/constants/ticketCategories";
 import ProjectSearchInput from "../components/projects/ProjectSearchInput";
 import { cn } from "@/lib/utils";
-import ArchivedPDFViewer from "../components/common/ArchivedPDFViewer";
 
 interface Supplier {
   id: string;
@@ -118,7 +117,6 @@ interface PurchaseInvoice {
   created_at: string;
   created_by: string | null;
   created_by_name: string | null;
-  storage_key?: string | null;
 }
 
 const STATUS_OPTIONS = [
@@ -801,14 +799,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
             </h3>
           </div>
           <div className="flex-1 overflow-hidden flex items-center justify-center p-4">
-            {invoice.storage_key ? (
-              <ArchivedPDFViewer
-                storageKey={invoice.storage_key}
-                archivedAt={invoice.created_at}
-                fileName={invoice.file_name || invoice.invoice_number || "documento.pdf"}
-                className="w-full h-full"
-              />
-            ) : invoice.file_path ? (
+            {invoice.file_path ? (
               <FilePreview filePath={invoice.file_path} />
             ) : (
               <div className="text-center text-muted-foreground">

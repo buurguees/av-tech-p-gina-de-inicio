@@ -233,94 +233,18 @@ export default function ProductDetailPage() {
   /* ---- Image Gallery helpers ---- */
 
   const loadProductImages = useCallback(async () => {
-    if (!productId) return;
-    setImagesLoading(true);
-    try {
-      const { data } = await supabase
-        .from('minio_files')
-        .select('id, key, original_name, mime_type, size_bytes, created_at')
-        .eq('source_table', 'catalog.products')
-        .eq('source_id', productId)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
-      const images = (data ?? []) as typeof productImages;
+    setProductImages([]);
+    setImagesLoading(false);
+  }, []);
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/minio-proxy`;
-        const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '' };
-        const thumbPromises = images.map(async (img) => {
-          try {
-            const res = await fetch(proxyUrl, { method: 'POST', headers, body: JSON.stringify({ action: 'get_presigned_url_by_key', storage_key: img.key }) });
-            const r = await res.json();
-            return { ...img, thumbUrl: res.ok && r.ok ? r.url : undefined };
-          } catch { return img; }
-        });
-        setProductImages(await Promise.all(thumbPromises));
-      } else {
-        setProductImages(images);
-      }
-    } catch (err) {
-      console.error('Error loading product images:', err);
-    } finally { setImagesLoading(false); }
-  }, [productId]);
+  const handleImageUpload = useCallback(async (_e: React.ChangeEvent<HTMLInputElement>) => {
+    toast.info('Subida de imagenes en mantenimiento — pendiente migracion a Supabase Storage');
+    if (imgInputRef.current) imgInputRef.current.value = '';
+  }, []);
 
-  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !productId) return;
-    setImgUploading(true);
-    setImgUploadProgress(0);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No session');
-      const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL || ''}/functions/v1/minio-proxy`;
-      const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}`, apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '' };
-
-      const upRes = await fetch(proxyUrl, {
-        method: 'POST', headers,
-        body: JSON.stringify({ action: 'upload_to_catalog_product', product_id: productId, filename: file.name, mime_type: file.type || 'application/octet-stream', size_bytes: file.size }),
-      });
-      const upData = await upRes.json();
-      if (!upRes.ok || !upData.ok) throw new Error(upData.error || 'Error de subida');
-
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.upload.onprogress = (ev) => { if (ev.lengthComputable) setImgUploadProgress(Math.round((ev.loaded / ev.total) * 100)); };
-        xhr.onload = () => xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`HTTP ${xhr.status}`));
-        xhr.onerror = () => reject(new Error('Error de red'));
-        xhr.open('PUT', upData.url);
-        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-        xhr.send(file);
-      });
-
-      await fetch(proxyUrl, { method: 'POST', headers, body: JSON.stringify({ action: 'confirm_custom_upload', file_id: upData.file_id }) });
-      toast.success('Imagen subida correctamente');
-      loadProductImages();
-    } catch (err) {
-      console.error('Image upload error:', err);
-      toast.error('Error al subir imagen');
-    } finally {
-      setImgUploading(false);
-      setImgUploadProgress(0);
-      if (imgInputRef.current) imgInputRef.current.value = '';
-    }
-  }, [productId, loadProductImages]);
-
-  const handleDeleteImage = useCallback(async (imageId: string) => {
-    setDeletingImageId(imageId);
-    try {
-      const { error } = await supabase
-        .from('minio_files')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', imageId);
-      if (error) throw error;
-      toast.success('Imagen eliminada');
-      loadProductImages();
-    } catch (err) {
-      console.error('Delete image error:', err);
-      toast.error('Error al eliminar imagen');
-    } finally { setDeletingImageId(null); }
-  }, [loadProductImages]);
+  const handleDeleteImage = useCallback(async (_imageId: string) => {
+    toast.info('Eliminacion de imagenes en mantenimiento');
+  }, []);
 
   useEffect(() => {
     if (productId && activeTab === 'imagenes') loadProductImages();

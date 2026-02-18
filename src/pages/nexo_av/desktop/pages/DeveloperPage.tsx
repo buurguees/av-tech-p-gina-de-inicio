@@ -1,8 +1,7 @@
 // DeveloperPage - Component Showcase for Development
-import { useState, lazy, Suspense } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Code2, Component, Folder, Edit, Copy, Trash2, FileText } from "lucide-react";
-const BatchArchiver = lazy(() => import("../components/developer/BatchArchiver"));
 import { motion } from "motion/react";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 
@@ -243,19 +242,6 @@ const DeveloperPage = () => {
               <p className="text-sm text-muted-foreground">Catálogo de componentes disponibles en la plataforma NexoAV</p>
             </div>
           </div>
-          {/* Batch Archiver Utility */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Folder className="h-4 w-4 text-muted-foreground" />
-              <h2 className="text-lg font-semibold text-foreground">Herramientas Admin</h2>
-            </div>
-            <div className="border border-border rounded-xl p-4 bg-card">
-              <Suspense fallback={<div className="text-sm text-muted-foreground">Cargando...</div>}>
-                <BatchArchiver />
-              </Suspense>
-            </div>
-          </section>
-
           {renderSection("Componentes Comunes", "components/common/", commonComponents)}
           <div className="pt-4">{renderSection("Componentes UI (shadcn)", "components/ui/", uiComponents)}</div>
         </motion.div>

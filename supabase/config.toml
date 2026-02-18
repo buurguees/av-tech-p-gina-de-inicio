@@ -18,8 +18,3 @@ verify_jwt = false
 [functions.send-user-invitation]
 verify_jwt = false
 
-[functions.storage-health]
-verify_jwt = false
-
-[functions.ai-chat-processor]
-verify_jwt = false

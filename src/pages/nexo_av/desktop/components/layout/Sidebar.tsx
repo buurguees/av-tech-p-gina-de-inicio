@@ -24,8 +24,6 @@ import {
   UserCog,
   Briefcase,
   HandCoins,
-  Sparkles,
-  Lightbulb,
   ScrollText,
   FolderOpen,
 } from "lucide-react";
@@ -248,13 +246,6 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           path: `/nexo-av/${userId}/audit`,
           available: getModule('audit')?.available || false,
         },
-        {
-          id: 'audit-suggestions',
-          title: 'Sugerencias',
-          icon: Lightbulb,
-          path: `/nexo-av/${userId}/audit/suggestions`,
-          available: getModule('audit')?.available || false,
-        },
       ],
     },
   ];
@@ -360,19 +351,6 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
           >
             <Home className="nexo-sidebar__icon" />
             <span className="nexo-sidebar__text">Dashboard</span>
-          </motion.button>
-
-          {/* NEXO AI */}
-          <motion.button
-            onClick={() => navigate(`/nexo-av/${userId}/ai/chat`)}
-            className={cn(
-              "nexo-sidebar__item",
-              isActive(`/nexo-av/${userId}/ai/chat`) && "nexo-sidebar__item--active"
-            )}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Sparkles className="nexo-sidebar__icon" />
-            <span className="nexo-sidebar__text">NEXO AI</span>
           </motion.button>
 
           {/* Divider */}

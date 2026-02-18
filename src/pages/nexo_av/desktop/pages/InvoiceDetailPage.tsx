@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,6 @@ import TabNav, { TabItem } from "../components/navigation/TabNav";
 import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from "../components/detail";
 import StatusSelector from "../components/common/StatusSelector";
 import DocumentPDFViewer from "../components/common/DocumentPDFViewer";
-import ArchivedPDFViewer from "../components/common/ArchivedPDFViewer";
 import LockedIndicator from "../components/common/LockedIndicator";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import { InvoicePDFDocument } from "../components/invoices/InvoicePDFViewer";
@@ -45,7 +44,6 @@ import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import PaymentsTab from "../components/common/PaymentsTab";
 import RegisterPaymentDialog from "../components/invoices/RegisterPaymentDialog";
-import { archiveDocumentToMinio } from "@/pages/nexo_av/utils/archiveDocument";
 import CreateRectificativaDialog from "../components/invoices/CreateRectificativaDialog";
 
 
@@ -80,7 +78,6 @@ interface Invoice {
   site_id?: string | null;
   site_name?: string | null;
   site_city?: string | null;
-  storage_key?: string | null;
   locked_at?: string | null;
 }
 
@@ -215,39 +212,6 @@ const InvoiceDetailPageDesktop = () => {
     }
   }, [invoiceId]);
 
-  // Auto-archive: if invoice is locked but has no storage_key, archive it
-  const archivingRef = useRef(false);
-  useEffect(() => {
-    if (!invoice || !lines.length || !company) return;
-    if (invoice.storage_key) return;
-    if (!invoice.is_locked) return;
-    if (archivingRef.current) return;
-
-    archivingRef.current = true;
-    (async () => {
-      try {
-        const pdfEl = (
-          <InvoicePDFDocument
-            invoice={invoice}
-            lines={lines}
-            client={client}
-            company={company}
-            project={project}
-            preferences={preferences}
-          />
-        );
-        const result = await archiveDocumentToMinio("ventas", invoice.id, pdfEl);
-        if (result.ok) {
-          await fetchInvoiceData();
-          toast({ title: "PDF archivado", description: "Documento inmutable generado automáticamente" });
-        }
-      } catch (err) {
-        console.error("Auto-archive invoice error:", err);
-      } finally {
-        archivingRef.current = false;
-      }
-    })();
-  }, [invoice?.id, invoice?.is_locked, invoice?.storage_key, lines.length, company]);
 
   useEffect(() => {
     if (invoice) {
@@ -418,42 +382,8 @@ const InvoiceDetailPageDesktop = () => {
         description: "Archivando PDF inmutable...",
       });
 
-      // Generate and archive PDF to MinIO
       if (freshData) {
-        try {
-          const pdfEl = (
-            <InvoicePDFDocument
-              invoice={freshData.invoice}
-              lines={freshData.lines}
-              client={freshData.client}
-              company={freshData.company}
-              project={freshData.project}
-              preferences={freshData.preferences}
-            />
-          );
-          const result = await archiveDocumentToMinio("ventas", invoiceId!, pdfEl);
-          if (result.ok) {
-            await fetchInvoiceData();
-            toast({
-              title: "PDF archivado",
-              description: "Documento inmutable guardado correctamente",
-            });
-          } else {
-            console.error("Archive failed:", result.error);
-            toast({
-              title: "Factura emitida",
-              description: "La factura se emitió pero el PDF no se pudo archivar. Se archivará automáticamente.",
-              variant: "destructive",
-            });
-          }
-        } catch (archiveErr) {
-          console.error("Error archiving invoice PDF:", archiveErr);
-          toast({
-            title: "Factura emitida",
-            description: "La factura se emitió pero el PDF no se pudo archivar. Se archivará automáticamente.",
-            variant: "destructive",
-          });
-        }
+        await fetchInvoiceData();
       }
     } catch (error: any) {
       console.error("Error issuing invoice:", error);
@@ -703,7 +633,7 @@ const InvoiceDetailPageDesktop = () => {
                     title: "Rectificativa creada",
                     description: `Se ha creado la factura rectificativa ${rectNumber}`,
                   });
-                  fetchInvoice();
+                  fetchInvoiceData();
                 }}
               />
             )}
@@ -739,33 +669,24 @@ const InvoiceDetailPageDesktop = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  {/* Desktop Layout: PDF Preview — dual logic */}
+                  {/* Desktop Layout: PDF Preview */}
                   <div className="hidden md:block bg-white/5 border border-white/10 overflow-hidden flex flex-col h-[calc(100vh-180px)]">
-                    {invoice.storage_key ? (
-                      <ArchivedPDFViewer
-                        storageKey={invoice.storage_key}
-                        archivedAt={invoice.locked_at || invoice.updated_at}
-                        fileName={pdfFileName}
-                        className="h-full"
-                      />
-                    ) : (
-                      <DocumentPDFViewer
-                        document={
-                          <InvoicePDFDocument
-                            invoice={invoice}
-                            lines={lines}
-                            client={client}
-                            company={company}
-                            project={project}
-                            preferences={preferences}
-                          />
-                        }
-                        fileName={pdfFileName.replace('.pdf', '')}
-                        defaultShowPreview={true}
-                        showToolbar={false}
-                        className="h-full"
-                      />
-                    )}
+                    <DocumentPDFViewer
+                      document={
+                        <InvoicePDFDocument
+                          invoice={invoice}
+                          lines={lines}
+                          client={client}
+                          company={company}
+                          project={project}
+                          preferences={preferences}
+                        />
+                      }
+                      fileName={pdfFileName.replace('.pdf', '')}
+                      defaultShowPreview={true}
+                      showToolbar={false}
+                      className="h-full"
+                    />
                   </div>
                 </motion.div>
               </div>
