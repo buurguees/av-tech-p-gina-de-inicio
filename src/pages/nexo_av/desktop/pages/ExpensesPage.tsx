@@ -176,7 +176,7 @@ const ExpensesPageDesktop = () => {
           // Usar el nuevo path
           const { data: ticketNum, error: numErr } = await supabase.rpc('get_next_ticket_number');
           if (numErr || !ticketNum) throw new Error(numErr?.message || 'No se pudo obtener el número');
-          const { data: newInvoiceId, error: dbError } = await supabase.rpc('create_purchase_invoice', {
+          const { data: newInvoiceId, error: dbError } = await (supabase.rpc as any)('create_purchase_invoice', {
             p_invoice_number: ticketNum,
             p_document_type: 'EXPENSE',
             p_status: 'PENDING',
@@ -210,7 +210,7 @@ const ExpensesPageDesktop = () => {
         // Crear registro en la base de datos (nunca borrar el archivo si falla la BD)
         const { data: ticketNum, error: numErr } = await supabase.rpc('get_next_ticket_number');
         if (numErr || !ticketNum) throw new Error(numErr?.message || 'No se pudo obtener el número');
-        const { data: createdId, error: dbError } = await supabase.rpc('create_purchase_invoice', {
+        const { data: createdId, error: dbError } = await (supabase.rpc as any)('create_purchase_invoice', {
           p_invoice_number: ticketNum,
           p_document_type: 'EXPENSE',
           p_status: 'PENDING',
@@ -265,7 +265,7 @@ const ExpensesPageDesktop = () => {
       setRetryingUpload(true);
       const { data: ticketNum, error: numErr } = await supabase.rpc("get_next_ticket_number");
       if (numErr || !ticketNum) throw new Error(numErr?.message || "No se pudo obtener el número");
-      const { data: newInvoiceId, error: dbError } = await supabase.rpc("create_purchase_invoice", {
+      const { data: newInvoiceId, error: dbError } = await (supabase.rpc as any)("create_purchase_invoice", {
         p_invoice_number: ticketNum,
         p_document_type: "EXPENSE",
         p_status: "PENDING",

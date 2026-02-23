@@ -214,7 +214,7 @@ const MobileScannerDetailPage = () => {
       const { data: invoiceNumber, error: numError } = await (supabase.rpc as any)(documentType === "EXPENSE" ? "get_next_ticket_number" : "get_next_factura_borr_number");
       if (numError || !invoiceNumber) throw new Error(numError?.message || "No se pudo obtener el número");
 
-      const { data: invoiceData, error: invoiceError } = await supabase.rpc("create_purchase_invoice", {
+      const { data: invoiceData, error: invoiceError } = await (supabase.rpc as any)("create_purchase_invoice", {
         p_invoice_number: invoiceNumber,
         p_document_type: documentType,
         p_project_id: selectedProjectId || null,
