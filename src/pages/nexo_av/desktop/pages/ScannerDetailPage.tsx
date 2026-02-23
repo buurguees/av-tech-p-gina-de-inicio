@@ -435,7 +435,7 @@ const ScannerDetailPage = () => {
       const { data: assignedNumber, error: numError } = await (supabase.rpc as any)(isTicket ? "get_next_ticket_number" : "get_next_factura_borr_number");
       if (numError || !assignedNumber) throw new Error(numError?.message || "No se pudo obtener el número");
       
-      const { data: invoiceData, error: invoiceError } = await supabase.rpc("create_purchase_invoice", {
+      const { data: invoiceData, error: invoiceError } = await (supabase.rpc as any)("create_purchase_invoice", {
         p_invoice_number: assignedNumber,
         p_supplier_invoice_number: isTicket ? null : supplierInvoiceNumber,
         p_supplier_id: isTicket ? null : (entityType === "SUPPLIER" ? selectedSupplierId : null),

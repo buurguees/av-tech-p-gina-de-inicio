@@ -205,7 +205,7 @@ const ConvertPOToInvoiceDialog = ({
       }
 
       // Crear la factura de compra con todos los datos
-      const { data: invoiceId, error: createError } = await supabase.rpc("create_purchase_invoice", {
+      const { data: invoiceId, error: createError } = await (supabase.rpc as any)("create_purchase_invoice", {
         p_invoice_number: supplierInvoiceNumber,
         p_supplier_id: purchaseOrder.supplier_id,
         p_project_id: purchaseOrder.project_id,

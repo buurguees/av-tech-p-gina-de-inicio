@@ -225,7 +225,7 @@ const PurchaseInvoicesPageDesktop = () => {
           
           const { data: provNum, error: numErr } = await supabase.rpc('get_next_provisional_purchase_number', {});
           if (numErr || !provNum) throw new Error(numErr?.message || 'No se pudo obtener el número');
-          const { data: createdId, error: dbError } = await supabase.rpc('create_purchase_invoice', {
+          const { data: createdId, error: dbError } = await (supabase.rpc as any)('create_purchase_invoice', {
             p_invoice_number: provNum,
             p_document_type: 'INVOICE',
             p_status: 'PENDING',
@@ -263,7 +263,7 @@ const PurchaseInvoicesPageDesktop = () => {
       } else {
         const { data: provNum, error: numErr } = await supabase.rpc('get_next_provisional_purchase_number', {});
         if (numErr || !provNum) throw new Error(numErr?.message || 'No se pudo obtener el número');
-        const { data: createdId, error: dbError } = await supabase.rpc('create_purchase_invoice', {
+        const { data: createdId, error: dbError } = await (supabase.rpc as any)('create_purchase_invoice', {
           p_invoice_number: provNum,
           p_document_type: 'INVOICE',
           p_status: 'PENDING',
@@ -323,7 +323,7 @@ const PurchaseInvoicesPageDesktop = () => {
       setRetryingUpload(true);
       const { data: provNum, error: numErr } = await supabase.rpc("get_next_provisional_purchase_number", {});
       if (numErr || !provNum) throw new Error(numErr?.message || "No se pudo obtener el número");
-      const { data: newInvoiceId, error: dbError } = await supabase.rpc("create_purchase_invoice", {
+      const { data: newInvoiceId, error: dbError } = await (supabase.rpc as any)("create_purchase_invoice", {
         p_invoice_number: provNum,
         p_document_type: "INVOICE",
         p_status: "PENDING",

@@ -347,7 +347,7 @@ export default function CreatePurchaseInvoiceDialog({
         toast.success("Factura de compra actualizada correctamente");
       } else {
         // Create new purchase invoice
-        const { data: invoiceData, error: createError } = await supabase.rpc("create_purchase_invoice", {
+        const { data: invoiceData, error: createError } = await (supabase.rpc as any)("create_purchase_invoice", {
           p_invoice_number: invoiceNumber.trim(),
           p_document_type: documentType,
           p_issue_date: issueDate,
