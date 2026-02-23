@@ -217,6 +217,7 @@ const ConvertPOToInvoiceDialog = ({
         p_file_name: fileName,
         p_status: "PENDING",
         p_supplier_invoice_number: supplierInvoiceNumber,
+        p_site_id: null,
       });
 
       if (createError) throw createError;

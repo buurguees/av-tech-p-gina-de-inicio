@@ -98,11 +98,11 @@ const FinancingDetailPageDesktop = () => {
     const fetchDetail = async () => {
       try {
         setLoading(true);
-        const { data: rpcData, error } = await supabase.rpc("credit_get_operation_detail", {
+        const { data: rpcData, error } = await (supabase.rpc as any)("credit_get_operation_detail", {
           p_operation_id: operationId,
         });
         if (error) throw error;
-        const parsed = rpcData as CreditDetailResponse;
+        const parsed = rpcData as unknown as CreditDetailResponse;
         if (parsed?.operation) {
           setData(parsed);
         } else {

@@ -358,6 +358,7 @@ export default function CreatePurchaseInvoiceDialog({
           p_project_id: selectedProjectId || null,
           p_withholding_amount: withholdingAmount,
           p_notes: notes.trim() || null,
+          p_site_id: null,
         });
 
         if (createError) throw createError;

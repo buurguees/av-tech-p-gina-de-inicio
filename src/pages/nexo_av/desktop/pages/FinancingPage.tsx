@@ -55,7 +55,7 @@ const FinancingPageDesktop = () => {
   const fetchOperations = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc("credit_list_operations", {
+      const { data, error } = await (supabase.rpc as any)("credit_list_operations", {
         p_status: statusFilter === "all" ? null : statusFilter,
       });
       if (error) throw error;

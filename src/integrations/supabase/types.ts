@@ -305,6 +305,8 @@ export type Database = {
         Args: { p_notes: string; p_quote_id: string }
         Returns: Json
       }
+      backfill_get_supplier_name: { Args: { p_id: string }; Returns: string }
+      backfill_get_technician_name: { Args: { p_id: string }; Returns: string }
       calculate_corporate_tax: {
         Args: {
           p_force_recalculate?: boolean
@@ -903,6 +905,26 @@ export type Database = {
         }
         Returns: string
       }
+      credit_get_operation_detail: {
+        Args: { p_operation_id: string }
+        Returns: Json
+      }
+      credit_list_operations: {
+        Args: { p_status?: string }
+        Returns: {
+          accounting_code: string
+          contract_reference: string
+          created_at: string
+          gross_amount: number
+          id: string
+          next_due_date: string
+          num_installments: number
+          provider_name: string
+          status: string
+          total_paid: number
+          total_pending: number
+        }[]
+      }
       dashboard_get_admin_overview: {
         Args: { p_period?: string }
         Returns: Json
@@ -998,6 +1020,18 @@ export type Database = {
           preliminary_number: string
         }[]
       }
+      finance_create_rectificativa: {
+        Args: {
+          p_line_ids?: string[]
+          p_original_invoice_id: string
+          p_rectification_reason: string
+          p_rectification_type: string
+        }
+        Returns: {
+          rectificativa_id: string
+          rectificativa_number: string
+        }[]
+      }
       finance_delete_invoice_line: {
         Args: { p_line_id: string }
         Returns: boolean
@@ -1035,6 +1069,7 @@ export type Database = {
           invoice_number: string
           is_locked: boolean
           issue_date: string
+          locked_at: string
           notes: string
           paid_amount: number
           payment_terms: string
@@ -1350,6 +1385,7 @@ export type Database = {
           years_in_operation: number
         }[]
       }
+      get_catalog_explorer_tree: { Args: never; Returns: Json }
       get_catalog_product_detail: {
         Args: { p_product_id: string }
         Returns: {
@@ -1379,6 +1415,10 @@ export type Database = {
           unit: "ud" | "m2" | "ml" | "hora" | "jornada" | "mes" | "kg"
           updated_at: string
         }[]
+      }
+      get_catalog_product_storage_path: {
+        Args: { p_product_id: string }
+        Returns: Json
       }
       get_client: {
         Args: { p_client_id: string }
@@ -1547,6 +1587,10 @@ export type Database = {
         }[]
       }
       get_dashboard_metrics: { Args: { p_period?: string }; Returns: Json }
+      get_fiscal_quarter_data: {
+        Args: { p_quarter: number; p_year: number }
+        Returns: Json
+      }
       get_invoice: {
         Args: { p_invoice_id: string }
         Returns: {
@@ -3265,6 +3309,33 @@ export type Database = {
           payment_id: string
         }[]
       }
+      payroll_calculate_partner_compensation: {
+        Args: {
+          p_base_amount: number
+          p_dry_run?: boolean
+          p_irpf_rate?: number
+          p_month: number
+          p_partner_id: string
+          p_year: number
+        }
+        Returns: Json
+      }
+      payroll_calculate_with_ss: {
+        Args: {
+          p_dry_run?: boolean
+          p_employee_id: string
+          p_gross_salary: number
+          p_irpf_rate?: number
+          p_month: number
+          p_ss_base?: number
+          p_year: number
+        }
+        Returns: Json
+      }
+      payroll_get_partner_compensation_basis: {
+        Args: { p_month: number; p_year: number }
+        Returns: Json
+      }
       post_partner_compensation_run: {
         Args: { p_compensation_run_id: string }
         Returns: {
@@ -4291,4 +4362,3 @@ export const Constants = {
     },
   },
 } as const
-

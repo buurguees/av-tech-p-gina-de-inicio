@@ -61,7 +61,7 @@ const PayrollCalculatorPanel = ({ partnerId, partnerName, onCompensationCreated 
     setPnlBasis(null);
     setCalculation(null);
     try {
-      const { data, error } = await supabase.rpc("payroll_get_partner_compensation_basis", {
+      const { data, error } = await (supabase.rpc as any)("payroll_get_partner_compensation_basis", {
         p_year: year,
         p_month: month,
       });
@@ -82,7 +82,7 @@ const PayrollCalculatorPanel = ({ partnerId, partnerName, onCompensationCreated 
     setLoadingCalc(true);
     setCalculation(null);
     try {
-      const { data, error } = await supabase.rpc("payroll_calculate_partner_compensation", {
+      const { data, error } = await (supabase.rpc as any)("payroll_calculate_partner_compensation", {
         p_partner_id: partnerId,
         p_year: year,
         p_month: month,
@@ -103,7 +103,7 @@ const PayrollCalculatorPanel = ({ partnerId, partnerName, onCompensationCreated 
     if (!baseAmount || parseFloat(baseAmount) <= 0) return;
     setCreating(true);
     try {
-      const { data, error } = await supabase.rpc("payroll_calculate_partner_compensation", {
+      const { data, error } = await (supabase.rpc as any)("payroll_calculate_partner_compensation", {
         p_partner_id: partnerId,
         p_year: year,
         p_month: month,
