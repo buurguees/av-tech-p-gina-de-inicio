@@ -220,6 +220,7 @@ const MobileScannerDetailPage = () => {
         p_project_id: selectedProjectId || null,
         p_file_path: document.file_path,
         p_file_name: document.file_name,
+        p_site_id: null,
       });
 
       if (invoiceError) throw invoiceError;

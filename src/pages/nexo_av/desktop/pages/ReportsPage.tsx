@@ -19,7 +19,7 @@ function fmtDate(d: string | null): string {
 }
 
 async function generateQuarterExcel(year: number, quarter: number) {
-  const { data, error } = await supabase.rpc("get_fiscal_quarter_data", {
+  const { data, error } = await (supabase.rpc as any)("get_fiscal_quarter_data", {
     p_year: year,
     p_quarter: quarter,
   });

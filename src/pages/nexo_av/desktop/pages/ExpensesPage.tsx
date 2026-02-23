@@ -181,7 +181,8 @@ const ExpensesPageDesktop = () => {
             p_document_type: 'EXPENSE',
             p_status: 'PENDING',
             p_file_path: newFilePath,
-            p_file_name: newFileName
+            p_file_name: newFileName,
+            p_site_id: null,
           });
 
           if (dbError) {
@@ -214,7 +215,8 @@ const ExpensesPageDesktop = () => {
           p_document_type: 'EXPENSE',
           p_status: 'PENDING',
           p_file_path: filePath,
-          p_file_name: fileName
+          p_file_name: fileName,
+          p_site_id: null,
         });
 
         if (dbError) {
@@ -269,6 +271,7 @@ const ExpensesPageDesktop = () => {
         p_status: "PENDING",
         p_file_path: uploadRetryPending.filePath,
         p_file_name: uploadRetryPending.fileName,
+        p_site_id: null,
       });
       if (dbError) throw dbError;
       setUploadRetryPending(null);

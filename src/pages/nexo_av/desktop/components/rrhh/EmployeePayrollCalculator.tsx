@@ -72,7 +72,7 @@ const EmployeePayrollCalculator = ({
     setLoading(true);
     setResult(null);
     try {
-      const { data, error } = await supabase.rpc("payroll_calculate_with_ss", {
+      const { data, error } = await (supabase.rpc as any)("payroll_calculate_with_ss", {
         p_employee_id: employeeId,
         p_year: year,
         p_month: month,
@@ -95,7 +95,7 @@ const EmployeePayrollCalculator = ({
     if (!salary || salary <= 0) return;
     setCreating(true);
     try {
-      const { data, error } = await supabase.rpc("payroll_calculate_with_ss", {
+      const { data, error } = await (supabase.rpc as any)("payroll_calculate_with_ss", {
         p_employee_id: employeeId,
         p_year: year,
         p_month: month,

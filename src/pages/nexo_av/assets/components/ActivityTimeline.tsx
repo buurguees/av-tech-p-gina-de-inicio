@@ -97,7 +97,7 @@ export const ActivityTimeline = ({ entityType, entityId, compact = false }: Acti
       const rpcName = entityType === "project" ? "list_project_activity" : "list_quote_activity";
       const paramName = entityType === "project" ? "p_project_id" : "p_quote_id";
 
-      const { data, error } = await supabase.rpc(rpcName, {
+      const { data, error } = await (supabase.rpc as any)(rpcName, {
         [paramName]: entityId,
         p_limit: 50,
       });
@@ -124,7 +124,7 @@ export const ActivityTimeline = ({ entityType, entityId, compact = false }: Acti
       const rpcName = entityType === "project" ? "add_project_note" : "add_quote_note";
       const paramName = entityType === "project" ? "p_project_id" : "p_quote_id";
 
-      const { error } = await supabase.rpc(rpcName, {
+      const { error } = await (supabase.rpc as any)(rpcName, {
         [paramName]: entityId,
         p_content: content,
       });

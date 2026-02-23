@@ -449,6 +449,7 @@ const ScannerDetailPage = () => {
         p_file_name: document.file_name,
         p_status: "PENDING_VALIDATION",
         p_document_type: isTicket ? "EXPENSE" : "INVOICE",
+        p_site_id: null,
       });
       
       if (invoiceError) throw invoiceError;

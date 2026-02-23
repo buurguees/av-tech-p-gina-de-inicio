@@ -142,8 +142,9 @@ export default function CreateRectificativaDialog({
         p_line_ids: type === "PARTIAL" ? Array.from(selectedLineIds) : null,
       });
       if (error) throw error;
-      const rectificativaId = data?.id ?? data?.[0]?.id;
-      const rectificativaNumber = data?.invoice_number ?? data?.[0]?.invoice_number ?? "";
+      const result = data as any;
+      const rectificativaId = result?.rectificativa_id ?? result?.[0]?.rectificativa_id;
+      const rectificativaNumber = result?.rectificativa_number ?? result?.[0]?.rectificativa_number ?? "";
       if (!rectificativaId) {
         throw new Error("La respuesta del servidor no incluyó el ID de la factura rectificativa.");
       }
