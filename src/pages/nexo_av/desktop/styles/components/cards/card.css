@@ -4,43 +4,53 @@
    ============================================ */
 
 body.nexo-av-theme .card,
-body.nexo-av-theme [class*="rounded-xl"][class*="border"] {
+body.nexo-av-theme [class*="rounded-xl"][class*="border"],
+body.nexo-av-theme-dark .card,
+body.nexo-av-theme-dark [class*="rounded-xl"][class*="border"] {
   background-color: hsl(var(--card)) !important;
   border: 1px solid hsl(var(--border)) !important;
   box-shadow: var(--shadow-xs) !important;
   border-radius: 8px !important;
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease;
 }
 
 body.nexo-av-theme .card:hover,
-body.nexo-av-theme [class*="hover:bg-card/80"]:hover {
+body.nexo-av-theme [class*="hover:bg-card/80"]:hover,
+body.nexo-av-theme-dark .card:hover {
   box-shadow: var(--shadow-sm) !important;
 }
 
 body.nexo-av-theme .card-content,
-body.nexo-av-theme [class*="CardContent"] {
+body.nexo-av-theme [class*="CardContent"],
+body.nexo-av-theme-dark .card-content,
+body.nexo-av-theme-dark [class*="CardContent"] {
   padding: 0.875rem !important;
 }
 
 /* Stat card values - escala proporcional */
-body.nexo-av-theme .card [class*="text-2xl"] {
+body.nexo-av-theme .card [class*="text-2xl"],
+body.nexo-av-theme-dark .card [class*="text-2xl"] {
   font-size: clamp(1rem, 0.85rem + 0.5vw, 1.25rem) !important;
   font-weight: 700 !important;
   color: hsl(var(--foreground)) !important;
 }
 
 /* Stat card amounts */
-body.nexo-av-theme .card [class*="text-sm"][class*="mt-1"] {
+body.nexo-av-theme .card [class*="text-sm"][class*="mt-1"],
+body.nexo-av-theme-dark .card [class*="text-sm"][class*="mt-1"] {
   font-size: 0.75rem !important;
   font-weight: 500 !important;
 }
 
 /* Card icon backgrounds */
-body.nexo-av-theme .card [class*="p-3"][class*="rounded-xl"] {
+body.nexo-av-theme .card [class*="p-3"][class*="rounded-xl"],
+body.nexo-av-theme-dark .card [class*="p-3"][class*="rounded-xl"] {
   padding: 0.5rem !important;
   border-radius: 6px !important;
 }
 
-body.nexo-av-theme .card [class*="p-3"] svg {
+body.nexo-av-theme .card [class*="p-3"] svg,
+body.nexo-av-theme-dark .card [class*="p-3"] svg {
   width: 1rem !important;
   height: 1rem !important;
 }

@@ -62,7 +62,7 @@ interface Folder {
 const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
+  const [openFolderId, setOpenFolderId] = useState<string | null>(null);
 
   const availableModules = modules.filter(m => m.available);
   const isAdmin = userRole === 'admin' || modules.some(m => m.id === 'settings' && m.available);
@@ -302,35 +302,17 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
   };
 
   /**
-   * Toggle de apertura/cierre de carpeta
+   * Toggle de apertura/cierre de carpeta (Modo Acordeón)
    */
   const toggleFolder = (folderId: string) => {
-    setOpenFolders(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(folderId)) {
-        newSet.delete(folderId);
-      } else {
-        newSet.add(folderId);
-      }
-      return newSet;
-    });
+    setOpenFolderId(prev => (prev === folderId ? null : folderId));
   };
 
-  // Auto-abrir carpetas si alguna de sus rutas está activa
+  // Auto-abrir carpeta activa (Modo Acordeón)
   useEffect(() => {
-    const foldersToOpen = new Set<string>();
-    [...folders, ...adminFolders].forEach(folder => {
-      if (isFolderActive(folder)) {
-        foldersToOpen.add(folder.id);
-      }
-    });
-
-    if (foldersToOpen.size > 0) {
-      setOpenFolders(prev => {
-        const newSet = new Set(prev);
-        foldersToOpen.forEach(id => newSet.add(id));
-        return newSet;
-      });
+    const activeFolder = [...folders, ...adminFolders].find(folder => isFolderActive(folder));
+    if (activeFolder) {
+      setOpenFolderId(activeFolder.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, userId]);
@@ -361,7 +343,7 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
             const hasAvailableItems = folder.items.some(item => item.available);
             if (!hasAvailableItems) return null;
 
-            const isOpen = openFolders.has(folder.id);
+            const isOpen = openFolderId === folder.id;
             const folderActive = isFolderActive(folder);
             const FolderIcon = folder.icon;
 
@@ -484,7 +466,7 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                 const hasAvailableItems = folder.items.some(item => item.available);
                 if (!hasAvailableItems) return null;
 
-                const isOpen = openFolders.has(folder.id);
+                const isOpen = openFolderId === folder.id;
                 const folderActive = isFolderActive(folder);
                 const FolderIcon = folder.icon;
 

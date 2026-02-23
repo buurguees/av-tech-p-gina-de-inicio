@@ -119,13 +119,13 @@ const FinancingPageDesktop = () => {
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case "ACTIVE":
-        return "bg-emerald-500/20 text-emerald-400 border-emerald-500/40";
+        return "bg-emerald-500/10 text-emerald-500 border-emerald-500/30";
       case "COMPLETED":
-        return "bg-zinc-500/20 text-zinc-300 border-zinc-500/40";
+        return "bg-status-neutral-bg text-status-neutral border-border";
       case "DEFAULT":
-        return "bg-red-500/20 text-red-400 border-red-500/40";
+        return "bg-status-error-bg text-status-error border-status-error/30";
       default:
-        return "bg-zinc-500/20 text-zinc-400 border-zinc-500/40";
+        return "bg-status-neutral-bg text-status-neutral border-border";
     }
   };
 
@@ -135,30 +135,30 @@ const FinancingPageDesktop = () => {
         <div className="flex flex-col h-full overflow-hidden">
           {/* Summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 flex-shrink-0">
-            <div className="border rounded-lg p-2 flex flex-col justify-between bg-zinc-900/50 border-white/10">
+            <div className="border rounded-lg p-2 flex flex-col justify-between bg-card/50 border-border">
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-emerald-500/10 rounded text-emerald-500">
                   <FileText className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-white/60 text-[9px] px-1.5 py-0.5 font-medium">Operaciones</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Operaciones</span>
               </div>
-              <span className="text-base font-bold text-white">{operations.length}</span>
+              <span className="text-base font-bold text-foreground">{operations.length}</span>
             </div>
-            <div className="border rounded-lg p-2 flex flex-col justify-between bg-zinc-900/50 border-white/10">
+            <div className="border rounded-lg p-2 flex flex-col justify-between bg-card/50 border-border">
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-amber-500/10 rounded text-amber-500">
                   <TrendingUp className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-white/60 text-[9px] px-1.5 py-0.5 font-medium">Pendiente</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Pendiente</span>
               </div>
-              <span className="text-base font-bold text-white">{formatCurrency(totalPending)}</span>
+              <span className="text-base font-bold text-foreground">{formatCurrency(totalPending)}</span>
             </div>
-            <div className="border rounded-lg p-2 flex flex-col justify-between bg-zinc-900/50 border-white/10">
+            <div className="border rounded-lg p-2 flex flex-col justify-between bg-card/50 border-border">
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-red-500/10 rounded text-red-500">
                   <AlertCircle className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-white/60 text-[9px] px-1.5 py-0.5 font-medium">Vencidas</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Vencidas</span>
               </div>
               <span className="text-base font-bold text-red-500">{overdueCount}</span>
             </div>

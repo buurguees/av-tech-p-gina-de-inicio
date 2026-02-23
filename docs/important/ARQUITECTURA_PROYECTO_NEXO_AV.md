@@ -21,11 +21,10 @@
 11. [ERP Desktop — Páginas](#11--erp-desktop--páginas)
 12. [ERP Desktop — Componentes](#12--erp-desktop--componentes)
 13. [ERP Móvil](#13--erp-móvil)
-14. [Módulo AI](#14--módulo-ai)
-15. [Recursos Compartidos](#15--recursos-compartidos)
-16. [Sistema de Estilos CSS](#16--sistema-de-estilos-css)
-17. [Flujos de Datos Principales](#17--flujos-de-datos-principales)
-18. [Mapa de RPCs por Módulo](#18--mapa-de-rpcs-por-módulo)
+14. [Recursos Compartidos](#14--recursos-compartidos)
+15. [Sistema de Estilos CSS](#15--sistema-de-estilos-css)
+16. [Flujos de Datos Principales](#16--flujos-de-datos-principales)
+17. [Mapa de RPCs por Módulo](#17--mapa-de-rpcs-por-módulo)
 
 ---
 
@@ -52,7 +51,7 @@ El proyecto contiene **dos aplicaciones** en un mismo repositorio:
 | **Animaciones** | framer-motion |
 | **Analytics** | Firebase (solo GA4) |
 | **PWA** | vite-plugin-pwa + Workbox |
-| **AI** | Ollama (qwen2.5:3b) via worker externo + Edge Functions |
+| **Hosting** | Firebase Hosting |
 
 ---
 
@@ -151,7 +150,7 @@ src/
         │       ├── InvoicePDFDocument.tsx
         │       └── QuotePDFDocument.tsx
         ├── utils/
-        │   ├── archiveDocument.ts     # Archivado PDF → MinIO
+        │   ├── archiveDocument.ts     # Archivado PDF → Supabase Storage
         │   └── parseDecimalInput.ts   # Parser numérico
         │
         ├── desktop/                   # ── ERP DESKTOP ──
@@ -211,29 +210,6 @@ src/
         │   │   └── MobileNotFound.tsx
         │   └── styles/
         │
-        └── ai/                        # ── MÓDULO AI ──
-            ├── desktop/
-            │   ├── AIChatPage.tsx      # Página principal chat
-            │   └── components/
-            │       ├── ChatPanel.tsx
-            │       ├── ConversationList.tsx
-            │       ├── MessageBubble.tsx
-            │       ├── ModeSelector.tsx
-            │       ├── NewConversationDialog.tsx
-            │       └── GroupAgentSettingsDialog.tsx
-            ├── logic/
-            │   ├── aiProxy.ts          # Cliente Edge Function AI
-            │   ├── constants.ts        # Modos AI
-            │   ├── types.ts            # Tipos AI
-            │   └── hooks/
-            │       ├── useConversations.ts
-            │       ├── useMessages.ts
-            │       ├── useSendMessage.ts
-            │       ├── useRequestStatus.ts
-            │       └── useGroupAgentSettings.ts
-            └── docs/
-                ├── api-reference.md
-                └── architecture.md
 ```
 
 ---
@@ -301,8 +277,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
 Tipos auto-generados con `supabase gen types`:
 
-- **Schema `public`:** 3 tablas (`minio_files`, `scanned_documents`, `user_roles`)
-- **266 funciones RPC** tipadas (catálogo, clientes, proyectos, presupuestos, facturas, contabilidad, nóminas, AI, tareas, etc.)
+- **Schema `public`:** 2 tablas (`scanned_documents`, `user_roles`)
+- **266 funciones RPC** tipadas (catálogo, clientes, proyectos, presupuestos, facturas, contabilidad, nóminas, tareas, etc.)
 - **Enums:** `app_role` (admin, comercial, tecnico, manager), `product_type` (product, service)
 - **Helpers:** `Tables<T>`, `TablesInsert<T>`, `TablesUpdate<T>`
 
@@ -507,7 +483,6 @@ Todas bajo `ResponsiveLayout` → elige `NexoAvLayout` (desktop) o `NexoAvMobile
 | `calculator` | CalculatorPage | — | Herramientas |
 | `developer` | DeveloperPage | — | Dev |
 | `reimbursements` | PendingReimbursementsPage | — | Contabilidad |
-| `ai/chat` | AIChatPage | — | AI |
 
 ---
 
@@ -522,7 +497,6 @@ Todas bajo `ResponsiveLayout` → elige `NexoAvLayout` (desktop) o `NexoAvMobile
 │ SIDEBAR  │         <Outlet />                    │
 │          │    (contenido de cada página)          │
 │ Dashboard│                                       │
-│ AI Chat  │                                       │
 │ ──────── │                                       │
 │ VENTAS   │                                       │
 │  Presupu │                                       │
@@ -647,7 +621,7 @@ Componente de pestañas con icono opcional. Usado en páginas con múltiples sec
 | **StatusSelector** | Dropdown de cambio de estado | Recibe `statusOptions`, `onStatusChange` |
 | **PaymentsTab** | Pestaña de pagos genérica | Recibe RPCs por props (`fetchPaymentsRpc`, `deletePaymentRpc`) |
 | **DocumentPDFViewer** | Preview PDF dinámico (@react-pdf) | Recibe `document` (ReactElement) |
-| **ArchivedPDFViewer** | Muestra PDF archivado desde MinIO | Recibe `storageKey`, llama Edge Function `minio-proxy` |
+| **ArchivedPDFViewer** | Muestra PDF archivado | Recibe `storageKey`, carga desde Supabase Storage |
 | **ProductSearchInput** | Búsqueda de catálogo con dropdown | RPC `list_catalog_products_search`, callback `onSelectItem` |
 | **LockedIndicator** | Badge "Bloqueado" | Recibe `isLocked` |
 | **UserAvatar** | Avatar con menú (perfil, tema, logout) | Llama `supabase.auth`, Edge Function `admin-users` |
@@ -702,7 +676,7 @@ Cada dashboard llama RPCs específicas (dashboard KPIs, revenue, invoices, proje
 | `leadmap/` | LeadMap, CanvassingMapSidebar, CanvassingTool | RPCs de canvassing |
 | `settings/` | CompanyDataTab, PreferencesTab, TaxesTab, ProductCategoriesTab, PayrollSettingsTab, ExternalCreditProvidersTab, TemplatesTab | get/update company settings/preferences |
 | `rrhh/` | CreatePartnerPayrollDialog, RegisterPartnerPayrollPaymentDialog, PartnerCard | post_partner_compensation_run, create_payroll_payment |
-| `developer/` | BatchArchiver | backfill_list_invoices_to_migrate, minio-proxy |
+| `developer/` | BatchArchiver | backfill_list_invoices_to_migrate |
 
 ---
 
@@ -755,62 +729,13 @@ Mismo flujo de arranque que desktop: sesión → usuario → tema → inactivity
 
 - `EditProjectForm` — Usado en desktop (diálogo) y móvil (sheet)
 - `ActivityTimeline` — Usado en ambas versiones de detalle
-- `archiveDocument.ts` — Archivado a MinIO desde ambas versiones
+- `archiveDocument.ts` — Archivado a Supabase Storage desde ambas versiones
 - `parseDecimalInput.ts` — Parser numérico compartido
 - Plantillas PDF (`InvoicePDFDocument`, `QuotePDFDocument`) — Compartidas
 
 ---
 
-## 14 — Módulo AI
-
-### Arquitectura
-
-```
-AIChatPage.tsx (orquestador)
-├── ConversationList (lista conversaciones)
-│   └── NewConversationDialog
-├── ChatPanel (área de mensajes)
-│   ├── ModeSelector (departamento)
-│   └── MessageBubble[] (mensajes)
-├── GroupAgentSettingsDialog (config admin)
-│
-├── Hooks (logic/hooks/)
-│   ├── useConversations → RPCs: ai_list_conversations, ai_list_department_conversations
-│   ├── useMessages → RPC: ai_list_messages (o similar)
-│   ├── useSendMessage → RPCs: ai_add_user_message, ai_create_chat_request
-│   ├── useRequestStatus → Polling de estado (queued/processing/done/error)
-│   └── useGroupAgentSettings → aiProxy (Edge Function ai-settings-proxy)
-│
-└── aiProxy.ts → fetch a /functions/v1/ai-settings-proxy (JWT)
-```
-
-### Flujo de mensaje
-
-1. Usuario escribe mensaje → `useSendMessage.send()`
-2. `ai_add_user_message` RPC guarda en BD
-3. `ai_create_chat_request` RPC crea request con processor `alb357`
-4. Worker externo (Docker, Ollama qwen2.5:3b) procesa la cola
-5. `useRequestStatus` hace polling hasta `done` o `error`
-6. `useMessages` recarga para mostrar respuesta
-
-### Modos de conversación
-
-- `general` — Sin scope específico
-- `administration`, `commercial`, `marketing`, `programming` — Por departamento
-
----
-
-## 15 — Recursos Compartidos
-
-### `archiveDocument.ts` — Archivado inmutable
-
-```
-ReactElement (PDF) → @react-pdf/renderer.pdf() → base64 → Edge Function minio-proxy
-                                                            (action: archive_document)
-                                                            → MinIO bucket → storage_key en DB
-```
-
-Usado cuando un documento se emite/envía para crear una copia inmutable del PDF.
+## 14 — Recursos Compartidos
 
 ### `parseDecimalInput.ts` — Parser numérico
 
@@ -899,7 +824,6 @@ NewQuotePage
       ↓
 QuoteDetailPage
   └── update_quote (status: SENT) → trigger genera número definitivo
-  └── archiveDocument() → MinIO (storage_key)
       ↓
   └── create_invoice_from_quote (RPC) → genera factura DRAFT
       ↓
@@ -907,7 +831,6 @@ InvoiceDetailPage
   └── finance_issue_invoice (RPC) → status: ISSUED
       → trigger: auto_create_invoice_sale_entry (asiento contable)
       → trigger: lock_invoice_on_issue (inmutabilidad)
-      → archiveDocument() → MinIO
       ↓
   └── PaymentsTab → RegisterPaymentDialog
       → finance_register_payment (RPC)
@@ -953,22 +876,6 @@ ResponsiveLayout
               └── Widgets con RPCs (revenue, invoices, projects, tasks...)
 ```
 
-### Flujo: Archivado fiscal (MinIO)
-
-```
-Documento emitido (factura, presupuesto, compra)
-  └── archiveDocument(reactPdfElement, storageKey, sourceTable, sourceId)
-      └── @react-pdf/renderer.pdf().toBlob() → base64
-      └── supabase.functions.invoke('minio-proxy', {
-            action: 'archive_document',
-            key: 'fiscal/ventas/2026/T1/F-26-000001.pdf',
-            content_base64: '...',
-            source_table: 'sales.invoices',
-            source_id: 'uuid'
-          })
-      └── Edge Function → MinIO PUT → minio_files INSERT → storage_key UPDATE
-```
-
 ---
 
 ## 18 — Mapa de RPCs por Módulo
@@ -1012,9 +919,6 @@ Documento emitido (factura, presupuesto, compra)
 ### Auditoría
 `audit_get_stats`, `audit_list_events`
 
-### AI
-`ai_list_conversations`, `ai_list_department_conversations`, `ai_add_user_message`, `ai_create_chat_request`, `ai_delete_conversation`
-
 ### Empresa / Config
 `get_company_settings`, `get_company_preferences`, `upsert_company_preferences`, `list_taxes`, `update_tax`, `delete_tax`
 
@@ -1026,15 +930,10 @@ Documento emitido (factura, presupuesto, compra)
 
 ### Edge Functions (no RPC)
 - `send-contact-form` — Formulario de contacto web pública
-- `minio-proxy` — Archivado fiscal (archive_document, get_presigned_url_by_key)
 - `admin-users` — Gestión de usuarios (crear, actualizar, roles)
 - `send-otp` — Envío de código OTP
 - `send-user-invitation` — Invitaciones
 - `rate-limit` — Control de intentos de login
-- `ai-settings-proxy` — Configuración AI
-- `ai-chat-processor` — Procesador de chat (template v1)
-- `monthly-report-worker` — Generación de informes mensuales
-- `storage-health` — Health check de MinIO
 
 ---
 

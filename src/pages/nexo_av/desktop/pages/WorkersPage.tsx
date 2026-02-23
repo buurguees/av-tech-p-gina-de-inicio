@@ -44,7 +44,7 @@ function WorkerCard({ worker, onClick }: { worker: Worker; onClick: () => void }
     .slice(0, 2)
     .toUpperCase();
 
-  const typeConfig = worker.worker_type 
+  const typeConfig = worker.worker_type
     ? workerTypeConfig[worker.worker_type as keyof typeof workerTypeConfig]
     : null;
 
@@ -70,15 +70,15 @@ function WorkerCard({ worker, onClick }: { worker: Worker; onClick: () => void }
                 </Badge>
               )}
             </div>
-            
+
             <p className="text-sm text-muted-foreground truncate">{worker.email}</p>
-            
+
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               <Badge variant="outline" className="text-xs">
                 <Building2 className="w-3 h-3 mr-1" />
                 {departmentLabels[worker.department] || worker.department}
               </Badge>
-              
+
               {worker.job_position && (
                 <Badge variant="outline" className="text-xs">
                   <Briefcase className="w-3 h-3 mr-1" />
@@ -112,7 +112,7 @@ function WorkerCard({ worker, onClick }: { worker: Worker; onClick: () => void }
 export default function WorkersPage() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  
+
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -137,7 +137,7 @@ export default function WorkersPage() {
   const filteredWorkers = useMemo(() => {
     // Filtrar trabajadores: excluir los que están asociados a socios (tienen linked_partner_id)
     const workersWithoutPartners = workers.filter((w) => !w.linked_partner_id);
-    
+
     if (!searchTerm) return workersWithoutPartners;
     const term = searchTerm.toLowerCase();
     return workersWithoutPartners.filter(
@@ -167,7 +167,7 @@ export default function WorkersPage() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col p-6 gap-6 overflow-y-auto">
+    <div className="w-full h-full flex flex-col overflow-hidden p-6 gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -235,22 +235,24 @@ export default function WorkersPage() {
       </div>
 
       {/* Workers Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filteredWorkers.map((worker) => (
-          <WorkerCard
-            key={worker.id}
-            worker={worker}
-            onClick={() => navigate(`/nexo-av/${userId}/workers/${worker.id}`)}
-          />
-        ))}
-      </div>
-
-      {filteredWorkers.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-          <Users className="w-12 h-12 mb-4 opacity-50" />
-          <p>No se encontraron trabajadores</p>
+      <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {filteredWorkers.map((worker) => (
+            <WorkerCard
+              key={worker.id}
+              worker={worker}
+              onClick={() => navigate(`/nexo-av/${userId}/workers/${worker.id}`)}
+            />
+          ))}
         </div>
-      )}
+
+        {filteredWorkers.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <Users className="w-12 h-12 mb-4 opacity-50" />
+            <p>No se encontraron trabajadores</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { FileText, Edit, Trash2, Loader2, Copy } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../components/common/PaginationControls";
 import { useDebounce } from "@/hooks/useDebounce";
-import { cn } from "@/lib/utils";
+import { cn, toNumber } from "@/lib/utils";
 import { getStatusInfo } from "@/constants/quoteStatuses";
 import SearchBar from "../components/common/SearchBar";
 import {
@@ -38,6 +38,7 @@ interface Quote {
   tax_amount: number;
   total: number;
   valid_until: string | null;
+  issue_date: string | null;
   created_by: string | null;
   created_by_name: string | null;
   created_at: string;
@@ -239,8 +240,8 @@ const QuotesPageDesktop = () => {
       <div className="w-full h-full flex flex-col overflow-hidden">
         <div className="flex flex-col h-full overflow-hidden">
           {/* Stats Cards - Clickable Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 flex-shrink-0">
-            <div 
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 flex-shrink-0">
+            <div
               className={cn(
                 "border rounded-lg p-2 cursor-pointer transition-all",
                 !statusFilter
@@ -250,41 +251,63 @@ const QuotesPageDesktop = () => {
               onClick={() => setStatusFilter(null)}
             >
               <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-orange-500/10 rounded text-orange-500 text-[10px] font-bold uppercase tracking-wider">
-                  Pipeline Activo
+                <div className="p-1 bg-blue-500/10 rounded text-blue-500 text-[10px] font-bold uppercase tracking-wider">
+                  Enviados
                 </div>
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-bold text-foreground">
-                  {quotes.filter(q => q.status === 'SENT' || q.status === 'VIEWED' || q.status === 'PENDING').length}
+                  {quotes.filter(q => q.status === 'SENT').length}
                 </span>
-                <span className="text-[10px] text-muted-foreground">presupuestos activos</span>
+                <span className="text-[10px] text-muted-foreground">pendientes de respuesta</span>
               </div>
             </div>
 
-            <div 
+            <div
               className={cn(
                 "border rounded-lg p-2 cursor-pointer transition-all",
-                statusFilter === 'ACCEPTED'
+                statusFilter === 'APPROVED'
                   ? "bg-card/50 border-green-500/30 ring-1 ring-green-500/20"
                   : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
               )}
-              onClick={() => setStatusFilter(statusFilter === 'ACCEPTED' ? null : 'ACCEPTED')}
+              onClick={() => setStatusFilter(statusFilter === 'APPROVED' ? null : 'APPROVED')}
             >
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-green-500/10 rounded text-green-500 text-[10px] font-bold uppercase tracking-wider">
-                  Aceptados
+                  Aprobados
                 </div>
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-bold text-foreground">
-                  {quotes.filter(q => q.status === 'ACCEPTED').length}
+                  {quotes.filter(q => q.status === 'APPROVED').length}
                 </span>
                 <span className="text-[10px] text-muted-foreground">presupuestos</span>
               </div>
             </div>
 
-            <div 
+            <div
+              className={cn(
+                "border rounded-lg p-2 cursor-pointer transition-all",
+                statusFilter === 'EXPIRED'
+                  ? "bg-card/50 border-amber-500/30 ring-1 ring-amber-500/20"
+                  : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
+              )}
+              onClick={() => setStatusFilter(statusFilter === 'EXPIRED' ? null : 'EXPIRED')}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-amber-500/10 rounded text-amber-500 text-[10px] font-bold uppercase tracking-wider">
+                  Vencidos
+                </div>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-base font-bold text-foreground">
+                  {quotes.filter(q => q.status === 'EXPIRED').length}
+                </span>
+                <span className="text-[10px] text-muted-foreground">presupuestos</span>
+              </div>
+            </div>
+
+            <div
               className={cn(
                 "border rounded-lg p-2 cursor-pointer transition-all",
                 statusFilter === 'DRAFT'
@@ -342,197 +365,210 @@ const QuotesPageDesktop = () => {
           </div>
 
           {/* DataList */}
-          <div className="flex-1 min-h-0 overflow-hidden">
-          <DataList
-            data={paginatedQuotes}
-            columns={[
-              {
-                key: "quote_number",
-                label: "Nº",
-                sortable: true,
-                align: "left",
-                priority: 1,
-                render: (quote) => (
-                  <span className="text-foreground/80">
-                    {quote.quote_number}
-                  </span>
-                ),
-              },
-              {
-                key: "project_name",
-                label: "Proyecto",
-                sortable: true,
-                align: "left",
-                priority: 3,
-                render: (quote) => (
-                  <span className="text-foreground truncate block">
-                    {quote.project_name || "-"}
-                  </span>
-                ),
-              },
-              {
-                key: "client_name",
-                label: "Cliente",
-                sortable: true,
-                align: "left",
-                priority: 5,
-                render: (quote) => (
-                  <span className="text-foreground/80">
-                    {quote.client_name || "-"}
-                  </span>
-                ),
-              },
-              {
-                key: "project_client_order_number",
-                label: "Nº Pedido",
-                sortable: true,
-                align: "left",
-                priority: 7,
-                render: (quote) => (
-                  <span className="text-muted-foreground">
-                    {quote.project_client_order_number || "-"}
-                  </span>
-                ),
-              },
-              {
-                key: "status",
-                label: "Estado",
-                align: "center",
-                priority: 2,
-                render: (quote) => {
-                  const statusInfo = getStatusInfo(quote.status);
-                  return (
-                    <div className="flex justify-center">
-                      <Badge variant="outline" className={cn(statusInfo.className, "border text-[11px] px-1.5 py-0.5 w-20 justify-center")}>
-                        {statusInfo.label}
-                      </Badge>
-                    </div>
-                  );
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+            <DataList
+              data={paginatedQuotes}
+              columns={[
+                {
+                  key: "quote_number",
+                  label: "Nº",
+                  sortable: true,
+                  align: "left",
+                  priority: 1,
+                  render: (quote) => (
+                    <span className="text-foreground/80">
+                      {quote.quote_number}
+                    </span>
+                  ),
                 },
-              },
-              {
-                key: "created_at",
-                label: "F. Emisión",
-                sortable: true,
-                align: "left",
-                priority: 6,
-                render: (quote) => (
-                  <span className="text-muted-foreground">
-                    {quote.created_at 
-                      ? new Date(quote.created_at).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })
-                      : '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "valid_until",
-                label: "Vencimiento",
-                sortable: true,
-                align: "left",
-                priority: 7,
-                render: (quote) => (
-                  <span className="text-muted-foreground">
-                    {quote.valid_until 
-                      ? new Date(quote.valid_until).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })
-                      : '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "subtotal",
-                label: "Presupuesto",
-                sortable: true,
-                align: "right",
-                priority: 5,
-                render: (quote) => (
-                  <span className="text-foreground">
-                    {formatCurrency(quote.subtotal)}
-                  </span>
-                ),
-              },
-              {
-                key: "total",
-                label: "Total",
-                sortable: true,
-                align: "right",
-                priority: 4,
-                render: (quote) => (
-                  <span className="text-foreground">
-                    {formatCurrency(quote.total)}
-                  </span>
-                ),
-              },
-            ]}
-            actions={[
-              {
-                label: "Editar",
-                icon: <Edit className="mr-2 h-4 w-4" />,
-                onClick: (quote) => navigate(`/nexo-av/${userId}/quotes/${quote.id}/edit`),
-                condition: (quote) => quote.status === "DRAFT",
-              },
-              {
-                label: "Nueva Versión",
-                icon: <Copy className="mr-2 h-4 w-4" />,
-                onClick: (quote) => navigate(`/nexo-av/${userId}/quotes/new?sourceQuoteId=${quote.id}`),
-              },
-              {
-                label: "Eliminar",
-                icon: <Trash2 className="mr-2 h-4 w-4" />,
-                variant: "destructive",
-                onClick: (quote) => {
-                  if (quote.status !== "DRAFT") {
-                    toast({
-                      title: "Error",
-                      description: "Solo se pueden eliminar presupuestos en estado borrador",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-                  setQuoteToDelete(quote);
-                  setDeleteDialogOpen(true);
+                {
+                  key: "project_name",
+                  label: "Proyecto",
+                  sortable: true,
+                  align: "left",
+                  priority: 3,
+                  render: (quote) => (
+                    <span className="text-foreground truncate block">
+                      {quote.project_name || "-"}
+                    </span>
+                  ),
                 },
-                condition: (quote) => quote.status === "DRAFT",
-              },
-            ]}
-            onItemClick={(quote) => navigate(`/nexo-av/${userId}/quotes/${quote.id}`)}
-            sortColumn={sortColumn}
-            sortDirection={sortDirection}
-            onSort={handleSort}
-            loading={loading}
-            emptyMessage="No hay presupuestos"
-            emptyIcon={<FileText className="h-16 w-16 text-muted-foreground" />}
-            getItemId={(quote) => quote.id}
-            footerCells={[
-              { key: "quote_number", value: <span className="text-muted-foreground text-xs uppercase">Totales ({quotes.length})</span>, align: "left" },
-              { key: "subtotal", value: <span>{formatCurrency(quotes.reduce((s, q) => s + (q.subtotal || 0), 0))}</span>, align: "right" },
-              { key: "total", value: <span>{formatCurrency(quotes.reduce((s, q) => s + (q.total || 0), 0))}</span>, align: "right" },
-            ]}
-          />
+                {
+                  key: "client_name",
+                  label: "Cliente",
+                  sortable: true,
+                  align: "left",
+                  priority: 5,
+                  render: (quote) => (
+                    <span className="text-foreground/80">
+                      {quote.client_name || "-"}
+                    </span>
+                  ),
+                },
+                {
+                  key: "project_client_order_number",
+                  label: "Nº Pedido",
+                  sortable: true,
+                  align: "left",
+                  priority: 7,
+                  render: (quote) => (
+                    <span className="text-muted-foreground">
+                      {quote.project_client_order_number || "-"}
+                    </span>
+                  ),
+                },
+                {
+                  key: "status",
+                  label: "Estado",
+                  align: "center",
+                  priority: 2,
+                  render: (quote) => {
+                    const statusInfo = getStatusInfo(quote.status);
+                    return (
+                      <div className="flex justify-center">
+                        <Badge variant="outline" className={cn(statusInfo.className, "border text-[11px] px-1.5 py-0.5 w-20 justify-center")}>
+                          {statusInfo.label}
+                        </Badge>
+                      </div>
+                    );
+                  },
+                },
+                {
+                  key: "issue_date",
+                  label: "F. Emisión",
+                  sortable: true,
+                  align: "left",
+                  priority: 6,
+                  render: (quote) => {
+                    const dateToShow = quote.issue_date || quote.created_at;
+                    return (
+                      <span className="text-muted-foreground">
+                        {dateToShow
+                          ? new Date(dateToShow).toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          })
+                          : '-'}
+                      </span>
+                    );
+                  },
+                },
+                {
+                  key: "valid_until",
+                  label: "Vencimiento",
+                  sortable: true,
+                  align: "left",
+                  priority: 7,
+                  render: (quote) => {
+                    const isExpired = quote.valid_until && new Date(quote.valid_until) < new Date() && quote.status === 'SENT';
+                    const isAlreadyExpired = quote.status === 'EXPIRED';
+                    return (
+                      <span className={cn(
+                        "text-muted-foreground",
+                        (isExpired || isAlreadyExpired) && "text-amber-500 font-medium"
+                      )}>
+                        {quote.valid_until
+                          ? new Date(quote.valid_until).toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          })
+                          : '-'}
+                      </span>
+                    );
+                  },
+                },
+                {
+                  key: "subtotal",
+                  label: "Presupuesto",
+                  sortable: true,
+                  align: "right",
+                  priority: 5,
+                  render: (quote) => (
+                    <span className="text-foreground">
+                      {formatCurrency(quote.subtotal)}
+                    </span>
+                  ),
+                },
+                {
+                  key: "total",
+                  label: "Total",
+                  sortable: true,
+                  align: "right",
+                  priority: 4,
+                  render: (quote) => (
+                    <span className="text-foreground">
+                      {formatCurrency(quote.total)}
+                    </span>
+                  ),
+                },
+              ]}
+              actions={[
+                {
+                  label: "Editar",
+                  icon: <Edit className="mr-2 h-4 w-4" />,
+                  onClick: (quote) => navigate(`/nexo-av/${userId}/quotes/${quote.id}/edit`),
+                  condition: (quote) => quote.status === "DRAFT",
+                },
+                {
+                  label: "Nueva Versión",
+                  icon: <Copy className="mr-2 h-4 w-4" />,
+                  onClick: (quote) => navigate(`/nexo-av/${userId}/quotes/new?sourceQuoteId=${quote.id}`),
+                },
+                {
+                  label: "Eliminar",
+                  icon: <Trash2 className="mr-2 h-4 w-4" />,
+                  variant: "destructive",
+                  onClick: (quote) => {
+                    if (quote.status !== "DRAFT") {
+                      toast({
+                        title: "Error",
+                        description: "Solo se pueden eliminar presupuestos en estado borrador",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    setQuoteToDelete(quote);
+                    setDeleteDialogOpen(true);
+                  },
+                  condition: (quote) => quote.status === "DRAFT",
+                },
+              ]}
+              onItemClick={(quote) => navigate(`/nexo-av/${userId}/quotes/${quote.id}`)}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+              loading={loading}
+              emptyMessage="No hay presupuestos"
+              emptyIcon={<FileText className="h-16 w-16 text-muted-foreground" />}
+              getItemId={(quote) => quote.id}
+              footerCells={(() => {
+                const sent = quotes.filter(q => q.status === 'SENT');
+                return [
+                  { key: "quote_number", value: <span className="text-muted-foreground text-xs uppercase">Emitidos ({sent.length})</span>, align: "left" as const },
+                  { key: "subtotal", value: <span>{formatCurrency(sent.reduce((s, q) => s + toNumber(q.subtotal), 0))}</span>, align: "right" as const },
+                  { key: "total", value: <span>{formatCurrency(sent.reduce((s, q) => s + toNumber(q.total), 0))}</span>, align: "right" as const },
+                ];
+              })()}
+            />
           </div>
 
           {/* Paginación */}
           {!loading && quotes.length > 0 && totalPages > 1 && (
             <div className="flex-shrink-0 mt-4">
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              startIndex={startIndex}
-              endIndex={endIndex}
-              totalItems={totalItems}
-              canGoPrev={canGoPrev}
-              canGoNext={canGoNext}
-              onPrevPage={prevPage}
-              onNextPage={nextPage}
-              onGoToPage={goToPage}
-            />
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                startIndex={startIndex}
+                endIndex={endIndex}
+                totalItems={totalItems}
+                canGoPrev={canGoPrev}
+                canGoNext={canGoNext}
+                onPrevPage={prevPage}
+                onNextPage={nextPage}
+                onGoToPage={goToPage}
+              />
             </div>
           )}
         </div>

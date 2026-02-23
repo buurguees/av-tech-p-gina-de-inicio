@@ -1,12 +1,11 @@
 /**
  * Finance Invoice status constants (Enterprise)
  * 
- * Simplified: Only 3 document statuses.
- * Payment status and overdue are calculated, not stored.
- * 
  * Traffic Light System (uses global.css status classes):
  * - status-neutral: DRAFT
  * - status-info: ISSUED
+ * - status-success: PAID
+ * - status-warning: PARTIAL, OVERDUE
  * - status-error: CANCELLED
  */
 
@@ -28,19 +27,43 @@ export const FINANCE_INVOICE_STATUSES = [
     priority: 1
   },
   { 
+    value: "PARTIAL", 
+    label: "Parcial", 
+    color: "status-warning",
+    className: "status-warning",
+    description: "Pago parcial recibido",
+    priority: 2
+  },
+  { 
+    value: "PAID", 
+    label: "Cobrada", 
+    color: "status-success",
+    className: "status-success",
+    description: "Totalmente cobrada",
+    priority: 3
+  },
+  { 
+    value: "OVERDUE", 
+    label: "Vencida", 
+    color: "status-warning",
+    className: "status-warning",
+    description: "Fecha de vencimiento superada",
+    priority: 4
+  },
+  { 
     value: "CANCELLED", 
     label: "Anulada", 
     color: "status-error",
     className: "status-error",
     description: "Anulada",
-    priority: 2
+    priority: 5
   },
 ];
 
 /**
  * Invoice states that prevent editing
  */
-export const LOCKED_FINANCE_INVOICE_STATES = ["ISSUED", "CANCELLED"];
+export const LOCKED_FINANCE_INVOICE_STATES = ["ISSUED", "PARTIAL", "PAID", "OVERDUE", "CANCELLED"];
 
 /**
  * Payment methods

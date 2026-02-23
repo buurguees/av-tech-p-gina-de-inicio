@@ -65,181 +65,24 @@ import TaxPaymentDialog from "../components/accounting/TaxPaymentDialog";
 import ManualMovementDialog from "../components/accounting/ManualMovementDialog";
 import BankDetailView from "../components/accounting/BankDetailView";
 
-interface BalanceSheetItem {
-  account_code: string;
-  account_name: string;
-  account_type: string;
-  debit_balance: number;
-  credit_balance: number;
-  net_balance: number;
-}
-
-interface ProfitLossItem {
-  account_code: string;
-  account_name: string;
-  account_type: string;
-  amount: number;
-}
-
-interface ClientBalance {
-  client_id: string;
-  client_number: string;
-  client_name: string;
-  debit_balance: number;
-  credit_balance: number;
-  net_balance: number;
-}
-
-interface SupplierTechnicianBalance {
-  third_party_id: string;
-  third_party_type: string;
-  third_party_number: string;
-  third_party_name: string;
-  account_code: string;
-  debit_balance: number;
-  credit_balance: number;
-  net_balance: number;
-}
-
-interface VATSummary {
-  vat_received: number;
-  vat_paid: number;
-  vat_balance: number;
-  vat_to_pay: number;
-}
-
-interface CorporateTaxSummary {
-  profit_before_tax: number;
-  tax_rate: number;
-  tax_amount: number;
-  provision_entry_id: string | null;
-  provision_entry_number: string | null;
-  provision_date: string | null;
-}
-
-interface PeriodForClosure {
-  year: number;
-  month: number;
-  period_start: string;
-  period_end: string;
-  is_closed: boolean;
-  closed_at: string | null;
-}
-
-interface JournalEntry {
-  id: string;
-  entry_number: string;
-  entry_date: string;
-  entry_type: string;
-  description: string;
-  reference_id: string | null;
-  reference_type: string | null;
-  project_id: string | null;
-  project_name: string | null;
-  is_locked: boolean;
-  created_by_name: string | null;
-  created_at: string;
-  total_debit: number;
-  total_credit: number;
-}
-
-interface ChartOfAccount {
-  account_code: string;
-  account_name: string;
-  account_type: string;
-  is_active: boolean;
-  description: string | null;
-}
-
-interface PayrollRun {
-  id: string;
-  payroll_number: string;
-  period_year: number;
-  period_month: number;
-  employee_id: string;
-  employee_number: string;
-  employee_name: string;
-  gross_amount: number;
-  irpf_rate: number;
-  irpf_amount: number;
-  net_amount: number;
-  status: string;
-  journal_entry_id: string | null;
-  journal_entry_number: string | null;
-  created_at: string;
-}
-
-interface PartnerCompensationRun {
-  id: string;
-  compensation_number: string;
-  period_year: number;
-  period_month: number;
-  partner_id: string;
-  partner_number: string;
-  partner_name: string;
-  gross_amount: number;
-  irpf_rate: number;
-  irpf_amount: number;
-  net_amount: number;
-  status: string;
-  journal_entry_id: string | null;
-  journal_entry_number: string | null;
-  created_at: string;
-}
-
-interface PayrollPayment {
-  id: string;
-  payment_number: string;
-  payment_date: string;
-  amount: number;
-  payment_method: string;
-  bank_reference: string | null;
-  payroll_run_id: string | null;
-  payroll_number: string | null;
-  partner_compensation_run_id: string | null;
-  compensation_number: string | null;
-  journal_entry_id: string | null;
-  journal_entry_number: string | null;
-  created_at: string;
-  bank_name: string | null;
-}
-
-interface IRPFByPeriod {
-  period_year: number;
-  period_month: number;
-  total_irpf: number;
-  payroll_count: number;
-  compensation_count: number;
-}
-
-interface IRPFByPerson {
-  person_type: string;
-  person_id: string;
-  person_number: string;
-  person_name: string;
-  total_irpf: number;
-  total_gross: number;
-  total_net: number;
-  document_count: number;
-}
-
-interface IRPFModel111Summary {
-  total_irpf_accumulated: number;
-  total_payroll_irpf: number;
-  total_compensation_irpf: number;
-  total_documents: number;
-  total_employees: number;
-  total_partners: number;
-}
-
-interface CompanyBankAccount {
-  id: string;
-  holder: string;
-  bank: string;
-  iban: string;
-  notes: string;
-  accounting_code?: string; // Código contable 572xxx - necesario para list_bank_account_movements
-}
+import type {
+  BalanceSheetItem,
+  ProfitLossItem,
+  ClientBalance,
+  SupplierTechnicianBalance,
+  VATSummary,
+  CorporateTaxSummary,
+  PeriodForClosure,
+  JournalEntry,
+  ChartOfAccount,
+  PayrollRun,
+  PartnerCompensationRun,
+  PayrollPayment,
+  IRPFByPeriod,
+  IRPFByPerson,
+  IRPFModel111Summary,
+  CompanyBankAccount,
+} from "../types/accounting";
 
 const AccountingPage = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -348,11 +191,9 @@ const AccountingPage = () => {
     .filter((item) => item.account_code.startsWith("572"))
     .reduce((sum, item) => sum + (item.net_balance || 0), 0);
   const clientsPending = clientBalances.reduce((sum, c) => sum + Math.max(0, c.net_balance), 0);
+  // suppliersPending ya incluye proveedores Y técnicos (get_supplier_technician_balances)
   const suppliersPending = supplierBalances.reduce((sum, s) => sum + Math.max(0, Math.abs(s.net_balance)), 0);
-  const techniciansPending = supplierBalances
-    .filter(s => s.third_party_type === "TECHNICIAN")
-    .reduce((sum, t) => sum + Math.max(0, Math.abs(t.net_balance)), 0);
-  const availableCash = bankBalance - suppliersPending - techniciansPending;
+  const availableCash = bankBalance - suppliersPending;
 
   const fetchBalanceSheet = async () => {
     setLoading(true);
@@ -1633,19 +1474,19 @@ const AccountingPage = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Margen bruto:</span>
+                  <span className="text-sm text-muted-foreground">Margen operativo (BAI/Ingresos):</span>
                   <span className="font-semibold">
                     {totalRevenue > 0 ? `${((profitBeforeTax / totalRevenue) * 100).toFixed(1)}%` : "0%"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Margen neto:</span>
+                  <span className="text-sm text-muted-foreground">Margen neto (Beneficio/Ingresos):</span>
                   <span className="font-semibold">
                     {totalRevenue > 0 ? `${((netProfit / totalRevenue) * 100).toFixed(1)}%` : "0%"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">ROI estimado:</span>
+                  <span className="text-sm text-muted-foreground">Rentab. sobre gastos (Beneficio/Gastos):</span>
                   <span className={`font-semibold ${netProfit >= 0 ? "text-green-600" : "text-red-600"}`}>
                     {totalExpenses > 0 ? `${((netProfit / totalExpenses) * 100).toFixed(1)}%` : "0%"}
                   </span>
@@ -1654,9 +1495,16 @@ const AccountingPage = () => {
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Ratio Ingresos/Gastos:</span>
                     <span className="font-bold">
-                      {totalExpenses > 0 ? (totalRevenue / totalExpenses).toFixed(2) : "0.00"}
+                      {totalExpenses > 0 ? (totalRevenue / totalExpenses).toFixed(2) : "—"}
                     </span>
                   </div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    {totalExpenses > 0 && totalRevenue >= totalExpenses
+                      ? ">1 = ingresos cubren gastos"
+                      : totalExpenses > 0
+                        ? "<1 = gastos superan ingresos"
+                        : ""}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -2176,7 +2024,14 @@ const AccountingPage = () => {
                         const isActionLoading = periodActionLoading === key;
                         return (
                           <TableRow key={key}>
-                            <TableCell className="font-medium">{monthNameCapitalized}</TableCell>
+                            <TableCell className="font-medium">
+                              <button
+                                className="text-left hover:text-primary hover:underline transition-colors cursor-pointer"
+                                onClick={() => navigate(`/nexo-av/${userId}/accounting/pyg/${p.year}/${p.month}`)}
+                              >
+                                {monthNameCapitalized}
+                              </button>
+                            </TableCell>
                             <TableCell className="text-muted-foreground text-sm">
                               {format(new Date(p.period_start), "dd/MM/yyyy", { locale: es })} – {format(new Date(p.period_end), "dd/MM/yyyy", { locale: es })}
                             </TableCell>
@@ -2198,7 +2053,15 @@ const AccountingPage = () => {
                                 </Badge>
                               )}
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-right flex items-center justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => navigate(`/nexo-av/${userId}/accounting/pyg/${p.year}/${p.month}`)}
+                              >
+                                <Eye className="h-3.5 w-3.5 mr-1" />
+                                Ver detalle
+                              </Button>
                               {p.is_closed ? (
                                 <Button
                                   variant="outline"

@@ -146,7 +146,7 @@ const TasksPage = () => {
   );
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col overflow-hidden">
       <DetailNavigationBar pageTitle="Tareas" contextInfo={`${tasks.length} tareas`} tools={<Filters />} />
 
       <div className="flex-1 overflow-y-auto p-4">

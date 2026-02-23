@@ -102,7 +102,7 @@ const ProjectsPageDesktop = () => {
       });
 
       // Obtener presupuestos (quotes) asignados a proyectos usando RPC
-      const { data: quotesData, error: quotesError } = await supabase.rpc('list_quotes', { 
+      const { data: quotesData, error: quotesError } = await supabase.rpc('list_quotes', {
         p_search: null,
         p_status: null
       });
@@ -112,13 +112,13 @@ const ProjectsPageDesktop = () => {
       }
 
       // Calcular presupuestos totales y medios de proyectos (usando subtotales)
-      const projectQuotes = (quotesData || []).filter((quote: any) => 
+      const projectQuotes = (quotesData || []).filter((quote: any) =>
         quote.project_id && quote.status !== 'REJECTED' && quote.status !== 'EXPIRED'
       );
       const totalQuotesValue = projectQuotes.reduce((sum: number, quote: any) => sum + (quote.subtotal || 0), 0);
       const projectsWithQuotes = new Set(projectQuotes.map((q: any) => q.project_id));
-      const avgQuoteValue = projectsWithQuotes.size > 0 
-        ? totalQuotesValue / projectsWithQuotes.size 
+      const avgQuoteValue = projectsWithQuotes.size > 0
+        ? totalQuotesValue / projectsWithQuotes.size
         : 0;
 
       // Obtener facturas de venta relacionadas con proyectos usando RPC
@@ -132,11 +132,11 @@ const ProjectsPageDesktop = () => {
       }
 
       // Calcular facturación total de proyectos (solo facturas con project_id asignado, usando subtotales)
-      const projectInvoices = (invoicesData || []).filter((inv: any) => 
+      const projectInvoices = (invoicesData || []).filter((inv: any) =>
         inv.project_id && inv.status !== 'CANCELLED' && inv.status !== 'DRAFT'
       );
       const totalRevenue = projectInvoices.reduce((sum: number, inv: any) => sum + (inv.subtotal || 0), 0);
-      
+
       // Calcular total facturado por proyecto
       const totalsMap = new Map<string, number>();
       projectInvoices.forEach((inv: any) => {
@@ -165,11 +165,11 @@ const ProjectsPageDesktop = () => {
 
       // Calcular costes totales de proyectos (solo facturas de compra con project_id asignado, usando tax_base/subtotal)
       // Incluir REGISTERED, APPROVED y PAID - excluir PENDING y CANCELLED
-      const projectPurchaseInvoices = (purchaseInvoicesData || []).filter((inv: any) => 
+      const projectPurchaseInvoices = (purchaseInvoicesData || []).filter((inv: any) =>
         inv.project_id && (inv.status === 'REGISTERED' || inv.status === 'APPROVED' || inv.status === 'PAID')
       );
       const totalCosts = projectPurchaseInvoices.reduce((sum: number, inv: any) => sum + (inv.tax_base || 0), 0);
-      
+
       // Calcular gastos por proyecto
       const expensesMap = new Map<string, number>();
       projectPurchaseInvoices.forEach((inv: any) => {
@@ -210,8 +210,8 @@ const ProjectsPageDesktop = () => {
 
       // Valor medio de proyecto (facturación media por proyecto con facturas)
       const projectsWithInvoices = new Set(projectInvoices.map((inv: any) => inv.project_id));
-      const avgProjectValue = projectsWithInvoices.size > 0 
-        ? totalRevenue / projectsWithInvoices.size 
+      const avgProjectValue = projectsWithInvoices.size > 0
+        ? totalRevenue / projectsWithInvoices.size
         : 0;
 
       // Calcular media de rentabilidad de los proyectos
@@ -256,7 +256,7 @@ const ProjectsPageDesktop = () => {
     try {
       setLoadingProfitability(true);
       const profitabilityMap = new Map<string, number>();
-      
+
       // Fetch profitability for all projects in parallel (batches of 5 to avoid overwhelming the server)
       const batchSize = 5;
       for (let i = 0; i < projectIds.length; i += batchSize) {
@@ -266,12 +266,12 @@ const ProjectsPageDesktop = () => {
             const { data: financialData, error: financialError } = await supabase.rpc('get_project_financial_stats', {
               p_project_id: projectId
             });
-            
+
             if (financialError) {
               // Silently skip errors for individual projects
               return { projectId, margin: null };
             }
-            
+
             if (financialData && Array.isArray(financialData) && financialData.length > 0) {
               const stats = financialData[0];
               // Mostrar rentabilidad si hay facturación O gastos
@@ -292,20 +292,20 @@ const ProjectsPageDesktop = () => {
             return { projectId, margin: null };
           }
         });
-        
+
         const results = await Promise.all(promises);
         results.forEach(({ projectId, margin }) => {
           if (margin !== null && margin !== undefined) {
             profitabilityMap.set(projectId, margin);
           }
         });
-        
+
         // Small delay between batches to avoid overwhelming the server
         if (i + batchSize < projectIds.length) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
-      
+
       setProjectProfitability(profitabilityMap);
     } catch (err) {
       console.error('Error fetching project profitability:', err);
@@ -445,7 +445,7 @@ const ProjectsPageDesktop = () => {
                   </div>
                   <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['CANCELLED'] || 0}</span>
                 </div>
-                
+
                 {/* Métricas financieras */}
                 <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
                   <div className="flex items-center gap-1.5">
@@ -521,219 +521,219 @@ const ProjectsPageDesktop = () => {
               </div>
 
               {/* DataList */}
-              <div className="flex-1 min-h-0 overflow-hidden">
-              <DataList
-                data={paginatedProjects}
-            columns={[
-              {
-                key: "project_number",
-                label: "Nº",
-                sortable: true,
-                align: "left",
-                priority: 1,
-                render: (project) => (
-                  <span className="text-foreground/80">
-                    {project.project_number}
-                  </span>
-                ),
-              },
-              {
-                key: "project_name",
-                label: "Proyecto",
-                sortable: true,
-                align: "left",
-                priority: 3,
-                render: (project) => (
-                  <span className="text-foreground truncate block">
-                    {project.project_name}
-                  </span>
-                ),
-              },
-              {
-                key: "client_name",
-                label: "Cliente",
-                sortable: true,
-                align: "left",
-                priority: 5,
-                render: (project) => (
-                  <span className="text-foreground/80">
-                    {project.client_name || '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "client_order_number",
-                label: "Nº Pedido",
-                sortable: true,
-                align: "left",
-                priority: 7,
-                render: (project) => (
-                  <span className="text-muted-foreground">
-                    {project.client_order_number || '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "status",
-                label: "Estado",
-                sortable: true,
-                align: "center",
-                priority: 2,
-                render: (project) => {
-                  const statusInfo = getProjectStatusInfo(project.status);
-                  return (
-                    <div className="flex justify-center">
-                      <Badge variant="outline" className={cn(statusInfo.className, "text-[11px] px-1.5 py-0.5 w-20 justify-center")}>
-                        {statusInfo.label}
-                      </Badge>
-                    </div>
-                  );
-                },
-              },
-              {
-                key: "project_city",
-                label: "Ciudad",
-                sortable: true,
-                align: "left",
-                priority: 8,
-                render: (project) => (
-                  <span className="text-muted-foreground">
-                    {project.project_city || '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "local_name",
-                label: "Local",
-                align: "left",
-                render: (project) => (
-                  <span className="text-muted-foreground">
-                    {project.local_name || '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "assigned_to_name",
-                label: "Asignado",
-                align: "left",
-                priority: 6,
-                render: (project) => (
-                  <span className="text-muted-foreground">
-                    {project.assigned_to_name || <span className="text-muted-foreground/50">Sin asignar</span>}
-                  </span>
-                ),
-              },
-              {
-                key: "budget",
-                label: "Presupuesto",
-                sortable: true,
-                align: "right",
-                priority: 5,
-                render: (project) => (
-                  <span className="text-foreground">
-                    {formatCurrency(project.budget || 0)}
-                  </span>
-                ),
-              },
-              {
-                key: "expenses",
-                label: "Gastos",
-                sortable: true,
-                align: "right",
-                priority: 4,
-                render: (project) => {
-                  const expenses = projectExpenses.get(project.id) || 0;
-                  return (
-                    <span className="text-foreground">
-                      {formatCurrency(expenses)}
-                    </span>
-                  );
-                },
-              },
-              {
-                key: "total",
-                label: "Total",
-                sortable: true,
-                align: "right",
-                priority: 4,
-                render: (project) => {
-                  const total = projectTotals.get(project.id) || 0;
-                  return (
-                    <span className="text-foreground">
-                      {formatCurrency(total)}
-                    </span>
-                  );
-                },
-              },
-              {
-                key: "profitability",
-                label: "Rentabilidad",
-                align: "right",
-                priority: 3,
-                render: (project) => {
-                  if (loadingProfitability) {
-                    return <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />;
-                  }
-                  if (projectProfitability.has(project.id)) {
-                    const margin = projectProfitability.get(project.id)!;
-                    const profitClass = margin >= 25 
-                      ? "profit-high"
-                      : margin >= 20
-                      ? "profit-medium"
-                      : "profit-low";
-                    return (
-                      <Badge 
-                        variant="outline" 
-                        className={cn(profitClass, "text-[11px] px-1.5 py-0.5")}
-                      >
-                        {margin.toFixed(1)}%
-                      </Badge>
-                    );
-                  }
-                  return <span className="text-muted-foreground">-</span>;
-                },
-              },
-                ]}
-                actions={[
-                  {
-                    label: "Ver detalle",
-                    onClick: (project) => handleProjectClick(project.id),
-                  },
-                  {
-                    label: "Editar",
-                    onClick: () => {},
-                  },
-                  {
-                    label: "Duplicar",
-                    onClick: () => {},
-                  },
-                ]}
-                onItemClick={(project) => handleProjectClick(project.id)}
-                sortColumn={sortColumn}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-                loading={loading}
-                emptyMessage="No hay proyectos"
-                emptyIcon={<FolderKanban className="h-16 w-16 text-muted-foreground" />}
-                getItemId={(project) => project.id}
-              />
+              <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+                <DataList
+                  data={paginatedProjects}
+                  columns={[
+                    {
+                      key: "project_number",
+                      label: "Nº",
+                      sortable: true,
+                      align: "left",
+                      priority: 1,
+                      render: (project) => (
+                        <span className="text-foreground/80">
+                          {project.project_number}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "project_name",
+                      label: "Proyecto",
+                      sortable: true,
+                      align: "left",
+                      priority: 3,
+                      render: (project) => (
+                        <span className="text-foreground truncate block">
+                          {project.project_name}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "client_name",
+                      label: "Cliente",
+                      sortable: true,
+                      align: "left",
+                      priority: 5,
+                      render: (project) => (
+                        <span className="text-foreground/80">
+                          {project.client_name || '-'}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "client_order_number",
+                      label: "Nº Pedido",
+                      sortable: true,
+                      align: "left",
+                      priority: 7,
+                      render: (project) => (
+                        <span className="text-muted-foreground">
+                          {project.client_order_number || '-'}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "status",
+                      label: "Estado",
+                      sortable: true,
+                      align: "center",
+                      priority: 2,
+                      render: (project) => {
+                        const statusInfo = getProjectStatusInfo(project.status);
+                        return (
+                          <div className="flex justify-center">
+                            <Badge variant="outline" className={cn(statusInfo.className, "text-[11px] px-1.5 py-0.5 w-20 justify-center")}>
+                              {statusInfo.label}
+                            </Badge>
+                          </div>
+                        );
+                      },
+                    },
+                    {
+                      key: "project_city",
+                      label: "Ciudad",
+                      sortable: true,
+                      align: "left",
+                      priority: 8,
+                      render: (project) => (
+                        <span className="text-muted-foreground">
+                          {project.project_city || '-'}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "local_name",
+                      label: "Local",
+                      align: "left",
+                      render: (project) => (
+                        <span className="text-muted-foreground">
+                          {project.local_name || '-'}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "assigned_to_name",
+                      label: "Asignado",
+                      align: "left",
+                      priority: 6,
+                      render: (project) => (
+                        <span className="text-muted-foreground">
+                          {project.assigned_to_name || <span className="text-muted-foreground/50">Sin asignar</span>}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "budget",
+                      label: "Presupuesto",
+                      sortable: true,
+                      align: "right",
+                      priority: 5,
+                      render: (project) => (
+                        <span className="text-foreground">
+                          {formatCurrency(project.budget || 0)}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "expenses",
+                      label: "Gastos",
+                      sortable: true,
+                      align: "right",
+                      priority: 4,
+                      render: (project) => {
+                        const expenses = projectExpenses.get(project.id) || 0;
+                        return (
+                          <span className="text-foreground">
+                            {formatCurrency(expenses)}
+                          </span>
+                        );
+                      },
+                    },
+                    {
+                      key: "total",
+                      label: "Total",
+                      sortable: true,
+                      align: "right",
+                      priority: 4,
+                      render: (project) => {
+                        const total = projectTotals.get(project.id) || 0;
+                        return (
+                          <span className="text-foreground">
+                            {formatCurrency(total)}
+                          </span>
+                        );
+                      },
+                    },
+                    {
+                      key: "profitability",
+                      label: "Rentabilidad",
+                      align: "right",
+                      priority: 3,
+                      render: (project) => {
+                        if (loadingProfitability) {
+                          return <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />;
+                        }
+                        if (projectProfitability.has(project.id)) {
+                          const margin = projectProfitability.get(project.id)!;
+                          const profitClass = margin >= 25
+                            ? "profit-high"
+                            : margin >= 20
+                              ? "profit-medium"
+                              : "profit-low";
+                          return (
+                            <Badge
+                              variant="outline"
+                              className={cn(profitClass, "text-[11px] px-1.5 py-0.5")}
+                            >
+                              {margin.toFixed(1)}%
+                            </Badge>
+                          );
+                        }
+                        return <span className="text-muted-foreground">-</span>;
+                      },
+                    },
+                  ]}
+                  actions={[
+                    {
+                      label: "Ver detalle",
+                      onClick: (project) => handleProjectClick(project.id),
+                    },
+                    {
+                      label: "Editar",
+                      onClick: () => { },
+                    },
+                    {
+                      label: "Duplicar",
+                      onClick: () => { },
+                    },
+                  ]}
+                  onItemClick={(project) => handleProjectClick(project.id)}
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                  loading={loading}
+                  emptyMessage="No hay proyectos"
+                  emptyIcon={<FolderKanban className="h-16 w-16 text-muted-foreground" />}
+                  getItemId={(project) => project.id}
+                />
               </div>
 
               {/* Paginación */}
               {!loading && projects.length > 0 && totalPages > 1 && (
                 <div className="flex-shrink-0 mt-4">
-                <PaginationControls
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  startIndex={startIndex}
-                  endIndex={endIndex}
-                  totalItems={totalItems}
-                  canGoPrev={canGoPrev}
-                  canGoNext={canGoNext}
-                  onPrevPage={prevPage}
-                  onNextPage={nextPage}
-                  onGoToPage={goToPage}
-                />
+                  <PaginationControls
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    startIndex={startIndex}
+                    endIndex={endIndex}
+                    totalItems={totalItems}
+                    canGoPrev={canGoPrev}
+                    canGoNext={canGoNext}
+                    onPrevPage={prevPage}
+                    onNextPage={nextPage}
+                    onGoToPage={goToPage}
+                  />
                 </div>
               )}
             </div>

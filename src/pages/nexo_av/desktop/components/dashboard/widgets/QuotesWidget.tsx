@@ -25,9 +25,8 @@ const QuotesWidget = ({ userId }: { userId: string | undefined }) => {
 
     const fetchQuotes = async () => {
         try {
-            // We want pending quotes that are close to expiration
             const { data, error } = await supabase.rpc('list_quotes', {
-                p_status: 'PENDING',
+                p_status: 'SENT',
                 p_search: null
             });
 

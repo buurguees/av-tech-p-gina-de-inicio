@@ -33,7 +33,7 @@ const StatusSelector = ({
 
   const currentStatusInfo = statusOptions.find(
     (s) => s.value === currentStatus
-  ) || statusOptions[0];
+  ) || statusOptions[0] || { value: currentStatus, label: currentStatus, className: "status-neutral" };
 
   // Cerrar el dropdown cuando hacemos click fuera
   useEffect(() => {

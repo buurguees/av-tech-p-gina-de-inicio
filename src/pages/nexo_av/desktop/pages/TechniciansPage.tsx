@@ -48,15 +48,15 @@ interface Technician {
 }
 
 const TECHNICIAN_TYPES = [
-  { value: 'FREELANCER', label: 'Autónomo', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  { value: 'COMPANY', label: 'Empresa', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
-  { value: 'EMPLOYEE', label: 'Plantilla', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  { value: 'FREELANCER', label: 'Autónomo', color: 'bg-status-info-bg text-status-info border-status-info/20' },
+  { value: 'COMPANY', label: 'Empresa', color: 'bg-status-special-bg text-status-special border-status-special/20' },
+  { value: 'EMPLOYEE', label: 'Plantilla', color: 'bg-status-success-bg text-status-success border-status-success/20' },
 ];
 
 const TECHNICIAN_STATUSES = [
-  { value: 'ACTIVE', label: 'Activo', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'INACTIVE', label: 'Inactivo', color: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
-  { value: 'BLOCKED', label: 'Bloqueado', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+  { value: 'ACTIVE', label: 'Activo', color: 'bg-status-success-bg text-status-success border-status-success/20' },
+  { value: 'INACTIVE', label: 'Inactivo', color: 'bg-status-neutral-bg text-status-neutral border-status-neutral/20' },
+  { value: 'BLOCKED', label: 'Bloqueado', color: 'bg-status-error-bg text-status-error border-status-error/20' },
 ];
 
 const getTypeInfo = (type: string) => {
@@ -90,13 +90,13 @@ const TechniciansPageDesktop = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  
+
   // Delete state
   const [technicianToDelete, setTechnicianToDelete] = useState<Technician | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  
+
   const [technicianKPIs, setTechnicianKPIs] = useState({
     byType: {} as Record<string, number>,
     byStatus: {} as Record<string, number>,
@@ -225,7 +225,7 @@ const TechniciansPageDesktop = () => {
 
   const handleDeleteTechnician = async () => {
     if (!technicianToDelete) return;
-    
+
     try {
       setDeleting(true);
       const { error } = await supabase.rpc("delete_technician", {
@@ -299,23 +299,23 @@ const TechniciansPageDesktop = () => {
         if (!inv.provider_id || inv.provider_type !== 'TECHNICIAN' || !inv.issue_date) return false;
         const invoiceDate = new Date(inv.issue_date);
         return invoiceDate >= firstDayOfMonth && invoiceDate <= lastDayOfMonth &&
-               (inv.status === 'APPROVED' || inv.status === 'PAID' || inv.status === 'REGISTERED');
+          (inv.status === 'APPROVED' || inv.status === 'PAID' || inv.status === 'REGISTERED');
       });
 
       // Separar facturas por tipo de técnico
       const freelancerIds = technicians
         .filter(t => t.type === 'FREELANCER' && t.status === 'ACTIVE')
         .map(t => t.id);
-      
+
       const companyIds = technicians
         .filter(t => t.type === 'COMPANY' && t.status === 'ACTIVE')
         .map(t => t.id);
 
-      const freelancerInvoices = purchaseInvoices?.filter((inv: any) => 
+      const freelancerInvoices = purchaseInvoices?.filter((inv: any) =>
         inv.provider_id && freelancerIds.includes(inv.provider_id)
       ) || [];
-      
-      const companyInvoices = purchaseInvoices?.filter((inv: any) => 
+
+      const companyInvoices = purchaseInvoices?.filter((inv: any) =>
         inv.provider_id && companyIds.includes(inv.provider_id)
       ) || [];
 
@@ -358,8 +358,8 @@ const TechniciansPageDesktop = () => {
   }
 
   return (
-    <div className="w-full h-full p-6">
-      <div className="w-full h-full">
+    <div className="w-full h-full flex flex-col overflow-hidden p-6">
+      <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
         <div>
           {/* KPIs Cards - Recuento por Tipo - Optimizado */}
           <div className="grid grid-cols-3 gap-2 mb-3">
@@ -514,183 +514,185 @@ const TechniciansPageDesktop = () => {
           </div>
 
           {/* DataList */}
-          <DataList
-            data={paginatedTechnicians}
-            columns={[
-              {
-                key: "technician_number",
-                label: "Nº",
-                sortable: true,
-                align: "left",
-                priority: 1,
-                render: (tech) => (
-                  <span className="text-foreground/80 text-[10px]">
-                    {tech.technician_number || '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "company_name",
-                label: "Técnico",
-                sortable: true,
-                align: "left",
-                priority: 3,
-                render: (tech) => (
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-muted/30">
-                      <UserRound className="h-3 w-3 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="text-foreground font-medium text-[10px]">{tech.company_name}</p>
-                      {tech.city && (
-                        <p className="text-muted-foreground text-[9px]">
-                          {tech.city}{tech.province ? `, ${tech.province}` : ''}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ),
-              },
-              {
-                key: "type",
-                label: "Tipo",
-                sortable: true,
-                align: "center",
-                priority: 2,
-                render: (tech) => {
-                  const typeInfo = getTypeInfo(tech.type);
-                  return (
-                    <div className="flex justify-center">
-                      <Badge variant="outline" className={cn(typeInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
-                        {typeInfo.label}
-                      </Badge>
-                    </div>
-                  );
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+            <DataList
+              data={paginatedTechnicians}
+              columns={[
+                {
+                  key: "technician_number",
+                  label: "Nº",
+                  sortable: true,
+                  align: "left",
+                  priority: 1,
+                  render: (tech) => (
+                    <span className="text-foreground/80 text-[10px]">
+                      {tech.technician_number || '-'}
+                    </span>
+                  ),
                 },
-              },
-              {
-                key: "status",
-                label: "Estado",
-                sortable: true,
-                align: "center",
-                priority: 4,
-                render: (tech) => {
-                  const statusInfo = getStatusInfo(tech.status);
-                  return (
-                    <div className="flex justify-center">
-                      <Badge variant="outline" className={cn(statusInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
-                        {statusInfo.label}
-                      </Badge>
+                {
+                  key: "company_name",
+                  label: "Técnico",
+                  sortable: true,
+                  align: "left",
+                  priority: 3,
+                  render: (tech) => (
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-muted/30">
+                        <UserRound className="h-3 w-3 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-foreground font-medium text-[10px]">{tech.company_name}</p>
+                        {tech.city && (
+                          <p className="text-muted-foreground text-[9px]">
+                            {tech.city}{tech.province ? `, ${tech.province}` : ''}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  );
+                  ),
                 },
-              },
-              {
-                key: "specialties",
-                label: "Especialidades",
-                align: "left",
-                priority: 5,
-                render: (tech) => (
-                  <div className="flex flex-wrap gap-1 max-w-[200px]">
-                    {tech.specialties && tech.specialties.length > 0 ? (
-                      tech.specialties.slice(0, 2).map((s, i) => (
-                        <Badge key={i} variant="secondary" className="text-[9px] px-1.5 py-0.5">
-                          {s}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-muted-foreground text-[9px]">—</span>
-                    )}
-                    {tech.specialties && tech.specialties.length > 2 && (
-                      <span className="text-[9px] text-muted-foreground">+{tech.specialties.length - 2}</span>
-                    )}
-                  </div>
-                ),
-              },
-              {
-                key: "rates",
-                label: "Tarifas",
-                align: "right",
-                priority: 6,
-                render: (tech) => {
-                  if (tech.type === "EMPLOYEE" && tech.monthly_salary && tech.monthly_salary > 0) {
+                {
+                  key: "type",
+                  label: "Tipo",
+                  sortable: true,
+                  align: "center",
+                  priority: 2,
+                  render: (tech) => {
+                    const typeInfo = getTypeInfo(tech.type);
                     return (
-                      <span className="text-foreground font-medium text-[10px]">
-                        {formatCurrency(tech.monthly_salary)}/mes
-                      </span>
+                      <div className="flex justify-center">
+                        <Badge variant="outline" className={cn(typeInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                          {typeInfo.label}
+                        </Badge>
+                      </div>
                     );
-                  }
-                  return (
-                    <div className="flex flex-col gap-0.5 items-end">
-                      {tech.daily_rate && tech.daily_rate > 0 && (
-                        <span className="text-[10px] text-foreground font-medium">{formatCurrency(tech.daily_rate)}/día</span>
-                      )}
-                      {tech.hourly_rate && tech.hourly_rate > 0 && (
-                        <span className="text-[9px] text-muted-foreground">{formatCurrency(tech.hourly_rate)}/h</span>
-                      )}
-                      {(!tech.daily_rate || tech.daily_rate === 0) && (!tech.hourly_rate || tech.hourly_rate === 0) && (
+                  },
+                },
+                {
+                  key: "status",
+                  label: "Estado",
+                  sortable: true,
+                  align: "center",
+                  priority: 4,
+                  render: (tech) => {
+                    const statusInfo = getStatusInfo(tech.status);
+                    return (
+                      <div className="flex justify-center">
+                        <Badge variant="outline" className={cn(statusInfo.color, "border text-[9px] px-1.5 py-0.5 w-20 justify-center")}>
+                          {statusInfo.label}
+                        </Badge>
+                      </div>
+                    );
+                  },
+                },
+                {
+                  key: "specialties",
+                  label: "Especialidades",
+                  align: "left",
+                  priority: 5,
+                  render: (tech) => (
+                    <div className="flex flex-wrap gap-1 max-w-[200px]">
+                      {tech.specialties && tech.specialties.length > 0 ? (
+                        tech.specialties.slice(0, 2).map((s, i) => (
+                          <Badge key={i} variant="secondary" className="text-[9px] px-1.5 py-0.5">
+                            {s}
+                          </Badge>
+                        ))
+                      ) : (
                         <span className="text-muted-foreground text-[9px]">—</span>
                       )}
+                      {tech.specialties && tech.specialties.length > 2 && (
+                        <span className="text-[9px] text-muted-foreground">+{tech.specialties.length - 2}</span>
+                      )}
                     </div>
-                  );
+                  ),
                 },
-              },
-              {
-                key: "contact_email",
-                label: "Email",
-                align: "left",
-                priority: 7,
-                render: (tech) => (
-                  <div className="flex items-center gap-1.5 text-muted-foreground text-[9px]">
-                    <Mail className="h-2.5 w-2.5" />
-                    <span className="truncate max-w-[200px]">{tech.contact_email || '-'}</span>
-                  </div>
-                ),
-              },
-              {
-                key: "contact_phone",
-                label: "Teléfono",
-                align: "left",
-                priority: 8,
-                render: (tech) => (
-                  <div className="flex items-center gap-1.5 text-muted-foreground text-[9px]">
-                    <Phone className="h-2.5 w-2.5" />
-                    {tech.contact_phone || '-'}
-                  </div>
-                ),
-              },
-            ]}
-            actions={[
-              {
-                label: "Ver detalle",
-                onClick: (tech) => navigate(`/nexo-av/${userId}/technicians/${tech.id}`),
-              },
-              {
-                label: "Editar",
-                onClick: () => {},
-              },
-              {
-                label: "Duplicar",
-                onClick: () => {},
-              },
-              ...(isAdmin ? [{
-                label: "Eliminar",
-                onClick: (tech: Technician) => {
-                  setTechnicianToDelete(tech);
-                  setDeleteDialogOpen(true);
+                {
+                  key: "rates",
+                  label: "Tarifas",
+                  align: "right",
+                  priority: 6,
+                  render: (tech) => {
+                    if (tech.type === "EMPLOYEE" && tech.monthly_salary && tech.monthly_salary > 0) {
+                      return (
+                        <span className="text-foreground font-medium text-[10px]">
+                          {formatCurrency(tech.monthly_salary)}/mes
+                        </span>
+                      );
+                    }
+                    return (
+                      <div className="flex flex-col gap-0.5 items-end">
+                        {tech.daily_rate && tech.daily_rate > 0 && (
+                          <span className="text-[10px] text-foreground font-medium">{formatCurrency(tech.daily_rate)}/día</span>
+                        )}
+                        {tech.hourly_rate && tech.hourly_rate > 0 && (
+                          <span className="text-[9px] text-muted-foreground">{formatCurrency(tech.hourly_rate)}/h</span>
+                        )}
+                        {(!tech.daily_rate || tech.daily_rate === 0) && (!tech.hourly_rate || tech.hourly_rate === 0) && (
+                          <span className="text-muted-foreground text-[9px]">—</span>
+                        )}
+                      </div>
+                    );
+                  },
                 },
-                variant: "destructive" as const,
-              }] : []),
-            ]}
-            onItemClick={(tech) => navigate(`/nexo-av/${userId}/technicians/${tech.id}`)}
-            sortColumn={sortColumn}
-            sortDirection={sortDirection}
-            onSort={handleSort}
-            loading={loading}
-            emptyMessage="No hay técnicos"
-            emptyIcon={<UserRound className="h-16 w-16 text-muted-foreground" />}
-            getItemId={(tech) => tech.id}
-          />
+                {
+                  key: "contact_email",
+                  label: "Email",
+                  align: "left",
+                  priority: 7,
+                  render: (tech) => (
+                    <div className="flex items-center gap-1.5 text-muted-foreground text-[9px]">
+                      <Mail className="h-2.5 w-2.5" />
+                      <span className="truncate max-w-[200px]">{tech.contact_email || '-'}</span>
+                    </div>
+                  ),
+                },
+                {
+                  key: "contact_phone",
+                  label: "Teléfono",
+                  align: "left",
+                  priority: 8,
+                  render: (tech) => (
+                    <div className="flex items-center gap-1.5 text-muted-foreground text-[9px]">
+                      <Phone className="h-2.5 w-2.5" />
+                      {tech.contact_phone || '-'}
+                    </div>
+                  ),
+                },
+              ]}
+              actions={[
+                {
+                  label: "Ver detalle",
+                  onClick: (tech) => navigate(`/nexo-av/${userId}/technicians/${tech.id}`),
+                },
+                {
+                  label: "Editar",
+                  onClick: () => { },
+                },
+                {
+                  label: "Duplicar",
+                  onClick: () => { },
+                },
+                ...(isAdmin ? [{
+                  label: "Eliminar",
+                  onClick: (tech: Technician) => {
+                    setTechnicianToDelete(tech);
+                    setDeleteDialogOpen(true);
+                  },
+                  variant: "destructive" as const,
+                }] : []),
+              ]}
+              onItemClick={(tech) => navigate(`/nexo-av/${userId}/technicians/${tech.id}`)}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+              loading={loading}
+              emptyMessage="No hay técnicos"
+              emptyIcon={<UserRound className="h-16 w-16 text-muted-foreground" />}
+              getItemId={(tech) => tech.id}
+            />
+          </div>
 
           {/* Paginación */}
           {!loading && technicians.length > 0 && totalPages > 1 && (

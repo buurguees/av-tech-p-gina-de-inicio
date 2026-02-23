@@ -499,11 +499,11 @@ const InvoiceDetailPageDesktop = () => {
   const hasFinalNumber = invoice?.invoice_number && !isPreliminaryNumber;
   const availableTransitions = invoice ? getAvailableStatusTransitions(invoice.status) : [];
   const canChangeStatus = availableTransitions.length > 1;
-  
+
   // Solo Admin puede emitir facturas. Manager y Comercial solo pueden crear/modificar borradores.
   const isAdmin = userRoles.includes('admin');
   const canIssueInvoice = isAdmin;
-  
+
   // Filtrar transiciones según permisos: DRAFT→ISSUED solo si canIssueInvoice
   const filteredTransitions = invoice?.status === "DRAFT" && !canIssueInvoice
     ? availableTransitions.filter(t => t !== "ISSUED")
@@ -535,13 +535,13 @@ const InvoiceDetailPageDesktop = () => {
 
   const statusInfo = getFinanceStatusInfo(invoice.status);
   const displayNumber = hasFinalNumber ? invoice.invoice_number : `(${invoice.preliminary_number || invoice.invoice_number || "Sin número"})`;
-  
+
   // Generar nombre del archivo PDF: "Nombre Empresa - Nº Factura - Nombre Proyecto"
   // Sanitizar el nombre para evitar caracteres problemáticos en nombres de archivo
   const sanitizeFileName = (name: string) => {
     return name.replace(/[<>:"/\\|?*]/g, '').trim();
   };
-  
+
   const companyName = sanitizeFileName(company?.legal_name || company?.commercial_name || 'Empresa');
   const invoiceNumber = invoice.invoice_number || invoice.preliminary_number || 'factura';
   const projectName = project?.project_name || invoice.project_name || '';
@@ -640,7 +640,7 @@ const InvoiceDetailPageDesktop = () => {
           </div>
         }
       />
-      
+
       {/* Banner RECTIFIED */}
       {invoice.status === "RECTIFIED" && (
         <div className="mx-6 mt-2 flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-3">
@@ -660,7 +660,7 @@ const InvoiceDetailPageDesktop = () => {
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />
-          
+
           <div className="flex-1 overflow-auto">
             {activeTab === "resumen" && (
               <div className="w-full h-full px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6">
@@ -670,7 +670,7 @@ const InvoiceDetailPageDesktop = () => {
                   transition={{ duration: 0.5 }}
                 >
                   {/* Desktop Layout: PDF Preview */}
-                  <div className="hidden md:block bg-white/5 border border-white/10 overflow-hidden flex flex-col h-[calc(100vh-180px)]">
+                  <div className="hidden md:block bg-card border border-border overflow-hidden flex flex-col h-[calc(100vh-180px)]">
                     <DocumentPDFViewer
                       document={
                         <InvoicePDFDocument
@@ -758,7 +758,7 @@ const InvoiceDetailPageDesktop = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Estado de la Factura - Solo mostrar transiciones válidas */}
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex flex-col gap-2">
@@ -790,14 +790,14 @@ const InvoiceDetailPageDesktop = () => {
                     <div className="flex items-start gap-2">
                       <FolderKanban className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                         <p className="text-xs text-muted-foreground mb-1">Proyecto</p>
+                        <p className="text-xs text-muted-foreground mb-1">Proyecto</p>
                         <p className="text-sm font-medium">
                           {project?.project_name || invoice?.project_name || "Sin proyecto asignado"}
                           {invoice?.site_name ? ` — ${invoice.site_name}` : ""}
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start gap-2">
                       <User className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
@@ -807,7 +807,7 @@ const InvoiceDetailPageDesktop = () => {
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start gap-2">
                       <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
@@ -817,7 +817,7 @@ const InvoiceDetailPageDesktop = () => {
                         </p>
                       </div>
                     </div>
-                    
+
                     {invoice?.due_date && (
                       <div className="flex items-start gap-2">
                         <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />

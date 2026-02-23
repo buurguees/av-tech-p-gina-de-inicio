@@ -67,29 +67,29 @@ const parseUserAgentShort = (ua: string | null): string => {
 
 const AuditPageDesktop = () => {
   const { userId } = useParams<{ userId: string }>();
-  
+
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
-  
+
   const [events, setEvents] = useState<AuditEvent[]>([]);
   const [stats, setStats] = useState<AuditStats | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [loadingEvents, setLoadingEvents] = useState(false);
-  
+
   // Initialize filters from URL params
   const initialSearch = searchParams.get('search') || "";
   const initialSeverity = searchParams.get('severity') || "all";
-  
+
   const [searchInput, setSearchInput] = useState(initialSearch);
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterSeverity, setFilterSeverity] = useState<string>(initialSeverity);
   const [filterType, setFilterType] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   const debouncedSearch = useDebounce(searchInput, 500);
   const pageSize = 50;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -98,7 +98,7 @@ const AuditPageDesktop = () => {
     const fetchUserInfo = async () => {
       try {
         const { data, error } = await supabase.rpc('get_current_user_info');
-        
+
         if (error || !data || data.length === 0) {
           console.error('Error fetching user info:', error);
           setLoading(false);
@@ -107,10 +107,10 @@ const AuditPageDesktop = () => {
 
         const currentUserInfo = data[0];
         const userIsAdmin = currentUserInfo.roles?.includes('admin') || false;
-        
+
         setIsAdmin(userIsAdmin);
         setLoading(false);
-        
+
         if (userIsAdmin) {
           // Fetch initial data only if admin
           fetchStats();
@@ -153,16 +153,16 @@ const AuditPageDesktop = () => {
         p_limit: pageSize,
         p_offset: (currentPage - 1) * pageSize,
       };
-      
+
       if (debouncedSearch) params.p_search = debouncedSearch;
       if (filterCategory !== "all") params.p_event_category = filterCategory;
       if (filterSeverity !== "all") params.p_severity = filterSeverity;
       if (filterType !== "all") params.p_event_type = filterType;
 
       const { data, error } = await supabase.rpc('audit_list_events' as any, params);
-      
+
       if (error) throw error;
-      
+
       const eventsData = data as AuditEvent[] | null;
       setEvents(eventsData || []);
       if (eventsData && eventsData.length > 0) {
@@ -211,7 +211,7 @@ const AuditPageDesktop = () => {
         <ShieldAlert className="h-16 w-16 text-destructive mx-auto" />
         <h1 className="text-2xl font-bold text-foreground">Acceso Denegado</h1>
         <p className="text-muted-foreground">Solo los administradores pueden acceder al registro de auditoría.</p>
-        <Button 
+        <Button
           onClick={() => navigate(`/nexo-av/${userId}/dashboard`)}
         >
           Volver al inicio
@@ -221,8 +221,8 @@ const AuditPageDesktop = () => {
   }
 
   return (
-    <div className="w-full h-full p-6">
-      <div className="w-full h-full">
+    <div className="w-full h-full flex flex-col overflow-hidden p-6">
+      <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -237,7 +237,7 @@ const AuditPageDesktop = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="border border-border">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
@@ -251,7 +251,7 @@ const AuditPageDesktop = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="border border-border">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
@@ -265,7 +265,7 @@ const AuditPageDesktop = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card className="border border-border">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
@@ -317,7 +317,7 @@ const AuditPageDesktop = () => {
                   className="pl-11"
                 />
               </div>
-              
+
               <Select value={filterCategory} onValueChange={setFilterCategory}>
                 <SelectTrigger>
                   <SelectValue placeholder="Categoría" />
@@ -329,7 +329,7 @@ const AuditPageDesktop = () => {
                   <SelectItem value="auth">Autenticación</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Select value={filterSeverity} onValueChange={setFilterSeverity}>
                 <SelectTrigger>
                   <SelectValue placeholder="Severidad" />
@@ -342,7 +342,7 @@ const AuditPageDesktop = () => {
                   <SelectItem value="critical">Crítico</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger>
                   <SelectValue placeholder="Tipo" />
@@ -384,7 +384,7 @@ const AuditPageDesktop = () => {
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <div className="flex-1 min-h-0 overflow-auto -mx-4 sm:mx-0">
                   <div className="inline-block min-w-full align-middle px-4 sm:px-0">
                     <Table>
                       <TableHeader>
@@ -414,10 +414,10 @@ const AuditPageDesktop = () => {
                           const severityConfig = getSeverityConfig(event.severity);
                           const SeverityIcon = severityConfig.icon;
                           const CategoryIcon = getCategoryIcon(event.event_category);
-                          
+
                           return (
-                            <TableRow 
-                              key={event.id} 
+                            <TableRow
+                              key={event.id}
                               className="cursor-pointer transition-colors hover:bg-secondary/50"
                               onClick={() => navigate(`/nexo-av/${userId}/audit/${event.id}`)}
                             >
@@ -493,7 +493,7 @@ const AuditPageDesktop = () => {
                     </Table>
                   </div>
                 </div>
-                
+
                 <div className="mt-4">
                   <PaginationControls
                     currentPage={currentPage}

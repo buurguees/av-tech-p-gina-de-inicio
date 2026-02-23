@@ -308,7 +308,7 @@ const ClientsPageDesktop = () => {
         if (!inv.issue_date) return false;
         const invoiceDate = new Date(inv.issue_date);
         return invoiceDate >= firstDayOfMonth && invoiceDate <= lastDayOfMonth &&
-               inv.status !== 'CANCELLED' && inv.status !== 'DRAFT';
+          inv.status !== 'CANCELLED' && inv.status !== 'DRAFT';
       });
 
       const monthlyRevenue = monthlyInvoices.reduce((sum: number, inv: any) => sum + (inv.subtotal || 0), 0);
@@ -323,7 +323,7 @@ const ClientsPageDesktop = () => {
       const monthlyWonClients = clients.filter(c => {
         const createdDate = new Date(c.created_at);
         return createdDate >= firstDayOfMonth && createdDate <= lastDayOfMonth &&
-               (c.lead_stage === 'WON' || c.lead_stage === 'RECURRING');
+          (c.lead_stage === 'WON' || c.lead_stage === 'RECURRING');
       }).length;
 
       // Media de facturación por cliente
@@ -333,7 +333,7 @@ const ClientsPageDesktop = () => {
         : 0;
 
       setProjectsByClient(projectsByClientMap);
-      
+
       setClientKPIs({
         byStage,
         avgProjectsPerClient,
@@ -559,149 +559,149 @@ const ClientsPageDesktop = () => {
           </div>
 
           {/* DataList */}
-          <div className="flex-1 min-h-0 overflow-hidden">
-          <DataList
-            data={paginatedClients}
-            columns={[
-              {
-                key: "client_number",
-                label: "Nº",
-                sortable: true,
-                align: "left",
-                priority: 1,
-                render: (client) => (
-                  <span className="text-foreground/80">
-                    {client.client_number || '-'}
-                  </span>
-                ),
-              },
-              {
-                key: "company_name",
-                label: "Empresa",
-                sortable: true,
-                align: "left",
-                priority: 3,
-                render: (client) => (
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="p-2 rounded-lg bg-muted/30 flex-shrink-0">
-                      <Building2 className="h-3 w-3 text-muted-foreground" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-foreground truncate">{client.company_name}</p>
-                      {client.industry_sector && (
-                        <p className="text-muted-foreground text-[10px] truncate">
-                          {client.industry_sector}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ),
-              },
-              {
-                key: "lead_stage",
-                label: "Estado",
-                sortable: true,
-                align: "center",
-                priority: 2,
-                render: (client) => {
-                  const stageInfo = getStageInfo(client.lead_stage);
-                  return (
-                    <div className="flex justify-center">
-                      <Badge variant="outline" className={cn(stageInfo.color, "border text-[11px] px-1.5 py-0.5 w-20 justify-center")}>
-                        {stageInfo.label}
-                      </Badge>
-                    </div>
-                  );
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+            <DataList
+              data={paginatedClients}
+              columns={[
+                {
+                  key: "client_number",
+                  label: "Nº",
+                  sortable: true,
+                  align: "left",
+                  priority: 1,
+                  render: (client) => (
+                    <span className="text-foreground/80">
+                      {client.client_number || '-'}
+                    </span>
+                  ),
                 },
-              },
-              {
-                key: "projects",
-                label: "Proyectos",
-                align: "center",
-                priority: 4,
-                render: (client) => (
-                  <span className="text-foreground">
-                    {projectsByClient.get(client.id) || 0}
-                  </span>
-                ),
-              },
-              {
-                key: "contact_email",
-                label: "Email",
-                align: "left",
-                priority: 5,
-                render: (client) => (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Mail className="h-2.5 w-2.5" />
-                    <span className="truncate max-w-[200px]">{client.contact_email}</span>
-                  </div>
-                ),
-              },
-              {
-                key: "contact_phone",
-                label: "Teléfono",
-                align: "left",
-                priority: 6,
-                render: (client) => (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Phone className="h-2.5 w-2.5" />
-                    {client.contact_phone || '-'}
-                  </div>
-                ),
-              },
-              {
-                key: "assigned_to_name",
-                label: "Asignado",
-                sortable: true,
-                align: "left",
-                priority: 7,
-                render: (client) => (
-                  <span className="text-muted-foreground">
-                    {client.assigned_to_name || <span className="text-muted-foreground/50">Sin asignar</span>}
-                  </span>
-                ),
-              },
-            ]}
-            actions={[
-              {
-                label: "Ver detalle",
-                onClick: (client) => navigate(`/nexo-av/${userId}/clients/${client.id}`),
-              },
-              {
-                label: "Editar",
-                onClick: (client) => handleEditClient(client.id),
-              },
-              {
-                label: "Duplicar",
-                onClick: () => {},
-              },
-            ]}
-            onItemClick={(client) => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
-            sortColumn={sortColumn}
-            sortDirection={sortDirection}
-            onSort={handleSort}
-            loading={loading}
-            emptyMessage="No hay clientes"
-            emptyIcon={<Building2 className="h-16 w-16 text-muted-foreground" />}
-            getItemId={(client) => client.id}
-          />
+                {
+                  key: "company_name",
+                  label: "Empresa",
+                  sortable: true,
+                  align: "left",
+                  priority: 3,
+                  render: (client) => (
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="p-2 rounded-lg bg-muted/30 flex-shrink-0">
+                        <Building2 className="h-3 w-3 text-muted-foreground" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-foreground truncate">{client.company_name}</p>
+                        {client.industry_sector && (
+                          <p className="text-muted-foreground text-[10px] truncate">
+                            {client.industry_sector}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  key: "lead_stage",
+                  label: "Estado",
+                  sortable: true,
+                  align: "center",
+                  priority: 2,
+                  render: (client) => {
+                    const stageInfo = getStageInfo(client.lead_stage);
+                    return (
+                      <div className="flex justify-center">
+                        <Badge variant="outline" className={cn(stageInfo.color, "border text-[11px] px-1.5 py-0.5 w-20 justify-center")}>
+                          {stageInfo.label}
+                        </Badge>
+                      </div>
+                    );
+                  },
+                },
+                {
+                  key: "projects",
+                  label: "Proyectos",
+                  align: "center",
+                  priority: 4,
+                  render: (client) => (
+                    <span className="text-foreground">
+                      {projectsByClient.get(client.id) || 0}
+                    </span>
+                  ),
+                },
+                {
+                  key: "contact_email",
+                  label: "Email",
+                  align: "left",
+                  priority: 5,
+                  render: (client) => (
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Mail className="h-2.5 w-2.5" />
+                      <span className="truncate max-w-[200px]">{client.contact_email}</span>
+                    </div>
+                  ),
+                },
+                {
+                  key: "contact_phone",
+                  label: "Teléfono",
+                  align: "left",
+                  priority: 6,
+                  render: (client) => (
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Phone className="h-2.5 w-2.5" />
+                      {client.contact_phone || '-'}
+                    </div>
+                  ),
+                },
+                {
+                  key: "assigned_to_name",
+                  label: "Asignado",
+                  sortable: true,
+                  align: "left",
+                  priority: 7,
+                  render: (client) => (
+                    <span className="text-muted-foreground">
+                      {client.assigned_to_name || <span className="text-muted-foreground/50">Sin asignar</span>}
+                    </span>
+                  ),
+                },
+              ]}
+              actions={[
+                {
+                  label: "Ver detalle",
+                  onClick: (client) => navigate(`/nexo-av/${userId}/clients/${client.id}`),
+                },
+                {
+                  label: "Editar",
+                  onClick: (client) => handleEditClient(client.id),
+                },
+                {
+                  label: "Duplicar",
+                  onClick: () => { },
+                },
+              ]}
+              onItemClick={(client) => navigate(`/nexo-av/${userId}/clients/${client.id}`)}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+              loading={loading}
+              emptyMessage="No hay clientes"
+              emptyIcon={<Building2 className="h-16 w-16 text-muted-foreground" />}
+              getItemId={(client) => client.id}
+            />
           </div>
 
           {/* Paginación */}
           {!loading && filteredClients.length > 0 && totalPages > 1 && (
             <div className="flex-shrink-0 mt-4">
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              startIndex={startIndex}
-              endIndex={endIndex}
-              totalItems={totalItems}
-              canGoPrev={canGoPrev}
-              canGoNext={canGoNext}
-              onPrevPage={prevPage}
-              onNextPage={nextPage}
-              onGoToPage={goToPage}
-            />
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                startIndex={startIndex}
+                endIndex={endIndex}
+                totalItems={totalItems}
+                canGoPrev={canGoPrev}
+                canGoNext={canGoNext}
+                onPrevPage={prevPage}
+                onNextPage={nextPage}
+                onGoToPage={goToPage}
+              />
             </div>
           )}
         </div>

@@ -11,11 +11,11 @@
 
 ## Resumen Ejecutivo
 
-NEXO AV es una plataforma ERP desarrollada internamente para AV TECH ESDEVENIMENTS SL, construida con React 18 + TypeScript + Vite 7 en frontend y Supabase (PostgreSQL + Edge Functions + Auth) como backend. El sistema cubre gestión de proyectos, CRM, facturación (venta y compra), contabilidad, nóminas, catálogo de productos, escáner documental y archivo fiscal con MinIO.
+NEXO AV es una plataforma ERP desarrollada internamente para AV TECH ESDEVENIMENTS SL, construida con React 18 + TypeScript + Vite 7 en frontend y Supabase (PostgreSQL + Edge Functions + Auth) como backend. El sistema cubre gestión de proyectos, CRM, facturación (venta y compra), contabilidad, nóminas, catálogo de productos y escáner documental.
 
 ### Estado general
 
-La plataforma es **funcional y operativa** para las necesidades actuales del negocio. El sistema de facturación y contabilidad está bien diseñado conceptualmente, con separación clara entre estados de documento, estados de pago y condiciones derivadas. El archivo fiscal con MinIO es una pieza bien diseñada y parcialmente implementada.
+La plataforma es **funcional y operativa** para las necesidades actuales del negocio. El sistema de facturación y contabilidad está bien diseñado conceptualmente, con separación clara entre estados de documento, estados de pago y condiciones derivadas.
 
 Sin embargo, existen **áreas críticas que requieren atención inmediata**, especialmente en seguridad (credenciales hardcodeadas en el repositorio), consistencia del código (sistemas de estado duplicados, archivos legacy) y piezas funcionales incompletas (gestión de cuotas de financiación, pago masivo de nóminas).
 
@@ -28,7 +28,7 @@ Sin embargo, existen **áreas críticas que requieren atención inmediata**, esp
 | Edge Functions | 10 |
 | Constantes/status | 13 archivos |
 | Migraciones aplicadas | 9+ (U1+U2) |
-| Documentos archivados MinIO | 104 |
+| Documentos archivados | 104 |
 | Módulos funcionales principales | 12 |
 
 ---
@@ -40,19 +40,14 @@ Sin embargo, existen **áreas críticas que requieren atención inmediata**, esp
 - **ID:** AUDIT-001
 - **Severidad:** 🔴 Crítico
 - **Módulo afectado:** Seguridad / Infraestructura
-- **Descripción técnica:** La URL de Supabase y la clave pública (anon key) están hardcodeadas directamente en `src/integrations/supabase/client.ts` (líneas 5-6) y en `src/pages/nexo_av/ai/logic/aiProxy.ts` (línea 3), en lugar de usar variables de entorno (`import.meta.env.VITE_*`). Adicionalmente, el documento `docs/important/minio_installation.md` contiene en texto plano: passwords de MinIO root y worker, la `SUPABASE_SERVICE_ROLE_KEY` completa, IPs de servidores internos y configuración de seguridad detallada. Este documento está en el repositorio Git.
-- **Impacto real en el negocio:** Si el repositorio se expone (GitHub público, leak, acceso no autorizado), un atacante tendría acceso completo a: la API de Supabase (anon key), la base de datos con bypass de RLS (service role key), el servidor MinIO con todos los documentos fiscales, y la topología interna de red.
+- **Descripción técnica:** La URL de Supabase y la clave pública (anon key) estaban hardcodeadas en `src/integrations/supabase/client.ts`.
+- **Impacto real en el negocio:** Si el repositorio se expone, un atacante tendría acceso a la API de Supabase.
 - **Evidencia:**
   - `src/integrations/supabase/client.ts:5-6`: URL y key hardcodeadas
-  - `docs/important/minio_installation.md:161-198`: Passwords root y worker de MinIO en texto plano
-  - `docs/important/minio_installation.md:636-638`: `SUPABASE_SERVICE_ROLE_KEY` completa
-  - `docs/important/minio_installation.md:647-648`: `MINIO_SECRET_KEY` en scripts
 - **Recomendación:** 
-  1. **INMEDIATO:** Rotar todas las credenciales expuestas (MinIO root, MinIO worker, Supabase service role key)
-  2. Mover URL y anon key a `import.meta.env.VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `client.ts`
-  3. Eliminar todas las credenciales de `minio_installation.md` y reemplazar con marcadores (`<REDACTED>`)
-  4. Añadir `docs/important/minio_installation.md` a `.gitignore` o crear una versión sanitizada
-  5. Verificar el historial Git: si ya se pusheó a remoto, las credenciales están en el historial
+  1. Mover URL y anon key a `import.meta.env.VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `client.ts`
+  2. Verificar el historial Git: si ya se pusheó a remoto, las credenciales están en el historial
+- **Estado:** Documentación sensible eliminada (minio_installation.md, archivo-fiscal-minio.md, digital-ops/). Módulo AI eliminado.
 - **Esfuerzo estimado:** 2-4 horas (rotación + refactor + limpieza)
 
 ---
@@ -388,7 +383,7 @@ Sin embargo, existen **áreas críticas que requieren atención inmediata**, esp
 | IRPF | ❓ No verificado | Depende de la configuración de impuestos en backend |
 | Conversión desde presupuesto | ✅ Funcional | `create_invoice_from_quote` copia líneas automáticamente |
 | Inmutabilidad post-emisión | ✅ Funcional | DB triggers + constants en frontend |
-| Archivo PDF (MinIO) | ✅ Funcional | 20 facturas migradas; lógica dual plantilla/archivo |
+| Archivo PDF | ✅ Funcional | Lógica dual plantilla/archivo |
 | PDF plantilla | ✅ Funcional | `InvoicePDFDocument.tsx` con @react-pdf/renderer |
 
 **Veredicto:** Módulo maduro y bien implementado. Pendiente: unificar APIs, validar líneas mínimas.
@@ -406,7 +401,7 @@ Sin embargo, existen **áreas críticas que requieren atención inmediata**, esp
 | Pagos (Personal/Socio) | ✅ Corregido | Trigger corregido para usar 551xxx |
 | Pagos (Financiación) | ⚠️ Parcial | Reclasificación funciona; gestión de cuotas sin UI (ver AUDIT-005) |
 | Conversión desde PO | ✅ Funcional | `ConvertPOToInvoiceDialog` |
-| Archivo PDF (MinIO) | ✅ Funcional | 34 facturas migradas |
+| Archivo PDF | ✅ Funcional | Documentos archivados |
 | Inmutabilidad | ✅ Funcional | Triggers en DB |
 
 **Veredicto:** Módulo funcional con un gap importante en la gestión de cuotas de financiación.
@@ -418,12 +413,12 @@ Sin embargo, existen **áreas críticas que requieren atención inmediata**, esp
 | Aspecto | Estado | Detalle |
 |---------|--------|---------|
 | Creación y edición | ✅ Funcional | Similar a facturas con líneas editables |
-| Envío (DRAFT→SENT) | ✅ Funcional | Genera PDF archivado en MinIO |
+| Envío (DRAFT→SENT) | ✅ Funcional | Genera número definitivo, fija fecha de emisión |
 | Aprobación/Rechazo | ✅ Funcional | Flujo completo de estados |
 | Expiración | ✅ Documentado | Automático por fecha |
 | Conversión a factura | ✅ Funcional | `create_invoice_from_quote` |
 | Quick Quote | ✅ Funcional | Dialog rápido con Zod validation |
-| Archivo MinIO | ✅ Funcional | 50 presupuestos migrados |
+| Archivo PDF | ✅ Funcional | Documentos archivados |
 | Inconsistencia ACCEPTED/APPROVED | ⚠️ Menor | Ver AUDIT-006 |
 
 **Veredicto:** Módulo completo y bien integrado con el flujo de ventas.
@@ -484,7 +479,7 @@ Sin embargo, existen **áreas críticas que requieren atención inmediata**, esp
 | Productos y servicios | ✅ Funcional | CatalogPage con tabs Products/Packs |
 | Detalle de producto | ✅ Funcional | ProductDetailPage con galería de imágenes |
 | Explorador de catálogo | ✅ Funcional | Integrado en ReportsPage (File Explorer) |
-| Subida de imágenes | ✅ Funcional | Via minio-proxy, almacenamiento en MinIO |
+| Subida de imágenes | ✅ Funcional | Almacenamiento en Supabase Storage |
 | Importación de categorías | ✅ Funcional | CategoryImportDialog |
 
 ---
@@ -499,21 +494,9 @@ Sin embargo, existen **áreas críticas que requieren atención inmediata**, esp
 
 ---
 
-### Módulo 10: Archivo Fiscal (MinIO)
+### Módulo 10: Archivo Fiscal
 
-| Aspecto | Estado | Detalle |
-|---------|--------|---------|
-| MinIO desplegado | ✅ Operativo | Docker en ALB357, solo Tailscale |
-| Bucket configurado | ✅ Funcional | `nexo-prod`, privado |
-| Edge Function minio-proxy | ✅ Funcional | Presigned URLs, upload, listado |
-| ArchivedPDFViewer | ✅ Funcional | Visor dual plantilla/archivo |
-| Backfill completado | ✅ 104 docs | 34 compras + 20 ventas + 50 presupuestos |
-| Explorador de archivos | ✅ Funcional | ReportsPage tipo Windows Explorer |
-| Carpetas personalizadas | ✅ Funcional | Profundidad ilimitada |
-| Excel trimestral | ✅ Funcional | Descargable via `get_fiscal_quarter_data` |
-| nexo-file-worker (auto-archivado) | ❌ No existe | Archivado automático al emitir/aprobar pendiente |
-| Generación automática de Excel | ❌ No existe | Pendiente de Fase 6 |
-| ZIP trimestral | ❌ No existe | Pendiente de Fase 9 |
+> Nota: El sistema de archivo fiscal con MinIO (ALB357) fue eliminado. Se rediseñará en el futuro usando Supabase Storage.
 
 ---
 
@@ -553,7 +536,7 @@ Creación (DRAFT) → Edición libre → Emisión (ISSUED) → Cobro → Cierre
                               Número definitivo F-YY-XXXXXX
                               Asiento: D.430 / H.700 + D.430 / H.477
                               Documento bloqueado (trigger)
-                              PDF archivado (MinIO)
+                              PDF generado
 ```
 
 **Análisis:**
@@ -631,7 +614,7 @@ Creación (DRAFT) → Edición libre → Emisión (ISSUED) → Cobro → Cierre
 | **Supabase Database** | ✅ Operativa | 4 schemas (sales, accounting, internal, crm, public) |
 | **Supabase Edge Functions** | ✅ Operativa | 10 funciones activas |
 | **Supabase Storage** | ✅ Operativa | Facturas de compra (PDFs escaneados) |
-| **MinIO (ALB357)** | ✅ Operativa | Archivo fiscal, catálogo, carpetas custom |
+| ~~MinIO (ALB357)~~ | ❌ Eliminado | Servidor y sistema eliminados |
 | **Leaflet** | ✅ Operativa | Mapa de leads/canvassing |
 | **Firebase** | ⚠️ Instalada | Importada en `main.tsx` pero uso no claro; posible legacy |
 | **@react-pdf/renderer** | ✅ Operativa | Generación de PDFs (facturas, presupuestos) |
@@ -642,9 +625,8 @@ Creación (DRAFT) → Edición libre → Emisión (ISSUED) → Cobro → Cierre
 
 | Integración | Estado | Bloqueante |
 |-------------|--------|-----------|
-| **nexo-file-worker** | ❌ No existe | Archivado automático al emitir/aprobar |
-| **minio-proxy v3** (con catálogo) | ⚠️ Deploy fallido | Acciones de upload a catálogo no funcionan en producción |
-| **AI Chat (ai-chat-processor)** | ✅ Edge Function existe | Uso interno, interfaz en `/ai/chat` |
+| ~~nexo-file-worker~~ | ❌ Eliminado | Sistema eliminado junto con MinIO |
+| ~~AI Chat~~ | ❌ Eliminado | Módulo de IA completamente eliminado |
 
 ---
 
@@ -654,7 +636,7 @@ Creación (DRAFT) → Edición libre → Emisión (ISSUED) → Cobro → Cierre
 
 | # | Acción | Hallazgo | Esfuerzo |
 |---|--------|----------|----------|
-| 1 | **Rotar credenciales** y limpiar `minio_installation.md` | AUDIT-001 | 2-4h |
+| 1 | ~~Rotar credenciales~~ (documentos eliminados) | AUDIT-001 | ✅ Hecho |
 | 2 | **Mover Supabase URL/key** a variables de entorno | AUDIT-001 | 1h |
 | 3 | **Eliminar archivos -DESKTOP-4033E83** | AUDIT-011 | 1h |
 | 4 | **Verificar asientos de pagos PERSONAL** en producción | AUDIT-003 | 1h |
@@ -699,9 +681,8 @@ Creación (DRAFT) → Edición libre → Emisión (ISSUED) → Cobro → Cierre
 
 ### Semana 1 (18-24 feb 2026) — Seguridad y limpieza
 
-- [ ] Rotar TODAS las credenciales expuestas (AUDIT-001)
+- [x] ~~Rotar credenciales expuestas~~ — Documentos eliminados (minio_installation.md, archivo-fiscal-minio.md, digital-ops/)
 - [ ] Refactorizar `client.ts` para usar env vars
-- [ ] Limpiar `minio_installation.md` (redactar credenciales)
 - [ ] Eliminar archivos `-DESKTOP-4033E83`
 - [ ] Verificar query de asientos PERSONAL en producción
 
@@ -739,9 +720,7 @@ No toda la auditoría es sobre problemas. Estos son los puntos fuertes del siste
 
 3. **Sistema de categorías contables:** Mapeo claro entre categorías de gasto y cuentas PGC, unificado entre facturas de compra y tickets.
 
-4. **Archivo fiscal con MinIO:** Arquitectura bien pensada con presigned URLs, inmutabilidad de documentos, estructura fiscal por trimestre. La documentación es exhaustiva.
-
-5. **Lazy loading:** Code splitting aplicado consistentemente a nivel de rutas y componentes pesados.
+4. **Lazy loading:** Code splitting aplicado consistentemente a nivel de rutas y componentes pesados.
 
 6. **Edge Functions:** Separación clara de responsabilidades (auth, OTP, rate-limit, storage, AI, reportes).
 
@@ -771,7 +750,7 @@ No toda la auditoría es sobre problemas. Estos son los puntos fuertes del siste
 | **Excel** | ExcelJS + XLSX | 4.4.0 / 0.18.5 |
 | **Backend** | Supabase (PostgreSQL) | supabase-js 2.89.0 |
 | **Auth** | Supabase Auth | Integrado |
-| **Storage** | Supabase Storage + MinIO | S3 compatible |
+| **Storage** | Supabase Storage | Integrado |
 | **Edge Functions** | Supabase (Deno) | 10 funciones |
 | **PWA** | vite-plugin-pwa | 1.2.0 |
 | **Firebase** | Firebase SDK | 12.7.0 (legacy?) |
@@ -788,16 +767,7 @@ No toda la auditoría es sobre problemas. Estos son los puntos fuertes del siste
 
 ### Hallazgos adicionales de seguridad en Edge Functions
 
-#### AUDIT-021 — Edge Function `storage-health` sin autenticación
-
-- **ID:** AUDIT-021
-- **Severidad:** 🔴 Crítico
-- **Módulo afectado:** Edge Functions / MinIO
-- **Descripción técnica:** La Edge Function `storage-health` no requiere JWT ni ninguna autenticación. Cualquier persona que conozca la URL puede llamarla y obtener la lista de objetos del bucket MinIO (nombres de archivos/keys, tamaños). Además usa CORS `Access-Control-Allow-Origin: *`.
-- **Impacto real en el negocio:** Exposición de la estructura de archivos fiscales a internet. Un atacante podría enumerar todos los documentos archivados (nombres de facturas, clientes, números).
-- **Evidencia:** `supabase/functions/storage-health/index.ts` — sin verificación de JWT, CORS wildcard, devuelve keys de objetos.
-- **Recomendación:** Añadir verificación JWT + rol admin, o restringir a llamadas internas/cron.
-- **Esfuerzo estimado:** 1-2 horas
+#### ~~AUDIT-021~~ — ~~Edge Function `storage-health` sin autenticación~~ → **ELIMINADO** (MinIO y edge functions relacionadas eliminadas)
 
 #### AUDIT-022 — `monthly-report-worker` sin protección si CRON_SECRET no está configurado
 
@@ -935,15 +905,7 @@ No toda la auditoría es sobre problemas. Estos son los puntos fuertes del siste
 - **Recomendación:** Considerar excluir endpoints financieros críticos del cache de Workbox (`/rpc/*`, endpoints de facturas/pagos).
 - **Esfuerzo estimado:** 1-2 horas
 
-#### AUDIT-034 — Módulo AI con worker Ollama (digital-ops)
-
-- **ID:** AUDIT-034
-- **Severidad:** 🟢 Bajo (informativo)
-- **Módulo afectado:** AI / digital-ops
-- **Descripción técnica:** Existe un módulo de IA con chat interno (`src/pages/nexo_av/ai/`) que procesa mensajes a través de un worker externo (`digital-ops/worker/`) que ejecuta Ollama (LLM local, modelo `qwen2.5:3b`). El worker corre en Docker en ALB357 y se conecta a Supabase con service role key. El chat es solo desktop (no mobile).
-- **Estado:** Funcional con limitaciones (generación de plantillas V1, no LLM real en la Edge Function — el Edge Function `ai-chat-processor` solo genera respuestas template, el worker real es `digital-ops/worker`).
-- **Recomendación:** Documentar mejor la arquitectura AI (qué hace el edge function vs. el worker). Considerar rate limiting en el chat para evitar abuso del LLM.
-- **Esfuerzo estimado:** N/A (informativo)
+#### ~~AUDIT-034~~ — ~~Módulo AI con worker Ollama~~ → **ELIMINADO** (todo el sistema de IA, chat, worker y digital-ops ha sido eliminado completamente)
 
 ---
 
@@ -954,7 +916,7 @@ No toda la auditoría es sobre problemas. Estos son los puntos fuertes del siste
 - **ID:** AUDIT-035
 - **Severidad:** 🟡 Medio
 - **Módulo afectado:** Base de datos / Seguridad
-- **Descripción técnica:** La base de datos expone **266 funciones RPC públicas** agrupadas en: AI (~38), Contabilidad (~35), Compras/Proveedores (~35), Catálogo (~25), Facturación (~25), Auth/Usuarios (~25), Proyectos (~25), Nóminas (~18), Presupuestos (~15), Técnicos/Workers (~14), Clientes (~13), Tareas (11), Crédito (~8), Canvassing (~7), Empresa (~6), Dashboard (5), Notificaciones (5), Auditoría (2), Otros (~10).
+- **Descripción técnica:** La base de datos expone funciones RPC públicas agrupadas en: Contabilidad (~35), Compras/Proveedores (~35), Catálogo (~25), Facturación (~25), Auth/Usuarios (~25), Proyectos (~25), Nóminas (~18), Presupuestos (~15), Técnicos/Workers (~14), Clientes (~13), Tareas (11), Crédito (~8), Canvassing (~7), Empresa (~6), Dashboard (5), Notificaciones (5), Auditoría (2), Otros (~10).
 - **Impacto real en el negocio:** Superficie de ataque grande. Cada RPC pública es un endpoint potencial. Las RPCs con `SECURITY DEFINER` son especialmente sensibles porque bypasean RLS.
 - **Recomendación:** 
   1. Auditar todas las RPCs con `SECURITY DEFINER` para verificar que validan permisos internamente
@@ -967,7 +929,7 @@ No toda la auditoría es sobre problemas. Estos son los puntos fuertes del siste
 - **ID:** AUDIT-036
 - **Severidad:** 🟢 Bajo (informativo)
 - **Módulo afectado:** Base de datos / TypeScript
-- **Descripción técnica:** La base de datos usa múltiples schemas (sales, accounting, internal, catalog, crm, quotes, projects, ai, audit, purchasing) pero el archivo de tipos TypeScript (`types.ts`) solo refleja el schema `public` (3 tablas: `minio_files`, `scanned_documents`, `user_roles`). Todos los demás datos se acceden exclusivamente vía RPCs. Esto es correcto arquitectónicamente (schemas no expuestos en PostgREST) pero significa que la mayoría de la estructura de datos no es visible en TypeScript.
+- **Descripción técnica:** La base de datos usa múltiples schemas (sales, accounting, internal, catalog, crm, quotes, projects, audit) pero el archivo de tipos TypeScript (`types.ts`) solo refleja el schema `public` (2 tablas: `scanned_documents`, `user_roles`). Todos los demás datos se acceden exclusivamente vía RPCs. Esto es correcto arquitectónicamente (schemas no expuestos en PostgREST) pero significa que la mayoría de la estructura de datos no es visible en TypeScript.
 - **Impacto real en el negocio:** Los desarrolladores no pueden ver los tipos de tablas internas directamente. La tipificación depende de las RPCs.
 - **Recomendación:** Es un diseño válido. Mantener los tipos de RPC actualizados con `supabase gen types`.
 
@@ -1005,7 +967,7 @@ No toda la auditoría es sobre problemas. Estos son los puntos fuertes del siste
 
 | Categoría | Nuevos hallazgos | Más crítico |
 |-----------|-----------------|-------------|
-| **Seguridad Edge Functions** | 6 (AUDIT-021 a 026) | `storage-health` sin auth (AUDIT-021) |
+| **Seguridad Edge Functions** | 5 (AUDIT-022 a 026) | `monthly-report-worker` sin CRON_SECRET (AUDIT-022) |
 | **Calidad de código** | 5 (AUDIT-027 a 031) | Sin tests (AUDIT-027) |
 | **Arquitectura** | 3 (AUDIT-032 a 034) | Informativo |
 | **Base de datos** | 3 (AUDIT-035 a 037) | 266 RPCs con SECURITY DEFINER (AUDIT-035) |
@@ -1014,7 +976,7 @@ No toda la auditoría es sobre problemas. Estos son los puntos fuertes del siste
 ### Plan de acción actualizado — Adiciones del segundo barrido
 
 **Inmediato (junto con Semana 1):**
-- [ ] Proteger `storage-health` con JWT o desactivar (AUDIT-021)
+- [x] ~~Proteger `storage-health`~~ — Edge function eliminada junto con MinIO
 - [ ] Forzar `CRON_SECRET` en `monthly-report-worker` (AUDIT-022)
 - [ ] Restringir `reset` de rate-limit a admin (AUDIT-023)
 - [ ] Eliminar span DEBUG de `InvoicePaymentsSection` (AUDIT-029)
@@ -1063,7 +1025,6 @@ No toda la auditoría es sobre problemas. Estos son los puntos fuertes del siste
 | `accounting.payroll_payments` | 2 |
 | `accounting.period_closures` | 1 |
 | `accounting.credit_operations` | 0 |
-| `public.minio_files` (Archivo fiscal) | 104 |
 | `public.scanned_documents` | 57 |
 | `catalog.products` | 75 |
 | `catalog.categories` | 31 |
@@ -1265,21 +1226,9 @@ Misma situación que AUDIT-040 pero en compras. La factura C-26-000005 tiene `pa
 
 ---
 
-### D.10 — Archivo Fiscal MinIO
+### ~~D.10 — Archivo Fiscal MinIO~~ → ELIMINADO
 
-| Carpeta | Archivos | Tamaño |
-|---------|----------|--------|
-| `fiscal/` | 104 | 6,25 MB |
-
-**Cobertura de archivado:**
-
-| Verificación | Resultado |
-|-------------|-----------|
-| Facturas emitidas sin `storage_key` | ✅ **0** — todas archivadas |
-| Presupuestos enviados sin `storage_key` | ✅ **0** — todos archivados |
-| Compras aprobadas sin `storage_key` | ✅ **0** — todas archivadas |
-
-> ✅ **100% de cobertura**: Todos los documentos emitidos/aprobados tienen su PDF archivado en MinIO.
+> Sistema de archivo fiscal con MinIO eliminado. Se rediseñará usando Supabase Storage.
 
 ---
 

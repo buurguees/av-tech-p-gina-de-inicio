@@ -1999,6 +1999,7 @@ export type Database = {
           created_by: string
           created_by_name: string
           id: string
+          issue_date: string
           notes: string
           order_number: string
           project_id: string
@@ -3066,6 +3067,7 @@ export type Database = {
           created_by: string
           created_by_name: string
           id: string
+          issue_date: string
           order_number: string
           project_client_order_number: string
           project_id: string
@@ -4179,25 +4181,6 @@ export type Database = {
           p_technician_id: string
         }
         Returns: string
-      }
-      v4_get_group_settings: {
-        Args: { p_conversation_id: string }
-        Returns: Json
-      }
-      v4_join_department_conversation: {
-        Args: { p_conversation_id: string }
-        Returns: boolean
-      }
-      v4_set_group_settings: {
-        Args: {
-          p_agent_name?: string
-          p_auto_mode?: boolean
-          p_conversation_id: string
-          p_cooldown_minutes?: number
-          p_intervention_level?: string
-          p_model?: string
-        }
-        Returns: Json
       }
       validate_invitation_token: {
         Args: { p_email: string; p_token: string }

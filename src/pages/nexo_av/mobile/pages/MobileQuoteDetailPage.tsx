@@ -59,6 +59,7 @@ interface Quote {
   tax_rate: number;
   total: number;
   valid_until: string | null;
+  issue_date: string | null;
   notes: string | null;
   created_by: string | null;
   created_by_name: string | null;
@@ -153,7 +154,7 @@ const getAvailableStatusTransitions = (currentStatus: string) => {
     case "APPROVED":
       return ["APPROVED", "REJECTED"];
     case "REJECTED":
-      return ["REJECTED", "APPROVED"];
+      return ["REJECTED"];
     case "EXPIRED":
       return ["EXPIRED"];
     case "INVOICED":
@@ -445,7 +446,7 @@ const MobileQuoteDetailPage = () => {
         icon: ReceiptIcon,
         onClick: handleInvoice,
       });
-    } else if (quote.status === 'APPROVED' || quote.status === 'REJECTED') {
+    } else if (quote.status === 'APPROVED' || quote.status === 'REJECTED' || quote.status === 'EXPIRED') {
       buttons.push({
         label: 'Nueva Versión',
         icon: Copy,
@@ -719,11 +720,11 @@ const ResumenTab = ({
               />
             )}
 
-            {/* Fecha de creación */}
+            {/* Fecha de emisión */}
             <InfoRow 
               icon={Calendar} 
-              label="Fecha de Creación" 
-              value={formatDate(quote.created_at) || '-'}
+              label="Fecha de Emisión" 
+              value={formatDate(quote.issue_date || quote.created_at) || '-'}
             />
 
             {/* Válido hasta */}
@@ -731,7 +732,7 @@ const ResumenTab = ({
               <InfoRow 
                 icon={Calendar} 
                 label="Válido hasta" 
-                value={formatDate(quote.valid_until) || '-'}
+                value={`${formatDate(quote.valid_until) || '-'}${quote.status === 'EXPIRED' ? ' (Vencido)' : ''}`}
               />
             )}
 

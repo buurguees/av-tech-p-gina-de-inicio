@@ -20,35 +20,47 @@
 /* ============================================
    BODY BASE
    ============================================ */
-body.nexo-av-theme {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: var(--font-sans);
-  font-size: 13px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body.nexo-av-theme-dark {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: var(--font-sans);
-  font-size: 13px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* ============================================
-   LAYOUT VARIABLES
-   ============================================ */
 body.nexo-av-theme,
 body.nexo-av-theme-dark {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Global Layout vars */
   --header-height: 3.25rem;
   --sidebar-width: 14rem;
   --sidebar-width-collapsed: 3.5rem;
   --main-content-max-width: 1600px;
+}
+
+/* Background Premium Mesh Effect for Dark Mode */
+body.nexo-av-theme-dark::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(circle at 15% 15%, hsl(var(--primary) / 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, hsl(var(--status-special) / 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, hsl(var(--background)) 0%, transparent 100%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ============================================
+   GLASS UTILITY
+   ============================================ */
+.glass-effect {
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
 }
 
 /* ============================================
@@ -62,12 +74,12 @@ body.nexo-av-theme-dark main.ml-56 {
 }
 
 /* ============================================
-   SCROLLBAR
+   SCROLLBAR - Minimalist
    ============================================ */
 body.nexo-av-theme ::-webkit-scrollbar,
 body.nexo-av-theme-dark ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 body.nexo-av-theme ::-webkit-scrollbar-track,
@@ -77,13 +89,13 @@ body.nexo-av-theme-dark ::-webkit-scrollbar-track {
 
 body.nexo-av-theme ::-webkit-scrollbar-thumb,
 body.nexo-av-theme-dark ::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--border));
-  border-radius: 3px;
+  background-color: hsl(var(--foreground) / 0.1);
+  border-radius: 10px;
 }
 
 body.nexo-av-theme ::-webkit-scrollbar-thumb:hover,
 body.nexo-av-theme-dark ::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--muted-foreground) / 0.5);
+  background-color: hsl(var(--foreground) / 0.2);
 }
 
 /* ============================================
@@ -92,6 +104,7 @@ body.nexo-av-theme-dark ::-webkit-scrollbar-thumb:hover {
 body.nexo-av-theme hr,
 body.nexo-av-theme-dark hr {
   border-color: hsl(var(--border));
+  opacity: 0.5;
 }
 
 /* ============================================
@@ -99,8 +112,8 @@ body.nexo-av-theme-dark hr {
    ============================================ */
 body.nexo-av-theme ::selection,
 body.nexo-av-theme-dark ::selection {
-  background-color: hsl(var(--primary) / 0.2);
-  color: hsl(var(--foreground));
+  background-color: hsl(var(--primary) / 0.15);
+  color: hsl(var(--primary));
 }
 
 /* ============================================
@@ -141,5 +154,11 @@ body.nexo-av-theme-dark a,
 body.nexo-av-theme-dark input,
 body.nexo-av-theme-dark select,
 body.nexo-av-theme-dark textarea {
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom Glow Interaction for Dark Mode */
+body.nexo-av-theme-dark .glass-effect:hover {
+  box-shadow: var(--shadow-md), 0 0 15px hsl(var(--primary) / 0.05);
+  border-color: hsl(var(--primary) / 0.3);
 }

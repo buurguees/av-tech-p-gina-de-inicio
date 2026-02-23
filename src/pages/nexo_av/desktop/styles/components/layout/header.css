@@ -60,6 +60,13 @@ body.nexo-av-theme-dark .nexo-header {
   color: hsl(var(--foreground)) !important;
 }
 
+/* Glass effect for dark mode header */
+body.nexo-av-theme-dark .nexo-header,
+body.nexo-av-theme-dark header.fixed.top-0 {
+  backdrop-filter: blur(var(--glass-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
+}
+
 /* Avatar en header - Permitir border-radius completo */
 body.nexo-av-theme .nexo-header [class*="rounded-full"],
 body.nexo-av-theme-dark .nexo-header [class*="rounded-full"] {

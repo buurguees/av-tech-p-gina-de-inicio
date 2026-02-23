@@ -40,7 +40,7 @@ import {
   Info,
   Trash2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, toNumber } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import PaginationControls from "../components/common/PaginationControls";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
@@ -144,7 +144,7 @@ const ExpensesPageDesktop = () => {
 
       // Generar nombre de archivo único
       // Usar authUserId para la carpeta (requerido por políticas RLS)
-      const extension = isFile 
+      const extension = isFile
         ? (fileOrBlob as File).name.split('.').pop()?.toLowerCase() || 'pdf'
         : 'jpg';
       const timestamp = Date.now();
@@ -170,9 +170,9 @@ const ExpensesPageDesktop = () => {
           const { error: retryError } = await supabase.storage
             .from('purchase-documents')
             .upload(newFilePath, fileOrBlob);
-          
+
           if (retryError) throw retryError;
-          
+
           // Usar el nuevo path
           const { data: ticketNum, error: numErr } = await supabase.rpc('get_next_ticket_number');
           if (numErr || !ticketNum) throw new Error(numErr?.message || 'No se pudo obtener el número');
@@ -242,7 +242,7 @@ const ExpensesPageDesktop = () => {
     } catch (error: any) {
       console.error("Upload error:", error);
       let errorMessage = "Error al subir el ticket";
-      
+
       if (error.message) {
         errorMessage = error.message;
       } else if (error.error) {
@@ -478,8 +478,8 @@ const ExpensesPageDesktop = () => {
   } = usePagination(sortedExpenses, { pageSize: 50 });
 
   return (
-    <div className="w-full h-full p-6">
-      <div className="w-full h-full">
+    <div className="w-full h-full flex flex-col overflow-hidden p-6">
+      <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
         {uploadRetryPending && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -509,17 +509,17 @@ const ExpensesPageDesktop = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-zinc-900/50 border border-white/10 rounded-xl p-4 flex flex-col justify-between"
+              className="bg-card/50 border border-border rounded-xl p-4 flex flex-col justify-between"
             >
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-amber-500/10 rounded-lg text-amber-500">
                   <TrendingDown className="h-5 w-5" />
                 </div>
-                <span className="text-white/60 text-sm font-medium">Gasto Total</span>
+                <span className="text-muted-foreground text-sm font-medium">Gasto Total</span>
               </div>
               <div>
-                <span className="text-2xl font-bold text-white">
-                  {formatCurrency(expenses.reduce((sum, exp) => sum + (exp.total || 0), 0))}
+                <span className="text-2xl font-bold text-foreground">
+                  {formatCurrency(expenses.reduce((sum, exp) => sum + toNumber(exp.total), 0))}
                 </span>
                 <div className="flex items-center gap-1 mt-1 text-xs text-white/40">
                   <span>{expenses.length} tickets</span>
@@ -541,7 +541,7 @@ const ExpensesPageDesktop = () => {
               </div>
               <div>
                 <span className="text-2xl font-bold text-white">
-                  {formatCurrency(expenses.reduce((sum, exp) => sum + (exp.pending_amount || 0), 0))}
+                  {formatCurrency(expenses.reduce((sum, exp) => sum + toNumber(exp.pending_amount), 0))}
                 </span>
                 <div className="flex items-center gap-1 mt-1 text-xs text-blue-400">
                   <span>{expenses.filter(e => e.pending_amount > 0).length} tickets pendientes</span>
@@ -569,7 +569,7 @@ const ExpensesPageDesktop = () => {
                       if (!exp.due_date) return false;
                       return new Date(exp.due_date) < new Date();
                     })
-                    .reduce((sum, exp) => sum + (exp.total || 0), 0)
+                    .reduce((sum, exp) => sum + toNumber(exp.total), 0)
                   )}
                 </span>
                 <div className="flex items-center gap-1 mt-1 text-xs text-red-400/80">
@@ -601,7 +601,7 @@ const ExpensesPageDesktop = () => {
                       <ChevronDown className="h-3 w-3 ml-1" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                  <DropdownMenuContent align="end" className="bg-popover border-border">
                     <DropdownMenuItem className="text-white hover:bg-white/10">
                       Exportar seleccionados
                     </DropdownMenuItem>
@@ -654,7 +654,7 @@ const ExpensesPageDesktop = () => {
                     <ChevronDown className="h-3 w-3 ml-1" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-zinc-900 border-white/10">
+                <DropdownMenuContent align="start" className="bg-popover border-border">
                   <DropdownMenuItem
                     onClick={() => setStatusFilter("all")}
                     className={cn("text-white hover:bg-white/10", statusFilter === "all" && "bg-white/10")}
@@ -734,10 +734,11 @@ const ExpensesPageDesktop = () => {
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="bg-white/[0.02] rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm shadow-lg">
+              {/* Desktop Table Container */}
+              <div className="flex-1 min-h-0 overflow-auto bg-card/20 rounded-2xl border border-border shadow-lg">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-white/10 hover:bg-transparent bg-white/[0.03]">
+                    <TableRow className="border-border hover:bg-transparent bg-secondary/30">
                       <TableHead className="w-12 px-4">
                         <Checkbox
                           checked={selectedExpenses.size === paginatedExpenses.length && paginatedExpenses.length > 0}
@@ -862,11 +863,11 @@ const ExpensesPageDesktop = () => {
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-1">
                               {(() => {
-                                const canRegisterPayment = ["CONFIRMED", "PARTIAL", "PAID"].includes(expense.status) 
-                                  && !expense.is_locked 
+                                const canRegisterPayment = ["CONFIRMED", "PARTIAL", "PAID"].includes(expense.status)
+                                  && !expense.is_locked
                                   && expense.pending_amount > 0
                                   && !!expense.internal_purchase_number;
-                                
+
                                 return canRegisterPayment ? (
                                   <RegisterPurchasePaymentDialog
                                     invoiceId={expense.id}
@@ -898,7 +899,7 @@ const ExpensesPageDesktop = () => {
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                                <DropdownMenuContent align="end" className="bg-popover border-border">
                                   <DropdownMenuItem
                                     className="text-white hover:bg-white/10"
                                     onClick={(e) => {

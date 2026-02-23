@@ -78,7 +78,7 @@ const Header = ({
                   isVisible={true}
                 />
               )}
-              
+
               <UserInfo
                 name={userInfo.full_name}
                 role={userInfo.roles}
@@ -207,11 +207,11 @@ const NexoAvLayout = () => {
 
   // Real roles from database
   const isRealAdmin = userInfo?.roles?.includes('admin');
-  
+
   // Effective roles - use simulated if set by admin, otherwise use real roles
-  const effectiveRole = (isRealAdmin && simulatedRole) ? simulatedRole : 
+  const effectiveRole = (isRealAdmin && simulatedRole) ? simulatedRole :
     (userInfo?.roles?.[0] || null);
-  
+
   const isAdmin = effectiveRole === 'admin' || (!simulatedRole && isRealAdmin);
   const isManager = effectiveRole === 'manager';
   const isComercial = effectiveRole === 'comercial' || effectiveRole === 'sales';

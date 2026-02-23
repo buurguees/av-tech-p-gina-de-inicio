@@ -46,7 +46,7 @@ export const QUOTE_STATUSES = [
   },
   { 
     value: "EXPIRED", 
-    label: "Expirado", 
+    label: "Vencido", 
     color: "status-warning",
     className: "status-warning",
     priority: 4

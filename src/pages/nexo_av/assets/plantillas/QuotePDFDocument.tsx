@@ -484,7 +484,7 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project }: Quo
                 {line.group_name || ""}
               </Text>
               <View style={{ flex: hasDiscount ? 2.2 : 2.7 }}>
-                <Text style={styles.cellText}>{line.concept}</Text>
+                <Text style={styles.cellText}>{(line.concept || "").toUpperCase()}</Text>
                 {line.description && (
                   <Text style={styles.cellDescription}>{line.description}</Text>
                 )}

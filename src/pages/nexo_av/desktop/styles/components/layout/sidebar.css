@@ -194,25 +194,40 @@ body.nexo-av-theme-dark .nexo-sidebar {
   background-color: hsl(var(--sidebar-background)) !important;
   border-right-color: hsl(var(--sidebar-border)) !important;
   color: hsl(var(--sidebar-foreground)) !important;
+  backdrop-filter: blur(var(--glass-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
 }
 
 body.nexo-av-theme-dark .nexo-sidebar__item:hover {
-  background-color: hsl(0 0% 30%) !important;
-  color: hsl(0 0% 100%) !important;
+  background-color: hsl(var(--sidebar-accent)) !important;
+  color: hsl(var(--sidebar-foreground)) !important;
   font-weight: 400 !important;
 }
 
 body.nexo-av-theme-dark .nexo-sidebar__item:hover .nexo-sidebar__icon {
-  color: hsl(0 0% 100%) !important;
+  color: hsl(var(--sidebar-foreground)) !important;
 }
 
 body.nexo-av-theme-dark .nexo-sidebar__item--active {
-  background-color: hsl(0 0% 100%) !important;
-  color: hsl(0 0% 0%) !important;
+  background-color: hsl(var(--sidebar-primary) / 0.15) !important;
+  color: hsl(var(--sidebar-primary)) !important;
+  position: relative;
 }
 
 body.nexo-av-theme-dark .nexo-sidebar__item--active .nexo-sidebar__icon {
-  color: hsl(0 0% 0%) !important;
+  color: hsl(var(--sidebar-primary)) !important;
+}
+
+body.nexo-av-theme-dark .nexo-sidebar__item--active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  height: 60%;
+  width: 2px;
+  background-color: hsl(var(--sidebar-primary));
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 10px hsl(var(--sidebar-primary) / 0.6);
 }
 
 body.nexo-av-theme-dark .nexo-sidebar__item--folder-active {

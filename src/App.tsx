@@ -82,6 +82,7 @@ const ResponsiveSupplierDetailPage = createResponsivePage(
   () => import("./pages/nexo_av/mobile/pages/MobileSupplierDetailPage")
 );
 const NexoAccountingPage = lazy(() => import("./pages/nexo_av/desktop/pages/AccountingPage"));
+const NexoMonthlyPyGDetailPage = lazy(() => import("./pages/nexo_av/desktop/pages/MonthlyPyGDetailPage"));
 const NexoDeveloperPage = lazy(() => import("./pages/nexo_av/desktop/pages/DeveloperPage"));
 // Scanner Detail - Desktop & Mobile (responsive)
 const ResponsiveScannerDetailPage = createResponsivePage(
@@ -269,6 +270,7 @@ const App = () => (
                 <Route path="expenses/:invoiceId" element={<ResponsiveExpenseDetailPage />} />
                 <Route path="reports" element={<NexoReportsPage />} />
                 <Route path="accounting" element={<NexoAccountingPage />} />
+                <Route path="accounting/pyg/:year/:month" element={<NexoMonthlyPyGDetailPage />} />
                 <Route path="reimbursements" element={<NexoPendingReimbursementsPage />} />
                 <Route path="developer" element={<NexoDeveloperPage />} />
                 <Route path="partners" element={<NexoPartnersPage />} />

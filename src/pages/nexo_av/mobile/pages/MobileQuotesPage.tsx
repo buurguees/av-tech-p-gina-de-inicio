@@ -46,6 +46,7 @@ const MobileQuotesPage = () => {
     pending: 0,
     sent: 0,
     approved: 0,
+    expired: 0,
   });
 
   const fetchQuotes = async () => {
@@ -61,12 +62,12 @@ const MobileQuotesPage = () => {
       const quotesList = data || [];
       setQuotes(quotesList);
 
-      // Calculate stats
-      const pending = quotesList.filter((q: Quote) => q.status === 'PENDING' || q.status === 'DRAFT').length;
+      const pending = quotesList.filter((q: Quote) => q.status === 'DRAFT').length;
       const sent = quotesList.filter((q: Quote) => q.status === 'SENT').length;
       const approved = quotesList.filter((q: Quote) => q.status === 'APPROVED').length;
+      const expired = quotesList.filter((q: Quote) => q.status === 'EXPIRED').length;
       
-      setQuoteStats({ pending, sent, approved });
+      setQuoteStats({ pending, sent, approved, expired });
     } catch (error) {
       console.error('Error fetching quotes:', error);
     } finally {
@@ -106,40 +107,52 @@ const MobileQuotesPage = () => {
   return (
     <div className="w-full h-full flex flex-col overflow-hidden">
       {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-3 mb-4 flex-shrink-0">
-        <div className="bg-card border border-border rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-yellow-500/10 rounded-lg text-yellow-600">
-              <Clock className="h-3.5 w-3.5" />
+      <div className="grid grid-cols-4 gap-2 mb-4 flex-shrink-0">
+        <div className="bg-card border border-border rounded-xl p-2.5">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <div className="p-1 bg-blue-500/10 rounded-lg text-blue-600">
+              <Send className="h-3 w-3" />
             </div>
-            <span className="text-muted-foreground text-xs">Pendientes</span>
+            <span className="text-muted-foreground text-[10px]">Enviados</span>
           </div>
-          <span className="text-lg text-foreground font-semibold">
-            {quoteStats.pending}
-          </span>
-        </div>
-
-        <div className="bg-card border border-border rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-blue-500/10 rounded-lg text-blue-600">
-              <Send className="h-3.5 w-3.5" />
-            </div>
-            <span className="text-muted-foreground text-xs">Enviados</span>
-          </div>
-          <span className="text-lg text-foreground font-semibold">
+          <span className="text-base text-foreground font-semibold">
             {quoteStats.sent}
           </span>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-green-500/10 rounded-lg text-green-600">
-              <CheckCircle className="h-3.5 w-3.5" />
+        <div className="bg-card border border-border rounded-xl p-2.5">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <div className="p-1 bg-green-500/10 rounded-lg text-green-600">
+              <CheckCircle className="h-3 w-3" />
             </div>
-            <span className="text-muted-foreground text-xs">Aprobados</span>
+            <span className="text-muted-foreground text-[10px]">Aprobados</span>
           </div>
-          <span className="text-lg text-foreground font-semibold">
+          <span className="text-base text-foreground font-semibold">
             {quoteStats.approved}
+          </span>
+        </div>
+
+        <div className="bg-card border border-border rounded-xl p-2.5">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <div className="p-1 bg-amber-500/10 rounded-lg text-amber-600">
+              <Clock className="h-3 w-3" />
+            </div>
+            <span className="text-muted-foreground text-[10px]">Vencidos</span>
+          </div>
+          <span className="text-base text-foreground font-semibold">
+            {quoteStats.expired}
+          </span>
+        </div>
+
+        <div className="bg-card border border-border rounded-xl p-2.5">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <div className="p-1 bg-purple-500/10 rounded-lg text-purple-600">
+              <FileText className="h-3 w-3" />
+            </div>
+            <span className="text-muted-foreground text-[10px]">Borradores</span>
+          </div>
+          <span className="text-base text-foreground font-semibold">
+            {quoteStats.pending}
           </span>
         </div>
       </div>

@@ -135,13 +135,13 @@ const SuppliersPageDesktop = () => {
     const getStatusInfo = (status: string) => {
         switch (status) {
             case 'ACTIVE':
-                return { label: 'Activo', color: 'bg-green-100 text-green-700 border-green-300' };
+                return { label: 'Activo', color: 'bg-status-success-bg text-status-success border-status-success/20' };
             case 'INACTIVE':
-                return { label: 'Inactivo', color: 'bg-zinc-100 text-zinc-700 border-zinc-300' };
+                return { label: 'Inactivo', color: 'bg-status-neutral-bg text-status-neutral border-border' };
             case 'BLOCKED':
-                return { label: 'Bloqueado', color: 'bg-red-100 text-red-700 border-red-300' };
+                return { label: 'Bloqueado', color: 'bg-status-error-bg text-status-error border-status-error/20' };
             default:
-                return { label: status, color: 'bg-zinc-100 text-zinc-700 border-zinc-300' };
+                return { label: status, color: 'bg-status-neutral-bg text-status-neutral border-border' };
         }
     };
 
@@ -187,8 +187,8 @@ const SuppliersPageDesktop = () => {
                 if (!inv.issue_date || !inv.provider_id) return false;
                 const invoiceDate = new Date(inv.issue_date);
                 return invoiceDate >= firstDayOfMonth && invoiceDate <= lastDayOfMonth &&
-                       (inv.status === 'CONFIRMED' || inv.status === 'PAID' || inv.status === 'REGISTERED') &&
-                       inv.provider_type === 'SUPPLIER';
+                    (inv.status === 'CONFIRMED' || inv.status === 'PAID' || inv.status === 'REGISTERED') &&
+                    inv.provider_type === 'SUPPLIER';
             });
 
             const monthlyCosts = monthlyInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
@@ -196,7 +196,7 @@ const SuppliersPageDesktop = () => {
             // Calcular facturas por proveedor
             const invoicesBySupplier = new Map<string, number[]>();
             (purchaseInvoicesData || []).forEach((inv: any) => {
-                if (inv.provider_id && inv.total && inv.provider_type === 'SUPPLIER' && 
+                if (inv.provider_id && inv.total && inv.provider_type === 'SUPPLIER' &&
                     inv.status !== 'CANCELLED' && inv.status !== 'PENDING') {
                     const supplierInvoices = invoicesBySupplier.get(inv.provider_id) || [];
                     supplierInvoices.push(inv.total);
@@ -207,8 +207,8 @@ const SuppliersPageDesktop = () => {
             // Media de facturas por proveedor
             const activeSuppliers = suppliers.filter(s => s.status === 'ACTIVE');
             const suppliersWithInvoices = Array.from(invoicesBySupplier.keys()).length;
-            const avgInvoicesPerSupplier = suppliersWithInvoices > 0 
-                ? invoicesBySupplier.size / suppliersWithInvoices 
+            const avgInvoicesPerSupplier = suppliersWithInvoices > 0
+                ? invoicesBySupplier.size / suppliersWithInvoices
                 : 0;
 
             // Ticket medio de factura
@@ -223,31 +223,31 @@ const SuppliersPageDesktop = () => {
 
             // Pagos pendientes
             const pendingInvoices = (purchaseInvoicesData || []).filter((inv: any) => {
-                return inv.provider_type === 'SUPPLIER' && 
-                       (inv.status === 'REGISTERED' || inv.status === 'CONFIRMED' || inv.status === 'PARTIAL') &&
-                       inv.pending_amount && inv.pending_amount > 0;
+                return inv.provider_type === 'SUPPLIER' &&
+                    (inv.status === 'REGISTERED' || inv.status === 'CONFIRMED' || inv.status === 'PARTIAL') &&
+                    inv.pending_amount && inv.pending_amount > 0;
             });
 
-            const totalPendingPayments = pendingInvoices.reduce((sum: number, inv: any) => 
+            const totalPendingPayments = pendingInvoices.reduce((sum: number, inv: any) =>
                 sum + (inv.pending_amount || 0), 0);
 
             // Media de coste por proveedor activo
             const activeSupplierIds = activeSuppliers.map(s => s.id);
-            const activeSupplierInvoices = monthlyInvoices.filter((inv: any) => 
+            const activeSupplierInvoices = monthlyInvoices.filter((inv: any) =>
                 activeSupplierIds.includes(inv.provider_id)
             );
-            const activeSupplierCosts = activeSupplierInvoices.reduce((sum: number, inv: any) => 
+            const activeSupplierCosts = activeSupplierInvoices.reduce((sum: number, inv: any) =>
                 sum + (inv.total || 0), 0);
-            const avgCostPerSupplier = activeSuppliers.length > 0 
-                ? activeSupplierCosts / activeSuppliers.length 
+            const avgCostPerSupplier = activeSuppliers.length > 0
+                ? activeSupplierCosts / activeSuppliers.length
                 : 0;
 
             // Top proveedores (proveedores con más facturas)
             const supplierInvoiceCounts = Array.from(invoicesBySupplier.entries())
                 .map(([id, invoices]) => ({ id, count: invoices.length }))
                 .sort((a, b) => b.count - a.count);
-            const topSuppliersCount = supplierInvoiceCounts.length > 0 
-                ? supplierInvoiceCounts.slice(0, 5).reduce((sum, s) => sum + s.count, 0) 
+            const topSuppliersCount = supplierInvoiceCounts.length > 0
+                ? supplierInvoiceCounts.slice(0, 5).reduce((sum, s) => sum + s.count, 0)
                 : 0;
 
             setSupplierKPIs({
@@ -266,8 +266,8 @@ const SuppliersPageDesktop = () => {
     };
 
     return (
-        <div className="w-full h-full p-6">
-            <div className="w-full h-full">
+        <div className="w-full h-full flex flex-col overflow-hidden p-6">
+            <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
                 <div>
                     {/* KPIs Cards - Recuento por Estado - Optimizado */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
@@ -301,7 +301,7 @@ const SuppliersPageDesktop = () => {
 
                         <div className="bg-card/50 border border-border rounded-lg p-2">
                             <div className="flex items-center gap-2 mb-1">
-                                <div className="p-1 bg-zinc-500/10 rounded text-zinc-600">
+                                <div className="p-1 bg-primary/10 rounded text-primary">
                                     <XCircle className="h-3.5 w-3.5" />
                                 </div>
                                 <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Inactivos</span>
@@ -435,7 +435,7 @@ const SuppliersPageDesktop = () => {
                             </p>
                         </div>
                     ) : (
-                        <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-md w-full">
+                        <div className="flex-1 min-h-0 overflow-auto bg-card rounded-2xl border border-border shadow-md w-full">
                             <Table className="w-full">
                                 <TableHeader>
                                     <TableRow className="hover:bg-transparent bg-muted/30">
@@ -523,14 +523,14 @@ const SuppliersPageDesktop = () => {
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                className="h-6 w-6 text-white/40 hover:text-white hover:bg-white/10"
+                                                                className="h-6 w-6 text-foreground/40 hover:text-foreground hover:bg-foreground/10"
                                                             >
                                                                 <MoreVertical className="h-3 w-3" />
                                                             </Button>
                                                         </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10">
+                                                        <DropdownMenuContent align="end" className="bg-popover border-border">
                                                             <DropdownMenuItem
-                                                                className="text-white hover:bg-white/10"
+                                                                className="text-foreground hover:bg-accent"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     navigate(`/nexo-av/${userId}/suppliers/${supplier.id}`);

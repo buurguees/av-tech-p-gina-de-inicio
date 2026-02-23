@@ -40,10 +40,10 @@ const CURRENCY_FORMAT = new Intl.NumberFormat("es-ES", {
 const formatDate = (date: string | null) =>
   date
     ? new Date(date).toLocaleDateString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      })
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
     : "-";
 
 function isRectificativa(inv: { invoice_type?: string; invoice_number?: string | null }): boolean {
@@ -211,7 +211,7 @@ const RectificativasPageDesktop = () => {
             />
           </div>
 
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
             <DataList<RectificativaInvoice>
               data={paginatedInvoices}
               columns={[

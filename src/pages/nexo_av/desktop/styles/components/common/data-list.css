@@ -348,6 +348,7 @@
 body.nexo-av-theme-dark .data-list {
   background: hsl(var(--card));
   border-color: hsl(var(--border) / 0.8);
+  box-shadow: var(--shadow-sm);
 }
 
 body.nexo-av-theme-dark .data-list__header {
@@ -360,7 +361,7 @@ body.nexo-av-theme-dark .data-list__row {
 }
 
 body.nexo-av-theme-dark .data-list__row:hover {
-  background: hsl(var(--accent) / 0.1);
+  background: hsl(var(--primary) / 0.03);
 }
 
 /* Dropdown Menu Styles - Igual que el Avatar */
@@ -368,9 +369,10 @@ body.nexo-av-theme-dark .data-list__row:hover {
   z-index: 9999 !important;
   background-color: hsl(var(--card)) !important;
   border: 1px solid hsl(var(--border)) !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: var(--shadow-lg) !important;
   min-width: 10rem;
   padding: 0.25rem;
+  border-radius: var(--radius-md, 0.75rem);
 }
 
 .data-list__dropdown-item {

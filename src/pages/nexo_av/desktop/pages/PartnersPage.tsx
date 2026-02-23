@@ -102,7 +102,7 @@ function PartnersPage() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col p-6 gap-6 overflow-y-auto">
+    <div className="w-full h-full flex flex-col overflow-hidden p-6 gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -185,11 +185,11 @@ function PartnersPage() {
       </div>
 
       {/* Partners Grid */}
-      <div className="flex-1">
+      <div className="flex-1 min-h-0 overflow-y-auto pr-2">
         <p className="text-sm text-muted-foreground mb-4">
           {filteredPartners.length} socio{filteredPartners.length !== 1 ? "s" : ""} encontrado{filteredPartners.length !== 1 ? "s" : ""}
         </p>
-        
+
         {filteredPartners.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredPartners.map((partner) => (
@@ -201,8 +201,8 @@ function PartnersPage() {
             <CardContent className="py-12 text-center">
               <Users className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
               <p className="text-muted-foreground">No hay socios registrados</p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="mt-4"
                 onClick={() => setShowCreateDialog(true)}
               >

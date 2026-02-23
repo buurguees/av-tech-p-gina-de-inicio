@@ -59,6 +59,7 @@ interface Quote {
   tax_rate: number;
   total: number;
   valid_until: string | null;
+  issue_date: string | null;
   notes: string | null;
   created_by: string | null;
   created_by_name: string | null;
@@ -140,8 +141,7 @@ const getAvailableStatusTransitions = (currentStatus: string) => {
       // INVOICED solo se hace mediante el botón de facturar
       return ["APPROVED", "REJECTED"];
     case "REJECTED":
-      // Permite cambiar a Aprobado (el cliente puede reconsiderar)
-      return ["REJECTED", "APPROVED"];
+      return ["REJECTED"];
     case "EXPIRED":
       return ["EXPIRED"]; // Cannot be changed
     case "INVOICED":
@@ -627,6 +627,15 @@ const QuoteDetailPageDesktop = () => {
                 disabled={creatingVersion}
               />
             )}
+
+            {/* Estado EXPIRED: solo mostrar "Nueva Versión" */}
+            {quote?.status === "EXPIRED" && (
+              <DetailActionButton
+                actionType="new_version"
+                onClick={handleCreateNewVersion}
+                disabled={creatingVersion}
+              />
+            )}
           </div>
         }
       />
@@ -758,9 +767,9 @@ const QuoteDetailPageDesktop = () => {
                     <div className="flex items-start gap-2">
                       <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground mb-1">Fecha de Creación</p>
+                        <p className="text-xs text-muted-foreground mb-1">Fecha de Emisión</p>
                         <p className="text-sm font-medium">
-                          {quote ? formatDate(quote.created_at) : "N/A"}
+                          {quote ? formatDate(quote.issue_date || quote.created_at) : "N/A"}
                         </p>
                       </div>
                     </div>
@@ -769,9 +778,10 @@ const QuoteDetailPageDesktop = () => {
                       <div className="flex items-start gap-2">
                         <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-muted-foreground mb-1">Fecha válida</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-xs text-muted-foreground mb-1">Válido hasta</p>
+                          <p className={`text-sm font-medium ${quote.status === 'EXPIRED' ? 'text-amber-500' : ''}`}>
                             {formatDate(quote.valid_until)}
+                            {quote.status === 'EXPIRED' && ' (Vencido)'}
                           </p>
                         </div>
                       </div>

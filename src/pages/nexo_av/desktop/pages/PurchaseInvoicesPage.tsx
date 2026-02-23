@@ -41,7 +41,7 @@ import { AnimatePresence } from "motion/react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useToast } from "@/hooks/use-toast";
 import { usePagination } from "@/hooks/usePagination";
-import { cn } from "@/lib/utils";
+import { cn, toNumber } from "@/lib/utils";
 import PaginationControls from "../components/common/PaginationControls";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -132,7 +132,7 @@ const PurchaseInvoicesPageDesktop = () => {
       };
       const { data, error } = await supabase.rpc("list_purchase_invoices", params);
       if (error) throw error;
-      
+
       // Aplicar filtro de estado de pago
       let filteredData = (data || []) as any[];
       if (paymentFilter === "pending") {
@@ -140,16 +140,16 @@ const PurchaseInvoicesPageDesktop = () => {
         filteredData = filteredData.filter((inv: any) => inv.pending_amount > 0);
       } else if (paymentFilter === "paid") {
         // Pagado completamente: pending_amount = 0 o negativo (para facturas negativas)
-        filteredData = filteredData.filter((inv: any) => 
+        filteredData = filteredData.filter((inv: any) =>
           inv.pending_amount <= 0 || inv.status === 'PAID'
         );
       } else if (paymentFilter === "partial") {
         // Parcialmente pagado: tiene pagos pero no está completo
-        filteredData = filteredData.filter((inv: any) => 
+        filteredData = filteredData.filter((inv: any) =>
           inv.paid_amount > 0 && inv.pending_amount > 0
         );
       }
-      
+
       setInvoicesFromServer(filteredData as PurchaseInvoice[]);
     } catch (error: any) {
       console.error("Error fetching purchase invoices:", error);
@@ -196,7 +196,7 @@ const PurchaseInvoicesPageDesktop = () => {
         }
       }
 
-      const extension = isFile 
+      const extension = isFile
         ? (fileOrBlob as File).name.split('.').pop()?.toLowerCase() || 'pdf'
         : 'jpg';
       const timestamp = Date.now();
@@ -220,9 +220,9 @@ const PurchaseInvoicesPageDesktop = () => {
           const { error: retryError } = await supabase.storage
             .from('purchase-documents')
             .upload(newFilePath, fileOrBlob);
-          
+
           if (retryError) throw retryError;
-          
+
           const { data: provNum, error: numErr } = await supabase.rpc('get_next_provisional_purchase_number', {});
           if (numErr || !provNum) throw new Error(numErr?.message || 'No se pudo obtener el número');
           const { data: createdId, error: dbError } = await (supabase.rpc as any)('create_purchase_invoice', {
@@ -300,7 +300,7 @@ const PurchaseInvoicesPageDesktop = () => {
     } catch (error: any) {
       console.error("Upload error:", error);
       let errorMessage = "Error al subir el documento";
-      
+
       if (error.message) {
         errorMessage = error.message;
       } else if (error.error) {
@@ -391,7 +391,7 @@ const PurchaseInvoicesPageDesktop = () => {
 
     try {
       setDeleting(true);
-      
+
       // Delete the purchase invoice using RPC
       const { error } = await supabase.rpc("delete_purchase_invoice", {
         p_invoice_id: invoiceToDelete.id,
@@ -493,8 +493,8 @@ const PurchaseInvoicesPageDesktop = () => {
   } = usePagination(sortedInvoices, { pageSize: 50 });
 
   return (
-    <div className="w-full h-full p-6">
-      <div className="w-full h-full">
+    <div className="w-full h-full flex flex-col overflow-hidden p-6">
+      <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
         {uploadRetryPending && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -516,7 +516,7 @@ const PurchaseInvoicesPageDesktop = () => {
         <div>
           {/* Summary Metric Cards - Clickable Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
-            <div 
+            <div
               className={cn(
                 "border rounded-lg p-2 cursor-pointer transition-all",
                 paymentFilter === "all" && statusFilter === "all"
@@ -539,7 +539,7 @@ const PurchaseInvoicesPageDesktop = () => {
               </div>
             </div>
 
-            <div 
+            <div
               className={cn(
                 "border rounded-lg p-2 cursor-pointer transition-all",
                 paymentFilter === "pending"
@@ -562,7 +562,7 @@ const PurchaseInvoicesPageDesktop = () => {
               </div>
             </div>
 
-            <div 
+            <div
               className={cn(
                 "border rounded-lg p-2 cursor-pointer transition-all",
                 "bg-card/30 border-border/30 opacity-60 hover:opacity-80"
@@ -634,8 +634,8 @@ const PurchaseInvoicesPageDesktop = () => {
                       statusFilter !== "all" && "bg-accent"
                     )}
                   >
-                    {statusFilter === "all" 
-                      ? "Todos" 
+                    {statusFilter === "all"
+                      ? "Todos"
                       : PURCHASE_DOCUMENT_STATUSES.find(s => s.value === statusFilter)?.label || statusFilter}
                     <ChevronDown className="h-3 w-3 ml-1" />
                   </Button>
@@ -706,12 +706,12 @@ const PurchaseInvoicesPageDesktop = () => {
                       paymentFilter !== "all" && "bg-amber-500/20 border-amber-500/50 text-amber-400"
                     )}
                   >
-                    {paymentFilter === "all" 
-                      ? "Pagos" 
-                      : paymentFilter === "pending" 
-                        ? "Pendiente" 
-                        : paymentFilter === "partial" 
-                          ? "Parcial" 
+                    {paymentFilter === "all"
+                      ? "Pagos"
+                      : paymentFilter === "pending"
+                        ? "Pendiente"
+                        : paymentFilter === "partial"
+                          ? "Parcial"
                           : "Pagado"}
                     <ChevronDown className="h-3 w-3 ml-1" />
                   </Button>
@@ -835,11 +835,11 @@ const PurchaseInvoicesPageDesktop = () => {
             </div>
           ) : (
             <>
-              <div className="rounded-lg border border-border overflow-hidden bg-card/30">
+              <div className="flex-1 min-h-0 overflow-auto rounded-lg border border-border bg-card/30">
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent border-border">
-                      <TableHead 
+                      <TableHead
                         className="text-muted-foreground text-xs font-medium cursor-pointer w-[90px]"
                         onClick={() => handleSort("date")}
                       >
@@ -848,7 +848,7 @@ const PurchaseInvoicesPageDesktop = () => {
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-muted-foreground text-xs font-medium cursor-pointer w-[260px]"
                         title="PENDIENTE/C-BORR (borrador) o C-YY-XXXXXX (aprobada). Tickets: TICKET-BORR / TICKET-YY-XXXXXX en Gastos."
                         onClick={() => handleSort("number")}
@@ -858,7 +858,7 @@ const PurchaseInvoicesPageDesktop = () => {
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-muted-foreground text-xs font-medium cursor-pointer w-[180px]"
                         onClick={() => handleSort("provider")}
                       >
@@ -867,7 +867,7 @@ const PurchaseInvoicesPageDesktop = () => {
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-muted-foreground text-xs font-medium cursor-pointer w-[100px]"
                         onClick={() => handleSort("project")}
                       >
@@ -876,7 +876,7 @@ const PurchaseInvoicesPageDesktop = () => {
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-muted-foreground text-xs font-medium cursor-pointer w-[160px]"
                         onClick={() => handleSort("status")}
                       >
@@ -891,7 +891,7 @@ const PurchaseInvoicesPageDesktop = () => {
                       <TableHead className="text-muted-foreground text-xs font-medium w-[80px]">
                         Pagos
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-muted-foreground text-xs font-medium text-right cursor-pointer w-[90px]"
                         onClick={() => handleSort("total")}
                       >
@@ -916,7 +916,7 @@ const PurchaseInvoicesPageDesktop = () => {
                         invoice.status
                       );
                       const paymentStatusInfo = getPaymentStatusInfo(paymentStatus);
-                      
+
                       return (
                         <TableRow
                           key={invoice.id}
@@ -995,41 +995,41 @@ const PurchaseInvoicesPageDesktop = () => {
                               <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
-                        <TableCell className="py-3" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7"
-                              >
-                                <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48 z-[9999] bg-card border border-border shadow-lg">
-                              <DropdownMenuItem
-                                onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}
-                                className="cursor-pointer"
-                              >
-                                <Eye className="h-4 w-4 mr-2" />
-                                Ver detalles
-                              </DropdownMenuItem>
-                              {canDeleteInvoice(invoice) && (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    onClick={(e) => handleDeleteClick(invoice, e)}
-                                    className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Eliminar
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
+                          <TableCell className="py-3" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                >
+                                  <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48 z-[9999] bg-card border border-border shadow-lg">
+                                <DropdownMenuItem
+                                  onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${invoice.id}`)}
+                                  className="cursor-pointer"
+                                >
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Ver detalles
+                                </DropdownMenuItem>
+                                {canDeleteInvoice(invoice) && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={(e) => handleDeleteClick(invoice, e)}
+                                      className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Eliminar
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
                   </TableBody>
@@ -1039,10 +1039,10 @@ const PurchaseInvoicesPageDesktop = () => {
                         Totales ({invoices.length})
                       </td>
                       <td className="text-sm font-bold text-foreground text-right py-2.5 px-3">
-                        {formatCurrency(invoices.reduce((s, i) => s + (i.total || 0), 0))}
+                        {formatCurrency(invoices.reduce((s, i) => s + toNumber(i.total), 0))}
                       </td>
                       <td className="text-sm font-bold text-muted-foreground text-right py-2.5 px-3">
-                        {formatCurrency(invoices.reduce((s, i) => s + (i.pending_amount || 0), 0))}
+                        {formatCurrency(invoices.reduce((s, i) => s + toNumber(i.pending_amount), 0))}
                       </td>
                       <td className="py-2.5 px-3"></td>
                     </tr>

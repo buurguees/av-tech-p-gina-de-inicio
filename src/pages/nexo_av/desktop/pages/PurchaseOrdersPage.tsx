@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ClipboardList, 
-  Edit, 
-  Trash2, 
-  Loader2, 
+import {
+  ClipboardList,
+  Edit,
+  Trash2,
+  Loader2,
   TrendingDown,
   Clock,
   CheckCircle2,
@@ -16,10 +16,10 @@ import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../components/common/PaginationControls";
 import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
-import { 
-  getPurchaseOrderStatusInfo, 
+import {
+  getPurchaseOrderStatusInfo,
   canDeletePurchaseOrder,
-  PURCHASE_ORDER_STATUSES 
+  PURCHASE_ORDER_STATUSES
 } from "@/constants/purchaseOrderStatuses";
 import SearchBar from "../components/common/SearchBar";
 import {
@@ -322,7 +322,7 @@ const PurchaseOrdersPageDesktop = () => {
                   value={searchInput}
                   onChange={setSearchInput}
                   items={orders}
-                  getSearchText={(order) => 
+                  getSearchText={(order) =>
                     `${order.po_number} ${order.supplier_name || ''} ${order.project_name || ''} ${order.technician_name || ''}`
                   }
                   renderResult={(order) => ({
@@ -350,7 +350,7 @@ const PurchaseOrdersPageDesktop = () => {
           </div>
 
           {/* DataList */}
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
             <DataList
               data={paginatedOrders}
               columns={[
@@ -406,8 +406,8 @@ const PurchaseOrdersPageDesktop = () => {
                     const statusInfo = getPurchaseOrderStatusInfo(order.status);
                     return (
                       <div className="flex justify-center">
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={cn(statusInfo.className, "border text-[11px] px-1.5 py-0.5 w-20 justify-center")}
                         >
                           {statusInfo.label}

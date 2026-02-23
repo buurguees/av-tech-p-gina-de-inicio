@@ -4,7 +4,8 @@
    ============================================ */
 
 /* Map page - 60/40 split for map and sidebar (legacy; used when map content is added) */
-body.nexo-av-theme [class*="flex-1"][class*="flex"][class*="gap-4"] {
+body.nexo-av-theme [class*="flex-1"][class*="flex"][class*="gap-4"],
+body.nexo-av-theme-dark [class*="flex-1"][class*="flex"][class*="gap-4"] {
   width: 100% !important;
 }
 
@@ -125,7 +126,8 @@ body.nexo-av-theme-dark>div[class*="min-h-screen"] {
 }
 
 /* Asegurar que el flex container no tenga padding */
-body.nexo-av-theme div.flex[class*="w-"] {
+body.nexo-av-theme div.flex[class*="w-"],
+body.nexo-av-theme-dark div.flex[class*="w-"] {
   padding-left: 0 !important;
   margin-left: 0 !important;
 }
@@ -336,7 +338,7 @@ body.nexo-av-theme-dark [class*="space-y-4"] {
 }
 
 /* Hover states mejorados */
-body.nexo-av-theme [class*="hover:shadow-sm"],
+body.nexo-av-theme [class*="hover:shadow-sm"]:hover,
 body.nexo-av-theme-dark [class*="hover:shadow-sm"]:hover {
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
   transition: box-shadow 0.2s ease-in-out !important;

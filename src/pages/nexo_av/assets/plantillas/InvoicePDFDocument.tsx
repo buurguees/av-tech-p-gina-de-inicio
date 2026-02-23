@@ -549,7 +549,7 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
           {lines.map((line) => (
             <View key={line.id} style={styles.tableRow}>
               <Text style={[styles.cellText, { flex: hasDiscount ? 2.5 : 3 }]}>
-                {line.concept}
+                {(line.concept || "").toUpperCase()}
               </Text>
               <Text style={[styles.cellText, { flex: hasDiscount ? 0.8 : 1, textAlign: "center" }]}>
                 {line.quantity}
