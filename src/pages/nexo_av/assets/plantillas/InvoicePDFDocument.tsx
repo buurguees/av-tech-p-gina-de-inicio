@@ -394,6 +394,15 @@ const formatDate = (date: string) => {
   });
 };
 
+const cleanProjectName = (projectName: string | null | undefined) =>
+  (projectName || "").replace(/^\d{6}\s*-\s*/, "").trim();
+
+const formatProjectDisplayNumber = (projectNumber: string | null | undefined) => {
+  if (!projectNumber) return "";
+  const match = projectNumber.match(/(\d{6})$/);
+  return match?.[1] || projectNumber;
+};
+
 // Group taxes by rate
 const groupTaxesByRate = (lines: InvoiceLine[]) => {
   const taxesByRate: Record<number, number> = {};
@@ -432,6 +441,12 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
   // IBAN predeterminado en facturas: primera cuenta (SABADELL). Opción de selector por factura en el futuro si se cambia.
   const bankAccount = preferences?.bank_accounts?.[0];
   const swiftBic = extractSwiftBic(bankAccount?.notes);
+  const projectDisplayName = project
+    ? `${formatProjectDisplayNumber(project.project_number)} - ${cleanProjectName(project.project_name)}`
+    : "";
+  const hasSites = Boolean(project?.site_name?.trim());
+  const locationLabel = hasSites ? "Ubicación" : "Local";
+  const locationValue = hasSites ? project?.site_name?.trim() : project?.local_name?.trim();
 
   return (
     <Document>
@@ -517,12 +532,12 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
         {project && (
           <View style={styles.projectBox}>
             <Text style={styles.projectTitle}>Proyecto</Text>
-            <Text style={styles.projectName}>{project.project_name.replace(/^\d{6}\s*-\s*/, "")}{project.site_name ? ` — ${project.site_name}` : ""}</Text>
+            <Text style={styles.projectName}>{projectDisplayName}</Text>
             {project.client_order_number && (
               <Text style={styles.projectDetail}>Nº Pedido Cliente: {project.client_order_number}</Text>
             )}
-            {project.local_name && (
-              <Text style={styles.projectDetail}>Local: {project.local_name}</Text>
+            {locationValue && (
+              <Text style={styles.projectDetail}>{locationLabel}: {locationValue}</Text>
             )}
             {project.project_address && (
               <Text style={styles.projectDetail}>{project.project_address}</Text>

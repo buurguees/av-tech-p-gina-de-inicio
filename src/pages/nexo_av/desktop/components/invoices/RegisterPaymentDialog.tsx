@@ -209,8 +209,8 @@ const RegisterPaymentDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="bg-zinc-900/90 backdrop-blur-3xl border-white/10 text-white max-w-xl rounded-[2.5rem] shadow-2xl p-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-blue-500/5 pointer-events-none" />
+      <DialogContent className="bg-card/95 backdrop-blur-3xl border-border text-foreground max-w-xl rounded-[2.5rem] shadow-2xl p-0 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5 pointer-events-none" />
 
         <div className="p-6 md:p-8 space-y-6">
           <DialogHeader className="space-y-2">
@@ -222,7 +222,7 @@ const RegisterPaymentDialog = ({
                 {isEditing ? "Editar Cobro" : "Registrar Cobro"}
               </DialogTitle>
             </div>
-            <DialogDescription className="text-white/50 text-sm pl-0.5">
+            <DialogDescription className="text-muted-foreground text-sm pl-0.5">
               {isEditing 
                 ? `Modificando registro de cobro #${payment.id.slice(0, 8)}` 
                 : "Los asientos contables se generarán automáticamente"}
@@ -231,19 +231,19 @@ const RegisterPaymentDialog = ({
 
           {/* Amount context display */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 flex flex-col justify-between">
-              <span className="text-[10px] uppercase tracking-wider text-white/30 font-semibold mb-1">
+            <div className="bg-muted/30 border border-border rounded-3xl p-4 flex flex-col justify-between">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
                 {isEditing ? "Total Editable" : "Saldo Pendiente"}
               </span>
-              <p className="text-lg font-bold text-white leading-none">
+              <p className="text-lg font-bold text-foreground leading-none">
                 {formatCurrency(maxAllowed)}
               </p>
             </div>
-            <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 flex flex-col justify-between">
-              <span className="text-[10px] uppercase tracking-wider text-white/30 font-semibold mb-1">
+            <div className="bg-muted/30 border border-border rounded-3xl p-4 flex flex-col justify-between">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
                 Restante tras cobro
               </span>
-              <p className={`text-lg font-bold leading-none ${remainingAfterPayment < 0 ? "text-red-400" : "text-emerald-400"}`}>
+              <p className={`text-lg font-bold leading-none ${remainingAfterPayment < 0 ? "text-destructive" : "text-emerald-500"}`}>
                 {formatCurrency(Math.max(0, remainingAfterPayment))}
               </p>
             </div>
@@ -252,7 +252,7 @@ const RegisterPaymentDialog = ({
           <div className="space-y-5">
             {/* Fecha del pago */}
             <div className="space-y-2">
-              <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">
+              <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide">
                 Fecha del Cobro
               </Label>
               <Popover modal={true}>
@@ -260,17 +260,17 @@ const RegisterPaymentDialog = ({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full h-12 justify-start text-left font-medium bg-white/5 border-white/10 text-white rounded-2xl hover:bg-white/10 transition-all",
-                      !paymentDate && "text-white/40"
+                      "w-full h-12 justify-start text-left font-medium bg-background/80 border-border text-foreground rounded-2xl hover:bg-muted/50 transition-all",
+                      !paymentDate && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-3 h-4 w-4 text-emerald-400" />
+                    <CalendarIcon className="mr-3 h-4 w-4 text-primary" />
                     {paymentDate
                       ? format(paymentDate, "d 'de' MMMM, yyyy", { locale: es })
                       : "Seleccionar fecha"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-zinc-900/95 backdrop-blur-3xl border-white/10 rounded-2xl shadow-2xl z-[10002]" align="start">
+                <PopoverContent className="w-auto p-0 bg-popover/95 backdrop-blur-3xl border-border rounded-2xl shadow-2xl z-[10002]" align="start">
                   <Calendar
                     mode="single"
                     selected={paymentDate}
@@ -285,7 +285,7 @@ const RegisterPaymentDialog = ({
             {/* Importe y Método de pago - Grid 2 columnas */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">
+                <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide">
                   Importe (€)
                 </Label>
                 <Input
@@ -293,22 +293,22 @@ const RegisterPaymentDialog = ({
                   inputMode="decimal"
                   value={amount}
                   onChange={handleAmountChange}
-                  className="font-mono text-lg h-12 bg-white/5 border-white/10 text-white rounded-2xl"
+                  className="font-mono text-lg h-12 bg-background/80 border-border text-foreground rounded-2xl"
                   placeholder="0.00"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">
+                <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide">
                   Método de Pago
                 </Label>
                 <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger className="h-12 bg-white/5 border-white/10 text-white rounded-2xl">
+                  <SelectTrigger className="h-12 bg-background/80 border-border text-foreground rounded-2xl">
                     <SelectValue placeholder="Selecciona método" />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900/95 backdrop-blur-3xl border-white/10 rounded-xl z-[10002]">
+                  <SelectContent className="bg-popover/95 backdrop-blur-3xl border-border rounded-xl z-[10002]">
                     {PAYMENT_METHODS.map((method) => (
-                      <SelectItem key={method.value} value={method.value} className="text-white hover:bg-white/10">
+                      <SelectItem key={method.value} value={method.value} className="text-foreground focus:bg-accent">
                         {method.label}
                       </SelectItem>
                     ))}
@@ -319,23 +319,23 @@ const RegisterPaymentDialog = ({
 
             {/* Cuenta bancaria */}
             <div className="space-y-2">
-              <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide flex items-center gap-2">
+              <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide flex items-center gap-2">
                 <Landmark className="h-3.5 w-3.5" />
                 Recibido en (Cuenta Bancaria)
               </Label>
               <Select value={bankAccountId} onValueChange={setBankAccountId}>
-                <SelectTrigger className="h-12 bg-white/5 border-white/10 text-white rounded-2xl">
+                <SelectTrigger className="h-12 bg-background/80 border-border text-foreground rounded-2xl">
                   <SelectValue placeholder="Selecciona cuenta bancaria" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900/95 backdrop-blur-3xl border-white/10 rounded-xl z-[10002]">
-                  <SelectItem value="NONE" className="text-white hover:bg-white/10">
+                <SelectContent className="bg-popover/95 backdrop-blur-3xl border-border rounded-xl z-[10002]">
+                  <SelectItem value="NONE" className="text-foreground focus:bg-accent">
                     Sin especificar cuenta
                   </SelectItem>
                   {availableBankAccounts.map((acc) => (
-                    <SelectItem key={acc.id} value={acc.id} className="text-white hover:bg-white/10">
+                    <SelectItem key={acc.id} value={acc.id} className="text-foreground focus:bg-accent">
                       <div className="flex flex-col items-start gap-0.5">
                         <span className="font-medium">{acc.bank}</span>
-                        <span className="text-xs text-white/50">{acc.iban}</span>
+                        <span className="text-xs text-muted-foreground">{acc.iban}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -345,37 +345,37 @@ const RegisterPaymentDialog = ({
 
             {/* Referencia */}
             <div className="space-y-2">
-              <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">
+              <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide">
                 Nº de Referencia (Opcional)
               </Label>
               <Input
                 value={bankReference}
                 onChange={(e) => setBankReference(e.target.value)}
                 placeholder="Nº transferencia, recibo, etc."
-                className="h-12 bg-white/5 border-white/10 text-white rounded-2xl"
+                className="h-12 bg-background/80 border-border text-foreground rounded-2xl"
               />
             </div>
 
             {/* Notas */}
             <div className="space-y-2">
-              <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">
+              <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide">
                 Notas internas (Opcional)
               </Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Detalles adicionales sobre este cobro..."
-                className="min-h-[80px] bg-white/5 border-white/10 text-white rounded-2xl resize-none"
+                className="min-h-[80px] bg-background/80 border-border text-foreground rounded-2xl resize-none"
               />
             </div>
           </div>
         </div>
 
-        <DialogFooter className="bg-white/[0.02] border-t border-white/5 p-6 md:p-8 flex items-center justify-between gap-4">
+        <DialogFooter className="bg-muted/20 border-t border-border p-6 md:p-8 flex items-center justify-between gap-4">
           <Button
             variant="ghost"
             onClick={() => setOpen(false)}
-            className="flex-1 h-12 text-white/40 hover:text-white hover:bg-white/5 rounded-2xl transition-all"
+            className="flex-1 h-12 text-muted-foreground hover:text-foreground hover:bg-accent rounded-2xl transition-all"
           >
             <Ban className="h-4 w-4 mr-2" />
             Cancelar

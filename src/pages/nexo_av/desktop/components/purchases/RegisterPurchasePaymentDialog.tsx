@@ -290,7 +290,7 @@ const RegisterPurchasePaymentDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="bg-zinc-900/90 backdrop-blur-3xl border-white/10 text-white max-w-lg rounded-[2.5rem] shadow-2xl p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card/95 backdrop-blur-3xl border-border text-foreground max-w-lg rounded-[2.5rem] shadow-2xl p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
         <div className={cn(
           "absolute inset-0 pointer-events-none",
           `bg-gradient-to-br from-${color}-500/10 via-transparent to-blue-500/5`
@@ -318,7 +318,7 @@ const RegisterPurchasePaymentDialog = ({
                  isNegativeInvoice ? "Registrar Reembolso Recibido" : "Registrar Pago"}
               </DialogTitle>
             </div>
-            <DialogDescription className="text-white/50 text-sm">
+            <DialogDescription className="text-muted-foreground text-sm">
               {paymentMode === "PERSONAL" ? "El socio pagó con medios personales. Se registrará como deuda pendiente de reembolso." :
                paymentMode === "APLAZAME" ? "La deuda se reclasifica del proveedor al acreedor financiero." :
                isEditing ? `Modificando registro #${payment?.id.slice(0, 8)}` :
@@ -333,7 +333,7 @@ const RegisterPurchasePaymentDialog = ({
                 variant={paymentMode === "STANDARD" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setPaymentMode("STANDARD")}
-                className={cn("flex-1 text-xs", paymentMode === "STANDARD" ? "bg-red-500 hover:bg-red-600 text-white" : "border-white/10 text-white/60 hover:text-white")}
+                className={cn("flex-1 text-xs", paymentMode === "STANDARD" ? "bg-red-500 hover:bg-red-600 text-white" : "border-border text-muted-foreground hover:text-foreground")}
               >
                 <CreditCard className="h-3.5 w-3.5 mr-1.5" />
                 Empresa
@@ -342,7 +342,7 @@ const RegisterPurchasePaymentDialog = ({
                 variant={paymentMode === "PERSONAL" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setPaymentMode("PERSONAL")}
-                className={cn("flex-1 text-xs", paymentMode === "PERSONAL" ? "bg-amber-500 hover:bg-amber-600 text-white" : "border-white/10 text-white/60 hover:text-white")}
+                className={cn("flex-1 text-xs", paymentMode === "PERSONAL" ? "bg-amber-500 hover:bg-amber-600 text-white" : "border-border text-muted-foreground hover:text-foreground")}
               >
                 <User className="h-3.5 w-3.5 mr-1.5" />
                 Socio Personal
@@ -352,7 +352,7 @@ const RegisterPurchasePaymentDialog = ({
                   variant={paymentMode === "APLAZAME" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setPaymentMode("APLAZAME")}
-                  className={cn("flex-1 text-xs", paymentMode === "APLAZAME" ? "bg-blue-500 hover:bg-blue-600 text-white" : "border-white/10 text-white/60 hover:text-white")}
+                  className={cn("flex-1 text-xs", paymentMode === "APLAZAME" ? "bg-blue-500 hover:bg-blue-600 text-white" : "border-border text-muted-foreground hover:text-foreground")}
                 >
                   <HandCoins className="h-3.5 w-3.5 mr-1.5" />
                   Financiación
@@ -363,19 +363,19 @@ const RegisterPurchasePaymentDialog = ({
 
           {/* Summary cards */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 flex flex-col justify-between">
-              <span className="text-[10px] uppercase tracking-wider text-white/30 font-semibold mb-1">
+            <div className="bg-muted/30 border border-border rounded-3xl p-4 flex flex-col justify-between">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
                 {isEditing ? "Total Editable" : isNegativeInvoice ? "Reembolso Pendiente" : "Saldo Pendiente"}
               </span>
-              <p className={cn("text-lg font-bold leading-none", isNegativeInvoice ? "text-emerald-400" : "text-white")}>
+              <p className={cn("text-lg font-bold leading-none", isNegativeInvoice ? "text-emerald-500" : "text-foreground")}>
                 {formatCurrency(maxAllowed)}
               </p>
             </div>
-            <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-4 flex flex-col justify-between">
-              <span className="text-[10px] uppercase tracking-wider text-white/30 font-semibold mb-1">
+            <div className="bg-muted/30 border border-border rounded-3xl p-4 flex flex-col justify-between">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
                 {isNegativeInvoice ? "Restante por recibir" : "Restante tras pago"}
               </span>
-              <p className={`text-lg font-bold leading-none ${remainingAfterPayment < 0 ? "text-red-400" : "text-emerald-400"}`}>
+              <p className={`text-lg font-bold leading-none ${remainingAfterPayment < 0 ? "text-destructive" : "text-emerald-500"}`}>
                 {formatCurrency(Math.max(0, remainingAfterPayment))}
               </p>
             </div>
@@ -384,18 +384,18 @@ const RegisterPurchasePaymentDialog = ({
           <div className="space-y-4">
             {/* Date */}
             <div className="space-y-2">
-              <Label className="text-white/60 text-xs font-semibold ml-1 uppercase tracking-wide">Fecha del Movimiento</Label>
+              <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide">Fecha del Movimiento</Label>
               <Popover modal={true}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className={cn(
-                    "w-full h-12 justify-start text-left font-medium bg-white/5 border-white/10 text-white rounded-2xl hover:bg-white/10 transition-all",
-                    !paymentDate && "text-white/40"
+                    "w-full h-12 justify-start text-left font-medium bg-background/80 border-border text-foreground rounded-2xl hover:bg-muted/50 transition-all",
+                    !paymentDate && "text-muted-foreground"
                   )}>
                     <CalendarIcon className="mr-3 h-4 w-4 text-red-400" />
                     {paymentDate ? format(paymentDate, "d 'de' MMMM, yyyy", { locale: es }) : "Seleccionar fecha"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-zinc-900/95 backdrop-blur-3xl border-white/10 rounded-2xl shadow-2xl z-[10002]" align="start">
+                <PopoverContent className="w-auto p-0 bg-popover/95 backdrop-blur-3xl border-border rounded-2xl shadow-2xl z-[10002]" align="start">
                   <Calendar mode="single" selected={paymentDate} onSelect={(date) => date && setPaymentDate(date)} initialFocus className="p-3 pointer-events-auto" />
                 </PopoverContent>
               </Popover>
@@ -515,8 +515,8 @@ const RegisterPurchasePaymentDialog = ({
           </div>
         </div>
 
-        <DialogFooter className="bg-white/[0.02] border-t border-white/5 p-6 md:p-8 flex items-center justify-between gap-4">
-          <Button variant="ghost" onClick={() => setOpen(false)} className="flex-1 h-12 text-white/40 hover:text-white hover:bg-white/5 rounded-2xl transition-all">
+        <DialogFooter className="bg-muted/20 border-t border-border p-6 md:p-8 flex items-center justify-between gap-4">
+          <Button variant="ghost" onClick={() => setOpen(false)} className="flex-1 h-12 text-muted-foreground hover:text-foreground hover:bg-accent rounded-2xl transition-all">
             <Ban className="h-4 w-4 mr-2" />
             Cancelar
           </Button>

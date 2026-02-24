@@ -217,7 +217,7 @@ const InvoicesPageDesktop = () => {
                 "border rounded-lg p-2 flex flex-col justify-between cursor-pointer transition-all",
                 paymentFilter === "all" && statusFilter === "all"
                   ? "bg-card border-border"
-                  : "bg-card/40 border-border/50 opacity-60 hover:opacity-80"
+                  : "bg-card/70 border-border/60 opacity-80 hover:opacity-100"
               )}
               onClick={() => { setPaymentFilter("all"); setStatusFilter("all"); }}
             >
@@ -240,7 +240,7 @@ const InvoicesPageDesktop = () => {
                 "border rounded-lg p-2 flex flex-col justify-between cursor-pointer transition-all",
                 paymentFilter === "pending"
                   ? "bg-card border-amber-500/50 ring-1 ring-amber-500/20"
-                  : "bg-card/40 border-border/50 opacity-60 hover:opacity-80"
+                  : "bg-card/70 border-border/60 opacity-80 hover:opacity-100"
               )}
               onClick={() => { setPaymentFilter("pending"); setStatusFilter("all"); }}
             >
@@ -261,7 +261,7 @@ const InvoicesPageDesktop = () => {
             <div
               className={cn(
                 "border rounded-lg p-2 flex flex-col justify-between cursor-pointer transition-all",
-                paymentFilter === "all" && statusFilter === "all" ? "bg-zinc-900/30 border-white/5 opacity-60 hover:opacity-80" : "bg-zinc-900/30 border-white/5 opacity-60 hover:opacity-80"
+                "bg-card/70 border-border/60 opacity-80 hover:opacity-100"
               )}
               onClick={() => { setPaymentFilter("all"); setStatusFilter("all"); }}
             >
@@ -269,7 +269,7 @@ const InvoicesPageDesktop = () => {
                 <div className="p-1 bg-red-500/10 rounded text-red-500">
                   <AlertCircle className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-white/60 text-[9px] px-1.5 py-0.5 font-medium">Vencido</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Vencido</span>
               </div>
               <div>
                 <span className="text-base font-bold text-red-500">
@@ -279,7 +279,7 @@ const InvoicesPageDesktop = () => {
                     return new Date(inv.due_date) < new Date();
                   }).length}
                 </span>
-                <span className="text-[10px] text-red-400/60 ml-1">facturas vencidas</span>
+                <span className="text-[10px] text-muted-foreground ml-1">facturas vencidas</span>
               </div>
             </div>
           </div>

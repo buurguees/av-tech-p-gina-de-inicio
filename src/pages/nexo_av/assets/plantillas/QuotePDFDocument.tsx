@@ -45,6 +45,7 @@ export interface Quote {
   tax_amount: number;
   total: number;
   valid_until: string | null;
+  issue_date?: string | null;
   created_at: string;
 }
 
@@ -335,6 +336,15 @@ const formatDate = (date: string) => {
   });
 };
 
+const cleanProjectName = (projectName: string | null | undefined) =>
+  (projectName || "").replace(/^\d{6}\s*-\s*/, "").trim();
+
+const formatProjectDisplayNumber = (projectNumber: string | null | undefined) => {
+  if (!projectNumber) return "";
+  const match = projectNumber.match(/(\d{6})$/);
+  return match?.[1] || projectNumber;
+};
+
 // Group taxes by rate
 const groupTaxesByRate = (lines: QuoteLine[]) => {
   const taxesByRate: Record<number, number> = {};
@@ -357,6 +367,12 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project }: Quo
   const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
   const total = lines.reduce((acc, line) => acc + line.total, 0);
   const hasDiscount = lines.some((line) => line.discount_percent && line.discount_percent > 0.1);
+  const projectDisplayName = project
+    ? `${formatProjectDisplayNumber(project.project_number)} - ${cleanProjectName(project.project_name)}`
+    : "";
+  const hasSites = Boolean(project?.site_name?.trim());
+  const locationLabel = hasSites ? "Ubicación" : "Local";
+  const locationValue = hasSites ? project?.site_name?.trim() : project?.local_name?.trim();
 
   return (
     <Document>
@@ -381,7 +397,7 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project }: Quo
           <View style={styles.headerRight}>
             <Text style={styles.documentTitle}>Presupuesto</Text>
             <Text style={styles.documentNumber}>{quote.quote_number}</Text>
-            <Text style={styles.documentDate}>Fecha: {formatDate(quote.created_at)}</Text>
+            <Text style={styles.documentDate}>Fecha: {formatDate(quote.issue_date || quote.created_at)}</Text>
           </View>
         </View>
 
@@ -448,12 +464,12 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project }: Quo
         {project && (
           <View style={styles.projectBox}>
             <Text style={styles.boxTitle}>Datos del Proyecto</Text>
-            <Text style={styles.boxName}>{project.project_name.replace(/^\d{6}\s*-\s*/, "")}{project.site_name ? ` — ${project.site_name}` : ""}</Text>
+            <Text style={styles.boxName}>{projectDisplayName}</Text>
             {project.client_order_number && (
               <Text style={styles.boxDetail}>Nº Pedido Cliente: {project.client_order_number}</Text>
             )}
-            {project.local_name && (
-              <Text style={styles.boxDetail}>Local: {project.local_name}</Text>
+            {locationValue && (
+              <Text style={styles.boxDetail}>{locationLabel}: {locationValue}</Text>
             )}
             {project.project_address && (
               <Text style={styles.boxDetail}>Dirección: {project.project_address}</Text>

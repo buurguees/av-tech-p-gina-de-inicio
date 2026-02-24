@@ -15,7 +15,9 @@ import {
   Users,
   Calendar,
   Save,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PROJECT_STATUSES, getProjectStatusInfo } from "@/constants/projectStatuses";
@@ -51,6 +53,7 @@ const MobileNewProjectPage = () => {
   const [status, setStatus] = useState("NEGOTIATION");
   const [siteMode, setSiteMode] = useState<"SINGLE_SITE" | "MULTI_SITE">("SINGLE_SITE");
   const [siteName, setSiteName] = useState("");
+  const [multiSiteNames, setMultiSiteNames] = useState<string[]>([""]);
   const [projectAddress, setProjectAddress] = useState("");
   const [projectCity, setProjectCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
@@ -75,12 +78,14 @@ const MobileNewProjectPage = () => {
   // Generate project name automatically
   const generatedProjectName = useMemo(() => {
     const parts: string[] = [];
+    const firstMultiSiteName = multiSiteNames.find((site) => site.trim())?.trim() || "";
+    const locationName = siteMode === "MULTI_SITE" ? firstMultiSiteName : localName.trim();
     if (selectedClient?.company_name) parts.push(selectedClient.company_name);
     if (clientOrderNumber?.trim()) parts.push(clientOrderNumber.trim());
     if (projectCity?.trim()) parts.push(projectCity.trim());
-    if (localName?.trim()) parts.push(localName.trim());
+    if (locationName) parts.push(locationName);
     return parts.join(" - ");
-  }, [selectedClient, clientOrderNumber, projectCity, localName]);
+  }, [selectedClient, clientOrderNumber, projectCity, localName, multiSiteNames, siteMode]);
 
   // Get status info
   const statusInfo = useMemo(() => getProjectStatusInfo(status), [status]);
@@ -120,20 +125,50 @@ const MobileNewProjectPage = () => {
     try {
       setLoading(true);
       const sanitize = (val: string): string | null => val && val.trim() ? val.trim() : null;
+      const cleanedMultiSites = multiSiteNames.map((site) => site.trim()).filter(Boolean);
 
-      const { error } = await supabase.rpc("create_project", {
+      if (siteMode === "MULTI_SITE" && cleanedMultiSites.length === 0) {
+        toast({
+          title: "Error",
+          description: "Debes añadir al menos un sitio en modo Multi-Sitio.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const primarySiteName = siteMode === "MULTI_SITE"
+        ? cleanedMultiSites[0]
+        : (sanitize(siteName) || sanitize(localName));
+      const effectiveLocalName = siteMode === "MULTI_SITE"
+        ? (primarySiteName || null)
+        : sanitize(localName);
+
+      const { data, error } = await supabase.rpc("create_project", {
         p_client_id: clientId,
         p_status: status || "NEGOTIATION",
         p_site_mode: siteMode,
-        p_site_name: siteMode === "MULTI_SITE" ? sanitize(siteName) : null,
+        p_site_name: primarySiteName || null,
         p_project_address: sanitize(projectAddress),
         p_project_city: sanitize(projectCity),
-        p_local_name: sanitize(localName),
+        p_local_name: effectiveLocalName,
         p_client_order_number: sanitize(clientOrderNumber),
         p_notes: sanitize(internalNotes),
       });
 
       if (error) throw error;
+
+      const createdProject = Array.isArray(data) ? data[0] : null;
+      if (siteMode === "MULTI_SITE" && createdProject?.project_id && cleanedMultiSites.length > 1) {
+        for (const extraSiteName of cleanedMultiSites.slice(1)) {
+          const { error: siteError } = await supabase.rpc("create_project_site", {
+            p_project_id: createdProject.project_id,
+            p_site_name: extraSiteName,
+            p_city: sanitize(projectCity),
+            p_country: sanitize(country) || "España",
+          });
+          if (siteError) throw siteError;
+        }
+      }
 
       toast({ 
         title: "Proyecto creado", 
@@ -156,6 +191,21 @@ const MobileNewProjectPage = () => {
 
   const handleBack = () => {
     navigate(`/nexo-av/${userId}/projects`);
+  };
+
+  const updateMultiSiteName = (index: number, value: string) => {
+    setMultiSiteNames((prev) => prev.map((site, i) => (i === index ? value : site)));
+  };
+
+  const addMultiSite = () => {
+    setMultiSiteNames((prev) => [...prev, ""]);
+  };
+
+  const removeMultiSite = (index: number) => {
+    setMultiSiteNames((prev) => {
+      if (prev.length === 1) return prev;
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   return (
@@ -285,16 +335,37 @@ const MobileNewProjectPage = () => {
               </div>
 
               {siteMode === "MULTI_SITE" && (
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label className="text-xs font-medium text-muted-foreground">
-                    Nombre del primer sitio
+                    Sitios del proyecto
                   </Label>
-                  <Input
-                    placeholder="Ej: Tienda Centro"
-                    value={siteName}
-                    onChange={(e) => setSiteName(e.target.value)}
-                    className="bg-card border-border"
-                  />
+                  {multiSiteNames.map((site, index) => (
+                    <div key={`mobile-site-${index}`} className="flex items-center gap-2">
+                      <Input
+                        placeholder={`Sitio ${index + 1}`}
+                        value={site}
+                        onChange={(e) => updateMultiSiteName(index, e.target.value)}
+                        className="bg-card border-border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeMultiSite(index)}
+                        className="h-9 w-9 inline-flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+                        aria-label={`Eliminar sitio ${index + 1}`}
+                        disabled={multiSiteNames.length === 1}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addMultiSite}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Añadir sitio
+                  </button>
                 </div>
               )}
             </div>
@@ -383,17 +454,19 @@ const MobileNewProjectPage = () => {
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-muted-foreground">
-                    Nombre del Local
-                  </Label>
-                  <Input 
-                    placeholder="Ej: Tienda Centro" 
-                    value={localName} 
-                    onChange={(e) => setLocalName(e.target.value)}
-                    className="bg-card border-border"
-                  />
-                </div>
+                {siteMode === "SINGLE_SITE" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      Nombre del Local
+                    </Label>
+                    <Input 
+                      placeholder="Ej: Tienda Centro" 
+                      value={localName} 
+                      onChange={(e) => setLocalName(e.target.value)}
+                      className="bg-card border-border"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1.5">

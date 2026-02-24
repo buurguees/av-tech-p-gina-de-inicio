@@ -521,7 +521,7 @@ const ExpensesPageDesktop = () => {
                 <span className="text-2xl font-bold text-foreground">
                   {formatCurrency(expenses.reduce((sum, exp) => sum + toNumber(exp.total), 0))}
                 </span>
-                <div className="flex items-center gap-1 mt-1 text-xs text-white/40">
+                <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                   <span>{expenses.length} tickets</span>
                 </div>
               </div>
@@ -531,19 +531,19 @@ const ExpensesPageDesktop = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-zinc-900/50 border border-white/10 rounded-xl p-4 flex flex-col justify-between"
+              className="bg-card/70 border border-border rounded-xl p-4 flex flex-col justify-between"
             >
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
                   <AlertCircle className="h-5 w-5" />
                 </div>
-                <span className="text-white/60 text-sm font-medium">Pendiente de Pago</span>
+                <span className="text-muted-foreground text-sm font-medium">Pendiente de Pago</span>
               </div>
               <div>
-                <span className="text-2xl font-bold text-white">
+                <span className="text-2xl font-bold text-foreground">
                   {formatCurrency(expenses.reduce((sum, exp) => sum + toNumber(exp.pending_amount), 0))}
                 </span>
-                <div className="flex items-center gap-1 mt-1 text-xs text-blue-400">
+                <div className="flex items-center gap-1 mt-1 text-xs text-blue-500">
                   <span>{expenses.filter(e => e.pending_amount > 0).length} tickets pendientes</span>
                 </div>
               </div>
@@ -553,13 +553,13 @@ const ExpensesPageDesktop = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-zinc-900/50 border border-white/10 rounded-xl p-4 flex flex-col justify-between"
+              className="bg-card/70 border border-border rounded-xl p-4 flex flex-col justify-between"
             >
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-red-500/10 rounded-lg text-red-500">
                   <AlertCircle className="h-5 w-5" />
                 </div>
-                <span className="text-white/60 text-sm font-medium">Vencido</span>
+                <span className="text-muted-foreground text-sm font-medium">Vencido</span>
               </div>
               <div>
                 <span className="text-2xl font-bold text-red-500">
@@ -572,7 +572,7 @@ const ExpensesPageDesktop = () => {
                     .reduce((sum, exp) => sum + toNumber(exp.total), 0)
                   )}
                 </span>
-                <div className="flex items-center gap-1 mt-1 text-xs text-red-400/80">
+                <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                   <span>Requiere atención inmediata</span>
                 </div>
               </div>

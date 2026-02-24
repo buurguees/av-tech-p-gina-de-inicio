@@ -89,12 +89,12 @@
 /* Theme adjustments - Light theme (negro) */
 body.nexo-av-theme .platform-brand__logo,
 body.nexo-av-theme-light .platform-brand__logo {
-  color: #000000; /* Negro para tema light */
+  color: hsl(var(--foreground));
 }
 
 body.nexo-av-theme .platform-brand__title,
 body.nexo-av-theme-light .platform-brand__title {
-  color: #000000 !important; /* Negro para tema light */
+  color: hsl(var(--foreground)) !important;
 }
 
 body.nexo-av-theme .platform-brand__subtitle,
@@ -104,11 +104,11 @@ body.nexo-av-theme-light .platform-brand__subtitle {
 
 /* Theme adjustments - Dark theme (blanco) */
 body.nexo-av-theme-dark .platform-brand__logo {
-  color: #ffffff; /* Blanco para tema dark */
+  color: hsl(var(--foreground));
 }
 
 body.nexo-av-theme-dark .platform-brand__title {
-  color: #ffffff !important; /* Blanco para tema dark */
+  color: hsl(var(--foreground)) !important;
 }
 
 body.nexo-av-theme-dark .platform-brand__subtitle {

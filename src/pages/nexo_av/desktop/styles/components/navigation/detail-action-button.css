@@ -29,45 +29,45 @@
 }
 
 /* Hover state - Igual que sidebar */
-/* Light theme - hover negro con texto blanco */
+/* Light theme */
 body.nexo-av-theme .detail-action-button:hover:not(:disabled) {
-  background-color: #000000 !important;
-  color: #ffffff !important;
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
 }
 
 body.nexo-av-theme .detail-action-button:hover:not(:disabled) .detail-action-button__icon {
-  color: #ffffff !important;
+  color: hsl(var(--accent-foreground)) !important;
 }
 
-/* Dark theme - hover blanco con texto negro */
+/* Dark theme */
 body.nexo-av-theme-dark .detail-action-button:hover:not(:disabled) {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
 }
 
 body.nexo-av-theme-dark .detail-action-button:hover:not(:disabled) .detail-action-button__icon {
-  color: #000000 !important;
+  color: hsl(var(--accent-foreground)) !important;
 }
 
 /* Active state - Igual que sidebar */
-/* Light theme - activo negro con texto blanco */
+/* Light theme */
 body.nexo-av-theme .detail-action-button {
-  background-color: #000000 !important;
-  color: #ffffff !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 
 body.nexo-av-theme .detail-action-button .detail-action-button__icon {
-  color: #ffffff !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 
-/* Dark theme - activo blanco con texto negro */
+/* Dark theme */
 body.nexo-av-theme-dark .detail-action-button {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 
 body.nexo-av-theme-dark .detail-action-button .detail-action-button__icon {
-  color: #000000 !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 
 /* Disabled state */

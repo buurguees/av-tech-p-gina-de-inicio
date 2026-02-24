@@ -513,7 +513,7 @@ const PurchaseInvoicesPageDesktop = () => {
             </AlertDescription>
           </Alert>
         )}
-        <div>
+        <div className="flex flex-col h-full min-h-0 overflow-hidden">
           {/* Summary Metric Cards - Clickable Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
             <div
@@ -822,11 +822,11 @@ const PurchaseInvoicesPageDesktop = () => {
 
           {/* Table */}
           {loading ? (
-            <div className="flex items-center justify-center py-12">
+            <div className="flex-1 min-h-0 flex items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : invoices.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
+            <div className="flex-1 min-h-0 flex flex-col items-center justify-center">
               <FileText className="h-16 w-16 text-muted-foreground mb-4" />
               <p className="text-muted-foreground">No hay facturas de compra</p>
               <p className="text-muted-foreground text-sm mt-1">
@@ -834,10 +834,10 @@ const PurchaseInvoicesPageDesktop = () => {
               </p>
             </div>
           ) : (
-            <>
+            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
               <div className="flex-1 min-h-0 overflow-auto rounded-lg border border-border bg-card/30">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0 z-20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85">
                     <TableRow className="hover:bg-transparent border-border">
                       <TableHead
                         className="text-muted-foreground text-xs font-medium cursor-pointer w-[90px]"
@@ -1033,8 +1033,8 @@ const PurchaseInvoicesPageDesktop = () => {
                       );
                     })}
                   </TableBody>
-                  <tfoot>
-                    <tr className="border-t-2 border-border bg-muted/50">
+                  <tfoot className="sticky bottom-0 z-20">
+                    <tr className="border-t-2 border-border bg-muted/90 backdrop-blur supports-[backdrop-filter]:bg-muted/80">
                       <td className="text-xs font-bold text-muted-foreground py-2.5 px-3 uppercase" colSpan={7}>
                         Totales ({invoices.length})
                       </td>
@@ -1052,7 +1052,7 @@ const PurchaseInvoicesPageDesktop = () => {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="mt-4">
+                <div className="mt-4 flex-shrink-0">
                   <PaginationControls
                     currentPage={currentPage}
                     totalPages={totalPages}
@@ -1067,7 +1067,7 @@ const PurchaseInvoicesPageDesktop = () => {
                   />
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>

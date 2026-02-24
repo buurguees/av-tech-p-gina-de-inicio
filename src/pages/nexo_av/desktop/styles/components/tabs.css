@@ -135,20 +135,20 @@ body.nexo-av-theme-dark [class*="TabsList"][class*="bg-muted/60"] [class*="TabsT
 
 /* TabsTrigger Active State - Light theme (fondo negro como sidebar) */
 body.nexo-av-theme [class*="TabsList"][class*="bg-muted/60"] [class*="TabsTrigger"][data-state="active"] {
-  background-color: #000000 !important;
-  color: #ffffff !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
   font-weight: 600 !important;
-  border-color: #000000 !important;
+  border-color: hsl(var(--primary)) !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
   transform: translateY(-1px) !important;
 }
 
 /* TabsTrigger Active State - Dark theme (fondo blanco como sidebar) */
 body.nexo-av-theme-dark [class*="TabsList"][class*="bg-muted/60"] [class*="TabsTrigger"][data-state="active"] {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
   font-weight: 600 !important;
-  border-color: #ffffff !important;
+  border-color: hsl(var(--primary)) !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
   transform: translateY(-1px) !important;
 }
@@ -166,12 +166,12 @@ body.nexo-av-theme-dark [class*="TabsList"][class*="bg-muted/60"] [class*="TabsT
 
 /* Iconos en estado activo - Light theme */
 body.nexo-av-theme [class*="TabsList"][class*="bg-muted/60"] [class*="TabsTrigger"][data-state="active"] svg {
-  color: #ffffff !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 
 /* Iconos en estado activo - Dark theme */
 body.nexo-av-theme-dark [class*="TabsList"][class*="bg-muted/60"] [class*="TabsTrigger"][data-state="active"] svg {
-  color: #000000 !important;
+  color: hsl(var(--primary-foreground)) !important;
 }
 
 /* TabsContent - Asegurar visibilidad y ocupar espacio completo */
@@ -274,6 +274,12 @@ body.nexo-av-theme-dark [class*="TabsList"][class*="bg-muted/60"] [class*="TabsT
   -ms-overflow-style: none !important; /* IE and Edge */
 }
 
+/* En light mode, evita el "look dark" del contenedor oscuro */
+body.nexo-av-theme [class*="TabsList"][class*="bg-black/40"] {
+  background-color: hsl(var(--muted) / 0.8) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
 /* Ocultar scrollbar en Chrome, Safari y Opera */
 [class*="TabsList"][class*="bg-black/40"]::-webkit-scrollbar {
   display: none !important;
@@ -300,19 +306,19 @@ body.nexo-av-theme-dark [class*="TabsList"][class*="bg-muted/60"] [class*="TabsT
 
 /* Estado inactivo - Light theme */
 body.nexo-av-theme [class*="TabsList"][class*="bg-black/40"] [class*="TabsTrigger"][data-state="inactive"] {
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: hsl(var(--muted-foreground)) !important;
   background-color: transparent !important;
 }
 
 body.nexo-av-theme [class*="TabsList"][class*="bg-black/40"] [class*="TabsTrigger"][data-state="inactive"]:hover {
-  color: rgba(255, 255, 255, 0.8) !important;
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--accent)) !important;
 }
 
 /* Estado activo - Light theme (negro con texto blanco) */
 body.nexo-av-theme [class*="TabsList"][class*="bg-black/40"] [class*="TabsTrigger"][data-state="active"] {
-  background-color: #000000 !important;
-  color: #ffffff !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
   font-weight: 600 !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
   transform: scale(1.02) !important;
@@ -331,8 +337,8 @@ body.nexo-av-theme-dark [class*="TabsList"][class*="bg-black/40"] [class*="TabsT
 
 /* Estado activo - Dark theme (blanco con texto negro) */
 body.nexo-av-theme-dark [class*="TabsList"][class*="bg-black/40"] [class*="TabsTrigger"][data-state="active"] {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
   font-weight: 600 !important;
   box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.05) !important;
   transform: scale(1.02) !important;
@@ -348,13 +354,13 @@ body.nexo-av-theme-dark [class*="TabsList"][class*="bg-black/40"] [class*="TabsT
 
 /* Iconos en estado activo - Light theme */
 body.nexo-av-theme [class*="TabsList"][class*="bg-black/40"] [class*="TabsTrigger"][data-state="active"] svg {
-  color: #ffffff !important;
+  color: hsl(var(--primary-foreground)) !important;
   transform: scale(1.1) !important;
 }
 
 /* Iconos en estado activo - Dark theme */
 body.nexo-av-theme-dark [class*="TabsList"][class*="bg-black/40"] [class*="TabsTrigger"][data-state="active"] svg {
-  color: #000000 !important;
+  color: hsl(var(--primary-foreground)) !important;
   transform: scale(1.1) !important;
 }
 

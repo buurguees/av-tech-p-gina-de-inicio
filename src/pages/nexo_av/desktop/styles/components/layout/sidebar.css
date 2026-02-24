@@ -70,13 +70,13 @@
 }
 
 .nexo-sidebar__item:hover {
-  background-color: hsl(0 0% 100%) !important;
-  color: hsl(0 0% 0%) !important;
+  background-color: hsl(var(--sidebar-accent)) !important;
+  color: hsl(var(--sidebar-accent-foreground)) !important;
   font-weight: 400 !important;
 }
 
 .nexo-sidebar__item:hover .nexo-sidebar__icon {
-  color: hsl(0 0% 0%) !important;
+  color: hsl(var(--sidebar-accent-foreground)) !important;
 }
 
 .nexo-sidebar__item--active {
@@ -162,14 +162,14 @@ body.nexo-av-theme-light .nexo-sidebar {
 
 body.nexo-av-theme .nexo-sidebar__item:hover,
 body.nexo-av-theme-light .nexo-sidebar__item:hover {
-  background-color: hsl(0 0% 100%) !important;
-  color: hsl(0 0% 0%) !important;
+  background-color: hsl(var(--sidebar-accent)) !important;
+  color: hsl(var(--sidebar-accent-foreground)) !important;
   font-weight: 400 !important;
 }
 
 body.nexo-av-theme .nexo-sidebar__item:hover .nexo-sidebar__icon,
 body.nexo-av-theme-light .nexo-sidebar__item:hover .nexo-sidebar__icon {
-  color: hsl(0 0% 0%) !important;
+  color: hsl(var(--sidebar-accent-foreground)) !important;
 }
 
 body.nexo-av-theme .nexo-sidebar__item--active,

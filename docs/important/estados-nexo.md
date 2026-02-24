@@ -1,7 +1,7 @@
 # Estados del Sistema — Nexo AV
 
 > Documento de referencia para todos los estados y categorías utilizados en la aplicación.  
-> Última actualización: 2026-02-13
+> Última actualización: 2026-02-24
 
 ---
 
@@ -99,6 +99,9 @@ DRAFT → SENT → APPROVED → INVOICED
 
 ### Notas
 
+- Transición legal de emisión: al pasar de `DRAFT` a `SENT` o `APPROVED`, el sistema fija `issue_date = CURRENT_DATE`.
+- El número definitivo del presupuesto se asigna en la emisión (transición desde borrador), de forma correlativa.
+- Si no se informa `valid_until`, se calcula automáticamente desde preferencias de empresa (`quote_validity_days`).
 - Al aprobar un presupuesto, el proyecto asociado puede pasar a `IN_PROGRESS`.
 - Al facturar un presupuesto, se genera una factura de venta con las mismas líneas.
 - Los presupuestos `APPROVED` e `INVOICED` quedan bloqueados (inmutables).
@@ -146,6 +149,10 @@ Vencida:    is_overdue = true (automático por fecha)
 
 ### Notas
 
+- Transición legal de emisión: al emitir (`DRAFT -> ISSUED`) se fuerza `issue_date = CURRENT_DATE` aunque el borrador sea antiguo.
+- La numeración definitiva se asigna únicamente en emisión y siempre es correlativa (`F-YY-XXXXXX`, +1 respecto al último número emitido del año).
+- `due_date` se calcula desde preferencias de empresa (`invoice_payment_days`) tomando como base la fecha de emisión.
+- La emisión no debe hacerse por cambios directos de estado en RPC genéricas; se debe usar el flujo de emisión dedicado.
 - Solo las facturas en estado `DRAFT` son editables.
 - A partir de `ISSUED`, todos los campos financieros quedan **permanentemente inmutables**.
 - Las facturas de venta **NO tienen categoría contable**.
