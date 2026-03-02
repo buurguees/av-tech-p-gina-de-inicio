@@ -8,6 +8,7 @@ import {
   Save, 
   FileText, 
   FolderKanban,
+  MapPin,
   Calendar,
   Receipt,
   AlertCircle,
@@ -65,6 +66,13 @@ interface Project {
   client_name?: string;
 }
 
+interface ProjectSite {
+  id: string;
+  site_name: string;
+  city: string | null;
+  is_default: boolean;
+}
+
 interface Expense {
   id: string;
   invoice_number: string;
@@ -81,6 +89,8 @@ interface Expense {
   project_id: string | null;
   project_name: string | null;
   project_number: string | null;
+  site_id?: string | null;
+  site_name?: string | null;
   file_path: string | null;
   file_name: string | null;
   notes: string | null;
@@ -269,6 +279,9 @@ const ExpenseDetailPage = () => {
   // Project selection
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectSearchValue, setProjectSearchValue] = useState("");
+  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+  const [projectSiteMode, setProjectSiteMode] = useState<string | null>(null);
+  const [projectSites, setProjectSites] = useState<ProjectSite[]>([]);
 
   // Fetch expense data
   const fetchExpense = useCallback(async () => {
@@ -290,6 +303,10 @@ const ExpenseDetailPage = () => {
       }
       
       const exp = expenseData[0] as unknown as Expense;
+      if (exp.document_type !== "EXPENSE") {
+        navigate(`/nexo-av/${userId}/purchase-invoices/${expenseId}`);
+        return;
+      }
       setExpense(exp);
       
       // Set form values
@@ -303,8 +320,10 @@ const ExpenseDetailPage = () => {
       if (exp.project_id) {
         setSelectedProjectId(exp.project_id);
         setProjectSearchValue(exp.project_name || "");
+        setSelectedSiteId(exp.site_id || "");
       } else {
         setProjectSearchValue("");
+        setSelectedSiteId("");
       }
       
       // Get lines
@@ -339,6 +358,52 @@ const ExpenseDetailPage = () => {
     fetchExpense();
   }, [fetchExpense]);
 
+  const fetchSitesForProject = useCallback(async (projectId: string, preferredSiteId?: string | null) => {
+    try {
+      const { data: projectData, error: projectError } = await supabase.rpc("get_project", { p_project_id: projectId });
+      if (projectError) throw projectError;
+      const projectInfo = projectData?.[0];
+      const siteMode = projectInfo?.site_mode || null;
+      setProjectSiteMode(siteMode);
+
+      const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
+      if (error) throw error;
+
+      const sites: ProjectSite[] = (data || [])
+        .filter((s: any) => s.is_active)
+        .map((s: any) => ({ id: s.id, site_name: s.site_name, city: s.city, is_default: s.is_default }));
+      setProjectSites(sites);
+
+      if (preferredSiteId && sites.some((site) => site.id === preferredSiteId)) {
+        setSelectedSiteId(preferredSiteId);
+        return;
+      }
+
+      if (siteMode === "SINGLE_SITE" && sites.length > 0) {
+        const defaultSite = sites.find((site) => site.is_default) || sites[0];
+        setSelectedSiteId(defaultSite.id);
+        return;
+      }
+
+      setSelectedSiteId("");
+    } catch (error) {
+      console.error("Error fetching project sites:", error);
+      setProjectSiteMode(null);
+      setProjectSites([]);
+      setSelectedSiteId("");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!selectedProjectId) {
+      setProjectSiteMode(null);
+      setProjectSites([]);
+      setSelectedSiteId("");
+      return;
+    }
+    void fetchSitesForProject(selectedProjectId, selectedSiteId || null);
+  }, [selectedProjectId, fetchSitesForProject]);
+
   // Fetch user roles
   useEffect(() => {
     const fetchUserRoles = async () => {
@@ -355,12 +420,22 @@ const ExpenseDetailPage = () => {
   }, []);
 
   // Handle save
-  const handleSave = async () => {
-    if (!expenseId || !expense) return;
+  const handleSave = async (): Promise<boolean> => {
+    if (!expenseId || !expense) return false;
     
     if (!expenseCategory) {
       toast.error("Selecciona un tipo de gasto");
-      return;
+      return false;
+    }
+
+    if (!establishmentName.trim()) {
+      toast.error("Indica el concepto del gasto o el nombre del establecimiento.");
+      return false;
+    }
+
+    if (selectedProjectId && projectSiteMode === "MULTI_SITE" && !selectedSiteId) {
+      toast.error("Selecciona un sitio para este proyecto multi-sitio.");
+      return false;
     }
     
     try {
@@ -379,55 +454,37 @@ const ExpenseDetailPage = () => {
         p_supplier_id: null,
         p_technician_id: null,
         p_project_id: selectedProjectId || null,
-        p_manual_beneficiary_name: establishmentName?.trim() || null,
+        p_manual_beneficiary_name: establishmentName.trim(),
+        p_site_id: selectedProjectId ? (selectedSiteId || null) : null,
       });
       
       if (updateError) throw updateError;
       
-      // Update lines - delete old and add new
-      const { data: existingLines, error: getLinesError } = await supabase.rpc("get_purchase_invoice_lines", {
+      const { error: linesError } = await (supabase.rpc as any)("replace_purchase_invoice_lines", {
         p_invoice_id: expenseId,
+        p_lines: lines.map((line) => ({
+          concept: line.concept,
+          description: line.description || null,
+          quantity: line.quantity,
+          unit_price: line.unit_price,
+          tax_rate: line.tax_rate,
+          discount_percent: line.discount_percent || 0,
+          withholding_tax_rate: 0,
+        })),
       });
-      
-      if (getLinesError) throw getLinesError;
-      
-      // Delete all existing lines
-      if (existingLines && existingLines.length > 0) {
-        for (const existingLine of existingLines) {
-          const { error: deleteError } = await supabase.rpc("delete_purchase_invoice_line", { 
-            p_line_id: existingLine.id 
-          });
-          if (deleteError) throw deleteError;
-        }
-      }
-      
-      // Add all lines
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const { error: lineError } = await supabase.rpc("add_purchase_invoice_line", {
-          p_invoice_id: expenseId,
-          p_concept: line.concept,
-          p_description: line.description || null,
-          p_quantity: line.quantity,
-          p_unit_price: line.unit_price,
-          p_tax_rate: line.tax_rate,
-          p_withholding_tax_rate: 0,
-          p_discount_percent: line.discount_percent || 0,
-        });
-        
-        if (lineError) {
-          throw new Error(`Error al añadir línea ${i + 1}: ${lineError.message}`);
-        }
-      }
-      
+
+      if (linesError) throw linesError;
+
       toast.success("Gasto guardado correctamente");
       setHasChanges(false);
       setIsEditing(false);
       await fetchExpense();
+      return true;
       
     } catch (error: any) {
       console.error("Error saving expense:", error);
       toast.error(error?.message || "Error al guardar el gasto");
+      return false;
     } finally {
       setSaving(false);
     }
@@ -441,7 +498,8 @@ const ExpenseDetailPage = () => {
       setApproving(true);
       
       if (hasChanges) {
-        await handleSave();
+        const saved = await handleSave();
+        if (!saved) return;
       }
       
       const { data, error: approveError } = await supabase.rpc("approve_purchase_invoice", {
@@ -486,29 +544,9 @@ const ExpenseDetailPage = () => {
     try {
       setDeleting(true);
       
-      // Delete all lines first
-      const { data: existingLines, error: getLinesError } = await supabase.rpc("get_purchase_invoice_lines", {
+      const { error: deleteError } = await supabase.rpc("delete_purchase_invoice", {
         p_invoice_id: expenseId,
       });
-      
-      if (getLinesError) throw getLinesError;
-      
-      if (existingLines && existingLines.length > 0) {
-        for (const line of existingLines) {
-          const { error: deleteLineError } = await supabase.rpc("delete_purchase_invoice_line", { 
-            p_line_id: line.id 
-          });
-          if (deleteLineError) {
-            console.warn("Error deleting line:", deleteLineError);
-          }
-        }
-      }
-      
-      // Delete the expense
-      const { error: deleteError } = await (supabase as any)
-        .from("purchase_invoices")
-        .delete()
-        .eq("id", expenseId);
       
       if (deleteError) throw deleteError;
       
@@ -827,7 +865,7 @@ const ExpenseDetailPage = () => {
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">
                         <Store className="h-3 w-3 inline mr-1" />
-                        Establecimiento (opcional)
+                        Concepto o establecimiento *
                       </Label>
                       <Input
                         value={establishmentName}
@@ -843,7 +881,7 @@ const ExpenseDetailPage = () => {
                   </div>
                   
                   <p className="text-xs text-muted-foreground mt-3">
-                    El establecimiento es informativo. No se creará un proveedor en el sistema.
+                    Este campo identifica el ticket en contabilidad. No se creará un proveedor en el sistema.
                   </p>
                 </motion.div>
 
@@ -880,12 +918,55 @@ const ExpenseDetailPage = () => {
                           onClick={() => {
                             setSelectedProjectId(null);
                             setProjectSearchValue("");
+                            setSelectedSiteId("");
+                            setProjectSites([]);
+                            setProjectSiteMode(null);
                             setHasChanges(true);
                           }}
                         >
                           <X className="h-3 w-3" />
                         </Button>
                       )}
+                    </div>
+                  )}
+
+                  {selectedProjectId && projectSiteMode === "MULTI_SITE" && projectSites.length > 0 && (
+                    <div className="space-y-2 mt-3">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5" />
+                        Sitio *
+                      </Label>
+                      <Select
+                        value={selectedSiteId || undefined}
+                        onValueChange={(value) => {
+                          setSelectedSiteId(value);
+                          setHasChanges(true);
+                        }}
+                        disabled={!isEditing || isLocked}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar sitio..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projectSites.map((site) => (
+                            <SelectItem key={site.id} value={site.id}>
+                              {site.site_name}{site.city ? ` - ${site.city}` : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {selectedProjectId && projectSiteMode === "SINGLE_SITE" && projectSites.length > 0 && (
+                    <div className="space-y-2 mt-3">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5" />
+                        Sitio
+                      </Label>
+                      <div className="h-11 flex items-center px-3 rounded-md border border-border bg-muted/30 text-sm text-foreground">
+                        {projectSites[0]?.site_name}{projectSites[0]?.city ? ` - ${projectSites[0].city}` : ""}
+                      </div>
                     </div>
                   )}
                 </motion.div>

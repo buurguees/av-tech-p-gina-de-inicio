@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FolderKanban, FileText, ScanLine, Users, Plus, X } from "lucide-react";
+import { FolderKanban, FileText, ScanLine, Users, Plus, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import "../../styles/components/layout/bottom-navigation.css";
+import "../../styles/components/layout/bottom-navigation-modern.css";
 
 interface BottomNavItem {
   id: string;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   path: string;
   isAction?: boolean;
 }
@@ -15,7 +15,7 @@ interface BottomNavItem {
 export interface MoreMenuItem {
   id: string;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   path: string;
 }
 
@@ -76,12 +76,12 @@ export const BottomNavigation = ({ userId, moreMenuItems = [] }: BottomNavigatio
       {showMore && moreMenuItems.length > 0 && (
         <div className="fixed inset-0 z-[9998]" onClick={() => setShowMore(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-          <div 
-            className="absolute bottom-[100px] right-4 z-[9999]"
+          <div
+            className="absolute bottom-[92px] right-4 z-[9999]"
             style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden min-w-[220px]">
+            <div className="bg-card/98 border border-border rounded-2xl shadow-2xl overflow-hidden min-w-[220px] backdrop-blur-xl">
               {moreMenuItems.map((menuItem, idx) => {
                 const MenuIcon = menuItem.icon;
                 return (
@@ -92,7 +92,7 @@ export const BottomNavigation = ({ userId, moreMenuItems = [] }: BottomNavigatio
                       navigate(menuItem.path);
                     }}
                     className={cn(
-                      "w-full flex items-center gap-3 px-5 py-4 text-sm font-medium text-foreground",
+                      "w-full flex items-center gap-3 px-5 py-4 text-sm font-medium text-foreground min-h-11",
                       "active:bg-secondary/80 transition-colors",
                       idx < moreMenuItems.length - 1 && "border-b border-border/50"
                     )}
@@ -108,12 +108,7 @@ export const BottomNavigation = ({ userId, moreMenuItems = [] }: BottomNavigatio
         </div>
       )}
 
-      <nav 
-        className="mobile-bottom-nav"
-        style={{
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        }}
-      >
+      <nav className="mobile-bottom-nav">
         <div className="mobile-bottom-nav-container">
           {items.map((item) => {
             const Icon = item.icon;
@@ -129,6 +124,7 @@ export const BottomNavigation = ({ userId, moreMenuItems = [] }: BottomNavigatio
                     active && "active"
                   )}
                   aria-label={item.label}
+                  aria-pressed={showMore}
                   style={{ touchAction: 'manipulation' }}
                 >
                   <div className="bottom-nav-icon-wrapper">
@@ -157,6 +153,7 @@ export const BottomNavigation = ({ userId, moreMenuItems = [] }: BottomNavigatio
                   active && "active"
                 )}
                 aria-label={item.label}
+                aria-current={active ? "page" : undefined}
                 style={{ touchAction: 'manipulation' }}
               >
                 <div className="bottom-nav-icon-wrapper">

@@ -164,6 +164,19 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
     } as TicketLine;
   };
 
+  const getDisplayedUnitPrice = (line: Partial<TicketLine>, includesTax: boolean): number => {
+    if (!includesTax) {
+      return line.unit_price || 0;
+    }
+
+    const quantity = line.quantity || 0;
+    if (!quantity) {
+      return 0;
+    }
+
+    return (line.total || 0) / quantity;
+  };
+
   const addLine = () => {
     const newLine = calculateLineValues({
       tempId: crypto.randomUUID(),
@@ -178,9 +191,23 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
 
   const updateLine = (index: number, field: keyof TicketLine, value: any) => {
     const updatedLines = [...lines];
+
+    if (field === "concept" || field === "description" || field === "id" || field === "tempId" || field === "price_includes_tax") {
+      updatedLines[index] = {
+        ...updatedLines[index],
+        [field]: value,
+      };
+      onChange(updatedLines);
+      return;
+    }
+
+    const currentLine = updatedLines[index];
     updatedLines[index] = calculateLineValues({
-      ...updatedLines[index],
+      ...currentLine,
       [field]: value,
+      unit_price: field === "unit_price"
+        ? value
+        : getDisplayedUnitPrice(currentLine, priceIncludesTax),
     }, priceIncludesTax);
     onChange(updatedLines);
   };
@@ -190,14 +217,6 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
   };
 
   // Recalcular todas las líneas cuando cambia el modo de IVA
-  useEffect(() => {
-    if (lines.length > 0) {
-      const recalculatedLines = lines.map(line => 
-        calculateLineValues(line, priceIncludesTax)
-      );
-      onChange(recalculatedLines);
-    }
-  }, [priceIncludesTax]);
 
   // Helper: Parse input value — both "." and "," are decimal separators
   const parseNumericInput = (value: string): number => {
@@ -398,12 +417,14 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
                   </TableCell>
                   <TableCell>
                     {disabled ? (
-                      <span className="text-sm text-foreground text-right block">{formatCurrency(line.unit_price)}</span>
+                      <span className="text-sm text-foreground text-right block">
+                        {formatCurrency(getDisplayedUnitPrice(line, priceIncludesTax))}
+                      </span>
                     ) : (
                       <Input
                         type="text"
                         value={getNumericDisplayValue(
-                          priceIncludesTax ? line.total / (line.quantity || 1) : line.unit_price, 
+                          getDisplayedUnitPrice(line, priceIncludesTax),
                           'unit_price', 
                           index
                         )}

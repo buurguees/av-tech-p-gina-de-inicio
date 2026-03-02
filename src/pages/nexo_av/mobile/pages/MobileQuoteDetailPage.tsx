@@ -35,6 +35,7 @@ import { getQuoteStatusInfo, QUOTE_STATUSES } from "@/constants/quoteStatuses";
 import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
 import { useToast } from "@/hooks/use-toast";
 import { QuotePDFDocument } from "@/pages/nexo_av/assets/plantillas";
+import ArchivedPdfViewer from "../../shared/components/ArchivedPdfViewer";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 import {
@@ -68,6 +69,9 @@ interface Quote {
   site_id?: string | null;
   site_name?: string | null;
   site_city?: string | null;
+  archived_pdf_path?: string | null;
+  archived_pdf_file_name?: string | null;
+  sharepoint_item_id?: string | null;
 }
 
 interface QuoteLine {
@@ -200,7 +204,16 @@ const MobileQuoteDetailPage = () => {
       if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
 
       const quoteInfo = quoteData[0];
-      setQuote(quoteInfo);
+      const { data: archiveRows, error: archiveError } = await ((supabase.rpc as any)("get_quote_archive_metadata", {
+        p_quote_id: quoteId,
+      }) as Promise<{ data: Array<{ archived_pdf_path: string | null; archived_pdf_file_name: string | null }> | null; error: any }>);
+      const archiveData = !archiveError && Array.isArray(archiveRows) && archiveRows.length > 0 ? archiveRows[0] : null;
+      const enrichedQuote = {
+        ...quoteInfo,
+        archived_pdf_path: archiveData?.archived_pdf_path ?? null,
+        archived_pdf_file_name: archiveData?.archived_pdf_file_name ?? null,
+      };
+      setQuote(enrichedQuote);
 
       // Fetch quote lines
       const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", {
@@ -242,6 +255,8 @@ const MobileQuoteDetailPage = () => {
       if (!companyError && companyData && companyData.length > 0) {
         setCompany(companyData[0]);
       }
+
+      return enrichedQuote;
     } catch (error: any) {
       console.error("Error fetching quote:", error);
       toast({
@@ -857,6 +872,7 @@ interface PreviewTabProps {
 }
 
 const PreviewTab = ({ quote, lines, client, company, project, fileName }: PreviewTabProps) => {
+  const hasArchivedPdf = quote.status !== "DRAFT" && !!quote.archived_pdf_path;
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [loadingPdf, setLoadingPdf] = useState(true);
@@ -869,6 +885,11 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
     let urlToRevoke: string | null = null;
 
     const generatePdf = async () => {
+      if (quote.status !== "DRAFT") {
+        setLoadingPdf(false);
+        return;
+      }
+
       if (!client || !company) {
         setError(true);
         setErrorMessage("Faltan datos del cliente o empresa");
@@ -913,6 +934,30 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
       }
     };
   }, [quote, lines, client, company, project]);
+
+  if (hasArchivedPdf) {
+    return (
+      <ArchivedPdfViewer
+        documentType="quote"
+        documentId={quote.id}
+        filePath={quote.archived_pdf_path!}
+        fileName={quote.archived_pdf_file_name || fileName}
+        title={`Presupuesto archivado ${fileName}`}
+      />
+    );
+  }
+
+  if (quote.status !== "DRAFT") {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center min-h-[320px]">
+        <AlertCircle className="h-16 w-16 text-amber-500 mb-4" />
+        <p className="text-foreground font-medium">PDF archivado no disponible</p>
+        <p className="text-sm text-muted-foreground max-w-sm">
+          Este presupuesto ya esta emitido y debe servirse desde SharePoint. Hay que revisar su archivado.
+        </p>
+      </div>
+    );
+  }
 
   const handleDownload = () => {
     if (pdfBlob) {

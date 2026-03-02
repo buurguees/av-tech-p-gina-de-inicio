@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Loader2 } from "lucide-react";
+import { MoreVertical, Loader2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../common/PaginationControls";
@@ -41,13 +41,17 @@ interface PurchaseInvoice {
   paid_amount: number;
   pending_amount: number;
   status: string;
+  site_id: string | null;
+  site_name: string | null;
 }
 
 interface ProjectPurchasesListProps {
   projectId: string;
+  siteMode?: string | null;
+  defaultSiteName?: string | null;
 }
 
-const ProjectPurchasesList = ({ projectId }: ProjectPurchasesListProps) => {
+const ProjectPurchasesList = ({ projectId, siteMode, defaultSiteName }: ProjectPurchasesListProps) => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const [loading, setLoading] = useState(true);
@@ -81,7 +85,26 @@ const ProjectPurchasesList = ({ projectId }: ProjectPurchasesListProps) => {
         (p: any) => p.project_id === projectId
       );
 
-      setPurchases(projectPurchases as unknown as PurchaseInvoice[]);
+      const resolvedPurchases = await Promise.all(
+        (projectPurchases as PurchaseInvoice[]).map(async (purchase) => {
+          if (purchase.site_name) return purchase;
+
+          const { data: detailData, error: detailError } = await supabase.rpc("get_purchase_invoice", {
+            p_invoice_id: purchase.id,
+          });
+
+          if (detailError || !detailData || detailData.length === 0) return purchase;
+
+          const detail = detailData[0] as { site_id?: string | null; site_name?: string | null };
+          return {
+            ...purchase,
+            site_id: detail.site_id ?? purchase.site_id,
+            site_name: detail.site_name ?? purchase.site_name,
+          };
+        })
+      );
+
+      setPurchases(resolvedPurchases);
     } catch (error: any) {
       console.error("Error fetching purchases:", error);
     } finally {
@@ -102,6 +125,12 @@ const ProjectPurchasesList = ({ projectId }: ProjectPurchasesListProps) => {
       month: "2-digit",
       year: "numeric",
     });
+  };
+
+  const getResolvedSiteName = (siteName: string | null) => {
+    if (siteName) return siteName;
+    if (siteMode === "SINGLE_SITE" && defaultSiteName) return defaultSiteName;
+    return null;
   };
 
   const {
@@ -151,6 +180,7 @@ const ProjectPurchasesList = ({ projectId }: ProjectPurchasesListProps) => {
                 <TableHead className="project-items-list__header">Fecha</TableHead>
                 <TableHead className="project-items-list__header">Nº Documento</TableHead>
                 <TableHead className="project-items-list__header">Proveedor</TableHead>
+                <TableHead className="project-items-list__header">Sitio</TableHead>
                 <TableHead className="project-items-list__header">Tipo</TableHead>
                 <TableHead className="project-items-list__header text-right">Total</TableHead>
                 <TableHead className="project-items-list__header text-center">Estado</TableHead>
@@ -172,6 +202,7 @@ const ProjectPurchasesList = ({ projectId }: ProjectPurchasesListProps) => {
                   purchase.internal_purchase_number ||
                   purchase.supplier_invoice_number ||
                   purchase.invoice_number;
+                const resolvedSiteName = getResolvedSiteName(purchase.site_name);
 
                 return (
                   <TableRow
@@ -189,6 +220,16 @@ const ProjectPurchasesList = ({ projectId }: ProjectPurchasesListProps) => {
                     </TableCell>
                     <TableCell className="project-items-list__cell">
                       {purchase.provider_name || "Sin proveedor"}
+                    </TableCell>
+                    <TableCell className="project-items-list__cell">
+                      {resolvedSiteName ? (
+                        <span className="inline-flex items-center gap-1.5 text-sm">
+                          <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                          {resolvedSiteName}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">Sin asignar</span>
+                      )}
                     </TableCell>
                     <TableCell className="project-items-list__cell">
                       {purchase.document_type}

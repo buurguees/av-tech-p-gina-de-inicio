@@ -19,6 +19,10 @@ const ALLOWED_ORIGINS = [
 
 const LOVABLE_PATTERN = /^https:\/\/[a-z0-9-]+\.(lovable\.app|lovableproject\.com)$/;
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Internal server error';
+}
+
 function getCorsHeaders(origin: string | null): Record<string, string> {
   let allowedOrigin = ALLOWED_ORIGINS[0];
   
@@ -52,6 +56,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
@@ -153,7 +158,6 @@ serve(async (req) => {
       }
 
       case 'reset': {
-        // Only allow reset with proper authorization (for admins)
         const authHeader = req.headers.get('Authorization');
         if (!authHeader) {
           return new Response(
@@ -162,16 +166,41 @@ serve(async (req) => {
           );
         }
 
-        const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
         const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
           global: { headers: { Authorization: authHeader } }
         });
 
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (!user) {
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        if (userError || !user) {
           return new Response(
             JSON.stringify({ error: 'Unauthorized' }),
             { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const { data: authorizedUserData, error: authorizedUserError } = await supabaseAdmin
+          .rpc('get_authorized_user_by_auth_id', { p_auth_user_id: user.id });
+
+        if (authorizedUserError || !authorizedUserData || authorizedUserData.length === 0) {
+          return new Response(
+            JSON.stringify({ error: 'Forbidden' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const authorizedUser = authorizedUserData[0];
+        const { data: userRoles, error: rolesError } = await supabaseAdmin
+          .rpc('get_user_roles_by_user_id', { p_user_id: authorizedUser.id });
+
+        if (rolesError) {
+          throw rolesError;
+        }
+
+        const isAdmin = userRoles?.some((role: { role_name: string }) => role.role_name === 'admin');
+        if (!isAdmin) {
+          return new Response(
+            JSON.stringify({ error: 'Admin access required' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
@@ -195,10 +224,10 @@ serve(async (req) => {
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Rate limit error:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
+      JSON.stringify({ error: getErrorMessage(error) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

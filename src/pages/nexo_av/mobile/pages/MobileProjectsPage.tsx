@@ -36,6 +36,20 @@ interface Project {
   budget: number;
 }
 
+interface ProjectKpis {
+  planned: number;
+  inProgress: number;
+  completed: number;
+  invoiced: number;
+}
+
+const emptyProjectKpis: ProjectKpis = {
+  planned: 0,
+  inProgress: 0,
+  completed: 0,
+  invoiced: 0,
+};
+
 const MobileProjectsPage = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
@@ -44,42 +58,34 @@ const MobileProjectsPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchTerm = useDebounce(searchInput, 500);
-  const [projectKPIs, setProjectKPIs] = useState({
-    planned: 0,
-    inProgress: 0,
-    completed: 0,
-    invoiced: 0,
-  });
-
-  const fetchProjects = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.rpc('list_projects', {
-        p_search: debouncedSearchTerm || null
-      });
-
-      if (error) throw error;
-      
-      // Show ALL projects without filtering by status
-      const projectsList = data || [];
-      setProjects(projectsList);
-
-      // Calculate KPIs from all projects
-      const planned = projectsList.filter((p: Project) => p.status === 'PLANNED').length;
-      const inProgress = projectsList.filter((p: Project) => p.status === 'IN_PROGRESS').length;
-      const completed = projectsList.filter((p: Project) => p.status === 'COMPLETED').length;
-      const invoiced = projectsList.filter((p: Project) => p.status === 'INVOICED').length;
-      
-      setProjectKPIs({ planned, inProgress, completed, invoiced });
-    } catch (error) {
-      console.error('Error fetching projects:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [projectKPIs, setProjectKPIs] = useState<ProjectKpis>(emptyProjectKpis);
 
   useEffect(() => {
-    fetchProjects();
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase.rpc("list_projects", {
+          p_search: debouncedSearchTerm || null,
+        });
+
+        if (error) throw error;
+
+        const projectsList = (data || []) as Project[];
+        setProjects(projectsList);
+        setProjectKPIs({
+          planned: projectsList.filter((project) => project.status === "PLANNED").length,
+          inProgress: projectsList.filter((project) => project.status === "IN_PROGRESS").length,
+          completed: projectsList.filter((project) => project.status === "COMPLETED").length,
+          invoiced: projectsList.filter((project) => project.status === "INVOICED").length,
+        });
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchProjects();
   }, [debouncedSearchTerm]);
 
   const handleProjectClick = (projectId: string) => {
@@ -93,10 +99,7 @@ const MobileProjectsPage = () => {
   return (
     <div className="w-full h-full flex flex-col">
       {/* Fixed Header Section: KPIs + Search - Always visible, never scrolls */}
-      <div 
-        className="flex-shrink-0 py-3 px-3 w-full"
-        style={{ background: 'linear-gradient(0deg, rgba(0, 0, 0, 1) 100%, rgba(255, 255, 255, 0) 0%)', height: 'fit-content' }}
-      >
+      <div className="sticky top-0 z-20 flex-shrink-0 py-3 bg-background/95 backdrop-blur-sm border-b border-border/40 -mx-4 px-4 mb-2">
         {/* KPI Cards - Compact: Icon + Number only */}
         <div className="grid grid-cols-4 gap-2 mb-3">
           {/* Planificados - Azul */}
@@ -148,21 +151,20 @@ const MobileProjectsPage = () => {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Buscar proyectos..."
-              className="pl-9 h-8 bg-card border-border text-sm"
+              className="pl-9 h-11 bg-card border-border text-sm"
             />
           </div>
           {/* Button styled like bottom navigation - same height as input */}
           <button
             onClick={handleCreateProject}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
+              "h-11 px-4 flex items-center justify-center gap-1.5 rounded-full",
               "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-              "text-white/90 hover:text-white hover:bg-white/15",
+              "bg-primary text-primary-foreground",
               "active:scale-95 transition-all duration-200",
-              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+              "shadow-sm"
             )}
-            style={{ touchAction: 'manipulation', height: '32px' }}
+            style={{ touchAction: 'manipulation' }}
           >
             <Plus className="h-4 w-4" />
             <span>Nuevo</span>
@@ -171,7 +173,7 @@ const MobileProjectsPage = () => {
       </div>
 
       {/* Projects List - Scrollable area */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pt-3 pb-[80px] w-full h-full px-[15px]">
+      <div className="flex-1 min-h-0 space-y-2 pt-1 pb-4 w-full">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

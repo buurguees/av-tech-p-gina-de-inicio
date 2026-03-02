@@ -2,6 +2,7 @@
  * QuotePDFDocument - Plantilla de PDF para Presupuestos
  * Compartido entre versión móvil y desktop
  */
+import React from "react";
 import {
   Document,
   Page,
@@ -47,6 +48,7 @@ export interface Quote {
   valid_until: string | null;
   issue_date?: string | null;
   created_at: string;
+  archived_record_hash?: string | null;
 }
 
 export interface Project {
@@ -93,6 +95,7 @@ export interface QuotePDFDocumentProps {
   client: Client | null;
   company: CompanySettings | null;
   project: Project | null;
+  documentHash?: string | null;
 }
 
 // Styles for PDF
@@ -317,6 +320,14 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: "#888",
   },
+  documentHash: {
+    position: "absolute",
+    bottom: 18,
+    left: 40,
+    fontSize: 7,
+    color: "#888",
+    maxWidth: "75%",
+  },
 });
 
 // Format currency
@@ -361,8 +372,16 @@ const groupTaxesByRate = (lines: QuoteLine[]) => {
     .sort((a, b) => b.rate - a.rate);
 };
 
+const buildDeterministicHash = (input: string): string => {
+  let hash = 5381;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = ((hash << 5) + hash) ^ input.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0").toUpperCase();
+};
+
 // PDF Document Component
-export const QuotePDFDocument = ({ quote, lines, client, company, project }: QuotePDFDocumentProps) => {
+export const QuotePDFDocument = ({ quote, lines, client, company, project, documentHash }: QuotePDFDocumentProps) => {
   const taxes = groupTaxesByRate(lines);
   const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
   const total = lines.reduce((acc, line) => acc + line.total, 0);
@@ -373,6 +392,18 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project }: Quo
   const hasSites = Boolean(project?.site_name?.trim());
   const locationLabel = hasSites ? "Ubicación" : "Local";
   const locationValue = hasSites ? project?.site_name?.trim() : project?.local_name?.trim();
+  const resolvedHash =
+    documentHash ||
+    quote.archived_record_hash ||
+    buildDeterministicHash(
+      [
+        "QUOTE",
+        quote.id,
+        quote.quote_number || "",
+        quote.issue_date || quote.created_at || "",
+        quote.client_name || "",
+      ].join("|"),
+    );
 
   return (
     <Document>
@@ -588,6 +619,13 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project }: Quo
           style={styles.pageNumber}
           render={({ pageNumber, totalPages }) =>
             `Página ${pageNumber} de ${totalPages}`
+          }
+          fixed
+        />
+        <Text
+          style={styles.documentHash}
+          render={({ pageNumber, totalPages }) =>
+            pageNumber === totalPages ? `Hash único: ${resolvedHash}` : ""
           }
           fixed
         />

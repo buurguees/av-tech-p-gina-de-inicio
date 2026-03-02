@@ -8,6 +8,7 @@
    LIGHT THEME (Default)
    ============================================ */
 body.nexo-av-theme {
+  --font-sans: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   /* Background & Surface Colors */
   --background: 220 16% 97%;
   --foreground: 224 14% 14%;
@@ -50,8 +51,8 @@ body.nexo-av-theme {
   --text-muted: 220 8% 56%;
 
   /* Mobile Layout Variables */
-  --mobile-header-height: 3.25rem;
-  --mobile-bottom-nav-height: 4rem;
+  --mobile-header-height: 5rem;
+  --mobile-bottom-nav-height: 5.5rem;
   --mobile-padding: 1rem;
   --mobile-touch-target: 44px;
   --mobile-border-radius: 12px;
@@ -90,6 +91,7 @@ body.nexo-av-theme {
    DARK THEME — BLACK CORE
    ============================================ */
 body.nexo-av-theme-dark {
+  --font-sans: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   /* CORE BACKGROUND (NEGRO REAL) */
   --background: 0 0% 0%;
   --foreground: 0 0% 100%;
@@ -121,8 +123,8 @@ body.nexo-av-theme-dark {
   --ring: 217 92% 62%;
 
   /* Mobile Layout Variables */
-  --mobile-header-height: 3.25rem;
-  --mobile-bottom-nav-height: 4rem;
+  --mobile-header-height: 5rem;
+  --mobile-bottom-nav-height: 5.5rem;
   --mobile-padding: 1rem;
   --mobile-touch-target: 44px;
   --mobile-border-radius: 12px;

@@ -9,19 +9,23 @@ import { useEffect } from 'react';
  */
 export function useNexoAvTheme(theme: 'light' | 'dark' = 'light') {
   useEffect(() => {
-    // Remover ambas clases primero para evitar conflictos
-    document.body.classList.remove('nexo-av-theme', 'nexo-av-theme-dark');
+    const body = document.body;
+    const root = document.documentElement;
+    body.classList.remove('nexo-av-theme', 'nexo-av-theme-dark');
+    root.classList.remove('dark');
     
     // Añadir la clase correspondiente al tema
     if (theme === 'dark') {
-      document.body.classList.add('nexo-av-theme-dark');
+      body.classList.add('nexo-av-theme-dark');
+      root.classList.add('dark');
     } else {
-      document.body.classList.add('nexo-av-theme');
+      body.classList.add('nexo-av-theme');
     }
     
     // Cleanup: remover las clases cuando el componente se desmonte
     return () => {
-      document.body.classList.remove('nexo-av-theme', 'nexo-av-theme-dark');
+      body.classList.remove('nexo-av-theme', 'nexo-av-theme-dark');
+      root.classList.remove('dark');
     };
   }, [theme]);
 }

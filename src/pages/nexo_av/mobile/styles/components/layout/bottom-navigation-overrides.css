@@ -1,0 +1,88 @@
+/* ============================================
+   BOTTOM NAVIGATION OVERRIDES
+   Mejora contraste, safe area y targets tactiles
+   ============================================ */
+.mobile-bottom-nav {
+  padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+}
+
+.mobile-bottom-nav-container {
+  max-width: 420px;
+  margin-bottom: 0;
+  gap: 4px;
+  padding: 8px;
+  background: hsl(var(--card) / 0.96);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 999px;
+  border: 1px solid hsl(var(--border) / 0.9);
+  box-shadow: 0 12px 30px hsl(var(--foreground) / 0.1);
+  height: auto;
+  color: hsl(var(--muted-foreground));
+}
+
+.bottom-nav-item {
+  gap: 2px;
+  padding: 6px 8px;
+  min-height: 52px;
+  width: auto;
+  border-radius: 999px;
+}
+
+.bottom-nav-item.active {
+  padding: 6px 8px;
+  background: hsl(var(--primary) / 0.12);
+}
+
+.bottom-nav-icon-wrapper {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+}
+
+.bottom-nav-item.active .bottom-nav-icon-wrapper {
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.bottom-nav-icon {
+  width: 20px;
+  height: 20px;
+  color: hsl(var(--muted-foreground));
+}
+
+.bottom-nav-item.active .bottom-nav-icon {
+  width: 20px;
+  height: 20px;
+  color: hsl(var(--primary));
+  filter: none;
+}
+
+.bottom-nav-label {
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  opacity: 1;
+  max-height: none;
+  overflow: visible;
+}
+
+.bottom-nav-item.active .bottom-nav-label {
+  color: hsl(var(--primary));
+  opacity: 1;
+  max-height: none;
+  margin-top: 0;
+}
+
+body.nexo-av-theme-dark .mobile-bottom-nav-container {
+  background: hsl(var(--card) / 0.96);
+  border: 1px solid hsl(var(--border) / 0.9);
+  box-shadow: 0 12px 30px hsl(var(--background) / 0.45);
+  color: hsl(var(--muted-foreground));
+}
+
+body.nexo-av-theme-dark .bottom-nav-item.active {
+  background: hsl(var(--primary) / 0.18);
+}

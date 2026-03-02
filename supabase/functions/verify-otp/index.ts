@@ -36,6 +36,16 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
+type VerifyOtpResult = {
+  valid: boolean;
+  message: string;
+  remaining_attempts: number;
+};
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Error interno del servidor';
+}
+
 serve(async (req) => {
   const origin = req.headers.get('origin');
   const corsHeaders = getCorsHeaders(origin);
@@ -86,7 +96,7 @@ serve(async (req) => {
 
     // Sanitize inputs
     const sanitizedEmail = email.trim().toLowerCase();
-    const sanitizedCode = code.trim();
+    const sanitizedCode = code.replace(/\D/g, '');
 
     console.log(`Verifying OTP for: ${sanitizedEmail}`);
 
@@ -101,7 +111,7 @@ serve(async (req) => {
       throw error;
     }
 
-    const result = data?.[0];
+    const result = (Array.isArray(data) ? data[0] : data) as VerifyOtpResult | null;
     console.log('OTP verification result:', result);
 
     if (!result) {
@@ -129,10 +139,10 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in verify-otp function:", error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Error interno del servidor' }),
+      JSON.stringify({ error: getErrorMessage(error) }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

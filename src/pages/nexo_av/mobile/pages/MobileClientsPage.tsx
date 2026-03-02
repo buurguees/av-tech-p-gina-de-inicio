@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -8,10 +8,6 @@ import {
   Plus,
   Search,
   ChevronRight,
-  Building2,
-  User,
-  Phone,
-  Mail,
   Euro,
   TrendingUp,
   FolderKanban,
@@ -36,6 +32,35 @@ interface Client {
   created_at: string;
 }
 
+interface ProjectSummary {
+  client_id: string | null;
+}
+
+interface InvoiceSummary {
+  client_id: string | null;
+  subtotal: number | null;
+  status: string;
+  issue_date: string | null;
+}
+
+interface ClientKpis {
+  avgRevenuePerClient: number;
+  totalClients: number;
+  monthlyNewClients: number;
+  monthlyWonClients: number;
+  avgProjectsPerClient: number;
+  avgInvoiceTicket: number;
+}
+
+const emptyClientKpis: ClientKpis = {
+  avgRevenuePerClient: 0,
+  totalClients: 0,
+  monthlyNewClients: 0,
+  monthlyWonClients: 0,
+  avgProjectsPerClient: 0,
+  avgInvoiceTicket: 0,
+};
+
 const LEAD_STAGES = [
   { value: 'NEGOTIATION', label: 'En Negociación', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
   { value: 'WON', label: 'Ganado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
@@ -46,6 +71,9 @@ const LEAD_STAGES = [
 const getStageInfo = (stage: string) => {
   return LEAD_STAGES.find(s => s.value === stage) || LEAD_STAGES[0];
 };
+
+const isBillableInvoice = (invoice: InvoiceSummary) =>
+  invoice.status !== "CANCELLED" && invoice.status !== "DRAFT";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("es-ES", {
@@ -65,16 +93,9 @@ const MobileClientsPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchTerm = useDebounce(searchInput, 500);
-  const [clientKPIs, setClientKPIs] = useState({
-    avgRevenuePerClient: 0,
-    totalClients: 0,
-    monthlyNewClients: 0,
-    monthlyWonClients: 0,
-    avgProjectsPerClient: 0,
-    avgInvoiceTicket: 0
-  });
+  const [clientKPIs, setClientKPIs] = useState<ClientKpis>(emptyClientKpis);
 
-  const fetchClients = async () => {
+  const fetchClients = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase.rpc('list_clients', {
@@ -84,7 +105,7 @@ const MobileClientsPage = () => {
 
       if (error) throw error;
       
-      const clientsList = data || [];
+      const clientsList = (data || []) as Client[];
       setClients(clientsList);
     } catch (error) {
       console.error('Error fetching clients:', error);
@@ -96,9 +117,9 @@ const MobileClientsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [debouncedSearchTerm, toast]);
 
-  const calculateClientKPIs = async () => {
+  const calculateClientKPIs = useCallback(async () => {
     try {
       // Obtener proyectos por cliente
       const { data: projectsData, error: projectsError } = await supabase.rpc('list_projects', {
@@ -110,7 +131,7 @@ const MobileClientsPage = () => {
       }
 
       const projectsByClientMap = new Map<string, number>();
-      (projectsData || []).forEach((project: any) => {
+      ((projectsData || []) as ProjectSummary[]).forEach((project) => {
         if (project.client_id) {
           projectsByClientMap.set(project.client_id, (projectsByClientMap.get(project.client_id) || 0) + 1);
         }
@@ -136,8 +157,8 @@ const MobileClientsPage = () => {
 
       // Calcular ticket medio por cliente
       const invoicesByClient = new Map<string, number[]>();
-      (invoicesData || []).forEach((invoice: any) => {
-        if (invoice.client_id && invoice.subtotal && invoice.status !== 'CANCELLED' && invoice.status !== 'DRAFT') {
+      ((invoicesData || []) as InvoiceSummary[]).forEach((invoice) => {
+        if (invoice.client_id && invoice.subtotal && isBillableInvoice(invoice)) {
           const clientInvoices = invoicesByClient.get(invoice.client_id) || [];
           clientInvoices.push(invoice.subtotal);
           invoicesByClient.set(invoice.client_id, clientInvoices);
@@ -154,14 +175,14 @@ const MobileClientsPage = () => {
         : 0;
 
       // Calcular KPIs mensuales
-      const monthlyInvoices = (invoicesData || []).filter((inv: any) => {
-        if (!inv.issue_date) return false;
-        const invoiceDate = new Date(inv.issue_date);
+      const monthlyInvoices = ((invoicesData || []) as InvoiceSummary[]).filter((invoice) => {
+        if (!invoice.issue_date || !isBillableInvoice(invoice)) return false;
+        const invoiceDate = new Date(invoice.issue_date);
         return invoiceDate >= firstDayOfMonth && invoiceDate <= lastDayOfMonth &&
-               inv.status !== 'CANCELLED' && inv.status !== 'DRAFT';
+               isBillableInvoice(invoice);
       });
 
-      const monthlyRevenue = monthlyInvoices.reduce((sum: number, inv: any) => sum + (inv.subtotal || 0), 0);
+      const monthlyRevenue = monthlyInvoices.reduce((sum, invoice) => sum + (invoice.subtotal || 0), 0);
 
       // Clientes nuevos del mes
       const monthlyNewClients = clients.filter(c => {
@@ -193,17 +214,17 @@ const MobileClientsPage = () => {
     } catch (error) {
       console.error('Error calculating client KPIs:', error);
     }
-  };
+  }, [clients]);
 
   useEffect(() => {
     fetchClients();
-  }, [debouncedSearchTerm]);
+  }, [fetchClients]);
 
   useEffect(() => {
     if (clients.length > 0) {
       calculateClientKPIs();
     }
-  }, [clients]);
+  }, [clients.length, calculateClientKPIs]);
 
   const handleClientClick = (clientId: string) => {
     navigate(`/nexo-av/${userId}/clients/${clientId}`);
@@ -216,10 +237,7 @@ const MobileClientsPage = () => {
   return (
     <div className="w-full h-full flex flex-col">
       {/* Fixed Header Section: KPIs + Search - Always visible, never scrolls */}
-      <div 
-        className="flex-shrink-0 py-3 px-3 w-full"
-        style={{ background: 'linear-gradient(0deg, rgba(0, 0, 0, 1) 100%, rgba(255, 255, 255, 0) 0%)', height: 'fit-content' }}
-      >
+      <div className="sticky top-0 z-20 flex-shrink-0 py-3 bg-background/95 backdrop-blur-sm border-b border-border/40 -mx-4 px-4 mb-2">
         {/* KPI Cards - Compact: Icon + Number/Value */}
         <div className="grid grid-cols-3 gap-2 mb-3">
           {/* Facturación Media por Cliente - Principal */}
@@ -312,21 +330,20 @@ const MobileClientsPage = () => {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Buscar clientes..."
-              className="pl-9 h-8 bg-card border-border text-sm"
+              className="pl-9 h-11 bg-card border-border text-sm"
             />
           </div>
           {/* Button styled like bottom navigation - same height as input */}
           <button
             onClick={handleCreateClient}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
+              "h-11 px-4 flex items-center justify-center gap-1.5 rounded-full",
               "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-              "text-white/90 hover:text-white hover:bg-white/15",
+              "bg-primary text-primary-foreground",
               "active:scale-95 transition-all duration-200",
-              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+              "shadow-sm"
             )}
-            style={{ touchAction: 'manipulation', height: '32px' }}
+            style={{ touchAction: 'manipulation' }}
           >
             <Plus className="h-4 w-4" />
             <span>Nuevo</span>
@@ -335,7 +352,7 @@ const MobileClientsPage = () => {
       </div>
 
       {/* Clients List - Scrollable area */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pt-3 pb-[80px] w-full h-full px-[15px]">
+      <div className="flex-1 min-h-0 space-y-2 pt-1 pb-4 w-full">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

@@ -74,6 +74,11 @@ interface ProjectMetrics {
   margin: number;
 }
 
+interface ProjectSite {
+  id: string;
+  site_name: string;
+}
+
 type TabId = 'resumen' | 'planificacion' | 'sitios' | 'presupuestos' | 'facturas' | 'tecnicos';
 
 interface Tab {
@@ -220,11 +225,40 @@ const MobileProjectDetailPage = () => {
     if (!projectId) return;
     try {
       setLoadingQuotes(true);
+      const { data: projectSitesData } = await supabase.rpc("list_project_sites", {
+        p_project_id: projectId,
+      });
+      const siteNameById = new Map(
+        ((projectSitesData || []) as ProjectSite[]).map((site) => [site.id, site.site_name])
+      );
       const { data, error } = await supabase.rpc('list_project_quotes', {
         p_project_id: projectId,
       });
       if (error) throw error;
-      setQuotes((data || []) as any[]);
+      const rawQuotes = (data || []) as any[];
+      const withCanonicalSiteName = (quote: any) => ({
+        ...quote,
+        site_name: quote.site_id ? siteNameById.get(quote.site_id) ?? quote.site_name : quote.site_name,
+      });
+      const resolvedQuotes = await Promise.all(
+        rawQuotes.map(async (quote) => {
+          const normalizedQuote = withCanonicalSiteName(quote);
+          if (normalizedQuote.site_name) return normalizedQuote;
+
+          const { data: detailData, error: detailError } = await supabase.rpc("get_quote", {
+            p_quote_id: quote.id,
+          });
+
+          if (detailError || !detailData || detailData.length === 0) return normalizedQuote;
+
+          return withCanonicalSiteName({
+            ...normalizedQuote,
+            site_id: detailData[0].site_id ?? quote.site_id,
+            site_name: detailData[0].site_name ?? quote.site_name,
+          });
+        })
+      );
+      setQuotes(resolvedQuotes);
     } catch (error) {
       console.error('Error fetching quotes:', error);
     } finally {
@@ -236,13 +270,41 @@ const MobileProjectDetailPage = () => {
     if (!projectId) return;
     try {
       setLoadingInvoices(true);
+      const { data: projectSitesData } = await supabase.rpc("list_project_sites", {
+        p_project_id: projectId,
+      });
+      const siteNameById = new Map(
+        ((projectSitesData || []) as ProjectSite[]).map((site) => [site.id, site.site_name])
+      );
       const { data, error } = await supabase.rpc('finance_list_invoices', { 
         p_search: null, 
         p_status: null 
       });
       if (error) throw error;
       const projectInvoices = (data || []).filter((inv: any) => inv.project_id === projectId);
-      setInvoices(projectInvoices);
+      const withCanonicalSiteName = (invoice: any) => ({
+        ...invoice,
+        site_name: invoice.site_id ? siteNameById.get(invoice.site_id) ?? invoice.site_name : invoice.site_name,
+      });
+      const resolvedInvoices = await Promise.all(
+        projectInvoices.map(async (invoice: any) => {
+          const normalizedInvoice = withCanonicalSiteName(invoice);
+          if (normalizedInvoice.site_name) return normalizedInvoice;
+
+          const { data: detailData, error: detailError } = await supabase.rpc("finance_get_invoice", {
+            p_invoice_id: invoice.id,
+          });
+
+          if (detailError || !detailData || detailData.length === 0) return normalizedInvoice;
+
+          return withCanonicalSiteName({
+            ...normalizedInvoice,
+            site_id: detailData[0].site_id ?? invoice.site_id,
+            site_name: detailData[0].site_name ?? invoice.site_name,
+          });
+        })
+      );
+      setInvoices(resolvedInvoices);
     } catch (error) {
       console.error('Error fetching invoices:', error);
     } finally {
@@ -507,7 +569,8 @@ const MobileProjectDetailPage = () => {
             loading={loadingQuotes}
             onQuoteClick={(quoteId) => navigate(`/nexo-av/${userId}/quotes/${quoteId}`)}
             formatCurrency={formatCurrency}
-            isMultiSite={project?.site_mode === 'MULTI_SITE'}
+            siteMode={project?.site_mode}
+            defaultSiteName={project?.default_site_name}
           />
         )}
         
@@ -517,6 +580,8 @@ const MobileProjectDetailPage = () => {
             loading={loadingInvoices}
             onInvoiceClick={(invoiceId) => navigate(`/nexo-av/${userId}/invoices/${invoiceId}`)}
             formatCurrency={formatCurrency}
+            siteMode={project?.site_mode}
+            defaultSiteName={project?.default_site_name}
           />
         )}
         
@@ -866,10 +931,17 @@ interface QuotesListProps {
   loading: boolean;
   onQuoteClick: (quoteId: string) => void;
   formatCurrency: (amount: number) => string;
-  isMultiSite?: boolean;
+  siteMode?: string | null;
+  defaultSiteName?: string | null;
 }
 
-const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency, isMultiSite }: QuotesListProps) => {
+const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency, siteMode, defaultSiteName }: QuotesListProps) => {
+  const getResolvedSiteName = (siteName?: string | null) => {
+    if (siteName) return siteName;
+    if (siteMode === "SINGLE_SITE" && defaultSiteName) return defaultSiteName;
+    return null;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -897,6 +969,7 @@ const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency, isMultiSite
     <div className="px-4 py-4 space-y-2">
       {quotes.map((quote) => {
         const statusInfo = getQuoteStatusInfo(quote.status);
+        const resolvedSiteName = getResolvedSiteName(quote.site_name);
         return (
           <button
             key={quote.id}
@@ -922,12 +995,10 @@ const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency, isMultiSite
                 <h4 className="text-sm font-medium text-foreground truncate">
                   {quote.client_name || "Sin cliente"}
                 </h4>
-                {isMultiSite && (
-                  <p className="text-xs text-muted-foreground/70 mt-0.5 flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {quote.site_name || "Sin asignar"}
-                  </p>
-                )}
+                <p className="text-xs text-muted-foreground/70 mt-0.5 flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {resolvedSiteName || "Sin asignar"}
+                </p>
                 {quote.issue_date && (
                   <p className="text-xs text-muted-foreground/70 mt-0.5">
                     {new Date(quote.issue_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
@@ -961,9 +1032,17 @@ interface InvoicesListProps {
   loading: boolean;
   onInvoiceClick: (invoiceId: string) => void;
   formatCurrency: (amount: number) => string;
+  siteMode?: string | null;
+  defaultSiteName?: string | null;
 }
 
-const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency }: InvoicesListProps) => {
+const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency, siteMode, defaultSiteName }: InvoicesListProps) => {
+  const getResolvedSiteName = (siteName?: string | null) => {
+    if (siteName) return siteName;
+    if (siteMode === "SINGLE_SITE" && defaultSiteName) return defaultSiteName;
+    return null;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -999,6 +1078,7 @@ const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency }: Inv
           invoice.status
         );
         const collectionInfo = getCollectionStatusInfo(collectionStatus);
+        const resolvedSiteName = getResolvedSiteName(invoice.site_name);
 
         return (
           <button
@@ -1030,6 +1110,10 @@ const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency }: Inv
                 <h4 className="text-sm font-medium text-foreground truncate">
                   {invoice.client_name || "Sin cliente"}
                 </h4>
+                <p className="text-xs text-muted-foreground/70 mt-0.5 flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {resolvedSiteName || "Sin asignar"}
+                </p>
                 {invoice.issue_date && (
                   <p className="text-xs text-muted-foreground/70 mt-0.5">
                     {new Date(invoice.issue_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}

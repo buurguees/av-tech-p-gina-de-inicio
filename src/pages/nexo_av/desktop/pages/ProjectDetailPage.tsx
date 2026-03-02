@@ -398,16 +398,16 @@ const ProjectDetailPageDesktop = () => {
               <ProjectTechniciansTab projectId={projectId} />
             )}
             {activeTab === "presupuestos" && projectId && (
-              <ProjectQuotesList projectId={projectId} siteMode={project?.site_mode} />
+              <ProjectQuotesList projectId={projectId} siteMode={project?.site_mode} defaultSiteName={project?.default_site_name} />
             )}
             {activeTab === "facturas" && projectId && (
-              <ProjectInvoicesList projectId={projectId} />
+              <ProjectInvoicesList projectId={projectId} siteMode={project?.site_mode} defaultSiteName={project?.default_site_name} />
             )}
             {activeTab === "pedidos" && projectId && (
               <ProjectPurchaseOrdersList projectId={projectId} />
             )}
             {activeTab === "compras" && projectId && (
-              <ProjectPurchasesList projectId={projectId} />
+              <ProjectPurchasesList projectId={projectId} siteMode={project?.site_mode} defaultSiteName={project?.default_site_name} />
             )}
             {activeTab === "historico" && projectId && (
               <ProjectHistoryTab projectId={projectId} />

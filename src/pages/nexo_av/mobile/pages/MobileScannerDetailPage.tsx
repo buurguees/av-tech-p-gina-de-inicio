@@ -8,7 +8,8 @@ import {
   Save,
   FileText,
   AlertCircle,
-  Image as ImageIcon
+  Image as ImageIcon,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,14 @@ interface Project {
   id: string;
   project_name: string;
   project_number: string;
+  site_mode?: string | null;
+}
+
+interface ProjectSite {
+  id: string;
+  site_name: string;
+  city: string | null;
+  is_default: boolean;
 }
 
 // File preview component
@@ -146,10 +155,13 @@ const MobileScannerDetailPage = () => {
   const [saving, setSaving] = useState(false);
   const [document, setDocument] = useState<ScannedDocument | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [projectSiteMode, setProjectSiteMode] = useState<string | null>(null);
+  const [projectSites, setProjectSites] = useState<ProjectSite[]>([]);
   
   // Form state
   const [documentType, setDocumentType] = useState<"EXPENSE" | "INVOICE">("EXPENSE");
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
 
   // Fetch document
   const fetchDocument = useCallback(async () => {
@@ -196,6 +208,46 @@ const MobileScannerDetailPage = () => {
     fetchProjects();
   }, [fetchDocument, fetchProjects]);
 
+  useEffect(() => {
+    const fetchProjectSites = async () => {
+      if (!selectedProjectId) {
+        setProjectSiteMode(null);
+        setProjectSites([]);
+        setSelectedSiteId("");
+        return;
+      }
+
+      try {
+        const { data: projectData, error: projectError } = await supabase.rpc("get_project", { p_project_id: selectedProjectId });
+        if (projectError) throw projectError;
+        const siteMode = projectData?.[0]?.site_mode || null;
+        setProjectSiteMode(siteMode);
+
+        const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: selectedProjectId });
+        if (error) throw error;
+
+        const sites: ProjectSite[] = (data || [])
+          .filter((s: any) => s.is_active)
+          .map((s: any) => ({ id: s.id, site_name: s.site_name, city: s.city, is_default: s.is_default }));
+        setProjectSites(sites);
+
+        if (siteMode === "SINGLE_SITE" && sites.length > 0) {
+          const defaultSite = sites.find((site) => site.is_default) || sites[0];
+          setSelectedSiteId(defaultSite.id);
+        } else if (!sites.some((site) => site.id === selectedSiteId)) {
+          setSelectedSiteId("");
+        }
+      } catch (error) {
+        console.error("Error fetching project sites:", error);
+        setProjectSiteMode(null);
+        setProjectSites([]);
+        setSelectedSiteId("");
+      }
+    };
+
+    void fetchProjectSites();
+  }, [selectedProjectId]);
+
   const handleSave = async () => {
     if (!document) return;
 
@@ -203,6 +255,15 @@ const MobileScannerDetailPage = () => {
       toast({
         title: "Documento obligatorio",
         description: "Este documento no tiene archivo asociado. No se puede asignar. Es obligatorio tener el documento para el control de gastos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (projectSiteMode === "MULTI_SITE" && !selectedSiteId) {
+      toast({
+        title: "Sitio obligatorio",
+        description: "Selecciona un sitio para este proyecto multi-sitio.",
         variant: "destructive",
       });
       return;
@@ -220,7 +281,7 @@ const MobileScannerDetailPage = () => {
         p_project_id: selectedProjectId || null,
         p_file_path: document.file_path,
         p_file_name: document.file_name,
-        p_site_id: null,
+        p_site_id: selectedProjectId ? (selectedSiteId || null) : null,
       });
 
       if (invoiceError) throw invoiceError;
@@ -424,6 +485,39 @@ const MobileScannerDetailPage = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {selectedProjectId && projectSiteMode === "MULTI_SITE" && projectSites.length > 0 && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5" />
+                  Sitio
+                </Label>
+                <Select value={selectedSiteId} onValueChange={setSelectedSiteId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleccionar sitio..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projectSites.map((site) => (
+                      <SelectItem key={site.id} value={site.id}>
+                        {site.site_name}{site.city ? ` - ${site.city}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {selectedProjectId && projectSiteMode === "SINGLE_SITE" && projectSites.length > 0 && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5" />
+                  Sitio
+                </Label>
+                <div className="w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground bg-card">
+                  {projectSites[0]?.site_name}{projectSites[0]?.city ? ` - ${projectSites[0].city}` : ""}
+                </div>
+              </div>
+            )}
           </>
         )}
 

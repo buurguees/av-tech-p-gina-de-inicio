@@ -40,6 +40,7 @@ import DocumentPDFViewer from "../components/common/DocumentPDFViewer";
 import LockedIndicator from "../components/common/LockedIndicator";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import { InvoicePDFDocument } from "../components/invoices/InvoicePDFViewer";
+import ArchivedPdfViewer from "../../shared/components/ArchivedPdfViewer";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import PaymentsTab from "../components/common/PaymentsTab";
@@ -79,6 +80,9 @@ interface Invoice {
   site_name?: string | null;
   site_city?: string | null;
   locked_at?: string | null;
+  archived_pdf_path?: string | null;
+  archived_pdf_file_name?: string | null;
+  sharepoint_item_id?: string | null;
 }
 
 interface Project {
@@ -234,7 +238,27 @@ const InvoiceDetailPageDesktop = () => {
       }
 
       const invoiceInfo = Array.isArray(invoiceData) ? invoiceData[0] : invoiceData;
-      setInvoice(invoiceInfo);
+      let enrichedInvoice = invoiceInfo as Invoice;
+
+      try {
+        const { data: archiveRows, error: archiveError } = await ((supabase.rpc as any)("get_invoice_archive_metadata", {
+          p_invoice_id: invoiceId,
+        }) as Promise<{ data: Array<{ archived_pdf_path: string | null; archived_pdf_file_name: string | null }> | null; error: any }>);
+
+        const archiveData = Array.isArray(archiveRows) && archiveRows.length > 0 ? archiveRows[0] : null;
+
+        if (!archiveError && archiveData) {
+          enrichedInvoice = {
+            ...invoiceInfo,
+            archived_pdf_path: archiveData.archived_pdf_path,
+            archived_pdf_file_name: archiveData.archived_pdf_file_name,
+          };
+        }
+      } catch (archiveFetchError) {
+        console.error("Error fetching invoice archive metadata:", archiveFetchError);
+      }
+
+      setInvoice(enrichedInvoice);
 
       // Fetch invoice lines
       const { data: linesData, error: linesError } = await supabase.rpc("finance_get_invoice_lines", {
@@ -307,7 +331,7 @@ const InvoiceDetailPageDesktop = () => {
         fetchedPreferences = pref;
       }
 
-      result = { invoice: invoiceInfo, lines: sortedLines, client: fetchedClient, company: fetchedCompany, project: fetchedProject, preferences: fetchedPreferences };
+      result = { invoice: enrichedInvoice, lines: sortedLines, client: fetchedClient, company: fetchedCompany, project: fetchedProject, preferences: fetchedPreferences };
 
     } catch (error: any) {
       console.error("Error fetching invoice:", error);
@@ -551,6 +575,7 @@ const InvoiceDetailPageDesktop = () => {
     ...(projectName ? [sanitizeFileName(projectName)] : [])
   ];
   const pdfFileName = `${pdfFileNameParts.join(' - ')}.pdf`;
+  const hasArchivedPdf = invoice.status !== "DRAFT" && !!invoice.archived_pdf_path;
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -671,22 +696,40 @@ const InvoiceDetailPageDesktop = () => {
                 >
                   {/* Desktop Layout: PDF Preview */}
                   <div className="hidden md:block bg-card border border-border overflow-hidden flex flex-col h-[calc(100vh-180px)]">
-                    <DocumentPDFViewer
-                      document={
-                        <InvoicePDFDocument
-                          invoice={invoice}
-                          lines={lines}
-                          client={client}
-                          company={company}
-                          project={project}
-                          preferences={preferences}
-                        />
-                      }
-                      fileName={pdfFileName.replace('.pdf', '')}
-                      defaultShowPreview={true}
-                      showToolbar={false}
-                      className="h-full"
-                    />
+                    {hasArchivedPdf ? (
+                      <ArchivedPdfViewer
+                        documentType="invoice"
+                        documentId={invoice.id}
+                        filePath={invoice.archived_pdf_path!}
+                        fileName={invoice.archived_pdf_file_name || pdfFileName}
+                        title={`Factura archivada ${displayNumber}`}
+                        className="h-full"
+                      />
+                    ) : invoice.status !== "DRAFT" ? (
+                      <div className="flex flex-col items-center justify-center h-full px-6 text-center gap-3">
+                        <AlertTriangle className="h-10 w-10 text-amber-500" />
+                        <p className="text-sm text-muted-foreground">
+                          La factura está emitida pero no tiene PDF archivado en SharePoint.
+                        </p>
+                      </div>
+                    ) : (
+                      <DocumentPDFViewer
+                        document={
+                          <InvoicePDFDocument
+                            invoice={invoice}
+                            lines={lines}
+                            client={client}
+                            company={company}
+                            project={project}
+                            preferences={preferences}
+                          />
+                        }
+                        fileName={pdfFileName.replace('.pdf', '')}
+                        defaultShowPreview={true}
+                        showToolbar={false}
+                        className="h-full"
+                      />
+                    )}
                   </div>
                 </motion.div>
               </div>

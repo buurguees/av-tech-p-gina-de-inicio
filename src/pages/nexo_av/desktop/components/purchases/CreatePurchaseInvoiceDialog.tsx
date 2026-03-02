@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, MapPin } from "lucide-react";
 import PurchaseInvoiceLinesEditor, { PurchaseInvoiceLine } from "./PurchaseInvoiceLinesEditor";
 import SupplierSearchInput from "../suppliers/SupplierSearchInput";
 import ProjectSearchInput from "../projects/ProjectSearchInput";
@@ -48,6 +48,15 @@ interface Project {
   id: string;
   project_name: string;
   client_id: string;
+  site_mode?: string | null;
+  default_site_id?: string | null;
+}
+
+interface ProjectSite {
+  id: string;
+  site_name: string;
+  city: string | null;
+  is_default: boolean;
 }
 
 interface CreatePurchaseInvoiceDialogProps {
@@ -94,6 +103,9 @@ export default function CreatePurchaseInvoiceDialog({
   const [selectedTechnicianId, setSelectedTechnicianId] = useState<string>(preselectedTechnicianId || "");
   const [selectedClientId, setSelectedClientId] = useState<string>(preselectedClientId || "");
   const [selectedProjectId, setSelectedProjectId] = useState<string>(preselectedProjectId || "");
+  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+  const [projectSiteMode, setProjectSiteMode] = useState<string | null>(null);
+  const [projectSites, setProjectSites] = useState<ProjectSite[]>([]);
   const [lines, setLines] = useState<PurchaseInvoiceLine[]>([]);
   const [notes, setNotes] = useState("");
   const [supplierSearchValue, setSupplierSearchValue] = useState("");
@@ -113,8 +125,21 @@ export default function CreatePurchaseInvoiceDialog({
     } else {
       setProjects([]);
       setSelectedProjectId("");
+      setSelectedSiteId("");
+      setProjectSites([]);
+      setProjectSiteMode(null);
     }
   }, [selectedClientId]);
+
+  useEffect(() => {
+    if (selectedProjectId) {
+      void fetchProjectSites(selectedProjectId);
+    } else {
+      setSelectedSiteId("");
+      setProjectSites([]);
+      setProjectSiteMode(null);
+    }
+  }, [selectedProjectId]);
 
   // Load preselected document data if provided
   useEffect(() => {
@@ -182,12 +207,44 @@ export default function CreatePurchaseInvoiceDialog({
         id: p.id,
         project_name: p.project_name,
         client_id: p.client_id,
+        site_mode: p.site_mode || null,
+        default_site_id: p.default_site_id || null,
       })));
     } catch (error) {
       console.error("Error fetching projects:", error);
       setProjects([]);
     } finally {
       setLoadingProjects(false);
+    }
+  };
+
+  const fetchProjectSites = async (projectId: string) => {
+    try {
+      const { data: projectData, error: projectError } = await supabase.rpc("get_project", { p_project_id: projectId });
+      if (projectError) throw projectError;
+      const siteMode = projectData?.[0]?.site_mode || null;
+      setProjectSiteMode(siteMode);
+
+      const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
+      if (error) throw error;
+
+      const sites: ProjectSite[] = (data || [])
+        .filter((s: any) => s.is_active)
+        .map((s: any) => ({ id: s.id, site_name: s.site_name, city: s.city, is_default: s.is_default }));
+
+      setProjectSites(sites);
+
+      if (siteMode === "SINGLE_SITE" && sites.length > 0) {
+        const defaultSite = sites.find((site) => site.is_default) || sites[0];
+        setSelectedSiteId(defaultSite.id);
+      } else if (!sites.some((site) => site.id === selectedSiteId)) {
+        setSelectedSiteId("");
+      }
+    } catch (error) {
+      console.error("Error fetching project sites:", error);
+      setProjectSites([]);
+      setProjectSiteMode(null);
+      setSelectedSiteId("");
     }
   };
 
@@ -226,6 +283,7 @@ export default function CreatePurchaseInvoiceDialog({
         if (doc.project_id) {
           setSelectedProjectId(doc.project_id);
           setProjectSearchValue(doc.project_name || "");
+          setSelectedSiteId(doc.site_id || "");
         }
       }
 
@@ -278,6 +336,11 @@ export default function CreatePurchaseInvoiceDialog({
       return;
     }
 
+    if (projectSiteMode === "MULTI_SITE" && !selectedSiteId) {
+      toast.error("Selecciona un sitio para este proyecto multi-sitio");
+      return;
+    }
+
     setLoading(true);
     try {
       // Calculate totals
@@ -311,8 +374,9 @@ export default function CreatePurchaseInvoiceDialog({
           p_project_id: selectedProjectId || null,
           p_withholding_amount: withholdingAmount,
           p_status: "REGISTERED",
-          p_notes: notes.trim() || null,
-        });
+        p_notes: notes.trim() || null,
+        p_site_id: selectedProjectId ? (selectedSiteId || null) : null,
+      });
 
         if (updateError) throw updateError;
 
@@ -358,7 +422,7 @@ export default function CreatePurchaseInvoiceDialog({
           p_project_id: selectedProjectId || null,
           p_withholding_amount: withholdingAmount,
           p_notes: notes.trim() || null,
-          p_site_id: null,
+          p_site_id: selectedProjectId ? (selectedSiteId || null) : null,
         });
 
         if (createError) throw createError;
@@ -409,6 +473,9 @@ export default function CreatePurchaseInvoiceDialog({
     setSelectedTechnicianId(preselectedTechnicianId || "");
     setSelectedClientId(preselectedClientId || "");
     setSelectedProjectId(preselectedProjectId || "");
+    setSelectedSiteId("");
+    setProjectSiteMode(null);
+    setProjectSites([]);
     setSupplierSearchValue("");
     setProjectSearchValue("");
     setLines([]);
@@ -585,6 +652,39 @@ export default function CreatePurchaseInvoiceDialog({
                     )}
                   </div>
                 </div>
+
+                {selectedProjectId && projectSiteMode === "MULTI_SITE" && projectSites.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Sitio *
+                    </Label>
+                    <Select value={selectedSiteId || undefined} onValueChange={setSelectedSiteId}>
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                        <SelectValue placeholder="Seleccionar sitio..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projectSites.map((site) => (
+                          <SelectItem key={site.id} value={site.id}>
+                            {site.site_name}{site.city ? ` - ${site.city}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {selectedProjectId && projectSiteMode === "SINGLE_SITE" && projectSites.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Sitio
+                    </Label>
+                    <div className="h-10 flex items-center px-3 rounded-md border border-white/10 bg-white/5 text-white">
+                      {projectSites[0]?.site_name}{projectSites[0]?.city ? ` - ${projectSites[0].city}` : ""}
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="notes">Notas</Label>

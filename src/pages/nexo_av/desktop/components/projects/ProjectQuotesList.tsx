@@ -40,15 +40,19 @@ interface Quote {
 interface ProjectQuotesListProps {
   projectId: string;
   siteMode?: string | null;
+  defaultSiteName?: string | null;
 }
 
-const ProjectQuotesList = ({ projectId, siteMode }: ProjectQuotesListProps) => {
+interface ProjectSite {
+  id: string;
+  site_name: string;
+}
+
+const ProjectQuotesList = ({ projectId, siteMode, defaultSiteName }: ProjectQuotesListProps) => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const [loading, setLoading] = useState(true);
   const [quotes, setQuotes] = useState<Quote[]>([]);
-
-  const isMultiSite = siteMode === "MULTI_SITE";
 
   useEffect(() => {
     fetchQuotes();
@@ -59,12 +63,50 @@ const ProjectQuotesList = ({ projectId, siteMode }: ProjectQuotesListProps) => {
 
     try {
       setLoading(true);
+      const { data: projectSitesData } = await supabase.rpc("list_project_sites", {
+        p_project_id: projectId,
+      });
+      const siteNameById = new Map(
+        ((projectSitesData || []) as ProjectSite[]).map((site) => [site.id, site.site_name])
+      );
       const { data, error } = await supabase.rpc("list_project_quotes", {
         p_project_id: projectId,
       });
 
       if (error) throw error;
-      setQuotes((data || []) as Quote[]);
+      const rawQuotes = (data || []) as Quote[];
+      const withCanonicalSiteName = (quote: Quote): Quote => ({
+        ...quote,
+        site_name: quote.site_id ? siteNameById.get(quote.site_id) ?? quote.site_name : quote.site_name,
+      });
+      const missingSiteQuotes = rawQuotes.filter((quote) => !withCanonicalSiteName(quote).site_name);
+
+      if (missingSiteQuotes.length === 0) {
+        setQuotes(rawQuotes.map(withCanonicalSiteName));
+        return;
+      }
+
+      const resolvedQuotes = await Promise.all(
+        rawQuotes.map(async (quote) => {
+          const normalizedQuote = withCanonicalSiteName(quote);
+          if (normalizedQuote.site_name) return normalizedQuote;
+
+          const { data: detailData, error: detailError } = await supabase.rpc("get_quote", {
+            p_quote_id: quote.id,
+          });
+
+          if (detailError || !detailData || detailData.length === 0) return normalizedQuote;
+
+          const detail = detailData[0] as { site_id?: string | null; site_name?: string | null };
+          return withCanonicalSiteName({
+            ...normalizedQuote,
+            site_id: detail.site_id ?? quote.site_id,
+            site_name: detail.site_name ?? quote.site_name,
+          });
+        })
+      );
+
+      setQuotes(resolvedQuotes);
     } catch (error: any) {
       console.error("Error fetching quotes:", error);
     } finally {
@@ -86,6 +128,12 @@ const ProjectQuotesList = ({ projectId, siteMode }: ProjectQuotesListProps) => {
       month: "2-digit",
       year: "numeric",
     });
+  };
+
+  const getResolvedSiteName = (siteName: string | null) => {
+    if (siteName) return siteName;
+    if (siteMode === "SINGLE_SITE" && defaultSiteName) return defaultSiteName;
+    return null;
   };
 
   const {
@@ -135,9 +183,7 @@ const ProjectQuotesList = ({ projectId, siteMode }: ProjectQuotesListProps) => {
                 <TableHead className="project-items-list__header">Fecha</TableHead>
                 <TableHead className="project-items-list__header">Nº Presupuesto</TableHead>
                 <TableHead className="project-items-list__header">Cliente</TableHead>
-                {isMultiSite && (
-                  <TableHead className="project-items-list__header">Sitio</TableHead>
-                )}
+                <TableHead className="project-items-list__header">Sitio</TableHead>
                 <TableHead className="project-items-list__header">Válido hasta</TableHead>
                 <TableHead className="project-items-list__header text-right">Subtotal</TableHead>
                 <TableHead className="project-items-list__header text-right">Total</TableHead>
@@ -148,6 +194,7 @@ const ProjectQuotesList = ({ projectId, siteMode }: ProjectQuotesListProps) => {
             <TableBody>
               {paginatedQuotes.map((quote) => {
                 const statusInfo = getStatusInfo(quote.status);
+                const resolvedSiteName = getResolvedSiteName(quote.site_name);
 
                 return (
                   <TableRow
@@ -164,18 +211,16 @@ const ProjectQuotesList = ({ projectId, siteMode }: ProjectQuotesListProps) => {
                     <TableCell className="project-items-list__cell">
                       {quote.client_name}
                     </TableCell>
-                    {isMultiSite && (
-                      <TableCell className="project-items-list__cell">
-                        {quote.site_name ? (
-                          <span className="inline-flex items-center gap-1.5 text-sm">
-                            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                            {quote.site_name}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">Sin asignar</span>
-                        )}
-                      </TableCell>
-                    )}
+                    <TableCell className="project-items-list__cell">
+                      {resolvedSiteName ? (
+                        <span className="inline-flex items-center gap-1.5 text-sm">
+                          <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                          {resolvedSiteName}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">Sin asignar</span>
+                      )}
+                    </TableCell>
                     <TableCell className="project-items-list__cell">
                       {formatDate(quote.valid_until)}
                     </TableCell>

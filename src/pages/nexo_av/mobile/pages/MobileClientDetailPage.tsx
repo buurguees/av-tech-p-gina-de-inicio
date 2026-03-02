@@ -2,11 +2,12 @@
  * MobileClientDetailPage - Página de detalle de cliente para móvil
  * VERSIÓN: 1.0 - Con pestañas: Información, Presupuestos, Facturas, Proyectos
  */
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { 
+  type LucideIcon,
   Loader2, 
   ChevronLeft,
   MapPin,
@@ -76,7 +77,36 @@ type TabId = 'informacion' | 'presupuestos' | 'facturas' | 'proyectos';
 interface Tab {
   id: TabId;
   label: string;
-  icon: any;
+  icon: LucideIcon;
+}
+
+interface QuoteListItem {
+  id: string;
+  client_id: string | null;
+  quote_number: string;
+  status: string;
+  subtotal: number | null;
+  total: number | null;
+}
+
+interface InvoiceListItem {
+  id: string;
+  client_id: string | null;
+  invoice_number: string | null;
+  preliminary_number?: string | null;
+  status: string;
+  subtotal: number | null;
+  total: number | null;
+  paid_amount?: number | null;
+  due_date?: string | null;
+}
+
+interface ProjectListItem {
+  id: string;
+  client_id: string | null;
+  project_number: string;
+  project_name: string;
+  status: string;
 }
 
 // Pestañas de navegación
@@ -102,11 +132,11 @@ const MobileClientDetailPage = () => {
   const [loadingMetrics, setLoadingMetrics] = useState(true);
   
   // Estados para los listados
-  const [quotes, setQuotes] = useState<any[]>([]);
+  const [quotes, setQuotes] = useState<QuoteListItem[]>([]);
   const [loadingQuotes, setLoadingQuotes] = useState(false);
-  const [invoices, setInvoices] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
 
   useEffect(() => {
@@ -135,52 +165,52 @@ const MobileClientDetailPage = () => {
 
   useEffect(() => {
     if (client) {
-      fetchMetrics();
+      void fetchMetrics();
     }
-  }, [client]);
+  }, [client, fetchMetrics]);
 
   // Fetch quotes cuando se activa la pestaña
   useEffect(() => {
     if (activeTab === 'presupuestos' && clientId) {
-      fetchQuotes();
+      void fetchQuotes();
     }
-  }, [activeTab, clientId]);
+  }, [activeTab, clientId, fetchQuotes]);
 
   // Fetch invoices cuando se activa la pestaña
   useEffect(() => {
     if (activeTab === 'facturas' && clientId) {
-      fetchInvoices();
+      void fetchInvoices();
     }
-  }, [activeTab, clientId]);
+  }, [activeTab, clientId, fetchInvoices]);
 
   // Fetch projects cuando se activa la pestaña
   useEffect(() => {
     if (activeTab === 'proyectos' && clientId) {
-      fetchProjects();
+      void fetchProjects();
     }
-  }, [activeTab, clientId]);
+  }, [activeTab, clientId, fetchProjects]);
 
-  const fetchMetrics = async () => {
+  const fetchMetrics = useCallback(async () => {
     if (!clientId) return;
     try {
       setLoadingMetrics(true);
       
       // Fetch quotes
       const { data: quotesData } = await supabase.rpc('list_quotes', { p_search: null });
-      const clientQuotes = (quotesData || []).filter((q: any) => q.client_id === clientId);
-      const quotesTotal = clientQuotes.reduce((sum: number, q: any) => sum + (q.total || 0), 0);
+      const clientQuotes = ((quotesData || []) as QuoteListItem[]).filter((quote) => quote.client_id === clientId);
+      const quotesTotal = clientQuotes.reduce((sum, quote) => sum + (quote.total || 0), 0);
       
       // Fetch invoices
       const { data: invoicesData } = await supabase.rpc('finance_list_invoices', { 
         p_search: null, 
         p_status: null 
       });
-      const clientInvoices = (invoicesData || []).filter((inv: any) => inv.client_id === clientId);
-      const invoicesTotal = clientInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+      const clientInvoices = ((invoicesData || []) as InvoiceListItem[]).filter((invoice) => invoice.client_id === clientId);
+      const invoicesTotal = clientInvoices.reduce((sum, invoice) => sum + (invoice.total || 0), 0);
       
       // Fetch projects
       const { data: projectsData } = await supabase.rpc('list_projects', { p_search: null });
-      const clientProjects = (projectsData || []).filter((p: any) => p.client_id === clientId);
+      const clientProjects = ((projectsData || []) as ProjectListItem[]).filter((project) => project.client_id === clientId);
       
       setMetrics({
         quotesTotal,
@@ -192,24 +222,24 @@ const MobileClientDetailPage = () => {
     } finally {
       setLoadingMetrics(false);
     }
-  };
+  }, [clientId]);
 
-  const fetchQuotes = async () => {
+  const fetchQuotes = useCallback(async () => {
     if (!clientId) return;
     try {
       setLoadingQuotes(true);
       const { data, error } = await supabase.rpc('list_quotes', { p_search: null });
       if (error) throw error;
-      const clientQuotes = (data || []).filter((q: any) => q.client_id === clientId);
+      const clientQuotes = ((data || []) as QuoteListItem[]).filter((quote) => quote.client_id === clientId);
       setQuotes(clientQuotes);
     } catch (error) {
       console.error('Error fetching quotes:', error);
     } finally {
       setLoadingQuotes(false);
     }
-  };
+  }, [clientId]);
 
-  const fetchInvoices = async () => {
+  const fetchInvoices = useCallback(async () => {
     if (!clientId) return;
     try {
       setLoadingInvoices(true);
@@ -218,29 +248,29 @@ const MobileClientDetailPage = () => {
         p_status: null 
       });
       if (error) throw error;
-      const clientInvoices = (data || []).filter((inv: any) => inv.client_id === clientId);
+      const clientInvoices = ((data || []) as InvoiceListItem[]).filter((invoice) => invoice.client_id === clientId);
       setInvoices(clientInvoices);
     } catch (error) {
       console.error('Error fetching invoices:', error);
     } finally {
       setLoadingInvoices(false);
     }
-  };
+  }, [clientId]);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     if (!clientId) return;
     try {
       setLoadingProjects(true);
       const { data, error } = await supabase.rpc('list_projects', { p_search: null });
       if (error) throw error;
-      const clientProjects = (data || []).filter((p: any) => p.client_id === clientId);
+      const clientProjects = ((data || []) as ProjectListItem[]).filter((project) => project.client_id === clientId);
       setProjects(clientProjects);
     } catch (error) {
       console.error('Error fetching projects:', error);
     } finally {
       setLoadingProjects(false);
     }
-  };
+  }, [clientId]);
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return null;
@@ -671,7 +701,7 @@ const InformacionTab = ({
 
 // Componente para filas de información
 interface InfoRowProps {
-  icon: any;
+  icon: LucideIcon;
   label: string;
   value: string;
   href?: string;
@@ -697,7 +727,7 @@ const InfoRow = ({ icon: Icon, label, value, href }: InfoRowProps) => {
 };
 
 interface MetricCardProps {
-  icon: any;
+  icon: LucideIcon;
   label: string;
   value: string;
   color: 'blue' | 'green' | 'orange' | 'emerald' | 'red' | 'purple';
@@ -743,7 +773,7 @@ const SectionCard = ({ title, children }: SectionCardProps) => (
 // ===== COMPONENTES DE LISTADO =====
 
 interface QuotesListProps {
-  quotes: any[];
+  quotes: QuoteListItem[];
   loading: boolean;
   onQuoteClick: (quoteId: string) => void;
   formatCurrency: (amount: number) => string;
@@ -824,7 +854,7 @@ const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency }: QuotesLis
 };
 
 interface InvoicesListProps {
-  invoices: any[];
+  invoices: InvoiceListItem[];
   loading: boolean;
   onInvoiceClick: (invoiceId: string) => void;
   formatCurrency: (amount: number) => string;
@@ -929,7 +959,7 @@ const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency }: Inv
 };
 
 interface ProjectsListProps {
-  projects: any[];
+  projects: ProjectListItem[];
   loading: boolean;
   onProjectClick: (projectId: string) => void;
 }

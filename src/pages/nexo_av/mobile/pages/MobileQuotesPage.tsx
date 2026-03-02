@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
   FileText, 
@@ -17,7 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
-import { QUOTE_STATUSES, getQuoteStatusInfo } from "@/constants/quoteStatuses";
+import { getQuoteStatusInfo } from "@/constants/quoteStatuses";
 
 interface Quote {
   id: string;
@@ -34,6 +33,20 @@ interface Quote {
   created_by_name: string | null;
 }
 
+interface QuoteStats {
+  pending: number;
+  sent: number;
+  approved: number;
+  expired: number;
+}
+
+const emptyQuoteStats: QuoteStats = {
+  pending: 0,
+  sent: 0,
+  approved: 0,
+  expired: 0,
+};
+
 const MobileQuotesPage = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
@@ -42,41 +55,35 @@ const MobileQuotesPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchTerm = useDebounce(searchInput, 500);
-  const [quoteStats, setQuoteStats] = useState({
-    pending: 0,
-    sent: 0,
-    approved: 0,
-    expired: 0,
-  });
-
-  const fetchQuotes = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.rpc('list_quotes', {
-        p_search: debouncedSearchTerm || null,
-        p_status: null
-      });
-
-      if (error) throw error;
-      
-      const quotesList = data || [];
-      setQuotes(quotesList);
-
-      const pending = quotesList.filter((q: Quote) => q.status === 'DRAFT').length;
-      const sent = quotesList.filter((q: Quote) => q.status === 'SENT').length;
-      const approved = quotesList.filter((q: Quote) => q.status === 'APPROVED').length;
-      const expired = quotesList.filter((q: Quote) => q.status === 'EXPIRED').length;
-      
-      setQuoteStats({ pending, sent, approved, expired });
-    } catch (error) {
-      console.error('Error fetching quotes:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [quoteStats, setQuoteStats] = useState<QuoteStats>(emptyQuoteStats);
 
   useEffect(() => {
-    fetchQuotes();
+    const fetchQuotes = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase.rpc("list_quotes", {
+          p_search: debouncedSearchTerm || null,
+          p_status: null,
+        });
+
+        if (error) throw error;
+
+        const quotesList = (data || []) as Quote[];
+        setQuotes(quotesList);
+        setQuoteStats({
+          pending: quotesList.filter((quote) => quote.status === "DRAFT").length,
+          sent: quotesList.filter((quote) => quote.status === "SENT").length,
+          approved: quotesList.filter((quote) => quote.status === "APPROVED").length,
+          expired: quotesList.filter((quote) => quote.status === "EXPIRED").length,
+        });
+      } catch (error) {
+        console.error("Error fetching quotes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchQuotes();
   }, [debouncedSearchTerm]);
 
   const handleQuoteClick = (quoteId: string) => {
@@ -158,7 +165,7 @@ const MobileQuotesPage = () => {
       </div>
 
       {/* Search and Create Button */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border/40 pb-3 mb-4 flex-shrink-0 -mx-[15px] px-[15px] pt-2">
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border/40 pb-3 mb-4 flex-shrink-0 -mx-4 px-4 pt-2">
         <div className="flex items-center gap-2">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -166,20 +173,19 @@ const MobileQuotesPage = () => {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Buscar presupuestos..."
-              className="pl-9 h-8 bg-card border-border text-sm"
+              className="pl-9 h-11 bg-card border-border text-sm"
             />
           </div>
           <button
             onClick={handleCreateQuote}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
+              "h-11 px-4 flex items-center justify-center gap-1.5 rounded-full",
               "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-              "text-white/90 hover:text-white hover:bg-white/15",
+              "bg-primary text-primary-foreground",
               "active:scale-95 transition-all duration-200",
-              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+              "shadow-sm"
             )}
-            style={{ touchAction: 'manipulation', height: '32px' }}
+            style={{ touchAction: 'manipulation' }}
           >
             <Plus className="h-4 w-4" />
             <span>Nuevo</span>

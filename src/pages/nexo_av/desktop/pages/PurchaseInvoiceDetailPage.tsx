@@ -10,6 +10,7 @@ import {
   Building2, 
   UserRound, 
   FolderKanban,
+  MapPin,
   Calendar,
   Hash,
   CreditCard,
@@ -82,6 +83,13 @@ interface Project {
   client_name?: string;
 }
 
+interface ProjectSite {
+  id: string;
+  site_name: string;
+  city: string | null;
+  is_default: boolean;
+}
+
 interface PurchaseInvoice {
   id: string;
   invoice_number: string;
@@ -108,6 +116,8 @@ interface PurchaseInvoice {
   project_id: string | null;
   project_name: string | null;
   project_number: string | null;
+  site_id?: string | null;
+  site_name?: string | null;
   file_path: string | null;
   file_name: string | null;
   notes: string | null;
@@ -313,6 +323,9 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   // Project selection
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectSearchValue, setProjectSearchValue] = useState("");
+  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+  const [projectSiteMode, setProjectSiteMode] = useState<string | null>(null);
+  const [projectSites, setProjectSites] = useState<ProjectSite[]>([]);
 
   // Fetch invoice data
   const fetchInvoice = useCallback(async () => {
@@ -334,6 +347,10 @@ const PurchaseInvoiceDetailPageDesktop = () => {
       }
       
       const inv = invoiceData[0] as PurchaseInvoice;
+      if (inv.document_type === "EXPENSE") {
+        navigate(`/nexo-av/${userId}/expenses/${purchaseInvoiceId}`);
+        return;
+      }
       setInvoice(inv);
       
       // Set form values
@@ -365,8 +382,10 @@ const PurchaseInvoiceDetailPageDesktop = () => {
       if (inv.project_id) {
         setSelectedProjectId(inv.project_id);
         setProjectSearchValue(inv.project_name || "");
+        setSelectedSiteId(inv.site_id || "");
       } else {
         setProjectSearchValue("");
+        setSelectedSiteId("");
       }
       
       // Get lines
@@ -403,6 +422,52 @@ const PurchaseInvoiceDetailPageDesktop = () => {
     fetchInvoice();
   }, [fetchInvoice]);
 
+  const fetchSitesForProject = useCallback(async (projectId: string, preferredSiteId?: string | null) => {
+    try {
+      const { data: projectData, error: projectError } = await supabase.rpc("get_project", { p_project_id: projectId });
+      if (projectError) throw projectError;
+      const projectInfo = projectData?.[0];
+      const siteMode = projectInfo?.site_mode || null;
+      setProjectSiteMode(siteMode);
+
+      const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
+      if (error) throw error;
+
+      const sites: ProjectSite[] = (data || [])
+        .filter((s: any) => s.is_active)
+        .map((s: any) => ({ id: s.id, site_name: s.site_name, city: s.city, is_default: s.is_default }));
+      setProjectSites(sites);
+
+      if (preferredSiteId && sites.some((site) => site.id === preferredSiteId)) {
+        setSelectedSiteId(preferredSiteId);
+        return;
+      }
+
+      if (siteMode === "SINGLE_SITE" && sites.length > 0) {
+        const defaultSite = sites.find((site) => site.is_default) || sites[0];
+        setSelectedSiteId(defaultSite.id);
+        return;
+      }
+
+      setSelectedSiteId("");
+    } catch (error) {
+      console.error("Error fetching project sites:", error);
+      setProjectSiteMode(null);
+      setProjectSites([]);
+      setSelectedSiteId("");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!selectedProjectId) {
+      setProjectSiteMode(null);
+      setProjectSites([]);
+      setSelectedSiteId("");
+      return;
+    }
+    void fetchSitesForProject(selectedProjectId, selectedSiteId || null);
+  }, [selectedProjectId, fetchSitesForProject]);
+
   // Fetch user roles for permission checks (solo Admin puede aprobar facturas de compra)
   useEffect(() => {
     const fetchUserRoles = async () => {
@@ -419,16 +484,19 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   }, []);
 
   // Handle save
-  const handleSave = async () => {
-    if (!purchaseInvoiceId || !invoice) return;
+  const handleSave = async (): Promise<boolean> => {
+    if (!purchaseInvoiceId || !invoice) return false;
     if (invoice.document_type === "EXPENSE" && !manualBeneficiaryName?.trim()) {
       toast.error("Indica el concepto del gasto (parking, peajes, dietas, gasolina, etc.).");
-      return;
+      return false;
+    }
+    if (selectedProjectId && projectSiteMode === "MULTI_SITE" && !selectedSiteId) {
+      toast.error("Selecciona un sitio para este proyecto multi-sitio.");
+      return false;
     }
     try {
       setSaving(true);
-      
-      // Update invoice
+
       const { error: updateError } = await supabase.rpc("update_purchase_invoice", {
         p_invoice_id: purchaseInvoiceId,
         p_supplier_invoice_number: supplierInvoiceNumber || null,
@@ -442,57 +510,36 @@ const PurchaseInvoiceDetailPageDesktop = () => {
         p_technician_id: isTicket ? null : (entityType === "TECHNICIAN" ? selectedTechnicianId : null),
         p_project_id: selectedProjectId || null,
         p_manual_beneficiary_name: isTicket ? (manualBeneficiaryName?.trim() || null) : null,
+        p_site_id: selectedProjectId ? (selectedSiteId || null) : null,
       });
-      
+
       if (updateError) throw updateError;
-      
-      // Update lines - delete old and add new
-      // First, get existing lines from database
-      const { data: existingLines, error: getLinesError } = await supabase.rpc("get_purchase_invoice_lines", {
+
+      const { error: linesError } = await (supabase.rpc as any)("replace_purchase_invoice_lines", {
         p_invoice_id: purchaseInvoiceId,
+        p_lines: lines.map((line) => ({
+          concept: line.concept,
+          description: line.description || null,
+          quantity: line.quantity,
+          unit_price: line.unit_price,
+          tax_rate: line.tax_rate,
+          discount_percent: line.discount_percent || 0,
+          withholding_tax_rate: line.withholding_tax_rate || 0,
+        })),
       });
-      
-      if (getLinesError) throw getLinesError;
-      
-      // Delete all existing lines
-      if (existingLines && existingLines.length > 0) {
-        for (const existingLine of existingLines) {
-          const { error: deleteError } = await supabase.rpc("delete_purchase_invoice_line", { 
-            p_line_id: existingLine.id 
-          });
-          if (deleteError) throw deleteError;
-        }
-      }
-      
-      // Add all lines with error handling
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const { error: lineError } = await supabase.rpc("add_purchase_invoice_line", {
-          p_invoice_id: purchaseInvoiceId,
-          p_concept: line.concept,
-          p_description: line.description || null,
-          p_quantity: line.quantity,
-          p_unit_price: line.unit_price,
-          p_tax_rate: line.tax_rate,
-          p_withholding_tax_rate: line.withholding_tax_rate || 0,
-          p_discount_percent: line.discount_percent || 0,
-        });
-        
-        if (lineError) {
-          console.error(`Error adding line ${i + 1}:`, lineError);
-          throw new Error(`Error al añadir línea ${i + 1}: ${lineError.message}`);
-        }
-      }
-      
+
+      if (linesError) throw linesError;
+
       toast.success("Factura guardada correctamente");
       setHasChanges(false);
       setIsEditing(false);
       await fetchInvoice();
-      
+      return true;
     } catch (error: any) {
       console.error("Error saving invoice:", error);
       const message = error?.message || error?.error_description || "Error al guardar la factura";
       toast.error(message);
+      return false;
     } finally {
       setSaving(false);
     }
@@ -507,7 +554,8 @@ const PurchaseInvoiceDetailPageDesktop = () => {
       
       // First save any pending changes
       if (hasChanges) {
-        await handleSave();
+        const saved = await handleSave();
+        if (!saved) return;
       }
       
       // Use approve_purchase_invoice RPC which assigns definitive number (C-YY-XXXXXX)
@@ -553,29 +601,9 @@ const PurchaseInvoiceDetailPageDesktop = () => {
     try {
       setDeleting(true);
       
-      // First delete all lines
-      const { data: existingLines, error: getLinesError } = await supabase.rpc("get_purchase_invoice_lines", {
+      const { error: deleteError } = await supabase.rpc("delete_purchase_invoice", {
         p_invoice_id: purchaseInvoiceId,
       });
-      
-      if (getLinesError) throw getLinesError;
-      
-      if (existingLines && existingLines.length > 0) {
-        for (const line of existingLines) {
-          const { error: deleteLineError } = await supabase.rpc("delete_purchase_invoice_line", { 
-            p_line_id: line.id 
-          });
-          if (deleteLineError) {
-            console.warn("Error deleting line:", deleteLineError);
-          }
-        }
-      }
-      
-      // Delete the invoice
-      const { error: deleteError } = await (supabase as any)
-        .from("purchase_invoices")
-        .delete()
-        .eq("id", purchaseInvoiceId);
       
       if (deleteError) throw deleteError;
       
@@ -626,6 +654,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   const handleSelectProject = (project: Project) => {
     setSelectedProjectId(project.id);
     setProjectSearchValue(project.project_name);
+    setSelectedSiteId("");
     setHasChanges(true);
   };
 
@@ -1083,12 +1112,55 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                           onClick={() => {
                             setSelectedProjectId(null);
                             setProjectSearchValue("");
+                            setSelectedSiteId("");
+                            setProjectSites([]);
+                            setProjectSiteMode(null);
                             setHasChanges(true);
                           }}
                         >
                           <X className="h-3 w-3" />
                         </Button>
                       )}
+                    </div>
+                  )}
+
+                  {selectedProjectId && projectSiteMode === "MULTI_SITE" && projectSites.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5" />
+                        Sitio *
+                      </Label>
+                      <Select
+                        value={selectedSiteId || undefined}
+                        onValueChange={(value) => {
+                          setSelectedSiteId(value);
+                          setHasChanges(true);
+                        }}
+                        disabled={!isEditing || isLocked}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar sitio..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projectSites.map((site) => (
+                            <SelectItem key={site.id} value={site.id}>
+                              {site.site_name}{site.city ? ` - ${site.city}` : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {selectedProjectId && projectSiteMode === "SINGLE_SITE" && projectSites.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5" />
+                        Sitio
+                      </Label>
+                      <div className="flex items-center px-3 py-2 rounded-lg border border-border bg-muted/30 text-sm">
+                        {projectSites[0]?.site_name}{projectSites[0]?.city ? ` - ${projectSites[0].city}` : ""}
+                      </div>
                     </div>
                   )}
                 </motion.div>

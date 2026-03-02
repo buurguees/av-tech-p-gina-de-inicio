@@ -1,506 +1,460 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, X } from 'lucide-react';
+import { useCallback, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import useEmblaCarousel from 'embla-carousel-react';
+import { ArrowRight, Check, Clock3, Monitor, Shield, Sun, Zap } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { ContactFormDialog } from '@/components/ContactFormDialog';
-// Importar imágenes para el carrusel de fondo
+import { Button } from '@/components/ui/button';
 import catalogImage1 from '@/assets/catalog/pantalla-led-interior.png';
 import catalogImage2 from '@/assets/catalog/mupys-led.png';
 import catalogImage4 from '@/assets/catalog/lcd-techo.png';
 import project5 from '@/assets/projects/project-5.png';
 import project7 from '@/assets/projects/project-7.jpg';
+import hb43 from '@/assets/packs/HB-43.png';
+import hb49 from '@/assets/packs/HB-49.png';
+import hb55 from '@/assets/packs/HB-55.png';
+import hb65 from '@/assets/packs/HB-65.png';
+import hb75 from '@/assets/packs/HB-75.png';
+import hb86 from '@/assets/packs/HB-86.jpeg';
+import d6043 from '@/assets/packs/D60-43.png';
+import d6050 from '@/assets/packs/D60-50.png';
+import d6075 from '@/assets/packs/D60-75.png';
+import d6085 from '@/assets/packs/D60-85.png';
+import d6096 from '@/assets/packs/D60-96.png';
 
-const backgroundImages = [
-  catalogImage1,
-  catalogImage2,
-  catalogImage4,
-  project5,
-  project7,
-];
-
-// Tipos
-interface SubPack {
+interface ProductCardData {
   id: string;
-  name: string;
-  size: string;
-  features: string[];
-}
-
-interface Pack {
-  id: string;
-  name: string;
+  title: string;
   description: string;
-  secondaryDescription?: string;
-  subPacks: SubPack[];
-  gradient: string;
-  accentColor: string;
+  image: string;
+  imageAlt: string;
+  bullets: string[];
 }
 
-// Todos los packs combinados
-const allPacksData: Pack[] = [
+interface ProductLine {
+  id: string;
+  badge?: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  tone: 'hb' | 'd60';
+  products: ProductCardData[];
+}
+
+const hbProducts: ProductCardData[] = [
   {
-    id: 'starter-pack',
-    name: 'Starter Pack',
-    description: 'La forma más sencilla de empezar a destacar',
-    secondaryDescription: 'Perfecto para tiendas, oficinas, centros de atención al cliente y espacios corporativos.',
-    gradient: 'from-blue-600/20 via-indigo-600/10 to-transparent',
-    accentColor: 'hsl(220, 70%, 60%)',
-    subPacks: [
-      {
-        id: 'pack-49',
-        name: 'Pack 49"',
-        size: '49 pulgadas',
-        features: [
-          'Monitor profesional de 49"',
-          'Soporte de pared incluido',
-          'Puesta en marcha',
-          'Posibilidad de añadir monitores adicionales',
-        ],
-      },
-      {
-        id: 'pack-55',
-        name: 'Pack 55"',
-        size: '55 pulgadas',
-        features: [
-          'Monitor profesional de 55"',
-          'Soporte de pared incluido',
-          'Puesta en marcha',
-          'Posibilidad de añadir monitores adicionales',
-        ],
-      },
-    ],
+    id: 'hb-43',
+    title: '43" HB',
+    description: 'Pantalla profesional de alto brillo con sistema integrado y montaje completo.',
+    image: hb43,
+    imageAlt: 'Pantalla instalada en escaparate moderno',
+    bullets: ['Monitor profesional Full HD / 4K', 'Mini PC integrado', 'Soporte profesional', 'Instalacion incluida', 'Configuracion inicial'],
   },
   {
-    id: 'starter-pack-plus',
-    name: 'Starter Pack Plus',
-    description: 'Más tamaño. Más impacto. Más presencia.',
-    secondaryDescription: 'Ideal para escaparates, zonas de paso, showrooms y espacios de alto tráfico.',
-    gradient: 'from-emerald-600/20 via-teal-600/10 to-transparent',
-    accentColor: 'hsl(160, 70%, 50%)',
-    subPacks: [
-      {
-        id: 'pack-65',
-        name: 'Pack 65"',
-        size: '65 pulgadas',
-        features: [
-          'Monitor profesional de 65"',
-          'Soporte de pared incluido',
-          'Puesta en marcha',
-          'Posibilidad de añadir monitores adicionales',
-        ],
-      },
-      {
-        id: 'pack-75',
-        name: 'Pack 75"',
-        size: '75 pulgadas',
-        features: [
-          'Monitor profesional de 75"',
-          'Soporte de pared incluido',
-          'Puesta en marcha',
-          'Posibilidad de añadir monitores adicionales',
-        ],
-      },
-      {
-        id: 'pack-86',
-        name: 'Pack 86"',
-        size: '86 pulgadas',
-        features: [
-          'Monitor profesional de 86"',
-          'Soporte de pared incluido',
-          'Puesta en marcha',
-          'Posibilidad de añadir monitores adicionales',
-        ],
-      },
-      {
-        id: 'pack-98',
-        name: 'Pack 98"',
-        size: '98 pulgadas',
-        features: [
-          'Monitor profesional de 98"',
-          'Soporte de pared incluido',
-          'Puesta en marcha',
-          'Posibilidad de añadir monitores adicionales',
-        ],
-      },
-    ],
+    id: 'hb-49',
+    title: '49" HB',
+    description: 'Pantalla profesional de alto brillo con sistema integrado y montaje completo.',
+    image: hb49,
+    imageAlt: 'Pantalla instalada en retail premium',
+    bullets: ['Monitor profesional Full HD / 4K', 'Mini PC integrado', 'Soporte profesional', 'Instalacion incluida', 'Configuracion inicial'],
   },
   {
-    id: 'pack-led-pro',
-    name: 'LED Pro',
-    description: 'Cuando tu espacio necesita algo más que una pantalla',
-    secondaryDescription: 'Para proyectos ambiciosos, marcas atrevidas y espacios que quieren marcar diferencia.',
-    gradient: 'from-rose-600/20 via-orange-600/10 to-transparent',
-    accentColor: 'hsl(350, 70%, 55%)',
-    subPacks: [],
+    id: 'hb-55',
+    title: '55" HB',
+    description: 'Pantalla profesional de alto brillo con sistema integrado y montaje completo.',
+    image: hb55,
+    imageAlt: 'Pantalla instalada en showroom iluminado',
+    bullets: ['Monitor profesional Full HD / 4K', 'Mini PC integrado', 'Soporte profesional', 'Instalacion incluida', 'Configuracion inicial'],
   },
   {
-    id: 'pack-signage-360',
-    name: 'Signage 360',
-    description: 'La comunicación visual, totalmente integrada',
-    secondaryDescription: 'Ideal para franquicias, cadenas, gimnasios y negocios en crecimiento.',
-    gradient: 'from-violet-600/20 via-purple-600/10 to-transparent',
-    accentColor: 'hsl(270, 70%, 60%)',
-    subPacks: [],
+    id: 'hb-65',
+    title: '65" HB',
+    description: 'Pantalla profesional de alto brillo con sistema integrado y montaje completo.',
+    image: hb65,
+    imageAlt: 'Pantalla instalada en farmacia moderna',
+    bullets: ['Monitor profesional Full HD / 4K', 'Mini PC integrado', 'Soporte profesional', 'Instalacion incluida', 'Configuracion inicial'],
+  },
+  {
+    id: 'hb-75',
+    title: '75" HB',
+    description: 'Pantalla profesional de alto brillo con sistema integrado y montaje completo.',
+    image: hb75,
+    imageAlt: 'Pantalla instalada en concesionario',
+    bullets: ['Monitor profesional Full HD / 4K', 'Mini PC integrado', 'Soporte profesional', 'Instalacion incluida', 'Configuracion inicial'],
+  },
+  {
+    id: 'hb-86',
+    title: '86" HB',
+    description: 'Pantalla profesional de alto brillo con sistema integrado y montaje completo.',
+    image: hb86,
+    imageAlt: 'Pantalla instalada en espacio retail premium',
+    bullets: ['Monitor profesional Full HD / 4K', 'Mini PC integrado', 'Soporte profesional', 'Instalacion incluida', 'Configuracion inicial'],
   },
 ];
 
-// Componente de Pack en la lista (versión compacta)
-const PackListItem = ({ 
-  pack, 
-  isSelected,
-  onClick,
-}: { 
-  pack: Pack;
-  isSelected: boolean;
-  onClick: () => void;
-}) => {
-  return (
-    <motion.div
-      layout
-      onClick={onClick}
-      className={`relative overflow-hidden rounded-lg border transition-all duration-300 cursor-pointer ${
-        isSelected 
-          ? 'border-foreground/40 bg-secondary/60' 
-          : 'border-border/50 bg-secondary/20 hover:border-border hover:bg-secondary/30'
-      }`}
-    >
-      {/* Gradient Background */}
-      <div 
-        className={`absolute inset-0 bg-gradient-to-br ${pack.gradient} transition-opacity duration-300 ${
-          isSelected ? 'opacity-100' : 'opacity-30'
-        }`}
-      />
+const d60Products: ProductCardData[] = [
+  {
+    id: 'd60-43',
+    title: '43" Digital Signage',
+    description: 'Pantalla comercial con sistema integrado, ideal para uso interior.',
+    image: d6043,
+    imageAlt: 'Pantalla instalada en restaurante moderno',
+    bullets: ['Panel digital profesional', 'Mini PC incluido', 'Soporte mural', 'Instalacion y configuracion', 'Lista para publicar contenido'],
+  },
+  {
+    id: 'd60-50',
+    title: '50" Digital Signage',
+    description: 'Pantalla comercial con sistema integrado, ideal para uso interior.',
+    image: d6050,
+    imageAlt: 'Pantalla instalada en oficina',
+    bullets: ['Panel digital profesional', 'Mini PC incluido', 'Soporte mural', 'Instalacion y configuracion', 'Lista para publicar contenido'],
+  },
+  {
+    id: 'd60-55',
+    title: '55" Digital Signage',
+    description: 'Pantalla comercial con sistema integrado, ideal para uso interior.',
+    image: catalogImage2,
+    imageAlt: 'Pantalla instalada en peluqueria',
+    bullets: ['Panel digital profesional', 'Mini PC incluido', 'Soporte mural', 'Instalacion y configuracion', 'Lista para publicar contenido'],
+  },
+  {
+    id: 'd60-65',
+    title: '65" Digital Signage',
+    description: 'Pantalla comercial con sistema integrado, ideal para uso interior.',
+    image: catalogImage1,
+    imageAlt: 'Pantalla instalada en tienda de barrio',
+    bullets: ['Panel digital profesional', 'Mini PC incluido', 'Soporte mural', 'Instalacion y configuracion', 'Lista para publicar contenido'],
+  },
+  {
+    id: 'd60-75',
+    title: '75" Digital Signage',
+    description: 'Pantalla comercial con sistema integrado, ideal para uso interior.',
+    image: d6075,
+    imageAlt: 'Pantalla instalada en recepcion corporativa',
+    bullets: ['Panel digital profesional', 'Mini PC incluido', 'Soporte mural', 'Instalacion y configuracion', 'Lista para publicar contenido'],
+  },
+  {
+    id: 'd60-85',
+    title: '85" Digital Signage',
+    description: 'Pantalla comercial con sistema integrado, ideal para uso interior.',
+    image: d6085,
+    imageAlt: 'Pantalla instalada en espacio comercial interior',
+    bullets: ['Panel digital profesional', 'Mini PC incluido', 'Soporte mural', 'Instalacion y configuracion', 'Lista para publicar contenido'],
+  },
+  {
+    id: 'd60-96',
+    title: '96" Digital Signage',
+    description: 'Pantalla comercial con sistema integrado, ideal para uso interior.',
+    image: d6096,
+    imageAlt: 'Pantalla instalada en zona corporativa',
+    bullets: ['Panel digital profesional', 'Mini PC incluido', 'Soporte mural', 'Instalacion y configuracion', 'Lista para publicar contenido'],
+  },
+];
 
-      {/* Content */}
-      <div className="relative z-10 p-4 lg:p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-mono text-base lg:text-lg font-medium text-foreground">
-              {pack.name}
-            </h3>
-            <p className="font-mono text-xs text-muted-foreground mt-1 line-clamp-1">
-              {pack.description}
-            </p>
-          </div>
-          <ChevronRight 
-            className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${
-              isSelected ? 'rotate-90 text-foreground' : ''
-            }`}
-          />
-        </div>
+const productLines: ProductLine[] = [
+  {
+    id: 'hb',
+    title: 'Linea Profesional HB',
+    subtitle: 'Maximo brillo, maxima resistencia, rendimiento continuo 24/7',
+    description: 'Pensada para escaparates, exteriores protegidos y entornos de alta luminosidad.',
+    tone: 'hb',
+    products: hbProducts,
+  },
+  {
+    id: 'd60',
+    badge: 'Mas economica',
+    title: 'Linea Comercial D60',
+    subtitle: 'Solucion eficiente y accesible para comunicacion digital en interiores',
+    description: 'Ideal para tiendas, oficinas, restaurantes y espacios comerciales.',
+    tone: 'd60',
+    products: d60Products,
+  },
+];
+
+const hbFeatures = [
+  { icon: Sun, text: 'Alto brillo' },
+  { icon: Sun, text: 'Preparada para entornos luminosos' },
+  { icon: Shield, text: 'Mayor resistencia' },
+  { icon: Clock3, text: 'Uso intensivo 24/7' },
+];
+
+const d60Features = [
+  { icon: Zap, text: 'Excelente relacion calidad-precio' },
+  { icon: Monitor, text: 'Uso interior' },
+  { icon: Check, text: 'Ideal para comunicacion diaria' },
+  { icon: ArrowRight, text: 'Solucion versatil' },
+];
+
+const packCatalogSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'OfferCatalog',
+  name: 'Catalogo de packs Digital Signage AV TECH',
+  description:
+    'Linea Profesional HB de alto brillo y Linea Comercial D60 para digital signage en retail, oficinas, restauracion y espacios corporativos.',
+  url: 'https://avtechesdeveniments.com/#productos',
+  itemListElement: productLines.map((line, lineIndex) => ({
+    '@type': 'OfferCatalog',
+    name: line.title,
+    description: line.description,
+    itemListOrder: 'https://schema.org/ItemListOrderAscending',
+    numberOfItems: line.products.length,
+    itemListElement: line.products.map((product, productIndex) => ({
+      '@type': 'ListItem',
+      position: lineIndex * 100 + productIndex + 1,
+      item: {
+        '@type': 'Product',
+        name: `${product.title} AV TECH`,
+        description: product.description,
+        brand: {
+          '@type': 'Brand',
+          name: 'AV TECH ESDEVENIMENTS',
+        },
+        category: line.title,
+        image: new URL(product.image, 'https://avtechesdeveniments.com').toString(),
+        additionalProperty: product.bullets.map((bullet) => ({
+          '@type': 'PropertyValue',
+          name: 'Caracteristica',
+          value: bullet,
+        })),
+      },
+    })),
+  })),
+};
+
+const fadeIn = {
+  duration: 0.6,
+  ease: [0.22, 1, 0.36, 1] as const,
+};
+
+const lineTheme = {
+  hb: {
+    section: 'bg-transparent',
+    card: 'bg-white/[0.03] border-white/10 hover:bg-white/[0.05] hover:border-white/15',
+    badgeDot: 'bg-foreground',
+    badgeText: 'text-foreground/70',
+    eyebrow: 'text-foreground/55',
+  },
+  d60: {
+    section: 'bg-white/[0.02] border-white/8',
+    card: 'bg-white/[0.02] border-white/8 hover:bg-white/[0.04] hover:border-white/12',
+    badgeDot: 'bg-foreground/70',
+    badgeText: 'text-foreground/65',
+    eyebrow: 'text-foreground/50',
+  },
+} as const;
+
+const ProductCard = ({ product, tone }: { product: ProductCardData; tone: 'hb' | 'd60' }) => {
+  const theme = lineTheme[tone];
+
+  return (
+    <article
+      className={`group h-full overflow-hidden rounded-[22px] border backdrop-blur-sm transition-all duration-300 ${theme.card}`}
+      itemScope
+      itemType="https://schema.org/Product"
+    >
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <img
+          src={product.image}
+          alt={`${product.title} de AV TECH ESDEVENIMENTS para digital signage, ${product.imageAlt.toLowerCase()}`}
+          title={`${product.title} | AV TECH ESDEVENIMENTS`}
+          loading="lazy"
+          decoding="async"
+          itemProp="image"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/85 via-background/20 to-transparent" />
       </div>
-    </motion.div>
+
+      <div className="p-5 sm:p-6">
+        <h3 className="font-mono text-xl sm:text-2xl text-foreground" itemProp="name">
+          {product.title}
+        </h3>
+        <p className="mt-3 font-mono text-sm leading-relaxed text-muted-foreground" itemProp="description">
+          {product.description}
+        </p>
+
+        <ul className="mt-5 space-y-3 border-t border-white/8 pt-5">
+          {product.bullets.map((bullet) => (
+            <li key={bullet} className="flex items-start gap-3 font-mono text-xs sm:text-sm text-foreground/75">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-foreground/45" />
+              <span>{bullet}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </article>
   );
 };
 
-// Componente de Pack expandido (versión completa en la columna derecha)
-const PackExpanded = ({ 
-  pack,
-  selectedSubPack,
-  onSubPackClick,
-  onClose,
-}: { 
-  pack: Pack;
-  selectedSubPack: string | null;
-  onSubPackClick: (id: string) => void;
-  onClose: () => void;
-}) => {
+const InfiniteProductCarousel = ({ line }: { line: ProductLine }) => {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', loop: true, skipSnaps: false });
+
+  const autoplay = useCallback(() => {
+    if (!emblaApi) return;
+    emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const interval = setInterval(autoplay, 3200);
+    return () => clearInterval(interval);
+  }, [autoplay, emblaApi]);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="relative overflow-hidden rounded-lg border border-foreground/30 bg-secondary/50 h-full"
-    >
-      {/* Gradient Background */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${pack.gradient} opacity-60`} />
-
-      {/* Content */}
-      <div className="relative z-10 p-5 lg:p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="font-mono text-xl lg:text-2xl font-medium text-foreground mb-2">
-              {pack.name}
-            </h3>
-            <p className="font-mono text-sm text-muted-foreground max-w-md">
-              {pack.description}
-            </p>
-            {pack.secondaryDescription && (
-              <p className="font-mono text-xs text-muted-foreground/70 max-w-md mt-2">
-                {pack.secondaryDescription}
-              </p>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-md hover:bg-foreground/10 transition-colors lg:hidden"
-          >
-            <X className="w-5 h-5 text-muted-foreground" />
-          </button>
-        </div>
-
-        {/* Sub-packs */}
-        {pack.subPacks.length > 0 ? (
-          <div className="pt-4 border-t border-border/30">
-            <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-3">
-              Opciones disponibles
-            </div>
-            
-            <div className="space-y-2">
-              {pack.subPacks.map((subPack) => (
-                <motion.div
-                  key={subPack.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3 }}
-                  onClick={() => onSubPackClick(subPack.id)}
-                  className={`group p-3 rounded-md border transition-all duration-300 cursor-pointer ${
-                    selectedSubPack === subPack.id
-                      ? 'border-foreground/40 bg-foreground/5'
-                      : 'border-border/30 hover:border-border/60 bg-background/30'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <ChevronRight 
-                        className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${
-                          selectedSubPack === subPack.id ? 'rotate-90' : ''
-                        }`}
-                      />
-                      <div>
-                        <div className="font-mono text-sm font-medium text-foreground">
-                          {subPack.name}
-                        </div>
-                        <div className="font-mono text-xs text-muted-foreground">
-                          {subPack.size}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Sub-pack Features */}
-                  <AnimatePresence>
-                    {selectedSubPack === subPack.id && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pt-3 mt-3 border-t border-border/20">
-                          <div className="grid gap-2">
-                            {subPack.features.map((feature, i) => (
-                              <div 
-                                key={i}
-                                className="flex items-center gap-2 font-mono text-xs text-muted-foreground"
-                              >
-                                <Check 
-                                  className="w-3 h-3 shrink-0" 
-                                  style={{ color: pack.accentColor }}
-                                />
-                                {feature}
-                              </div>
-                            ))}
-                          </div>
-                          <ContactFormDialog
-                            trigger={
-                              <Button 
-                                variant="catalog" 
-                                size="sm" 
-                                className="mt-3 font-mono text-xs"
-                              >
-                                Solicitar presupuesto
-                              </Button>
-                            }
-                          />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="pt-4 border-t border-border/30">
-            <p className="font-mono text-sm text-muted-foreground mb-4">
-              Solución personalizada según las necesidades de tu proyecto.
-            </p>
-            <ContactFormDialog
-              trigger={
-                <Button 
-                  variant="catalog" 
-                  size="sm" 
-                  className="font-mono text-xs"
-                >
-                  Solicitar información
-                </Button>
-              }
-            />
-          </div>
-        )}
+    <div>
+      <div className="mb-4 flex items-center justify-between px-1">
+        <p className="font-mono text-xs uppercase tracking-[0.16em] text-foreground/55">Desliza formatos</p>
+        <p className="font-mono text-xs text-muted-foreground">{line.products.length} opciones</p>
       </div>
-    </motion.div>
+
+      <div className="overflow-hidden" ref={emblaRef}>
+        <div className="flex -ml-4">
+          {line.products.map((product) => (
+            <div key={product.id} className="min-w-0 shrink-0 pl-4 basis-[84%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+              <ProductCard product={product} tone={line.tone} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
+
+const ComparisonColumn = ({ title, items }: { title: string; items: { icon: typeof Sun; text: string }[] }) => (
+  <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-6 sm:p-7 backdrop-blur-sm">
+    <h4 className="font-mono text-xl sm:text-2xl text-foreground">{title}</h4>
+    <ul className="mt-6 space-y-4">
+      {items.map((item) => (
+        <li key={item.text} className="flex items-center gap-4 font-mono text-sm text-foreground/75">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03]">
+            <item.icon className="h-4 w-4 text-foreground/55" />
+          </div>
+          <span>{item.text}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
 
 const Productos = () => {
-  const [selectedPack, setSelectedPack] = useState<string | null>(null);
-  const [selectedSubPack, setSelectedSubPack] = useState<string | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect mobile
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Auto-rotate background images
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
-    }, 4500);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handlePackClick = (packId: string) => {
-    setSelectedPack(selectedPack === packId ? null : packId);
-    setSelectedSubPack(null);
-  };
-
-  const handleSubPackClick = (subPackId: string) => {
-    setSelectedSubPack(selectedSubPack === subPackId ? null : subPackId);
-  };
-
-  const handleClose = () => {
-    setSelectedPack(null);
-    setSelectedSubPack(null);
-  };
-
-  const activePack = allPacksData.find(p => p.id === selectedPack);
-
   return (
-    <section id="productos" className="relative py-16 lg:py-24 overflow-hidden">
-      {/* Background Carousel */}
-      <div className="absolute inset-0 z-0">
-        <AnimatePresence mode="sync">
-          <motion.img
-            key={currentImageIndex}
-            src={backgroundImages[currentImageIndex]}
-            alt="Fondo catálogo"
-            className="absolute inset-0 w-full h-full object-cover"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 2.5, ease: "easeInOut" }}
-          />
-        </AnimatePresence>
-        
-        {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-background/85" />
-        
-        {/* Gradient overlays */}
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: 'radial-gradient(ellipse at center, transparent 0%, hsl(var(--background)) 70%)'
-          }}
-        />
-      </div>
-
-      {/* Main Content */}
-      <div className="relative z-10 max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16">
-        {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+    <section id="productos" className="relative overflow-hidden py-16 sm:py-32">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(packCatalogSchema) }}
+      />
+      <div className="max-w-[1800px] mx-auto px-6 sm:px-8 md:px-16">
+        <motion.header
+          initial={{ opacity: 0, y: 32 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-12"
+          transition={fadeIn}
+          className="text-center"
         >
-          <div className="section-tag mb-4">Catálogo</div>
-          <h2 className="section-title mb-6">
-            <span className="section-title-primary">Tu marca brillando</span>
+          <div className="section-tag mb-4 sm:mb-6">Catalogo</div>
+          <h2 className="section-title max-w-5xl mx-auto">
+            <span className="section-title-primary">Soluciones Digital Signage</span>
             <br />
-            <span className="section-title-secondary">donde más importa</span>
+            <span className="section-title-secondary">listas para instalar</span>
           </h2>
-          <p className="section-description max-w-2xl">
-            Packs diseñados para maximizar el impacto visual de tu negocio. 
-            Cada solución incluye hardware, instalación y puesta en marcha.
+          <p className="section-description max-w-3xl mx-auto mt-6">
+            Packs profesionales disenados para transformar cualquier espacio comercial con instalacion llave en mano.
           </p>
-        </motion.div>
+        </motion.header>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
-          {/* Left Column: Pack List */}
-          <div className="space-y-3">
-            {allPacksData.map((pack, index) => (
-              <motion.div
-                key={pack.id}
-                initial={{ opacity: 0, y: 20 }}
+        <div className="mt-12 sm:mt-16 space-y-12 sm:space-y-16">
+          {productLines.map((line, lineIndex) => {
+            const theme = lineTheme[line.tone];
+
+            return (
+              <motion.section
+                key={line.id}
+                initial={{ opacity: 0, y: 28 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ ...fadeIn, delay: lineIndex * 0.08 }}
+                className={`rounded-[28px] border border-white/10 px-5 py-8 sm:px-8 sm:py-10 md:px-10 ${theme.section}`}
               >
-                <PackListItem
-                  pack={pack}
-                  isSelected={selectedPack === pack.id}
-                  onClick={() => handlePackClick(pack.id)}
-                />
-              </motion.div>
-            ))}
-          </div>
+                <div className="mb-8 sm:mb-10">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="inline-flex items-center gap-2">
+                      <span className="section-indicator" />
+                      <span className={`font-mono text-xs uppercase tracking-[0.2em] ${theme.eyebrow}`}>{line.title}</span>
+                    </div>
+                    {line.badge ? (
+                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/60">
+                        {line.badge}
+                      </span>
+                    ) : null}
+                  </div>
 
-          {/* Right Column: Expanded Pack or Placeholder */}
-          <div className="lg:sticky lg:top-24 min-h-[300px]">
-            <AnimatePresence mode="wait">
-              {activePack ? (
-                <PackExpanded
-                  key={activePack.id}
-                  pack={activePack}
-                  selectedSubPack={selectedSubPack}
-                  onSubPackClick={handleSubPackClick}
-                  onClose={handleClose}
+                  <h3 className="mt-4 font-mono text-2xl sm:text-3xl md:text-4xl text-foreground">{line.title}</h3>
+                  <p className="mt-3 font-mono text-sm sm:text-base text-foreground/82">{line.subtitle}</p>
+                  <p className="mt-4 max-w-3xl font-mono text-sm sm:text-base leading-relaxed text-muted-foreground">{line.description}</p>
+                </div>
+
+                <InfiniteProductCarousel line={line} />
+              </motion.section>
+            );
+          })}
+
+          <motion.section
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={fadeIn}
+            className="rounded-[28px] border border-white/10 bg-white/[0.02] px-5 py-8 sm:px-8 sm:py-10 md:px-10"
+          >
+            <div className="text-center">
+              <div className="section-tag mb-3">Comparativa</div>
+              <h3 className="font-mono text-2xl sm:text-3xl md:text-4xl text-foreground">
+                <span className="section-title-primary">Cual encaja mejor</span>
+                <br />
+                <span className="section-title-secondary">con tu espacio</span>
+              </h3>
+            </div>
+
+            <div className="mt-8 grid gap-5 sm:gap-6 lg:grid-cols-2">
+              <ComparisonColumn title="Profesional HB" items={hbFeatures} />
+              <ComparisonColumn title="Comercial D60" items={d60Features} />
+            </div>
+          </motion.section>
+
+          <motion.section
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={fadeIn}
+            className="rounded-[28px] border border-white/10 bg-white/[0.03] px-5 py-8 sm:px-8 sm:py-10 md:px-10"
+          >
+            <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+              <div>
+                <div className="section-tag mb-3">Asesoramiento</div>
+                <h3 className="font-mono text-2xl sm:text-3xl md:text-4xl text-foreground">
+                  <span className="section-title-primary">No sabes que pack</span>
+                  <br />
+                  <span className="section-title-secondary">necesitas</span>
+                </h3>
+                <p className="mt-5 max-w-2xl font-mono text-sm sm:text-base leading-relaxed text-muted-foreground">
+                  Te asesoramos segun tu espacio, distancia de vision y objetivos comerciales.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-4 sm:flex-row lg:justify-end">
+                <ContactFormDialog
+                  trigger={
+                    <Button variant="catalog" size="lg" className="w-full sm:w-auto font-mono">
+                      Hablar con un especialista
+                    </Button>
+                  }
                 />
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="h-full min-h-[300px] flex items-center justify-center rounded-lg border border-dashed border-border/30 bg-secondary/10"
-                >
-                  <p className="font-mono text-sm text-muted-foreground/50 text-center px-8">
-                    Selecciona un pack para ver los detalles
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                <Button variant="outline" size="lg" className="w-full sm:w-auto font-mono">
+                  Ver ejemplos reales
+                </Button>
+              </div>
+            </div>
+          </motion.section>
         </div>
-
-        {/* CTA to full catalog */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-12 text-center"
-        >
-          <ContactFormDialog
-            trigger={
-              <Button variant="catalog" size="lg" className="font-mono">
-                Solicita Presupuesto
-              </Button>
-            }
-          />
-        </motion.div>
       </div>
     </section>
   );

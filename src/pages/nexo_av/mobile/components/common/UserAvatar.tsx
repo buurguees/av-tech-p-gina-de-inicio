@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { User, LogOut, Sun, Moon } from "lucide-react";
 import {
   DropdownMenu,
@@ -7,6 +7,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 interface UserAvatarProps {
@@ -32,7 +34,12 @@ export default function UserAvatar({
   onThemeChange,
   compact = false,
 }: UserAvatarProps) {
+  const { toast } = useToast();
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>(themePreference);
+
+  useEffect(() => {
+    setCurrentTheme(themePreference);
+  }, [themePreference]);
 
   // Get initials from full name
   const getInitials = (name: string) => {
@@ -61,11 +68,46 @@ export default function UserAvatar({
     return colors[Math.abs(hash) % colors.length];
   };
 
-  const handleThemeToggle = () => {
+  const handleThemeToggle = async () => {
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     setCurrentTheme(newTheme);
+
     if (onThemeChange) {
       onThemeChange(newTheme);
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+
+      if (!session || !supabaseUrl) {
+        throw new Error("No se pudo guardar la preferencia del tema.");
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/admin-users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          action: "update_own_info",
+          userId,
+          theme_preference: newTheme,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Error al guardar el tema");
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "El cambio se aplica solo en esta sesion.";
+      toast({
+        title: "Tema no guardado",
+        description: message,
+        variant: "destructive",
+      });
     }
   };
 

@@ -36,6 +36,7 @@ interface UserInfo {
   phone?: string;
   job_position?: string;
   theme_preference?: 'light' | 'dark';
+  otp_verified_for_today?: boolean;
 }
 
 // Header Component
@@ -139,6 +140,11 @@ const NexoAvLayout = () => {
 
         const currentUserInfo = data[0] as UserInfo;
 
+        if (!currentUserInfo.otp_verified_for_today) {
+          navigate('/nexo-av', { replace: true });
+          return;
+        }
+
         // CRITICAL SECURITY: Verify URL user_id matches authenticated user
         if (userId && userId !== currentUserInfo.user_id) {
           console.error('Access denied: URL user_id does not match authenticated user');
@@ -191,12 +197,6 @@ const NexoAvLayout = () => {
   }, [location.pathname, userId, userInfo, loading, accessDenied, navigate]);
 
   const handleLogout = async () => {
-    try {
-      localStorage.removeItem('nexo_av_last_login');
-    } catch {
-      // Ignore localStorage errors
-    }
-
     await supabase.auth.signOut();
     toast({
       title: "Sesión cerrada",

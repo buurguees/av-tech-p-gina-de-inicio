@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, MessageSquare, Clock, Send, MoreVertical, Share2, Save, LayoutDashboard, Mail, MapPin } from "lucide-react";
+import { Loader2, Edit, Trash2, FileText, Building2, User, FolderOpen, Calendar, Copy, Receipt, MessageSquare, Clock, Send, MoreVertical, Share2, Save, LayoutDashboard, Mail, MapPin, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
@@ -40,6 +40,7 @@ import DocumentPDFViewer from "../components/common/DocumentPDFViewer";
 import LockedIndicator from "../components/common/LockedIndicator";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import { QuotePDFDocument } from "../components/quotes/QuotePDFViewer";
+import ArchivedPdfViewer from "../../shared/components/ArchivedPdfViewer";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
@@ -68,6 +69,9 @@ interface Quote {
   site_id?: string | null;
   site_name?: string | null;
   site_city?: string | null;
+  archived_pdf_path?: string | null;
+  archived_pdf_file_name?: string | null;
+  sharepoint_item_id?: string | null;
 }
 
 interface Project {
@@ -205,7 +209,27 @@ const QuoteDetailPageDesktop = () => {
       if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
 
       const quoteInfo = quoteData[0];
-      setQuote(quoteInfo);
+      let enrichedQuote = quoteInfo as Quote;
+
+      try {
+        const { data: archiveRows, error: archiveError } = await ((supabase.rpc as any)("get_quote_archive_metadata", {
+          p_quote_id: quoteId,
+        }) as Promise<{ data: Array<{ archived_pdf_path: string | null; archived_pdf_file_name: string | null }> | null; error: any }>);
+
+        const archiveData = Array.isArray(archiveRows) && archiveRows.length > 0 ? archiveRows[0] : null;
+
+        if (!archiveError && archiveData) {
+          enrichedQuote = {
+            ...quoteInfo,
+            archived_pdf_path: archiveData.archived_pdf_path,
+            archived_pdf_file_name: archiveData.archived_pdf_file_name,
+          };
+        }
+      } catch (archiveFetchError) {
+        console.error("Error fetching quote archive metadata:", archiveFetchError);
+      }
+
+      setQuote(enrichedQuote);
 
       // Fetch quote lines
       const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", {
@@ -257,7 +281,7 @@ const QuoteDetailPageDesktop = () => {
         fetchedCompany = companyData[0];
       }
 
-      result = { quote: quoteInfo, lines: fetchedLines, client: fetchedClient, company: fetchedCompany, project: fetchedProject };
+      result = { quote: enrichedQuote, lines: fetchedLines, client: fetchedClient, company: fetchedCompany, project: fetchedProject };
 
     } catch (error: any) {
       console.error("Error fetching quote:", error);
@@ -554,6 +578,7 @@ const QuoteDetailPageDesktop = () => {
     ...(projectName ? [sanitizeFileName(projectName)] : [])
   ];
   const pdfFileName = `${pdfFileNameParts.join(' - ')}.pdf`;
+  const hasArchivedPdf = quote.status !== "DRAFT" && !!quote.archived_pdf_path;
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -659,21 +684,39 @@ const QuoteDetailPageDesktop = () => {
                 >
                   {/* Desktop Layout: PDF Preview */}
                   <div className="hidden md:block bg-white/5 border border-white/10 overflow-hidden flex flex-col h-[calc(100vh-180px)]">
-                    <DocumentPDFViewer
-                      document={
-                        <QuotePDFDocument
-                          quote={quote}
-                          lines={lines}
-                          client={client}
-                          company={company}
-                          project={project}
-                        />
-                      }
-                      fileName={pdfFileName.replace('.pdf', '')}
-                      defaultShowPreview={true}
-                      showToolbar={false}
-                      className="h-full"
-                    />
+                    {hasArchivedPdf ? (
+                      <ArchivedPdfViewer
+                        documentType="quote"
+                        documentId={quote.id}
+                        filePath={quote.archived_pdf_path!}
+                        fileName={quote.archived_pdf_file_name || pdfFileName}
+                        title={`Presupuesto archivado ${displayNumber}`}
+                        className="h-full"
+                      />
+                    ) : quote.status !== "DRAFT" ? (
+                      <div className="flex flex-col items-center justify-center h-full px-6 text-center gap-3">
+                        <AlertTriangle className="h-10 w-10 text-amber-500" />
+                        <p className="text-sm text-muted-foreground">
+                          El presupuesto está emitido pero no tiene PDF archivado en SharePoint.
+                        </p>
+                      </div>
+                    ) : (
+                      <DocumentPDFViewer
+                        document={
+                          <QuotePDFDocument
+                            quote={quote}
+                            lines={lines}
+                            client={client}
+                            company={company}
+                            project={project}
+                          />
+                        }
+                        fileName={pdfFileName.replace('.pdf', '')}
+                        defaultShowPreview={true}
+                        showToolbar={false}
+                        className="h-full"
+                      />
+                    )}
                   </div>
                 </motion.div>
               </div>

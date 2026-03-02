@@ -12,7 +12,7 @@
 @import './base/variables.css';
 
 /* Typography - Headings and text styles */
-@import './base/typography.css';
+@import './base/typography-safe.css';
 
 /* Components - All component-specific styles */
 @import './components/index.css';
@@ -23,7 +23,7 @@
 body.nexo-av-theme {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -43,11 +43,11 @@ body.nexo-av-theme-dark {
    ============================================ */
 @media (max-width: 550px) {
   body, body.nexo-av-theme, body.nexo-av-theme-dark {
-    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-family: var(--font-sans) !important;
   }
   
-  h1, h2, h3, h4, h5, h6, p, span, a, button, input, label, div {
-    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  h1, h2, h3, h4, h5, h6, p, span, a, button, input, label {
+    font-family: var(--font-sans) !important;
   }
 }
 
@@ -56,8 +56,8 @@ body.nexo-av-theme-dark {
    ============================================ */
 body.nexo-av-theme,
 body.nexo-av-theme-dark {
-  --mobile-header-height: 3.25rem;
-  --mobile-bottom-nav-height: 4rem;
+  --mobile-header-height: 5rem;
+  --mobile-bottom-nav-height: 5.5rem;
   --mobile-padding: 1rem;
   --mobile-touch-target: 44px; /* Tamaño mínimo táctil */
   --mobile-border-radius: 12px;
@@ -68,8 +68,12 @@ body.nexo-av-theme-dark {
    ============================================ */
 .mobile-main-content {
   width: 100%;
-  min-height: calc(100dvh - var(--mobile-header-height) - var(--mobile-bottom-nav-height));
-  padding: var(--mobile-padding);
+  min-height: calc(100dvh - var(--mobile-header-height));
+  padding:
+    0
+    var(--mobile-padding)
+    calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom, 0px))
+    var(--mobile-padding);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* Smooth scrolling iOS */
 }

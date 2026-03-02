@@ -39,6 +39,10 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
 
 const resend = new Resend(Deno.env.get("RESEND_OTP_API_KEY"));
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Error interno del servidor';
+}
+
 serve(async (req) => {
   const origin = req.headers.get('origin');
   const corsHeaders = getCorsHeaders(origin);
@@ -106,7 +110,7 @@ serve(async (req) => {
     // Send email with Resend
     const emailResponse = await resend.emails.send({
       from: "NexoAV Security <noreply@avtechesdeveniments.com>",
-      to: [email],
+      to: [sanitizedEmail],
       subject: "Tu código de verificación - NexoAV",
       html: `
         <!DOCTYPE html>
@@ -195,10 +199,10 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in send-otp function:", error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Error interno del servidor' }),
+      JSON.stringify({ error: getErrorMessage(error) }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

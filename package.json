@@ -9,7 +9,11 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "npm run build && firebase deploy"
+    "deploy": "npm run build && firebase deploy",
+    "sharepoint:test:invoice1": "tsx scripts/sharepoint/manual-upload-invoice1.tsx",
+    "sharepoint:sync:sales": "tsx scripts/sharepoint/sync-issued-sales-documents.tsx",
+    "sharepoint:sync:invoices": "tsx scripts/sharepoint/sync-issued-sales-documents.tsx --invoices",
+    "sharepoint:sync:quotes": "tsx scripts/sharepoint/sync-issued-sales-documents.tsx --quotes"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

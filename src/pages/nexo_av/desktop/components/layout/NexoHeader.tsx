@@ -71,12 +71,6 @@ const NexoHeader = ({
   };
 
   const handleLogout = async () => {
-    try {
-      localStorage.removeItem('nexo_av_last_login');
-    } catch {
-      // Ignore localStorage errors
-    }
-    
     await supabase.auth.signOut();
     toast({
       title: "Sesión cerrada",

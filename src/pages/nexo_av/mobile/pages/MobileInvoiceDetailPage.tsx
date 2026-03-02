@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo } from "@/constants/salesInvoiceStatuses";
 import { useToast } from "@/hooks/use-toast";
 import { InvoicePDFDocument } from "@/pages/nexo_av/assets/plantillas";
+import ArchivedPdfViewer from "../../shared/components/ArchivedPdfViewer";
 import { pdf } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 
@@ -61,6 +62,9 @@ interface Invoice {
   created_at: string;
   updated_at: string;
   is_locked: boolean;
+  archived_pdf_path?: string | null;
+  archived_pdf_file_name?: string | null;
+  sharepoint_item_id?: string | null;
 }
 
 interface InvoiceLine {
@@ -177,7 +181,16 @@ const MobileInvoiceDetailPage = () => {
       }
 
       const invoiceInfo = Array.isArray(invoiceData) ? invoiceData[0] : invoiceData;
-      setInvoice(invoiceInfo);
+      const { data: archiveRows, error: archiveError } = await ((supabase.rpc as any)("get_invoice_archive_metadata", {
+        p_invoice_id: invoiceId,
+      }) as Promise<{ data: Array<{ archived_pdf_path: string | null; archived_pdf_file_name: string | null }> | null; error: any }>);
+      const archiveData = !archiveError && Array.isArray(archiveRows) && archiveRows.length > 0 ? archiveRows[0] : null;
+      const enrichedInvoice = {
+        ...invoiceInfo,
+        archived_pdf_path: archiveData?.archived_pdf_path ?? null,
+        archived_pdf_file_name: archiveData?.archived_pdf_file_name ?? null,
+      };
+      setInvoice(enrichedInvoice);
 
       // Fetch invoice lines
       const { data: linesData, error: linesError } = await supabase.rpc("finance_get_invoice_lines", {
@@ -238,6 +251,8 @@ const MobileInvoiceDetailPage = () => {
           quote_validity_days: prefs?.quote_validity_days,
         });
       }
+
+      return enrichedInvoice;
     } catch (error: any) {
       console.error("Error fetching invoice:", error);
       toast({
@@ -706,6 +721,7 @@ interface PreviewTabProps {
 }
 
 const PreviewTab = ({ invoice, lines, client, company, project, preferences, fileName }: PreviewTabProps) => {
+  const hasArchivedPdf = invoice.status !== "DRAFT" && !!invoice.archived_pdf_path;
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [loading, setLoading] = useState(true);
@@ -717,6 +733,11 @@ const PreviewTab = ({ invoice, lines, client, company, project, preferences, fil
     let urlToRevoke: string | null = null;
 
     const generatePdf = async () => {
+      if (invoice.status !== "DRAFT") {
+        setLoading(false);
+        return;
+      }
+
       if (!client || !company) {
         setError("Faltan datos del cliente o empresa");
         setLoading(false);
@@ -759,6 +780,30 @@ const PreviewTab = ({ invoice, lines, client, company, project, preferences, fil
       }
     };
   }, [invoice, lines, client, company, project, preferences]);
+
+  if (hasArchivedPdf) {
+    return (
+      <ArchivedPdfViewer
+        documentType="invoice"
+        documentId={invoice.id}
+        filePath={invoice.archived_pdf_path!}
+        fileName={invoice.archived_pdf_file_name || fileName}
+        title={`Factura archivada ${fileName}`}
+      />
+    );
+  }
+
+  if (invoice.status !== "DRAFT") {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center min-h-[320px]">
+        <AlertCircle className="h-16 w-16 text-amber-500 mb-4" />
+        <p className="text-foreground font-medium">PDF archivado no disponible</p>
+        <p className="text-sm text-muted-foreground max-w-sm">
+          Esta factura ya esta emitida y debe servirse desde SharePoint. Hay que revisar su archivado.
+        </p>
+      </div>
+    );
+  }
 
   const handleDownload = () => {
     if (pdfBlob) {

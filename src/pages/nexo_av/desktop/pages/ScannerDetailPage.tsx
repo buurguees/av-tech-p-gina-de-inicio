@@ -14,6 +14,7 @@ import {
   ScanLine,
   MoreHorizontal,
   Trash2,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,6 +85,14 @@ interface Project {
   project_number: string;
   project_name: string;
   client_name?: string;
+  site_mode?: string | null;
+}
+
+interface ProjectSite {
+  id: string;
+  site_name: string;
+  city: string | null;
+  is_default: boolean;
 }
 
 
@@ -270,7 +279,6 @@ const ScannerDetailPage = () => {
   
   // Inline supplier (for tickets - no need to create a supplier record)
   const [inlineSupplierName, setInlineSupplierName] = useState("");
-  const [inlineSupplierTaxId, setInlineSupplierTaxId] = useState("");
   
   // Price includes tax (for tickets)
   const [priceIncludesTax, setPriceIncludesTax] = useState(true);
@@ -278,6 +286,9 @@ const ScannerDetailPage = () => {
   // Project selection
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectSearchValue, setProjectSearchValue] = useState("");
+  const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+  const [projectSiteMode, setProjectSiteMode] = useState<string | null>(null);
+  const [projectSites, setProjectSites] = useState<ProjectSite[]>([]);
 
   // Fetch document
   const fetchDocument = useCallback(async () => {
@@ -336,8 +347,53 @@ const ScannerDetailPage = () => {
   const handleSelectProject = (project: Project) => {
     setSelectedProjectId(project.id);
     setProjectSearchValue(project.project_name);
+    setSelectedSiteId("");
     setHasChanges(true);
   };
+
+  const fetchProjectSites = useCallback(async (projectId: string) => {
+    if (projectSiteMode === "MULTI_SITE" && !selectedSiteId) {
+      toast.error("Selecciona un sitio para este proyecto multi-sitio");
+      return;
+    }
+
+    try {
+      const { data: projectData, error: projectError } = await supabase.rpc("get_project", { p_project_id: projectId });
+      if (projectError) throw projectError;
+      const siteMode = projectData?.[0]?.site_mode || null;
+      setProjectSiteMode(siteMode);
+
+      const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
+      if (error) throw error;
+
+      const sites: ProjectSite[] = (data || [])
+        .filter((s: any) => s.is_active)
+        .map((s: any) => ({ id: s.id, site_name: s.site_name, city: s.city, is_default: s.is_default }));
+      setProjectSites(sites);
+
+      if (siteMode === "SINGLE_SITE" && sites.length > 0) {
+        const defaultSite = sites.find((site) => site.is_default) || sites[0];
+        setSelectedSiteId(defaultSite.id);
+      } else if (!sites.some((site) => site.id === selectedSiteId)) {
+        setSelectedSiteId("");
+      }
+    } catch (error) {
+      console.error("Error fetching project sites:", error);
+      setProjectSiteMode(null);
+      setProjectSites([]);
+      setSelectedSiteId("");
+    }
+  }, [selectedSiteId]);
+
+  useEffect(() => {
+    if (!selectedProjectId) {
+      setProjectSiteMode(null);
+      setProjectSites([]);
+      setSelectedSiteId("");
+      return;
+    }
+    void fetchProjectSites(selectedProjectId);
+  }, [selectedProjectId, fetchProjectSites]);
 
   // Delete scanned document
   const handleDeleteDocument = async () => {
@@ -449,26 +505,21 @@ const ScannerDetailPage = () => {
         p_file_name: document.file_name,
         p_status: "PENDING_VALIDATION",
         p_document_type: isTicket ? "EXPENSE" : "INVOICE",
-        p_site_id: null,
+        p_site_id: selectedProjectId ? (selectedSiteId || null) : null,
       });
       
       if (invoiceError) throw invoiceError;
       
       const purchaseInvoiceId = invoiceData;
       
-      // For tickets, update the inline supplier info (name and tax_id)
-      if (isTicket && (inlineSupplierName || inlineSupplierTaxId)) {
-        const { error: updateError } = await (supabase as any)
-          .from("purchase_invoices")
-          .update({
-            supplier_name: inlineSupplierName || null,
-            supplier_tax_id: inlineSupplierTaxId || null,
-          })
-          .eq("id", purchaseInvoiceId);
-        
+      if (isTicket && inlineSupplierName.trim()) {
+        const { error: updateError } = await (supabase.rpc as any)("update_purchase_invoice", {
+          p_invoice_id: purchaseInvoiceId,
+          p_manual_beneficiary_name: inlineSupplierName.trim(),
+        });
+
         if (updateError) {
-          console.warn("Error updating supplier info:", updateError);
-          // Don't throw, continue with the process
+          console.warn("Error updating ticket concept:", updateError);
         }
       }
       
@@ -690,15 +741,19 @@ const ScannerDetailPage = () => {
                 Documento asignado
               </h3>
               <p className="text-muted-foreground text-sm mb-4">
-                Este documento ya ha sido asignado a una factura de compra.
+                Este documento ya ha sido asignado a un documento de compras.
               </p>
               {document.assigned_to_id && (
                 <Button
                   variant="outline"
-                  onClick={() => navigate(`/nexo-av/${userId}/purchase-invoices/${document.assigned_to_id}`)}
+                  onClick={() => navigate(
+                    document.assigned_to_type === "EXPENSE"
+                      ? `/nexo-av/${userId}/expenses/${document.assigned_to_id}`
+                      : `/nexo-av/${userId}/purchase-invoices/${document.assigned_to_id}`
+                  )}
                   className="gap-2"
                 >
-                  Ver Factura
+                  {document.assigned_to_type === "EXPENSE" ? "Ver Ticket" : "Ver Factura"}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               )}
@@ -797,15 +852,15 @@ const ScannerDetailPage = () => {
                 <div className="bg-card/50 border border-amber-500/20 rounded-xl p-5">
                   <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide flex items-center gap-2">
                     <span className="text-amber-500">🏪</span>
-                    Datos del Establecimiento (Opcional)
+                    Concepto del Ticket (Opcional)
                   </h3>
                   <p className="text-xs text-muted-foreground mb-4">
-                    Puedes introducir los datos del establecimiento. No se creará un proveedor en el sistema.
+                    Usa un concepto libre o el nombre del establecimiento. No se creará un proveedor para tickets.
                   </p>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div>
                     <div>
                       <Label className="text-muted-foreground text-xs mb-1.5 block">
-                        Nombre del establecimiento
+                        Concepto o establecimiento
                       </Label>
                       <Input
                         value={inlineSupplierName}
@@ -813,21 +868,7 @@ const ScannerDetailPage = () => {
                           setInlineSupplierName(e.target.value);
                           setHasChanges(true);
                         }}
-                        placeholder="Ej: Restaurante El Buen Comer"
-                        className="bg-background/50"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground text-xs mb-1.5 block">
-                        CIF/NIF (Opcional)
-                      </Label>
-                      <Input
-                        value={inlineSupplierTaxId}
-                        onChange={(e) => {
-                          setInlineSupplierTaxId(e.target.value);
-                          setHasChanges(true);
-                        }}
-                        placeholder="Ej: B12345678"
+                        placeholder="Ej: Parking SABA, Peaje AP-7, Restaurante..."
                         className="bg-background/50"
                       />
                     </div>
@@ -947,6 +988,39 @@ const ScannerDetailPage = () => {
                   placeholder="Buscar proyecto..."
                   className="w-full"
                 />
+
+                {selectedProjectId && projectSiteMode === "MULTI_SITE" && projectSites.length > 0 && (
+                  <div className="mt-4">
+                    <Label className="text-muted-foreground text-xs mb-1.5 flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Sitio *
+                    </Label>
+                    <Select value={selectedSiteId || undefined} onValueChange={setSelectedSiteId}>
+                      <SelectTrigger className="bg-background/50">
+                        <SelectValue placeholder="Seleccionar sitio..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projectSites.map((site) => (
+                          <SelectItem key={site.id} value={site.id}>
+                            {site.site_name}{site.city ? ` - ${site.city}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {selectedProjectId && projectSiteMode === "SINGLE_SITE" && projectSites.length > 0 && (
+                  <div className="mt-4">
+                    <Label className="text-muted-foreground text-xs mb-1.5 flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Sitio
+                    </Label>
+                    <div className="flex items-center px-3 py-2 rounded-md border border-border bg-background/50 text-sm text-foreground">
+                      {projectSites[0]?.site_name}{projectSites[0]?.city ? ` - ${projectSites[0].city}` : ""}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Lines Section */}

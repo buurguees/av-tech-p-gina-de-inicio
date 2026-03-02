@@ -20,9 +20,32 @@ const ALLOWED_ORIGINS = [
 // Pattern for Lovable preview URLs
 const LOVABLE_PATTERN = /^https:\/\/[a-z0-9-]+\.(lovable\.app|lovableproject\.com)$/;
 
+type UpdateOwnUserInfoParams = {
+  p_user_id: string;
+  p_full_name?: string | null;
+  p_phone?: string | null;
+  p_job_position?: string | null;
+  p_theme_preference?: 'light' | 'dark';
+};
+
+type UserRoleRecord = {
+  role_name: string;
+};
+
+type AuthorizedUserRecord = Record<string, unknown> & {
+  job_position?: string | null;
+  setup_completed?: boolean | null;
+  invitation_sent_at?: string | null;
+  invitation_expires_at?: string | null;
+  invitation_days_remaining?: number | null;
+};
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Internal server error';
+}
+
 function getCorsHeaders(origin: string | null): Record<string, string> {
-  // Default to wildcard for more permissive handling when needed
-  let allowedOrigin = '*';
+  let allowedOrigin = ALLOWED_ORIGINS[0];
   
   if (origin) {
     // Check exact matches first (case-insensitive for domain)
@@ -35,8 +58,6 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
       allowedOrigin = origin;
     }
   }
-  
-  console.log('CORS - Request origin:', origin, 'Allowed origin:', allowedOrigin);
   
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
@@ -72,85 +93,6 @@ serve(async (req) => {
     const { action } = body;
 
     console.log('Action requested:', action);
-
-    // ============================================
-    // PUBLIC ACTIONS (no auth required)
-    // These actions are allowed without authentication
-    // ============================================
-    
-    if (action === 'validate-invitation') {
-      const { token, email } = body;
-      
-      const { data: tokenData, error: tokenError } = await supabaseAdmin
-        .rpc('validate_invitation_token', { p_token: token, p_email: email });
-      
-      if (tokenError) {
-        console.error('Token validation error:', tokenError);
-        return new Response(
-          JSON.stringify({ is_valid: false, error_message: 'Error validating token' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      const result = tokenData?.[0] || { is_valid: false, error_message: 'Token not found' };
-      return new Response(
-        JSON.stringify(result),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (action === 'setup-password') {
-      const { email, token, newPassword } = body;
-      
-      // Validate token
-      const { data: tokenData } = await supabaseAdmin
-        .rpc('validate_invitation_token', { p_token: token, p_email: email });
-      
-      const tokenResult = tokenData?.[0];
-      if (!tokenResult?.is_valid) {
-        return new Response(
-          JSON.stringify({ error: tokenResult?.error_message || 'Invalid token' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      // Get auth user id
-      const { data: authUserId } = await supabaseAdmin
-        .rpc('get_user_auth_id_by_email', { p_email: email });
-      
-      if (!authUserId) {
-        return new Response(
-          JSON.stringify({ error: 'User not found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      // Update password AND confirm email
-      const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(
-        authUserId,
-        { 
-          password: newPassword,
-          email_confirm: true  // Confirm email to allow login
-        }
-      );
-      
-      if (passwordError) {
-        console.error('Password update error:', passwordError);
-        throw passwordError;
-      }
-      
-      // Mark token as used
-      await supabaseAdmin.rpc('mark_invitation_token_used', { p_token: token });
-      
-      return new Response(
-        JSON.stringify({ success: true }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // ============================================
-    // AUTHENTICATED ACTIONS (require auth header)
-    // ============================================
 
     // Create regular client to verify the requesting user
     const authHeader = req.headers.get('Authorization');
@@ -218,7 +160,7 @@ serve(async (req) => {
       }
 
       // Build update object - only include fields that are provided
-      const updateParams: any = {
+      const updateParams: UpdateOwnUserInfoParams = {
         p_user_id: userId
       };
       
@@ -231,7 +173,7 @@ serve(async (req) => {
 
       console.log('Calling update_own_user_info with params:', updateParams);
 
-      const { data, error: updateError } = await supabaseAdmin.rpc('update_own_user_info', updateParams);
+      const { data, error: updateError } = await supabaseClient.rpc('update_own_user_info', updateParams);
 
       if (updateError) {
         console.error('Error updating user info:', updateError);
@@ -252,7 +194,7 @@ serve(async (req) => {
 
     console.log('User roles:', userRoles, 'Error:', rolesError);
 
-    const isAdmin = userRoles?.some((ur: any) => ur.role_name === 'admin');
+    const isAdmin = userRoles?.some((ur: UserRoleRecord) => ur.role_name === 'admin');
     console.log('Is admin:', isAdmin);
 
     if (!isAdmin) {
@@ -276,7 +218,7 @@ serve(async (req) => {
         if (error) throw error;
 
         // Transform the data to rename job_position to position for frontend
-        const transformedUsers = users?.map((user: any) => ({
+        const transformedUsers = users?.map((user: AuthorizedUserRecord) => ({
           ...user,
           position: user.job_position,
           setup_completed: user.setup_completed ?? true,
@@ -521,18 +463,16 @@ serve(async (req) => {
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      // validate-invitation and setup-password are now handled above as public actions
-
       default:
         return new Response(
           JSON.stringify({ error: 'Invalid action' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
+      JSON.stringify({ error: getErrorMessage(error) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

@@ -18,6 +18,7 @@ build
 # ===================================
 # Variables de entorno (CRÍTICO - No subir nunca)
 .env
+.env.example
 .env.local
 .env.*.local
 .env.development
@@ -125,6 +126,22 @@ mcp.json
 
 # Cursor AI
 .cursor/
+
+# ===================================
+# DOCUMENTACIÓN INTERNA
+# ===================================
+docs/_old/
+docs/important/
+
+# ===================================
+# ARCHIVOS LOCALES
+# ===================================
+package-DESKTOP-*.json
+src/**/*-DESKTOP-*.ts
+src/**/*-DESKTOP-*.tsx
+src/**/*-DESKTOP-*.css
+supabase/migrations/temp_*.sql
+FIX_*.sql
 
 # ===================================
 # ARCHIVOS TEMPORALES Y CACHÉ

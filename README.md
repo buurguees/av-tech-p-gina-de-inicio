@@ -63,19 +63,37 @@ El sitio estará disponible en `http://localhost:8080`
 ## Estructura del Proyecto
 
 ```
-├── public/              # Archivos estáticos
+├── public/                # Archivos estáticos públicos
 ├── src/
-│   ├── assets/         # Imágenes y recursos
-│   ├── components/     # Componentes React
-│   │   ├── sections/   # Secciones de la página
-│   │   └── ui/         # Componentes UI reutilizables
-│   ├── hooks/          # Custom React hooks
-│   ├── lib/            # Utilidades y helpers
-│   ├── pages/          # Páginas de la aplicación
-│   └── integrations/   # Integraciones (Supabase)
-├── supabase/           # Configuración Supabase
-└── index.html          # Punto de entrada HTML
+│   ├── app/
+│   │   └── routes/        # Router modular por dominios
+│   ├── marketing/         # Web pública one-page y legales
+│   │   ├── components/
+│   │   └── pages/
+│   ├── components/
+│   │   └── ui/            # UI compartida y base shadcn
+│   ├── pages/
+│   │   ├── nexo_av/       # Plataforma NEXO AV (desktop/mobile/shared)
+│   │   └── presentations/ # Presentaciones públicas específicas
+│   ├── hooks/             # Hooks compartidos
+│   ├── integrations/      # Integraciones (Supabase, etc.)
+│   ├── lib/               # Utilidades
+│   └── assets/            # Recursos visuales
+├── scripts/               # Scripts operativos
+├── docs/                  # Documentación funcional/técnica
+├── audits/                # Auditorías y reportes internos
+├── supabase/              # Migraciones, funciones y config
+└── index.html             # Punto de entrada HTML
 ```
+
+### Criterio de organización
+
+- `marketing/` agrupa todo lo relativo a la web corporativa pública.
+- `pages/nexo_av/` concentra la plataforma interna NEXO AV.
+- `app/routes/` separa el enrutado por producto para evitar un `App.tsx` monolítico.
+- `components/ui/` queda reservado para piezas de UI reutilizables entre dominios.
+
+Esta estructura está preparada para una siguiente fase donde nuevos productos de la empresa puedan entrar sin mezclar su código con la landing o con NEXO AV.
 
 ## Despliegue
 

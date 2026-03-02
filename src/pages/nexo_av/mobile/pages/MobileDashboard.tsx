@@ -1,11 +1,11 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, type NavigateFunction } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  type LucideIcon,
   FolderKanban, Users, FileText, TrendingUp, Clock,
   CheckCircle, Euro, ArrowRight, MapPin, CalendarDays,
-  Target, AlertCircle, Phone, PenLine, Receipt,
-  AlertTriangle, CreditCard, Banknote, CalendarClock
+  Target, AlertCircle, Phone, CreditCard, Banknote, CalendarClock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,8 +24,9 @@ const MobileDashboard = () => {
       try {
         const { data } = await supabase.rpc("get_current_user_info");
         if (data && data.length > 0) {
-          setUserName(data[0].full_name?.split(" ")[0] || "Usuario");
-          const roles: string[] = data[0].roles || [];
+          const currentUser = data[0] as CurrentUserInfo;
+          setUserName(currentUser.full_name?.split(" ")[0] || "Usuario");
+          const roles = currentUser.roles || [];
           if (roles.includes("admin")) setRole("admin");
           else if (roles.includes("manager")) setRole("manager");
           else if (roles.includes("comercial")) setRole("comercial");
@@ -79,7 +80,151 @@ const fmt = (n: number) =>
 interface DashboardProps {
   userName: string;
   userId: string | undefined;
-  navigate: any;
+  navigate: NavigateFunction;
+}
+
+interface CurrentUserInfo {
+  full_name?: string | null;
+  roles?: string[] | null;
+}
+
+interface GrossMargin {
+  revenue: number;
+  expenses: number;
+}
+
+interface DebtorItem {
+  client_id: string;
+  client_name: string;
+  total_debt: number;
+}
+
+interface PurchaseInvoicePayment {
+  id: string;
+  supplier_name: string;
+  reference: string;
+  amount: number;
+  due_date: string;
+}
+
+interface CreditInstallmentPayment {
+  id: string;
+  provider_name: string;
+  installment_number: number;
+  amount: number;
+  due_date: string;
+}
+
+interface SimpleAmountPayment {
+  id: string;
+  employee_name?: string;
+  partner_name?: string;
+  net_amount: number;
+}
+
+interface NegotiationQuote {
+  id: string;
+  client_name: string;
+  total: number;
+}
+
+interface AdminData {
+  kpis: {
+    invoiced_amount: number;
+    pending_collection: number;
+    pending_payments_suppliers: number;
+    pending_payroll: number;
+    pending_financing: number;
+    gross_margin: GrossMargin;
+  };
+  collection_risk: {
+    overdue: { count: number; amount: number };
+    due_7_days: { count: number; amount: number };
+    top_debtors: DebtorItem[];
+  };
+  upcoming_payments: {
+    purchase_invoices: PurchaseInvoicePayment[];
+    credit_installments: CreditInstallmentPayment[];
+    payrolls: SimpleAmountPayment[];
+    partner_compensations: SimpleAmountPayment[];
+  };
+  operations: {
+    sites_ready_to_invoice: number;
+    projects_in_progress: number;
+    large_quotes_negotiation: NegotiationQuote[];
+  };
+}
+
+interface SiteAgendaItem {
+  site_id: string;
+  site_name: string;
+  site_status: string;
+  planned_start_date: string | null;
+  planned_end_date: string | null;
+  project_id: string;
+  project_number: string;
+  project_name: string;
+  local_name: string | null;
+  client_name: string;
+  city: string | null;
+  contact_phone?: string | null;
+  technicians?: Array<{ id: string; name: string; role: string }>;
+  linked_quote?: { id: string; quote_number: string; total: number } | null;
+}
+
+interface ManagerData {
+  kpis: {
+    sites_today: number;
+    sites_next_days: number;
+    sites_in_progress: number;
+    sites_ready_to_invoice: number;
+  };
+  agenda: SiteAgendaItem[];
+}
+
+interface PipelineItem {
+  id: string;
+  quote_number: string;
+  client_name: string;
+  total: number;
+  days_since_update: number;
+}
+
+interface SiteReadyItem {
+  site_id: string;
+  site_name: string;
+  project_id: string;
+  project_name: string;
+  client_name: string;
+  linked_quote: { id: string; quote_number: string; total: number } | null;
+}
+
+interface CommercialData {
+  kpis: {
+    quoted_amount: number;
+    quotes_in_negotiation: number;
+    conversion_rate: number;
+    invoiced_amount: number;
+  };
+  pipeline: PipelineItem[];
+  sites_ready: SiteReadyItem[];
+}
+
+interface OpenVisit {
+  visit_id: string;
+  check_in_at: string | null;
+  site_name: string;
+  project_name: string;
+}
+
+interface TechnicianData {
+  kpis: {
+    sites_today: number;
+    sites_next_7_days: number;
+    sites_in_progress: number;
+  };
+  agenda: SiteAgendaItem[];
+  open_visits: OpenVisit[];
 }
 
 const Greeting = ({ userName, subtitle }: { userName: string; subtitle: string }) => (
@@ -89,8 +234,8 @@ const Greeting = ({ userName, subtitle }: { userName: string; subtitle: string }
   </div>
 );
 
-const MiniKpi = ({ icon: Icon, label, value, color }: { icon: any; label: string; value: string | number; color: string }) => (
-  <div className="bg-card border border-border rounded-xl p-3">
+const MiniKpi = ({ icon: Icon, label, value, color }: { icon: LucideIcon; label: string; value: string | number; color: string }) => (
+  <div className="bg-card/95 border border-border rounded-2xl p-3 shadow-sm">
     <div className="flex items-center gap-2 mb-1">
       <div className={cn("p-1.5 rounded-lg", color)}><Icon className="h-4 w-4" /></div>
       <span className="text-muted-foreground text-[11px]">{label}</span>
@@ -103,7 +248,7 @@ const MiniKpi = ({ icon: Icon, label, value, color }: { icon: any; label: string
 // ADMIN MOBILE
 // ============================================================
 const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) => {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<AdminData | null>(null);
   const [period, setPeriod] = useState<"quarter" | "year">("quarter");
   const [loading, setLoading] = useState(true);
 
@@ -111,7 +256,7 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
     const fetch = async () => {
       setLoading(true);
       const { data: r } = await supabase.rpc("dashboard_get_admin_overview", { p_period: period });
-      setData(r);
+      setData(r as unknown as AdminData);
       setLoading(false);
     };
     fetch();
@@ -182,7 +327,7 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
         {data.collection_risk.top_debtors?.length > 0 && (
           <div className="space-y-1.5 pt-1">
             <div className="text-[11px] text-muted-foreground font-medium">Top deudores</div>
-            {data.collection_risk.top_debtors.slice(0, 5).map((d: any) => (
+            {data.collection_risk.top_debtors.slice(0, 5).map((d) => (
               <button key={d.client_id} onClick={() => navigate(`/nexo-av/${userId}/clients/${d.client_id}`)}
                 className="w-full flex justify-between items-center text-xs py-1 active:opacity-70"
                 style={{ touchAction: "manipulation" }}>
@@ -200,7 +345,7 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
           <CalendarClock className="h-4 w-4 text-amber-500" /> Pagos próximos 7 días
         </h3>
         <MobilePaymentList title="Facturas de compra" icon={FileText} items={data.upcoming_payments?.purchase_invoices || []}
-          renderItem={(item: any) => (
+          renderItem={(item) => (
             <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0">
               <div className="truncate max-w-[60%]">
                 <span className="text-foreground font-medium">{item.supplier_name}</span>
@@ -214,7 +359,7 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
           )}
         />
         <MobilePaymentList title="Cuotas financiación" icon={Banknote} items={data.upcoming_payments?.credit_installments || []}
-          renderItem={(item: any) => (
+          renderItem={(item) => (
             <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0">
               <div className="truncate max-w-[60%]">
                 <span className="text-foreground font-medium">{item.provider_name}</span>
@@ -228,7 +373,7 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
           )}
         />
         <MobilePaymentList title="Nóminas pendientes" icon={Users} items={data.upcoming_payments?.payrolls || []}
-          renderItem={(item: any) => (
+          renderItem={(item) => (
             <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0">
               <span className="text-foreground font-medium truncate max-w-[60%]">{item.employee_name}</span>
               <span className="font-semibold text-foreground">{fmt(item.net_amount)}</span>
@@ -236,7 +381,7 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
           )}
         />
         <MobilePaymentList title="Compensaciones socios" icon={Users} items={data.upcoming_payments?.partner_compensations || []}
-          renderItem={(item: any) => (
+          renderItem={(item) => (
             <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0">
               <span className="text-foreground font-medium truncate max-w-[60%]">{item.partner_name}</span>
               <span className="font-semibold text-foreground">{fmt(item.net_amount)}</span>
@@ -245,18 +390,22 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
         />
       </div>
 
-      {/* Notificaciones */}
-      <NotificationsWidget maxItems={5} />
+      <DashboardModule title="Notificaciones">
+        <NotificationsWidget maxItems={5} />
+      </DashboardModule>
 
-      {/* Tareas hoy */}
-      <TasksWidget variant="today" maxItems={5} />
-      <TasksWidget variant="urgent" maxItems={5} />
+      <DashboardModule title="Tareas de hoy">
+        <TasksWidget variant="today" maxItems={5} />
+      </DashboardModule>
+      <DashboardModule title="Urgente">
+        <TasksWidget variant="urgent" maxItems={5} />
+      </DashboardModule>
 
       {/* Large quotes in negotiation */}
       {data.operations.large_quotes_negotiation?.length > 0 && (
         <div className="bg-card border border-border rounded-xl p-4 space-y-2">
           <h3 className="text-sm font-semibold text-foreground">Presupuestos grandes en negociación</h3>
-          {data.operations.large_quotes_negotiation.map((q: any) => (
+          {data.operations.large_quotes_negotiation.map((q) => (
             <button key={q.id} onClick={() => navigate(`/nexo-av/${userId}/quotes/${q.id}`)}
               className="w-full flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0 active:opacity-70"
               style={{ touchAction: "manipulation" }}>
@@ -283,7 +432,7 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
 // MANAGER MOBILE
 // ============================================================
 const MobileManagerDashboard = ({ userName, userId, navigate }: DashboardProps) => {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<ManagerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
 
@@ -291,7 +440,7 @@ const MobileManagerDashboard = ({ userName, userId, navigate }: DashboardProps) 
     const fetch = async () => {
       setLoading(true);
       const { data: r } = await supabase.rpc("dashboard_get_manager_overview", { p_days_ahead: 7 });
-      setData(r);
+      setData(r as unknown as ManagerData);
       setLoading(false);
     };
     fetch();
@@ -300,8 +449,8 @@ const MobileManagerDashboard = ({ userName, userId, navigate }: DashboardProps) 
   if (loading || !data) return <LoadingSkeleton />;
 
   const today = new Date().toISOString().split("T")[0];
-  const agenda: any[] = data.agenda || [];
-  const filtered = agenda.filter((s: any) => {
+  const agenda = data.agenda || [];
+  const filtered = agenda.filter((s) => {
     if (filter === "in_progress") return s.site_status === "IN_PROGRESS";
     if (filter === "ready") return s.site_status === "READY_TO_INVOICE";
     if (filter === "today") return s.planned_start_date && s.planned_start_date <= today &&
@@ -339,11 +488,13 @@ const MobileManagerDashboard = ({ userName, userId, navigate }: DashboardProps) 
         ))}
       </div>
 
-      {/* Notificaciones */}
-      <NotificationsWidget maxItems={5} />
+      <DashboardModule title="Notificaciones">
+        <NotificationsWidget maxItems={5} />
+      </DashboardModule>
 
-      {/* Tareas */}
-      <TasksWidget variant="today" maxItems={5} />
+      <DashboardModule title="Tareas">
+        <TasksWidget variant="today" maxItems={5} />
+      </DashboardModule>
 
       {/* Agenda */}
       <div className="space-y-2">
@@ -352,7 +503,7 @@ const MobileManagerDashboard = ({ userName, userId, navigate }: DashboardProps) 
             <p className="text-sm text-muted-foreground">Sin sites en esta categoría</p>
           </div>
         ) : (
-          filtered.map((s: any) => (
+          filtered.map((s) => (
             <MobileSiteCard key={s.site_id} site={s} userId={userId} navigate={navigate} showFinancials={true} />
           ))
         )}
@@ -365,7 +516,7 @@ const MobileManagerDashboard = ({ userName, userId, navigate }: DashboardProps) 
 // COMMERCIAL MOBILE
 // ============================================================
 const MobileCommercialDashboard = ({ userName, userId, navigate }: DashboardProps) => {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<CommercialData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -373,7 +524,7 @@ const MobileCommercialDashboard = ({ userName, userId, navigate }: DashboardProp
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       const { data: r } = await supabase.rpc("dashboard_get_commercial_overview", { p_user_id: user?.id || null });
-      setData(r);
+      setData(r as unknown as CommercialData);
       setLoading(false);
     };
     fetch();
@@ -402,17 +553,19 @@ const MobileCommercialDashboard = ({ userName, userId, navigate }: DashboardProp
         <MiniKpi icon={CheckCircle} label="Sites p/ facturar" value={data.sites_ready?.length || 0} color="bg-emerald-500/10 text-emerald-500" />
       </div>
 
-      {/* Notificaciones */}
-      <NotificationsWidget maxItems={5} />
+      <DashboardModule title="Notificaciones">
+        <NotificationsWidget maxItems={5} />
+      </DashboardModule>
 
-      {/* Tareas */}
-      <TasksWidget variant="today" maxItems={5} />
+      <DashboardModule title="Tareas">
+        <TasksWidget variant="today" maxItems={5} />
+      </DashboardModule>
 
       {/* Pipeline */}
       {data.pipeline?.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-sm font-medium text-muted-foreground">Pipeline</h2>
-          {data.pipeline.map((q: any) => (
+          {data.pipeline.map((q) => (
             <button key={q.id} onClick={() => navigate(`/nexo-av/${userId}/quotes/${q.id}`)}
               className={cn("w-full flex items-center justify-between p-4 rounded-xl bg-card border border-border",
                 "active:scale-[0.98] transition-all"
@@ -436,7 +589,7 @@ const MobileCommercialDashboard = ({ userName, userId, navigate }: DashboardProp
       {data.sites_ready?.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-sm font-medium text-muted-foreground">Sites listos para facturar</h2>
-          {data.sites_ready.map((s: any) => (
+          {data.sites_ready.map((s) => (
             <button key={s.site_id} onClick={() => navigate(`/nexo-av/${userId}/projects/${s.project_id}?tab=planning`)}
               className="w-full flex items-center justify-between p-4 rounded-xl bg-card border border-border active:scale-[0.98] transition-all"
               style={{ touchAction: "manipulation" }}>
@@ -457,7 +610,7 @@ const MobileCommercialDashboard = ({ userName, userId, navigate }: DashboardProp
 // TECHNICIAN MOBILE
 // ============================================================
 const MobileTechnicianDashboard = ({ userName, userId, navigate }: DashboardProps) => {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<TechnicianData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -465,7 +618,7 @@ const MobileTechnicianDashboard = ({ userName, userId, navigate }: DashboardProp
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       const { data: r } = await supabase.rpc("dashboard_get_technician_overview", { p_user_id: user?.id || null });
-      setData(r);
+      setData(r as unknown as TechnicianData);
       setLoading(false);
     };
     fetch();
@@ -485,11 +638,13 @@ const MobileTechnicianDashboard = ({ userName, userId, navigate }: DashboardProp
         <MiniKpi icon={MapPin} label="En curso" value={k.sites_in_progress} color="bg-amber-500/10 text-amber-500" />
       </div>
 
-      {/* Notificaciones */}
-      <NotificationsWidget maxItems={5} />
+      <DashboardModule title="Notificaciones">
+        <NotificationsWidget maxItems={5} />
+      </DashboardModule>
 
-      {/* Tareas */}
-      <TasksWidget variant="today" maxItems={5} />
+      <DashboardModule title="Tareas">
+        <TasksWidget variant="today" maxItems={5} />
+      </DashboardModule>
 
       {/* Open visits */}
       {data.open_visits?.length > 0 && (
@@ -497,7 +652,7 @@ const MobileTechnicianDashboard = ({ userName, userId, navigate }: DashboardProp
           <h3 className="text-sm font-semibold text-amber-500 flex items-center gap-2">
             <AlertCircle className="h-4 w-4" /> Visitas abiertas ({data.open_visits.length})
           </h3>
-          {data.open_visits.map((v: any) => (
+          {data.open_visits.map((v) => (
             <div key={v.visit_id} className="text-xs flex justify-between py-1 border-b border-amber-500/10 last:border-0">
               <span className="text-foreground">{v.project_name} — {v.site_name}</span>
               <span className="text-muted-foreground">
@@ -517,7 +672,7 @@ const MobileTechnicianDashboard = ({ userName, userId, navigate }: DashboardProp
             <p className="text-sm text-muted-foreground">No tienes sites asignados</p>
           </div>
         ) : (
-          data.agenda.map((s: any) => (
+          data.agenda.map((s) => (
             <MobileSiteCard key={s.site_id} site={s} userId={userId} navigate={navigate} showFinancials={false} showContact={true} />
           ))
         )}
@@ -538,7 +693,7 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
 };
 
 const MobileSiteCard = ({ site, userId, navigate, showFinancials = false, showContact = false }: {
-  site: any; userId: string | undefined; navigate: any; showFinancials?: boolean; showContact?: boolean;
+  site: SiteAgendaItem; userId: string | undefined; navigate: NavigateFunction; showFinancials?: boolean; showContact?: boolean;
 }) => {
   const cfg = STATUS_MAP[site.site_status] || { label: site.site_status, color: "bg-muted text-muted-foreground" };
   return (
@@ -585,7 +740,7 @@ const MobileSiteCard = ({ site, userId, navigate, showFinancials = false, showCo
 };
 
 const QuickAction = ({ icon: Icon, label, stat, color, onPress }: {
-  icon: any; label: string; stat: number; color: string; onPress: () => void;
+  icon: LucideIcon; label: string; stat: number; color: string; onPress: () => void;
 }) => (
   <button onClick={onPress}
     className="w-full flex items-center justify-between p-4 rounded-xl bg-card border border-border active:scale-[0.98] transition-all"
@@ -601,8 +756,10 @@ const QuickAction = ({ icon: Icon, label, stat, color, onPress }: {
   </button>
 );
 
-const MobilePaymentList = ({ title, icon: Icon, items, renderItem }: {
-  title: string; icon: any; items: any[]; renderItem: (item: any) => React.ReactNode;
+type PaymentItem = PurchaseInvoicePayment | CreditInstallmentPayment | SimpleAmountPayment;
+
+const MobilePaymentList = <T extends PaymentItem>({ title, icon: Icon, items, renderItem }: {
+  title: string; icon: LucideIcon; items: T[]; renderItem: (item: T) => React.ReactNode;
 }) => (
   <div>
     <div className="flex items-center gap-1.5 mb-1.5">
@@ -618,6 +775,15 @@ const MobilePaymentList = ({ title, icon: Icon, items, renderItem }: {
       <div>{items.map(renderItem)}</div>
     )}
   </div>
+);
+
+const DashboardModule = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <section className="rounded-2xl border border-border bg-card/95 p-3 shadow-sm">
+    <div className="mb-2">
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+    </div>
+    {children}
+  </section>
 );
 
 const LoadingSkeleton = () => (

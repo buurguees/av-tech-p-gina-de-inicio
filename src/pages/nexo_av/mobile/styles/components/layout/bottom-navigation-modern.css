@@ -1,0 +1,82 @@
+/* ============================================
+   BOTTOM NAVIGATION - Mobile
+   Navegacion inferior consistente en light y dark
+   ============================================ */
+
+.mobile-bottom-nav {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  pointer-events: none;
+}
+
+.mobile-bottom-nav-container {
+  width: min(100%, 430px);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid hsl(var(--border) / 0.9);
+  border-radius: 999px;
+  background: hsl(var(--card) / 0.94);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 12px 28px hsl(var(--foreground) / 0.1);
+  pointer-events: auto;
+}
+
+.bottom-nav-item {
+  min-height: 52px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: hsl(var(--muted-foreground));
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.bottom-nav-item.active {
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.98);
+}
+
+.bottom-nav-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-nav-icon {
+  width: 20px;
+  height: 20px;
+  color: currentColor;
+}
+
+.bottom-nav-label {
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 600;
+  color: currentColor;
+}
+
+body.nexo-av-theme-dark .mobile-bottom-nav-container {
+  background: hsl(var(--card) / 0.96);
+  box-shadow: 0 16px 32px hsl(var(--background) / 0.45);
+}
+
+body.nexo-av-theme-dark .bottom-nav-item.active {
+  background: hsl(var(--primary) / 0.18);
+}

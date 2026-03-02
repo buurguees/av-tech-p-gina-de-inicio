@@ -20,6 +20,7 @@ interface UserInfo {
   phone?: string;
   job_position?: string;
   theme_preference?: 'light' | 'dark';
+  otp_verified_for_today?: boolean;
 }
 
 const NexoAvMobileLayout = () => {
@@ -56,6 +57,11 @@ const NexoAvMobileLayout = () => {
         }
 
         const currentUserInfo = data[0] as UserInfo;
+
+        if (!currentUserInfo.otp_verified_for_today) {
+          navigate('/nexo-av', { replace: true });
+          return;
+        }
 
         if (userId && userId !== currentUserInfo.user_id) {
           console.error('Access denied: URL user_id does not match authenticated user');
@@ -103,12 +109,6 @@ const NexoAvMobileLayout = () => {
   }, [location.pathname, userId, userInfo, loading, accessDenied, navigate]);
 
   const handleLogout = async () => {
-    try {
-      localStorage.removeItem('nexo_av_last_login');
-    } catch {
-      // Ignore localStorage errors
-    }
-
     await supabase.auth.signOut();
     toast({
       title: "Sesión cerrada",
@@ -171,12 +171,10 @@ const NexoAvMobileLayout = () => {
       />
 
       {/* Main Content - Fixed height container, no scroll here */}
-      <main 
-        className="bg-background overflow-hidden px-[15px] w-full"
-        style={{ 
-          paddingTop: 'calc(5rem + env(safe-area-inset-top, 0px))',
-          paddingBottom: '5px',
-          height: '100dvh'
+      <main
+        className="mobile-main-content bg-background w-full"
+        style={{
+          paddingTop: 'calc(var(--mobile-header-height) + env(safe-area-inset-top, 0px))',
         }}
       >
         <Outlet />

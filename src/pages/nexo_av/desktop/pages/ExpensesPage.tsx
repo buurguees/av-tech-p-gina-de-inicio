@@ -201,7 +201,7 @@ const ExpensesPageDesktop = () => {
           });
           setShowScanner(false);
           fetchExpenses();
-          if (newInvoiceId && userId) navigate(`/nexo-av/${userId}/purchase-invoices/${newInvoiceId}`);
+          if (newInvoiceId && userId) navigate(`/nexo-av/${userId}/expenses/${newInvoiceId}`);
           return;
         } else {
           throw uploadError;
@@ -238,7 +238,7 @@ const ExpensesPageDesktop = () => {
       });
       setShowScanner(false);
       fetchExpenses();
-      if (newInvoiceId && userId) navigate(`/nexo-av/${userId}/purchase-invoices/${newInvoiceId}`);
+      if (newInvoiceId && userId) navigate(`/nexo-av/${userId}/expenses/${newInvoiceId}`);
     } catch (error: any) {
       console.error("Upload error:", error);
       let errorMessage = "Error al subir el ticket";
@@ -277,7 +277,7 @@ const ExpensesPageDesktop = () => {
       setUploadRetryPending(null);
       toast({ title: "Ticket guardado", description: "Completa los datos y guarda." });
       fetchExpenses();
-      if (newInvoiceId && userId) navigate(`/nexo-av/${userId}/purchase-invoices/${newInvoiceId}`);
+      if (newInvoiceId && userId) navigate(`/nexo-av/${userId}/expenses/${newInvoiceId}`);
     } catch (error: any) {
       console.error("Retry upload error:", error);
       toast({
@@ -904,7 +904,7 @@ const ExpensesPageDesktop = () => {
                                     className="text-white hover:bg-white/10"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      navigate(`/nexo-av/${userId}/purchase-invoices/${expense.id}`);
+                                      navigate(`/nexo-av/${userId}/expenses/${expense.id}`);
                                     }}
                                   >
                                     Ver detalle

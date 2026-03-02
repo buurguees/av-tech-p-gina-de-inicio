@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,9 @@ const DEPARTMENTS = [
 ];
 
 type SetupStep = 'loading' | 'password' | 'profile' | 'success' | 'error';
+
+const getErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
 
 const AccountSetup = () => {
   const [searchParams] = useSearchParams();
@@ -58,11 +61,7 @@ const AccountSetup = () => {
   // User info
   const [userId, setUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    validateToken();
-  }, [token, email]);
-
-  const validateToken = async () => {
+  const validateToken = useCallback(async () => {
     if (!token || !email) {
       setStep('error');
       setErrorMessage('Enlace de invitación inválido. Falta el token o el email.');
@@ -71,7 +70,7 @@ const AccountSetup = () => {
 
     try {
       // Validate token through edge function
-      const { data, error } = await supabase.functions.invoke('admin-users', {
+      const { data, error } = await supabase.functions.invoke('account-setup', {
         body: {
           action: 'validate-invitation',
           token: token,
@@ -102,7 +101,11 @@ const AccountSetup = () => {
       // Continue to password step even if validation fails
       setStep('password');
     }
-  };
+  }, [email, token]);
+
+  useEffect(() => {
+    void validateToken();
+  }, [validateToken]);
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,7 +141,7 @@ const AccountSetup = () => {
 
       if (signInError) {
         // If sign in fails, we need to update password through edge function
-        const { data, error } = await supabase.functions.invoke('admin-users', {
+        const { data, error } = await supabase.functions.invoke('account-setup', {
           body: {
             action: 'setup-password',
             email: email,
@@ -158,6 +161,11 @@ const AccountSetup = () => {
         if (newSignInError) throw newSignInError;
       }
 
+      const { error: markOtpError } = await supabase.rpc('mark_current_user_otp_verified');
+      if (markOtpError) {
+        throw markOtpError;
+      }
+
       // Get user info
       const { data: userInfo } = await supabase.rpc('get_current_user_info');
       if (userInfo && userInfo.length > 0) {
@@ -165,11 +173,11 @@ const AccountSetup = () => {
       }
 
       setStep('profile');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Password setup error:', error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo configurar la contraseña.",
+        description: getErrorMessage(error, "No se pudo configurar la contraseña."),
         variant: "destructive",
       });
     } finally {
@@ -201,16 +209,11 @@ const AccountSetup = () => {
 
       const currentUserId = userInfo[0].user_id;
 
-      // Update profile through edge function
-      const { data, error } = await supabase.functions.invoke('admin-users', {
-        body: {
-          action: 'update_own_info',
-          userId: currentUserId,
-          full_name: fullName,
-          phone: phone || null,
-          department: department,
-          position: position || null
-        }
+      const { error } = await supabase.rpc('update_own_user_info', {
+        p_user_id: currentUserId,
+        p_full_name: fullName,
+        p_phone: phone || null,
+        p_job_position: position || null,
       });
 
       if (error) throw error;
@@ -227,11 +230,11 @@ const AccountSetup = () => {
         navigate(`/nexo-av/${currentUserId}/dashboard`);
       }, 2000);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Profile update error:', error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo guardar el perfil.",
+        description: getErrorMessage(error, "No se pudo guardar el perfil."),
         variant: "destructive",
       });
     } finally {

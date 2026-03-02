@@ -2,6 +2,7 @@
  * InvoicePDFDocument - Plantilla de PDF para Facturas
  * Compartido entre versión móvil y desktop
  */
+import React from "react";
 import {
   Document,
   Page,
@@ -48,6 +49,7 @@ export interface Invoice {
   due_date: string | null;
   notes: string | null;
   created_at: string;
+  archived_record_hash?: string | null;
 }
 
 export interface Project {
@@ -107,6 +109,7 @@ export interface InvoicePDFDocumentProps {
   company: CompanySettings | null;
   project: Project | null;
   preferences?: CompanyPreferences | null;
+  documentHash?: string | null;
 }
 
 // Styles for PDF
@@ -375,6 +378,14 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: "#888",
   },
+  documentHash: {
+    position: "absolute",
+    bottom: 20,
+    left: 40,
+    fontSize: 7,
+    color: "#888",
+    maxWidth: "75%",
+  },
 });
 
 // Format currency
@@ -432,8 +443,16 @@ const extractSwiftBic = (notes: string | null | undefined): string | null => {
   return null;
 };
 
+const buildDeterministicHash = (input: string): string => {
+  let hash = 5381;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = ((hash << 5) + hash) ^ input.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0").toUpperCase();
+};
+
 // PDF Document Component
-export const InvoicePDFDocument = ({ invoice, lines, client, company, project, preferences }: InvoicePDFDocumentProps) => {
+export const InvoicePDFDocument = ({ invoice, lines, client, company, project, preferences, documentHash }: InvoicePDFDocumentProps) => {
   const taxes = groupTaxesByRate(lines);
   const subtotal = lines.reduce((acc, line) => acc + line.subtotal, 0);
   const total = lines.reduce((acc, line) => acc + line.total, 0);
@@ -447,6 +466,18 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
   const hasSites = Boolean(project?.site_name?.trim());
   const locationLabel = hasSites ? "Ubicación" : "Local";
   const locationValue = hasSites ? project?.site_name?.trim() : project?.local_name?.trim();
+  const resolvedHash =
+    documentHash ||
+    invoice.archived_record_hash ||
+    buildDeterministicHash(
+      [
+        "INVOICE",
+        invoice.id,
+        invoice.invoice_number || invoice.preliminary_number || "",
+        invoice.issue_date || "",
+        invoice.client_name || "",
+      ].join("|"),
+    );
 
   return (
     <Document>
@@ -668,6 +699,13 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
           style={styles.pageNumber}
           render={({ pageNumber, totalPages }) =>
             `Página ${pageNumber} de ${totalPages}`
+          }
+          fixed
+        />
+        <Text
+          style={styles.documentHash}
+          render={({ pageNumber, totalPages }) =>
+            pageNumber === totalPages ? `Hash único: ${resolvedHash}` : ""
           }
           fixed
         />

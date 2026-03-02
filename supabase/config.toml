@@ -3,8 +3,11 @@ project_id = "takvthfatlcjsqgssnta"
 [functions.send-contact-form]
 verify_jwt = false
 
-[functions.admin-users]
+[functions.account-setup]
 verify_jwt = false
+
+[functions.admin-users]
+verify_jwt = true
 
 [functions.rate-limit]
 verify_jwt = false
@@ -16,5 +19,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.send-user-invitation]
-verify_jwt = false
-
+verify_jwt = true

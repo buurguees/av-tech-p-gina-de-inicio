@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Loader2 } from "lucide-react";
+import { MoreVertical, Loader2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo } from "@/constants/financeStatuses";
 import { usePagination } from "@/hooks/usePagination";
@@ -35,13 +35,22 @@ interface Invoice {
   subtotal: number;
   total: number;
   is_locked: boolean;
+  site_id: string | null;
+  site_name: string | null;
 }
 
 interface ProjectInvoicesListProps {
   projectId: string;
+  siteMode?: string | null;
+  defaultSiteName?: string | null;
 }
 
-const ProjectInvoicesList = ({ projectId }: ProjectInvoicesListProps) => {
+interface ProjectSite {
+  id: string;
+  site_name: string;
+}
+
+const ProjectInvoicesList = ({ projectId, siteMode, defaultSiteName }: ProjectInvoicesListProps) => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const [loading, setLoading] = useState(true);
@@ -56,6 +65,12 @@ const ProjectInvoicesList = ({ projectId }: ProjectInvoicesListProps) => {
 
     try {
       setLoading(true);
+      const { data: projectSitesData } = await supabase.rpc("list_project_sites", {
+        p_project_id: projectId,
+      });
+      const siteNameById = new Map(
+        ((projectSitesData || []) as ProjectSite[]).map((site) => [site.id, site.site_name])
+      );
       const { data, error } = await supabase.rpc("finance_list_invoices", {
         p_search: null,
         p_status: null,
@@ -67,8 +82,32 @@ const ProjectInvoicesList = ({ projectId }: ProjectInvoicesListProps) => {
       const projectInvoices = (data || []).filter(
         (inv: any) => inv.project_id === projectId
       );
+      const withCanonicalSiteName = (invoice: Invoice): Invoice => ({
+        ...invoice,
+        site_name: invoice.site_id ? siteNameById.get(invoice.site_id) ?? invoice.site_name : invoice.site_name,
+      });
 
-      setInvoices(projectInvoices);
+      const resolvedInvoices = await Promise.all(
+        projectInvoices.map(async (invoice: Invoice) => {
+          const normalizedInvoice = withCanonicalSiteName(invoice);
+          if (normalizedInvoice.site_name) return normalizedInvoice;
+
+          const { data: detailData, error: detailError } = await supabase.rpc("finance_get_invoice", {
+            p_invoice_id: invoice.id,
+          });
+
+          if (detailError || !detailData || detailData.length === 0) return normalizedInvoice;
+
+          const detail = detailData[0] as { site_id?: string | null; site_name?: string | null };
+          return withCanonicalSiteName({
+            ...normalizedInvoice,
+            site_id: detail.site_id ?? invoice.site_id,
+            site_name: detail.site_name ?? invoice.site_name,
+          });
+        })
+      );
+
+      setInvoices(resolvedInvoices);
     } catch (error: any) {
       console.error("Error fetching invoices:", error);
     } finally {
@@ -90,6 +129,12 @@ const ProjectInvoicesList = ({ projectId }: ProjectInvoicesListProps) => {
       month: "2-digit",
       year: "numeric",
     });
+  };
+
+  const getResolvedSiteName = (siteName: string | null) => {
+    if (siteName) return siteName;
+    if (siteMode === "SINGLE_SITE" && defaultSiteName) return defaultSiteName;
+    return null;
   };
 
   const {
@@ -139,6 +184,7 @@ const ProjectInvoicesList = ({ projectId }: ProjectInvoicesListProps) => {
                 <TableHead className="project-items-list__header">Fecha</TableHead>
                 <TableHead className="project-items-list__header">Nº Factura</TableHead>
                 <TableHead className="project-items-list__header">Cliente</TableHead>
+                <TableHead className="project-items-list__header">Sitio</TableHead>
                 <TableHead className="project-items-list__header text-right">Subtotal</TableHead>
                 <TableHead className="project-items-list__header text-right">Total</TableHead>
                 <TableHead className="project-items-list__header text-center">Estado</TableHead>
@@ -150,6 +196,7 @@ const ProjectInvoicesList = ({ projectId }: ProjectInvoicesListProps) => {
                 const statusInfo = getFinanceStatusInfo(invoice.status);
                 const displayNumber = invoice.invoice_number || invoice.preliminary_number;
                 const isDraft = invoice.status === "DRAFT";
+                const resolvedSiteName = getResolvedSiteName(invoice.site_name);
 
                 return (
                   <TableRow
@@ -165,6 +212,16 @@ const ProjectInvoicesList = ({ projectId }: ProjectInvoicesListProps) => {
                     </TableCell>
                     <TableCell className="project-items-list__cell">
                       {invoice.client_name}
+                    </TableCell>
+                    <TableCell className="project-items-list__cell">
+                      {resolvedSiteName ? (
+                        <span className="inline-flex items-center gap-1.5 text-sm">
+                          <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                          {resolvedSiteName}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">Sin asignar</span>
+                      )}
                     </TableCell>
                     <TableCell className="project-items-list__cell text-right">
                       {formatCurrency(invoice.subtotal)}

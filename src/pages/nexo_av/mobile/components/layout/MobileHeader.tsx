@@ -67,16 +67,15 @@ export const MobileHeader = ({
   const pageTitle = getPageTitle(location.pathname);
 
   return (
-    <header 
-      className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40"
+    <header
+      className="fixed top-0 left-0 right-0 z-50 bg-background/92 backdrop-blur-xl border-b border-border/60"
       style={{
         paddingTop: 'env(safe-area-inset-top, 0px)',
-        height: 'calc(5rem + env(safe-area-inset-top, 0px))'
+        height: 'calc(var(--mobile-header-height) + env(safe-area-inset-top, 0px))'
       }}
     >
-      <div className="w-full h-[4.75rem] px-3 flex items-center justify-between">
-        {/* Left: Logo + Page Title */}
-        <div className="flex items-center gap-2 flex-1 min-w-0 mt-[25px] h-10">
+      <div className="w-full h-[var(--mobile-header-height)] px-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <div 
             className="flex-shrink-0 active:scale-95 transition-all duration-200"
             style={{ touchAction: 'manipulation' }}
@@ -88,18 +87,17 @@ export const MobileHeader = ({
               className="scale-90"
             />
           </div>
-          <h1 className="text-sm font-normal text-foreground truncate">
+          <h1 className="text-base font-medium text-foreground truncate">
             {pageTitle}
           </h1>
         </div>
 
-        {/* Right: Notifications + Avatar */}
         {userInfo && (
-          <div className="flex items-center gap-2 flex-1 justify-end mt-[25px] h-10">
+          <div className="flex items-center gap-2 justify-end">
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 rounded-xl active:scale-95 transition-all duration-200"
+              className="h-11 w-11 rounded-2xl active:scale-95 transition-all duration-200"
               style={{ touchAction: 'manipulation' }}
               aria-label="Notificaciones"
             >

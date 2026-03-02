@@ -1,28 +1,26 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Clock,
+  Eye,
+  EyeOff,
+  Loader2,
+  Lock,
+  Mail,
+  ShieldCheck,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
-import NexoLoadingScreen from "../components/layout/NexoLoadingScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  AlertCircle,
-  Clock,
-  ShieldCheck,
-  ArrowLeft,
-  Loader2,
-} from "lucide-react";
+import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
+import NexoLoadingScreen from "../components/layout/NexoLoadingScreen";
 import whiteLogo from "../../assets/logos/white_logo.svg";
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 interface RateLimitResponse {
   allowed: boolean;
@@ -31,71 +29,29 @@ interface RateLimitResponse {
   message?: string;
 }
 
-type LoginStep = 'credentials' | 'otp';
-
-interface PendingSession {
-  email: string;
-  password: string;
+interface CurrentUserInfo {
+  user_id: string;
+  otp_verified_for_today?: boolean;
 }
 
-// Helper functions for OTP skip logic - only ask OTP once per calendar day
-const LAST_LOGIN_KEY = 'nexo_av_last_login';
+type LoginStep = "credentials" | "otp";
 
-/**
- * Check if OTP can be skipped for this user today.
- * OTP is only required the first login of each calendar day.
- */
-const canSkipOtp = (email: string): boolean => {
-  try {
-    const lastLoginData = localStorage.getItem(LAST_LOGIN_KEY);
-    if (!lastLoginData) return false;
+const getErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
 
-    const data = JSON.parse(lastLoginData);
-    const userData = data[email];
-    if (!userData) return false;
-
-    const lastLoginDate = new Date(userData.timestamp);
-    const today = new Date();
-
-    // Check if last login was on the same calendar day
-    const isSameDay = 
-      lastLoginDate.getFullYear() === today.getFullYear() &&
-      lastLoginDate.getMonth() === today.getMonth() &&
-      lastLoginDate.getDate() === today.getDate();
-
-    return isSameDay;
-  } catch {
-    return false;
-  }
-};
-
-/**
- * Save the timestamp of a successful OTP-verified login.
- * This allows skipping OTP for the rest of the day.
- */
-const saveLastLogin = (email: string): void => {
-  try {
-    const lastLoginData = localStorage.getItem(LAST_LOGIN_KEY);
-    const data = lastLoginData ? JSON.parse(lastLoginData) : {};
-    data[email] = { timestamp: new Date().toISOString() };
-    localStorage.setItem(LAST_LOGIN_KEY, JSON.stringify(data));
-  } catch {
-    // Ignore localStorage errors
-  }
-};
+const normalizeEmail = (value: string) => value.trim().toLowerCase();
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // State
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [loginStep, setLoginStep] = useState<LoginStep>('credentials');
+  const [loginStep, setLoginStep] = useState<LoginStep>("credentials");
   const [otpCode, setOtpCode] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
   const [otpSending, setOtpSending] = useState(false);
@@ -103,17 +59,17 @@ const Login = () => {
   const [canResendOtp, setCanResendOtp] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
   const [otpRemainingAttempts, setOtpRemainingAttempts] = useState<number | null>(null);
-  const [pendingSession, setPendingSession] = useState<PendingSession | null>(null);
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [retryAfter, setRetryAfter] = useState(0);
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
 
-  // Countdown timer for rate limiting
+  useNexoAvTheme("dark");
+
   useEffect(() => {
     if (retryAfter <= 0) return;
 
     const timer = setInterval(() => {
-      setRetryAfter(prev => {
+      setRetryAfter((prev) => {
         if (prev <= 1) {
           setIsRateLimited(false);
           return 0;
@@ -125,7 +81,6 @@ const Login = () => {
     return () => clearInterval(timer);
   }, [retryAfter]);
 
-  // Countdown timer for OTP resend
   useEffect(() => {
     if (resendCountdown <= 0) {
       setCanResendOtp(true);
@@ -133,156 +88,153 @@ const Login = () => {
     }
 
     const timer = setInterval(() => {
-      setResendCountdown(prev => prev - 1);
+      setResendCountdown((prev) => prev - 1);
     }, 1000);
 
     return () => clearInterval(timer);
   }, [resendCountdown]);
 
-  // Check rate limit before submitting
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: userInfo } = await supabase.rpc("get_current_user_info");
+
+      if (userInfo && userInfo.length > 0 && userInfo[0].otp_verified_for_today) {
+        navigate(`/nexo-av/${userInfo[0].user_id}/dashboard`, { replace: true });
+        return;
+      }
+
+      setEmail(normalizeEmail(session.user.email ?? ""));
+      setPassword("");
+      setOtpCode("");
+      setOtpError(null);
+      setCanResendOtp(true);
+      setResendCountdown(0);
+      setLoginStep("otp");
+      setIsLoading(false);
+    };
+
+    void checkSession();
+  }, [navigate]);
+
   const checkRateLimit = async (emailToCheck: string): Promise<RateLimitResponse | null> => {
     try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/rate-limit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'check', email: emailToCheck }),
+      const { data, error: invokeError } = await supabase.functions.invoke("rate-limit", {
+        body: { action: "check", email: emailToCheck },
       });
 
-      if (!response.ok) {
-        console.error('Rate limit check failed');
+      if (invokeError) {
+        console.error("Rate limit check failed:", invokeError);
         return null;
       }
 
-      return await response.json();
+      return data as RateLimitResponse;
     } catch (err) {
-      console.error('Rate limit check error:', err);
+      console.error("Rate limit check error:", err);
       return null;
     }
   };
 
-  // Record login attempt
   const recordAttempt = async (emailToRecord: string, success: boolean) => {
     try {
-      await fetch(`${SUPABASE_URL}/functions/v1/rate-limit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'record', email: emailToRecord, success }),
+      await supabase.functions.invoke("rate-limit", {
+        body: { action: "record", email: emailToRecord, success },
       });
     } catch (err) {
-      console.error('Record attempt error:', err);
+      console.error("Record attempt error:", err);
     }
   };
 
-  // Send OTP code
   const sendOtpCode = async (emailToSend: string): Promise<boolean> => {
     setOtpSending(true);
     setOtpError(null);
 
     try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailToSend }),
+      const { data, error: invokeError } = await supabase.functions.invoke("send-otp", {
+        body: { email: emailToSend },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al enviar el código');
+      if (invokeError) {
+        throw new Error(invokeError.message || "Error al enviar el codigo");
       }
 
-      // Start resend countdown (60 seconds)
+      if (data && typeof data === "object" && "error" in data && typeof data.error === "string") {
+        throw new Error(data.error);
+      }
+
       setResendCountdown(60);
       setCanResendOtp(false);
-
       return true;
-    } catch (err: any) {
-      setOtpError(err.message || 'Error al enviar el código de verificación');
+    } catch (err: unknown) {
+      setOtpError(getErrorMessage(err, "Error al enviar el codigo de verificacion"));
       return false;
     } finally {
       setOtpSending(false);
     }
   };
 
-  // Verify OTP code
   const verifyOtpCode = async (emailToVerify: string, code: string): Promise<boolean> => {
     setOtpVerifying(true);
     setOtpError(null);
 
     try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailToVerify, code }),
+      const { data, error: invokeError } = await supabase.functions.invoke("verify-otp", {
+        body: { email: emailToVerify, code },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al verificar el código');
+      if (invokeError) {
+        throw new Error(invokeError.message || "Error al verificar el codigo");
       }
 
-      if (data.valid) {
-        return true;
-      } else {
-        setOtpError(data.message || 'Código incorrecto');
-        setOtpRemainingAttempts(data.remaining_attempts);
+      const verificationResult =
+        data && typeof data === "object"
+          ? (data as { valid?: boolean; message?: string; remaining_attempts?: number })
+          : null;
+
+      if (!verificationResult?.valid) {
+        setOtpError(verificationResult?.message || "Codigo incorrecto");
+        setOtpRemainingAttempts(verificationResult?.remaining_attempts ?? null);
         return false;
       }
-    } catch (err: any) {
-      setOtpError(err.message || 'Error al verificar el código');
+
+      return true;
+    } catch (err: unknown) {
+      setOtpError(getErrorMessage(err, "Error al verificar el codigo"));
       return false;
     } finally {
       setOtpVerifying(false);
     }
   };
 
-  // Apply nexo-av theme - dark for login
-  useNexoAvTheme('dark');
-
-  // Check if user is already logged in
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data: userInfo } = await supabase.rpc('get_current_user_info');
-
-        if (userInfo && userInfo.length > 0) {
-          const targetPath = `/nexo-av/${userInfo[0].user_id}/dashboard`;
-          navigate(targetPath, { replace: true });
-        } else {
-          await supabase.auth.signOut();
-        }
-      }
-      setIsLoading(false);
-    };
-
-    checkSession();
-  }, [navigate]);
-
-  // Handle credentials submission
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
-    const GENERIC_AUTH_ERROR = 'Credenciales incorrectas o usuario no autorizado.';
+    const genericAuthError = "Credenciales incorrectas o usuario no autorizado.";
+    const normalizedEmail = normalizeEmail(email);
 
     try {
-      // Validate email domain
-      if (!email.endsWith('@avtechesdeveniments.com')) {
-        setError('Solo se permite el acceso con emails corporativos (@avtechesdeveniments.com)');
-        setIsSubmitting(false);
+      if (!normalizedEmail.endsWith("@avtechesdeveniments.com")) {
+        setError("Solo se permite el acceso con emails corporativos (@avtechesdeveniments.com)");
         return;
       }
 
-      // Check rate limit
-      const rateLimitCheck = await checkRateLimit(email);
+      setEmail(normalizedEmail);
+
+      const rateLimitCheck = await checkRateLimit(normalizedEmail);
       if (rateLimitCheck && !rateLimitCheck.allowed) {
         setIsRateLimited(true);
         setRetryAfter(rateLimitCheck.retry_after_seconds || 0);
-        setError(rateLimitCheck.message || 'Demasiados intentos. Por favor espera unos minutos.');
-        setIsSubmitting(false);
+        setError(rateLimitCheck.message || "Demasiados intentos. Espera unos minutos.");
         return;
       }
 
@@ -290,156 +242,135 @@ const Login = () => {
         setRemainingAttempts(rateLimitCheck.remaining_attempts || null);
       }
 
-      // Attempt sign in
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
+        email: normalizedEmail,
         password,
       });
 
       if (signInError) {
-        await recordAttempt(email, false);
+        await recordAttempt(normalizedEmail, false);
 
-        const newCheck = await checkRateLimit(email);
+        const newCheck = await checkRateLimit(normalizedEmail);
         if (newCheck) {
           setRemainingAttempts(newCheck.remaining_attempts || null);
           if (!newCheck.allowed) {
             setIsRateLimited(true);
             setRetryAfter(newCheck.retry_after_seconds || 0);
-            setError(newCheck.message || 'Demasiados intentos. Por favor espera unos minutos.');
-            setIsSubmitting(false);
+            setError(newCheck.message || "Demasiados intentos. Espera unos minutos.");
             return;
           }
         }
 
-        setError(GENERIC_AUTH_ERROR);
-        setIsSubmitting(false);
+        setError(genericAuthError);
         return;
       }
 
-      // Verify user is authorized
-      if (data.session) {
-        const { data: userInfo, error: userInfoError } = await supabase.rpc('get_current_user_info');
-
-        if (userInfoError || !userInfo || userInfo.length === 0) {
-          await supabase.auth.signOut();
-          await recordAttempt(email, false);
-          setError(GENERIC_AUTH_ERROR);
-          setIsSubmitting(false);
-          return;
-        }
-
-        // Check if we can skip OTP (user already verified OTP today)
-        if (canSkipOtp(email)) {
-          // Skip OTP - direct login
-          await recordAttempt(email, true);
-          saveLastLogin(email);
-
-          toast({
-            title: "Bienvenido",
-            description: "Has iniciado sesión correctamente.",
-          });
-          const targetPath = `/nexo-av/${userInfo[0].user_id}/dashboard`;
-          navigate(targetPath, { replace: true });
-          return;
-        }
-
-        // Sign out temporarily - we'll complete login after OTP verification
-        await supabase.auth.signOut();
-
-        // Store credentials for after OTP
-        setPendingSession({ email, password });
-
-        // Send OTP code
-        const otpSent = await sendOtpCode(email);
-
-        if (otpSent) {
-          setLoginStep('otp');
-          toast({
-            title: "Código enviado",
-            description: `Hemos enviado un código de verificación a ${email}`,
-          });
-        }
+      if (!data.session) {
+        setError(genericAuthError);
+        return;
       }
-    } catch (err) {
-      setError(GENERIC_AUTH_ERROR);
+
+      const { data: userInfo, error: userInfoError } = await supabase.rpc("get_current_user_info");
+
+      if (userInfoError || !userInfo || userInfo.length === 0) {
+        await supabase.auth.signOut();
+        await recordAttempt(normalizedEmail, false);
+        setError(genericAuthError);
+        return;
+      }
+
+        const currentUserInfo = userInfo[0] as CurrentUserInfo;
+
+        if (currentUserInfo.otp_verified_for_today) {
+        await recordAttempt(normalizedEmail, true);
+        toast({
+          title: "Bienvenido",
+          description: "Has iniciado sesion correctamente.",
+        });
+        navigate(`/nexo-av/${currentUserInfo.user_id}/dashboard`, { replace: true });
+        return;
+      }
+
+      const otpSent = await sendOtpCode(normalizedEmail);
+      if (!otpSent) {
+        return;
+      }
+
+      setPassword("");
+      setLoginStep("otp");
+      toast({
+        title: "Codigo enviado",
+        description: `Hemos enviado un codigo de verificacion a ${normalizedEmail}`,
+      });
+    } catch {
+      setError(genericAuthError);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Handle OTP verification
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (otpCode.length !== 6) {
-      setOtpError('Introduce el código de 6 dígitos');
+      setOtpError("Introduce el codigo de 6 digitos");
       return;
     }
 
-    const isValid = await verifyOtpCode(email, otpCode);
+    const normalizedEmail = normalizeEmail(email);
+    const isValid = await verifyOtpCode(normalizedEmail, otpCode);
+    if (!isValid) {
+      return;
+    }
 
-    if (isValid && pendingSession) {
-      // Re-authenticate with stored credentials
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: pendingSession.email,
-        password: pendingSession.password,
+    const { error: markOtpError } = await supabase.rpc("mark_current_user_otp_verified");
+    if (markOtpError) {
+      await supabase.auth.signOut();
+      setOtpError("No se pudo completar la verificacion de seguridad.");
+      return;
+    }
+
+    await recordAttempt(normalizedEmail, true);
+
+    const { data: userInfo } = await supabase.rpc("get_current_user_info");
+    if (userInfo && userInfo.length > 0) {
+      toast({
+        title: "Bienvenido",
+        description: "Has iniciado sesion correctamente.",
       });
-
-      if (signInError) {
-        setOtpError('Error al completar el inicio de sesión. Inténtalo de nuevo.');
-        setLoginStep('credentials');
-        setPendingSession(null);
-        return;
-      }
-
-      // Record successful login and save timestamp for OTP skip
-      await recordAttempt(email, true);
-      saveLastLogin(email);
-
-      // Get user info for navigation
-      const { data: userInfo } = await supabase.rpc('get_current_user_info');
-
-      if (userInfo && userInfo.length > 0) {
-        toast({
-          title: "Bienvenido",
-          description: "Has iniciado sesión correctamente.",
-        });
-        const targetPath = `/nexo-av/${userInfo[0].user_id}/dashboard`;
-        navigate(targetPath, { replace: true });
-      }
-
-      // Clear pending session
-      setPendingSession(null);
+      navigate(`/nexo-av/${userInfo[0].user_id}/dashboard`, { replace: true });
     }
   };
 
-  // Handle OTP code change - auto-submit when 6 digits
   const handleOtpChange = (value: string) => {
     setOtpCode(value);
     setOtpError(null);
   };
 
-  // Resend OTP
   const handleResendOtp = async () => {
     if (!canResendOtp) return;
 
-    const sent = await sendOtpCode(email);
+    const normalizedEmail = normalizeEmail(email);
+    const sent = await sendOtpCode(normalizedEmail);
     if (sent) {
       setOtpCode("");
       toast({
-        title: "Código reenviado",
-        description: `Nuevo código enviado a ${email}`,
+        title: "Codigo reenviado",
+        description: `Nuevo codigo enviado a ${normalizedEmail}`,
       });
     }
   };
 
-  // Go back to credentials step
   const handleBackToCredentials = async () => {
-    setLoginStep('credentials');
+    await supabase.auth.signOut();
+    setLoginStep("credentials");
+    setEmail("");
+    setPassword("");
     setOtpCode("");
     setOtpError(null);
     setOtpRemainingAttempts(null);
-    setPendingSession(null);
+    setCanResendOtp(false);
+    setResendCountdown(0);
   };
 
   if (isLoading) {
@@ -454,7 +385,6 @@ const Login = () => {
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-md"
       >
-        {/* Logo y título */}
         <div className="flex flex-col items-center mb-8 sm:mb-10">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -463,11 +393,7 @@ const Login = () => {
             className="mb-4"
           >
             <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
-              <img
-                src={whiteLogo}
-                alt="NEXO AV Logo"
-                className="w-full h-full object-contain"
-              />
+              <img src={whiteLogo} alt="NEXO AV Logo" className="w-full h-full object-contain" />
             </div>
           </motion.div>
           <motion.h1
@@ -484,12 +410,12 @@ const Login = () => {
             transition={{ delay: 0.4 }}
             className="text-white/70 text-sm sm:text-base mt-1 text-center"
           >
-            {loginStep === 'credentials' ? 'Plataforma de gestión interna' : 'Verificación en dos pasos'}
+            {loginStep === "credentials" ? "Plataforma de gestion interna" : "Verificacion en dos pasos"}
           </motion.p>
         </div>
 
         <AnimatePresence mode="wait">
-          {loginStep === 'credentials' ? (
+          {loginStep === "credentials" ? (
             <motion.div
               key="credentials"
               initial={{ opacity: 0, x: -20 }}
@@ -497,7 +423,6 @@ const Login = () => {
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Rate limit warning */}
               {isRateLimited && retryAfter > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -508,13 +433,13 @@ const Login = () => {
                   <div>
                     <p className="text-orange-400 text-sm font-medium">Cuenta bloqueada temporalmente</p>
                     <p className="text-orange-400/70 text-sm">
-                      Podrás intentarlo de nuevo en {Math.floor(retryAfter / 60)}:{(retryAfter % 60).toString().padStart(2, '0')} minutos
+                      Podras intentarlo de nuevo en {Math.floor(retryAfter / 60)}:
+                      {(retryAfter % 60).toString().padStart(2, "0")} minutos
                     </p>
                   </div>
                 </motion.div>
               )}
 
-              {/* Error message */}
               {error && !isRateLimited && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -526,18 +451,18 @@ const Login = () => {
                     <p className="text-red-400 text-sm">{error}</p>
                     {remainingAttempts !== null && remainingAttempts > 0 && remainingAttempts <= 3 && (
                       <p className="text-red-400/70 text-xs mt-1">
-                        {remainingAttempts} intento{remainingAttempts !== 1 ? 's' : ''} restante{remainingAttempts !== 1 ? 's' : ''}
+                        {remainingAttempts} intento{remainingAttempts !== 1 ? "s" : ""} restante
+                        {remainingAttempts !== 1 ? "s" : ""}
                       </p>
                     )}
                   </div>
                 </motion.div>
               )}
 
-              {/* Credentials Form */}
               <form onSubmit={handleCredentialsSubmit} className="space-y-5 sm:space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-white/70 text-sm font-medium">
-                    Correo electrónico
+                    Correo electronico
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-black/60" />
@@ -556,14 +481,14 @@ const Login = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-white/70 text-sm font-medium">
-                    Contraseña
+                    Contrasena
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-black/60" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="********"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={isSubmitting}
@@ -577,11 +502,7 @@ const Login = () => {
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-black/60 hover:text-black transition-colors"
                       disabled={isSubmitting}
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5" />
-                      ) : (
-                        <Eye className="h-5 w-5" />
-                      )}
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
                 </div>
@@ -594,7 +515,7 @@ const Login = () => {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {otpSending ? 'Enviando código...' : 'Verificando...'}
+                      Verificando...
                     </>
                   ) : isRateLimited ? (
                     <>
@@ -602,12 +523,12 @@ const Login = () => {
                       Bloqueado temporalmente
                     </>
                   ) : (
-                    'Continuar'
+                    "Continuar"
                   )}
                 </Button>
 
                 <p className="text-center text-white/50 text-xs sm:text-sm mt-6">
-                  ¿Problemas para acceder? Contacta con el administrador
+                  Problemas para acceder? Contacta con el administrador
                 </p>
               </form>
             </motion.div>
@@ -619,18 +540,16 @@ const Login = () => {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {/* OTP Info */}
               <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-start gap-3 shadow-sm">
                 <ShieldCheck className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-blue-400 text-sm font-medium">Verificación de seguridad</p>
+                  <p className="text-blue-400 text-sm font-medium">Verificacion de seguridad</p>
                   <p className="text-blue-400/70 text-sm">
-                    Hemos enviado un código de 6 dígitos a <strong className="font-semibold text-blue-300">{email}</strong>
+                    Hemos enviado un codigo de 6 digitos a <strong className="font-semibold text-blue-300">{email}</strong>
                   </p>
                 </div>
               </div>
 
-              {/* OTP Error */}
               {otpError && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -642,18 +561,18 @@ const Login = () => {
                     <p className="text-red-400 text-sm">{otpError}</p>
                     {otpRemainingAttempts !== null && otpRemainingAttempts >= 0 && (
                       <p className="text-red-400/70 text-xs mt-1">
-                        {otpRemainingAttempts} intento{otpRemainingAttempts !== 1 ? 's' : ''} restante{otpRemainingAttempts !== 1 ? 's' : ''}
+                        {otpRemainingAttempts} intento{otpRemainingAttempts !== 1 ? "s" : ""} restante
+                        {otpRemainingAttempts !== 1 ? "s" : ""}
                       </p>
                     )}
                   </div>
                 </motion.div>
               )}
 
-              {/* OTP Form */}
               <form onSubmit={handleOtpSubmit} className="space-y-6">
                 <div className="space-y-4">
                   <Label className="text-white text-sm sm:text-base text-center block font-medium">
-                    Introduce el código de verificación
+                    Introduce el codigo de verificacion
                   </Label>
                   <div className="flex justify-center">
                     <InputOTP
@@ -689,7 +608,7 @@ const Login = () => {
                   ) : (
                     <>
                       <ShieldCheck className="mr-2 h-4 w-4" />
-                      Verificar código
+                      Verificar codigo
                     </>
                   )}
                 </Button>
@@ -701,13 +620,11 @@ const Login = () => {
                     disabled={!canResendOtp || otpSending}
                     className="text-center text-white/50 text-sm hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >
-                    {otpSending ? (
-                      'Enviando...'
-                    ) : canResendOtp ? (
-                      '¿No recibiste el código? Reenviar'
-                    ) : (
-                      `Reenviar código en ${resendCountdown}s`
-                    )}
+                    {otpSending
+                      ? "Enviando..."
+                      : canResendOtp
+                        ? "No recibiste el codigo? Reenviar"
+                        : `Reenviar codigo en ${resendCountdown}s`}
                   </button>
 
                   <button
@@ -716,7 +633,7 @@ const Login = () => {
                     className="flex items-center justify-center gap-2 text-white/50 text-sm hover:text-white transition-colors"
                   >
                     <ArrowLeft className="h-4 w-4" />
-                    Volver al inicio de sesión
+                    Volver al inicio de sesion
                   </button>
                 </div>
               </form>
@@ -725,7 +642,6 @@ const Login = () => {
         </AnimatePresence>
       </motion.div>
 
-      {/* Background decoration - Subtle gradient */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
