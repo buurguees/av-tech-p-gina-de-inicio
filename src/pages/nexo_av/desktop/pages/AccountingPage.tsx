@@ -82,6 +82,7 @@ import type {
   IRPFByPerson,
   IRPFModel111Summary,
   CompanyBankAccount,
+  PeriodProfitSummary,
 } from "../types/accounting";
 
 const AccountingPage = () => {
@@ -126,6 +127,7 @@ const AccountingPage = () => {
 
   // Datos
   const [balanceSheet, setBalanceSheet] = useState<BalanceSheetItem[]>([]);
+  const [periodProfitSummary, setPeriodProfitSummary] = useState<PeriodProfitSummary | null>(null);
   const [profitLoss, setProfitLoss] = useState<ProfitLossItem[]>([]);
   const [clientBalances, setClientBalances] = useState<ClientBalance[]>([]);
   const [supplierBalances, setSupplierBalances] = useState<SupplierTechnicianBalance[]>([]);
@@ -167,12 +169,12 @@ const AccountingPage = () => {
   const [banksSectionOpen, setBanksSectionOpen] = useState(false);
 
   // Cálculos del dashboard - usando datos reales
-  const totalRevenue = profitLoss
+  const totalRevenue = periodProfitSummary?.total_revenue ?? profitLoss
     .filter((item) => item.account_type === "REVENUE")
     .reduce((sum, item) => sum + item.amount, 0);
 
   // Gastos operativos (excluyendo provisiones de IS - cuenta 630xxx)
-  const operatingExpenses = profitLoss
+  const operatingExpenses = periodProfitSummary?.operating_expenses ?? profitLoss
     .filter((item) => item.account_type === "EXPENSE" && !item.account_code.startsWith("630"))
     .reduce((sum, item) => sum + item.amount, 0);
 
@@ -182,9 +184,9 @@ const AccountingPage = () => {
     .reduce((sum, item) => sum + item.amount, 0);
 
   // BAI = Ingresos - Gastos Operativos (antes de IS)
-  const profitBeforeTax = totalRevenue - operatingExpenses;
-  const corporateTax = corporateTaxSummary?.tax_amount || 0;
-  const netProfit = profitBeforeTax - corporateTax;
+  const profitBeforeTax = periodProfitSummary?.profit_before_tax ?? (totalRevenue - operatingExpenses);
+  const corporateTax = periodProfitSummary?.corporate_tax_amount ?? corporateTaxSummary?.tax_amount ?? 0;
+  const netProfit = periodProfitSummary?.net_profit ?? (profitBeforeTax - corporateTax);
 
   // Tesorería - suma de TODAS las cuentas 572xxx (no solo la primera)
   const bankBalance = balanceSheet
@@ -229,6 +231,27 @@ const AccountingPage = () => {
       toast({
         title: "Error",
         description: error.message || "Error al cargar la cuenta de resultados",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPeriodProfitSummary = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.rpc("get_period_profit_summary", {
+        p_start: periodDates.start,
+        p_end: periodDates.end,
+      });
+      if (error) throw error;
+      setPeriodProfitSummary((data?.[0] as PeriodProfitSummary | undefined) || null);
+    } catch (error: any) {
+      console.error("Error fetching period profit summary:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Error al cargar el resumen canonico de PyG",
         variant: "destructive",
       });
     } finally {
@@ -658,6 +681,7 @@ const AccountingPage = () => {
   const loadAllData = async () => {
     await Promise.all([
       fetchBalanceSheet(),
+      fetchPeriodProfitSummary(),
       fetchProfitLoss(),
       fetchClientBalances(),
       fetchSupplierBalances(),
@@ -686,8 +710,10 @@ const AccountingPage = () => {
     } else if (activeTab === "taxes") {
       fetchVATSummary();
       fetchIRPFSummary();
+      fetchPeriodProfitSummary();
       fetchCorporateTaxSummary();
     } else if (activeTab === "profit-loss") {
+      fetchPeriodProfitSummary();
       fetchProfitLoss();
       fetchPeriodsForClosure();
     } else if (activeTab === "balance") {

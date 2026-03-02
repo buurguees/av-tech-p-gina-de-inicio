@@ -158,8 +158,8 @@ const MobileProjectsPage = () => {
           <button
             onClick={handleCreateProject}
             className={cn(
-              "h-11 px-4 flex items-center justify-center gap-1.5 rounded-full",
-              "text-sm font-medium whitespace-nowrap leading-none",
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full shrink-0",
+              "text-sm font-medium leading-none",
               "bg-primary text-primary-foreground",
               "active:scale-95 transition-all duration-200",
               "shadow-sm"
@@ -167,7 +167,7 @@ const MobileProjectsPage = () => {
             style={{ touchAction: 'manipulation' }}
           >
             <Plus className="h-4 w-4" />
-            <span>Nuevo</span>
+            <span className="hidden min-[400px]:inline">Nuevo</span>
           </button>
         </div>
       </div>

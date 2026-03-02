@@ -5,8 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { marketingRoutes } from "@/app/routes/MarketingRoutes";
-import { nexoRoutes } from "@/app/routes/NexoRoutes";
+import { marketingRoutes, nexoRoutes } from "@/app/routes";
 
 const NotFound = lazy(() => import("@/pages/NotFound"));
 

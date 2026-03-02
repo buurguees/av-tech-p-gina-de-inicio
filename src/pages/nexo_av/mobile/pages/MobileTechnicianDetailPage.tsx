@@ -112,21 +112,20 @@ const MobileTechnicianDetailPage = () => {
     <div className="w-full h-full flex flex-col">
       {/* Header */}
       <div className="flex-shrink-0 px-4 py-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => navigate(`/nexo-av/${userId}/technicians`)}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
-              "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-              "text-white/90 hover:text-white hover:bg-white/15",
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
+              "text-sm font-medium leading-none",
+              "bg-card border border-border text-foreground",
               "active:scale-95 transition-all duration-200",
-              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+              "shadow-sm"
             )}
             style={{ touchAction: "manipulation" }}
           >
             <ChevronLeft className="h-4 w-4" />
-            <span>Atrás</span>
+            <span className="hidden min-[400px]:inline">Atrás</span>
           </button>
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-medium text-foreground truncate leading-tight">

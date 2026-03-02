@@ -80,6 +80,70 @@ interface QuoteLine {
   total: number;
 }
 
+interface QuoteLineRpcRow {
+  group_name?: string | null;
+  concept: string | null;
+  description?: string | null;
+  quantity: number | null;
+  unit_price: number | null;
+  tax_rate: number | null;
+  discount_percent?: number | null;
+  subtotal: number | null;
+  tax_amount: number | null;
+  total: number | null;
+}
+
+interface ClientRpcRow {
+  id: string;
+  company_name: string;
+  client_number: string;
+  lead_stage?: string | null;
+}
+
+interface ProjectRpcRow {
+  id: string;
+  client_id: string;
+  project_name: string;
+  project_number: string;
+  site_mode?: string | null;
+}
+
+interface ProjectSiteRpcRow {
+  id: string;
+  site_name: string;
+  city: string | null;
+  is_default: boolean;
+  is_active: boolean;
+}
+
+interface TaxRpcRow {
+  rate: number;
+  name: string;
+  is_active: boolean;
+  is_default: boolean;
+}
+
+interface ProductRpcRow {
+  id: string;
+  type?: string | null;
+  name: string;
+  product_number: string;
+  base_price: number | null;
+  tax_rate: number | null;
+  description?: string | null;
+}
+
+interface PackRpcRow {
+  id: string;
+  name: string;
+  pack_number: string;
+  final_price: number | null;
+  tax_rate: number | null;
+  description?: string | null;
+}
+
+type QuoteLineFieldValue = string | number | undefined | boolean;
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("es-ES", {
     minimumFractionDigits: 2,
@@ -127,27 +191,28 @@ const MobileNewQuotePage = () => {
       const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", { p_quote_id: sourceQuoteId });
       if (linesError) throw linesError;
 
-      const mappedLines = (linesData || []).map((line: any) => ({
+      const mappedLines = ((linesData || []) as QuoteLineRpcRow[]).map((line) => ({
         tempId: crypto.randomUUID(),
         group_name: line.group_name || "",
-        concept: line.concept,
+        concept: line.concept || "",
         description: line.description || "",
-        quantity: line.quantity,
-        unit_price: line.unit_price,
-        tax_rate: line.tax_rate,
+        quantity: line.quantity || 0,
+        unit_price: line.unit_price || 0,
+        tax_rate: line.tax_rate || 21,
         discount_percent: line.discount_percent || 0,
-        subtotal: line.subtotal,
-        tax_amount: line.tax_amount,
-        total: line.total,
+        subtotal: line.subtotal || 0,
+        tax_amount: line.tax_amount || 0,
+        total: line.total || 0,
       }));
       setLines(mappedLines);
 
       toast({ title: "Datos importados", description: `Datos cargados de ${quote.quote_number}` });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "No se pudo cargar el presupuesto origen";
       console.error("Error loading source quote:", error);
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Error", description: message, variant: "destructive" });
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     const init = async () => {
@@ -186,7 +251,7 @@ const MobileNewQuotePage = () => {
       const { data, error } = await supabase.rpc("list_clients", { p_search: null });
       if (error) throw error;
       setClients(
-        (data || []).map((c: any) => ({
+        ((data || []) as ClientRpcRow[]).map((c) => ({
           id: c.id,
           company_name: c.company_name,
           client_number: c.client_number,
@@ -202,9 +267,9 @@ const MobileNewQuotePage = () => {
     try {
       const { data, error } = await supabase.rpc("list_projects", { p_search: "" });
       if (error) throw error;
-      const clientProjects = (data || []).filter((p: any) => p.client_id === clientId);
+      const clientProjects = ((data || []) as ProjectRpcRow[]).filter((p) => p.client_id === clientId);
       setProjects(
-        clientProjects.map((p: any) => ({
+        clientProjects.map((p) => ({
           id: p.id,
           project_name: p.project_name,
           project_number: p.project_number,
@@ -222,8 +287,8 @@ const MobileNewQuotePage = () => {
       setLoadingSites(true);
       const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
       if (error) throw error;
-      const activeSites = ((data || []) as any[]).filter((s: any) => s.is_active);
-      setSites(activeSites.map((s: any) => ({
+      const activeSites = ((data || []) as ProjectSiteRpcRow[]).filter((s) => s.is_active);
+      setSites(activeSites.map((s) => ({
         id: s.id,
         site_name: s.site_name,
         city: s.city,
@@ -231,7 +296,7 @@ const MobileNewQuotePage = () => {
         is_active: s.is_active,
       })));
       // Auto-select default site
-      const defaultSite = activeSites.find((s: any) => s.is_default);
+      const defaultSite = activeSites.find((s) => s.is_default);
       if (defaultSite) setSelectedSiteId(defaultSite.id);
     } catch (error) {
       console.error("Error fetching sites:", error);
@@ -245,11 +310,12 @@ const MobileNewQuotePage = () => {
     try {
       const { data, error } = await supabase.rpc("list_taxes", { p_tax_type: "sales" });
       if (error) throw error;
-      const options: TaxOption[] = (data || [])
-        .filter((t: any) => t.is_active)
-        .map((t: any) => ({ value: t.rate, label: t.name }));
+      const taxRows = (data || []) as TaxRpcRow[];
+      const options: TaxOption[] = taxRows
+        .filter((t) => t.is_active)
+        .map((t) => ({ value: t.rate, label: t.name }));
       setTaxOptions(options);
-      const defaultTax = (data || []).find((t: any) => t.is_default && t.is_active);
+      const defaultTax = taxRows.find((t) => t.is_default && t.is_active);
       setDefaultTaxRate(defaultTax?.rate ?? options[0]?.value ?? 21);
     } catch (error) {
       console.error("Error fetching taxes:", error);
@@ -284,7 +350,7 @@ const MobileNewQuotePage = () => {
       const items: CatalogItem[] = [];
 
       if (productsData) {
-        productsData.forEach((p: any) => {
+        (productsData as ProductRpcRow[]).forEach((p) => {
           const itemType: 'product' | 'service' = p.type === 'service' ? 'service' : 'product';
           items.push({
             id: p.id,
@@ -299,7 +365,7 @@ const MobileNewQuotePage = () => {
       }
 
       if (packsData) {
-        packsData.forEach((p: any) => {
+        (packsData as PackRpcRow[]).forEach((p) => {
           items.push({
             id: p.id,
             type: 'pack',
@@ -364,7 +430,7 @@ const MobileNewQuotePage = () => {
     setLines(prev => [...prev, newLine]);
   }, [calculateLineValues, defaultTaxRate]);
 
-  const updateLine = useCallback((index: number, field: keyof QuoteLine, value: any) => {
+  const updateLine = useCallback((index: number, field: keyof QuoteLine, value: QuoteLineFieldValue) => {
     setLines(prev => {
       const updated = [...prev];
       updated[index] = calculateLineValues({ ...updated[index], [field]: value });
@@ -454,9 +520,10 @@ const MobileNewQuotePage = () => {
 
       toast({ title: "Presupuesto creado", description: `${quoteData[0].quote_number} guardado` });
       navigate(`/nexo-av/${userId}/quotes`);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "No se pudo guardar el presupuesto";
       console.error("Error saving quote:", error);
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -480,22 +547,21 @@ const MobileNewQuotePage = () => {
     <div className="w-full h-full flex flex-col">
       {/* ===== HEADER ===== */}
       <div className="flex-shrink-0 px-4 py-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleBack}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
-              "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-              "text-white/90 hover:text-white hover:bg-white/15",
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
+              "text-sm font-medium leading-none",
+              "bg-card border border-border text-foreground",
               "active:scale-95 transition-all duration-200",
-              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+              "shadow-sm"
             )}
             style={{ touchAction: 'manipulation' }}
             aria-label="Volver"
           >
             <ChevronLeft className="h-4 w-4" />
-            <span>Atrás</span>
+            <span className="hidden min-[400px]:inline">Atrás</span>
           </button>
           
           <div className="flex-1 min-w-0">
@@ -508,25 +574,24 @@ const MobileNewQuotePage = () => {
             onClick={handleSave}
             disabled={saving}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
-              "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-              "text-white/90 hover:text-white hover:bg-white/15",
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
+              "text-sm font-medium leading-none",
+              "bg-primary text-primary-foreground",
               "active:scale-95 transition-all duration-200",
-              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]",
+              "shadow-sm",
               "disabled:opacity-50 disabled:cursor-not-allowed"
             )}
-            style={{ touchAction: 'manipulation', height: '32px' }}
+            style={{ touchAction: 'manipulation' }}
           >
             {saving ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Guardando...</span>
+                <span className="hidden min-[400px]:inline">Guardando...</span>
               </>
             ) : (
               <>
                 <Save className="h-4 w-4" />
-                <span>Guardar</span>
+                <span className="hidden min-[400px]:inline">Guardar</span>
               </>
             )}
           </button>

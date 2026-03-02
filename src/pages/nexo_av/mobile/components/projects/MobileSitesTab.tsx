@@ -172,15 +172,14 @@ const MobileSitesTab = ({ projectId, siteMode }: MobileSitesTabProps) => {
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
           className={cn(
-            "h-8 px-3 flex items-center gap-1.5 rounded-full text-xs font-medium",
-            "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-            "text-white/90 hover:text-white hover:bg-white/15",
+            "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center gap-1.5 rounded-full text-xs font-medium",
+            "bg-primary text-primary-foreground",
             "active:scale-95 transition-all duration-200",
           )}
           style={{ touchAction: 'manipulation' }}
         >
           <Plus className="h-3.5 w-3.5" />
-          Nuevo sitio
+          <span className="hidden min-[400px]:inline">Nuevo sitio</span>
         </button>
       </div>
 
@@ -276,7 +275,7 @@ const MobileSitesTab = ({ projectId, siteMode }: MobileSitesTabProps) => {
       {/* Active sites */}
       {activeSites.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="p-4 bg-white/5 rounded-full mb-4">
+          <div className="p-4 bg-muted/60 rounded-full mb-4">
             <MapPin className="h-8 w-8 text-muted-foreground" />
           </div>
           <p className="text-sm text-muted-foreground">No hay sitios configurados</p>

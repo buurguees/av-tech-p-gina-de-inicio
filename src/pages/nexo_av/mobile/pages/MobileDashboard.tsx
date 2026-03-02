@@ -743,16 +743,16 @@ const QuickAction = ({ icon: Icon, label, stat, color, onPress }: {
   icon: LucideIcon; label: string; stat: number; color: string; onPress: () => void;
 }) => (
   <button onClick={onPress}
-    className="w-full flex items-center justify-between p-4 rounded-xl bg-card border border-border active:scale-[0.98] transition-all"
+    className="w-full flex items-center justify-between gap-3 p-4 rounded-xl bg-card border border-border active:scale-[0.98] transition-all"
     style={{ touchAction: "manipulation" }}>
-    <div className="flex items-center gap-3">
-      <div className={cn("p-2.5 rounded-xl", color)}><Icon className="h-5 w-5" /></div>
-      <div className="text-left">
-        <p className="font-medium text-foreground">{label}</p>
+    <div className="flex min-w-0 items-center gap-3">
+      <div className={cn("shrink-0 p-2.5 rounded-xl", color)}><Icon className="h-5 w-5" /></div>
+      <div className="min-w-0 text-left">
+        <p className="font-medium text-foreground break-words leading-tight">{label}</p>
         <p className="text-xs text-muted-foreground">{stat}</p>
       </div>
     </div>
-    <ArrowRight className="h-5 w-5 text-muted-foreground" />
+    <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground" />
   </button>
 );
 
@@ -778,7 +778,7 @@ const MobilePaymentList = <T extends PaymentItem>({ title, icon: Icon, items, re
 );
 
 const DashboardModule = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section className="rounded-2xl border border-border bg-card/95 p-3 shadow-sm">
+  <section className="overflow-hidden rounded-2xl border border-border bg-card/95 p-3 shadow-sm">
     <div className="mb-2">
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
     </div>

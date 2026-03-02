@@ -152,14 +152,14 @@ const MonthlyPyGDetailPage = () => {
 
   const revenueItems = profitLoss.filter((i) => i.account_type === "REVENUE");
   const expenseItems = profitLoss.filter((i) => i.account_type === "EXPENSE");
-  const totalRevenue = revenueItems.reduce((s, i) => s + i.amount, 0);
+  const totalRevenue = profitSummary?.total_revenue ?? revenueItems.reduce((s, i) => s + i.amount, 0);
   const totalExpenses = expenseItems.reduce((s, i) => s + i.amount, 0);
-  const operatingExpenses = expenseItems
+  const operatingExpenses = profitSummary?.operating_expenses ?? expenseItems
     .filter((i) => !i.account_code.startsWith("630"))
     .reduce((s, i) => s + i.amount, 0);
-  const profitBeforeTax = totalRevenue - operatingExpenses;
-  const taxAmount = corporateTax?.tax_amount || 0;
-  const netProfit = profitBeforeTax - taxAmount;
+  const profitBeforeTax = profitSummary?.profit_before_tax ?? (totalRevenue - operatingExpenses);
+  const taxAmount = profitSummary?.corporate_tax_amount ?? corporateTax?.tax_amount ?? 0;
+  const netProfit = profitSummary?.net_profit ?? (profitBeforeTax - taxAmount);
   const margin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
 
   const handleViewDocument = (referenceType: string | null, referenceId: string | null) => {
@@ -353,7 +353,7 @@ const MonthlyPyGDetailPage = () => {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Impuesto de Sociedades ({((corporateTax?.tax_rate || 0) * 100).toFixed(0)}%)</span>
+                <span className="text-muted-foreground">Impuesto de Sociedades ({(corporateTax?.tax_rate || 0).toFixed(0)}%)</span>
                 <span className="font-semibold text-red-600">{formatCurrency(taxAmount)}</span>
               </div>
               <div className="flex justify-between pt-3 border-t">
@@ -418,7 +418,7 @@ const MonthlyPyGDetailPage = () => {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Tipo impositivo</span>
-                      <span className="font-semibold">{(corporateTax.tax_rate * 100).toFixed(0)}%</span>
+                      <span className="font-semibold">{corporateTax.tax_rate.toFixed(0)}%</span>
                     </div>
                     <div className="flex justify-between text-sm pt-2 border-t">
                       <span className="font-semibold">Cuota</span>

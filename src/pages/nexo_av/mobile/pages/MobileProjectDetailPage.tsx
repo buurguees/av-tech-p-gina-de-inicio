@@ -408,23 +408,22 @@ const MobileProjectDetailPage = () => {
     <div className="w-full h-full flex flex-col">
       {/* ===== HEADER: 3 columnas (Atrás | Nombre | Acciones) ===== */}
       <div className="flex-shrink-0 px-4 py-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Columna izquierda: Botón Atrás */}
           <button
             onClick={handleBack}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
-              "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-              "text-white/90 hover:text-white hover:bg-white/15",
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
+              "text-sm font-medium leading-none",
+              "bg-card border border-border text-foreground",
               "active:scale-95 transition-all duration-200",
-              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+              "shadow-sm"
             )}
             style={{ touchAction: 'manipulation' }}
             aria-label="Volver"
           >
             <ChevronLeft className="h-4 w-4" />
-            <span>Atrás</span>
+            <span className="hidden min-[400px]:inline">Atrás</span>
           </button>
           
           {/* Columna central: Nombre del proyecto */}
@@ -442,35 +441,25 @@ const MobileProjectDetailPage = () => {
             <button
               onClick={actionButton.onClick}
               className={cn(
-                "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
-                "text-sm font-medium whitespace-nowrap leading-none",
-                "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-                "text-white/90 hover:text-white hover:bg-white/15",
+                "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
+                "text-sm font-medium leading-none",
+                "bg-primary text-primary-foreground",
                 "active:scale-95 transition-all duration-200",
-                "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+                "shadow-sm"
               )}
               style={{ touchAction: 'manipulation' }}
               aria-label={actionButton.label}
             >
               <actionButton.icon className="h-4 w-4" />
-              <span>{actionButton.label}</span>
+              <span className="hidden min-[400px]:inline">{actionButton.label}</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* ===== TABS: Navegación con estilo glass y distribución equitativa ===== */}
+      {/* ===== TABS: Navegación compacta y theme-safe ===== */}
       <div className="flex-shrink-0 px-4 py-3">
-        <div 
-          className="flex overflow-x-auto scrollbar-hide gap-1 p-1 rounded-full"
-          style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid rgba(79, 79, 79, 1)',
-            boxShadow: 'inset 0px 0px 15px 5px rgba(138, 138, 138, 0.1)',
-          }}
-        >
+        <div className="grid grid-cols-4 gap-2 rounded-2xl border border-border bg-card/95 p-2 shadow-sm">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -479,49 +468,24 @@ const MobileProjectDetailPage = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "relative flex items-center justify-center whitespace-nowrap",
-                  "text-sm font-medium transition-all duration-250 ease-out",
-                  tab.iconOnly ? "flex-shrink-0" : "flex-1 min-w-0",
-                  tab.iconOnly ? "w-10 h-10" : "px-3 py-2",
-                  "rounded-full",
+                  "flex min-w-0 min-h-[52px] items-center justify-center gap-1 rounded-xl px-2 py-2.5",
+                  "text-[11px] font-medium leading-tight transition-colors duration-200",
                   isActive 
-                    ? "text-white" 
-                    : "text-white/60 hover:text-white/80"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                 )}
                 style={{ 
                   touchAction: 'manipulation',
                   WebkitTapHighlightColor: 'transparent',
                 }}
                 title={tab.label}
+                aria-pressed={isActive}
               >
-                {/* Fondo glass para el tab activo */}
-                {isActive && (
-                  <div 
-                    className="absolute inset-0 rounded-full"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.15)',
-                      backdropFilter: 'blur(30px) saturate(200%)',
-                      WebkitBackdropFilter: 'blur(30px) saturate(200%)',
-                      border: '1px solid rgba(255, 255, 255, 0.3)',
-                      boxShadow: 'inset 0px 0px 20px 8px rgba(255, 255, 255, 0.15), 0 0 20px 2px rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15)',
-                    }}
-                  />
-                )}
-                {/* Contenido del tab */}
-                <div className={cn(
-                  "relative z-10 flex items-center justify-center gap-1.5",
-                  "transition-all duration-250"
-                )}>
+                <div className="flex min-w-0 items-center justify-center gap-1.5">
                   {tab.iconOnly ? (
-                    <Icon className={cn(
-                      "h-[18px] w-[18px] transition-all duration-250",
-                      isActive && "drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]"
-                    )} />
+                    <Icon className="h-[18px] w-[18px] shrink-0" />
                   ) : (
-                    <span className={cn(
-                      "text-[13px] transition-all duration-250",
-                      isActive && "drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]"
-                    )}>
+                    <span className="truncate max-w-full text-[12px]">
                       {tab.label}
                     </span>
                   )}
@@ -892,8 +856,8 @@ const InfoChip = ({ icon: Icon, value, href }: InfoChipProps) => {
   const content = (
     <div className={cn(
       "flex items-center gap-1.5 px-2 py-1 rounded-full",
-      "bg-white/5 border border-border text-xs",
-      href && "hover:bg-white/10 cursor-pointer"
+      "bg-muted/60 border border-border text-xs",
+      href && "hover:bg-muted cursor-pointer"
     )}>
       <Icon className="h-3 w-3 text-muted-foreground" />
       <span className={cn("truncate max-w-[150px]", href && "text-primary")}>
@@ -916,7 +880,7 @@ interface EmptyTabContentProps {
 
 const EmptyTabContent = ({ icon: Icon, title, description }: EmptyTabContentProps) => (
   <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-    <div className="p-4 bg-white/5 rounded-full mb-4">
+    <div className="p-4 bg-muted/60 rounded-full mb-4">
       <Icon className="h-8 w-8 text-muted-foreground" />
     </div>
     <h3 className="text-lg font-medium text-foreground mb-1">{title}</h3>
@@ -953,7 +917,7 @@ const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency, siteMode, d
   if (quotes.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="p-4 bg-white/5 rounded-full mb-4">
+        <div className="p-4 bg-muted/60 rounded-full mb-4">
           <FileText className="h-8 w-8 text-muted-foreground" />
         </div>
         <h3 className="text-lg font-medium text-foreground mb-1">Presupuestos</h3>
@@ -1054,7 +1018,7 @@ const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency, siteM
   if (invoices.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="p-4 bg-white/5 rounded-full mb-4">
+        <div className="p-4 bg-muted/60 rounded-full mb-4">
           <Receipt className="h-8 w-8 text-muted-foreground" />
         </div>
         <h3 className="text-lg font-medium text-foreground mb-1">Facturas</h3>

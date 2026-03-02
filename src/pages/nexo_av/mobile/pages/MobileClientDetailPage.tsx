@@ -35,10 +35,10 @@ import { getQuoteStatusInfo } from "@/constants/quoteStatuses";
 import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo } from "@/constants/salesInvoiceStatuses";
 // Definir LEAD_STAGES localmente (igual que en MobileClientsPage)
 const LEAD_STAGES = [
-  { value: 'NEGOTIATION', label: 'En Negociación', className: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  { value: 'WON', label: 'Ganado', className: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'LOST', label: 'Perdido', className: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  { value: 'RECURRING', label: 'Recurrente', className: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+  { value: 'NEGOTIATION', label: 'En Negociación', className: 'bg-orange-500/15 text-orange-700 border-orange-500/30 dark:text-orange-400' },
+  { value: 'WON', label: 'Ganado', className: 'bg-green-500/15 text-green-700 border-green-500/30 dark:text-green-400' },
+  { value: 'LOST', label: 'Perdido', className: 'bg-red-500/15 text-red-700 border-red-500/30 dark:text-red-400' },
+  { value: 'RECURRING', label: 'Recurrente', className: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30 dark:text-emerald-400' },
 ];
 
 const getStageInfo = (stage: string) => {
@@ -357,23 +357,22 @@ const MobileClientDetailPage = () => {
     <div className="w-full h-full flex flex-col">
       {/* ===== HEADER: 3 columnas (Atrás | Nombre | Acciones) ===== */}
       <div className="flex-shrink-0 px-4 py-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Columna izquierda: Botón Atrás */}
           <button
             onClick={handleBack}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
-              "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-              "text-white/90 hover:text-white hover:bg-white/15",
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
+              "text-sm font-medium leading-none",
+              "bg-card border border-border text-foreground",
               "active:scale-95 transition-all duration-200",
-              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+              "shadow-sm"
             )}
             style={{ touchAction: 'manipulation' }}
             aria-label="Volver"
           >
             <ChevronLeft className="h-4 w-4" />
-            <span>Atrás</span>
+            <span className="hidden min-[400px]:inline">Atrás</span>
           </button>
           
           {/* Columna central: Nombre del cliente */}
@@ -393,35 +392,25 @@ const MobileClientDetailPage = () => {
             <button
               onClick={actionButton.onClick}
               className={cn(
-                "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
-                "text-sm font-medium whitespace-nowrap leading-none",
-                "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-                "text-white/90 hover:text-white hover:bg-white/15",
-                "active:scale-95 transition-all duration-200",
-                "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
+              "text-sm font-medium leading-none",
+              "bg-primary text-primary-foreground",
+              "active:scale-95 transition-all duration-200",
+              "shadow-sm"
               )}
               style={{ touchAction: 'manipulation' }}
               aria-label={actionButton.label}
             >
               <actionButton.icon className="h-4 w-4" />
-              <span>{actionButton.label}</span>
+              <span className="hidden min-[400px]:inline">{actionButton.label}</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* ===== TABS: Navegación con estilo glass y distribución equitativa ===== */}
+      {/* ===== TABS: Navegación compacta y theme-safe ===== */}
       <div className="flex-shrink-0 px-4 py-3">
-        <div 
-          className="flex overflow-x-auto scrollbar-hide gap-1 p-1 rounded-full"
-          style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid rgba(79, 79, 79, 1)',
-            boxShadow: 'inset 0px 0px 15px 5px rgba(138, 138, 138, 0.1)',
-          }}
-        >
+        <div className="grid grid-cols-4 gap-2 rounded-2xl border border-border bg-card/95 p-2 shadow-sm">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -430,49 +419,22 @@ const MobileClientDetailPage = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "relative flex items-center justify-center gap-1.5 whitespace-nowrap",
-                  "text-sm font-medium transition-all duration-250 ease-out",
-                  "flex-1 min-w-0",
-                  "px-2 py-2 min-[420px]:px-3",
-                  "rounded-full",
+                  "flex min-w-0 min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5",
+                  "text-[11px] font-medium leading-tight transition-colors duration-200",
                   isActive 
-                    ? "text-white" 
-                    : "text-white/60 hover:text-white/80"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                 )}
                 style={{ 
                   touchAction: 'manipulation',
                   WebkitTapHighlightColor: 'transparent',
                 }}
                 title={tab.label}
+                aria-pressed={isActive}
               >
-                {/* Fondo glass para el tab activo */}
-                {isActive && (
-                  <div 
-                    className="absolute inset-0 rounded-full"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.15)',
-                      backdropFilter: 'blur(30px) saturate(200%)',
-                      WebkitBackdropFilter: 'blur(30px) saturate(200%)',
-                      border: '1px solid rgba(255, 255, 255, 0.3)',
-                      boxShadow: 'inset 0px 0px 20px 8px rgba(255, 255, 255, 0.15), 0 0 20px 2px rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15)',
-                    }}
-                  />
-                )}
-                {/* Contenido del tab */}
-                <div className={cn(
-                  "relative z-10 flex items-center justify-center gap-1.5",
-                  "transition-all duration-250"
-                )}>
-                  {/* Icono: visible solo en pantallas estrechas (<420px) */}
-                  <Icon className={cn(
-                    "min-[420px]:hidden transition-all duration-250",
-                    isActive ? "h-5 w-5 drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]" : "h-5 w-5"
-                  )} />
-                  {/* Texto: visible solo en pantallas anchas (>=420px) */}
-                  <span className={cn(
-                    "hidden min-[420px]:inline transition-all duration-250",
-                    isActive && "drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]"
-                  )}>
+                <div className="flex min-w-0 flex-col items-center justify-center gap-1">
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="hidden min-[430px]:inline truncate max-w-full">
                     {tab.label}
                   </span>
                 </div>
@@ -791,7 +753,7 @@ const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency }: QuotesLis
   if (quotes.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="p-4 bg-white/5 rounded-full mb-4">
+        <div className="p-4 bg-muted/60 rounded-full mb-4">
           <FileText className="h-8 w-8 text-muted-foreground" />
         </div>
         <h3 className="text-lg font-medium text-foreground mb-1">Presupuestos</h3>
@@ -872,7 +834,7 @@ const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency }: Inv
   if (invoices.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="p-4 bg-white/5 rounded-full mb-4">
+        <div className="p-4 bg-muted/60 rounded-full mb-4">
           <Receipt className="h-8 w-8 text-muted-foreground" />
         </div>
         <h3 className="text-lg font-medium text-foreground mb-1">Facturas</h3>
@@ -976,7 +938,7 @@ const ProjectsList = ({ projects, loading, onProjectClick }: ProjectsListProps) 
   if (projects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="p-4 bg-white/5 rounded-full mb-4">
+        <div className="p-4 bg-muted/60 rounded-full mb-4">
           <FolderKanban className="h-8 w-8 text-muted-foreground" />
         </div>
         <h3 className="text-lg font-medium text-foreground mb-1">Proyectos</h3>

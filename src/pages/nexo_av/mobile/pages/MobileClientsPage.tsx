@@ -62,10 +62,10 @@ const emptyClientKpis: ClientKpis = {
 };
 
 const LEAD_STAGES = [
-  { value: 'NEGOTIATION', label: 'En Negociación', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  { value: 'WON', label: 'Ganado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'LOST', label: 'Perdido', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  { value: 'RECURRING', label: 'Recurrente', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+  { value: 'NEGOTIATION', label: 'En Negociación', color: 'bg-orange-500/15 text-orange-700 border-orange-500/30 dark:text-orange-400' },
+  { value: 'WON', label: 'Ganado', color: 'bg-green-500/15 text-green-700 border-green-500/30 dark:text-green-400' },
+  { value: 'LOST', label: 'Perdido', color: 'bg-red-500/15 text-red-700 border-red-500/30 dark:text-red-400' },
+  { value: 'RECURRING', label: 'Recurrente', color: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30 dark:text-emerald-400' },
 ];
 
 const getStageInfo = (stage: string) => {
@@ -337,8 +337,8 @@ const MobileClientsPage = () => {
           <button
             onClick={handleCreateClient}
             className={cn(
-              "h-11 px-4 flex items-center justify-center gap-1.5 rounded-full",
-              "text-sm font-medium whitespace-nowrap leading-none",
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full shrink-0",
+              "text-sm font-medium leading-none",
               "bg-primary text-primary-foreground",
               "active:scale-95 transition-all duration-200",
               "shadow-sm"
@@ -346,7 +346,7 @@ const MobileClientsPage = () => {
             style={{ touchAction: 'manipulation' }}
           >
             <Plus className="h-4 w-4" />
-            <span>Nuevo</span>
+            <span className="hidden min-[400px]:inline">Nuevo</span>
           </button>
         </div>
       </div>

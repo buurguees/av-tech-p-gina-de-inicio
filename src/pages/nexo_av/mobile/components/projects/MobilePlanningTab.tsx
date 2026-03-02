@@ -209,7 +209,7 @@ const MobilePlanningTab = ({ projectId, siteMode }: MobilePlanningTabProps) => {
   if (sites.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="p-4 bg-white/5 rounded-full mb-4">
+        <div className="p-4 bg-muted/60 rounded-full mb-4">
           <Calendar className="h-8 w-8 text-muted-foreground" />
         </div>
         <h3 className="text-lg font-medium text-foreground mb-1">Sin sitios</h3>

@@ -58,10 +58,10 @@ const INDUSTRY_SECTORS = [
 ];
 
 const LEAD_STAGES = [
-  { value: 'NEGOTIATION', label: 'En Negociación', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-  { value: 'WON', label: 'Ganado', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  { value: 'LOST', label: 'Perdido', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  { value: 'RECURRING', label: 'Recurrente', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+  { value: 'NEGOTIATION', label: 'En Negociación', color: 'bg-orange-500/15 text-orange-700 border-orange-500/30 dark:text-orange-400' },
+  { value: 'WON', label: 'Ganado', color: 'bg-green-500/15 text-green-700 border-green-500/30 dark:text-green-400' },
+  { value: 'LOST', label: 'Perdido', color: 'bg-red-500/15 text-red-700 border-red-500/30 dark:text-red-400' },
+  { value: 'RECURRING', label: 'Recurrente', color: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30 dark:text-emerald-400' },
 ];
 
 interface AssignableUser {
@@ -308,22 +308,21 @@ const MobileNewClientPage = () => {
     <div className="w-full h-full flex flex-col">
       {/* ===== HEADER ===== */}
       <div className="flex-shrink-0 px-4 py-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleBack}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
-              "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-              "text-white/90 hover:text-white hover:bg-white/15",
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
+              "text-sm font-medium leading-none",
+              "bg-card border border-border text-foreground",
               "active:scale-95 transition-all duration-200",
-              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+              "shadow-sm"
             )}
             style={{ touchAction: 'manipulation' }}
             aria-label="Volver"
           >
             <ChevronLeft className="h-4 w-4" />
-            <span>Atrás</span>
+            <span className="hidden min-[400px]:inline">Atrás</span>
           </button>
           
           <div className="flex-1 min-w-0">
@@ -336,8 +335,8 @@ const MobileNewClientPage = () => {
             onClick={handleSubmit}
             disabled={loading}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
-              "text-sm font-medium whitespace-nowrap leading-none",
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
+              "text-sm font-medium leading-none",
               "bg-primary text-primary-foreground",
               "hover:bg-primary/90 active:scale-95 transition-all duration-200",
               "disabled:opacity-50 disabled:cursor-not-allowed",
@@ -348,12 +347,12 @@ const MobileNewClientPage = () => {
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Guardando...</span>
+                <span className="hidden min-[400px]:inline">Guardando...</span>
               </>
             ) : (
               <>
                 <Save className="h-4 w-4" />
-                <span>Guardar</span>
+                <span className="hidden min-[400px]:inline">Guardar</span>
               </>
             )}
           </button>

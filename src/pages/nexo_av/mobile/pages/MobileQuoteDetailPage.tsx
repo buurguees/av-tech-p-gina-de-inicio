@@ -2,7 +2,7 @@
  * MobileQuoteDetailPage - Página de detalle de presupuesto para móvil
  * VERSIÓN: 1.0 - 3 pestañas (Resumen, Preview, Líneas)
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +28,8 @@ import {
   TrendingUp,
   Copy,
   Receipt as ReceiptIcon,
-  Clock
+  Clock,
+  type LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getQuoteStatusInfo, QUOTE_STATUSES } from "@/constants/quoteStatuses";
@@ -130,12 +131,17 @@ interface CompanySettings {
   logo_url: string | null;
 }
 
+interface ArchiveMetadataRow {
+  archived_pdf_path: string | null;
+  archived_pdf_file_name: string | null;
+}
+
 type TabId = 'resumen' | 'preview' | 'lineas' | 'auditoria';
 
 interface Tab {
   id: TabId;
   label: string;
-  icon: any;
+  icon: LucideIcon;
 }
 
 const TABS: Tab[] = [
@@ -186,11 +192,11 @@ const MobileQuoteDetailPage = () => {
 
   useEffect(() => {
     if (quoteId) {
-      fetchQuoteData();
+      void fetchQuoteData();
     }
-  }, [quoteId]);
+  }, [quoteId, fetchQuoteData]);
 
-  const fetchQuoteData = async () => {
+  const fetchQuoteData = useCallback(async () => {
     if (!quoteId) return;
     
     try {
@@ -204,9 +210,9 @@ const MobileQuoteDetailPage = () => {
       if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
 
       const quoteInfo = quoteData[0];
-      const { data: archiveRows, error: archiveError } = await ((supabase.rpc as any)("get_quote_archive_metadata", {
+      const { data: archiveRows, error: archiveError } = await supabase.rpc("get_quote_archive_metadata", {
         p_quote_id: quoteId,
-      }) as Promise<{ data: Array<{ archived_pdf_path: string | null; archived_pdf_file_name: string | null }> | null; error: any }>);
+      }) as { data: ArchiveMetadataRow[] | null; error: unknown };
       const archiveData = !archiveError && Array.isArray(archiveRows) && archiveRows.length > 0 ? archiveRows[0] : null;
       const enrichedQuote = {
         ...quoteInfo,
@@ -257,17 +263,18 @@ const MobileQuoteDetailPage = () => {
       }
 
       return enrichedQuote;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "No se pudo cargar el presupuesto";
       console.error("Error fetching quote:", error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo cargar el presupuesto",
+        description: message,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [quoteId, toast]);
 
   const handleStatusChange = async (newStatus: string) => {
     if (!quote || newStatus === quote.status) return;
@@ -290,11 +297,12 @@ const MobileQuoteDetailPage = () => {
           ? "El presupuesto se ha bloqueado y se ha asignado el número definitivo"
           : `El presupuesto ahora está "${statusLabel}"`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "No se pudo actualizar el estado";
       console.error("Error updating status:", error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo actualizar el estado",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -320,11 +328,12 @@ const MobileQuoteDetailPage = () => {
         title: "Presupuesto enviado",
         description: "El presupuesto se ha bloqueado y se ha asignado el número definitivo",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "No se pudo enviar el presupuesto";
       console.error("Error sending quote:", error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo enviar el presupuesto",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -367,11 +376,12 @@ const MobileQuoteDetailPage = () => {
       });
 
       navigate(`/nexo-av/${userId}/invoices/${invoiceId}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "No se pudo crear la factura";
       console.error("Error creating invoice:", error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo crear la factura",
+        description: message,
         variant: "destructive",
       });
     }
@@ -435,8 +445,8 @@ const MobileQuoteDetailPage = () => {
   const fileName = `${quote.quote_number}.pdf`;
 
   // Determinar botones de acción según estado (igual que desktop)
-  const getActionButtons = (): Array<{ label: string; icon: any; onClick: () => void; loading?: boolean }> => {
-    const buttons: Array<{ label: string; icon: any; onClick: () => void; loading?: boolean }> = [];
+  const getActionButtons = (): Array<{ label: string; icon: LucideIcon; onClick: () => void; loading?: boolean }> => {
+    const buttons: Array<{ label: string; icon: LucideIcon; onClick: () => void; loading?: boolean }> = [];
 
     if (quote.status === 'DRAFT') {
       buttons.push({
@@ -478,23 +488,22 @@ const MobileQuoteDetailPage = () => {
     <div className="w-full h-full flex flex-col">
       {/* ===== HEADER: 3 columnas (Atrás | Nombre | Acciones) ===== */}
       <div className="flex-shrink-0 px-4 py-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Columna izquierda: Botón Atrás */}
           <button
             onClick={handleBack}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
-              "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-              "text-white/90 hover:text-white hover:bg-white/15",
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full flex-shrink-0",
+              "text-sm font-medium leading-none",
+              "bg-card border border-border text-foreground",
               "active:scale-95 transition-all duration-200",
-              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+              "shadow-sm"
             )}
             style={{ touchAction: 'manipulation' }}
             aria-label="Volver"
           >
             <ChevronLeft className="h-4 w-4" />
-            <span>Atrás</span>
+            <span className="hidden min-[400px]:inline">Atrás</span>
           </button>
           
           {/* Columna central: Nombre del presupuesto */}
@@ -516,12 +525,11 @@ const MobileQuoteDetailPage = () => {
                   onClick={btn.onClick}
                   disabled={btn.loading}
                   className={cn(
-                    "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
-                    "text-sm font-medium whitespace-nowrap leading-none",
-                    "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-                    "text-white/90 hover:text-white hover:bg-white/15",
+                    "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full shrink-0",
+                    "text-sm font-medium leading-none",
+                    "bg-primary text-primary-foreground",
                     "active:scale-95 transition-all duration-200",
-                    "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]",
+                    "shadow-sm",
                     btn.loading && "opacity-50"
                   )}
                   style={{ touchAction: 'manipulation' }}
@@ -532,7 +540,7 @@ const MobileQuoteDetailPage = () => {
                   ) : (
                     <btn.icon className="h-4 w-4" />
                   )}
-                  <span>{btn.label}</span>
+                  <span className="hidden min-[400px]:inline">{btn.label}</span>
                 </button>
               ))}
             </div>
@@ -540,18 +548,9 @@ const MobileQuoteDetailPage = () => {
         </div>
       </div>
 
-      {/* ===== TABS: Navegación con estilo glass y distribución equitativa ===== */}
+      {/* ===== TABS: Navegación compacta y theme-safe ===== */}
       <div className="flex-shrink-0 px-4 py-3">
-        <div 
-          className="flex overflow-x-auto scrollbar-hide gap-1 p-1 rounded-full"
-          style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid rgba(79, 79, 79, 1)',
-            boxShadow: 'inset 0px 0px 15px 5px rgba(138, 138, 138, 0.1)',
-          }}
-        >
+        <div className="grid grid-cols-4 gap-2 rounded-2xl border border-border bg-card/95 p-2 shadow-sm">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -560,49 +559,22 @@ const MobileQuoteDetailPage = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "relative flex items-center justify-center gap-1.5 whitespace-nowrap",
-                  "text-sm font-medium transition-all duration-250 ease-out",
-                  "flex-1 min-w-0",
-                  "px-2 py-2 min-[420px]:px-3",
-                  "rounded-full",
+                  "flex min-w-0 min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5",
+                  "text-[11px] font-medium leading-tight transition-colors duration-200",
                   isActive 
-                    ? "text-white" 
-                    : "text-white/60 hover:text-white/80"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                 )}
                 style={{ 
                   touchAction: 'manipulation',
                   WebkitTapHighlightColor: 'transparent',
                 }}
                 title={tab.label}
+                aria-pressed={isActive}
               >
-                {/* Fondo glass para el tab activo */}
-                {isActive && (
-                  <div 
-                    className="absolute inset-0 rounded-full"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.15)',
-                      backdropFilter: 'blur(30px) saturate(200%)',
-                      WebkitBackdropFilter: 'blur(30px) saturate(200%)',
-                      border: '1px solid rgba(255, 255, 255, 0.3)',
-                      boxShadow: 'inset 0px 0px 20px 8px rgba(255, 255, 255, 0.15), 0 0 20px 2px rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15)',
-                    }}
-                  />
-                )}
-                {/* Contenido del tab */}
-                <div className={cn(
-                  "relative z-10 flex items-center justify-center gap-1.5",
-                  "transition-all duration-250"
-                )}>
-                  {/* Icono: visible solo en pantallas estrechas (<420px) */}
-                  <Icon className={cn(
-                    "min-[420px]:hidden transition-all duration-250",
-                    isActive ? "h-5 w-5 drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]" : "h-5 w-5"
-                  )} />
-                  {/* Texto: visible solo en pantallas anchas (>=420px) */}
-                  <span className={cn(
-                    "hidden min-[420px]:inline transition-all duration-250",
-                    isActive && "drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]"
-                  )}>
+                <div className="flex min-w-0 flex-col items-center justify-center gap-1">
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="hidden min-[430px]:inline truncate max-w-full">
                     {tab.label}
                   </span>
                 </div>
@@ -1019,10 +991,11 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
           {({ loading }) => (
             <button
               className={cn(
-                "h-10 px-4 flex items-center justify-center gap-2 rounded-full",
-                "text-sm font-medium",
-                "bg-orange-500 hover:bg-orange-600 text-white",
+                "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-2 rounded-full",
+                "text-sm font-medium leading-none",
+                "bg-primary text-primary-foreground",
                 "active:scale-95 transition-all duration-200",
+                "shadow-sm",
                 loading && "opacity-50"
               )}
               style={{ touchAction: "manipulation" }}
@@ -1033,7 +1006,7 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
               ) : (
                 <Download className="h-4 w-4" />
               )}
-              <span>Descargar PDF</span>
+              <span className="hidden min-[400px]:inline">Descargar PDF</span>
             </button>
           )}
         </PDFDownloadLink>
@@ -1049,27 +1022,27 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
           <button
             onClick={() => pdfUrl && window.open(pdfUrl, "_blank")}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
-              "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-white/10 backdrop-blur-xl border border-[rgba(79,79,79,1)]",
-              "text-white/90 hover:text-white hover:bg-white/15",
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full shrink-0",
+              "text-sm font-medium leading-none",
+              "bg-card border border-border text-foreground",
               "active:scale-95 transition-all duration-200",
-              "shadow-[inset_0px_0px_15px_5px_rgba(138,138,138,0.1)]"
+              "shadow-sm"
             )}
             style={{ touchAction: "manipulation" }}
           >
             <Eye className="h-4 w-4" />
-            <span>Ver PDF</span>
+            <span className="hidden min-[400px]:inline">Ver PDF</span>
           </button>
 
           <button
             onClick={handleDownload}
             disabled={!pdfBlob || downloading}
             className={cn(
-              "h-8 px-3 flex items-center justify-center gap-1.5 rounded-full",
-              "text-sm font-medium whitespace-nowrap leading-none",
-              "bg-orange-500 hover:bg-orange-600 text-white",
+              "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full shrink-0",
+              "text-sm font-medium leading-none",
+              "bg-primary text-primary-foreground",
               "active:scale-95 transition-all duration-200",
+              "shadow-sm",
               (!pdfBlob || downloading) && "opacity-50"
             )}
             style={{ touchAction: "manipulation" }}
@@ -1079,7 +1052,7 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
             ) : (
               <Download className="h-4 w-4" />
             )}
-            <span>Descargar</span>
+            <span className="hidden min-[400px]:inline">Descargar</span>
           </button>
         </div>
       </div>
@@ -1090,7 +1063,7 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
           className={cn(
             "flex-shrink-0 px-4 py-3 rounded-lg",
             "bg-amber-500/10 border border-amber-500/30",
-            "text-amber-200/90 text-sm"
+            "text-amber-900 dark:text-amber-100 text-sm"
           )}
         >
           <p className="mb-2">
@@ -1101,7 +1074,7 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
             className={cn(
               "h-9 px-4 flex items-center justify-center gap-2 rounded-full",
               "text-sm font-medium bg-amber-500/20 hover:bg-amber-500/30",
-              "border border-amber-500/40 text-amber-100",
+              "border border-amber-500/40 text-amber-900 dark:text-amber-100",
               "active:scale-95 transition-all"
             )}
             style={{ touchAction: "manipulation" }}
@@ -1252,7 +1225,7 @@ const SectionCard = ({ title, children, isExpanded = true, onToggle }: SectionCa
       className={cn(
         "w-full px-4 py-3 flex items-center justify-between",
         "text-xs font-medium text-muted-foreground uppercase tracking-wider",
-        "hover:bg-white/5 transition-colors",
+        "hover:bg-muted/60 transition-colors",
         !onToggle && "cursor-default"
       )}
       style={onToggle ? { touchAction: 'manipulation' } : undefined}
@@ -1275,7 +1248,7 @@ const SectionCard = ({ title, children, isExpanded = true, onToggle }: SectionCa
 );
 
 interface InfoRowProps {
-  icon: any;
+  icon: LucideIcon;
   label: string;
   value: string;
   subValue?: string;
@@ -1299,7 +1272,7 @@ const InfoRow = ({ icon: Icon, label, value, subValue }: InfoRowProps) => (
 );
 
 interface InfoChipProps {
-  icon: any;
+  icon: LucideIcon;
   value: string;
   href?: string;
 }
@@ -1308,8 +1281,8 @@ const InfoChip = ({ icon: Icon, value, href }: InfoChipProps) => {
   const content = (
     <div className={cn(
       "flex items-center gap-1.5 px-2 py-1 rounded-full",
-      "bg-white/5 border border-border text-xs",
-      href && "hover:bg-white/10 cursor-pointer"
+      "bg-muted/60 border border-border text-xs",
+      href && "hover:bg-muted cursor-pointer"
     )}>
       <Icon className="h-3 w-3 text-muted-foreground" />
       <span className={cn("truncate max-w-[150px]", href && "text-primary")}>
