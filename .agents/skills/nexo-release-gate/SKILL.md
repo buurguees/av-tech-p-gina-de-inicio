@@ -73,3 +73,8 @@ Bloquear release si ocurre cualquiera:
 - Riesgo residual: <bajo/medio/alto>
 - Decision recomendada: <merge/deploy | corregir y revalidar>
 ```
+
+## Persistencia de memoria (obligatoria)
+Tras ejecutar el gate:
+- Actualizar `.agents/memories/CURRENT_STATE.md` con estado final.
+- Registrar handover de la sesion en `.agents/memories/YYYY-MM-DD_*.md` cuando haya cambios relevantes.

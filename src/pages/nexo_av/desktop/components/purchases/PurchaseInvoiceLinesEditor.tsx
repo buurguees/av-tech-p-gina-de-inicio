@@ -58,6 +58,11 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
   const [defaultTaxRate, setDefaultTaxRate] = useState<number>(21);
   const [numericInputValues, setNumericInputValues] = useState<Record<string, string>>({});
 
+  const roundTo = (value: number, decimals: number) => {
+    const factor = 10 ** decimals;
+    return Math.round((value + Number.EPSILON) * factor) / factor;
+  };
+
   useEffect(() => {
     fetchTaxes();
   }, []);
@@ -101,16 +106,16 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
     
     // Apply discount
     const discountAmount = (lineSubtotal * discountPercent) / 100;
-    const subtotal = lineSubtotal - discountAmount;
+    const subtotal = roundTo(lineSubtotal - discountAmount, 2);
     
     // Calculate tax (IVA)
-    const taxAmount = (subtotal * taxRate) / 100;
+    const taxAmount = roundTo((subtotal * taxRate) / 100, 2);
     
     // Calculate withholding (IRPF) - this is a deduction
-    const withholdingAmount = (subtotal * withholdingTaxRate) / 100;
+    const withholdingAmount = roundTo((subtotal * withholdingTaxRate) / 100, 2);
     
     // Total = subtotal + IVA - IRPF
-    const total = subtotal + taxAmount - withholdingAmount;
+    const total = roundTo(subtotal + taxAmount - withholdingAmount, 2);
 
     return {
       ...line,
@@ -121,10 +126,10 @@ const PurchaseInvoiceLinesEditor: React.FC<PurchaseInvoiceLinesEditorProps> = ({
       tax_rate: taxRate,
       discount_percent: discountPercent,
       withholding_tax_rate: withholdingTaxRate,
-      subtotal: Math.round(subtotal * 100) / 100,
-      tax_amount: Math.round(taxAmount * 100) / 100,
-      withholding_amount: Math.round(withholdingAmount * 100) / 100,
-      total: Math.round(total * 100) / 100,
+      subtotal: roundTo(subtotal, 2),
+      tax_amount: roundTo(taxAmount, 2),
+      withholding_amount: roundTo(withholdingAmount, 2),
+      total: roundTo(total, 2),
     } as PurchaseInvoiceLine;
   };
 

@@ -28,7 +28,6 @@ import {
   TrendingDown,
   AlertCircle,
   Upload,
-  Camera,
   Loader2,
   Search,
   Filter,
@@ -42,6 +41,12 @@ import {
 } from "lucide-react";
 import { cn, toNumber } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  calculatePaymentStatus,
+  getDocumentStatusInfo,
+  getPaymentStatusInfo,
+  normalizePurchaseDocumentStatus,
+} from "@/constants/purchaseInvoiceStatuses";
 import PaginationControls from "../components/common/PaginationControls";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import DocumentScanner from "../components/common/DocumentScanner";
@@ -59,6 +64,7 @@ const ExpensesPageDesktop = () => {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchQuery = useDebounce(searchInput, 500);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showTechnicalDrafts, setShowTechnicalDrafts] = useState(false);
   const [selectedExpenses, setSelectedExpenses] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -75,6 +81,30 @@ const ExpensesPageDesktop = () => {
 
   /** Solo se pueden eliminar gastos que aún no tienen número definitivo (internal_purchase_number) */
   const canDeleteExpense = (expense: any) => !expense?.internal_purchase_number;
+  const isTechnicalDraft = (expense: any) =>
+    normalizePurchaseDocumentStatus(expense.status) === "DRAFT" &&
+    !expense.internal_purchase_number &&
+    !expense.provider_name &&
+    !expense.project_name &&
+    toNumber(expense.total) === 0 &&
+    toNumber(expense.pending_amount) === 0;
+
+  const getStatusFilterLabel = (value: string) => {
+    switch (value) {
+      case "DRAFT":
+        return "Borradores";
+      case "PENDING_VALIDATION":
+        return "Pendientes revision";
+      case "APPROVED":
+        return "Aprobados";
+      case "PAID":
+        return "Pagados";
+      case "CANCELLED":
+        return "Anulados";
+      default:
+        return "Todos";
+    }
+  };
 
   useEffect(() => {
     fetchExpenses();
@@ -179,7 +209,7 @@ const ExpensesPageDesktop = () => {
           const { data: newInvoiceId, error: dbError } = await (supabase.rpc as any)('create_purchase_invoice', {
             p_invoice_number: ticketNum,
             p_document_type: 'EXPENSE',
-            p_status: 'PENDING',
+            p_status: 'DRAFT',
             p_file_path: newFilePath,
             p_file_name: newFileName,
             p_site_id: null,
@@ -213,7 +243,7 @@ const ExpensesPageDesktop = () => {
         const { data: createdId, error: dbError } = await (supabase.rpc as any)('create_purchase_invoice', {
           p_invoice_number: ticketNum,
           p_document_type: 'EXPENSE',
-          p_status: 'PENDING',
+          p_status: 'DRAFT',
           p_file_path: filePath,
           p_file_name: fileName,
           p_site_id: null,
@@ -268,7 +298,7 @@ const ExpensesPageDesktop = () => {
       const { data: newInvoiceId, error: dbError } = await (supabase.rpc as any)("create_purchase_invoice", {
         p_invoice_number: ticketNum,
         p_document_type: "EXPENSE",
-        p_status: "PENDING",
+        p_status: "DRAFT",
         p_file_path: uploadRetryPending.filePath,
         p_file_name: uploadRetryPending.fileName,
         p_site_id: null,
@@ -422,7 +452,12 @@ const ExpensesPageDesktop = () => {
     }
   };
 
-  const sortedExpenses = [...expenses].sort((a, b) => {
+  const hiddenTechnicalDraftsCount = expenses.filter((expense) => isTechnicalDraft(expense)).length;
+  const visibleExpenses = showTechnicalDrafts
+    ? expenses
+    : expenses.filter((expense) => !isTechnicalDraft(expense));
+
+  const sortedExpenses = [...visibleExpenses].sort((a, b) => {
     if (!sortColumn) return 0;
 
     let aValue: any;
@@ -498,6 +533,15 @@ const ExpensesPageDesktop = () => {
             </AlertDescription>
           </Alert>
         )}
+        {!showTechnicalDrafts && hiddenTechnicalDraftsCount > 0 && (
+          <Alert className="mb-4 border-border bg-card text-foreground">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Borradores tecnicos ocultos</AlertTitle>
+            <AlertDescription>
+              Se han ocultado {hiddenTechnicalDraftsCount} tickets vacios en borrador para priorizar la gestion real.
+            </AlertDescription>
+          </Alert>
+        )}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -519,10 +563,10 @@ const ExpensesPageDesktop = () => {
               </div>
               <div>
                 <span className="text-2xl font-bold text-foreground">
-                  {formatCurrency(expenses.reduce((sum, exp) => sum + toNumber(exp.total), 0))}
+                  {formatCurrency(visibleExpenses.reduce((sum, exp) => sum + toNumber(exp.total), 0))}
                 </span>
                 <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                  <span>{expenses.length} tickets</span>
+                  <span>{visibleExpenses.length} tickets</span>
                 </div>
               </div>
             </motion.div>
@@ -541,10 +585,10 @@ const ExpensesPageDesktop = () => {
               </div>
               <div>
                 <span className="text-2xl font-bold text-foreground">
-                  {formatCurrency(expenses.reduce((sum, exp) => sum + toNumber(exp.pending_amount), 0))}
+                  {formatCurrency(visibleExpenses.reduce((sum, exp) => sum + toNumber(exp.pending_amount), 0))}
                 </span>
                 <div className="flex items-center gap-1 mt-1 text-xs text-blue-500">
-                  <span>{expenses.filter(e => e.pending_amount > 0).length} tickets pendientes</span>
+                  <span>{visibleExpenses.filter(e => e.pending_amount > 0).length} tickets pendientes</span>
                 </div>
               </div>
             </motion.div>
@@ -582,8 +626,8 @@ const ExpensesPageDesktop = () => {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-white">Gastos</h1>
-                <Info className="h-4 w-4 text-white/40" />
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground">Gastos</h1>
+                <Info className="h-4 w-4 text-muted-foreground" />
               </div>
 
               <div className="flex items-center gap-2">
@@ -596,23 +640,23 @@ const ExpensesPageDesktop = () => {
                 />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10">
+                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-accent">
                       Acciones
                       <ChevronDown className="h-3 w-3 ml-1" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-popover border-border">
-                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                    <DropdownMenuItem>
                       Exportar seleccionados
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-white hover:bg-white/10">
+                    <DropdownMenuItem>
                       Duplicar seleccionados
                     </DropdownMenuItem>
                     {selectedDeletable.length > 0 && (
                       <>
-                        <DropdownMenuSeparator className="bg-white/10" />
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 focus:text-red-300 focus:bg-red-500/10"
+                          className="text-destructive focus:text-destructive"
                           onClick={handleRequestBulkDelete}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
@@ -646,44 +690,50 @@ const ExpensesPageDesktop = () => {
                     variant="outline"
                     size="sm"
                     className={cn(
-                      "h-8 px-3 text-xs border-white/20 text-white/70 hover:bg-white/10",
-                      statusFilter !== "all" && "bg-white/10 text-white"
+                      "h-8 px-3 text-xs",
+                      statusFilter !== "all" && "bg-accent text-accent-foreground"
                     )}
                   >
-                    {statusFilter === "all" ? "Todos" : statusFilter}
+                    {getStatusFilterLabel(statusFilter)}
                     <ChevronDown className="h-3 w-3 ml-1" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="bg-popover border-border">
                   <DropdownMenuItem
                     onClick={() => setStatusFilter("all")}
-                    className={cn("text-white hover:bg-white/10", statusFilter === "all" && "bg-white/10")}
+                    className={cn(statusFilter === "all" && "bg-accent")}
                   >
                     Todos los estados
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => setStatusFilter("PENDING")}
-                    className={cn("text-white hover:bg-white/10", statusFilter === "PENDING" && "bg-white/10")}
+                    onClick={() => setStatusFilter("DRAFT")}
+                    className={cn(statusFilter === "DRAFT" && "bg-accent")}
                   >
-                    Pendientes
+                    Borradores
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => setStatusFilter("REGISTERED")}
-                    className={cn("text-white hover:bg-white/10", statusFilter === "REGISTERED" && "bg-white/10")}
+                    onClick={() => setStatusFilter("PENDING_VALIDATION")}
+                    className={cn(statusFilter === "PENDING_VALIDATION" && "bg-accent")}
                   >
-                    Registrado
+                    Pendientes revision
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => setStatusFilter("PARTIAL")}
-                    className={cn("text-white hover:bg-white/10", statusFilter === "PARTIAL" && "bg-white/10")}
+                    onClick={() => setStatusFilter("APPROVED")}
+                    className={cn(statusFilter === "APPROVED" && "bg-accent")}
                   >
-                    Pago Parcial
+                    Aprobados
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => setStatusFilter("PAID")}
-                    className={cn("text-white hover:bg-white/10", statusFilter === "PAID" && "bg-white/10")}
+                    className={cn(statusFilter === "PAID" && "bg-accent")}
                   >
                     Pagado
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setStatusFilter("CANCELLED")}
+                    className={cn(statusFilter === "CANCELLED" && "bg-accent")}
+                  >
+                    Anulados
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -691,10 +741,14 @@ const ExpensesPageDesktop = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 px-3 text-xs border-white/20 text-white/70 hover:bg-white/10"
+                className={cn(
+                  "h-8 px-3 text-xs",
+                  !showTechnicalDrafts && "bg-accent text-accent-foreground"
+                )}
+                onClick={() => setShowTechnicalDrafts((current) => !current)}
               >
                 <Filter className="h-3 w-3 mr-1" />
-                Filtro
+                {showTechnicalDrafts ? "Ver todos" : `Ocultar borr. tecnicos (${hiddenTechnicalDraftsCount})`}
               </Button>
 
               <div className="relative flex-1 min-w-[200px] max-w-md">
@@ -710,7 +764,7 @@ const ExpensesPageDesktop = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 px-3 text-xs border-white/20 text-white/70 hover:bg-white/10"
+                className="h-8 px-3 text-xs"
               >
                 <Calendar className="h-3 w-3 mr-1" />
                 01/12/2025 - 31/12/2025
@@ -721,13 +775,13 @@ const ExpensesPageDesktop = () => {
           {/* Table */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : expenses.length === 0 ? (
+          ) : visibleExpenses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <TrendingDown className="h-16 w-16 text-white/20 mb-4" />
-              <p className="text-white/60">No hay gastos</p>
-              <p className="text-white/40 text-sm mt-1">
+              <TrendingDown className="h-16 w-16 text-muted-foreground/40 mb-4" />
+              <p className="text-muted-foreground">No hay gastos</p>
+              <p className="text-muted-foreground/80 text-sm mt-1">
                 Escanea un ticket o sube un documento para crear un nuevo gasto
               </p>
             </div>
@@ -735,19 +789,19 @@ const ExpensesPageDesktop = () => {
             <>
               {/* Desktop Table */}
               {/* Desktop Table Container */}
-              <div className="flex-1 min-h-0 overflow-auto bg-card/20 rounded-2xl border border-border shadow-lg">
+              <div className="flex-1 min-h-0 overflow-auto bg-card rounded-2xl border border-border shadow-lg">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-border hover:bg-transparent bg-secondary/30">
+                    <TableRow className="border-border hover:bg-transparent bg-muted/40">
                       <TableHead className="w-12 px-4">
                         <Checkbox
                           checked={selectedExpenses.size === paginatedExpenses.length && paginatedExpenses.length > 0}
                           onCheckedChange={handleSelectAll}
-                          className="border-white/30 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
                       </TableHead>
                       <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-muted-foreground cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("date")}
                       >
                         <div className="flex items-center gap-1">
@@ -758,7 +812,7 @@ const ExpensesPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-muted-foreground cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("number")}
                       >
                         <div className="flex items-center gap-1">
@@ -769,7 +823,7 @@ const ExpensesPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-muted-foreground cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("provider")}
                       >
                         <div className="flex items-center gap-1">
@@ -780,7 +834,7 @@ const ExpensesPageDesktop = () => {
                         </div>
                       </TableHead>
                       <TableHead
-                        className="text-white/70 cursor-pointer hover:text-white select-none"
+                        className="text-muted-foreground cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("project")}
                       >
                         <div className="flex items-center gap-1">
@@ -790,9 +844,9 @@ const ExpensesPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead className="text-white/70 text-right">Subtotal</TableHead>
+                      <TableHead className="text-muted-foreground text-right">Subtotal</TableHead>
                       <TableHead
-                        className="text-white/70 text-right cursor-pointer hover:text-white select-none"
+                        className="text-muted-foreground text-right cursor-pointer hover:text-foreground select-none"
                         onClick={() => handleSort("total")}
                       >
                         <div className="flex items-center justify-end gap-1">
@@ -802,19 +856,33 @@ const ExpensesPageDesktop = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead className="text-white/70">Estado</TableHead>
-                      <TableHead className="text-white/70 w-12"></TableHead>
+                      <TableHead className="text-muted-foreground">Estado</TableHead>
+                      <TableHead className="text-muted-foreground w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {paginatedExpenses.map((expense) => {
                       const isSelected = selectedExpenses.has(expense.id);
+                      const documentStatusInfo = getDocumentStatusInfo(expense.status);
+                      const paymentStatus = calculatePaymentStatus(
+                        toNumber(expense.paid_amount),
+                        toNumber(expense.total),
+                        expense.due_date ?? null,
+                        expense.status
+                      );
+                      const paymentStatusInfo = getPaymentStatusInfo(paymentStatus);
+                      const canRegisterPayment = Boolean(
+                        paymentStatus &&
+                        paymentStatus !== "PAID" &&
+                        toNumber(expense.pending_amount) > 0 &&
+                        expense.internal_purchase_number
+                      );
                       return (
                         <TableRow
                           key={expense.id}
                           className={cn(
-                            "border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors duration-200",
-                            isSelected && "bg-white/10"
+                            "border-border cursor-pointer hover:bg-accent/40 transition-colors duration-200",
+                            isSelected && "bg-accent/60"
                           )}
                           onClick={() => navigate(`/nexo-av/${userId}/expenses/${expense.id}`)}
                         >
@@ -822,86 +890,82 @@ const ExpensesPageDesktop = () => {
                             <Checkbox
                               checked={isSelected}
                               onCheckedChange={(checked) => handleSelectExpense(expense.id, checked as boolean)}
-                              className="border-white/30 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                             />
                           </TableCell>
-                          <TableCell className="text-white/80 text-xs">
+                          <TableCell className="text-muted-foreground text-xs">
                             {expense.issue_date ? formatDate(expense.issue_date) : "-"}
                           </TableCell>
                           <TableCell className="font-mono text-amber-500 font-medium text-sm">
                             {expense.internal_purchase_number || expense.invoice_number}
                           </TableCell>
-                          <TableCell className="text-white text-sm">
+                          <TableCell className="text-foreground text-sm">
                             {expense.provider_name || "-"}
                             {expense.provider_type === 'TECHNICIAN' && (
                               <Badge className="ml-2 bg-violet-500/10 text-violet-400 text-[8px] border-none">TÉCNICO</Badge>
                             )}
                           </TableCell>
-                          <TableCell className="text-white/70 font-mono text-sm">
+                          <TableCell className="text-muted-foreground font-mono text-sm">
                             {expense.project_name || "-"}
                           </TableCell>
-                          <TableCell className="text-right text-white/60 text-sm">
+                          <TableCell className="text-right text-muted-foreground text-sm">
                             {formatCurrency(expense.tax_base || 0)}
                           </TableCell>
-                          <TableCell className="text-right text-white font-medium text-sm">
+                          <TableCell className="text-right text-foreground font-medium text-sm">
                             {formatCurrency(expense.total)}
                           </TableCell>
                           <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "text-xs",
-                                expense.status === 'PAID' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
-                                  expense.status === 'PARTIAL' ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
-                                    expense.status === 'PENDING' ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
-                                      "bg-white/5 text-white/40 border-white/10"
+                            <div className="flex flex-col items-start gap-1">
+                              <Badge
+                                variant="outline"
+                                className={cn("text-xs", documentStatusInfo.className)}
+                              >
+                                {documentStatusInfo.label}
+                              </Badge>
+                              {paymentStatusInfo && (
+                                <Badge
+                                  variant="outline"
+                                  className={cn("text-[10px]", paymentStatusInfo.className)}
+                                >
+                                  {paymentStatusInfo.label}
+                                </Badge>
                               )}
-                            >
-                              {expense.status === 'PENDING' ? 'Pendiente' : expense.status === 'REGISTERED' ? 'Registrado' : expense.status === 'PAID' ? 'Pagado' : 'Parcial'}
-                            </Badge>
+                            </div>
                           </TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center gap-1">
-                              {(() => {
-                                const canRegisterPayment = ["CONFIRMED", "PARTIAL", "PAID"].includes(expense.status)
-                                  && !expense.is_locked
-                                  && expense.pending_amount > 0
-                                  && !!expense.internal_purchase_number;
-
-                                return canRegisterPayment ? (
-                                  <RegisterPurchasePaymentDialog
-                                    invoiceId={expense.id}
-                                    pendingAmount={expense.pending_amount}
-                                    onPaymentRegistered={() => {
-                                      fetchExpenses();
-                                    }}
-                                    trigger={
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 px-2 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <CreditCard className="h-3.5 w-3.5 mr-1" />
-                                        Pagar
-                                      </Button>
-                                    }
-                                  />
-                                ) : null;
-                              })()}
+                              {canRegisterPayment ? (
+                                <RegisterPurchasePaymentDialog
+                                  invoiceId={expense.id}
+                                  pendingAmount={expense.pending_amount}
+                                  onPaymentRegistered={() => {
+                                    fetchExpenses();
+                                  }}
+                                  trigger={
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 px-2 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <CreditCard className="h-3.5 w-3.5 mr-1" />
+                                      Pagar
+                                    </Button>
+                                  }
+                                />
+                              ) : null}
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
                                   >
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="bg-popover border-border">
                                   <DropdownMenuItem
-                                    className="text-white hover:bg-white/10"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       navigate(`/nexo-av/${userId}/expenses/${expense.id}`);
@@ -909,14 +973,14 @@ const ExpensesPageDesktop = () => {
                                   >
                                     Ver detalle
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem className="text-white hover:bg-white/10">
+                                  <DropdownMenuItem>
                                     Duplicar
                                   </DropdownMenuItem>
                                   {canDeleteExpense(expense) && (
                                     <>
-                                      <DropdownMenuSeparator className="bg-white/10" />
+                                      <DropdownMenuSeparator />
                                       <DropdownMenuItem
-                                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 focus:text-red-300 focus:bg-red-500/10"
+                                        className="text-destructive focus:text-destructive"
                                         onClick={(e) => handleRequestDeleteExpense(e, expense)}
                                       >
                                         <Trash2 className="h-4 w-4 mr-2" />

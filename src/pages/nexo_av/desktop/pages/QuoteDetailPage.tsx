@@ -41,6 +41,7 @@ import LockedIndicator from "../components/common/LockedIndicator";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import { QuotePDFDocument } from "../components/quotes/QuotePDFViewer";
 import ArchivedPdfViewer from "../../shared/components/ArchivedPdfViewer";
+import { archiveSalesDocument, buildQuoteArchiveFileName } from "../../shared/lib/salesDocumentArchive";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
@@ -342,22 +343,115 @@ const QuoteDetailPageDesktop = () => {
 
       if (error) throw error;
 
-      // Refetch quote with definitive number
       const freshData = await fetchQuoteData();
+      if (!freshData?.quote || !freshData.client || !freshData.company) {
+        throw new Error("El presupuesto se envió pero no se pudo recargar la información para archivarlo");
+      }
 
-      toast({
-        title: "Presupuesto enviado",
-        description: "Archivando PDF inmutable...",
+      const issueDate = freshData.quote.issue_date || freshData.quote.created_at.slice(0, 10);
+      const archivedFileName = buildQuoteArchiveFileName({
+        quoteNumber: freshData.quote.quote_number,
+        clientName: freshData.quote.client_name,
+        issueDate,
       });
 
-      if (freshData) {
-        await fetchQuoteData();
-      }
+      await archiveSalesDocument({
+        documentType: "quote",
+        documentId: freshData.quote.id,
+        issueDate,
+        fileName: archivedFileName,
+        pdfDocument: (
+          <QuotePDFDocument
+            quote={{ ...freshData.quote, issue_date: issueDate }}
+            lines={freshData.lines}
+            client={freshData.client}
+            company={freshData.company}
+            project={freshData.project}
+          />
+        ),
+        metadata: {
+          DocumentoERPId: freshData.quote.id,
+          TipoDocumento: "Presupuesto",
+          Cliente: freshData.quote.client_name,
+          Proyecto: freshData.quote.project_name || "",
+          MesFiscal: issueDate.slice(0, 7),
+          EstadoERP: freshData.quote.status,
+        },
+        persistRpc: "set_quote_archive_metadata",
+        persistArgs: {
+          p_quote_id: freshData.quote.id,
+        },
+      });
+
+      await fetchQuoteData();
+
+      toast({
+        title: "Presupuesto enviado y archivado",
+        description: "El presupuesto ha quedado archivado correctamente en SharePoint.",
+      });
     } catch (error: any) {
       console.error("Error sending quote:", error);
+      await fetchQuoteData();
       toast({
-        title: "Error",
-        description: error.message || "No se pudo enviar el presupuesto",
+        title: "Error al completar el envío",
+        description: error.message || "No se pudo enviar y archivar el presupuesto",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleRetryArchive = async () => {
+    if (!quote || quote.status === "DRAFT" || !client || !company) return;
+
+    setUpdatingStatus(true);
+    try {
+      const issueDate = quote.issue_date || quote.created_at.slice(0, 10);
+      const archivedFileName = buildQuoteArchiveFileName({
+        quoteNumber: quote.quote_number,
+        clientName: quote.client_name,
+        issueDate,
+      });
+
+      await archiveSalesDocument({
+        documentType: "quote",
+        documentId: quote.id,
+        issueDate,
+        fileName: archivedFileName,
+        pdfDocument: (
+          <QuotePDFDocument
+            quote={{ ...quote, issue_date: issueDate }}
+            lines={lines}
+            client={client}
+            company={company}
+            project={project}
+          />
+        ),
+        metadata: {
+          DocumentoERPId: quote.id,
+          TipoDocumento: "Presupuesto",
+          Cliente: quote.client_name,
+          Proyecto: quote.project_name || "",
+          MesFiscal: issueDate.slice(0, 7),
+          EstadoERP: quote.status,
+        },
+        persistRpc: "set_quote_archive_metadata",
+        persistArgs: {
+          p_quote_id: quote.id,
+        },
+      });
+
+      await fetchQuoteData();
+      toast({
+        title: "Archivado completado",
+        description: "El presupuesto archivado ya está disponible en SharePoint.",
+      });
+    } catch (error: any) {
+      console.error("Error retrying quote archive:", error);
+      toast({
+        title: "Error al archivar",
+        description: error.message || "No se pudo archivar el presupuesto enviado.",
         variant: "destructive",
       });
     } finally {
@@ -699,6 +793,15 @@ const QuoteDetailPageDesktop = () => {
                         <p className="text-sm text-muted-foreground">
                           El presupuesto está emitido pero no tiene PDF archivado en SharePoint.
                         </p>
+                        <Button
+                          variant="outline"
+                          onClick={handleRetryArchive}
+                          disabled={updatingStatus}
+                          className="gap-2"
+                        >
+                          {updatingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                          Reintentar archivado
+                        </Button>
                       </div>
                     ) : (
                       <DocumentPDFViewer

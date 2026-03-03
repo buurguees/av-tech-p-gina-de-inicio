@@ -16,32 +16,40 @@
 // DOCUMENT STATUSES (Administrative)
 // ============================================
 
-export type PurchaseDocumentStatus = 
-  | "PENDING_VALIDATION"  // Has supplier, lines, PDF but not approved
-  | "APPROVED"            // Validated, accounting entry generated, locked
-  | "CANCELLED";          // Voided
+export type PurchaseDocumentStatus =
+  | "DRAFT"
+  | "PENDING_VALIDATION"
+  | "APPROVED"
+  | "CANCELLED";
 
 export const PURCHASE_DOCUMENT_STATUSES = [
   {
+    value: "DRAFT" as const,
+    label: "Borrador",
+    description: "Borrador tecnico o incompleto",
+    className: "status-muted",
+    priority: 0,
+  },
+  {
     value: "PENDING_VALIDATION" as const,
-    label: "Pendiente",
+    label: "Pendiente revision",
     description: "Pendiente de aprobación",
     className: "purchase-doc-pending",
-    priority: 0,
+    priority: 1,
   },
   {
     value: "APPROVED" as const,
     label: "Aprobada",
     description: "Validada y contabilizada",
     className: "purchase-doc-approved",
-    priority: 1,
+    priority: 2,
   },
   {
     value: "CANCELLED" as const,
     label: "Anulada",
     description: "Factura anulada",
     className: "status-error",
-    priority: 2,
+    priority: 3,
   },
 ];
 
@@ -87,14 +95,18 @@ export const PURCHASE_PAYMENT_STATUSES = [
 export const LEGACY_STATUS_TO_DOCUMENT: Record<string, PurchaseDocumentStatus> = {
   "PENDING": "PENDING_VALIDATION",
   "REGISTERED": "APPROVED",
-  "DRAFT": "PENDING_VALIDATION",
+  "DRAFT": "DRAFT",
   "PARTIAL": "APPROVED",
   "PAID": "APPROVED",
   "CANCELLED": "CANCELLED",
   "APPROVED": "APPROVED",
-  "SCANNED": "PENDING_VALIDATION",
+  "SCANNED": "DRAFT",
   "PENDING_VALIDATION": "PENDING_VALIDATION",
   "BLOCKED": "CANCELLED",
+};
+
+export const normalizePurchaseDocumentStatus = (status: string): PurchaseDocumentStatus => {
+  return LEGACY_STATUS_TO_DOCUMENT[status] || "DRAFT";
 };
 
 // ============================================
@@ -105,7 +117,7 @@ export const LEGACY_STATUS_TO_DOCUMENT: Record<string, PurchaseDocumentStatus> =
  * Get the document status info
  */
 export const getDocumentStatusInfo = (status: string) => {
-  const mapped = LEGACY_STATUS_TO_DOCUMENT[status] || "PENDING_VALIDATION";
+  const mapped = normalizePurchaseDocumentStatus(status);
   return PURCHASE_DOCUMENT_STATUSES.find(s => s.value === mapped) || PURCHASE_DOCUMENT_STATUSES[0];
 };
 
@@ -118,7 +130,7 @@ export const calculatePaymentStatus = (
   dueDate: string | null,
   documentStatus: string
 ): PurchasePaymentStatus | null => {
-  const docStatus = LEGACY_STATUS_TO_DOCUMENT[documentStatus];
+  const docStatus = normalizePurchaseDocumentStatus(documentStatus);
   if (docStatus !== "APPROVED") return null;
 
   if (totalAmount > 0 && paidAmount >= totalAmount) return "PAID";
@@ -134,7 +146,7 @@ export const isPurchaseOverdue = (
   paymentStatus: PurchasePaymentStatus | null,
   dueDate: string | null
 ): boolean => {
-  const docStatus = LEGACY_STATUS_TO_DOCUMENT[documentStatus];
+  const docStatus = normalizePurchaseDocumentStatus(documentStatus);
   if (docStatus !== "APPROVED") return false;
   if (paymentStatus === "PAID") return false;
   if (!dueDate) return false;
@@ -158,6 +170,7 @@ export const getPaymentStatusInfo = (status: PurchasePaymentStatus | null) => {
  * Document statuses that allow editing
  */
 export const EDITABLE_DOCUMENT_STATUSES: PurchaseDocumentStatus[] = [
+  "DRAFT",
   "PENDING_VALIDATION",
 ];
 
@@ -173,7 +186,7 @@ export const LOCKED_DOCUMENT_STATUSES: PurchaseDocumentStatus[] = [
  * Check if document is editable based on status
  */
 export const isDocumentEditable = (status: string): boolean => {
-  const docStatus = LEGACY_STATUS_TO_DOCUMENT[status];
+  const docStatus = normalizePurchaseDocumentStatus(status);
   return EDITABLE_DOCUMENT_STATUSES.includes(docStatus);
 };
 
@@ -181,6 +194,6 @@ export const isDocumentEditable = (status: string): boolean => {
  * Check if payments tab should be enabled
  */
 export const isPaymentsEnabled = (status: string): boolean => {
-  const docStatus = LEGACY_STATUS_TO_DOCUMENT[status];
+  const docStatus = normalizePurchaseDocumentStatus(status);
   return docStatus === "APPROVED";
 };

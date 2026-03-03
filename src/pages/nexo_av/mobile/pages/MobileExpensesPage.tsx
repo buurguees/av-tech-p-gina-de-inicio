@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -11,14 +11,17 @@ import {
   Clock,
   CheckCircle,
   Receipt,
+  Filter,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, toNumber } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
+  normalizePurchaseDocumentStatus,
   getDocumentStatusInfo,
   calculatePaymentStatus,
   getPaymentStatusInfo,
 } from "@/constants/purchaseInvoiceStatuses";
+import { Button } from "@/components/ui/button";
 
 interface Expense {
   id: string;
@@ -43,7 +46,41 @@ const MobileExpensesPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 500);
-  const [stats, setStats] = useState({ pending: 0, approved: 0, paid: 0 });
+  const [showTechnicalDrafts, setShowTechnicalDrafts] = useState(false);
+
+  const isTechnicalDraft = (expense: Expense) =>
+    normalizePurchaseDocumentStatus(expense.status) === "DRAFT" &&
+    !expense.internal_purchase_number &&
+    !expense.provider_name &&
+    !expense.project_name &&
+    !expense.expense_category &&
+    toNumber(expense.total) === 0 &&
+    toNumber(expense.paid_amount) === 0 &&
+    toNumber(expense.pending_amount) === 0;
+
+  const hiddenTechnicalDraftsCount = useMemo(
+    () => expenses.filter((expense) => isTechnicalDraft(expense)).length,
+    [expenses]
+  );
+
+  const visibleExpenses = useMemo(
+    () => (showTechnicalDrafts ? expenses : expenses.filter((expense) => !isTechnicalDraft(expense))),
+    [expenses, showTechnicalDrafts]
+  );
+
+  const stats = useMemo(() => {
+    const pending = visibleExpenses.filter((e) => {
+      const status = normalizePurchaseDocumentStatus(e.status);
+      return status === "DRAFT" || status === "PENDING_VALIDATION";
+    }).length;
+    const approved = visibleExpenses.filter(
+      (e) => normalizePurchaseDocumentStatus(e.status) === "APPROVED" && toNumber(e.pending_amount) > 0
+    ).length;
+    const paid = visibleExpenses.filter(
+      (e) => calculatePaymentStatus(toNumber(e.paid_amount), toNumber(e.total), null, e.status) === "PAID"
+    ).length;
+    return { pending, approved, paid };
+  }, [visibleExpenses]);
 
   const fetchExpenses = async () => {
     try {
@@ -60,11 +97,6 @@ const MobileExpensesPage = () => {
       if (error) throw error;
       const list = ((data || []) as unknown) as Expense[];
       setExpenses(list);
-
-      const pending = list.filter((e) => e.status === "PENDING" || e.status === "DRAFT").length;
-      const approved = list.filter((e) => e.status === "APPROVED" || e.status === "CONFIRMED").length;
-      const paid = list.filter((e) => e.pending_amount <= 0 || e.status === "PAID").length;
-      setStats({ pending, approved, paid });
     } catch (e) {
       console.error("Error fetching expenses:", e);
     } finally {
@@ -147,6 +179,19 @@ const MobileExpensesPage = () => {
               className="pl-9 h-8 bg-card border-border text-sm"
             />
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-8 px-2 text-xs whitespace-nowrap",
+              !showTechnicalDrafts && hiddenTechnicalDraftsCount > 0 && "bg-secondary"
+            )}
+            onClick={() => setShowTechnicalDrafts((current) => !current)}
+          >
+            <Filter className="h-3.5 w-3.5 mr-1" />
+            {showTechnicalDrafts ? "Ver todos" : `Ocultar borr. (${hiddenTechnicalDraftsCount})`}
+          </Button>
         </div>
       </div>
 
@@ -156,16 +201,20 @@ const MobileExpensesPage = () => {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        ) : expenses.length === 0 ? (
+        ) : visibleExpenses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <FileText className="h-16 w-16 text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No hay tickets / gastos</p>
             <p className="text-muted-foreground text-sm">
-              {searchInput ? "Prueba con otra búsqueda" : "Aún no se han registrado gastos"}
+              {searchInput
+                ? "Prueba con otra búsqueda"
+                : hiddenTechnicalDraftsCount > 0 && !showTechnicalDrafts
+                  ? "Solo hay borradores tecnicos vacios ocultos"
+                  : "Aún no se han registrado gastos"}
             </p>
           </div>
         ) : (
-          expenses.map((exp) => {
+          visibleExpenses.map((exp) => {
             const statusInfo = getDocumentStatusInfo(exp.status);
             const catLabel = getCategoryLabel(exp.expense_category);
 

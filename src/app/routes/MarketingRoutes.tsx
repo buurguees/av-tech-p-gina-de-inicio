@@ -2,8 +2,8 @@ import { lazy } from 'react';
 import { Route } from 'react-router-dom';
 
 const HomePage = lazy(() => import('@/marketing/pages/HomePage'));
-const PrivacyPolicyPage = lazy(() => import('@/marketing/pages/PrivacyPolicyPage'));
-const TermsAndConditionsPage = lazy(() => import('@/marketing/pages/TermsAndConditionsPage'));
+const PrivacyPolicyPage = lazy(() => import('@/marketing/pages/LegalPrivacyPage'));
+const TermsAndConditionsPage = lazy(() => import('@/marketing/pages/LegalTermsPage'));
 const SharkEventsPresentation = lazy(() => import('@/pages/presentations/SharkEventsPresentation'));
 
 export const marketingRoutes = (

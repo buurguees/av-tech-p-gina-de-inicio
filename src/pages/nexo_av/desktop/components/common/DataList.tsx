@@ -13,7 +13,7 @@ import "../../styles/components/common/data-list.css";
 
 export interface DataListColumn<T = any> {
   key: string;
-  label: string;
+  label: ReactNode;
   sortable?: boolean;
   align?: "left" | "center" | "right";
   width?: string;
@@ -50,6 +50,7 @@ export interface DataListProps<T = any> {
   emptyIcon?: ReactNode;
   getItemId: (item: T) => string;
   className?: string;
+  rowClassName?: (item: T, index: number) => string | undefined;
   /** Summary footer row: map column keys to values */
   footerCells?: DataListFooterCell[];
 }
@@ -196,6 +197,7 @@ export default function DataList<T = any>({
   emptyIcon,
   getItemId,
   className,
+  rowClassName,
   footerCells,
 }: DataListProps<T>) {
   // Ref para el contenedor del data-list
@@ -245,7 +247,11 @@ export default function DataList<T = any>({
             )}
             onClick={() => column.sortable && onSort?.(column.key)}
           >
-            <span className="data-list__header-label">{column.label}</span>
+            {typeof column.label === "string" ? (
+              <span className="data-list__header-label">{column.label}</span>
+            ) : (
+              column.label
+            )}
             {column.sortable && sortColumn === column.key && (
               <span className="data-list__header-sort-icon">
                 {sortDirection === "asc" ? (
@@ -275,7 +281,8 @@ export default function DataList<T = any>({
               key={itemId}
               className={cn(
                 "data-list__row",
-                onItemClick && "data-list__row--clickable"
+                onItemClick && "data-list__row--clickable",
+                rowClassName?.(item, index)
               )}
               style={{ gridTemplateColumns: gridColumns }}
               onClick={() => onItemClick?.(item)}

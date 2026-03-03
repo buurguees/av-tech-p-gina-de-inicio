@@ -58,6 +58,12 @@ import ProjectSearchInput from "../components/projects/ProjectSearchInput";
 import PurchaseInvoicePaymentsSection from "../components/purchases/PurchaseInvoicePaymentsSection";
 import { TICKET_CATEGORIES, getTicketCategoryInfo } from "@/constants/ticketCategories";
 import { cn } from "@/lib/utils";
+import {
+  calculatePaymentStatus,
+  getDocumentStatusInfo,
+  getPaymentStatusInfo,
+  normalizePurchaseDocumentStatus,
+} from "@/constants/purchaseInvoiceStatuses";
 
 interface Project {
   id: string;
@@ -77,6 +83,7 @@ interface Expense {
   id: string;
   invoice_number: string;
   internal_purchase_number: string | null;
+  supplier_invoice_number?: string | null;
   document_type: string;
   issue_date: string;
   tax_base: number;
@@ -270,6 +277,7 @@ const ExpenseDetailPage = () => {
   
   // Form state
   const [issueDate, setIssueDate] = useState("");
+  const [supplierReference, setSupplierReference] = useState("");
   const [expenseCategory, setExpenseCategory] = useState("");
   const [establishmentName, setEstablishmentName] = useState("");
   const [notes, setNotes] = useState("");
@@ -311,6 +319,7 @@ const ExpenseDetailPage = () => {
       
       // Set form values
       setIssueDate(exp.issue_date || "");
+      setSupplierReference(exp.supplier_invoice_number || "");
       setExpenseCategory(exp.expense_category || "");
       setEstablishmentName(exp.manual_beneficiary_name || "");
       setNotes(exp.notes || "");
@@ -419,19 +428,27 @@ const ExpenseDetailPage = () => {
     fetchUserRoles();
   }, []);
 
+  const hasMeaningfulLines = lines.some((line) =>
+    Boolean(line.concept?.trim()) || line.quantity > 0 || line.unit_price > 0 || line.total > 0
+  );
+  const normalizedDocumentStatus = expense ? normalizePurchaseDocumentStatus(expense.status) : "DRAFT";
+  const isReadyForValidation = Boolean(
+    issueDate &&
+    expenseCategory &&
+    establishmentName.trim() &&
+    hasMeaningfulLines &&
+    lines.reduce((sum, line) => sum + line.total, 0) > 0
+  );
+  const saveStatus =
+    normalizedDocumentStatus === "APPROVED" || expense?.status === "PAID" || normalizedDocumentStatus === "CANCELLED"
+      ? expense?.status ?? "DRAFT"
+      : isReadyForValidation
+        ? "PENDING_VALIDATION"
+        : "DRAFT";
+
   // Handle save
   const handleSave = async (): Promise<boolean> => {
     if (!expenseId || !expense) return false;
-    
-    if (!expenseCategory) {
-      toast.error("Selecciona un tipo de gasto");
-      return false;
-    }
-
-    if (!establishmentName.trim()) {
-      toast.error("Indica el concepto del gasto o el nombre del establecimiento.");
-      return false;
-    }
 
     if (selectedProjectId && projectSiteMode === "MULTI_SITE" && !selectedSiteId) {
       toast.error("Selecciona un sitio para este proyecto multi-sitio.");
@@ -444,11 +461,11 @@ const ExpenseDetailPage = () => {
       // Update expense
       const { error: updateError } = await supabase.rpc("update_purchase_invoice", {
         p_invoice_id: expenseId,
-        p_supplier_invoice_number: null,
+        p_supplier_invoice_number: supplierReference.trim() || null,
         p_issue_date: issueDate || null,
         p_due_date: null,
-        p_status: expense.status,
-        p_expense_category: expenseCategory,
+        p_status: saveStatus,
+        p_expense_category: expenseCategory || null,
         p_notes: notes || null,
         p_internal_notes: internalNotes || null,
         p_supplier_id: null,
@@ -475,7 +492,11 @@ const ExpenseDetailPage = () => {
 
       if (linesError) throw linesError;
 
-      toast.success("Gasto guardado correctamente");
+      toast.success(
+        saveStatus === "PENDING_VALIDATION"
+          ? "Ticket guardado y enviado a revision"
+          : "Ticket guardado como borrador"
+      );
       setHasChanges(false);
       setIsEditing(false);
       await fetchExpense();
@@ -496,6 +517,11 @@ const ExpenseDetailPage = () => {
     
     try {
       setApproving(true);
+
+      if (!isReadyForValidation) {
+        toast.error("Completa fecha, categoria, concepto y lineas del ticket antes de aprobar.");
+        return;
+      }
       
       if (hasChanges) {
         const saved = await handleSave();
@@ -622,7 +648,7 @@ const ExpenseDetailPage = () => {
     );
   }
 
-  const isLocked = expense.is_locked || expense.status === "APPROVED" || expense.status === "PAID";
+  const isLocked = expense.is_locked || normalizedDocumentStatus === "APPROVED" || expense.status === "PAID";
   const isAdmin = userRoles.includes('admin');
   const hasDefinitiveNumber = !!expense.internal_purchase_number;
   const canApprove = isAdmin && (
@@ -633,28 +659,30 @@ const ExpenseDetailPage = () => {
   const canDelete = !isLocked && (expense.status === "PENDING" || expense.status === "PENDING_VALIDATION" || expense.status === "DRAFT");
   
   const categoryInfo = getTicketCategoryInfo(expense.expense_category || "");
+  const documentStatusInfo = getDocumentStatusInfo(expense.status);
+  const paymentStatus = calculatePaymentStatus(expense.paid_amount, expense.total, null, expense.status);
+  const paymentStatusInfo = getPaymentStatusInfo(paymentStatus);
 
   // Status badge
   const getStatusBadge = () => {
-    switch (expense.status) {
-      case "APPROVED":
-        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Aprobado</Badge>;
-      case "PAID":
-        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Pagado</Badge>;
-      case "PENDING":
-      case "PENDING_VALIDATION":
-        return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">Pendiente</Badge>;
-      case "DRAFT":
-        return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Borrador</Badge>;
-      default:
-        return <Badge variant="outline">{expense.status}</Badge>;
-    }
+    return (
+      <div className="flex items-center gap-2">
+        <Badge variant="outline" className={cn(documentStatusInfo.className)}>
+          {documentStatusInfo.label}
+        </Badge>
+        {paymentStatusInfo && (
+          <Badge variant="outline" className={cn(paymentStatusInfo.className)}>
+            {paymentStatusInfo.label}
+          </Badge>
+        )}
+      </div>
+    );
   };
 
   return (
     <div className="flex flex-col h-full">
       <DetailNavigationBar
-        pageTitle={expense.internal_purchase_number || `Ticket ${categoryInfo?.icon || '📋'}`}
+        pageTitle={expense.internal_purchase_number || supplierReference || `Ticket ${categoryInfo?.icon || "T"}`}
         backPath={`/nexo-av/${userId}/expenses`}
         contextInfo={
           <div className="flex items-center gap-2">
@@ -848,7 +876,7 @@ const ExpenseDetailPage = () => {
                     Datos del Ticket
                   </h4>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">Fecha del Ticket</Label>
                       <Input
@@ -858,6 +886,19 @@ const ExpenseDetailPage = () => {
                           setIssueDate(e.target.value);
                           setHasChanges(true);
                         }}
+                        disabled={!isEditing || isLocked}
+                        className="bg-background/50"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Nº ticket / factura</Label>
+                      <Input
+                        value={supplierReference}
+                        onChange={(e) => {
+                          setSupplierReference(e.target.value);
+                          setHasChanges(true);
+                        }}
+                        placeholder="Opcional"
                         disabled={!isEditing || isLocked}
                         className="bg-background/50"
                       />

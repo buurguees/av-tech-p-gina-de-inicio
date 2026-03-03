@@ -1,7 +1,7 @@
-import { useState, ReactElement } from "react";
-import { PDFDownloadLink, PDFViewer, DocumentProps } from "@react-pdf/renderer";
+import { useEffect, useState, ReactElement } from "react";
+import { PDFDownloadLink, DocumentProps, pdf } from "@react-pdf/renderer";
 import { Button } from "@/components/ui/button";
-import { Loader2, Eye, EyeOff, Download } from "lucide-react";
+import { Loader2, Eye, EyeOff, Download, AlertCircle } from "lucide-react";
 import "../../styles/components/common/document-pdf-viewer.css";
 
 interface DocumentPDFViewerProps {
@@ -39,9 +39,52 @@ const DocumentPDFViewer = ({
   fileName,
   defaultShowPreview = true,
   className = "",
-  showToolbar = false,
 }: DocumentPDFViewerProps) => {
   const [showPreview, setShowPreview] = useState(defaultShowPreview);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState(true);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let urlToRevoke: string | null = null;
+    let isMounted = true;
+
+    const generatePreview = async () => {
+      try {
+        setLoadingPreview(true);
+        setPreviewError(null);
+        const blob = await pdf(document).toBlob();
+        const url = URL.createObjectURL(blob);
+        urlToRevoke = url;
+
+        if (!isMounted) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+
+        setPdfUrl(url);
+      } catch (error) {
+        console.error("Error generating PDF preview:", error);
+        if (isMounted) {
+          setPreviewError("No se pudo generar la vista previa del PDF.");
+          setPdfUrl(null);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingPreview(false);
+        }
+      }
+    };
+
+    generatePreview();
+
+    return () => {
+      isMounted = false;
+      if (urlToRevoke) {
+        URL.revokeObjectURL(urlToRevoke);
+      }
+    };
+  }, [document]);
 
   return (
     <div className={`document-pdf-viewer ${className}`}>
@@ -91,14 +134,23 @@ const DocumentPDFViewer = ({
       {/* Vista previa del PDF */}
       {showPreview && (
         <div className="document-pdf-viewer__preview">
-          <PDFViewer
-            width="100%"
-            height="100%"
-            className="document-pdf-viewer__viewer"
-            showToolbar={showToolbar}
-          >
-            {document}
-          </PDFViewer>
+          {loadingPreview ? (
+            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              Generando vista previa...
+            </div>
+          ) : previewError ? (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-4 text-center text-muted-foreground">
+              <AlertCircle className="h-8 w-8 text-amber-500" />
+              <p className="text-sm">{previewError}</p>
+            </div>
+          ) : (
+            <iframe
+              src={pdfUrl ?? undefined}
+              className="document-pdf-viewer__viewer"
+              title="Vista previa de PDF"
+            />
+          )}
         </div>
       )}
     </div>

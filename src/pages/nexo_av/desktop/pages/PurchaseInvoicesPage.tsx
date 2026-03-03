@@ -51,6 +51,7 @@ import {
   getDocumentStatusInfo,
   calculatePaymentStatus,
   getPaymentStatusInfo,
+  normalizePurchaseDocumentStatus,
   PURCHASE_DOCUMENT_STATUSES,
 } from "@/constants/purchaseInvoiceStatuses";
 
@@ -228,7 +229,7 @@ const PurchaseInvoicesPageDesktop = () => {
           const { data: createdId, error: dbError } = await (supabase.rpc as any)('create_purchase_invoice', {
             p_invoice_number: provNum,
             p_document_type: 'INVOICE',
-            p_status: 'PENDING',
+            p_status: 'DRAFT',
             p_file_path: newFilePath,
             p_file_name: newFileName,
             p_site_id: null,
@@ -266,7 +267,7 @@ const PurchaseInvoicesPageDesktop = () => {
         const { data: createdId, error: dbError } = await (supabase.rpc as any)('create_purchase_invoice', {
           p_invoice_number: provNum,
           p_document_type: 'INVOICE',
-          p_status: 'PENDING',
+          p_status: 'DRAFT',
           p_file_path: filePath,
           p_file_name: fileName,
           p_site_id: null,
@@ -326,7 +327,7 @@ const PurchaseInvoicesPageDesktop = () => {
       const { data: newInvoiceId, error: dbError } = await (supabase.rpc as any)("create_purchase_invoice", {
         p_invoice_number: provNum,
         p_document_type: "INVOICE",
-        p_status: "PENDING",
+        p_status: "DRAFT",
         p_file_path: uploadRetryPending.filePath,
         p_file_name: uploadRetryPending.fileName,
         p_site_id: null,
@@ -377,7 +378,8 @@ const PurchaseInvoicesPageDesktop = () => {
   };
 
   const canDeleteInvoice = (invoice: PurchaseInvoice) => {
-    return invoice.status === "DRAFT" || invoice.status === "PENDING";
+    const status = normalizePurchaseDocumentStatus(invoice.status);
+    return status === "DRAFT" || status === "PENDING_VALIDATION";
   };
 
   const handleDeleteClick = (invoice: PurchaseInvoice, e: React.MouseEvent) => {

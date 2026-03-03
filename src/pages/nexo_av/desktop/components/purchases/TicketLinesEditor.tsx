@@ -64,6 +64,11 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
   const [defaultTaxRate, setDefaultTaxRate] = useState<number>(21);
   const [numericInputValues, setNumericInputValues] = useState<Record<string, string>>({});
 
+  const roundTo = (value: number, decimals: number) => {
+    const factor = 10 ** decimals;
+    return Math.round((value + Number.EPSILON) * factor) / factor;
+  };
+
   useEffect(() => {
     fetchTaxes();
   }, []);
@@ -118,18 +123,18 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
       
       // Aplicar descuento al total
       const discountAmount = (lineTotal * discountPercent) / 100;
-      total = Math.round((lineTotal - discountAmount) * 100) / 100;
+      total = roundTo(lineTotal - discountAmount, 2);
       
       // Calcular subtotal (base imponible) desde el total
       // total = subtotal * (1 + taxRate / 100)  =>  subtotal = total / (1 + taxRate / 100)
-      subtotal = total / (1 + taxRate / 100);
-      taxAmount = Math.round((total - subtotal) * 100) / 100;
+      subtotal = roundTo(total / (1 + taxRate / 100), 2);
+      taxAmount = roundTo(total - subtotal, 2);
       
       // Precio unitario SIN IVA: guardar con 4 decimales para que al recalcular
       // en backend (total = unit_price * quantity * (1+tax)) coincida el total con el ticket.
       // Si redondeamos a 2 (ej. 1,37), el backend devuelve 1,37*1,10 = 1,51 en vez de 1,50.
       unitPrice = quantity ? subtotal / quantity : 0;
-      unitPrice = Math.round(unitPrice * 10000) / 10000;
+      unitPrice = roundTo(unitPrice, 4);
     } else {
       // El precio introducido NO incluye IVA (modo normal)
       unitPrice = inputPrice;
@@ -142,10 +147,11 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
       subtotal = lineSubtotal - discountAmount;
       
       // Calculate tax (IVA)
-      taxAmount = (subtotal * taxRate) / 100;
+      taxAmount = roundTo((subtotal * taxRate) / 100, 2);
       
       // Total = subtotal + IVA
-      total = subtotal + taxAmount;
+      subtotal = roundTo(subtotal, 2);
+      total = roundTo(subtotal + taxAmount, 2);
     }
 
     return {
@@ -154,12 +160,12 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
       description: line.description || null,
       quantity,
       // Con IVA incluido usamos 4 decimales en unit_price para que el backend no cambie el total
-      unit_price: includesTax ? unitPrice : Math.round(unitPrice * 100) / 100,
+      unit_price: includesTax ? unitPrice : roundTo(unitPrice, 2),
       tax_rate: taxRate,
       discount_percent: discountPercent,
-      subtotal: Math.round(subtotal * 100) / 100,
-      tax_amount: Math.round(taxAmount * 100) / 100,
-      total: Math.round(total * 100) / 100,
+      subtotal: roundTo(subtotal, 2),
+      tax_amount: roundTo(taxAmount, 2),
+      total: roundTo(total, 2),
       price_includes_tax: includesTax,
     } as TicketLine;
   };
@@ -346,7 +352,7 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
         {priceIncludesTax ? (
           <>
             <span>💡</span>
-            <span>Introduce el importe TOTAL (con IVA). Se calculará la base imponible automáticamente.</span>
+            <span>Introduce el importe TOTAL (con IVA). La base e IVA se ajustan a 2 decimales, con posible ajuste de 0,01 para cuadrar el ticket.</span>
           </>
         ) : (
           <>

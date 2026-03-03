@@ -407,6 +407,7 @@ serve(async (req) => {
       const fileBytes = Uint8Array.from(atob(body.pdfBase64), (char) => char.charCodeAt(0));
       const uploadTargets = [body.primaryFolderPath, ...(body.mirrorFolderPaths || [])];
       const uploadedItems: Array<Record<string, unknown>> = [];
+      const siteId = getRequiredEnv("MS_SHAREPOINT_SITE_ID");
 
       for (const targetPath of uploadTargets) {
         const item = await uploadPdfToDrive(graphToken, driveId, targetPath, body.fileName, fileBytes);
@@ -423,6 +424,10 @@ serve(async (req) => {
           id: item.id,
           name: item.name,
           path: `${targetPath}/${body.fileName}`,
+          webUrl: item.webUrl ?? null,
+          eTag: item.eTag ?? null,
+          driveId,
+          siteId,
         });
       }
 

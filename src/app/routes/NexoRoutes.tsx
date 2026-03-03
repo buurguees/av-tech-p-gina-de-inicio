@@ -109,7 +109,7 @@ const ResponsivePurchaseInvoiceDetailPage = createResponsivePage(
   () => import('@/pages/nexo_av/mobile/pages/MobilePurchaseInvoiceDetailPage')
 );
 const ResponsiveExpensesPage = createResponsivePage(
-  () => import('@/pages/nexo_av/desktop/pages/ExpensesPage'),
+  () => import('@/pages/nexo_av/desktop/pages/ExpensesPageDataList'),
   () => import('@/pages/nexo_av/mobile/pages/MobileExpensesPage')
 );
 const ResponsiveExpenseDetailPage = createResponsivePage(

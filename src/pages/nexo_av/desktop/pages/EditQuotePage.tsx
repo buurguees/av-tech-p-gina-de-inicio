@@ -831,13 +831,13 @@ const EditQuotePageDesktop = () => {
   const statusInfo = getStatusInfo(currentStatus);
   if (loading) {
     return <div className="flex items-center justify-center pt-32">
-        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>;
   }
   if (!quote) {
     return <div className="flex flex-col items-center justify-center pt-32">
-        <FileText className="h-16 w-16 text-white/20 mb-4" />
-        <p className="text-white/60">Presupuesto no encontrado</p>
+        <FileText className="h-16 w-16 text-muted-foreground/40 mb-4" />
+        <p className="text-muted-foreground">Presupuesto no encontrado</p>
         <Button variant="link" onClick={() => navigate(`/nexo-av/${userId}/quotes`)} className="text-orange-500 mt-2">
           Volver a presupuestos
         </Button>
@@ -1003,25 +1003,25 @@ const EditQuotePageDesktop = () => {
           </div>
 
           {/* Lines Table */}
-          <div className="bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden mb-6 shadow-2xl shadow-black/40">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
-              <span className="text-white text-sm font-semibold uppercase tracking-wider">Líneas del presupuesto</span>
-              <span className="text-white/50 text-xs font-medium">Escribe @nombre para buscar en el catálogo</span>
+          <div className="bg-card/95 backdrop-blur-sm rounded-2xl border border-border overflow-hidden mb-6 shadow-sm">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
+              <span className="text-foreground text-sm font-semibold uppercase tracking-wider">Líneas del presupuesto</span>
+              <span className="text-muted-foreground text-xs font-medium">Escribe @nombre para buscar en el catálogo</span>
             </div>
-            <div className="overflow-x-auto bg-white/[0.02]">
+            <div className="overflow-x-auto bg-background">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/5 hover:bg-transparent bg-white/[0.03]">
-                    <TableHead className="text-white/60 w-16 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
-                    <TableHead className="text-white/80 w-24 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Grupo</TableHead>
-                    <TableHead className="text-white/80 min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
-                    <TableHead className="text-white/80 min-w-[250px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Descripción</TableHead>
-                    <TableHead className="text-white/80 text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>
-                    <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Precio</TableHead>
-                    <TableHead className="text-white/80 text-center w-20 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Dto %</TableHead>
-                    <TableHead className="text-white/80 w-36 px-5 py-3 text-xs font-semibold uppercase tracking-wider">IVA</TableHead>
-                    <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Subtotal</TableHead>
-                    <TableHead className="text-white/60 w-14 px-5 py-3"></TableHead>
+                  <TableRow className="border-border/60 hover:bg-transparent bg-muted/20">
+                    <TableHead className="text-muted-foreground w-16 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
+                    <TableHead className="text-muted-foreground w-24 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Grupo</TableHead>
+                    <TableHead className="text-muted-foreground min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
+                    <TableHead className="text-muted-foreground min-w-[250px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Descripción</TableHead>
+                    <TableHead className="text-muted-foreground text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>
+                    <TableHead className="text-muted-foreground text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Precio</TableHead>
+                    <TableHead className="text-muted-foreground text-center w-20 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Dto %</TableHead>
+                    <TableHead className="text-muted-foreground w-36 px-5 py-3 text-xs font-semibold uppercase tracking-wider">IVA</TableHead>
+                    <TableHead className="text-muted-foreground text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Subtotal</TableHead>
+                    <TableHead className="text-muted-foreground w-14 px-5 py-3"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1030,27 +1030,27 @@ const EditQuotePageDesktop = () => {
                   const activeLines = lines.filter(l => !l.isDeleted);
                   const isFirst = displayIndex === 0;
                   const isLast = displayIndex === activeLines.length - 1;
-                  return <TableRow key={line.id || line.tempId} className="border-white/5 hover:bg-white/[0.04] transition-colors duration-150 group">
+                  return <TableRow key={line.id || line.tempId} className="border-border/60 hover:bg-muted/20 transition-colors duration-150 group">
                         <TableCell className="px-5 py-3.5">
                           <div className="flex flex-col gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => moveLine(actualIndex, 'up')} disabled={isFirst} className="h-6 w-6 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed" title="Mover arriba">
+                            <Button variant="ghost" size="icon" onClick={() => moveLine(actualIndex, 'up')} disabled={isFirst} className="h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-20 disabled:cursor-not-allowed" title="Mover arriba">
                               <ChevronUp className="h-3 w-3" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => moveLine(actualIndex, 'down')} disabled={isLast} className="h-6 w-6 text-white/30 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed" title="Mover abajo">
+                            <Button variant="ghost" size="icon" onClick={() => moveLine(actualIndex, 'down')} disabled={isLast} className="h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-20 disabled:cursor-not-allowed" title="Mover abajo">
                               <ChevronDown className="h-3 w-3" />
                             </Button>
                           </div>
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
-                          <Input value={line.group_name || ''} onChange={e => updateLine(actualIndex, "group_name", e.target.value)} placeholder="Grupo" className="bg-transparent border-0 border-b border-white/10 text-white/70 h-auto text-sm pl-2 pr-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors" />
+                          <Input value={line.group_name || ''} onChange={e => updateLine(actualIndex, "group_name", e.target.value)} placeholder="Grupo" className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm pl-2 pr-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" />
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
-                          <ProductSearchInput value={line.concept} onChange={value => updateLine(actualIndex, "concept", value)} onSelectItem={item => handleProductSelect(actualIndex, item)} placeholder="@buscar producto" className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors" />
+                          <ProductSearchInput value={line.concept} onChange={value => updateLine(actualIndex, "concept", value)} onSelectItem={item => handleProductSelect(actualIndex, item)} placeholder="@buscar producto" className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" />
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
                           {expandedDescriptionIndex === actualIndex ? <div className="space-y-2">
-                              <Textarea value={line.description} onChange={e => updateLine(actualIndex, "description", e.target.value)} placeholder="Descripción opcional" className="bg-white/5 border border-white/20 text-white/90 placeholder:text-white/25 text-sm px-3 py-2 min-h-[80px] resize-y focus:border-orange-500/60 focus-visible:ring-2 focus-visible:ring-orange-500/30 rounded-lg" onBlur={() => setExpandedDescriptionIndex(null)} autoFocus />
-                            </div> : <Input value={line.description} onChange={e => updateLine(actualIndex, "description", e.target.value)} onClick={() => setExpandedDescriptionIndex(actualIndex)} className="bg-transparent border-0 border-b border-white/10 text-white/85 placeholder:text-white/25 h-auto text-sm pl-2 pr-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors cursor-text" placeholder="Descripción opcional" readOnly />}
+                              <Textarea value={line.description} onChange={e => updateLine(actualIndex, "description", e.target.value)} placeholder="Descripción opcional" className="bg-background border border-border text-foreground placeholder:text-muted-foreground/70 text-sm px-3 py-2 min-h-[80px] resize-y focus:border-primary/60 focus-visible:ring-2 focus-visible:ring-primary/20 rounded-lg" onBlur={() => setExpandedDescriptionIndex(null)} autoFocus />
+                            </div> : <Input value={line.description} onChange={e => updateLine(actualIndex, "description", e.target.value)} onClick={() => setExpandedDescriptionIndex(actualIndex)} className="bg-transparent border-0 border-b border-border text-foreground placeholder:text-muted-foreground/70 h-auto text-sm pl-2 pr-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors cursor-text" placeholder="Descripción opcional" readOnly />}
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
                           <div className="flex justify-center">
@@ -1063,7 +1063,7 @@ const EditQuotePageDesktop = () => {
                             delete newValues[inputKey];
                             return newValues;
                           });
-                        }} className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors" placeholder="0" />
+                        }} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" placeholder="0" />
                           </div>
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
@@ -1076,7 +1076,7 @@ const EditQuotePageDesktop = () => {
                           delete newValues[inputKey];
                           return newValues;
                         });
-                      }} className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-right font-medium px-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors" placeholder="0,00" />
+                      }} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-right font-medium px-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" placeholder="0,00" />
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
                           <Input type="text" inputMode="decimal" value={getNumericDisplayValue(line.discount_percent || 0, 'discount_percent' as any, actualIndex)} onChange={e => handleNumericInputChange(e.target.value, 'discount_percent' as any, actualIndex)} onBlur={() => {
@@ -1088,7 +1088,7 @@ const EditQuotePageDesktop = () => {
                           delete newValues[inputKey];
                           return newValues;
                         });
-                      }} className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors" placeholder="0" />
+                      }} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" placeholder="0" />
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
                           <div className="flex justify-center">
@@ -1103,19 +1103,19 @@ const EditQuotePageDesktop = () => {
                             </select>
                           </div>
                         </TableCell>
-                        <TableCell className="text-white font-semibold text-right text-sm px-5 py-3.5">
+                        <TableCell className="text-foreground font-semibold text-right text-sm px-5 py-3.5">
                           {formatCurrency(line.subtotal)}
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
-                          <Button variant="ghost" size="icon" onClick={() => removeLine(actualIndex)} className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-8 w-8 transition-colors">
+                          <Button variant="ghost" size="icon" onClick={() => removeLine(actualIndex)} className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 h-8 w-8 transition-colors">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </TableCell>
                       </TableRow>;
                 })}
-                  {lines.filter(l => !l.isDeleted).length === 0 && <TableRow className="border-white/10">
+                  {lines.filter(l => !l.isDeleted).length === 0 && <TableRow className="border-border">
                       <TableCell colSpan={8} className="text-center py-12">
-                        <p className="text-white/40 text-sm mb-2">No hay líneas en este presupuesto</p>
+                        <p className="text-muted-foreground text-sm mb-2">No hay líneas en este presupuesto</p>
                         <Button variant="link" onClick={addLine} className="text-orange-500 text-sm">
                           Añadir primera línea
                         </Button>
@@ -1124,8 +1124,8 @@ const EditQuotePageDesktop = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="p-5 border-t border-white/10 bg-gradient-to-r from-white/5 to-transparent">
-              <Button variant="outline" onClick={addLine} className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/50 backdrop-blur-sm rounded-lg transition-all duration-200 h-10 px-4 gap-2 font-medium">
+            <div className="p-5 border-t border-border bg-muted/20">
+              <Button variant="outline" onClick={addLine} className="border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/50 rounded-lg transition-all duration-200 h-10 px-4 gap-2 font-medium">
                 <Plus className="h-4 w-4" />
                 Añadir línea
               </Button>
@@ -1133,19 +1133,19 @@ const EditQuotePageDesktop = () => {
           </div>
 
           {/* Totals */}
-          <div className="bg-gradient-to-br from-white/[0.12] to-white/[0.06] backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/15 p-5 md:p-6 shadow-2xl shadow-black/40">
+          <div className="bg-card/95 backdrop-blur-sm rounded-2xl md:rounded-3xl border border-border p-5 md:p-6 shadow-sm">
             <div className="max-w-sm ml-auto space-y-4">
               <div className="flex justify-between text-sm">
-                <span className="text-white/70 font-medium">Base imponible</span>
-                <span className="text-white font-semibold">{formatCurrency(totals.subtotal)}</span>
+                <span className="text-muted-foreground font-medium">Base imponible</span>
+                <span className="text-foreground font-semibold">{formatCurrency(totals.subtotal)}</span>
               </div>
               {totals.taxes.map(tax => <div key={tax.rate} className="flex justify-between text-sm">
-                  <span className="text-white/70 font-medium">{tax.label}</span>
-                  <span className="text-white font-semibold">{formatCurrency(tax.amount)}</span>
+                  <span className="text-muted-foreground font-medium">{tax.label}</span>
+                  <span className="text-foreground font-semibold">{formatCurrency(tax.amount)}</span>
                 </div>)}
-              <div className="flex justify-between pt-4 border-t border-white/20">
-                <span className="text-white font-semibold text-lg">Total</span>
-                <span className="text-orange-400 text-xl font-bold">{formatCurrency(totals.total)}</span>
+              <div className="flex justify-between pt-4 border-t border-border">
+                <span className="text-foreground font-semibold text-lg">Total</span>
+                <span className="text-orange-600 dark:text-orange-400 text-xl font-bold">{formatCurrency(totals.total)}</span>
               </div>
             </div>
           </div>

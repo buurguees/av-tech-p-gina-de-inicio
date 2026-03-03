@@ -211,6 +211,14 @@
   min-width: 0;
 }
 
+.data-list__cell--stacked,
+.data-list__cell--stacked > div,
+.data-list__cell--stacked > span {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
 /* Excepción para elementos que necesitan múltiples líneas (como badges) */
 .data-list__cell > .badge,
 .data-list__cell > [class*="Badge"] {

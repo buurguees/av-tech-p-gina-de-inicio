@@ -41,6 +41,7 @@ import LockedIndicator from "../components/common/LockedIndicator";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import { InvoicePDFDocument } from "../components/invoices/InvoicePDFViewer";
 import ArchivedPdfViewer from "../../shared/components/ArchivedPdfViewer";
+import { archiveSalesDocument, buildInvoiceArchiveFileName } from "../../shared/lib/salesDocumentArchive";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import PaymentsTab from "../components/common/PaymentsTab";
@@ -398,22 +399,119 @@ const InvoiceDetailPageDesktop = () => {
         throw new Error(errorMessage);
       }
 
-      // Refetch invoice with definitive number
       const freshData = await fetchInvoiceData();
+      if (!freshData?.invoice || !freshData.client || !freshData.company) {
+        throw new Error("La factura se emitió pero no se pudo recargar la información para archivarla");
+      }
 
-      toast({
-        title: "Factura emitida",
-        description: "Archivando PDF inmutable...",
+      const issueDate = freshData.invoice.issue_date || new Date().toISOString().slice(0, 10);
+      const archivedFileName = buildInvoiceArchiveFileName({
+        invoiceNumber: freshData.invoice.invoice_number,
+        preliminaryNumber: freshData.invoice.preliminary_number,
+        clientName: freshData.invoice.client_name,
+        issueDate,
       });
 
-      if (freshData) {
-        await fetchInvoiceData();
-      }
+      await archiveSalesDocument({
+        documentType: "invoice",
+        documentId: freshData.invoice.id,
+        issueDate,
+        fileName: archivedFileName,
+        pdfDocument: (
+          <InvoicePDFDocument
+            invoice={freshData.invoice}
+            lines={freshData.lines}
+            client={freshData.client}
+            company={freshData.company}
+            project={freshData.project}
+            preferences={freshData.preferences}
+          />
+        ),
+        metadata: {
+          DocumentoERPId: freshData.invoice.id,
+          TipoDocumento: "Factura",
+          Cliente: freshData.invoice.client_name,
+          Proyecto: [freshData.invoice.project_number, freshData.invoice.project_name].filter(Boolean).join(" - "),
+          MesFiscal: issueDate.slice(0, 7),
+          EstadoERP: freshData.invoice.status,
+        },
+        persistRpc: "set_invoice_archive_metadata",
+        persistArgs: {
+          p_invoice_id: freshData.invoice.id,
+        },
+      });
+
+      await fetchInvoiceData();
+
+      toast({
+        title: "Factura emitida y archivada",
+        description: "La factura ha quedado archivada correctamente en SharePoint.",
+      });
     } catch (error: any) {
       console.error("Error issuing invoice:", error);
+      await fetchInvoiceData();
       toast({
-        title: "Error al emitir factura",
-        description: error.message || "No se pudo emitir la factura.",
+        title: "Error al completar la emisión",
+        description: error.message || "No se pudo emitir y archivar la factura.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleRetryArchive = async () => {
+    if (!invoice || invoice.status === "DRAFT" || !client || !company) return;
+
+    setUpdatingStatus(true);
+    try {
+      const issueDate = invoice.issue_date || new Date().toISOString().slice(0, 10);
+      const archivedFileName = buildInvoiceArchiveFileName({
+        invoiceNumber: invoice.invoice_number,
+        preliminaryNumber: invoice.preliminary_number,
+        clientName: invoice.client_name,
+        issueDate,
+      });
+
+      await archiveSalesDocument({
+        documentType: "invoice",
+        documentId: invoice.id,
+        issueDate,
+        fileName: archivedFileName,
+        pdfDocument: (
+          <InvoicePDFDocument
+            invoice={invoice}
+            lines={lines}
+            client={client}
+            company={company}
+            project={project}
+            preferences={preferences}
+          />
+        ),
+        metadata: {
+          DocumentoERPId: invoice.id,
+          TipoDocumento: "Factura",
+          Cliente: invoice.client_name,
+          Proyecto: [invoice.project_number, invoice.project_name].filter(Boolean).join(" - "),
+          MesFiscal: issueDate.slice(0, 7),
+          EstadoERP: invoice.status,
+        },
+        persistRpc: "set_invoice_archive_metadata",
+        persistArgs: {
+          p_invoice_id: invoice.id,
+        },
+      });
+
+      await fetchInvoiceData();
+      toast({
+        title: "Archivado completado",
+        description: "La factura archivada ya está disponible en SharePoint.",
+      });
+    } catch (error: any) {
+      console.error("Error retrying invoice archive:", error);
+      toast({
+        title: "Error al archivar",
+        description: error.message || "No se pudo archivar la factura emitida.",
         variant: "destructive",
       });
     } finally {
@@ -711,6 +809,15 @@ const InvoiceDetailPageDesktop = () => {
                         <p className="text-sm text-muted-foreground">
                           La factura está emitida pero no tiene PDF archivado en SharePoint.
                         </p>
+                        <Button
+                          variant="outline"
+                          onClick={handleRetryArchive}
+                          disabled={updatingStatus}
+                          className="gap-2"
+                        >
+                          {updatingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                          Reintentar archivado
+                        </Button>
                       </div>
                     ) : (
                       <DocumentPDFViewer

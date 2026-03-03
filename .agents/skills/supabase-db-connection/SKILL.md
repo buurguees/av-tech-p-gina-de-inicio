@@ -155,6 +155,11 @@ Cambios que SIEMPRE requieren confirmación:
 - [ ] Operación objetivo realizada.
 - [ ] Sin exponer secretos en salida/logs.
 
+## Notas operativas del proyecto (NEXO AV)
+- En este repo, priorizar `npx supabase ...` para CLI (no asumir binario global).
+- Si hay errores de historial o drift, aplicar skill `supabase-migration-hygiene`.
+- Revisar estado vigente en `.agents/memories/CURRENT_STATE.md` antes de tocar migraciones.
+
 ## Formato de salida recomendado
 Usar este formato al reportar estado:
 

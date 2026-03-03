@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { marketingRoutes, nexoRoutes } from "@/app/routes";
 
-const NotFound = lazy(() => import("@/pages/NotFound"));
+const NotFound = lazy(() => import('@/marketing/pages/MarketingNotFoundPage'));
 
 // Loading fallback component
 const PageLoader = () => (

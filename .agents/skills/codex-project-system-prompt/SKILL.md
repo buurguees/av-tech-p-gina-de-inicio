@@ -124,3 +124,5 @@ Si falta información para un cambio seguro, pide aclaración antes de aplicar c
 ## Mantenimiento recomendado
 - Revisar este prompt cuando cambie arquitectura, rutas o reglas de negocio.
 - Sincronizar con documentación funcional y técnica vigente.
+- Leer y actualizar memoria operativa en `.agents/memories/CURRENT_STATE.md`.
+- Para handover diario, registrar cambios en `.agents/memories/YYYY-MM-DD_*.md`.
