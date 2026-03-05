@@ -42,12 +42,12 @@ import DetailActionButton from "../components/navigation/DetailActionButton";
 import { InvoicePDFDocument } from "../components/invoices/InvoicePDFViewer";
 import ArchivedPdfViewer from "../../shared/components/ArchivedPdfViewer";
 import { archiveSalesDocument, buildInvoiceArchiveFileName } from "../../shared/lib/salesDocumentArchive";
+import { forceRefreshAccessToken, getFreshAccessToken } from "../../shared/lib/supabaseSession";
 import { FINANCE_INVOICE_STATUSES, getFinanceStatusInfo, LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import PaymentsTab from "../components/common/PaymentsTab";
 import RegisterPaymentDialog from "../components/invoices/RegisterPaymentDialog";
 import CreateRectificativaDialog from "../components/invoices/CreateRectificativaDialog";
-
 
 interface Invoice {
   id: string;
@@ -238,25 +238,102 @@ const InvoiceDetailPageDesktop = () => {
         throw new Error("Factura no encontrada");
       }
 
-      const invoiceInfo = Array.isArray(invoiceData) ? invoiceData[0] : invoiceData;
-      let enrichedInvoice = invoiceInfo as Invoice;
+      const invoiceInfo = (Array.isArray(invoiceData) ? invoiceData[0] : invoiceData) as any;
+      let enrichedInvoice = {
+        ...(invoiceInfo as Invoice),
+        archived_pdf_path: invoiceInfo.archived_pdf_path ?? null,
+        archived_pdf_file_name: invoiceInfo.archived_pdf_file_name ?? null,
+      } as Invoice;
 
-      try {
-        const { data: archiveRows, error: archiveError } = await ((supabase.rpc as any)("get_invoice_archive_metadata", {
-          p_invoice_id: invoiceId,
-        }) as Promise<{ data: Array<{ archived_pdf_path: string | null; archived_pdf_file_name: string | null }> | null; error: any }>);
+      if (!enrichedInvoice.archived_pdf_path || !enrichedInvoice.archived_pdf_file_name) {
+        try {
+        const runGetArchiveMetadata = (fn: "get_invoice_archive_metadata" | "sync_get_invoice_archive_metadata") =>
+          ((supabase.rpc as any)(fn, {
+            p_invoice_id: invoiceId,
+          }) as Promise<{ data: Array<{ archived_pdf_path: string | null; archived_pdf_file_name: string | null }> | null; error: any }>);
 
-        const archiveData = Array.isArray(archiveRows) && archiveRows.length > 0 ? archiveRows[0] : null;
+        let { data: archiveRows, error: archiveError } = await runGetArchiveMetadata("get_invoice_archive_metadata");
+        if (archiveError?.message?.includes("Could not find the function public.get_invoice_archive_metadata")) {
+          const fallback = await runGetArchiveMetadata("sync_get_invoice_archive_metadata");
+          archiveRows = fallback.data;
+          archiveError = fallback.error;
+        }
 
-        if (!archiveError && archiveData) {
+        let archiveData = Array.isArray(archiveRows) && archiveRows.length > 0 ? archiveRows[0] : null;
+
+        if (archiveError || !archiveData?.archived_pdf_path) {
+          try {
+            const syncListResult = await ((supabase.rpc as any)("sync_list_invoices_for_archive", {
+              p_limit: 1,
+              p_invoice_id: invoiceId,
+            }) as Promise<{ data: Array<{ archived_pdf_path: string | null }> | null; error: any }>);
+
+            if (!syncListResult.error && Array.isArray(syncListResult.data) && syncListResult.data.length > 0) {
+              archiveData = {
+                archived_pdf_path: syncListResult.data[0].archived_pdf_path,
+                archived_pdf_file_name: syncListResult.data[0].archived_pdf_path?.split("/").at(-1) ?? null,
+              };
+            }
+          } catch (syncListError) {
+            console.warn("sync_list_invoices_for_archive unavailable for current role:", syncListError);
+          }
+        }
+
+        if (archiveError || !archiveData?.archived_pdf_path) {
+            const invokeGetSalesMetadata = async (token: string) =>
+              await supabase.functions.invoke("sharepoint-storage", {
+                body: {
+                  action: "get-sales-metadata",
+                  documentType: "invoice",
+                  documentId: invoiceId,
+                },
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+
+            const accessToken = await getFreshAccessToken();
+            let { data: fallbackPayload, error: invokeError } = await invokeGetSalesMetadata(accessToken);
+
+            const status = (invokeError as any)?.context?.response?.status;
+            if (invokeError && (status === 401 || status === 403)) {
+              const refreshedToken = await forceRefreshAccessToken();
+              const retried = await invokeGetSalesMetadata(refreshedToken);
+              fallbackPayload = retried.data;
+              invokeError = retried.error;
+            }
+
+          if (!invokeError) {
+            const archivedPdfPath =
+              (fallbackPayload as any)?.archivedPdfPath ??
+              (fallbackPayload as any)?.archived_pdf_path ??
+              null;
+            const archivedPdfFileName =
+              (fallbackPayload as any)?.archivedPdfFileName ??
+              (fallbackPayload as any)?.archived_pdf_file_name ??
+              null;
+
+            if (archivedPdfPath) {
+              archiveData = {
+                archived_pdf_path: archivedPdfPath,
+                archived_pdf_file_name: archivedPdfFileName,
+              };
+            }
+          } else {
+            console.warn("get-sales-metadata fallback failed:", invokeError.message);
+          }
+        }
+
+        if (archiveData) {
           enrichedInvoice = {
-            ...invoiceInfo,
+            ...(invoiceInfo as Invoice),
             archived_pdf_path: archiveData.archived_pdf_path,
             archived_pdf_file_name: archiveData.archived_pdf_file_name,
           };
         }
       } catch (archiveFetchError) {
         console.error("Error fetching invoice archive metadata:", archiveFetchError);
+      }
       }
 
       setInvoice(enrichedInvoice);

@@ -37,6 +37,8 @@ import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
 import { useToast } from "@/hooks/use-toast";
 import { QuotePDFDocument } from "@/pages/nexo_av/assets/plantillas";
 import ArchivedPdfViewer from "../../shared/components/ArchivedPdfViewer";
+import { archiveSalesDocument, buildQuoteArchiveFileName } from "../../shared/lib/salesDocumentArchive";
+import { forceRefreshAccessToken, getFreshAccessToken } from "../../shared/lib/supabaseSession";
 import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 import {
@@ -136,6 +138,14 @@ interface ArchiveMetadataRow {
   archived_pdf_file_name: string | null;
 }
 
+interface FetchedQuoteData {
+  quote: Quote;
+  lines: QuoteLine[];
+  client: Client | null;
+  company: CompanySettings | null;
+  project: Project | null;
+}
+
 type TabId = 'resumen' | 'preview' | 'lineas' | 'auditoria';
 
 interface Tab {
@@ -190,13 +200,7 @@ const MobileQuoteDetailPage = () => {
   const [sending, setSending] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    if (quoteId) {
-      void fetchQuoteData();
-    }
-  }, [quoteId, fetchQuoteData]);
-
-  const fetchQuoteData = useCallback(async () => {
+  const fetchQuoteData = useCallback(async (): Promise<FetchedQuoteData | undefined> => {
     if (!quoteId) return;
     
     try {
@@ -208,17 +212,96 @@ const MobileQuoteDetailPage = () => {
       });
       if (quoteError) throw quoteError;
       if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
+      const quoteInfo = quoteData[0] as any;
 
-      const quoteInfo = quoteData[0];
-      const { data: archiveRows, error: archiveError } = await supabase.rpc("get_quote_archive_metadata", {
-        p_quote_id: quoteId,
-      }) as { data: ArchiveMetadataRow[] | null; error: unknown };
-      const archiveData = !archiveError && Array.isArray(archiveRows) && archiveRows.length > 0 ? archiveRows[0] : null;
       const enrichedQuote = {
-        ...quoteInfo,
-        archived_pdf_path: archiveData?.archived_pdf_path ?? null,
-        archived_pdf_file_name: archiveData?.archived_pdf_file_name ?? null,
+        ...(quoteInfo as Quote),
+        archived_pdf_path: quoteInfo.archived_pdf_path ?? null,
+        archived_pdf_file_name: quoteInfo.archived_pdf_file_name ?? null,
       };
+
+      if (!enrichedQuote.archived_pdf_path || !enrichedQuote.archived_pdf_file_name) {
+        const runGetArchiveMetadata = (fn: "get_quote_archive_metadata" | "sync_get_quote_archive_metadata") =>
+          (supabase.rpc(fn, {
+            p_quote_id: quoteId,
+          }) as Promise<{ data: ArchiveMetadataRow[] | null; error: any }>);
+
+        let { data: archiveRows, error: archiveError } = await runGetArchiveMetadata("get_quote_archive_metadata");
+        if (archiveError?.message?.includes("Could not find the function public.get_quote_archive_metadata")) {
+          const fallback = await runGetArchiveMetadata("sync_get_quote_archive_metadata");
+          archiveRows = fallback.data;
+          archiveError = fallback.error;
+        }
+        let archiveData = !archiveError && Array.isArray(archiveRows) && archiveRows.length > 0 ? archiveRows[0] : null;
+
+        if (archiveError || !archiveData?.archived_pdf_path) {
+          try {
+            const syncListResult = await ((supabase.rpc as any)("sync_list_quotes_for_archive", {
+              p_limit: 1,
+              p_quote_id: quoteId,
+            }) as Promise<{ data: Array<{ archived_pdf_path: string | null }> | null; error: any }>);
+
+            if (!syncListResult.error && Array.isArray(syncListResult.data) && syncListResult.data.length > 0) {
+              archiveData = {
+                archived_pdf_path: syncListResult.data[0].archived_pdf_path,
+                archived_pdf_file_name: syncListResult.data[0].archived_pdf_path?.split("/").at(-1) ?? null,
+              };
+            }
+          } catch (syncListError) {
+            console.warn("sync_list_quotes_for_archive unavailable for current role:", syncListError);
+          }
+        }
+
+        if (archiveError || !archiveData?.archived_pdf_path) {
+            const invokeGetSalesMetadata = async (token: string) =>
+              await supabase.functions.invoke("sharepoint-storage", {
+                body: {
+                  action: "get-sales-metadata",
+                  documentType: "quote",
+                  documentId: quoteId,
+                },
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+
+            const accessToken = await getFreshAccessToken();
+            let { data: fallbackPayload, error: invokeError } = await invokeGetSalesMetadata(accessToken);
+
+            const status = (invokeError as any)?.context?.response?.status;
+            if (invokeError && (status === 401 || status === 403)) {
+              const refreshedToken = await forceRefreshAccessToken();
+              const retried = await invokeGetSalesMetadata(refreshedToken);
+              fallbackPayload = retried.data;
+              invokeError = retried.error;
+            }
+
+          if (!invokeError) {
+            const archivedPdfPath =
+              (fallbackPayload as any)?.archivedPdfPath ??
+              (fallbackPayload as any)?.archived_pdf_path ??
+              null;
+            const archivedPdfFileName =
+              (fallbackPayload as any)?.archivedPdfFileName ??
+              (fallbackPayload as any)?.archived_pdf_file_name ??
+              null;
+
+            if (archivedPdfPath) {
+              archiveData = {
+                archived_pdf_path: archivedPdfPath,
+                archived_pdf_file_name: archivedPdfFileName,
+              };
+            }
+          } else {
+            console.warn("get-sales-metadata fallback failed:", invokeError.message);
+          }
+        }
+
+        if (archiveData) {
+          enrichedQuote.archived_pdf_path = archiveData.archived_pdf_path ?? null;
+          enrichedQuote.archived_pdf_file_name = archiveData.archived_pdf_file_name ?? null;
+        }
+      }
       setQuote(enrichedQuote);
 
       // Fetch quote lines
@@ -226,25 +309,31 @@ const MobileQuoteDetailPage = () => {
         p_quote_id: quoteId,
       });
       if (linesError) throw linesError;
-      setLines(linesData || []);
+      const fetchedLines = linesData || [];
+      setLines(fetchedLines);
 
       // Fetch client details
+      let fetchedClient: Client | null = null;
       if (quoteInfo.client_id) {
         const { data: clientData, error: clientError } = await supabase.rpc("get_client", {
           p_client_id: quoteInfo.client_id,
         });
         if (!clientError && clientData && clientData.length > 0) {
-          setClient(clientData[0]);
+          fetchedClient = clientData[0];
+          setClient(fetchedClient);
         }
+      } else {
+        setClient(null);
       }
 
       // Fetch project details
+      let fetchedProject: Project | null = null;
       if (quoteInfo.project_id) {
         const { data: projectData, error: projectError } = await supabase.rpc("get_project", {
           p_project_id: quoteInfo.project_id,
         });
         if (!projectError && projectData && projectData.length > 0) {
-          setProject({
+          fetchedProject = {
             project_number: projectData[0].project_number,
             project_name: projectData[0].project_name,
             project_address: projectData[0].project_address,
@@ -252,17 +341,30 @@ const MobileQuoteDetailPage = () => {
             local_name: projectData[0].local_name,
             client_order_number: projectData[0].client_order_number,
             site_name: quoteInfo.site_name || null,
-          });
+          };
+          setProject(fetchedProject);
         }
+      } else {
+        setProject(null);
       }
 
       // Fetch company settings
+      let fetchedCompany: CompanySettings | null = null;
       const { data: companyData, error: companyError } = await supabase.rpc("get_company_settings");
       if (!companyError && companyData && companyData.length > 0) {
-        setCompany(companyData[0]);
+        fetchedCompany = companyData[0];
+        setCompany(fetchedCompany);
+      } else {
+        setCompany(null);
       }
 
-      return enrichedQuote;
+      return {
+        quote: enrichedQuote,
+        lines: fetchedLines,
+        client: fetchedClient,
+        company: fetchedCompany,
+        project: fetchedProject,
+      };
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "No se pudo cargar el presupuesto";
       console.error("Error fetching quote:", error);
@@ -276,8 +378,18 @@ const MobileQuoteDetailPage = () => {
     }
   }, [quoteId, toast]);
 
+  useEffect(() => {
+    if (quoteId) {
+      void fetchQuoteData();
+    }
+  }, [quoteId, fetchQuoteData]);
+
   const handleStatusChange = async (newStatus: string) => {
     if (!quote || newStatus === quote.status) return;
+
+    if (quote.status === "DRAFT" && newStatus === "SENT") {
+      return handleSend();
+    }
 
     setUpdatingStatus(true);
     try {
@@ -322,17 +434,58 @@ const MobileQuoteDetailPage = () => {
 
       if (error) throw error;
 
+      const freshData = await fetchQuoteData();
+      if (!freshData?.quote || !freshData.client || !freshData.company) {
+        throw new Error("El presupuesto se envio pero no se pudo recargar la informacion para archivarlo");
+      }
+
+      const issueDate = freshData.quote.issue_date || freshData.quote.created_at.slice(0, 10);
+      const archivedFileName = buildQuoteArchiveFileName({
+        quoteNumber: freshData.quote.quote_number,
+        clientName: freshData.quote.client_name,
+        issueDate,
+      });
+
+      await archiveSalesDocument({
+        documentType: "quote",
+        documentId: freshData.quote.id,
+        issueDate,
+        fileName: archivedFileName,
+        pdfDocument: (
+          <QuotePDFDocument
+            quote={{ ...freshData.quote, issue_date: issueDate }}
+            lines={freshData.lines}
+            client={freshData.client}
+            company={freshData.company}
+            project={freshData.project}
+          />
+        ),
+        metadata: {
+          DocumentoERPId: freshData.quote.id,
+          TipoDocumento: "Presupuesto",
+          Cliente: freshData.quote.client_name,
+          Proyecto: [freshData.project?.project_number, freshData.quote.project_name].filter(Boolean).join(" - "),
+          MesFiscal: issueDate.slice(0, 7),
+          EstadoERP: freshData.quote.status,
+        },
+        persistRpc: "set_quote_archive_metadata",
+        persistArgs: {
+          p_quote_id: freshData.quote.id,
+        },
+      });
+
       await fetchQuoteData();
 
       toast({
-        title: "Presupuesto enviado",
-        description: "El presupuesto se ha bloqueado y se ha asignado el número definitivo",
+        title: "Presupuesto enviado y archivado",
+        description: "El presupuesto se ha archivado correctamente en SharePoint.",
       });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "No se pudo enviar el presupuesto";
+      const message = error instanceof Error ? error.message : "No se pudo enviar y archivar el presupuesto";
       console.error("Error sending quote:", error);
+      await fetchQuoteData();
       toast({
-        title: "Error",
+        title: "Error al completar el envio",
         description: message,
         variant: "destructive",
       });

@@ -42,10 +42,10 @@ import DetailActionButton from "../components/navigation/DetailActionButton";
 import { QuotePDFDocument } from "../components/quotes/QuotePDFViewer";
 import ArchivedPdfViewer from "../../shared/components/ArchivedPdfViewer";
 import { archiveSalesDocument, buildQuoteArchiveFileName } from "../../shared/lib/salesDocumentArchive";
+import { forceRefreshAccessToken, getFreshAccessToken } from "../../shared/lib/supabaseSession";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
 import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
-
 
 interface Quote {
   id: string;
@@ -209,25 +209,102 @@ const QuoteDetailPageDesktop = () => {
       if (quoteError) throw quoteError;
       if (!quoteData || quoteData.length === 0) throw new Error("Presupuesto no encontrado");
 
-      const quoteInfo = quoteData[0];
-      let enrichedQuote = quoteInfo as Quote;
+      const quoteInfo = quoteData[0] as any;
+      let enrichedQuote = {
+        ...(quoteInfo as Quote),
+        archived_pdf_path: quoteInfo.archived_pdf_path ?? null,
+        archived_pdf_file_name: quoteInfo.archived_pdf_file_name ?? null,
+      } as Quote;
 
-      try {
-        const { data: archiveRows, error: archiveError } = await ((supabase.rpc as any)("get_quote_archive_metadata", {
-          p_quote_id: quoteId,
-        }) as Promise<{ data: Array<{ archived_pdf_path: string | null; archived_pdf_file_name: string | null }> | null; error: any }>);
+      if (!enrichedQuote.archived_pdf_path || !enrichedQuote.archived_pdf_file_name) {
+        try {
+          const runGetArchiveMetadata = (fn: "get_quote_archive_metadata" | "sync_get_quote_archive_metadata") =>
+            ((supabase.rpc as any)(fn, {
+              p_quote_id: quoteId,
+            }) as Promise<{ data: Array<{ archived_pdf_path: string | null; archived_pdf_file_name: string | null }> | null; error: any }>);
 
-        const archiveData = Array.isArray(archiveRows) && archiveRows.length > 0 ? archiveRows[0] : null;
+          let { data: archiveRows, error: archiveError } = await runGetArchiveMetadata("get_quote_archive_metadata");
+          if (archiveError?.message?.includes("Could not find the function public.get_quote_archive_metadata")) {
+            const fallback = await runGetArchiveMetadata("sync_get_quote_archive_metadata");
+            archiveRows = fallback.data;
+            archiveError = fallback.error;
+          }
 
-        if (!archiveError && archiveData) {
-          enrichedQuote = {
-            ...quoteInfo,
-            archived_pdf_path: archiveData.archived_pdf_path,
-            archived_pdf_file_name: archiveData.archived_pdf_file_name,
-          };
+          let archiveData = Array.isArray(archiveRows) && archiveRows.length > 0 ? archiveRows[0] : null;
+
+          if (archiveError || !archiveData?.archived_pdf_path) {
+            try {
+              const syncListResult = await ((supabase.rpc as any)("sync_list_quotes_for_archive", {
+                p_limit: 1,
+                p_quote_id: quoteId,
+              }) as Promise<{ data: Array<{ archived_pdf_path: string | null }> | null; error: any }>);
+
+              if (!syncListResult.error && Array.isArray(syncListResult.data) && syncListResult.data.length > 0) {
+                archiveData = {
+                  archived_pdf_path: syncListResult.data[0].archived_pdf_path,
+                  archived_pdf_file_name: syncListResult.data[0].archived_pdf_path?.split("/").at(-1) ?? null,
+                };
+              }
+            } catch (syncListError) {
+              console.warn("sync_list_quotes_for_archive unavailable for current role:", syncListError);
+            }
+          }
+
+          if (archiveError || !archiveData?.archived_pdf_path) {
+            const invokeGetSalesMetadata = async (token: string) =>
+              await supabase.functions.invoke("sharepoint-storage", {
+                body: {
+                  action: "get-sales-metadata",
+                  documentType: "quote",
+                  documentId: quoteId,
+                },
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+
+            const accessToken = await getFreshAccessToken();
+            let { data: fallbackPayload, error: invokeError } = await invokeGetSalesMetadata(accessToken);
+
+            const status = (invokeError as any)?.context?.response?.status;
+            if (invokeError && (status === 401 || status === 403)) {
+              const refreshedToken = await forceRefreshAccessToken();
+              const retried = await invokeGetSalesMetadata(refreshedToken);
+              fallbackPayload = retried.data;
+              invokeError = retried.error;
+            }
+
+            if (!invokeError) {
+              const archivedPdfPath =
+                (fallbackPayload as any)?.archivedPdfPath ??
+                (fallbackPayload as any)?.archived_pdf_path ??
+                null;
+              const archivedPdfFileName =
+                (fallbackPayload as any)?.archivedPdfFileName ??
+                (fallbackPayload as any)?.archived_pdf_file_name ??
+                null;
+
+              if (archivedPdfPath) {
+                archiveData = {
+                  archived_pdf_path: archivedPdfPath,
+                  archived_pdf_file_name: archivedPdfFileName,
+                };
+              }
+            } else {
+              console.warn("get-sales-metadata fallback failed:", invokeError.message);
+            }
+          }
+
+          if (archiveData?.archived_pdf_path) {
+            enrichedQuote = {
+              ...(quoteInfo as Quote),
+              archived_pdf_path: archiveData.archived_pdf_path,
+              archived_pdf_file_name: archiveData.archived_pdf_file_name,
+            };
+          }
+        } catch (archiveFetchError) {
+          console.error("Error fetching quote archive metadata:", archiveFetchError);
         }
-      } catch (archiveFetchError) {
-        console.error("Error fetching quote archive metadata:", archiveFetchError);
       }
 
       setQuote(enrichedQuote);
@@ -299,6 +376,10 @@ const QuoteDetailPageDesktop = () => {
 
   const handleStatusChange = async (newStatus: string) => {
     if (!quote || newStatus === quote.status) return;
+
+    if (quote.status === "DRAFT" && newStatus === "SENT") {
+      return handleSend();
+    }
 
     setUpdatingStatus(true);
     try {

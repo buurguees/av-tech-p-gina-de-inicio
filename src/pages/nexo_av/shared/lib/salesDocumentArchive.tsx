@@ -1,9 +1,7 @@
 import { type ReactElement } from "react";
 import { pdf } from "@react-pdf/renderer";
 import { supabase } from "@/integrations/supabase/client";
-
-const SUPABASE_URL =
-  import.meta.env.VITE_SUPABASE_URL || "https://takvthfatlcjsqgssnta.supabase.co";
+import { forceRefreshAccessToken, getFreshAccessToken } from "./supabaseSession";
 
 type SalesDocumentType = "invoice" | "quote";
 
@@ -40,9 +38,23 @@ type ArchiveSalesDocumentOptions = {
   };
 };
 
-type RpcError = {
-  message?: string;
+type PersistMetadataArgs = {
+  p_sharepoint_site_id: string;
+  p_sharepoint_drive_id: string;
+  p_sharepoint_item_id: string;
+  p_sharepoint_web_url: string | null;
+  p_sharepoint_etag: string | null;
+  p_archived_pdf_path: string;
+  p_archived_pdf_file_name: string;
+  p_archived_pdf_hash: string;
+  p_archived_record_hash: string;
+  p_invoice_id?: string;
+  p_quote_id?: string;
 };
+
+type RpcError = { message?: string } | null;
+
+type RpcCallResult = { error: RpcError };
 
 function sanitizeSegment(value: string | null | undefined): string {
   return (value ?? "")
@@ -62,46 +74,46 @@ async function digestSha256(input: Blob | string): Promise<string> {
     .join("");
 }
 
-async function getAccessToken(): Promise<string> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  const accessToken = session?.access_token;
-  if (!accessToken) {
-    throw new Error("No hay sesión activa para archivar el documento");
-  }
-
-  return accessToken;
-}
-
 async function callSharePointFunction<T>(
-  accessToken: string,
   body: Record<string, unknown>,
 ): Promise<T> {
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/sharepoint-storage`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const invokeWithToken = async (token: string) => (
+    await supabase.functions.invoke("sharepoint-storage", {
+      body,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  );
 
-  if (!response.ok) {
-    let backendError = "";
-    try {
-      const payload = await response.json();
-      backendError = typeof payload?.error === "string" ? payload.error : "";
-    } catch {
-      // Ignore non-JSON error bodies and keep a generic message.
-    }
+  const isUnauthorizedError = (error: unknown): boolean => {
+    const maybeError = error as { message?: string; context?: { response?: { status?: number } } };
+    const status = maybeError?.context?.response?.status;
+    if (status === 401 || status === 403) return true;
+    const message = (maybeError?.message || "").toLowerCase();
+    return message.includes("401") || message.includes("403") || message.includes("unauthorized");
+  };
 
-    const suffix = backendError ? `: ${backendError}` : "";
-    throw new Error(`SharePoint respondió con error (${response.status})${suffix}`);
+  const accessToken = await getFreshAccessToken();
+  let { data, error } = await invokeWithToken(accessToken);
+
+  if (error && isUnauthorizedError(error)) {
+    const refreshedToken = await forceRefreshAccessToken();
+    const retryResult = await invokeWithToken(refreshedToken);
+    data = retryResult.data;
+    error = retryResult.error;
   }
 
-  return response.json() as Promise<T>;
+  if (error) {
+    if (isUnauthorizedError(error)) {
+      throw new Error(
+        "No autorizado para SharePoint (401/403). Verifica que el usuario esté activo y autorizado en NEXO.",
+      );
+    }
+    throw new Error(error.message || "SharePoint respondió con error");
+  }
+
+  return data as T;
 }
 
 export function buildInvoiceArchiveFileName(input: {
@@ -123,10 +135,9 @@ export function buildQuoteArchiveFileName(input: {
 }
 
 export async function archiveSalesDocument(options: ArchiveSalesDocumentOptions) {
-  const accessToken = await getAccessToken();
   const issueDate = options.issueDate.slice(0, 10);
 
-  const paths = await callSharePointFunction<BuildPathsResponse>(accessToken, {
+  const paths = await callSharePointFunction<BuildPathsResponse>({
     action: "build-sales-paths",
     documentType: options.documentType,
     issueDate,
@@ -164,7 +175,7 @@ export async function archiveSalesDocument(options: ArchiveSalesDocumentOptions)
     pdfHash: `sha256:${pdfHash}`,
   }));
 
-  const uploadResult = await callSharePointFunction<UploadResponse>(accessToken, {
+  const uploadResult = await callSharePointFunction<UploadResponse>({
     action: "upload-sales-pdf",
     fileName: options.fileName,
     pdfBase64,
@@ -181,12 +192,7 @@ export async function archiveSalesDocument(options: ArchiveSalesDocumentOptions)
     throw new Error("SharePoint no devolvió la referencia del archivo principal");
   }
 
-  const rpc = supabase.rpc as unknown as (
-    fn: ArchiveSalesDocumentOptions["persistRpc"],
-    args: Record<string, unknown>,
-  ) => Promise<{ error: RpcError | null }>;
-
-  const { error: persistError } = await rpc(options.persistRpc, {
+  const persistArgs: PersistMetadataArgs = {
     ...options.persistArgs,
     p_sharepoint_site_id: primaryItem.siteId || "",
     p_sharepoint_drive_id: primaryItem.driveId || "",
@@ -197,10 +203,56 @@ export async function archiveSalesDocument(options: ArchiveSalesDocumentOptions)
     p_archived_pdf_file_name: options.fileName,
     p_archived_pdf_hash: `sha256:${pdfHash}`,
     p_archived_record_hash: `sha256:${recordHash}`,
-  });
+  };
 
-  if (persistError) {
-    throw new Error(persistError.message || "No se pudo persistir la metadata documental");
+  const rpc = (supabase.rpc as any).bind(supabase) as (
+    fn: string,
+    args: Record<string, unknown>,
+  ) => Promise<RpcCallResult>;
+
+  const persistWithRpcFallback = async () => {
+    // Compat con despliegues que no tienen aún hashes o RPC sync_*.
+    const attemptArgs: Record<string, unknown>[] = [
+      persistArgs,
+      (() => {
+        const { p_archived_pdf_hash, p_archived_record_hash, ...legacyArgs } = persistArgs;
+        return legacyArgs;
+      })(),
+    ];
+
+    const attemptFunctions = [options.persistRpc, `sync_${options.persistRpc}`];
+    const errors: string[] = [];
+
+    for (const fn of attemptFunctions) {
+      for (const args of attemptArgs) {
+        const result = await rpc(fn, args);
+        if (!result.error) return;
+        errors.push(result.error.message || `${fn} failed`);
+      }
+    }
+
+    throw new Error(
+      errors[errors.length - 1] || "No se pudo persistir la metadata documental",
+    );
+  };
+
+  try {
+    await callSharePointFunction<{ ok: boolean }>({
+      action: "persist-sales-metadata",
+      documentType: options.documentType,
+      documentId: options.documentId,
+      sharepointSiteId: primaryItem.siteId || "",
+      sharepointDriveId: primaryItem.driveId || "",
+      sharepointItemId: primaryItem.id,
+      sharepointWebUrl: primaryItem.webUrl ?? null,
+      sharepointETag: primaryItem.eTag ?? null,
+      archivedPdfPath: primaryItem.path,
+      archivedPdfFileName: options.fileName,
+      archivedPdfHash: `sha256:${pdfHash}`,
+      archivedRecordHash: `sha256:${recordHash}`,
+    });
+  } catch {
+    await persistWithRpcFallback();
   }
 
   return {

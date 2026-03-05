@@ -58,10 +58,33 @@ type BuildSalesPathsRequest = {
   issueDate: string;
 };
 
+type GetSalesMetadataRequest = {
+  action: "get-sales-metadata";
+  documentType: "invoice" | "quote";
+  documentId: string;
+};
+
+type PersistSalesMetadataRequest = {
+  action: "persist-sales-metadata";
+  documentType: "invoice" | "quote";
+  documentId: string;
+  sharepointSiteId: string;
+  sharepointDriveId: string;
+  sharepointItemId: string;
+  sharepointWebUrl?: string | null;
+  sharepointETag?: string | null;
+  archivedPdfPath: string;
+  archivedPdfFileName: string;
+  archivedPdfHash: string;
+  archivedRecordHash: string;
+};
+
 type RequestBody =
   | UploadSalesPdfRequest
   | DownloadSalesFileRequest
-  | BuildSalesPathsRequest;
+  | BuildSalesPathsRequest
+  | GetSalesMetadataRequest
+  | PersistSalesMetadataRequest;
 
 function getCorsHeaders(origin: string | null): Record<string, string> {
   let allowedOrigin = ALLOWED_ORIGINS[0];
@@ -127,10 +150,14 @@ function buildSalesPaths(
 async function getAuthorizedUser(req: Request): Promise<AuthorizedUser> {
   const supabaseUrl = getRequiredEnv("SUPABASE_URL");
   const serviceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
-  const anonKey = getRequiredEnv("SUPABASE_ANON_KEY");
   const authHeader = req.headers.get("Authorization");
 
   if (!authHeader) {
+    throw new Error("No authorization header");
+  }
+
+  const accessToken = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!accessToken) {
     throw new Error("No authorization header");
   }
 
@@ -138,28 +165,65 @@ async function getAuthorizedUser(req: Request): Promise<AuthorizedUser> {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const supabaseClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
-
   const {
-    data: { user },
+    data: { user: authUser },
     error: userError,
-  } = await supabaseClient.auth.getUser();
+  } = await supabaseAdmin.auth.getUser(accessToken);
 
-  if (userError || !user) {
+  if (userError || !authUser) {
     throw new Error("Unauthorized");
   }
 
   const { data, error } = await supabaseAdmin.rpc("get_authorized_user_by_auth_id", {
-    p_auth_user_id: user.id,
+    p_auth_user_id: authUser.id,
   });
 
-  if (error || !data || data.length === 0) {
+  if (!error && data && data.length > 0) {
+    return { id: data[0].id, email: data[0].email };
+  }
+
+  // Fallback seguro: si el vínculo auth_user_id quedó desalineado tras
+  // recrear usuario en Auth, permitimos recuperar el usuario autorizado por email.
+  const authEmail = authUser.email?.trim().toLowerCase();
+  if (!authEmail) {
     throw new Error("User not authorized");
   }
 
-  return { id: data[0].id, email: data[0].email };
+  const { data: byEmailRows, error: byEmailError } = await supabaseAdmin
+    .schema("internal")
+    .from("authorized_users")
+    .select("id, email, auth_user_id, is_active")
+    .eq("is_active", true)
+    .ilike("email", authEmail)
+    .limit(1);
+
+  if (
+    byEmailError ||
+    !Array.isArray(byEmailRows) ||
+    byEmailRows.length === 0
+  ) {
+    throw new Error("User not authorized");
+  }
+
+  const authorizedByEmail = byEmailRows[0] as {
+    id: string;
+    email: string;
+    auth_user_id?: string | null;
+  };
+
+  if (!authorizedByEmail.auth_user_id || authorizedByEmail.auth_user_id !== authUser.id) {
+    const { error: relinkError } = await supabaseAdmin
+      .schema("internal")
+      .from("authorized_users")
+      .update({ auth_user_id: authUser.id })
+      .eq("id", authorizedByEmail.id);
+
+    if (relinkError) {
+      throw new Error("User not authorized");
+    }
+  }
+
+  return { id: authorizedByEmail.id, email: authorizedByEmail.email };
 }
 
 function isSafeArchivedPdfPath(filePath: string): boolean {
@@ -202,10 +266,26 @@ async function getExpectedArchivedPath(
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
+  const fetchArchiveMetadata = async (
+    fn: "get_invoice_archive_metadata" | "sync_get_invoice_archive_metadata" | "get_quote_archive_metadata" | "sync_get_quote_archive_metadata",
+    args: Record<string, unknown>,
+  ) => {
+    const { data, error } = await supabaseClient.rpc(fn, args);
+    return { data, error };
+  };
+
   if (body.documentType === "invoice") {
-    const { data, error } = await supabaseClient.rpc("get_invoice_archive_metadata", {
+    let { data, error } = await fetchArchiveMetadata("get_invoice_archive_metadata", {
       p_invoice_id: body.documentId,
     });
+
+    if (error?.message?.includes("Could not find the function public.get_invoice_archive_metadata")) {
+      const fallback = await fetchArchiveMetadata("sync_get_invoice_archive_metadata", {
+        p_invoice_id: body.documentId,
+      });
+      data = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) {
       throw new Error("Access denied");
@@ -214,11 +294,47 @@ async function getExpectedArchivedPath(
     return Array.isArray(data) && data.length > 0 ? data[0].archived_pdf_path ?? null : null;
   }
 
-  const { data, error } = await supabaseClient.rpc("get_quote_archive_metadata", {
+  let { data, error } = await fetchArchiveMetadata("get_quote_archive_metadata", {
     p_quote_id: body.documentId,
   });
 
+  if (error?.message?.includes("Could not find the function public.get_quote_archive_metadata")) {
+    const fallback = await fetchArchiveMetadata("sync_get_quote_archive_metadata", {
+      p_quote_id: body.documentId,
+    });
+    data = fallback.data;
+    error = fallback.error;
+  }
+
   if (error) {
+    // Compat fallback: some environments miss sales.can_access_quote() dependency
+    // used by get_quote_archive_metadata. In that case, verify quote access with
+    // get_quote (user-scoped) and resolve canonical archive path with service-role.
+    if (error.message?.includes("sales.can_access_quote")) {
+      const { data: quoteData, error: quoteError } = await supabaseClient.rpc("get_quote", {
+        p_quote_id: body.documentId,
+      });
+
+      if (quoteError || !Array.isArray(quoteData) || quoteData.length === 0) {
+        throw new Error("Access denied");
+      }
+
+      const supabaseAdmin = createClient(supabaseUrl, getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY"), {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+
+      const { data: syncRows, error: syncError } = await supabaseAdmin.rpc("sync_list_quotes_for_archive", {
+        p_limit: 1,
+        p_quote_id: body.documentId,
+      });
+
+      if (syncError) {
+        throw new Error("Access denied");
+      }
+
+      return Array.isArray(syncRows) && syncRows.length > 0 ? syncRows[0].archived_pdf_path ?? null : null;
+    }
+
     throw new Error("Access denied");
   }
 
@@ -351,6 +467,58 @@ async function patchDriveItemMetadata(
   return await response.json();
 }
 
+async function persistSalesMetadata(
+  body: PersistSalesMetadataRequest,
+) {
+  const supabaseUrl = getRequiredEnv("SUPABASE_URL");
+  const serviceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
+  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const baseArgs = {
+    p_sharepoint_site_id: body.sharepointSiteId || "",
+    p_sharepoint_drive_id: body.sharepointDriveId || "",
+    p_sharepoint_item_id: body.sharepointItemId,
+    p_sharepoint_web_url: body.sharepointWebUrl ?? null,
+    p_sharepoint_etag: body.sharepointETag ?? null,
+    p_archived_pdf_path: body.archivedPdfPath,
+    p_archived_pdf_file_name: body.archivedPdfFileName,
+    p_archived_pdf_hash: body.archivedPdfHash,
+    p_archived_record_hash: body.archivedRecordHash,
+  };
+
+  if (body.documentType === "invoice") {
+    const sync = await supabaseAdmin.rpc("sync_set_invoice_archive_metadata", {
+      p_invoice_id: body.documentId,
+      ...baseArgs,
+    });
+    if (!sync.error) return;
+
+    const fallback = await supabaseAdmin.rpc("set_invoice_archive_metadata", {
+      p_invoice_id: body.documentId,
+      ...baseArgs,
+    });
+    if (!fallback.error) return;
+
+    throw new Error(sync.error.message || fallback.error.message || "Could not persist invoice archive metadata");
+  }
+
+  const sync = await supabaseAdmin.rpc("sync_set_quote_archive_metadata", {
+    p_quote_id: body.documentId,
+    ...baseArgs,
+  });
+  if (!sync.error) return;
+
+  const fallback = await supabaseAdmin.rpc("set_quote_archive_metadata", {
+    p_quote_id: body.documentId,
+    ...baseArgs,
+  });
+  if (!fallback.error) return;
+
+  throw new Error(sync.error.message || fallback.error.message || "Could not persist quote archive metadata");
+}
+
 serve(async (req) => {
   const origin = req.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
@@ -369,6 +537,86 @@ serve(async (req) => {
         body.documentType,
         body.issueDate,
       ));
+    }
+
+    if (body.action === "persist-sales-metadata") {
+      await persistSalesMetadata(body);
+      return jsonResponse(corsHeaders, { ok: true }, 200);
+    }
+
+    if (body.action === "get-sales-metadata") {
+      const supabaseUrl = getRequiredEnv("SUPABASE_URL");
+      const anonKey = getRequiredEnv("SUPABASE_ANON_KEY");
+      const serviceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader) {
+        throw new HttpError(401, "Unauthorized");
+      }
+
+      const supabaseClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+
+      const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+
+      if (body.documentType === "quote") {
+        const { data: quoteData, error: quoteError } = await supabaseClient.rpc("get_quote", {
+          p_quote_id: body.documentId,
+        });
+
+        if (quoteError || !Array.isArray(quoteData) || quoteData.length === 0) {
+          throw new HttpError(403, "Access denied");
+        }
+
+        const { data: syncRows, error: syncError } = await supabaseAdmin.rpc("sync_list_quotes_for_archive", {
+          p_limit: 1,
+          p_quote_id: body.documentId,
+        });
+
+        if (syncError) {
+          throw new HttpError(500, "Could not resolve quote archive metadata");
+        }
+
+        const row = Array.isArray(syncRows) && syncRows.length > 0 ? syncRows[0] : null;
+        const archivedPdfPath = row?.archived_pdf_path ?? null;
+        const archivedPdfFileName = archivedPdfPath ? archivedPdfPath.split("/").at(-1) ?? null : null;
+
+        return jsonResponse(corsHeaders, {
+          archivedPdfPath,
+          archivedPdfFileName,
+          sharepointItemId: row?.sharepoint_item_id ?? null,
+        }, 200);
+      }
+
+      const { data: invoiceData, error: invoiceError } = await supabaseClient.rpc("finance_get_invoice", {
+        p_invoice_id: body.documentId,
+      });
+
+      if (invoiceError || !Array.isArray(invoiceData) || invoiceData.length === 0) {
+        throw new HttpError(403, "Access denied");
+      }
+
+      const { data: syncRows, error: syncError } = await supabaseAdmin.rpc("sync_list_invoices_for_archive", {
+        p_limit: 1,
+        p_invoice_id: body.documentId,
+      });
+
+      if (syncError) {
+        throw new HttpError(500, "Could not resolve invoice archive metadata");
+      }
+
+      const row = Array.isArray(syncRows) && syncRows.length > 0 ? syncRows[0] : null;
+      const archivedPdfPath = row?.archived_pdf_path ?? null;
+      const archivedPdfFileName = archivedPdfPath ? archivedPdfPath.split("/").at(-1) ?? null : null;
+
+      return jsonResponse(corsHeaders, {
+        archivedPdfPath,
+        archivedPdfFileName,
+        sharepointItemId: row?.sharepoint_item_id ?? null,
+      }, 200);
     }
 
     const graphToken = await getGraphAccessToken();

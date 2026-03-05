@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, Download, Eye, Loader2 } from "lucide-react";
-
-const SUPABASE_URL =
-  import.meta.env.VITE_SUPABASE_URL || "https://takvthfatlcjsqgssnta.supabase.co";
+import { forceRefreshAccessToken, getFreshAccessToken } from "../lib/supabaseSession";
 
 interface ArchivedPdfViewerProps {
   documentType: "invoice" | "quote";
@@ -13,6 +10,75 @@ interface ArchivedPdfViewerProps {
   fileName: string;
   title?: string;
   className?: string;
+}
+
+const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL || "https://takvthfatlcjsqgssnta.supabase.co";
+
+type SharePointCallResult<T> = {
+  data: T | null;
+  status: number;
+  error: string | null;
+};
+
+async function callSharePointJson<T>(
+  token: string,
+  body: Record<string, unknown>,
+): Promise<SharePointCallResult<T>> {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/sharepoint-storage`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    let errorMessage: string | null = null;
+    try {
+      const payload = await response.json();
+      if (typeof payload?.error === "string") {
+        errorMessage = payload.error;
+      }
+    } catch {
+      // ignore non-json error responses
+    }
+    return { data: null, status: response.status, error: errorMessage };
+  }
+
+  const payload = (await response.json()) as T;
+  return { data: payload, status: response.status, error: null };
+}
+
+async function callSharePointBlob(
+  token: string,
+  body: Record<string, unknown>,
+): Promise<SharePointCallResult<Blob>> {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/sharepoint-storage`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    let errorMessage: string | null = null;
+    try {
+      const payload = await response.json();
+      if (typeof payload?.error === "string") {
+        errorMessage = payload.error;
+      }
+    } catch {
+      // ignore non-json error responses
+    }
+    return { data: null, status: response.status, error: errorMessage };
+  }
+
+  const payload = await response.blob();
+  return { data: payload, status: response.status, error: null };
 }
 
 const ArchivedPdfViewer = ({
@@ -32,48 +98,69 @@ const ArchivedPdfViewer = ({
   useEffect(() => {
     let revokedUrl: string | null = null;
 
+    const isAuthStatus = (status: number) => status === 401 || status === 403;
+
+    const downloadArchivedFile = async (token: string, targetPath: string) =>
+      await callSharePointBlob(token, {
+        action: "download-sales-file",
+        documentType,
+        documentId,
+        filePath: targetPath,
+      });
+
+    const getSalesMetadata = async (token: string) =>
+      await callSharePointJson<{ archivedPdfPath?: string | null; archived_pdf_path?: string | null }>(token, {
+        action: "get-sales-metadata",
+        documentType,
+        documentId,
+      });
+
     const loadPdf = async () => {
       try {
         setLoading(true);
         setError(null);
+        let activeToken = await getFreshAccessToken();
+        let activePath = filePath;
 
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        let download = await downloadArchivedFile(activeToken, activePath);
 
-        const accessToken = session?.access_token;
-        if (!accessToken) {
-          throw new Error("No hay sesión activa para acceder al PDF archivado");
+        if (isAuthStatus(download.status)) {
+          activeToken = await forceRefreshAccessToken();
+          download = await downloadArchivedFile(activeToken, activePath);
         }
 
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/sharepoint-storage`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            action: "download-sales-file",
-            documentType,
-            documentId,
-            filePath,
-          }),
-        });
+        // Fallback: path persisted in ERP can be stale; resolve canonical path and retry.
+        if (!download.data && (download.status === 400 || download.status === 403 || download.status === 404)) {
+            let metadata = await getSalesMetadata(activeToken);
 
-        if (!response.ok) {
-          let backendError = "";
-          try {
-            const payload = await response.json();
-            backendError = typeof payload?.error === "string" ? payload.error : "";
-          } catch {
-            // Ignore JSON parse failures and keep generic status-only message.
-          }
+            if (isAuthStatus(metadata.status)) {
+              activeToken = await forceRefreshAccessToken();
+              metadata = await getSalesMetadata(activeToken);
+            }
 
-          const suffix = backendError ? `: ${backendError}` : "";
-          throw new Error(`No se pudo cargar el PDF archivado (${response.status})${suffix}`);
+            if (metadata.data) {
+              const resolvedPath =
+                metadata.data.archivedPdfPath ??
+                metadata.data.archived_pdf_path ??
+                null;
+
+              if (resolvedPath && typeof resolvedPath === "string" && resolvedPath !== activePath) {
+                activePath = resolvedPath;
+                download = await downloadArchivedFile(activeToken, activePath);
+              }
+            }
         }
 
-        const pdfBlob = await response.blob();
+        if (!download.data) {
+          const reason = download.error || "No se pudo cargar el PDF archivado";
+          throw new Error(`${reason} (${download.status})`);
+        }
+
+        if (!(download.data instanceof Blob)) {
+          throw new Error("La respuesta del archivado no devolvió un PDF válido");
+        }
+
+        const pdfBlob = download.data;
         const nextUrl = URL.createObjectURL(pdfBlob);
         revokedUrl = nextUrl;
         setBlob(pdfBlob);
