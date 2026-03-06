@@ -37,9 +37,7 @@ import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
 import { useToast } from "@/hooks/use-toast";
 import { QuotePDFDocument } from "@/pages/nexo_av/assets/plantillas";
 import ArchivedPdfViewer from "../../shared/components/ArchivedPdfViewer";
-import { archiveSalesDocument, buildQuoteArchiveFileName } from "../../shared/lib/salesDocumentArchive";
 import { forceRefreshAccessToken, getFreshAccessToken } from "../../shared/lib/supabaseSession";
-import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 import {
   Select,
@@ -164,6 +162,17 @@ const TABS: Tab[] = [
 // Estados que bloquean edición
 const LOCKED_STATES = ["SENT", "APPROVED", "REJECTED", "EXPIRED", "INVOICED"];
 
+const buildQuoteArchiveFileName = (quoteNumber: string, clientName: string, issueDate: string) => {
+  const sanitize = (value: string) =>
+    (value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[<>:"/\\|?*#%&{}~]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  return `${sanitize(quoteNumber)} - ${sanitize(clientName || "SIN_CLIENTE")} - ${issueDate}.pdf`;
+};
+
 // Obtener transiciones de estado disponibles
 const getAvailableStatusTransitions = (currentStatus: string) => {
   switch (currentStatus) {
@@ -221,18 +230,73 @@ const MobileQuoteDetailPage = () => {
       };
 
       if (!enrichedQuote.archived_pdf_path || !enrichedQuote.archived_pdf_file_name) {
+        const invokeGetSalesMetadata = async (token: string) =>
+          await supabase.functions.invoke("sharepoint-storage", {
+            body: {
+              action: "get-sales-metadata",
+              documentType: "quote",
+              documentId: quoteId,
+            },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+        let archiveData: ArchiveMetadataRow | null = null;
+        let archiveError: any = null;
+
+        const accessToken = await getFreshAccessToken();
+        let { data: fallbackPayload, error: invokeError } = await invokeGetSalesMetadata(accessToken);
+
+        const status = (invokeError as any)?.context?.response?.status;
+        if (invokeError && (status === 401 || status === 403)) {
+          const refreshedToken = await forceRefreshAccessToken();
+          const retried = await invokeGetSalesMetadata(refreshedToken);
+          fallbackPayload = retried.data;
+          invokeError = retried.error;
+        }
+
+        if (!invokeError) {
+          const archivedPdfPath =
+            (fallbackPayload as any)?.archivedPdfPath ??
+            (fallbackPayload as any)?.archived_pdf_path ??
+            null;
+          const archivedPdfFileName =
+            (fallbackPayload as any)?.archivedPdfFileName ??
+            (fallbackPayload as any)?.archived_pdf_file_name ??
+            null;
+
+          if (archivedPdfPath) {
+            archiveData = {
+              archived_pdf_path: archivedPdfPath,
+              archived_pdf_file_name: archivedPdfFileName,
+            };
+          }
+        } else {
+          archiveError = invokeError;
+          console.warn("get-sales-metadata failed:", invokeError.message);
+        }
+
         const runGetArchiveMetadata = (fn: "get_quote_archive_metadata" | "sync_get_quote_archive_metadata") =>
           (supabase.rpc(fn, {
             p_quote_id: quoteId,
           }) as Promise<{ data: ArchiveMetadataRow[] | null; error: any }>);
 
-        let { data: archiveRows, error: archiveError } = await runGetArchiveMetadata("get_quote_archive_metadata");
-        if (archiveError?.message?.includes("Could not find the function public.get_quote_archive_metadata")) {
-          const fallback = await runGetArchiveMetadata("sync_get_quote_archive_metadata");
-          archiveRows = fallback.data;
-          archiveError = fallback.error;
+        if (archiveError || !archiveData?.archived_pdf_path) {
+          let { data: archiveRows, error: rpcError } = await runGetArchiveMetadata("get_quote_archive_metadata");
+          if (rpcError?.message?.includes("Could not find the function public.get_quote_archive_metadata")) {
+            const fallback = await runGetArchiveMetadata("sync_get_quote_archive_metadata");
+            archiveRows = fallback.data;
+            rpcError = fallback.error;
+          }
+
+          if (!rpcError && Array.isArray(archiveRows) && archiveRows.length > 0) {
+            archiveData = archiveRows[0];
+            archiveError = null;
+          } else {
+            archiveError = rpcError;
+          }
         }
-        let archiveData = !archiveError && Array.isArray(archiveRows) && archiveRows.length > 0 ? archiveRows[0] : null;
 
         if (archiveError || !archiveData?.archived_pdf_path) {
           try {
@@ -249,51 +313,6 @@ const MobileQuoteDetailPage = () => {
             }
           } catch (syncListError) {
             console.warn("sync_list_quotes_for_archive unavailable for current role:", syncListError);
-          }
-        }
-
-        if (archiveError || !archiveData?.archived_pdf_path) {
-            const invokeGetSalesMetadata = async (token: string) =>
-              await supabase.functions.invoke("sharepoint-storage", {
-                body: {
-                  action: "get-sales-metadata",
-                  documentType: "quote",
-                  documentId: quoteId,
-                },
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              });
-
-            const accessToken = await getFreshAccessToken();
-            let { data: fallbackPayload, error: invokeError } = await invokeGetSalesMetadata(accessToken);
-
-            const status = (invokeError as any)?.context?.response?.status;
-            if (invokeError && (status === 401 || status === 403)) {
-              const refreshedToken = await forceRefreshAccessToken();
-              const retried = await invokeGetSalesMetadata(refreshedToken);
-              fallbackPayload = retried.data;
-              invokeError = retried.error;
-            }
-
-          if (!invokeError) {
-            const archivedPdfPath =
-              (fallbackPayload as any)?.archivedPdfPath ??
-              (fallbackPayload as any)?.archived_pdf_path ??
-              null;
-            const archivedPdfFileName =
-              (fallbackPayload as any)?.archivedPdfFileName ??
-              (fallbackPayload as any)?.archived_pdf_file_name ??
-              null;
-
-            if (archivedPdfPath) {
-              archiveData = {
-                archived_pdf_path: archivedPdfPath,
-                archived_pdf_file_name: archivedPdfFileName,
-              };
-            }
-          } else {
-            console.warn("get-sales-metadata fallback failed:", invokeError.message);
           }
         }
 
@@ -440,11 +459,13 @@ const MobileQuoteDetailPage = () => {
       }
 
       const issueDate = freshData.quote.issue_date || freshData.quote.created_at.slice(0, 10);
-      const archivedFileName = buildQuoteArchiveFileName({
-        quoteNumber: freshData.quote.quote_number,
-        clientName: freshData.quote.client_name,
+      const archivedFileName = buildQuoteArchiveFileName(
+        freshData.quote.quote_number,
+        freshData.quote.client_name,
         issueDate,
-      });
+      );
+
+      const { archiveSalesDocument } = await import("../../shared/lib/salesDocumentArchive");
 
       await archiveSalesDocument({
         documentType: "quote",
@@ -1037,6 +1058,7 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
           />
         );
         
+        const { pdf } = await import("@react-pdf/renderer");
         const blob = await pdf(pdfDocument).toBlob();
         const url = URL.createObjectURL(blob);
         urlToRevoke = url;
@@ -1128,41 +1150,9 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
             {errorMessage}
           </p>
         )}
-        <p className="text-muted-foreground text-sm mb-4">Intenta descargar el PDF directamente</p>
-        <PDFDownloadLink
-          document={
-            <QuotePDFDocument
-              quote={quote}
-              lines={lines}
-              client={client}
-              company={company}
-              project={project}
-            />
-          }
-          fileName={fileName}
-        >
-          {({ loading }) => (
-            <button
-              className={cn(
-                "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-2 rounded-full",
-                "text-sm font-medium leading-none",
-                "bg-primary text-primary-foreground",
-                "active:scale-95 transition-all duration-200",
-                "shadow-sm",
-                loading && "opacity-50"
-              )}
-              style={{ touchAction: "manipulation" }}
-              disabled={loading}
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
-              )}
-              <span className="hidden min-[400px]:inline">Descargar PDF</span>
-            </button>
-          )}
-        </PDFDownloadLink>
+        <p className="text-muted-foreground text-sm mb-4">
+          El navegador ha bloqueado el motor PDF por CSP. Abre este presupuesto en desktop o solicita archivado.
+        </p>
       </div>
     );
   }

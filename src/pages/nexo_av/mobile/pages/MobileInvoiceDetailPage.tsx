@@ -35,7 +35,6 @@ import { useToast } from "@/hooks/use-toast";
 import { InvoicePDFDocument } from "@/pages/nexo_av/assets/plantillas";
 import ArchivedPdfViewer from "../../shared/components/ArchivedPdfViewer";
 import { forceRefreshAccessToken, getFreshAccessToken } from "../../shared/lib/supabaseSession";
-import { pdf } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 
 interface Invoice {
@@ -815,6 +814,7 @@ const PreviewTab = ({ invoice, lines, client, company, project, preferences, fil
           />
         );
         
+        const { pdf } = await import("@react-pdf/renderer");
         const blob = await pdf(pdfDoc).toBlob();
         const url = URL.createObjectURL(blob);
         urlToRevoke = url;

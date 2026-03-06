@@ -21,6 +21,10 @@ type SharePointCallResult<T> = {
   error: string | null;
 };
 
+async function readBlobPrefix(blob: Blob, size = 5): Promise<string> {
+  const chunk = blob.slice(0, size);
+  return await chunk.text();
+}
 async function callSharePointJson<T>(
   token: string,
   body: Record<string, unknown>,
@@ -160,7 +164,19 @@ const ArchivedPdfViewer = ({
           throw new Error("La respuesta del archivado no devolvió un PDF válido");
         }
 
-        const pdfBlob = download.data;
+        if (download.data.size === 0) {
+          throw new Error("El PDF archivado esta vacio");
+        }
+
+        const signature = await readBlobPrefix(download.data);
+        if (signature !== "%PDF-") {
+          const maybeText = (await download.data.slice(0, 512).text()).trim();
+          const preview = maybeText ? maybeText.slice(0, 120) : "contenido no PDF";
+          throw new Error(`El archivo archivado no es un PDF valido: ${preview}`);
+        }
+
+        // Normalize MIME type for better iframe rendering in browsers.
+        const pdfBlob = new Blob([download.data], { type: "application/pdf" });
         const nextUrl = URL.createObjectURL(pdfBlob);
         revokedUrl = nextUrl;
         setBlob(pdfBlob);
