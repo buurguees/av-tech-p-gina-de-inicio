@@ -62,6 +62,11 @@ import { PURCHASE_INVOICE_CATEGORIES } from "@/constants/purchaseInvoiceCategori
 import { TICKET_CATEGORIES } from "@/constants/ticketCategories";
 import ProjectSearchInput from "../components/projects/ProjectSearchInput";
 import { cn } from "@/lib/utils";
+import ArchivedPurchaseDocumentViewer from "../../shared/components/ArchivedPurchaseDocumentViewer";
+import {
+  archivePurchaseDocument,
+  getPurchaseArchiveMetadata,
+} from "../../shared/lib/purchaseDocumentArchive";
 
 interface Supplier {
   id: string;
@@ -120,6 +125,9 @@ interface PurchaseInvoice {
   site_name?: string | null;
   file_path: string | null;
   file_name: string | null;
+  archived_pdf_path?: string | null;
+  archived_pdf_file_name?: string | null;
+  sharepoint_item_id?: string | null;
   notes: string | null;
   internal_notes: string | null;
   expense_category: string | null;
@@ -136,6 +144,8 @@ const STATUS_OPTIONS = [
   { value: "PAID", label: "Pagada", color: "status-success" },
   { value: "CANCELLED", label: "Anulada", color: "status-error" },
 ];
+
+const PURCHASE_ARCHIVABLE_STATUSES = new Set(["APPROVED", "PARTIAL", "PAID", "CANCELLED", "BLOCKED"]);
 
 // Ruta normalizada para Storage: sin espacios ni barra inicial (evita "Object not found")
 const normalizeStoragePath = (path: string): string => path.trim().replace(/^\//, '');
@@ -295,6 +305,7 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [approving, setApproving] = useState(false);
+  const [retryingArchive, setRetryingArchive] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -351,7 +362,29 @@ const PurchaseInvoiceDetailPageDesktop = () => {
         navigate(`/nexo-av/${userId}/expenses/${purchaseInvoiceId}`);
         return;
       }
-      setInvoice(inv);
+      let enrichedInvoice: PurchaseInvoice = {
+        ...inv,
+        archived_pdf_path: inv.archived_pdf_path ?? null,
+        archived_pdf_file_name: inv.archived_pdf_file_name ?? null,
+        sharepoint_item_id: inv.sharepoint_item_id ?? null,
+      };
+
+      try {
+        const archiveMetadata = await getPurchaseArchiveMetadata(purchaseInvoiceId);
+        if (archiveMetadata) {
+          enrichedInvoice = {
+            ...enrichedInvoice,
+            archived_pdf_path: archiveMetadata.archivedFilePath ?? enrichedInvoice.archived_pdf_path ?? null,
+            archived_pdf_file_name:
+              archiveMetadata.archivedFileName ?? enrichedInvoice.archived_pdf_file_name ?? null,
+            sharepoint_item_id: archiveMetadata.sharepointItemId ?? enrichedInvoice.sharepoint_item_id ?? null,
+          };
+        }
+      } catch (archiveError) {
+        console.warn("Error fetching purchase archive metadata:", archiveError);
+      }
+
+      setInvoice(enrichedInvoice);
       
       // Set form values
       setSupplierInvoiceNumber(inv.supplier_invoice_number || "");
@@ -566,9 +599,22 @@ const PurchaseInvoiceDetailPageDesktop = () => {
       if (approveError) throw approveError;
       
       const newNumber = data?.[0]?.invoice_number;
-      toast.success(`Factura aprobada: ${newNumber || 'OK'}`);
+      let archiveErrorMessage: string | null = null;
+      try {
+        await archivePurchaseDocument(purchaseInvoiceId);
+      } catch (archiveError) {
+        console.error("Error archiving purchase invoice:", archiveError);
+        archiveErrorMessage =
+          archiveError instanceof Error ? archiveError.message : "No se pudo archivar el documento en SharePoint.";
+      }
+
       setIsEditing(false);
       await fetchInvoice();
+      if (archiveErrorMessage) {
+        toast.error(`Factura aprobada, pero no archivada en SharePoint: ${archiveErrorMessage}`);
+      } else {
+        toast.success(`Factura aprobada y archivada: ${newNumber || "OK"}`);
+      }
       
     } catch (error: any) {
       console.error("Error approving invoice:", error);
@@ -584,6 +630,22 @@ const PurchaseInvoiceDetailPageDesktop = () => {
       }
     } finally {
       setApproving(false);
+    }
+  };
+
+  const handleRetryArchive = async () => {
+    if (!purchaseInvoiceId || !invoice) return;
+
+    try {
+      setRetryingArchive(true);
+      await archivePurchaseDocument(purchaseInvoiceId);
+      await fetchInvoice();
+      toast.success("Documento archivado correctamente en la biblioteca Compras.");
+    } catch (error: any) {
+      console.error("Error retrying purchase archive:", error);
+      toast.error(error?.message || "No se pudo archivar el documento en SharePoint.");
+    } finally {
+      setRetryingArchive(false);
     }
   };
 
@@ -717,6 +779,8 @@ const PurchaseInvoiceDetailPageDesktop = () => {
   const canEdit = !isLocked;
   const canDelete = !isLocked && (invoice.status === "PENDING" || invoice.status === "PENDING_VALIDATION" || invoice.status === "DRAFT");
   const isTicket = invoice.document_type === "EXPENSE";
+  const hasArchivedDocument = !!invoice.archived_pdf_path;
+  const shouldHaveArchivedDocument = PURCHASE_ARCHIVABLE_STATUSES.has(invoice.status);
 
   return (
     <div className="flex flex-col h-full">
@@ -827,13 +891,63 @@ const PurchaseInvoiceDetailPageDesktop = () => {
               Documento
             </h3>
           </div>
-          <div className="flex-1 overflow-hidden flex items-center justify-center p-4">
-            {invoice.file_path ? (
+          <div className="flex-1 overflow-hidden p-4">
+            {hasArchivedDocument ? (
+              <ArchivedPurchaseDocumentViewer
+                documentId={invoice.id}
+                filePath={invoice.archived_pdf_path!}
+                fileName={invoice.archived_pdf_file_name || invoice.file_name || "documento-compra"}
+                title="Documento archivado en SharePoint"
+                className="h-full rounded-lg overflow-hidden border border-border bg-background"
+              />
+            ) : shouldHaveArchivedDocument ? (
+              <div className="h-full flex flex-col gap-4">
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+                    <div className="space-y-3">
+                      <div>
+                        <p className="font-medium text-foreground">
+                          El documento ya deberia estar archivado en SharePoint.
+                        </p>
+                        <p className="text-muted-foreground">
+                          La fuente original sigue disponible, pero el archivo oficial debe vivir en la biblioteca Compras.
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRetryArchive}
+                        disabled={retryingArchive}
+                        className="gap-2"
+                      >
+                        {retryingArchive ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        Reintentar archivado
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-0 rounded-lg border border-border bg-background">
+                  {invoice.file_path ? (
+                    <FilePreview filePath={invoice.file_path} />
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-center text-muted-foreground p-4">
+                      <div>
+                        <FileText className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                        <p>Sin documento original adjunto</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : invoice.file_path ? (
               <FilePreview filePath={invoice.file_path} />
             ) : (
-              <div className="text-center text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                <p>Sin documento adjunto</p>
+              <div className="h-full flex items-center justify-center text-center text-muted-foreground">
+                <div>
+                  <FileText className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                  <p>Sin documento adjunto</p>
+                </div>
               </div>
             )}
           </div>

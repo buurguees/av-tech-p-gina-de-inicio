@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -112,7 +112,7 @@ const MobileExpensesPage = () => {
     new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(amount);
 
   const formatDate = (date: string | null) => {
-    if (!date) return "—";
+    if (!date) return "â€”";
     return new Date(date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
   };
 
@@ -134,8 +134,7 @@ const MobileExpensesPage = () => {
     <div className="w-full h-full flex flex-col">
       {/* Header: KPIs + Search */}
       <div
-        className="flex-shrink-0 py-3 px-3 w-full"
-        style={{ background: "linear-gradient(0deg, rgba(0,0,0,1) 100%, rgba(255,255,255,0) 0%)", height: "fit-content" }}
+        className="flex-shrink-0 py-3 px-3 w-full bg-background/95 supports-[backdrop-filter]:backdrop-blur-sm"
       >
         {/* KPI Cards */}
         <div className="grid grid-cols-3 gap-2 mb-3">
@@ -207,10 +206,10 @@ const MobileExpensesPage = () => {
             <p className="text-muted-foreground">No hay tickets / gastos</p>
             <p className="text-muted-foreground text-sm">
               {searchInput
-                ? "Prueba con otra búsqueda"
+                ? "Prueba con otra bÃºsqueda"
                 : hiddenTechnicalDraftsCount > 0 && !showTechnicalDrafts
                   ? "Solo hay borradores tecnicos vacios ocultos"
-                  : "Aún no se han registrado gastos"}
+                  : "AÃºn no se han registrado gastos"}
             </p>
           </div>
         ) : (
@@ -258,7 +257,7 @@ const MobileExpensesPage = () => {
                     {/* Project */}
                     {exp.project_name && (
                       <p className="text-sm text-muted-foreground truncate">
-                        📁 {exp.project_name}
+                        ðŸ“ {exp.project_name}
                       </p>
                     )}
 
@@ -285,3 +284,4 @@ const MobileExpensesPage = () => {
 };
 
 export default MobileExpensesPage;
+

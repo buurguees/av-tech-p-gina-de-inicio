@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
-import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo } from "@/constants/salesInvoiceStatuses";
+import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo, normalizeSalesDocumentStatus } from "@/constants/salesInvoiceStatuses";
 
 interface Invoice {
   id: string;
@@ -68,27 +68,27 @@ const MobileInvoicesPage = () => {
 
       // Calculate stats
       const pending = invoicesList.filter((inv: Invoice) => {
+        const docStatus = normalizeSalesDocumentStatus(inv.status);
         const collectionStatus = calculateCollectionStatus(
           inv.paid_amount || 0,
           inv.total || 0,
-          inv.due_date,
           inv.status
         );
-        return collectionStatus === 'PENDING' && inv.status !== 'CANCELLED' && inv.status !== 'DRAFT';
+        return docStatus === 'ISSUED' && collectionStatus === 'PENDING';
       }).length;
       
       const issued = invoicesList.filter((inv: Invoice) => 
-        inv.status === 'ISSUED' || inv.status === 'SENT'
+        normalizeSalesDocumentStatus(inv.status) === 'ISSUED'
       ).length;
       
       const paid = invoicesList.filter((inv: Invoice) => {
+        const docStatus = normalizeSalesDocumentStatus(inv.status);
         const collectionStatus = calculateCollectionStatus(
           inv.paid_amount || 0,
           inv.total || 0,
-          inv.due_date,
           inv.status
         );
-        return collectionStatus === 'PAID';
+        return docStatus === 'ISSUED' && collectionStatus === 'PAID';
       }).length;
       
       setInvoiceStats({ pending, issued, paid });
@@ -202,7 +202,6 @@ const MobileInvoicesPage = () => {
             const collectionStatus = calculateCollectionStatus(
               invoice.paid_amount || 0,
               invoice.total || 0,
-              invoice.due_date,
               invoice.status
             );
             const collectionInfo = getCollectionStatusInfo(collectionStatus);

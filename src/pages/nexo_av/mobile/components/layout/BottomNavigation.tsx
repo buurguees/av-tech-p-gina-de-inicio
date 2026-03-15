@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FolderKanban, FileText, ScanLine, Users, Plus, X, type LucideIcon } from "lucide-react";
+import { FolderKanban, FileText, ScanLine, Users, Plus, Settings, X, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import "../../styles/components/layout/bottom-navigation-modern.css";
 
 interface BottomNavItem {
   id: string;
@@ -28,6 +27,7 @@ export const BottomNavigation = ({ userId, moreMenuItems = [] }: BottomNavigatio
   const navigate = useNavigate();
   const location = useLocation();
   const [showMore, setShowMore] = useState(false);
+  const hasMoreMenu = moreMenuItems.length > 0;
   
   const items: BottomNavItem[] = [
     {
@@ -56,10 +56,10 @@ export const BottomNavigation = ({ userId, moreMenuItems = [] }: BottomNavigatio
     },
     {
       id: 'more',
-      label: 'Más',
-      icon: Plus,
-      path: '#',
-      isAction: true
+      label: hasMoreMenu ? 'Más' : 'Ajustes',
+      icon: hasMoreMenu ? Plus : Settings,
+      path: `/nexo-av/${userId}/settings`,
+      isAction: hasMoreMenu
     }
   ];
   
@@ -77,8 +77,8 @@ export const BottomNavigation = ({ userId, moreMenuItems = [] }: BottomNavigatio
         <div className="fixed inset-0 z-[9998]" onClick={() => setShowMore(false)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div
-            className="absolute bottom-[92px] right-4 z-[9999]"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+            className="absolute bottom-[96px] right-4 z-[9999]"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="bg-card/98 border border-border rounded-2xl shadow-2xl overflow-hidden min-w-[220px] backdrop-blur-xl">
@@ -114,7 +114,7 @@ export const BottomNavigation = ({ userId, moreMenuItems = [] }: BottomNavigatio
             const Icon = item.icon;
             const active = item.id === 'more' ? (isMoreActive || showMore) : isActive(item.id);
             
-            if (item.isAction && item.id === 'more' && moreMenuItems.length > 0) {
+            if (item.isAction && item.id === 'more' && hasMoreMenu) {
               return (
                 <button
                   key={item.id}

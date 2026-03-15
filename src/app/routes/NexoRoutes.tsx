@@ -13,6 +13,7 @@ const NexoAuditPage = lazy(() => import('@/pages/nexo_av/desktop/pages/AuditPage
 const NexoAuditEventDetailPage = lazy(() => import('@/pages/nexo_av/desktop/pages/AuditEventDetailPage'));
 const NexoCalculatorPage = lazy(() => import('@/pages/nexo_av/desktop/pages/CalculatorPage'));
 const NexoMapPage = lazy(() => import('@/pages/nexo_av/desktop/pages/MapPage'));
+const NexoCalendarPage = lazy(() => import('@/pages/nexo_av/desktop/pages/CalendarPage'));
 const NexoAccountingPage = lazy(() => import('@/pages/nexo_av/desktop/pages/AccountingPage'));
 const NexoMonthlyPyGDetailPage = lazy(() => import('@/pages/nexo_av/desktop/pages/MonthlyPyGDetailPage'));
 const NexoDeveloperPage = lazy(() => import('@/pages/nexo_av/desktop/pages/DeveloperPage'));
@@ -165,6 +166,7 @@ export const nexoRoutes = (
       <Route path="catalog/:productId" element={<NexoProductDetailPage />} />
       <Route path="calculator" element={<NexoCalculatorPage />} />
       <Route path="mapa" element={<NexoMapPage />} />
+      <Route path="calendario" element={<NexoCalendarPage />} />
       <Route path="technicians" element={<ResponsiveTechniciansPage />} />
       <Route path="technicians/:technicianId" element={<ResponsiveTechnicianDetailPage />} />
       <Route path="suppliers" element={<ResponsiveSuppliersPage />} />

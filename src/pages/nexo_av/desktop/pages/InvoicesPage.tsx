@@ -1,10 +1,18 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn, toNumber } from "@/lib/utils";
-import { FileText, AlertCircle, CheckCircle, Receipt, Landmark, ChevronDown } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  ChevronDown,
+  FileText,
+  Landmark,
+  Receipt,
+  TrendingUp,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { usePagination } from "@/hooks/usePagination";
 import PaginationControls from "../components/common/PaginationControls";
@@ -12,13 +20,14 @@ import { useDebounce } from "@/hooks/useDebounce";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import {
-  getSalesDocumentStatusInfo,
   calculateCollectionStatus,
-  getCollectionStatusInfo,
-  SALES_DOCUMENT_STATUSES,
   displayInvoiceNumber,
+  getCollectionStatusInfo,
+  getSalesDocumentStatusInfo,
+  normalizeSalesDocumentStatus,
+  SALES_DOCUMENT_STATUSES,
 } from "@/constants/salesInvoiceStatuses";
-import DataList, { DataListFooterCell } from "../components/common/DataList";
+import DataList from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
 import {
   DropdownMenu,
@@ -26,7 +35,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 
 interface Invoice {
   id: string;
@@ -57,11 +65,83 @@ interface Invoice {
   payment_bank_id: string | null;
 }
 
-// Status options for the filter dropdown
+interface QuarterInvoiceKpis {
+  period_start: string;
+  period_end: string;
+  issued_invoice_count: number;
+  draft_invoice_count: number;
+  cancelled_invoice_count: number;
+  paid_invoice_count: number;
+  partial_invoice_count: number;
+  overdue_invoice_count: number;
+  pending_collection_count: number;
+  billed_gross_total: number;
+  billed_net_total: number;
+  billed_tax_total: number;
+  collected_total: number;
+  pending_total: number;
+}
+
 const INVOICE_STATUS_OPTIONS = [
   { value: "all", label: "Todos los estados" },
   ...SALES_DOCUMENT_STATUSES,
 ];
+
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+  }).format(amount);
+
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+const formatIsoDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getCurrentQuarterRange = () => {
+  const today = new Date();
+  const quarterStartMonth = Math.floor(today.getMonth() / 3) * 3;
+  const start = new Date(today.getFullYear(), quarterStartMonth, 1);
+  const end = new Date(today.getFullYear(), quarterStartMonth + 3, 0);
+  return {
+    start: formatIsoDate(start),
+    end: formatIsoDate(end),
+  };
+};
+
+const parseLocalDate = (value: string | null) => {
+  if (!value) return null;
+  return new Date(`${value}T00:00:00`);
+};
+
+const getInvoiceDocumentStatus = (invoice: Invoice) => normalizeSalesDocumentStatus(invoice.status);
+
+const getInvoiceCollectionStatus = (invoice: Invoice) =>
+  calculateCollectionStatus(invoice.paid_amount, invoice.total, invoice.due_date, invoice.status);
+
+const hasPendingCollection = (invoice: Invoice) => {
+  const documentStatus = getInvoiceDocumentStatus(invoice);
+  const collectionStatus = getInvoiceCollectionStatus(invoice);
+  return documentStatus === "ISSUED" && invoice.pending_amount > 0 && collectionStatus !== "PAID";
+};
+
+const isInvoiceOverdue = (invoice: Invoice) => {
+  const dueDate = parseLocalDate(invoice.due_date);
+  if (!dueDate || !hasPendingCollection(invoice)) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return dueDate < today;
+};
 
 const InvoicesPageDesktop = () => {
   const navigate = useNavigate();
@@ -69,18 +149,23 @@ const InvoicesPageDesktop = () => {
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
+  const [summaryLoading, setSummaryLoading] = useState(true);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [quarterKpis, setQuarterKpis] = useState<QuarterInvoiceKpis | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchQuery = useDebounce(searchInput, 500);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [paymentFilter, setPaymentFilter] = useState("all"); // all, pending, paid, partial
+  const [paymentFilter, setPaymentFilter] = useState("all");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
-    fetchInvoices();
+    void fetchInvoices();
   }, [debouncedSearchQuery, statusFilter, paymentFilter]);
 
+  useEffect(() => {
+    void fetchQuarterKpis();
+  }, []);
 
   const fetchInvoices = async () => {
     try {
@@ -89,29 +174,21 @@ const InvoicesPageDesktop = () => {
         p_search: debouncedSearchQuery || null,
         p_status: statusFilter === "all" ? null : statusFilter,
       });
+
       if (error) throw error;
 
-      // Mapear datos agregando campos faltantes con valores por defecto
-      let mappedData: Invoice[] = (data || []).map((inv: any) => ({
-        ...inv,
-        payment_bank_name: inv.payment_bank_name || null,
-        payment_bank_id: inv.payment_bank_id || null,
+      let mappedData: Invoice[] = (data || []).map((invoice: Invoice) => ({
+        ...invoice,
+        payment_bank_name: invoice.payment_bank_name || null,
+        payment_bank_id: invoice.payment_bank_id || null,
       }));
 
-      // Aplicar filtro de estado de pago
       if (paymentFilter === "pending") {
-        // Pendiente de cobro: tiene saldo pendiente > 0
-        mappedData = mappedData.filter((inv) => inv.pending_amount > 0);
+        mappedData = mappedData.filter(hasPendingCollection);
       } else if (paymentFilter === "paid") {
-        // Cobrado completamente
-        mappedData = mappedData.filter((inv) =>
-          inv.pending_amount <= 0 || inv.status === 'PAID'
-        );
+        mappedData = mappedData.filter((invoice) => getInvoiceCollectionStatus(invoice) === "PAID");
       } else if (paymentFilter === "partial") {
-        // Parcialmente cobrado: tiene cobros pero no está completo
-        mappedData = mappedData.filter((inv) =>
-          inv.paid_amount > 0 && inv.pending_amount > 0
-        );
+        mappedData = mappedData.filter((invoice) => getInvoiceCollectionStatus(invoice) === "PARTIAL");
       }
 
       setInvoices(mappedData);
@@ -127,60 +204,82 @@ const InvoicesPageDesktop = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-ES", {
-      style: "currency",
-      currency: "EUR",
-    }).format(amount);
-  };
+  const fetchQuarterKpis = async () => {
+    try {
+      setSummaryLoading(true);
+      const quarterRange = getCurrentQuarterRange();
+      const { data, error } = await supabase.rpc("get_sales_invoice_kpi_summary", {
+        p_start_date: quarterRange.start,
+        p_end_date: quarterRange.end,
+      });
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+      if (error) throw error;
+
+      setQuarterKpis((data || [])[0] || null);
+    } catch (error: any) {
+      console.error("Error fetching sales invoice KPI summary:", error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo cargar el resumen trimestral",
+        variant: "destructive",
+      });
+    } finally {
+      setSummaryLoading(false);
+    }
   };
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortColumn(column);
-      setSortDirection("asc");
+      return;
     }
+
+    setSortColumn(column);
+    setSortDirection("asc");
   };
 
   const sortedInvoices = [...invoices].sort((a, b) => {
     if (!sortColumn) return 0;
 
-    let aValue: any;
-    let bValue: any;
+    let aValue: string | number = "";
+    let bValue: string | number = "";
 
     switch (sortColumn) {
-      case "date":
+      case "issue_date":
         aValue = a.issue_date ? new Date(a.issue_date).getTime() : 0;
         bValue = b.issue_date ? new Date(b.issue_date).getTime() : 0;
         break;
-      case "number":
+      case "invoice_number":
         aValue = a.invoice_number || a.preliminary_number || "";
         bValue = b.invoice_number || b.preliminary_number || "";
         break;
-      case "client":
+      case "client_name":
         aValue = a.client_name || "";
         bValue = b.client_name || "";
         break;
-      case "project":
+      case "project_number":
         aValue = a.project_number || "";
         bValue = b.project_number || "";
         break;
       case "status":
-        aValue = a.status;
-        bValue = b.status;
+        aValue = getInvoiceDocumentStatus(a);
+        bValue = getInvoiceDocumentStatus(b);
+        break;
+      case "subtotal":
+        aValue = a.subtotal;
+        bValue = b.subtotal;
+        break;
+      case "tax_amount":
+        aValue = a.tax_amount;
+        bValue = b.tax_amount;
         break;
       case "total":
         aValue = a.total;
         bValue = b.total;
+        break;
+      case "paid_amount":
+        aValue = a.paid_amount;
+        bValue = b.paid_amount;
         break;
       default:
         return 0;
@@ -191,7 +290,6 @@ const InvoicesPageDesktop = () => {
     return 0;
   });
 
-  // Pagination (50 records per page)
   const {
     currentPage,
     totalPages,
@@ -206,11 +304,47 @@ const InvoicesPageDesktop = () => {
     totalItems,
   } = usePagination(sortedInvoices, { pageSize: 50 });
 
+  const listedPendingCount = invoices.filter(hasPendingCollection).length;
+  const listedOverdueCount = invoices.filter(isInvoiceOverdue).length;
+  const quarterRangeLabel = quarterKpis
+    ? `${formatDate(quarterKpis.period_start)} - ${formatDate(quarterKpis.period_end)}`
+    : "Trimestre actual";
+
   return (
     <div className="w-full h-full flex flex-col overflow-hidden p-6">
       <div className="w-full h-full flex flex-col overflow-hidden">
         <div className="flex flex-col h-full overflow-hidden">
-          {/* Summary Metric Cards - Clickable Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-3 flex-shrink-0">
+            <QuarterKpiCard
+              icon={Receipt}
+              label="Facturado bruto"
+              value={quarterKpis ? formatCurrency(quarterKpis.billed_gross_total) : "..." }
+              subtitle={summaryLoading ? "Cargando trimestre actual" : `${quarterKpis?.issued_invoice_count || 0} emitidas · ${quarterRangeLabel}`}
+              color="emerald"
+            />
+            <QuarterKpiCard
+              icon={TrendingUp}
+              label="Base neta"
+              value={quarterKpis ? formatCurrency(quarterKpis.billed_net_total) : "..." }
+              subtitle={summaryLoading ? "Cargando trimestre actual" : `IVA emitido ${formatCurrency(quarterKpis?.billed_tax_total || 0)}`}
+              color="cyan"
+            />
+            <QuarterKpiCard
+              icon={Landmark}
+              label="Cobrado"
+              value={quarterKpis ? formatCurrency(quarterKpis.collected_total) : "..." }
+              subtitle={summaryLoading ? "Cargando trimestre actual" : `${quarterKpis?.paid_invoice_count || 0} cobradas por completo`}
+              color="violet"
+            />
+            <QuarterKpiCard
+              icon={AlertCircle}
+              label="Pendiente de cobro"
+              value={quarterKpis ? formatCurrency(quarterKpis.pending_total) : "..." }
+              subtitle={summaryLoading ? "Cargando trimestre actual" : `${quarterKpis?.pending_collection_count || 0} emitidas con saldo pendiente`}
+              color="amber"
+            />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 flex-shrink-0">
             <div
               className={cn(
@@ -219,18 +353,19 @@ const InvoicesPageDesktop = () => {
                   ? "bg-card border-border"
                   : "bg-card/70 border-border/60 opacity-80 hover:opacity-100"
               )}
-              onClick={() => { setPaymentFilter("all"); setStatusFilter("all"); }}
+              onClick={() => {
+                setPaymentFilter("all");
+                setStatusFilter("all");
+              }}
             >
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-emerald-500/10 rounded text-emerald-500">
                   <FileText className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Todas las facturas</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Listado actual</span>
               </div>
               <div>
-                <span className="text-base font-bold text-foreground">
-                  {invoices.length}
-                </span>
+                <span className="text-base font-bold text-foreground">{invoices.length}</span>
                 <span className="text-[10px] text-muted-foreground ml-1">facturas</span>
               </div>
             </div>
@@ -242,49 +377,37 @@ const InvoicesPageDesktop = () => {
                   ? "bg-card border-amber-500/50 ring-1 ring-amber-500/20"
                   : "bg-card/70 border-border/60 opacity-80 hover:opacity-100"
               )}
-              onClick={() => { setPaymentFilter("pending"); setStatusFilter("all"); }}
+              onClick={() => {
+                setPaymentFilter("pending");
+                setStatusFilter("all");
+              }}
             >
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-amber-500/10 rounded text-amber-500">
                   <CheckCircle className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Pendiente de Cobro</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Pendientes en listado</span>
               </div>
               <div>
-                <span className="text-base font-bold text-foreground">
-                  {invoices.filter(inv => inv.pending_amount > 0).length}
-                </span>
+                <span className="text-base font-bold text-foreground">{listedPendingCount}</span>
                 <span className="text-[10px] text-muted-foreground ml-1">facturas</span>
               </div>
             </div>
 
-            <div
-              className={cn(
-                "border rounded-lg p-2 flex flex-col justify-between cursor-pointer transition-all",
-                "bg-card/70 border-border/60 opacity-80 hover:opacity-100"
-              )}
-              onClick={() => { setPaymentFilter("all"); setStatusFilter("all"); }}
-            >
+            <div className="border rounded-lg p-2 flex flex-col justify-between bg-card/70 border-border/60">
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-red-500/10 rounded text-red-500">
                   <AlertCircle className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Vencido</span>
+                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Vencidas en listado</span>
               </div>
               <div>
-                <span className="text-base font-bold text-red-500">
-                  {invoices.filter(inv => {
-                    if (inv.status === 'PAID' || inv.status === 'DRAFT' || inv.status === 'CANCELLED') return false;
-                    if (!inv.due_date || inv.pending_amount <= 0) return false;
-                    return new Date(inv.due_date) < new Date();
-                  }).length}
-                </span>
-                <span className="text-[10px] text-muted-foreground ml-1">facturas vencidas</span>
+                <span className="text-base font-bold text-red-500">{listedOverdueCount}</span>
+                <span className="text-[10px] text-muted-foreground ml-1">facturas</span>
               </div>
             </div>
           </div>
 
-          {/* DetailNavigationBar */}
           <div className="mb-4 flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Facturas"
@@ -294,18 +417,16 @@ const InvoicesPageDesktop = () => {
                   onChange={setSearchInput}
                   items={invoices}
                   getSearchText={(invoice) => {
-                    const displayNumber = invoice.invoice_number || invoice.preliminary_number || '';
-                    return `${displayNumber} ${invoice.client_name || ''} ${invoice.project_number || ''} ${invoice.client_order_number || ''}`;
+                    const displayNumber = invoice.invoice_number || invoice.preliminary_number || "";
+                    return `${displayNumber} ${invoice.client_name || ""} ${invoice.project_number || ""} ${invoice.client_order_number || ""}`;
                   }}
-                  renderResult={(invoice) => {
-                    return {
-                      id: invoice.id,
-                      label: displayInvoiceNumber(invoice.invoice_number, invoice.preliminary_number, invoice.status),
-                      subtitle: `${invoice.client_name || 'Sin cliente'} - ${formatCurrency(invoice.total)}`,
-                      icon: <Receipt className="h-4 w-4" />,
-                      data: invoice,
-                    };
-                  }}
+                  renderResult={(invoice) => ({
+                    id: invoice.id,
+                    label: displayInvoiceNumber(invoice.invoice_number, invoice.preliminary_number, invoice.status),
+                    subtitle: `${invoice.client_name || "Sin cliente"} - ${formatCurrency(invoice.total)}`,
+                    icon: <Receipt className="h-4 w-4" />,
+                    data: invoice,
+                  })}
                   onSelectResult={(result) => {
                     navigate(`/nexo-av/${userId}/invoices/${result.data.id}`);
                   }}
@@ -323,22 +444,17 @@ const InvoicesPageDesktop = () => {
             />
           </div>
 
-          {/* Filtros */}
           <div className="flex items-center gap-2 mb-4 flex-shrink-0">
-            {/* Filtro de Estado del Documento */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
-                  className={cn(
-                    "h-8 px-3 text-xs",
-                    statusFilter !== "all" && "bg-accent"
-                  )}
+                  className={cn("h-8 px-3 text-xs", statusFilter !== "all" && "bg-accent")}
                 >
                   {statusFilter === "all"
                     ? "Estado"
-                    : SALES_DOCUMENT_STATUSES.find(s => s.value === statusFilter)?.label || statusFilter}
+                    : INVOICE_STATUS_OPTIONS.find((status) => status.value === statusFilter)?.label || statusFilter}
                   <ChevronDown className="h-3 w-3 ml-1" />
                 </Button>
               </DropdownMenuTrigger>
@@ -361,7 +477,6 @@ const InvoicesPageDesktop = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Filtro de Estado de Cobro */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -391,47 +506,37 @@ const InvoicesPageDesktop = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setPaymentFilter("pending")}
-                  className={cn(
-                    paymentFilter === "pending" && "bg-accent",
-                    "text-amber-400"
-                  )}
+                  className={cn(paymentFilter === "pending" && "bg-accent", "text-amber-400")}
                 >
-                  🔴 Pendiente de cobro
+                  Pendiente de cobro
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setPaymentFilter("partial")}
-                  className={cn(
-                    paymentFilter === "partial" && "bg-accent",
-                    "text-orange-400"
-                  )}
+                  className={cn(paymentFilter === "partial" && "bg-accent", "text-orange-400")}
                 >
-                  🟠 Parcialmente cobrado
+                  Parcialmente cobrado
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setPaymentFilter("paid")}
-                  className={cn(
-                    paymentFilter === "paid" && "bg-accent",
-                    "text-emerald-400"
-                  )}
+                  className={cn(paymentFilter === "paid" && "bg-accent", "text-emerald-400")}
                 >
-                  🟢 Cobrado
+                  Cobrado
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
             <span className="text-xs text-muted-foreground ml-2">
-              {invoices.length} factura{invoices.length !== 1 ? 's' : ''}
+              {invoices.length} factura{invoices.length !== 1 ? "s" : ""}
             </span>
           </div>
 
-          {/* DataList */}
           <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
             <DataList
               data={paginatedInvoices}
               columns={[
                 {
                   key: "invoice_number",
-                  label: "Nº Factura",
+                  label: "Factura",
                   sortable: true,
                   align: "left",
                   priority: 1,
@@ -455,7 +560,7 @@ const InvoicesPageDesktop = () => {
                 },
                 {
                   key: "project_number",
-                  label: "Nº Proyecto",
+                  label: "Proyecto",
                   sortable: true,
                   align: "left",
                   priority: 3,
@@ -486,7 +591,10 @@ const InvoicesPageDesktop = () => {
                     const docStatusInfo = getSalesDocumentStatusInfo(invoice.status);
                     return (
                       <div className="flex justify-center">
-                        <Badge variant="outline" className={cn("sales-status-badge sales-status-badge--document", docStatusInfo.className)}>
+                        <Badge
+                          variant="outline"
+                          className={cn("sales-status-badge sales-status-badge--document", docStatusInfo.className)}
+                        >
                           {docStatusInfo.label}
                         </Badge>
                       </div>
@@ -499,21 +607,19 @@ const InvoicesPageDesktop = () => {
                   align: "center",
                   priority: 3,
                   render: (invoice) => {
-                    const collectionStatus = calculateCollectionStatus(
-                      invoice.paid_amount,
-                      invoice.total,
-                      invoice.due_date,
-                      invoice.status
-                    );
+                    const collectionStatus = getInvoiceCollectionStatus(invoice);
                     const collectionInfo = getCollectionStatusInfo(collectionStatus);
 
                     if (!collectionInfo) {
-                      return <span className="text-muted-foreground text-xs">—</span>;
+                      return <span className="text-muted-foreground text-xs">-</span>;
                     }
 
                     return (
                       <div className="flex justify-center">
-                        <Badge variant="outline" className={cn("sales-status-badge sales-status-badge--collection", collectionInfo.className)}>
+                        <Badge
+                          variant="outline"
+                          className={cn("sales-status-badge sales-status-badge--collection", collectionInfo.className)}
+                        >
                           {collectionInfo.label}
                         </Badge>
                       </div>
@@ -527,12 +633,16 @@ const InvoicesPageDesktop = () => {
                   priority: 4,
                   render: (invoice) => {
                     if (!invoice.payment_bank_name) {
-                      return <span className="text-muted-foreground text-xs">—</span>;
+                      return <span className="text-muted-foreground text-xs">-</span>;
                     }
+
                     return (
                       <div className="flex items-center gap-1.5">
                         <Landmark className="h-3 w-3 text-emerald-500 flex-shrink-0" />
-                        <span className="text-foreground/80 text-xs truncate max-w-[100px]" title={invoice.payment_bank_name}>
+                        <span
+                          className="text-foreground/80 text-xs truncate max-w-[100px]"
+                          title={invoice.payment_bank_name}
+                        >
                           {invoice.payment_bank_name}
                         </span>
                       </div>
@@ -541,7 +651,7 @@ const InvoicesPageDesktop = () => {
                 },
                 {
                   key: "issue_date",
-                  label: "Emisión",
+                  label: "Emision",
                   sortable: true,
                   align: "left",
                   priority: 6,
@@ -565,7 +675,7 @@ const InvoicesPageDesktop = () => {
                 },
                 {
                   key: "subtotal",
-                  label: "Subtotal",
+                  label: "Base",
                   sortable: true,
                   align: "right",
                   priority: 5,
@@ -577,7 +687,7 @@ const InvoicesPageDesktop = () => {
                 },
                 {
                   key: "tax_amount",
-                  label: "Impuestos",
+                  label: "IVA",
                   sortable: true,
                   align: "right",
                   priority: 5,
@@ -601,7 +711,7 @@ const InvoicesPageDesktop = () => {
                 },
                 {
                   key: "paid_amount",
-                  label: "Pagado",
+                  label: "Cobrado",
                   sortable: true,
                   align: "right",
                   priority: 8,
@@ -619,13 +729,13 @@ const InvoicesPageDesktop = () => {
                 },
                 {
                   label: "Duplicar",
-                  onClick: () => { },
+                  onClick: () => {},
                 },
                 {
                   label: "Eliminar",
                   variant: "destructive",
-                  onClick: () => { },
-                  condition: (invoice) => invoice.status === 'DRAFT',
+                  onClick: () => {},
+                  condition: (invoice) => getInvoiceDocumentStatus(invoice) === "DRAFT",
                 },
               ]}
               onItemClick={(invoice) => navigate(`/nexo-av/${userId}/invoices/${invoice.id}`)}
@@ -637,16 +747,43 @@ const InvoicesPageDesktop = () => {
               emptyIcon={<FileText className="h-16 w-16 text-muted-foreground" />}
               getItemId={(invoice) => invoice.id}
               footerCells={[
-                { key: "invoice_number", value: <span className="text-muted-foreground text-xs uppercase">Totales ({invoices.length})</span>, align: "left" },
-                { key: "subtotal", value: <span>{formatCurrency(invoices.reduce((s, i) => s + toNumber(i.subtotal), 0))}</span>, align: "right" },
-                { key: "tax_amount", value: <span>{formatCurrency(invoices.reduce((s, i) => s + toNumber(i.tax_amount), 0))}</span>, align: "right" },
-                { key: "total", value: <span>{formatCurrency(invoices.reduce((s, i) => s + toNumber(i.total), 0))}</span>, align: "right" },
-                { key: "paid_amount", value: <span className="text-muted-foreground">{formatCurrency(invoices.reduce((s, i) => s + toNumber(i.paid_amount), 0))}</span>, align: "right" },
+                {
+                  key: "invoice_number",
+                  value: (
+                    <span className="text-muted-foreground text-xs uppercase">
+                      Totales del listado ({invoices.length})
+                    </span>
+                  ),
+                  align: "left",
+                },
+                {
+                  key: "subtotal",
+                  value: <span>{formatCurrency(invoices.reduce((sum, invoice) => sum + toNumber(invoice.subtotal), 0))}</span>,
+                  align: "right",
+                },
+                {
+                  key: "tax_amount",
+                  value: <span>{formatCurrency(invoices.reduce((sum, invoice) => sum + toNumber(invoice.tax_amount), 0))}</span>,
+                  align: "right",
+                },
+                {
+                  key: "total",
+                  value: <span>{formatCurrency(invoices.reduce((sum, invoice) => sum + toNumber(invoice.total), 0))}</span>,
+                  align: "right",
+                },
+                {
+                  key: "paid_amount",
+                  value: (
+                    <span className="text-muted-foreground">
+                      {formatCurrency(invoices.reduce((sum, invoice) => sum + toNumber(invoice.paid_amount), 0))}
+                    </span>
+                  ),
+                  align: "right",
+                },
               ]}
             />
           </div>
 
-          {/* Paginación */}
           {!loading && invoices.length > 0 && totalPages > 1 && (
             <div className="flex-shrink-0 mt-4">
               <PaginationControls
@@ -665,6 +802,40 @@ const InvoicesPageDesktop = () => {
           )}
         </div>
       </div>
+    </div>
+  );
+};
+
+const QuarterKpiCard = ({
+  icon: Icon,
+  label,
+  value,
+  subtitle,
+  color,
+}: {
+  icon: typeof Receipt;
+  label: string;
+  value: string;
+  subtitle: string;
+  color: "emerald" | "cyan" | "violet" | "amber";
+}) => {
+  const colorMap = {
+    emerald: "bg-emerald-500/10 text-emerald-500",
+    cyan: "bg-cyan-500/10 text-cyan-500",
+    violet: "bg-violet-500/10 text-violet-500",
+    amber: "bg-amber-500/10 text-amber-500",
+  };
+
+  return (
+    <div className="border rounded-xl p-3 bg-card/90 border-border">
+      <div className="flex items-center gap-2 mb-2">
+        <div className={cn("p-1.5 rounded-lg", colorMap[color])}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
+      </div>
+      <div className="text-xl font-bold text-foreground">{value}</div>
+      <div className="text-[11px] text-muted-foreground mt-1">{subtitle}</div>
     </div>
   );
 };

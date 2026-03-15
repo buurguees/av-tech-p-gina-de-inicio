@@ -23,6 +23,7 @@ import {
   Shield,
   Receipt,
   MapPin,
+  CalendarDays,
   BookOpen,
   FolderOpen,
 } from "lucide-react";
@@ -237,6 +238,15 @@ const NexoAvLayout = () => {
       borderColor: 'border-teal-500/30',
       available: isAdmin || isManager || hasSalesAccess || hasTechAccess,
       path: `/nexo-av/${userId}/mapa`,
+    },
+    {
+      id: 'calendar',
+      title: 'Calendario',
+      icon: CalendarDays,
+      color: 'from-sky-500/20 to-sky-600/10',
+      borderColor: 'border-sky-500/30',
+      available: isAdmin || isManager || hasSalesAccess || hasTechAccess,
+      path: `/nexo-av/${userId}/calendario`,
     },
     {
       id: 'clients',

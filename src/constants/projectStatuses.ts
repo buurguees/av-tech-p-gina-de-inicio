@@ -77,8 +77,15 @@ export const PROJECT_STATUSES = [
   },
 ] as const;
 
+export const normalizeProjectStatus = (status: string | null | undefined) => {
+  if (!status) return "NEGOTIATION";
+  if (status === "PLANNED") return "NEGOTIATION";
+  return status;
+};
+
 export const getProjectStatusInfo = (status: string) => {
-  return PROJECT_STATUSES.find(s => s.value === status) || PROJECT_STATUSES[0];
+  const normalizedStatus = normalizeProjectStatus(status);
+  return PROJECT_STATUSES.find(s => s.value === normalizedStatus) || PROJECT_STATUSES[0];
 };
 
 export type ProjectStatus = typeof PROJECT_STATUSES[number]["value"];

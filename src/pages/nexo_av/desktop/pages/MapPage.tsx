@@ -1,38 +1,71 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, FolderKanban, Users, Wrench, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
-import MapWithMarkers, { type MapItem } from "../components/map/MapWithMarkers";
-import { geocodeFullAddress } from "../components/map/geocode";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { FolderKanban, Loader2, Users, Wrench } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getProjectStatusInfo } from "@/constants/projectStatuses";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
-/** Estados de proyecto a mostrar en el mapa: Negociación y En progreso */
-const MAP_PROJECT_STATUSES = ["NEGOTIATION", "IN_PROGRESS"] as const;
+import MapWithMarkers, { type MapItem } from "../components/map/MapWithMarkers";
+import {
+  geocodeAddress,
+  geocodeFullAddress,
+  geocodeLocality,
+} from "../components/map/geocode";
+import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 
-/** Estados de cliente para mapa/listado: todos excepto LOST (perdidos no se muestran) */
 const MAP_CLIENT_LEAD_STAGES = ["NEGOTIATION", "WON", "RECURRING"] as const;
 
 const LEAD_STAGES = [
-  { value: "NEGOTIATION", label: "En Negociación", color: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
-  { value: "WON", label: "Ganado", color: "bg-green-500/20 text-green-400 border-green-500/30" },
-  { value: "LOST", label: "Perdido", color: "bg-red-500/20 text-red-400 border-red-500/30" },
-  { value: "RECURRING", label: "Recurrente", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" },
-];
-const getClientStageInfo = (stage: string) =>
-  LEAD_STAGES.find((s) => s.value === stage) || LEAD_STAGES[0];
-
-const MAP_TABS = [
-  { value: "proyectos", label: "Proyectos", icon: FolderKanban, listTitle: "Proyectos en el mapa", color: "#3B82F6" },
-  { value: "clientes", label: "Clientes", icon: Users, listTitle: "Clientes en el mapa", color: "#10B981" },
-  { value: "tecnicos", label: "Técnicos", icon: Wrench, listTitle: "Técnicos en el mapa", color: "#F59E0B" },
+  {
+    value: "NEGOTIATION",
+    label: "En negociacion",
+    color: "bg-orange-500/20 text-orange-700 border-orange-500/30",
+  },
+  {
+    value: "WON",
+    label: "Ganado",
+    color: "bg-green-500/20 text-green-700 border-green-500/30",
+  },
+  {
+    value: "LOST",
+    label: "Perdido",
+    color: "bg-red-500/20 text-red-700 border-red-500/30",
+  },
+  {
+    value: "RECURRING",
+    label: "Recurrente",
+    color: "bg-emerald-500/20 text-emerald-700 border-emerald-500/30",
+  },
 ] as const;
 
-// Tipos según datos del backend
+const MAP_TABS = [
+  {
+    value: "proyectos",
+    label: "Proyectos",
+    icon: FolderKanban,
+    listTitle: "Proyectos en el mapa",
+    color: "#3B82F6",
+  },
+  {
+    value: "clientes",
+    label: "Clientes",
+    icon: Users,
+    listTitle: "Clientes en el mapa",
+    color: "#10B981",
+  },
+  {
+    value: "tecnicos",
+    label: "Tecnicos",
+    icon: Wrench,
+    listTitle: "Tecnicos en el mapa",
+    color: "#F59E0B",
+  },
+] as const;
+
 interface ProjectRow {
   id: string;
   project_number: string;
@@ -41,9 +74,24 @@ interface ProjectRow {
   status: string;
   project_address: string | null;
   project_city: string | null;
+  default_site_id?: string | null;
 }
 
-/** Clientes para mapa: list_clients_for_map (excluye LOST en backend si p_lead_stages no incluye LOST) */
+interface ProjectSiteRow {
+  id: string;
+  project_id: string;
+  site_name: string | null;
+  address: string | null;
+  city: string | null;
+  postal_code: string | null;
+  province: string | null;
+  country: string | null;
+  latitude: number | string | null;
+  longitude: number | string | null;
+  is_default: boolean | null;
+  is_active: boolean | null;
+}
+
 interface ClientMapRow {
   id: string;
   company_name: string;
@@ -51,59 +99,110 @@ interface ClientMapRow {
   contact_phone: string | null;
   lead_stage: string;
   full_address: string | null;
-  latitude: number | null;
-  longitude: number | null;
+  latitude: number | string | null;
+  longitude: number | string | null;
 }
 
-/**
- * Técnicos para mapa. Origen: list_technicians_for_map (con address, lat/lon) o, si falla/vacío, list_technicians.
- * En el modelo de negocio los técnicos son proveedores; en la UI se mantiene la sección "Técnicos".
- */
-interface TechnicianMapRow {
+interface TechnicianListRow {
   id: string;
   technician_number: string;
   company_name: string;
   type: string;
-  address?: string | null;
   city?: string | null;
   province?: string | null;
   contact_email?: string | null;
   contact_phone?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
 }
 
-/**
- * Página Mapa (nexo_av/desktop).
- * Proyectos, Clientes y Técnicos usan esta herramienta para localizar la dirección exacta.
- * 3 pestañas; en cada una: mapa (chinchetas + tooltip) y listado a la derecha.
- * Direcciones completas (calle, número, CP, población, provincia) cuando estén disponibles.
- */
+interface TechnicianMapRow extends TechnicianListRow {
+  address?: string | null;
+  postal_code?: string | null;
+  country?: string | null;
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+}
+
+const getClientStageInfo = (stage: string) =>
+  LEAD_STAGES.find((item) => item.value === stage) ?? LEAD_STAGES[0];
+
+const toNullableNumber = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const joinAddressParts = (...parts: Array<string | null | undefined>) =>
+  parts
+    .map((part) => (typeof part === "string" ? part.trim() : ""))
+    .filter(Boolean)
+    .join(", ");
+
+const buildStructuredAddress = (site: {
+  address?: string | null;
+  city?: string | null;
+  postal_code?: string | null;
+  province?: string | null;
+  country?: string | null;
+}) =>
+  joinAddressParts(
+    site.address,
+    [site.postal_code, site.city].filter(Boolean).join(" "),
+    site.province,
+    site.country,
+  );
+
+const selectBestProjectSite = (
+  sites: ProjectSiteRow[],
+  defaultSiteId?: string | null,
+) => {
+  if (sites.length === 0) return null;
+
+  const byId = defaultSiteId
+    ? sites.find((site) => site.id === defaultSiteId)
+    : null;
+  if (byId && byId.is_active) return byId;
+
+  return (
+    byId ??
+    sites.find((site) => site.is_default && site.is_active) ??
+    sites.find((site) => site.is_default) ??
+    sites.find((site) => site.is_active) ??
+    sites[0]
+  );
+};
+
 const MapPage = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>(MAP_TABS[0].value);
 
-  // Proyectos
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [projectMapItems, setProjectMapItems] = useState<MapItem[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [projectsGeocoding, setProjectsGeocoding] = useState(false);
 
-  // Clientes (solo no perdidos; mapa con coordenadas de list_clients_for_map)
   const [clients, setClients] = useState<ClientMapRow[]>([]);
   const [clientMapItems, setClientMapItems] = useState<MapItem[]>([]);
   const [clientsLoading, setClientsLoading] = useState(false);
 
-  // Técnicos (proveedores en el modelo; en UI "Técnicos") — list_technicians_for_map
   const [technicians, setTechnicians] = useState<TechnicianMapRow[]>([]);
   const [technicianMapItems, setTechnicianMapItems] = useState<MapItem[]>([]);
   const [techniciansLoading, setTechniciansLoading] = useState(false);
 
-  /** Solo proyectos en Planificado (PLANNED) o En progreso (IN_PROGRESS) para mapa y listado */
-  const projectsForMap = useMemo(
-    () => projects.filter((p) => MAP_PROJECT_STATUSES.includes(p.status as (typeof MAP_PROJECT_STATUSES)[number])),
-    [projects]
+  const projectMapItemById = useMemo(
+    () => new Map(projectMapItems.map((item) => [item.id, item])),
+    [projectMapItems],
+  );
+  const clientMapItemById = useMemo(
+    () => new Map(clientMapItems.map((item) => [item.id, item])),
+    [clientMapItems],
+  );
+  const technicianMapItemById = useMemo(
+    () => new Map(technicianMapItems.map((item) => [item.id, item])),
+    [technicianMapItems],
   );
 
   const fetchProjects = useCallback(async () => {
@@ -114,10 +213,11 @@ const MapPage = () => {
         p_search: null,
       });
       if (error) throw error;
-      setProjects((data as ProjectRow[]) || []);
-    } catch (e) {
-      console.error("Error fetching projects:", e);
+      setProjects((data as ProjectRow[]) ?? []);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
       setProjects([]);
+      setProjectMapItems([]);
     } finally {
       setProjectsLoading(false);
     }
@@ -130,46 +230,47 @@ const MapPage = () => {
         p_lead_stages: [...MAP_CLIENT_LEAD_STAGES],
       });
       if (error) throw error;
-      const list = (data as ClientMapRow[]) || [];
-      setClients(list);
 
-      const withCoords = list.filter(
-        (c) => c.latitude != null && c.longitude != null
-      );
-      const backendItems: MapItem[] = withCoords.map((c) => ({
-        id: c.id,
-        name: c.company_name,
-        latitude: c.latitude!,
-        longitude: c.longitude!,
-        address: c.full_address ?? undefined,
-        lead_stage: c.lead_stage,
-      }));
-      setClientMapItems(backendItems);
+      const rows = (data as ClientMapRow[]) ?? [];
+      setClients(rows);
 
-      // Geocodificar en frontend los que tienen dirección pero el backend no devolvió coordenadas
-      const needGeocode = list.filter(
-        (c) =>
-          (c.latitude == null || c.longitude == null) &&
-          c.full_address != null &&
-          String(c.full_address).trim() !== ""
-      );
-      const geocodedItems: MapItem[] = [];
-      for (const c of needGeocode) {
-        const coords = await geocodeFullAddress(c.full_address!);
-        if (coords)
-          geocodedItems.push({
-            id: c.id,
-            name: c.company_name,
-            latitude: coords.lat,
-            longitude: coords.lon,
-            address: c.full_address ?? undefined,
-            lead_stage: c.lead_stage,
+      const items: MapItem[] = [];
+      for (const client of rows) {
+        const latitude = toNullableNumber(client.latitude);
+        const longitude = toNullableNumber(client.longitude);
+
+        if (latitude != null && longitude != null) {
+          items.push({
+            id: client.id,
+            name: client.company_name,
+            latitude,
+            longitude,
+            address: client.full_address,
+            lead_stage: client.lead_stage,
+            location_precision: "exact",
           });
+          continue;
+        }
+
+        if (!client.full_address?.trim()) continue;
+
+        const coords = await geocodeFullAddress(client.full_address);
+        if (!coords) continue;
+
+        items.push({
+          id: client.id,
+          name: client.company_name,
+          latitude: coords.lat,
+          longitude: coords.lon,
+          address: client.full_address,
+          lead_stage: client.lead_stage,
+          location_precision: "approximate",
+        });
       }
-      if (geocodedItems.length > 0)
-        setClientMapItems([...backendItems, ...geocodedItems]);
-    } catch (e) {
-      console.error("Error fetching clients:", e);
+
+      setClientMapItems(items);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
       setClients([]);
       setClientMapItems([]);
     } finally {
@@ -180,77 +281,111 @@ const MapPage = () => {
   const fetchTechnicians = useCallback(async () => {
     setTechniciansLoading(true);
     try {
-      let list: TechnicianMapRow[] = [];
-      const { data: dataMap, error: errorMap } = await supabase.rpc("list_technicians_for_map", {
-        p_type: null,
-        p_status: null,
-        p_specialty: null,
-      });
-      if (!errorMap && Array.isArray(dataMap) && dataMap.length > 0) {
-        list = dataMap as TechnicianMapRow[];
-      } else {
-        // Fallback: misma fuente que la página Técnicos (list_technicians) para que el listado siempre aparezca
-        const { data: dataList, error: errorList } = await supabase.rpc("list_technicians", {
+      const [
+        { data: listData, error: listError },
+        { data: mapData, error: mapError },
+      ] = await Promise.all([
+        supabase.rpc("list_technicians", {
           p_search: null,
           p_type: null,
           p_status: null,
           p_specialty: null,
-        });
-        if (errorList) throw errorList;
-        const raw = (dataList || []) as Array<{ id: string; technician_number: string; company_name: string; type: string; city?: string; province?: string; contact_email?: string; contact_phone?: string }>;
-        list = raw.map((t) => ({
-          id: t.id,
-          technician_number: t.technician_number,
-          company_name: t.company_name,
-          type: t.type,
-          city: t.city ?? null,
-          province: t.province ?? null,
+        }),
+        supabase.rpc("list_technicians_for_map", {
+          p_type: null,
+          p_status: null,
+          p_specialty: null,
+        }),
+      ]);
+
+      if (listError) throw listError;
+      if (mapError)
+        console.error("Error fetching technician coordinates:", mapError);
+
+      const baseRows = ((listData as TechnicianListRow[]) ?? []).map(
+        (technician) => ({
+          ...technician,
           address: null,
-          contact_email: t.contact_email ?? null,
-          contact_phone: t.contact_phone ?? null,
+          postal_code: null,
+          country: null,
           latitude: null,
           longitude: null,
-        }));
+        }),
+      );
+      const mapRows = (mapData as TechnicianMapRow[]) ?? [];
+
+      const mergedById = new Map<string, TechnicianMapRow>();
+      for (const technician of baseRows) {
+        mergedById.set(technician.id, technician);
       }
-      setTechnicians(list);
+      for (const technician of mapRows) {
+        const previous = mergedById.get(technician.id);
+        mergedById.set(technician.id, {
+          ...(previous ?? {}),
+          ...technician,
+          city: technician.city ?? previous?.city ?? null,
+          province: technician.province ?? previous?.province ?? null,
+          contact_email:
+            technician.contact_email ?? previous?.contact_email ?? null,
+          contact_phone:
+            technician.contact_phone ?? previous?.contact_phone ?? null,
+        });
+      }
 
-      const withCoords = list.filter(
-        (t) => t.latitude != null && t.longitude != null
-      );
-      const backendItems: MapItem[] = withCoords.map((t) => ({
-        id: t.id,
-        name: t.company_name,
-        latitude: t.latitude!,
-        longitude: t.longitude!,
-        address: [t.address, t.city].filter(Boolean).join(", ") || undefined,
-        type: t.type,
-      }));
-      setTechnicianMapItems(backendItems);
+      const merged = Array.from(mergedById.values());
+      setTechnicians(merged);
 
-      // Geocodificar los que tienen dirección o al menos ciudad (fallback: ciudad + provincia)
-      const needGeocode = list.filter(
-        (t) =>
-          (t.latitude == null || t.longitude == null) &&
-          (t.address?.trim() || t.city?.trim())
-      );
-      const geocodedItems: MapItem[] = [];
-      for (const t of needGeocode) {
-        const fullStr = [t.address, t.city, t.province].filter(Boolean).join(", ");
-        const coords = await geocodeFullAddress(fullStr);
-        if (coords)
-          geocodedItems.push({
-            id: t.id,
-            name: t.company_name,
-            latitude: coords.lat,
-            longitude: coords.lon,
-            address: fullStr || undefined,
-            type: t.type,
+      const items: MapItem[] = [];
+      for (const technician of merged) {
+        const latitude = toNullableNumber(technician.latitude);
+        const longitude = toNullableNumber(technician.longitude);
+        const address = buildStructuredAddress(technician);
+
+        if (latitude != null && longitude != null) {
+          items.push({
+            id: technician.id,
+            name: technician.company_name,
+            latitude,
+            longitude,
+            address:
+              address || joinAddressParts(technician.city, technician.province),
+            type: technician.type,
+            location_precision: "exact",
           });
+          continue;
+        }
+
+        let coords = null;
+        if (technician.address?.trim()) {
+          coords = await geocodeAddress(technician.address, technician.city, {
+            postalCode: technician.postal_code,
+            province: technician.province,
+          });
+        }
+        if (!coords) {
+          coords = await geocodeLocality(
+            technician.city,
+            technician.province,
+            technician.postal_code,
+          );
+        }
+        if (!coords) continue;
+
+        items.push({
+          id: technician.id,
+          name: technician.company_name,
+          latitude: coords.lat,
+          longitude: coords.lon,
+          address:
+            address || joinAddressParts(technician.city, technician.province),
+          type: technician.type,
+          location_precision: "approximate",
+        });
       }
-      if (geocodedItems.length > 0)
-        setTechnicianMapItems([...backendItems, ...geocodedItems]);
-    } catch (e) {
-      console.error("Error fetching technicians:", e);
+
+      setTechnicianMapItems(items);
+    } catch (error) {
+      console.error("Error fetching technicians:", error);
       setTechnicians([]);
       setTechnicianMapItems([]);
     } finally {
@@ -258,60 +393,168 @@ const MapPage = () => {
     }
   }, []);
 
-  // Geocodificar cada proyecto con dirección completa para ubicación exacta en el mapa.
   useEffect(() => {
-    if (projectsForMap.length === 0) {
-      setProjectMapItems([]);
-      return;
-    }
-    const withFullAddress = projectsForMap.filter(
-      (p) => p.project_address != null && String(p.project_address).trim() !== ""
-    );
-    if (withFullAddress.length === 0) {
-      setProjectMapItems([]);
-      return;
-    }
-    let cancelled = false;
-    setProjectsGeocoding(true);
-    (async () => {
-      const results: MapItem[] = [];
-      for (const p of withFullAddress) {
-        if (cancelled) break;
-        const addressPart = String(p.project_address).trim();
-        const cityPart = (p.project_city && String(p.project_city).trim()) || "";
-        const fullAddressStr = [addressPart, cityPart].filter(Boolean).join(", ");
-        const coords = await geocodeFullAddress(fullAddressStr);
-        if (coords)
-          results.push({
-            id: p.id,
-            name: p.project_name || p.project_number,
-            latitude: coords.lat,
-            longitude: coords.lon,
-            address: fullAddressStr,
-            project_number: p.project_number,
-            client_name: p.client_name,
-            status: p.status,
-          });
-      }
-      if (!cancelled) setProjectMapItems(results);
-      setProjectsGeocoding(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [projectsForMap]);
-
-  useEffect(() => {
-    fetchProjects();
+    void fetchProjects();
   }, [fetchProjects]);
 
   useEffect(() => {
-    if (activeTab === "clientes") fetchClients();
-  }, [activeTab, fetchClients]);
+    if (activeTab === "clientes" && clients.length === 0 && !clientsLoading) {
+      void fetchClients();
+    }
+  }, [activeTab, clients.length, clientsLoading, fetchClients]);
 
   useEffect(() => {
-    if (activeTab === "tecnicos") fetchTechnicians();
-  }, [activeTab, fetchTechnicians]);
+    if (
+      activeTab === "tecnicos" &&
+      technicians.length === 0 &&
+      !techniciansLoading
+    ) {
+      void fetchTechnicians();
+    }
+  }, [activeTab, technicians.length, techniciansLoading, fetchTechnicians]);
+
+  useEffect(() => {
+    if (projects.length === 0) {
+      setProjectMapItems([]);
+      setProjectsGeocoding(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const buildProjectMapItems = async () => {
+      setProjectsGeocoding(true);
+      try {
+        const sitesByProject = await Promise.all(
+          projects.map(async (project) => {
+            const { data, error } = await supabase.rpc("list_project_sites", {
+              p_project_id: project.id,
+            });
+
+            if (error) {
+              console.error(
+                `Error fetching project sites for ${project.id}:`,
+                error,
+              );
+              return [project.id, []] as const;
+            }
+
+            return [project.id, (data as ProjectSiteRow[]) ?? []] as const;
+          }),
+        );
+
+        if (cancelled) return;
+
+        const items: MapItem[] = [];
+        for (const project of projects) {
+          if (cancelled) return;
+
+          const projectSites =
+            sitesByProject.find(
+              ([projectId]) => projectId === project.id,
+            )?.[1] ?? [];
+          const bestSite = selectBestProjectSite(
+            projectSites,
+            project.default_site_id,
+          );
+
+          const exactLatitude = toNullableNumber(bestSite?.latitude);
+          const exactLongitude = toNullableNumber(bestSite?.longitude);
+          const siteAddress = bestSite
+            ? buildStructuredAddress(bestSite)
+            : null;
+
+          if (exactLatitude != null && exactLongitude != null) {
+            items.push({
+              id: project.id,
+              name: project.project_name || project.project_number,
+              latitude: exactLatitude,
+              longitude: exactLongitude,
+              address:
+                siteAddress ||
+                joinAddressParts(project.project_address, project.project_city),
+              client_name: project.client_name,
+              project_number: project.project_number,
+              site_name: bestSite?.site_name,
+              status: project.status,
+              location_precision: "exact",
+            });
+            continue;
+          }
+
+          let coords = null;
+          let displayAddress =
+            siteAddress ||
+            joinAddressParts(project.project_address, project.project_city);
+
+          if (bestSite?.address?.trim()) {
+            coords = await geocodeAddress(bestSite.address, bestSite.city, {
+              postalCode: bestSite.postal_code,
+              province: bestSite.province,
+            });
+          }
+
+          if (
+            !coords &&
+            bestSite &&
+            (bestSite.city?.trim() || bestSite.province?.trim())
+          ) {
+            coords = await geocodeLocality(
+              bestSite.city,
+              bestSite.province,
+              bestSite.postal_code,
+            );
+            displayAddress =
+              displayAddress ||
+              joinAddressParts(
+                bestSite.city,
+                bestSite.province,
+                bestSite.country,
+              );
+          }
+
+          if (!coords && project.project_city?.trim()) {
+            coords = await geocodeLocality(project.project_city, null, null);
+            displayAddress = displayAddress || project.project_city;
+          }
+
+          if (!coords) continue;
+
+          items.push({
+            id: project.id,
+            name: project.project_name || project.project_number,
+            latitude: coords.lat,
+            longitude: coords.lon,
+            address: displayAddress,
+            client_name: project.client_name,
+            project_number: project.project_number,
+            site_name: bestSite?.site_name,
+            status: project.status,
+            location_precision: "approximate",
+          });
+        }
+
+        if (!cancelled) {
+          setProjectMapItems(items);
+        }
+      } catch (error) {
+        console.error("Error building project map items:", error);
+        if (!cancelled) {
+          setProjectMapItems([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setProjectsGeocoding(false);
+        }
+      }
+    };
+
+    void buildProjectMapItems();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projects]);
 
   const mapLoading =
     (activeTab === "proyectos" && (projectsLoading || projectsGeocoding)) ||
@@ -319,266 +562,452 @@ const MapPage = () => {
     (activeTab === "tecnicos" && techniciansLoading);
 
   return (
-    <div className="map-page w-full h-full flex flex-col overflow-hidden min-h-0">
-      <div className="flex-shrink-0 mb-4">
+    <div className="map-page flex h-full min-h-0 w-full flex-col overflow-hidden">
+      <div className="mb-4 flex-shrink-0">
         <DetailNavigationBar
           pageTitle="Mapa"
-          contextInfo={<span className="text-muted-foreground text-sm">Vista general</span>}
+          contextInfo={
+            <span className="text-sm text-muted-foreground">
+              Vista general de ubicaciones
+            </span>
+          }
           backPath={userId ? `/nexo-av/${userId}/dashboard` : undefined}
-          onBack={userId ? () => navigate(`/nexo-av/${userId}/dashboard`) : undefined}
+          onBack={
+            userId ? () => navigate(`/nexo-av/${userId}/dashboard`) : undefined
+          }
         />
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full min-h-0">
-          <TabsList className="h-11 flex-shrink-0 bg-transparent border-b border-border rounded-none w-full justify-start gap-0 p-0 mb-0">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="flex h-full min-h-0 flex-col"
+        >
+          <TabsList className="mb-0 h-11 w-full flex-shrink-0 justify-start gap-0 rounded-none border-b border-border bg-transparent p-0">
             {MAP_TABS.map(({ value, label, icon: Icon }) => (
               <TabsTrigger
                 key={value}
                 value={value}
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2.5"
+                className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent"
               >
-                <Icon className="w-4 h-4 mr-2" />
+                <Icon className="mr-2 h-4 w-4" />
                 {label}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {MAP_TABS.map(({ value, label, listTitle, color }) => (
+          {MAP_TABS.map(({ value, listTitle, color }) => (
             <TabsContent
               key={value}
               value={value}
-              className="map-page__tabs-content mt-0 flex-1 min-h-0 flex flex-col overflow-hidden pt-4"
+              className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden pt-4"
             >
-              <div className="map-page__content flex-1 flex flex-row gap-4 min-h-0 overflow-hidden">
-                <div className="map-page__map map-page__map--60 min-w-0 min-h-[300px] rounded-lg border border-border bg-muted/20 overflow-hidden relative">
-                  <div className="absolute inset-0 w-full h-full min-h-0">
-                  {value === "proyectos" && (
-                    <>
-                      <MapWithMarkers
-                        items={projectMapItems}
-                        markerColor={color}
-                        getMarkerColor={(item) => getProjectStatusInfo(String(item.status)).markerColorHex ?? color}
-                        loading={mapLoading}
-                        renderTooltip={(item) => (
-                        <div className="p-1 text-left">
-                          <p className="font-semibold text-foreground">{item.name}</p>
-                          {item.project_number && (
-                            <p className="text-xs text-muted-foreground">Nº {String(item.project_number)}</p>
-                          )}
-                          {item.client_name && (
-                            <p className="text-xs text-muted-foreground">Cliente: {String(item.client_name)}</p>
-                          )}
-                          {item.address && (
-                            <p className="text-xs text-muted-foreground">{String(item.address)}</p>
-                          )}
-                          {item.status && (
-                            <p className="text-xs mt-1">
-                              Estado: <span className="font-medium">{String(item.status)}</span>
-                            </p>
-                          )}
-                        </div>
-                      )}
-                      />
-                      {!projectsLoading && !projectsGeocoding && projectMapItems.length === 0 && projectsForMap.length > 0 && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-muted/30 z-[400] rounded-lg">
-                          <p className="text-sm text-muted-foreground text-center px-4 max-w-md">
-                            Para ver proyectos en el mapa hace falta <strong>dirección completa</strong> (calle, número, código postal, población, provincia). No se usa solo ciudad o población.
-                          </p>
-                        </div>
-                      )}
-                    </>
-                  )}
-                  {value === "clientes" && (
-                    <MapWithMarkers
-                      items={clientMapItems}
-                      markerColor={color}
-                      loading={mapLoading}
-                      renderTooltip={(item) => {
-                        const stageInfo = getClientStageInfo(String(item.lead_stage));
-                        return (
-                          <div className="p-1 text-left">
-                            <p className="font-semibold text-foreground">{item.name}</p>
-                            {item.lead_stage && (
-                              <p className="text-xs mt-0.5">
-                                Estado: <span className="font-medium">{stageInfo.label}</span>
+              <div className="flex min-h-0 flex-1 flex-row gap-4 overflow-hidden">
+                <div className="relative min-h-[300px] min-w-0 flex-1 overflow-hidden rounded-lg border border-border bg-muted/20">
+                  <div className="absolute inset-0 h-full w-full">
+                    {value === "proyectos" && (
+                      <>
+                        <MapWithMarkers
+                          items={projectMapItems}
+                          markerColor={color}
+                          getMarkerColor={(item) =>
+                            getProjectStatusInfo(String(item.status ?? ""))
+                              .markerColorHex ?? color
+                          }
+                          loading={mapLoading}
+                          renderTooltip={(item) => (
+                            <div className="p-1 text-left">
+                              <p className="font-semibold text-foreground">
+                                {item.name}
                               </p>
-                            )}
-                            {item.address && (
-                              <p className="text-xs text-muted-foreground">{String(item.address)}</p>
-                            )}
+                              {item.project_number && (
+                                <p className="text-xs text-muted-foreground">
+                                  N. {String(item.project_number)}
+                                </p>
+                              )}
+                              {item.client_name && (
+                                <p className="text-xs text-muted-foreground">
+                                  Cliente: {String(item.client_name)}
+                                </p>
+                              )}
+                              {item.site_name && (
+                                <p className="text-xs text-muted-foreground">
+                                  Sitio: {String(item.site_name)}
+                                </p>
+                              )}
+                              {item.address && (
+                                <p className="text-xs text-muted-foreground">
+                                  {String(item.address)}
+                                </p>
+                              )}
+                              {String(item.location_precision) ===
+                                "approximate" && (
+                                <p className="mt-1 text-xs font-medium text-amber-700">
+                                  Ubicacion aproximada
+                                </p>
+                              )}
+                              {item.status && (
+                                <p className="mt-1 text-xs">
+                                  Estado:{" "}
+                                  <span className="font-medium">
+                                    {
+                                      getProjectStatusInfo(String(item.status))
+                                        .label
+                                    }
+                                  </span>
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        />
+                        {!projectsLoading &&
+                          !projectsGeocoding &&
+                          projects.length === 0 && (
+                            <div className="absolute inset-0 z-[400] flex items-center justify-center rounded-lg bg-muted/30">
+                              <p className="px-4 text-center text-sm text-muted-foreground">
+                                No hay proyectos para mostrar.
+                              </p>
+                            </div>
+                          )}
+                        {!projectsLoading &&
+                          !projectsGeocoding &&
+                          projects.length > 0 &&
+                          projectMapItems.length === 0 && (
+                            <div className="absolute inset-0 z-[400] flex items-center justify-center rounded-lg bg-muted/30">
+                              <p className="max-w-md px-4 text-center text-sm text-muted-foreground">
+                                Para ubicar proyectos en el mapa hace falta al
+                                menos una direccion de sitio o una
+                                ciudad/provincia valida.
+                              </p>
+                            </div>
+                          )}
+                      </>
+                    )}
+
+                    {value === "clientes" && (
+                      <>
+                        <MapWithMarkers
+                          items={clientMapItems}
+                          markerColor={color}
+                          loading={mapLoading}
+                          renderTooltip={(item) => {
+                            const stageInfo = getClientStageInfo(
+                              String(item.lead_stage ?? ""),
+                            );
+                            return (
+                              <div className="p-1 text-left">
+                                <p className="font-semibold text-foreground">
+                                  {item.name}
+                                </p>
+                                <p className="text-xs">
+                                  Estado:{" "}
+                                  <span className="font-medium">
+                                    {stageInfo.label}
+                                  </span>
+                                </p>
+                                {item.address && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {String(item.address)}
+                                  </p>
+                                )}
+                                {String(item.location_precision) ===
+                                  "approximate" && (
+                                  <p className="mt-1 text-xs font-medium text-amber-700">
+                                    Ubicacion aproximada
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          }}
+                        />
+                        {!clientsLoading && clients.length === 0 && (
+                          <div className="absolute inset-0 z-[400] flex items-center justify-center rounded-lg bg-muted/30">
+                            <p className="px-4 text-center text-sm text-muted-foreground">
+                              No hay clientes para mostrar.
+                            </p>
                           </div>
-                        );
-                      }}
-                    />
-                  )}
-                  {value === "tecnicos" && (
-                    <MapWithMarkers
-                      items={technicianMapItems}
-                      markerColor={color}
-                      loading={mapLoading}
-                      renderTooltip={(item) => (
-                        <div className="p-1 text-left max-w-[260px]">
-                          <p className="font-semibold text-foreground">{item.name}</p>
-                          {item.address && (
-                            <p className="text-xs text-muted-foreground">{String(item.address)}</p>
+                        )}
+                        {!clientsLoading &&
+                          clients.length > 0 &&
+                          clientMapItems.length === 0 && (
+                            <div className="absolute inset-0 z-[400] flex items-center justify-center rounded-lg bg-muted/30">
+                              <p className="max-w-md px-4 text-center text-sm text-muted-foreground">
+                                Para ubicar clientes en el mapa hace falta una
+                                direccion valida o coordenadas guardadas.
+                              </p>
+                            </div>
                           )}
-                          {item.type && (
-                            <p className="text-xs mt-0.5">Tipo: {String(item.type)}</p>
+                      </>
+                    )}
+
+                    {value === "tecnicos" && (
+                      <>
+                        <MapWithMarkers
+                          items={technicianMapItems}
+                          markerColor={color}
+                          loading={mapLoading}
+                          renderTooltip={(item) => (
+                            <div className="max-w-[260px] p-1 text-left">
+                              <p className="font-semibold text-foreground">
+                                {item.name}
+                              </p>
+                              {item.address && (
+                                <p className="text-xs text-muted-foreground">
+                                  {String(item.address)}
+                                </p>
+                              )}
+                              {String(item.location_precision) ===
+                                "approximate" && (
+                                <p className="mt-1 text-xs font-medium text-amber-700">
+                                  Ubicacion aproximada
+                                </p>
+                              )}
+                              {item.type && (
+                                <p className="text-xs">
+                                  Tipo: {String(item.type)}
+                                </p>
+                              )}
+                            </div>
                           )}
-                        </div>
-                      )}
-                    />
-                  )}
-                  {value === "tecnicos" && !techniciansLoading && technicians.length === 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted/30 z-[400] rounded-lg">
-                      <p className="text-sm text-muted-foreground text-center px-4">
-                        No hay técnicos para mostrar.
-                      </p>
-                    </div>
-                  )}
-                  {value === "tecnicos" && !techniciansLoading && technicians.length > 0 && technicianMapItems.length === 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted/30 z-[400] rounded-lg">
-                      <p className="text-sm text-muted-foreground text-center px-4 max-w-md">
-                        Para ver técnicos en el mapa hace falta <strong>dirección completa</strong> (calle, número, código postal, población, provincia). No se usa solo ciudad.
-                      </p>
-                    </div>
-                  )}
-                  {value === "clientes" && !clientsLoading && clients.length === 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted/30 z-[400] rounded-lg">
-                      <p className="text-sm text-muted-foreground text-center px-4">
-                        No hay clientes para mostrar (se excluyen los perdidos).
-                      </p>
-                    </div>
-                  )}
-                  {value === "clientes" && !clientsLoading && clients.length > 0 && clientMapItems.length === 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted/30 z-[400] rounded-lg">
-                      <p className="text-sm text-muted-foreground text-center px-4 max-w-md">
-                        Para ver clientes en el mapa hace falta <strong>dirección completa</strong> de facturación (calle, número, código postal, población, provincia). No se usa solo ciudad.
-                      </p>
-                    </div>
-                  )}
+                        />
+                        {!techniciansLoading && technicians.length === 0 && (
+                          <div className="absolute inset-0 z-[400] flex items-center justify-center rounded-lg bg-muted/30">
+                            <p className="px-4 text-center text-sm text-muted-foreground">
+                              No hay tecnicos para mostrar.
+                            </p>
+                          </div>
+                        )}
+                        {!techniciansLoading &&
+                          technicians.length > 0 &&
+                          technicianMapItems.length === 0 && (
+                            <div className="absolute inset-0 z-[400] flex items-center justify-center rounded-lg bg-muted/30">
+                              <p className="max-w-md px-4 text-center text-sm text-muted-foreground">
+                                Para ubicar tecnicos en el mapa hace falta al
+                                menos una direccion o una ciudad/provincia
+                                valida.
+                              </p>
+                            </div>
+                          )}
+                      </>
+                    )}
                   </div>
                 </div>
 
-                <div className="map-page__list map-page__list--40 min-w-0 rounded-lg border border-border bg-card flex flex-col overflow-hidden min-h-0">
-                  <div className="p-3 border-b border-border flex-shrink-0">
-                    <h3 className="text-sm font-semibold text-foreground">Listado</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">{listTitle}</p>
+                <div className="flex min-h-0 w-[360px] min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
+                  <div className="border-b border-border p-3">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      Listado
+                    </h3>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {listTitle}
+                    </p>
                   </div>
-                  <ScrollArea className="flex-1 min-h-0">
-                    <div className="p-3 space-y-2">
+
+                  <ScrollArea className="min-h-0 flex-1">
+                    <div className="space-y-2 p-3">
                       {value === "proyectos" &&
                         (projectsLoading ? (
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm">Cargando proyectos…</span>
+                            <span className="text-sm">
+                              Cargando proyectos...
+                            </span>
                           </div>
-                        ) : projectsForMap.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">No hay proyectos en Planificado o En progreso.</p>
+                        ) : projects.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">
+                            No hay proyectos para mostrar.
+                          </p>
                         ) : (
-                          projectsForMap.map((p) => {
-                            const statusInfo = getProjectStatusInfo(p.status);
+                          projects.map((project) => {
+                            const statusInfo = getProjectStatusInfo(
+                              project.status,
+                            );
+                            const mapItem = projectMapItemById.get(project.id);
                             return (
                               <button
-                                key={p.id}
+                                key={project.id}
                                 type="button"
-                                className={cn(
-                                  "w-full text-left rounded-md px-3 py-2 border border-transparent hover:bg-accent hover:border-border transition-colors"
-                                )}
-                                onClick={() => navigate(`/nexo-av/${userId}/projects/${p.id}`)}
+                                className="w-full rounded-md border border-transparent px-3 py-2 text-left transition-colors hover:border-border hover:bg-accent"
+                                onClick={() =>
+                                  navigate(
+                                    `/nexo-av/${userId}/projects/${project.id}`,
+                                  )
+                                }
                               >
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <p className="text-sm font-medium text-foreground truncate min-w-0 flex-1">
-                                    {p.project_number} – {p.project_name || "Sin nombre"}
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                                    {project.project_number} -{" "}
+                                    {project.project_name || "Sin nombre"}
                                   </p>
-                                  <Badge variant="outline" className={cn(statusInfo.className, "text-[10px] px-1.5 py-0 shrink-0")}>
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      statusInfo.className,
+                                      "shrink-0 px-1.5 py-0 text-[10px]",
+                                    )}
+                                  >
                                     {statusInfo.label}
                                   </Badge>
+                                  {String(mapItem?.location_precision) ===
+                                    "approximate" && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-amber-500/30 bg-amber-500/20 px-1.5 py-0 text-[10px] text-amber-700"
+                                    >
+                                      Aproximado
+                                    </Badge>
+                                  )}
                                 </div>
-                                <p className="text-xs text-muted-foreground truncate mt-0.5">
-                                  {p.client_name || "Sin cliente"} · {[p.project_address, p.project_city].filter(Boolean).join(", ") || "Sin dirección completa"}
+                                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                                  {project.client_name || "Sin cliente"} |{" "}
+                                  {String(
+                                    mapItem?.address ??
+                                      project.project_city ??
+                                      "Sin ubicacion de sitio",
+                                  )}
                                 </p>
                               </button>
                             );
                           })
                         ))}
+
                       {value === "clientes" &&
                         (clientsLoading ? (
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm">Cargando clientes…</span>
+                            <span className="text-sm">
+                              Cargando clientes...
+                            </span>
                           </div>
                         ) : clients.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">No hay clientes (se excluyen los perdidos).</p>
+                          <p className="text-sm text-muted-foreground">
+                            No hay clientes para mostrar.
+                          </p>
                         ) : (
-                          clients.map((c) => {
-                            const stageInfo = getClientStageInfo(c.lead_stage);
+                          clients.map((client) => {
+                            const stageInfo = getClientStageInfo(
+                              client.lead_stage,
+                            );
+                            const mapItem = clientMapItemById.get(client.id);
                             return (
                               <button
-                                key={c.id}
+                                key={client.id}
                                 type="button"
-                                className={cn(
-                                  "w-full text-left rounded-md px-3 py-2 border border-transparent hover:bg-accent hover:border-border transition-colors"
-                                )}
-                                onClick={() => navigate(`/nexo-av/${userId}/clients/${c.id}`)}
+                                className="w-full rounded-md border border-transparent px-3 py-2 text-left transition-colors hover:border-border hover:bg-accent"
+                                onClick={() =>
+                                  navigate(
+                                    `/nexo-av/${userId}/clients/${client.id}`,
+                                  )
+                                }
                               >
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <p className="text-sm font-medium text-foreground truncate min-w-0 flex-1">
-                                    {c.company_name}
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                                    {client.company_name}
                                   </p>
-                                  <Badge variant="outline" className={cn(stageInfo.color, "text-[10px] px-1.5 py-0 shrink-0")}>
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      stageInfo.color,
+                                      "shrink-0 px-1.5 py-0 text-[10px]",
+                                    )}
+                                  >
                                     {stageInfo.label}
                                   </Badge>
+                                  {String(mapItem?.location_precision) ===
+                                    "approximate" && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-amber-500/30 bg-amber-500/20 px-1.5 py-0 text-[10px] text-amber-700"
+                                    >
+                                      Aproximado
+                                    </Badge>
+                                  )}
                                 </div>
-                                <p className="text-xs text-muted-foreground truncate mt-0.5">
-                                  {c.full_address || "Sin dirección"}
+                                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                                  {client.full_address || "Sin direccion"}
                                 </p>
-                                {(c.contact_email || c.contact_phone) && (
-                                  <p className="text-xs text-muted-foreground truncate">
-                                    {c.contact_email || c.contact_phone}
+                                {(client.contact_email ||
+                                  client.contact_phone) && (
+                                  <p className="truncate text-xs text-muted-foreground">
+                                    {client.contact_email ||
+                                      client.contact_phone}
                                   </p>
                                 )}
                               </button>
                             );
                           })
                         ))}
+
                       {value === "tecnicos" &&
                         (techniciansLoading ? (
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm">Cargando técnicos…</span>
+                            <span className="text-sm">
+                              Cargando tecnicos...
+                            </span>
                           </div>
                         ) : technicians.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">No hay técnicos.</p>
+                          <p className="text-sm text-muted-foreground">
+                            No hay tecnicos.
+                          </p>
                         ) : (
-                          technicians.map((t) => (
-                            <button
-                              key={t.id}
-                              type="button"
-                              className={cn(
-                                "w-full text-left rounded-md px-3 py-2 border border-transparent hover:bg-accent hover:border-border transition-colors"
-                              )}
-                              onClick={() => navigate(`/nexo-av/${userId}/technicians/${t.id}`)}
-                            >
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <p className="text-sm font-medium text-foreground truncate min-w-0 flex-1">
-                                  {t.company_name}
+                          technicians.map((technician) => {
+                            const mapItem = technicianMapItemById.get(
+                              technician.id,
+                            );
+                            return (
+                              <button
+                                key={technician.id}
+                                type="button"
+                                className="w-full rounded-md border border-transparent px-3 py-2 text-left transition-colors hover:border-border hover:bg-accent"
+                                onClick={() =>
+                                  navigate(
+                                    `/nexo-av/${userId}/technicians/${technician.id}`,
+                                  )
+                                }
+                              >
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                                    {technician.company_name}
+                                  </p>
+                                  <Badge
+                                    variant="outline"
+                                    className="shrink-0 border-amber-500/30 bg-amber-500/20 px-1.5 py-0 text-[10px] text-amber-700"
+                                  >
+                                    {technician.type}
+                                  </Badge>
+                                  {String(mapItem?.location_precision) ===
+                                    "approximate" && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-amber-500/30 bg-amber-500/20 px-1.5 py-0 text-[10px] text-amber-700"
+                                    >
+                                      Aproximado
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                                  {String(
+                                    mapItem?.address ||
+                                      buildStructuredAddress(technician) ||
+                                      joinAddressParts(
+                                        technician.city,
+                                        technician.province,
+                                      ) ||
+                                      "Sin direccion",
+                                  )}
                                 </p>
-                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0 bg-amber-500/20 text-amber-400 border-amber-500/30">
-                                  {t.type}
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-muted-foreground truncate mt-0.5">
-                                {(t.address || t.city || t.province) ? [t.address, t.city, t.province].filter(Boolean).join(", ") : "Sin dirección"}
-                              </p>
-                              {(t.contact_email ?? t.contact_phone) && (
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {t.contact_email ?? t.contact_phone}
-                                </p>
-                              )}
-                            </button>
-                          ))
+                                {(technician.contact_email ||
+                                  technician.contact_phone) && (
+                                  <p className="truncate text-xs text-muted-foreground">
+                                    {technician.contact_email ||
+                                      technician.contact_phone}
+                                  </p>
+                                )}
+                              </button>
+                            );
+                          })
                         ))}
                     </div>
                   </ScrollArea>

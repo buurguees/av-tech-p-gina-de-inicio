@@ -502,7 +502,7 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
               {invoice.invoice_number || invoice.preliminary_number || "Sin número"}
             </Text>
             <Text style={styles.documentDate}>Fecha: {formatDate(invoice.issue_date)}</Text>
-            {invoice.status === "DRAFT" && invoice.preliminary_number && (
+            {invoice.status === "DRAFT" && Boolean(invoice.preliminary_number) && (
               <Text style={[styles.documentDate, { color: "#888", fontStyle: "italic" }]}>
                 (Borrador)
               </Text>
@@ -518,19 +518,19 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
             <Text style={styles.boxName}>
               {company?.legal_name || "Nombre de la empresa"}
             </Text>
-            {company?.tax_id && <Text style={styles.boxDetail}>NIF: {company.tax_id}</Text>}
-            {company?.fiscal_address && (
+            {Boolean(company?.tax_id) && <Text style={styles.boxDetail}>NIF: {company.tax_id}</Text>}
+            {Boolean(company?.fiscal_address) && (
               <Text style={styles.boxDetail}>{company.fiscal_address}</Text>
             )}
-            {company?.fiscal_postal_code && company?.fiscal_city && (
+            {Boolean(company?.fiscal_postal_code) && Boolean(company?.fiscal_city) && (
               <Text style={styles.boxDetail}>
                 {company.fiscal_postal_code} {company.fiscal_city} ({company.fiscal_province})
               </Text>
             )}
-            {company?.billing_email && (
+            {Boolean(company?.billing_email) && (
               <Text style={styles.boxDetail}>{company.billing_email}</Text>
             )}
-            {company?.billing_phone && (
+            {Boolean(company?.billing_phone) && (
               <Text style={styles.boxDetail}>{company.billing_phone}</Text>
             )}
           </View>
@@ -541,19 +541,19 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
             <Text style={styles.boxName}>
               {client?.legal_name || client?.company_name || invoice.client_name}
             </Text>
-            {client?.tax_id && <Text style={styles.boxDetail}>NIF: {client.tax_id}</Text>}
-            {client?.billing_address && (
+            {Boolean(client?.tax_id) && <Text style={styles.boxDetail}>NIF: {client.tax_id}</Text>}
+            {Boolean(client?.billing_address) && (
               <Text style={styles.boxDetail}>{client.billing_address}</Text>
             )}
-            {client?.billing_postal_code && client?.billing_city && (
+            {Boolean(client?.billing_postal_code) && Boolean(client?.billing_city) && (
               <Text style={styles.boxDetail}>
                 {client.billing_postal_code} {client.billing_city} ({client.billing_province})
               </Text>
             )}
-            {client?.contact_email && (
+            {Boolean(client?.contact_email) && (
               <Text style={styles.boxDetail}>{client.contact_email}</Text>
             )}
-            {client?.contact_phone && (
+            {Boolean(client?.contact_phone) && (
               <Text style={styles.boxDetail}>{client.contact_phone}</Text>
             )}
           </View>
@@ -564,16 +564,16 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
           <View style={styles.projectBox}>
             <Text style={styles.projectTitle}>Proyecto</Text>
             <Text style={styles.projectName}>{projectDisplayName}</Text>
-            {project.client_order_number && (
+            {Boolean(project.client_order_number) && (
               <Text style={styles.projectDetail}>Nº Pedido Cliente: {project.client_order_number}</Text>
             )}
-            {locationValue && (
+            {Boolean(locationValue) && (
               <Text style={styles.projectDetail}>{locationLabel}: {locationValue}</Text>
             )}
-            {project.project_address && (
+            {Boolean(project.project_address) && (
               <Text style={styles.projectDetail}>{project.project_address}</Text>
             )}
-            {project.project_city && (
+            {Boolean(project.project_city) && (
               <Text style={styles.projectDetail}>{project.project_city}</Text>
             )}
           </View>
@@ -637,7 +637,7 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
         {/* Payment Information Section */}
         <View style={styles.paymentSection}>
           {/* Observations */}
-          {invoice.notes && (
+          {Boolean(invoice.notes) && (
             <View style={styles.observationsBox}>
               <Text style={styles.observationsTitle}>Observaciones</Text>
               <Text style={styles.observationsText}>{invoice.notes}</Text>
@@ -647,7 +647,7 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
           {/* Payment Details Grid */}
           <View style={styles.paymentInfoGrid}>
             {/* Vencimientos */}
-            {invoice.due_date && (
+            {Boolean(invoice.due_date) && (
               <View style={styles.paymentInfoColumn}>
                 <Text style={styles.paymentColumnTitle}>Vencimientos</Text>
                 <Text style={styles.paymentColumnValue}>
@@ -671,12 +671,12 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
             {bankAccount && (
               <View style={styles.paymentInfoColumn}>
                 <Text style={styles.paymentColumnTitle}>Cuenta bancaria</Text>
-                {bankAccount.iban && (
+                {Boolean(bankAccount.iban) && (
                   <Text style={styles.paymentColumnValueBold}>
                     IBAN: {bankAccount.iban}
                   </Text>
                 )}
-                {swiftBic && (
+                {Boolean(swiftBic) && (
                   <Text style={styles.paymentColumnValue}>
                     SWIFT/BIC: {swiftBic}
                   </Text>
@@ -705,7 +705,7 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
         <Text
           style={styles.documentHash}
           render={({ pageNumber, totalPages }) =>
-            pageNumber === totalPages ? `Hash único: ${resolvedHash}` : ""
+            pageNumber === totalPages ? `Hash único: ${resolvedHash}` : null
           }
           fixed
         />
@@ -715,3 +715,4 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
 };
 
 export default InvoicePDFDocument;
+

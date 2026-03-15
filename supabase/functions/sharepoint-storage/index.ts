@@ -17,6 +17,7 @@ const ALLOWED_ORIGINS = [
 ];
 
 const LOVABLE_PATTERN = /^https:\/\/[a-z0-9-]+\.(lovable\.app|lovableproject\.com)$/;
+const PURCHASE_ARCHIVABLE_STATUSES = new Set(["APPROVED", "PARTIAL", "PAID", "CANCELLED", "BLOCKED"]);
 
 type AuthorizedUser = {
   id: string;
@@ -79,12 +80,52 @@ type PersistSalesMetadataRequest = {
   archivedRecordHash: string;
 };
 
+type PurchaseDocumentType = "INVOICE" | "EXPENSE";
+
+type PurchaseArchiveRecord = {
+  id: string;
+  invoice_number: string | null;
+  internal_purchase_number: string | null;
+  document_type: string | null;
+  status: string | null;
+  issue_date: string | null;
+  supplier_name: string | null;
+  technician_name: string | null;
+  manual_beneficiary_name: string | null;
+  expense_category: string | null;
+  project_name: string | null;
+  project_number: string | null;
+  site_name: string | null;
+  site_city: string | null;
+  file_path: string | null;
+  file_name: string | null;
+};
+
+type GetPurchaseMetadataRequest = {
+  action: "get-purchase-metadata";
+  documentId: string;
+};
+
+type DownloadPurchaseFileRequest = {
+  action: "download-purchase-file";
+  documentId: string;
+  filePath: string;
+};
+
+type ArchivePurchaseDocumentRequest = {
+  action: "archive-purchase-document";
+  documentId: string;
+};
+
 type RequestBody =
   | UploadSalesPdfRequest
   | DownloadSalesFileRequest
   | BuildSalesPathsRequest
   | GetSalesMetadataRequest
-  | PersistSalesMetadataRequest;
+  | PersistSalesMetadataRequest
+  | GetPurchaseMetadataRequest
+  | DownloadPurchaseFileRequest
+  | ArchivePurchaseDocumentRequest;
 
 function getCorsHeaders(origin: string | null): Record<string, string> {
   let allowedOrigin = ALLOWED_ORIGINS[0];
@@ -145,6 +186,211 @@ function buildSalesPaths(
   const baseFolder = documentType === "invoice" ? "Facturas Emitidas" : "Presupuestos Emitidos";
   const primaryFolderPath = `${baseFolder}/${year}/${month}`;
   return { primaryFolderPath, mirrorFolderPaths: [] };
+}
+
+async function getPurchasesDriveId(token: string): Promise<string> {
+  const configuredDriveId =
+    Deno.env.get("MS_SHAREPOINT_COMPRAS_DRIVE_ID") ||
+    Deno.env.get("MS_SHAREPOINT_PURCHASES_DRIVE_ID");
+
+  if (configuredDriveId) {
+    return configuredDriveId;
+  }
+
+  const siteId = getRequiredEnv("MS_SHAREPOINT_SITE_ID");
+  const response = await graphFetch(token, `/sites/${siteId}/drives?$select=id,name`);
+  if (!response.ok) {
+    throw new Error(`Could not resolve Compras drive id: ${response.status} ${await response.text()}`);
+  }
+
+  const payload = await response.json() as { value?: Array<{ id?: string; name?: string }> };
+  const comprasDrive = payload.value?.find((drive) => (drive.name || "").trim().toLowerCase() === "compras");
+
+  if (!comprasDrive?.id) {
+    throw new Error("SharePoint library 'Compras' was not found on the configured site");
+  }
+
+  return comprasDrive.id;
+}
+
+function getFileExtension(fileName: string | null | undefined, filePath: string | null | undefined): string {
+  const source = fileName || filePath || "";
+  const basename = source.split("/").at(-1) || source;
+  const dotIndex = basename.lastIndexOf(".");
+
+  if (dotIndex <= 0 || dotIndex === basename.length - 1) {
+    return ".pdf";
+  }
+
+  return basename.slice(dotIndex).toLowerCase();
+}
+
+function inferContentType(fileName: string): string {
+  switch (getFileExtension(fileName, fileName)) {
+    case ".pdf":
+      return "application/pdf";
+    case ".jpg":
+    case ".jpeg":
+      return "image/jpeg";
+    case ".png":
+      return "image/png";
+    case ".gif":
+      return "image/gif";
+    case ".webp":
+      return "image/webp";
+    case ".heic":
+      return "image/heic";
+    case ".heif":
+      return "image/heif";
+    default:
+      return "application/octet-stream";
+  }
+}
+
+function normalizePurchaseDocumentType(value: string | null | undefined): PurchaseDocumentType {
+  return value === "INVOICE" ? "INVOICE" : "EXPENSE";
+}
+
+function resolvePurchaseCounterpartyType(record: PurchaseArchiveRecord): "SUPPLIER" | "TECHNICIAN" | "BENEFICIARY" {
+  if (record.technician_name) {
+    return "TECHNICIAN";
+  }
+
+  if (record.supplier_name) {
+    return "SUPPLIER";
+  }
+
+  return "BENEFICIARY";
+}
+
+function resolvePurchaseCounterpartyName(record: PurchaseArchiveRecord): string {
+  const raw =
+    record.supplier_name ||
+    record.technician_name ||
+    record.manual_beneficiary_name ||
+    "";
+  return sanitizeSegment(raw) || "";
+}
+
+function buildPurchaseProjectSegment(record: PurchaseArchiveRecord): string {
+  return sanitizeSegment(
+    [record.project_number, record.project_name, record.site_name]
+      .filter(Boolean)
+      .join(" - "),
+  );
+}
+
+function buildPurchasePaths(record: PurchaseArchiveRecord) {
+  const issueDate = (record.issue_date || new Date().toISOString().slice(0, 10)).slice(0, 10);
+  const year = issueDate.slice(0, 4);
+  const month = issueDate.slice(0, 7);
+  const documentType = normalizePurchaseDocumentType(record.document_type);
+  const mirrorFolderPaths = new Set<string>();
+
+  if (documentType === "INVOICE") {
+    const counterpartyType = resolvePurchaseCounterpartyType(record);
+    const counterpartySegment = resolvePurchaseCounterpartyName(record);
+    const invoiceBaseFolder = counterpartyType === "TECHNICIAN"
+      ? `Compras/${year}/Facturas de Compra/Tecnicos`
+      : `Compras/${year}/Facturas de Compra/Proveedores`;
+
+    if (counterpartySegment) {
+      mirrorFolderPaths.add(`${invoiceBaseFolder}/${counterpartySegment}/${month}`);
+    }
+
+    return {
+      primaryFolderPath: `${invoiceBaseFolder}/${month}`,
+      mirrorFolderPaths: Array.from(mirrorFolderPaths),
+    };
+  }
+
+  const beneficiarySegment = resolvePurchaseCounterpartyName(record);
+  const projectSegment = buildPurchaseProjectSegment(record);
+
+  if (beneficiarySegment) {
+    mirrorFolderPaths.add(`Compras/${year}/Tickets/Por Beneficiario/${beneficiarySegment}/${month}`);
+  }
+
+  if (projectSegment) {
+    mirrorFolderPaths.add(`Compras/${year}/Tickets/Por Proyecto/${projectSegment}`);
+  }
+
+  return {
+    primaryFolderPath: `Compras/${year}/Tickets/${month}`,
+    mirrorFolderPaths: Array.from(mirrorFolderPaths),
+  };
+}
+
+function buildPurchaseArchiveFileName(record: PurchaseArchiveRecord): string {
+  const issueDate = (record.issue_date || new Date().toISOString().slice(0, 10)).slice(0, 10);
+  const extension = getFileExtension(record.file_name, record.file_path);
+  const internalNumber = sanitizeSegment(record.internal_purchase_number || record.invoice_number || record.id);
+  const counterparty = resolvePurchaseCounterpartyName(record);
+
+  if (normalizePurchaseDocumentType(record.document_type) === "INVOICE") {
+    return `${internalNumber} - ${sanitizeSegment(counterparty || "SIN_PROVEEDOR")} - ${issueDate}${extension}`;
+  }
+
+  const category = sanitizeSegment(record.expense_category || "SIN_CATEGORIA");
+  return `${internalNumber} - ${category} - ${sanitizeSegment(counterparty || "SIN_BENEFICIARIO")} - ${issueDate}${extension}`;
+}
+
+function mapPurchaseStatus(status: string | null | undefined): string {
+  switch (status) {
+    case "DRAFT":
+    case "PENDING":
+    case "SCANNED":
+    case "PENDING_VALIDATION":
+      return "Pendiente Validacion";
+    case "REGISTERED":
+    case "APPROVED":
+      return "Validada";
+    case "PARTIAL":
+      return "Parcialmente Pagada";
+    case "PAID":
+      return "Pagada";
+    case "CANCELLED":
+    case "BLOCKED":
+      return "Anulada";
+    default:
+      return sanitizeSegment(status || "Desconocido") || "Desconocido";
+  }
+}
+
+function buildPurchaseMetadata(record: PurchaseArchiveRecord, archivedByEmail: string, hash: string) {
+  const issueDate = (record.issue_date || new Date().toISOString().slice(0, 10)).slice(0, 10);
+  const month = issueDate.slice(0, 7);
+  const year = issueDate.slice(0, 4);
+  const counterparty = resolvePurchaseCounterpartyName(record);
+  const projectSegment = buildPurchaseProjectSegment(record);
+  const counterpartyType = resolvePurchaseCounterpartyType(record);
+  const isTechnicianInvoice =
+    normalizePurchaseDocumentType(record.document_type) === "INVOICE" && counterpartyType === "TECHNICIAN";
+
+  return {
+    DocumentoERPId: record.id,
+    TipoDocumento: normalizePurchaseDocumentType(record.document_type) === "INVOICE"
+      ? (isTechnicianInvoice ? "Factura Compra Tecnico" : "Factura Compra Proveedor")
+      : "Ticket",
+    TipoTerceroCompra: counterpartyType === "TECHNICIAN"
+      ? "Tecnico"
+      : counterpartyType === "SUPPLIER"
+      ? "Proveedor"
+      : "Beneficiario",
+    RequiereRevisionIRPF: isTechnicianInvoice ? "Si" : "No",
+    NumeroDocumento: record.internal_purchase_number || record.invoice_number || record.id,
+    FechaDocumento: issueDate,
+    MesFiscal: month,
+    AnoFiscal: year,
+    Proveedor: counterparty || null,
+    Beneficiario: normalizePurchaseDocumentType(record.document_type) === "EXPENSE" ? counterparty || null : null,
+    CategoriaGasto: record.expense_category || null,
+    Proyecto: projectSegment || null,
+    EstadoERP: mapPurchaseStatus(record.status),
+    ArchivadoPor: archivedByEmail,
+    ArchivadoEn: new Date().toISOString(),
+    HashPDF: `sha256:${hash}`,
+  };
 }
 
 async function getAuthorizedUser(req: Request): Promise<AuthorizedUser> {
@@ -226,6 +472,33 @@ async function getAuthorizedUser(req: Request): Promise<AuthorizedUser> {
   return { id: authorizedByEmail.id, email: authorizedByEmail.email };
 }
 
+function createUserScopedClient(req: Request) {
+  const supabaseUrl = getRequiredEnv("SUPABASE_URL");
+  const anonKey = getRequiredEnv("SUPABASE_ANON_KEY");
+  const authHeader = req.headers.get("Authorization");
+
+  if (!authHeader) {
+    throw new HttpError(401, "Unauthorized");
+  }
+
+  return createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
+function createAdminClient() {
+  const serviceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
+  return createClient(
+    getRequiredEnv("SUPABASE_URL"),
+    serviceRoleKey,
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+      global: { headers: { Authorization: `Bearer ${serviceRoleKey}` } },
+    },
+  );
+}
+
 function isSafeArchivedPdfPath(filePath: string): boolean {
   if (!filePath || filePath.includes("..") || filePath.startsWith("/") || filePath.endsWith("/")) {
     return false;
@@ -249,22 +522,21 @@ function isSafeArchivedPdfPath(filePath: string): boolean {
     rest.at(-1)?.toLowerCase().endsWith(".pdf") === true;
 }
 
+function isSafeArchivedPurchasePath(filePath: string): boolean {
+  if (!filePath || filePath.includes("..") || filePath.startsWith("/") || filePath.endsWith("/")) {
+    return false;
+  }
+
+  return filePath
+    .split("/")
+    .every((segment) => segment.length > 0 && sanitizeSegment(segment) === segment);
+}
+
 async function getExpectedArchivedPath(
   req: Request,
   body: DownloadSalesFileRequest,
 ): Promise<string | null> {
-  const supabaseUrl = getRequiredEnv("SUPABASE_URL");
-  const anonKey = getRequiredEnv("SUPABASE_ANON_KEY");
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader) {
-    throw new Error("No authorization header");
-  }
-
-  const supabaseClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  const supabaseClient = createUserScopedClient(req);
 
   const fetchArchiveMetadata = async (
     fn: "get_invoice_archive_metadata" | "sync_get_invoice_archive_metadata" | "get_quote_archive_metadata" | "sync_get_quote_archive_metadata",
@@ -319,9 +591,7 @@ async function getExpectedArchivedPath(
         throw new Error("Access denied");
       }
 
-      const supabaseAdmin = createClient(supabaseUrl, getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY"), {
-        auth: { autoRefreshToken: false, persistSession: false },
-      });
+      const supabaseAdmin = createAdminClient();
 
       const { data: syncRows, error: syncError } = await supabaseAdmin.rpc("sync_list_quotes_for_archive", {
         p_limit: 1,
@@ -339,6 +609,41 @@ async function getExpectedArchivedPath(
   }
 
   return Array.isArray(data) && data.length > 0 ? data[0].archived_pdf_path ?? null : null;
+}
+
+async function getPurchaseRecordForUser(req: Request, documentId: string): Promise<PurchaseArchiveRecord> {
+  const supabaseClient = createUserScopedClient(req);
+  const { data, error } = await supabaseClient.rpc("get_purchase_invoice", {
+    p_invoice_id: documentId,
+  });
+
+  if (error || !Array.isArray(data) || data.length === 0) {
+    throw new HttpError(403, "Access denied");
+  }
+
+  return data[0] as PurchaseArchiveRecord;
+}
+
+async function getStoredPurchaseMetadata(documentId: string) {
+  const supabaseAdmin = createAdminClient();
+  const { data, error } = await supabaseAdmin
+    .schema("sales")
+    .from("purchase_invoices")
+    .select("sharepoint_item_id, archived_pdf_path, archived_pdf_file_name, sharepoint_web_url")
+    .eq("id", documentId)
+    .maybeSingle();
+
+  if (error) {
+    throw new HttpError(500, "Could not resolve purchase archive metadata");
+  }
+
+  return data;
+}
+
+async function getExpectedPurchaseArchivedPath(req: Request, documentId: string): Promise<string | null> {
+  await getPurchaseRecordForUser(req, documentId);
+  const metadata = await getStoredPurchaseMetadata(documentId);
+  return metadata?.archived_pdf_path ?? null;
 }
 
 async function getGraphAccessToken(): Promise<string> {
@@ -380,18 +685,19 @@ async function graphFetch(token: string, path: string, init?: RequestInit): Prom
   });
 }
 
-async function uploadPdfToDrive(
+async function uploadFileToDrive(
   token: string,
   driveId: string,
   folderPath: string,
   fileName: string,
   fileBytes: Uint8Array,
+  contentType: string,
 ) {
   await ensureDriveFolderPath(token, driveId, folderPath);
   const encodedPath = encodeURI(`${folderPath}/${fileName}`);
   const response = await graphFetch(token, `/drives/${driveId}/root:/${encodedPath}:/content`, {
     method: "PUT",
-    headers: { "Content-Type": "application/pdf" },
+    headers: { "Content-Type": contentType },
     body: fileBytes,
   });
 
@@ -467,6 +773,19 @@ async function patchDriveItemMetadata(
   return await response.json();
 }
 
+function hexFromBuffer(buffer: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buffer))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function sha256Hex(input: ArrayBuffer | string): Promise<string> {
+  const bytes = typeof input === "string"
+    ? new TextEncoder().encode(input)
+    : new Uint8Array(input);
+  return hexFromBuffer(await crypto.subtle.digest("SHA-256", bytes));
+}
+
 async function persistSalesMetadata(
   body: PersistSalesMetadataRequest,
 ) {
@@ -519,6 +838,113 @@ async function persistSalesMetadata(
   throw new Error(sync.error.message || fallback.error.message || "Could not persist quote archive metadata");
 }
 
+async function archivePurchaseDocument(
+  req: Request,
+  authorizedUser: AuthorizedUser,
+  documentId: string,
+) {
+  const record = await getPurchaseRecordForUser(req, documentId);
+  const status = record.status || "";
+
+  if (!PURCHASE_ARCHIVABLE_STATUSES.has(status)) {
+    throw new HttpError(409, `Solo se puede archivar una compra aprobada o cerrada. Estado actual: ${status || "UNKNOWN"}`);
+  }
+
+  if (!record.file_path) {
+    throw new HttpError(409, "La compra no tiene fichero fuente en purchase-documents");
+  }
+
+  const supabaseAdmin = createAdminClient();
+  const { data: sourceBlob, error: downloadError } = await supabaseAdmin.storage
+    .from("purchase-documents")
+    .download(record.file_path);
+
+  if (downloadError || !sourceBlob) {
+    throw new HttpError(404, "No se pudo leer el documento fuente desde purchase-documents");
+  }
+
+  const fileBuffer = await sourceBlob.arrayBuffer();
+  if (fileBuffer.byteLength === 0) {
+    throw new HttpError(409, "El documento fuente esta vacio");
+  }
+
+  const fileName = buildPurchaseArchiveFileName(record);
+  const { primaryFolderPath, mirrorFolderPaths } = buildPurchasePaths(record);
+  const contentType = inferContentType(fileName);
+  const fileBytes = new Uint8Array(fileBuffer);
+  const pdfHash = await sha256Hex(fileBuffer);
+  const recordHash = await sha256Hex(JSON.stringify({
+    type: normalizePurchaseDocumentType(record.document_type),
+    documentId: record.id,
+    number: record.internal_purchase_number || record.invoice_number,
+    issueDate: record.issue_date,
+    fileName,
+    primaryFolderPath,
+    hash: `sha256:${pdfHash}`,
+  }));
+
+  const graphToken = await getGraphAccessToken();
+  const driveId = await getPurchasesDriveId(graphToken);
+  const siteId = getRequiredEnv("MS_SHAREPOINT_SITE_ID");
+  const metadata = buildPurchaseMetadata(record, authorizedUser.email, pdfHash);
+  let primaryItem: any = null;
+
+  for (const targetPath of [primaryFolderPath, ...mirrorFolderPaths]) {
+    const item = await uploadFileToDrive(graphToken, driveId, targetPath, fileName, fileBytes, contentType);
+
+    if (!primaryItem) {
+      primaryItem = item;
+    }
+
+    if (item.id) {
+      try {
+        await patchDriveItemMetadata(graphToken, driveId, item.id, metadata);
+      } catch (metadataError) {
+        console.warn("SharePoint purchase metadata patch skipped:", metadataError);
+      }
+    }
+  }
+
+  if (!primaryItem?.id) {
+    throw new HttpError(502, "SharePoint no devolvio la referencia del archivo principal");
+  }
+
+  const persistArgs = {
+    p_invoice_id: record.id,
+    p_sharepoint_site_id: siteId,
+    p_sharepoint_drive_id: driveId,
+    p_sharepoint_item_id: primaryItem.id,
+    p_sharepoint_web_url: primaryItem.webUrl ?? null,
+    p_sharepoint_etag: primaryItem.eTag ?? null,
+    p_archived_pdf_path: `${primaryFolderPath}/${fileName}`,
+    p_archived_pdf_file_name: fileName,
+    p_archived_pdf_hash: `sha256:${pdfHash}`,
+    p_archived_record_hash: `sha256:${recordHash}`,
+  };
+
+  const syncPersist = await supabaseAdmin.rpc("sync_set_purchase_invoice_archive_metadata", persistArgs);
+  if (syncPersist.error && !syncPersist.error.message?.includes("Could not find the function")) {
+    throw new HttpError(500, syncPersist.error.message || "No se pudo persistir la metadata documental de compras");
+  }
+
+  if (syncPersist.error) {
+    const persist = await supabaseAdmin.rpc("set_purchase_invoice_archive_metadata", persistArgs);
+    if (persist.error) {
+      throw new HttpError(500, persist.error.message || "No se pudo persistir la metadata documental de compras");
+    }
+  }
+
+  return {
+    path: `${primaryFolderPath}/${fileName}`,
+    fileName,
+    sharepointItemId: primaryItem.id,
+    sharepointWebUrl: primaryItem.webUrl ?? null,
+    pdfHash: `sha256:${pdfHash}`,
+    recordHash: `sha256:${recordHash}`,
+    mirrorCount: mirrorFolderPaths.length,
+  };
+}
+
 serve(async (req) => {
   const origin = req.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
@@ -528,7 +954,7 @@ serve(async (req) => {
   }
 
   try {
-    await getAuthorizedUser(req);
+    const authorizedUser = await getAuthorizedUser(req);
 
     const body = (await req.json()) as RequestBody;
 
@@ -545,22 +971,8 @@ serve(async (req) => {
     }
 
     if (body.action === "get-sales-metadata") {
-      const supabaseUrl = getRequiredEnv("SUPABASE_URL");
-      const anonKey = getRequiredEnv("SUPABASE_ANON_KEY");
-      const serviceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
-      const authHeader = req.headers.get("Authorization");
-      if (!authHeader) {
-        throw new HttpError(401, "Unauthorized");
-      }
-
-      const supabaseClient = createClient(supabaseUrl, anonKey, {
-        global: { headers: { Authorization: authHeader } },
-        auth: { autoRefreshToken: false, persistSession: false },
-      });
-
-      const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      });
+      const supabaseClient = createUserScopedClient(req);
+      const supabaseAdmin = createAdminClient();
 
       if (body.documentType === "quote") {
         const { data: quoteData, error: quoteError } = await supabaseClient.rpc("get_quote", {
@@ -619,8 +1031,22 @@ serve(async (req) => {
       }, 200);
     }
 
-    const graphToken = await getGraphAccessToken();
-    const driveId = getRequiredEnv("MS_SHAREPOINT_VENTAS_DRIVE_ID");
+    if (body.action === "get-purchase-metadata") {
+      await getPurchaseRecordForUser(req, body.documentId);
+      const metadata = await getStoredPurchaseMetadata(body.documentId);
+
+      return jsonResponse(corsHeaders, {
+        archivedFilePath: metadata?.archived_pdf_path ?? null,
+        archivedFileName: metadata?.archived_pdf_file_name ?? null,
+        sharepointItemId: metadata?.sharepoint_item_id ?? null,
+        sharepointWebUrl: metadata?.sharepoint_web_url ?? null,
+      }, 200);
+    }
+
+    if (body.action === "archive-purchase-document") {
+      const result = await archivePurchaseDocument(req, authorizedUser, body.documentId);
+      return jsonResponse(corsHeaders, result, 201);
+    }
 
     if (body.action === "download-sales-file") {
       if (!isSafeArchivedPdfPath(body.filePath)) {
@@ -633,7 +1059,10 @@ serve(async (req) => {
       }
 
       const encodedPath = encodeURI(body.filePath);
-      const response = await graphFetch(graphToken, `/drives/${driveId}/root:/${encodedPath}:/content`);
+      const response = await graphFetch(
+        await getGraphAccessToken(),
+        `/drives/${getRequiredEnv("MS_SHAREPOINT_VENTAS_DRIVE_ID")}/root:/${encodedPath}:/content`,
+      );
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -651,14 +1080,49 @@ serve(async (req) => {
       });
     }
 
+    if (body.action === "download-purchase-file") {
+      if (!isSafeArchivedPurchasePath(body.filePath)) {
+        throw new HttpError(400, "Invalid archived file path");
+      }
+
+      const expectedPath = await getExpectedPurchaseArchivedPath(req, body.documentId);
+      if (!expectedPath || expectedPath !== body.filePath) {
+        throw new HttpError(403, "Access denied");
+      }
+
+      const graphToken = await getGraphAccessToken();
+      const driveId = await getPurchasesDriveId(graphToken);
+      const response = await graphFetch(
+        graphToken,
+        `/drives/${driveId}/root:/${encodeURI(body.filePath)}:/content`,
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new HttpError(404, "Archived purchase file not found in SharePoint");
+        }
+        throw new HttpError(502, `Graph download failed with status ${response.status}`);
+      }
+
+      return new Response(response.body, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": response.headers.get("Content-Type") || inferContentType(body.filePath),
+          "Cache-Control": "private, max-age=60",
+        },
+      });
+    }
+
     if (body.action === "upload-sales-pdf") {
+      const graphToken = await getGraphAccessToken();
+      const driveId = getRequiredEnv("MS_SHAREPOINT_VENTAS_DRIVE_ID");
       const fileBytes = Uint8Array.from(atob(body.pdfBase64), (char) => char.charCodeAt(0));
       const uploadTargets = [body.primaryFolderPath, ...(body.mirrorFolderPaths || [])];
       const uploadedItems: Array<Record<string, unknown>> = [];
       const siteId = getRequiredEnv("MS_SHAREPOINT_SITE_ID");
 
       for (const targetPath of uploadTargets) {
-        const item = await uploadPdfToDrive(graphToken, driveId, targetPath, body.fileName, fileBytes);
+        const item = await uploadFileToDrive(graphToken, driveId, targetPath, body.fileName, fileBytes, "application/pdf");
 
         if (body.metadata && item.id) {
           try {

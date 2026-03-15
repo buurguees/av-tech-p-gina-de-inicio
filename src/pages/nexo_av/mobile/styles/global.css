@@ -1,4 +1,4 @@
-/* ============================================
+﻿/* ============================================
    NEXO AV MOBILE - GLOBAL STYLES
    Base styles, layout variables, and imports
    
@@ -58,8 +58,9 @@ body.nexo-av-theme,
 body.nexo-av-theme-dark {
   --mobile-header-height: 5rem;
   --mobile-bottom-nav-height: 5.5rem;
+  --mobile-bottom-nav-extra-gap: 14px;
   --mobile-padding: 1rem;
-  --mobile-touch-target: 44px; /* Tamaño mínimo táctil */
+  --mobile-touch-target: 44px; /* TamaÃ±o mÃ­nimo tÃ¡ctil */
   --mobile-border-radius: 12px;
 }
 
@@ -72,7 +73,7 @@ body.nexo-av-theme-dark {
   padding:
     0
     var(--mobile-padding)
-    calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom, 0px))
+    calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom, 0px) + var(--mobile-bottom-nav-extra-gap))
     var(--mobile-padding);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* Smooth scrolling iOS */
@@ -87,7 +88,7 @@ button, a, [role="button"] {
   touch-action: manipulation; /* Elimina delay de 300ms en iOS */
 }
 
-/* Prevenir selección de texto accidental */
+/* Prevenir selecciÃ³n de texto accidental */
 button, .mobile-card {
   -webkit-user-select: none;
   user-select: none;
@@ -112,3 +113,5 @@ button, .mobile-card {
 .mobile-main-content::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
+
+

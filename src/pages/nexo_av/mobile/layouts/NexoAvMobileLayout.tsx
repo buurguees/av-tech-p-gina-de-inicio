@@ -9,6 +9,7 @@ import { Receipt, FileCheck, Truck, UserRound, FileText } from "lucide-react";
 import { MobileHeader } from "../components/layout/MobileHeader";
 import { BottomNavigation, MoreMenuItem } from "../components/layout/BottomNavigation";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
+import { useDeviceInfo } from "@/hooks/use-mobile";
 import "../styles/global.css";
 
 interface UserInfo {
@@ -33,6 +34,7 @@ const NexoAvMobileLayout = () => {
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
+  const deviceInfo = useDeviceInfo();
 
   // Apply nexo-av theme
   useNexoAvTheme(currentTheme);
@@ -107,6 +109,27 @@ const NexoAvMobileLayout = () => {
       }
     }
   }, [location.pathname, userId, userInfo, loading, accessDenied, navigate]);
+
+  useEffect(() => {
+    const body = document.body;
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isAndroid = /android/.test(userAgent);
+
+    let extraGap = 14;
+    if (deviceInfo.isIOS) {
+      extraGap = deviceInfo.isIPhone ? 22 : 18;
+    } else if (isAndroid) {
+      extraGap = 10;
+    }
+
+    body.style.setProperty("--mobile-bottom-nav-extra-gap", `${extraGap}px`);
+    body.dataset.mobileOs = deviceInfo.isIOS ? "ios" : isAndroid ? "android" : "other";
+
+    return () => {
+      body.style.removeProperty("--mobile-bottom-nav-extra-gap");
+      delete body.dataset.mobileOs;
+    };
+  }, [deviceInfo.isIOS, deviceInfo.isIPhone, deviceInfo.isIPad]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

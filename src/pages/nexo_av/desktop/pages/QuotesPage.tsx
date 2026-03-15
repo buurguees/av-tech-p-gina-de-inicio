@@ -44,12 +44,29 @@ interface Quote {
   created_at: string;
 }
 
+interface QuoteStatusStats {
+  sent: number;
+  approved: number;
+  expired: number;
+  draft: number;
+  rejected: number;
+  invoiced: number;
+}
+
 const QuotesPageDesktop = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
 
   const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [quoteStats, setQuoteStats] = useState<QuoteStatusStats>({
+    sent: 0,
+    approved: 0,
+    expired: 0,
+    draft: 0,
+    rejected: 0,
+    invoiced: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchQuery = useDebounce(searchInput, 500);
@@ -68,15 +85,41 @@ const QuotesPageDesktop = () => {
   const fetchQuotes = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc("list_quotes", {
-        p_status: statusFilter,
-        p_search: debouncedSearchQuery || null,
-      });
+      const [{ data, error }, { data: statsData, error: statsError }] = await Promise.all([
+        supabase.rpc("list_quotes", {
+          p_status: statusFilter,
+          p_search: debouncedSearchQuery || null,
+        }),
+        supabase.rpc("list_quotes", {
+          p_status: null,
+          p_search: debouncedSearchQuery || null,
+        }),
+      ]);
 
       if (error) throw error;
+      if (statsError) throw statsError;
+
+      const statsSource = statsData || [];
+      setQuoteStats({
+        sent: statsSource.filter((quote: Quote) => quote.status === "SENT").length,
+        approved: statsSource.filter((quote: Quote) => quote.status === "APPROVED").length,
+        expired: statsSource.filter((quote: Quote) => quote.status === "EXPIRED").length,
+        draft: statsSource.filter((quote: Quote) => quote.status === "DRAFT").length,
+        rejected: statsSource.filter((quote: Quote) => quote.status === "REJECTED").length,
+        invoiced: statsSource.filter((quote: Quote) => quote.status === "INVOICED").length,
+      });
+
       setQuotes(data || []);
     } catch (error) {
       console.error("Error fetching quotes:", error);
+      setQuoteStats({
+        sent: 0,
+        approved: 0,
+        expired: 0,
+        draft: 0,
+        rejected: 0,
+        invoiced: 0,
+      });
     } finally {
       setLoading(false);
     }
@@ -240,15 +283,15 @@ const QuotesPageDesktop = () => {
       <div className="w-full h-full flex flex-col overflow-hidden">
         <div className="flex flex-col h-full overflow-hidden">
           {/* Stats Cards - Clickable Filters */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 flex-shrink-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 mb-3 flex-shrink-0">
             <div
               className={cn(
                 "border rounded-lg p-2 cursor-pointer transition-all",
-                !statusFilter
-                  ? "bg-card/50 border-white/10"
+                statusFilter === 'SENT'
+                  ? "bg-card/50 border-blue-500/30 ring-1 ring-blue-500/20"
                   : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
               )}
-              onClick={() => setStatusFilter(null)}
+              onClick={() => setStatusFilter(statusFilter === 'SENT' ? null : 'SENT')}
             >
               <div className="flex items-center gap-2 mb-1">
                 <div className="p-1 bg-blue-500/10 rounded text-blue-500 text-[10px] font-bold uppercase tracking-wider">
@@ -257,7 +300,7 @@ const QuotesPageDesktop = () => {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-bold text-foreground">
-                  {quotes.filter(q => q.status === 'SENT').length}
+                  {quoteStats.sent}
                 </span>
                 <span className="text-[10px] text-muted-foreground">pendientes de respuesta</span>
               </div>
@@ -279,7 +322,7 @@ const QuotesPageDesktop = () => {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-bold text-foreground">
-                  {quotes.filter(q => q.status === 'APPROVED').length}
+                  {quoteStats.approved}
                 </span>
                 <span className="text-[10px] text-muted-foreground">presupuestos</span>
               </div>
@@ -301,7 +344,7 @@ const QuotesPageDesktop = () => {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-bold text-foreground">
-                  {quotes.filter(q => q.status === 'EXPIRED').length}
+                  {quoteStats.expired}
                 </span>
                 <span className="text-[10px] text-muted-foreground">presupuestos</span>
               </div>
@@ -323,9 +366,53 @@ const QuotesPageDesktop = () => {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-base font-bold text-foreground">
-                  {quotes.filter(q => q.status === 'DRAFT').length}
+                  {quoteStats.draft}
                 </span>
                 <span className="text-[10px] text-muted-foreground">pendientes de enviar</span>
+              </div>
+            </div>
+
+            <div
+              className={cn(
+                "border rounded-lg p-2 cursor-pointer transition-all",
+                statusFilter === 'INVOICED'
+                  ? "bg-card/50 border-cyan-500/30 ring-1 ring-cyan-500/20"
+                  : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
+              )}
+              onClick={() => setStatusFilter(statusFilter === 'INVOICED' ? null : 'INVOICED')}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-cyan-500/10 rounded text-cyan-500 text-[10px] font-bold uppercase tracking-wider">
+                  Facturados
+                </div>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-base font-bold text-foreground">
+                  {quoteStats.invoiced}
+                </span>
+                <span className="text-[10px] text-muted-foreground">convertidos a factura</span>
+              </div>
+            </div>
+
+            <div
+              className={cn(
+                "border rounded-lg p-2 cursor-pointer transition-all",
+                statusFilter === 'REJECTED'
+                  ? "bg-card/50 border-rose-500/30 ring-1 ring-rose-500/20"
+                  : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
+              )}
+              onClick={() => setStatusFilter(statusFilter === 'REJECTED' ? null : 'REJECTED')}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <div className="p-1 bg-rose-500/10 rounded text-rose-500 text-[10px] font-bold uppercase tracking-wider">
+                  Rechazados
+                </div>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-base font-bold text-foreground">
+                  {quoteStats.rejected}
+                </span>
+                <span className="text-[10px] text-muted-foreground">presupuestos perdidos</span>
               </div>
             </div>
           </div>

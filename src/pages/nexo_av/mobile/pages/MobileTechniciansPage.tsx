@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -89,8 +89,7 @@ const MobileTechniciansPage = () => {
     <div className="w-full h-full flex flex-col">
       {/* Header: KPIs + Search */}
       <div
-        className="flex-shrink-0 py-3 px-3 w-full"
-        style={{ background: "linear-gradient(0deg, rgba(0,0,0,1) 100%, rgba(255,255,255,0) 0%)", height: "fit-content" }}
+        className="flex-shrink-0 py-3 px-3 w-full bg-background/95 supports-[backdrop-filter]:backdrop-blur-sm"
       >
         <div className="grid grid-cols-2 gap-2 mb-3">
           <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
@@ -119,7 +118,7 @@ const MobileTechniciansPage = () => {
             <Input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Buscar técnicos..."
+              placeholder="Buscar tÃ©cnicos..."
               className="pl-9 h-8 bg-card border-border text-sm"
             />
           </div>
@@ -135,9 +134,9 @@ const MobileTechniciansPage = () => {
         ) : technicians.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <UserRound className="h-16 w-16 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No hay técnicos</p>
+            <p className="text-muted-foreground">No hay tÃ©cnicos</p>
             <p className="text-muted-foreground text-sm">
-              {searchInput ? "Prueba con otra búsqueda" : "Aún no se han registrado técnicos"}
+              {searchInput ? "Prueba con otra bÃºsqueda" : "AÃºn no se han registrado tÃ©cnicos"}
             </p>
           </div>
         ) : (
@@ -190,7 +189,7 @@ const MobileTechniciansPage = () => {
                     <div className="flex items-center gap-3 mt-1">
                       {tech.city && (
                         <span className="text-xs text-muted-foreground/70">
-                          📍 {tech.city}
+                          ðŸ“ {tech.city}
                         </span>
                       )}
                       {tech.contact_phone && (
@@ -220,3 +219,4 @@ const MobileTechniciansPage = () => {
 };
 
 export default MobileTechniciansPage;
+

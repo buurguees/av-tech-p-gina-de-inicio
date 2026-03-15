@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -80,7 +80,7 @@ const MobilePurchaseInvoicesPage = () => {
     new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(amount);
 
   const formatDate = (date: string | null) => {
-    if (!date) return "—";
+    if (!date) return "â€”";
     return new Date(date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
   };
 
@@ -88,8 +88,7 @@ const MobilePurchaseInvoicesPage = () => {
     <div className="w-full h-full flex flex-col">
       {/* Header: KPIs + Search */}
       <div
-        className="flex-shrink-0 py-3 px-3 w-full"
-        style={{ background: "linear-gradient(0deg, rgba(0,0,0,1) 100%, rgba(255,255,255,0) 0%)", height: "fit-content" }}
+        className="flex-shrink-0 py-3 px-3 w-full bg-background/95 supports-[backdrop-filter]:backdrop-blur-sm"
       >
         {/* KPI Cards */}
         <div className="grid grid-cols-3 gap-2 mb-3">
@@ -147,7 +146,7 @@ const MobilePurchaseInvoicesPage = () => {
             <FileText className="h-16 w-16 text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No hay facturas de compra</p>
             <p className="text-muted-foreground text-sm">
-              {searchInput ? "Prueba con otra búsqueda" : "Aún no se han registrado facturas de compra"}
+              {searchInput ? "Prueba con otra bÃºsqueda" : "AÃºn no se han registrado facturas de compra"}
             </p>
           </div>
         ) : (
@@ -189,7 +188,7 @@ const MobilePurchaseInvoicesPage = () => {
                     {/* Project */}
                     {inv.project_name && (
                       <p className="text-sm text-muted-foreground truncate">
-                        📁 {inv.project_name}
+                        ðŸ“ {inv.project_name}
                       </p>
                     )}
 
@@ -223,3 +222,4 @@ const MobilePurchaseInvoicesPage = () => {
 };
 
 export default MobilePurchaseInvoicesPage;
+

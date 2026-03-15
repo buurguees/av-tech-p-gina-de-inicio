@@ -6,6 +6,7 @@ import {
   LucideIcon,
   ChevronRight,
   MapPin,
+  CalendarDays,
   Users,
   FolderKanban,
   FileText,
@@ -187,6 +188,13 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
       icon: MapPin,
       path: `/nexo-av/${userId}/mapa`,
       available: getModule('mapa')?.available || false,
+    },
+    {
+      id: 'calendar',
+      title: 'Calendario',
+      icon: CalendarDays,
+      path: `/nexo-av/${userId}/calendario`,
+      available: getModule('calendar')?.available || false,
     },
     {
       id: 'clients',

@@ -1,13 +1,23 @@
-import { useRef, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Tooltip, useMap } from "react-leaflet";
+import { useEffect } from "react";
+import {
+  MapContainer,
+  Marker,
+  TileLayer,
+  Tooltip,
+  useMap,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: string })._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: string })
+  ._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
 const createMarkerIcon = (color = "#3B82F6") => {
@@ -35,26 +45,77 @@ interface MapWithMarkersProps {
   center?: [number, number];
   zoom?: number;
   markerColor?: string;
-  /** Si se define, cada marcador usa este color según el ítem (p. ej. por estado) */
   getMarkerColor?: (item: MapItem) => string;
   renderTooltip: (item: MapItem) => React.ReactNode;
   loading?: boolean;
 }
 
-function MapContent({ items, center, zoom, markerColor, getMarkerColor, renderTooltip }: MapWithMarkersProps) {
+function FitMapToItems({
+  items,
+  fallbackCenter,
+  fallbackZoom,
+}: {
+  items: MapItem[];
+  fallbackCenter: [number, number];
+  fallbackZoom: number;
+}) {
   const map = useMap();
-  const centerRef = useRef(center);
-  const zoomRef = useRef(zoom);
 
   useEffect(() => {
-    if (!centerRef.current || items.length === 0) return;
-    map.setView(centerRef.current, zoomRef.current ?? 12, { animate: true, duration: 0.3 });
-  }, [map, items.length]);
+    if (items.length === 0) {
+      map.setView(fallbackCenter, fallbackZoom, {
+        animate: true,
+        duration: 0.3,
+      });
+      return;
+    }
 
+    if (items.length === 1) {
+      const single = items[0];
+      map.setView(
+        [single.latitude, single.longitude],
+        Math.max(fallbackZoom, 11),
+        {
+          animate: true,
+          duration: 0.3,
+        },
+      );
+      return;
+    }
+
+    const bounds = L.latLngBounds(
+      items.map((item) => [item.latitude, item.longitude] as [number, number]),
+    );
+    map.fitBounds(bounds, {
+      padding: [40, 40],
+      maxZoom: 12,
+      animate: true,
+      duration: 0.3,
+    });
+  }, [fallbackCenter, fallbackZoom, items, map]);
+
+  return null;
+}
+
+function MapContent({
+  items,
+  center,
+  zoom,
+  markerColor,
+  getMarkerColor,
+  renderTooltip,
+}: MapWithMarkersProps) {
   return (
     <>
+      <FitMapToItems
+        items={items}
+        fallbackCenter={center ?? DEFAULT_CENTER}
+        fallbackZoom={zoom ?? DEFAULT_ZOOM}
+      />
       {items.map((item) => {
-        const color = getMarkerColor ? getMarkerColor(item) : (markerColor ?? "#3B82F6");
+        const color = getMarkerColor
+          ? getMarkerColor(item)
+          : (markerColor ?? "#3B82F6");
         return (
           <Marker
             key={item.id}
@@ -62,7 +123,13 @@ function MapContent({ items, center, zoom, markerColor, getMarkerColor, renderTo
             icon={createMarkerIcon(color)}
             eventHandlers={{ click: () => {} }}
           >
-            <Tooltip direction="top" offset={[0, -14]} opacity={1} permanent={false} interactive>
+            <Tooltip
+              direction="top"
+              offset={[0, -14]}
+              opacity={1}
+              permanent={false}
+              interactive
+            >
               {renderTooltip(item)}
             </Tooltip>
           </Marker>
@@ -72,7 +139,6 @@ function MapContent({ items, center, zoom, markerColor, getMarkerColor, renderTo
   );
 }
 
-/** Centro de España (vista país al completo) */
 const DEFAULT_CENTER: [number, number] = [40.2, -3.5];
 const DEFAULT_ZOOM = 6;
 
@@ -87,14 +153,14 @@ export default function MapWithMarkers({
 }: MapWithMarkersProps) {
   if (loading) {
     return (
-      <div className="h-full w-full flex items-center justify-center bg-muted/30">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-border border-t-primary" />
+      <div className="flex h-full w-full items-center justify-center bg-muted/30">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
       </div>
     );
   }
 
   return (
-    <div className="h-full w-full relative" style={{ minHeight: 280 }}>
+    <div className="relative h-full w-full" style={{ minHeight: 280 }}>
       <style>{`
         .custom-marker { background: transparent; border: none; }
         .leaflet-tooltip { padding: 6px 10px; border-radius: 6px; font-size: 12px; max-width: 280px; }

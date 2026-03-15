@@ -5,6 +5,7 @@ import DashboardWidget from "../DashboardWidget";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { calculateCollectionStatus, displayInvoiceNumber, getSalesDocumentStatusInfo } from "@/constants/salesInvoiceStatuses";
 
 interface DashboardListsWidgetProps {
     userId: string | undefined;
@@ -31,8 +32,11 @@ interface Quote {
 interface Invoice {
     id: string;
     invoice_number: string;
+    preliminary_number: string | null;
     client_name: string;
     total: number;
+    paid_amount: number;
+    pending_amount: number;
     due_date: string;
     status: string;
 }
@@ -120,7 +124,18 @@ const DashboardListsWidget = ({ userId }: DashboardListsWidgetProps) => {
         const { data } = await supabase.rpc("finance_list_invoices", { p_search: null, p_status: null });
         if (data) {
             const pending = (data as any[])
-                .filter(inv => inv.status !== 'PAID' && inv.status !== 'CANCELLED' && inv.status !== 'DRAFT')
+                .filter(inv => {
+                    const docStatus = getSalesDocumentStatusInfo(inv.status).value;
+                    const collectionStatus = calculateCollectionStatus(
+                        Number(inv.paid_amount || 0),
+                        Number(inv.total || 0),
+                        inv.status
+                    );
+
+                    return docStatus === "ISSUED"
+                        && collectionStatus !== "PAID"
+                        && Number(inv.pending_amount || 0) > 0;
+                })
                 .sort((a, b) => {
                     const dateA = a.due_date ? new Date(a.due_date).getTime() : Infinity;
                     const dateB = b.due_date ? new Date(b.due_date).getTime() : Infinity;
@@ -130,8 +145,11 @@ const DashboardListsWidget = ({ userId }: DashboardListsWidgetProps) => {
             setInvoices(pending.map(inv => ({
                 id: inv.id,
                 invoice_number: inv.invoice_number,
+                preliminary_number: inv.preliminary_number,
                 client_name: inv.client_name,
                 total: inv.total,
+                paid_amount: inv.paid_amount,
+                pending_amount: inv.pending_amount,
                 due_date: inv.due_date,
                 status: inv.status
             })));
@@ -275,12 +293,14 @@ const DashboardListsWidget = ({ userId }: DashboardListsWidgetProps) => {
                                                     <Receipt size={18} />
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">{inv.invoice_number}</h4>
+                                                    <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                                                        {displayInvoiceNumber(inv.invoice_number, inv.preliminary_number, inv.status)}
+                                                    </h4>
                                                     <p className="text-xs text-muted-foreground">{inv.client_name}</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="font-semibold">{formatCurrency(inv.total)}</p>
+                                                <p className="font-semibold">{formatCurrency(inv.pending_amount)}</p>
                                                 <p className={cn("text-xs font-medium", isOverdue ? "text-red-500" : "text-muted-foreground")}>
                                                     {isOverdue ? `Vencida ${Math.abs(days!)} días` : `Vence en ${days} días`}
                                                 </p>

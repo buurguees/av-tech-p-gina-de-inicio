@@ -87,6 +87,13 @@ const MobileSettingsPage = () => {
     }
   };
 
+  const showPendingMessage = (label: string) => {
+    toast({
+      title: `${label} pendiente`,
+      description: "Esta opción aún no tiene una pantalla mobile dedicada.",
+    });
+  };
+
   const settingsSections = [
     {
       title: 'Cuenta',
@@ -96,14 +103,14 @@ const MobileSettingsPage = () => {
           label: 'Mi perfil',
           description: userInfo?.email || 'Gestiona tu información personal',
           icon: User,
-          onClick: () => navigate(`/nexo-av/${userId}/settings/profile`),
+          onClick: () => showPendingMessage('Mi perfil'),
         },
         {
           id: 'notifications',
           label: 'Notificaciones',
           description: 'Configura tus alertas y avisos',
           icon: Bell,
-          onClick: () => navigate(`/nexo-av/${userId}/settings/notifications`),
+          onClick: () => showPendingMessage('Notificaciones'),
         },
       ],
     },
@@ -128,14 +135,14 @@ const MobileSettingsPage = () => {
           label: 'Centro de ayuda',
           description: 'Encuentra respuestas a tus preguntas',
           icon: HelpCircle,
-          onClick: () => {},
+          onClick: () => showPendingMessage('Centro de ayuda'),
         },
         {
           id: 'about',
           label: 'Acerca de',
           description: 'Versión 1.0.0',
           icon: Info,
-          onClick: () => {},
+          onClick: () => showPendingMessage('Acerca de'),
         },
       ],
     },

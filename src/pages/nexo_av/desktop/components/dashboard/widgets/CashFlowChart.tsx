@@ -5,6 +5,7 @@ import DashboardWidget from "../DashboardWidget";
 import { ArrowUpRight } from "lucide-react";
 import { format, startOfYear, endOfYear, eachMonthOfInterval, startOfMonth, endOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
+import { normalizeSalesDocumentStatus } from "@/constants/salesInvoiceStatuses";
 
 interface CashFlowData {
     month: string;
@@ -40,8 +41,8 @@ const CashFlowChart = () => {
                     })
                 ]);
                 
-                const invoices = (invoicesRes.data || []).filter((inv: any) => 
-                    inv.status !== 'CANCELLED' && inv.status !== 'DRAFT'
+                const invoices = (invoicesRes.data || []).filter((inv: any) =>
+                    normalizeSalesDocumentStatus(inv.status) === 'ISSUED'
                 );
                 const purchaseInvoices = (purchaseInvoicesRes.data || []).filter((inv: any) => 
                     !['DRAFT', 'CANCELLED'].includes(inv.status)

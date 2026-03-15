@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, CreditCard, Loader2, Coins, Pencil, CheckCircle2, Ban, Landmark } from "lucide-react";
+import {
+  CalendarIcon,
+  CreditCard,
+  Loader2,
+  Coins,
+  Pencil,
+  CheckCircle2,
+  Ban,
+  Landmark,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,24 +77,32 @@ const RegisterPaymentDialog = ({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [paymentDate, setPaymentDate] = useState<Date>(
-    payment ? new Date(payment.payment_date) : new Date()
+    payment ? new Date(payment.payment_date) : new Date(),
   );
   const [amount, setAmount] = useState(
-    payment ? payment.amount.toString() : pendingAmount.toString()
+    payment ? payment.amount.toString() : pendingAmount.toString(),
   );
   const [paymentMethod, setPaymentMethod] = useState(
-    payment ? payment.payment_method : "TRANSFER"
+    payment ? payment.payment_method : "TRANSFER",
   );
   const [bankReference, setBankReference] = useState(
-    payment?.bank_reference || ""
+    payment?.bank_reference || "",
   );
   const [notes, setNotes] = useState(payment?.notes || "");
   const [bankAccountId, setBankAccountId] = useState<string>(
-    payment?.company_bank_account_id || "NONE"
+    payment?.company_bank_account_id || "NONE",
   );
-  const [availableBankAccounts, setAvailableBankAccounts] = useState<BankAccount[]>([]);
+  const [availableBankAccounts, setAvailableBankAccounts] = useState<
+    BankAccount[]
+  >([]);
 
   const isEditing = !!payment;
+  const summaryCardClass =
+    "rounded-3xl border border-border/80 bg-muted/60 p-4 shadow-sm";
+  const fieldPanelClass =
+    "space-y-2 rounded-3xl border border-border/70 bg-muted/35 p-4 shadow-sm";
+  const fieldControlClass =
+    "bg-background border-border/80 shadow-sm hover:bg-card focus-visible:bg-background";
 
   useEffect(() => {
     if (open) {
@@ -103,11 +120,13 @@ const RegisterPaymentDialog = ({
 
   const fetchBankAccounts = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_company_preferences');
+      const { data, error } = await supabase.rpc("get_company_preferences");
       if (error) throw error;
 
       if (data && data.length > 0 && data[0].bank_accounts) {
-        setAvailableBankAccounts(data[0].bank_accounts as unknown as BankAccount[]);
+        setAvailableBankAccounts(
+          data[0].bank_accounts as unknown as BankAccount[],
+        );
       }
     } catch (err) {
       console.error("Error fetching bank accounts:", err);
@@ -129,7 +148,7 @@ const RegisterPaymentDialog = ({
   };
 
   const currentAmount = parseFloat(amount) || 0;
-  const maxAllowed = isEditing ? (pendingAmount + payment.amount) : pendingAmount;
+  const maxAllowed = isEditing ? pendingAmount + payment.amount : pendingAmount;
   const remainingAfterPayment = Math.max(0, maxAllowed - currentAmount);
 
   const handleSubmit = async () => {
@@ -143,9 +162,9 @@ const RegisterPaymentDialog = ({
       return;
     }
 
-    if (numAmount > (maxAllowed + 0.01)) {
+    if (numAmount > maxAllowed + 0.01) {
       const confirm = window.confirm(
-        `El importe (${formatCurrency(numAmount)}) supera el pendiente (${formatCurrency(maxAllowed)}). ¿Deseas registrarlo de todos modos?`
+        `El importe (${formatCurrency(numAmount)}) supera el pendiente (${formatCurrency(maxAllowed)}). ¿Deseas registrarlo de todos modos?`,
       );
       if (!confirm) return;
     }
@@ -160,7 +179,8 @@ const RegisterPaymentDialog = ({
           p_payment_method: paymentMethod,
           p_bank_reference: bankReference || null,
           p_notes: notes || null,
-          p_company_bank_account_id: bankAccountId === "NONE" ? null : bankAccountId
+          p_company_bank_account_id:
+            bankAccountId === "NONE" ? null : bankAccountId,
         });
         if (error) throw error;
         toast({
@@ -176,7 +196,8 @@ const RegisterPaymentDialog = ({
           p_payment_method: paymentMethod,
           p_bank_reference: bankReference || null,
           p_notes: notes || null,
-          p_company_bank_account_id: bankAccountId === "NONE" ? null : bankAccountId
+          p_company_bank_account_id:
+            bankAccountId === "NONE" ? null : bankAccountId,
         });
         if (error) throw error;
         toast({
@@ -209,29 +230,35 @@ const RegisterPaymentDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="bg-card/95 backdrop-blur-3xl border-border text-foreground max-w-xl rounded-[2.5rem] shadow-2xl p-0 overflow-hidden">
+      <DialogContent className="max-w-xl overflow-hidden rounded-[2.25rem] border-border bg-card text-foreground p-0 shadow-xl">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5 pointer-events-none" />
 
         <div className="p-6 md:p-8 space-y-6">
           <DialogHeader className="space-y-2">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 shadow-inner">
-                {isEditing ? <Pencil className="h-5 w-5 text-amber-400" /> : <Coins className="h-5 w-5 text-emerald-400" />}
+                {isEditing ? (
+                  <Pencil className="h-5 w-5 text-amber-400" />
+                ) : (
+                  <Coins className="h-5 w-5 text-emerald-400" />
+                )}
               </div>
               <DialogTitle className="text-xl font-bold tracking-tight">
                 {isEditing ? "Editar Cobro" : "Registrar Cobro"}
               </DialogTitle>
             </div>
             <DialogDescription className="text-muted-foreground text-sm pl-0.5">
-              {isEditing 
-                ? `Modificando registro de cobro #${payment.id.slice(0, 8)}` 
+              {isEditing
+                ? `Modificando registro de cobro #${payment.id.slice(0, 8)}`
                 : "Los asientos contables se generarán automáticamente"}
             </DialogDescription>
           </DialogHeader>
 
           {/* Amount context display */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-muted/30 border border-border rounded-3xl p-4 flex flex-col justify-between">
+            <div
+              className={cn(summaryCardClass, "flex flex-col justify-between")}
+            >
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
                 {isEditing ? "Total Editable" : "Saldo Pendiente"}
               </span>
@@ -239,11 +266,15 @@ const RegisterPaymentDialog = ({
                 {formatCurrency(maxAllowed)}
               </p>
             </div>
-            <div className="bg-muted/30 border border-border rounded-3xl p-4 flex flex-col justify-between">
+            <div
+              className={cn(summaryCardClass, "flex flex-col justify-between")}
+            >
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
                 Restante tras cobro
               </span>
-              <p className={`text-lg font-bold leading-none ${remainingAfterPayment < 0 ? "text-destructive" : "text-emerald-500"}`}>
+              <p
+                className={`text-lg font-bold leading-none ${remainingAfterPayment < 0 ? "text-destructive" : "text-emerald-500"}`}
+              >
                 {formatCurrency(Math.max(0, remainingAfterPayment))}
               </p>
             </div>
@@ -251,7 +282,7 @@ const RegisterPaymentDialog = ({
 
           <div className="space-y-5">
             {/* Fecha del pago */}
-            <div className="space-y-2">
+            <div className={fieldPanelClass}>
               <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide">
                 Fecha del Cobro
               </Label>
@@ -260,8 +291,9 @@ const RegisterPaymentDialog = ({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full h-12 justify-start text-left font-medium bg-background/80 border-border text-foreground rounded-2xl hover:bg-muted/50 transition-all",
-                      !paymentDate && "text-muted-foreground"
+                      "w-full h-12 justify-start rounded-2xl border text-left font-medium text-foreground transition-all",
+                      fieldControlClass,
+                      !paymentDate && "text-muted-foreground",
                     )}
                   >
                     <CalendarIcon className="mr-3 h-4 w-4 text-primary" />
@@ -270,7 +302,10 @@ const RegisterPaymentDialog = ({
                       : "Seleccionar fecha"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-popover/95 backdrop-blur-3xl border-border rounded-2xl shadow-2xl z-[10002]" align="start">
+                <PopoverContent
+                  className="z-[10002] w-auto rounded-2xl border-border bg-popover p-0 shadow-xl"
+                  align="start"
+                >
                   <Calendar
                     mode="single"
                     selected={paymentDate}
@@ -284,7 +319,7 @@ const RegisterPaymentDialog = ({
 
             {/* Importe y Método de pago - Grid 2 columnas */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className={fieldPanelClass}>
                 <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide">
                   Importe (€)
                 </Label>
@@ -293,22 +328,34 @@ const RegisterPaymentDialog = ({
                   inputMode="decimal"
                   value={amount}
                   onChange={handleAmountChange}
-                  className="font-mono text-lg h-12 bg-background/80 border-border text-foreground rounded-2xl"
+                  className={cn(
+                    "h-12 rounded-2xl font-mono text-lg",
+                    fieldControlClass,
+                  )}
                   placeholder="0.00"
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className={fieldPanelClass}>
                 <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide">
                   Método de Pago
                 </Label>
                 <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <SelectTrigger className="h-12 bg-background/80 border-border text-foreground rounded-2xl">
+                  <SelectTrigger
+                    className={cn(
+                      "h-12 rounded-2xl text-foreground",
+                      fieldControlClass,
+                    )}
+                  >
                     <SelectValue placeholder="Selecciona método" />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover/95 backdrop-blur-3xl border-border rounded-xl z-[10002]">
+                  <SelectContent className="z-[10002] rounded-xl border-border bg-popover shadow-xl">
                     {PAYMENT_METHODS.map((method) => (
-                      <SelectItem key={method.value} value={method.value} className="text-foreground focus:bg-accent">
+                      <SelectItem
+                        key={method.value}
+                        value={method.value}
+                        className="text-foreground focus:bg-accent"
+                      >
                         {method.label}
                       </SelectItem>
                     ))}
@@ -318,24 +365,38 @@ const RegisterPaymentDialog = ({
             </div>
 
             {/* Cuenta bancaria */}
-            <div className="space-y-2">
+            <div className={fieldPanelClass}>
               <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide flex items-center gap-2">
                 <Landmark className="h-3.5 w-3.5" />
                 Recibido en (Cuenta Bancaria)
               </Label>
               <Select value={bankAccountId} onValueChange={setBankAccountId}>
-                <SelectTrigger className="h-12 bg-background/80 border-border text-foreground rounded-2xl">
+                <SelectTrigger
+                  className={cn(
+                    "h-12 rounded-2xl text-foreground",
+                    fieldControlClass,
+                  )}
+                >
                   <SelectValue placeholder="Selecciona cuenta bancaria" />
                 </SelectTrigger>
-                <SelectContent className="bg-popover/95 backdrop-blur-3xl border-border rounded-xl z-[10002]">
-                  <SelectItem value="NONE" className="text-foreground focus:bg-accent">
+                <SelectContent className="z-[10002] rounded-xl border-border bg-popover shadow-xl">
+                  <SelectItem
+                    value="NONE"
+                    className="text-foreground focus:bg-accent"
+                  >
                     Sin especificar cuenta
                   </SelectItem>
                   {availableBankAccounts.map((acc) => (
-                    <SelectItem key={acc.id} value={acc.id} className="text-foreground focus:bg-accent">
+                    <SelectItem
+                      key={acc.id}
+                      value={acc.id}
+                      className="text-foreground focus:bg-accent"
+                    >
                       <div className="flex flex-col items-start gap-0.5">
                         <span className="font-medium">{acc.bank}</span>
-                        <span className="text-xs text-muted-foreground">{acc.iban}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {acc.iban}
+                        </span>
                       </div>
                     </SelectItem>
                   ))}
@@ -344,7 +405,7 @@ const RegisterPaymentDialog = ({
             </div>
 
             {/* Referencia */}
-            <div className="space-y-2">
+            <div className={fieldPanelClass}>
               <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide">
                 Nº de Referencia (Opcional)
               </Label>
@@ -352,12 +413,15 @@ const RegisterPaymentDialog = ({
                 value={bankReference}
                 onChange={(e) => setBankReference(e.target.value)}
                 placeholder="Nº transferencia, recibo, etc."
-                className="h-12 bg-background/80 border-border text-foreground rounded-2xl"
+                className={cn(
+                  "h-12 rounded-2xl text-foreground",
+                  fieldControlClass,
+                )}
               />
             </div>
 
             {/* Notas */}
-            <div className="space-y-2">
+            <div className={fieldPanelClass}>
               <Label className="text-muted-foreground text-xs font-semibold ml-1 uppercase tracking-wide">
                 Notas internas (Opcional)
               </Label>
@@ -365,13 +429,16 @@ const RegisterPaymentDialog = ({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Detalles adicionales sobre este cobro..."
-                className="min-h-[80px] bg-background/80 border-border text-foreground rounded-2xl resize-none"
+                className={cn(
+                  "min-h-[80px] rounded-2xl resize-none text-foreground",
+                  fieldControlClass,
+                )}
               />
             </div>
           </div>
         </div>
 
-        <DialogFooter className="bg-muted/20 border-t border-border p-6 md:p-8 flex items-center justify-between gap-4">
+        <DialogFooter className="flex items-center justify-between gap-4 border-t border-border/80 bg-muted/35 p-6 md:p-8">
           <Button
             variant="ghost"
             onClick={() => setOpen(false)}
@@ -383,7 +450,7 @@ const RegisterPaymentDialog = ({
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className={`flex-[1.5] h-12 text-white font-bold rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] ${isEditing ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30'}`}
+            className={`flex-[1.5] h-12 text-white font-bold rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] ${isEditing ? "bg-amber-500 hover:bg-amber-600 shadow-amber-500/30" : "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30"}`}
           >
             {loading ? (
               <>

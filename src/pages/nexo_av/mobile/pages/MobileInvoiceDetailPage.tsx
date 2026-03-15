@@ -169,12 +169,6 @@ const MobileInvoiceDetailPage = () => {
   const [activeTab, setActiveTab] = useState<TabId>('resumen');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    if (invoiceId) {
-      void fetchInvoiceData();
-    }
-  }, [invoiceId, fetchInvoiceData]);
-
   const fetchInvoiceData = useCallback(async () => {
     if (!invoiceId) return;
     
@@ -356,6 +350,12 @@ const MobileInvoiceDetailPage = () => {
       setLoading(false);
     }
   }, [invoiceId, toast]);
+
+  useEffect(() => {
+    if (invoiceId) {
+      void fetchInvoiceData();
+    }
+  }, [invoiceId, fetchInvoiceData]);
 
   const handleBack = () => {
     navigate(`/nexo-av/${userId}/invoices`);

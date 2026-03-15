@@ -64,6 +64,11 @@ import {
   getPaymentStatusInfo,
   normalizePurchaseDocumentStatus,
 } from "@/constants/purchaseInvoiceStatuses";
+import ArchivedPurchaseDocumentViewer from "../../shared/components/ArchivedPurchaseDocumentViewer";
+import {
+  archivePurchaseDocument,
+  getPurchaseArchiveMetadata,
+} from "../../shared/lib/purchaseDocumentArchive";
 
 interface Project {
   id: string;
@@ -100,6 +105,9 @@ interface Expense {
   site_name?: string | null;
   file_path: string | null;
   file_name: string | null;
+  archived_pdf_path?: string | null;
+  archived_pdf_file_name?: string | null;
+  sharepoint_item_id?: string | null;
   notes: string | null;
   internal_notes: string | null;
   expense_category: string | null;
@@ -108,6 +116,8 @@ interface Expense {
   created_by: string | null;
   created_by_name: string | null;
 }
+
+const PURCHASE_ARCHIVABLE_STATUSES = new Set(["APPROVED", "PARTIAL", "PAID", "CANCELLED", "BLOCKED"]);
 
 // Ruta normalizada para Storage
 const normalizeStoragePath = (path: string): string => path.trim().replace(/^\//, '');
@@ -266,6 +276,7 @@ const ExpenseDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [approving, setApproving] = useState(false);
+  const [retryingArchive, setRetryingArchive] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -315,7 +326,29 @@ const ExpenseDetailPage = () => {
         navigate(`/nexo-av/${userId}/purchase-invoices/${expenseId}`);
         return;
       }
-      setExpense(exp);
+      let enrichedExpense: Expense = {
+        ...exp,
+        archived_pdf_path: exp.archived_pdf_path ?? null,
+        archived_pdf_file_name: exp.archived_pdf_file_name ?? null,
+        sharepoint_item_id: exp.sharepoint_item_id ?? null,
+      };
+
+      try {
+        const archiveMetadata = await getPurchaseArchiveMetadata(expenseId);
+        if (archiveMetadata) {
+          enrichedExpense = {
+            ...enrichedExpense,
+            archived_pdf_path: archiveMetadata.archivedFilePath ?? enrichedExpense.archived_pdf_path ?? null,
+            archived_pdf_file_name:
+              archiveMetadata.archivedFileName ?? enrichedExpense.archived_pdf_file_name ?? null,
+            sharepoint_item_id: archiveMetadata.sharepointItemId ?? enrichedExpense.sharepoint_item_id ?? null,
+          };
+        }
+      } catch (archiveError) {
+        console.warn("Error fetching expense archive metadata:", archiveError);
+      }
+
+      setExpense(enrichedExpense);
       
       // Set form values
       setIssueDate(exp.issue_date || "");
@@ -535,9 +568,22 @@ const ExpenseDetailPage = () => {
       if (approveError) throw approveError;
       
       const newNumber = data?.[0]?.invoice_number;
-      toast.success(`Gasto aprobado: ${newNumber || 'OK'}`);
+      let archiveErrorMessage: string | null = null;
+      try {
+        await archivePurchaseDocument(expenseId);
+      } catch (archiveError) {
+        console.error("Error archiving expense:", archiveError);
+        archiveErrorMessage =
+          archiveError instanceof Error ? archiveError.message : "No se pudo archivar el ticket en SharePoint.";
+      }
+
       setIsEditing(false);
       await fetchExpense();
+      if (archiveErrorMessage) {
+        toast.error(`Gasto aprobado, pero no archivado en SharePoint: ${archiveErrorMessage}`);
+      } else {
+        toast.success(`Gasto aprobado y archivado: ${newNumber || "OK"}`);
+      }
       
     } catch (error: any) {
       console.error("Error approving expense:", error);
@@ -553,6 +599,22 @@ const ExpenseDetailPage = () => {
       }
     } finally {
       setApproving(false);
+    }
+  };
+
+  const handleRetryArchive = async () => {
+    if (!expenseId || !expense) return;
+
+    try {
+      setRetryingArchive(true);
+      await archivePurchaseDocument(expenseId);
+      await fetchExpense();
+      toast.success("Ticket archivado correctamente en la biblioteca Compras.");
+    } catch (error: any) {
+      console.error("Error retrying expense archive:", error);
+      toast.error(error?.message || "No se pudo archivar el ticket en SharePoint.");
+    } finally {
+      setRetryingArchive(false);
     }
   };
 
@@ -662,6 +724,9 @@ const ExpenseDetailPage = () => {
   const documentStatusInfo = getDocumentStatusInfo(expense.status);
   const paymentStatus = calculatePaymentStatus(expense.paid_amount, expense.total, null, expense.status);
   const paymentStatusInfo = getPaymentStatusInfo(paymentStatus);
+  const hasArchivedDocument = !!expense.archived_pdf_path;
+  const shouldHaveArchivedDocument =
+    PURCHASE_ARCHIVABLE_STATUSES.has(expense.status) || PURCHASE_ARCHIVABLE_STATUSES.has(normalizedDocumentStatus);
 
   // Status badge
   const getStatusBadge = () => {
@@ -783,13 +848,63 @@ const ExpenseDetailPage = () => {
               Ticket
             </h3>
           </div>
-          <div className="flex-1 overflow-hidden flex items-center justify-center p-4">
-            {expense.file_path ? (
+          <div className="flex-1 overflow-hidden p-4">
+            {hasArchivedDocument ? (
+              <ArchivedPurchaseDocumentViewer
+                documentId={expense.id}
+                filePath={expense.archived_pdf_path!}
+                fileName={expense.archived_pdf_file_name || expense.file_name || "ticket-gasto"}
+                title="Ticket archivado en SharePoint"
+                className="h-full rounded-lg overflow-hidden border border-border bg-background"
+              />
+            ) : shouldHaveArchivedDocument ? (
+              <div className="h-full flex flex-col gap-4">
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+                    <div className="space-y-3">
+                      <div>
+                        <p className="font-medium text-foreground">
+                          El ticket ya deberia estar archivado en SharePoint.
+                        </p>
+                        <p className="text-muted-foreground">
+                          Mientras tanto mostramos el archivo original subido desde movil u ordenador.
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRetryArchive}
+                        disabled={retryingArchive}
+                        className="gap-2"
+                      >
+                        {retryingArchive ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        Reintentar archivado
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-0 rounded-lg border border-border bg-background">
+                  {expense.file_path ? (
+                    <FilePreview filePath={expense.file_path} />
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-center text-muted-foreground p-4">
+                      <div>
+                        <Receipt className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                        <p>Sin documento original adjunto</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : expense.file_path ? (
               <FilePreview filePath={expense.file_path} />
             ) : (
-              <div className="text-center text-muted-foreground">
-                <Receipt className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                <p>Sin documento adjunto</p>
+              <div className="h-full flex items-center justify-center text-center text-muted-foreground">
+                <div>
+                  <Receipt className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                  <p>Sin documento adjunto</p>
+                </div>
               </div>
             )}
           </div>

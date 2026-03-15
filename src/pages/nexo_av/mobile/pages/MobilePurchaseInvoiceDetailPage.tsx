@@ -18,6 +18,8 @@ import {
   calculatePaymentStatus,
   getPaymentStatusInfo,
 } from "@/constants/purchaseInvoiceStatuses";
+import ArchivedPurchaseDocumentViewer from "../../shared/components/ArchivedPurchaseDocumentViewer";
+import { getPurchaseArchiveMetadata } from "../../shared/lib/purchaseDocumentArchive";
 
 interface PurchaseInvoiceDetail {
   id: string;
@@ -48,6 +50,9 @@ interface PurchaseInvoiceDetail {
   notes: string | null;
   file_name: string | null;
   file_path: string | null;
+  archived_pdf_path?: string | null;
+  archived_pdf_file_name?: string | null;
+  sharepoint_item_id?: string | null;
   created_at: string;
 }
 
@@ -78,13 +83,24 @@ const MobilePurchaseInvoiceDetailPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [invRes, linesRes] = await Promise.all([
+        const [invRes, linesRes, archiveMetadata] = await Promise.all([
           supabase.rpc("get_purchase_invoice", { p_invoice_id: invoiceId }),
           supabase.rpc("get_purchase_invoice_lines", { p_invoice_id: invoiceId }),
+          getPurchaseArchiveMetadata(invoiceId).catch((error) => {
+            console.warn("Error fetching purchase archive metadata:", error);
+            return null;
+          }),
         ]);
 
         if (invRes.data && invRes.data.length > 0) {
-          setInvoice(invRes.data[0] as unknown as PurchaseInvoiceDetail);
+          const baseInvoice = invRes.data[0] as unknown as PurchaseInvoiceDetail;
+          setInvoice({
+            ...baseInvoice,
+            archived_pdf_path: archiveMetadata?.archivedFilePath ?? baseInvoice.archived_pdf_path ?? null,
+            archived_pdf_file_name:
+              archiveMetadata?.archivedFileName ?? baseInvoice.archived_pdf_file_name ?? null,
+            sharepoint_item_id: archiveMetadata?.sharepointItemId ?? baseInvoice.sharepoint_item_id ?? null,
+          });
         }
         setLines(((linesRes.data || []) as unknown) as InvoiceLine[]);
       } catch (e) {
@@ -137,6 +153,7 @@ const MobilePurchaseInvoiceDetailPage = () => {
     : invoice.technician_id
     ? `/nexo-av/${userId}/technicians/${invoice.technician_id}`
     : null;
+  const hasArchivedDocument = !!invoice.archived_pdf_path;
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -325,17 +342,40 @@ const MobilePurchaseInvoiceDetailPage = () => {
         )}
 
         {/* Document */}
-        {invoice.file_name && (
+        {hasArchivedDocument ? (
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-border">
+              <p className="text-xs text-muted-foreground">Archivo oficial en SharePoint</p>
+              <p className="text-sm text-foreground truncate">
+                {invoice.archived_pdf_file_name || invoice.file_name || "documento-compra"}
+              </p>
+            </div>
+            <div className="h-[420px]">
+              <ArchivedPurchaseDocumentViewer
+                documentId={invoice.id}
+                filePath={invoice.archived_pdf_path!}
+                fileName={invoice.archived_pdf_file_name || invoice.file_name || "documento-compra"}
+                title="Documento archivado en SharePoint"
+                className="h-full"
+              />
+            </div>
+          </div>
+        ) : invoice.file_name ? (
           <div className="bg-card border border-border rounded-xl p-4">
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">Documento adjunto</p>
+                <p className="text-xs text-muted-foreground">Documento original adjunto</p>
                 <p className="text-sm text-foreground truncate">{invoice.file_name}</p>
+                {invoice.status !== "DRAFT" && (
+                  <p className="text-xs text-amber-500 mt-1">
+                    Pendiente de archivo oficial en la biblioteca Compras.
+                  </p>
+                )}
               </div>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

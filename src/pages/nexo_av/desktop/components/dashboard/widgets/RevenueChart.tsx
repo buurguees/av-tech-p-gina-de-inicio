@@ -5,6 +5,7 @@ import DashboardWidget from "../DashboardWidget";
 import { TrendingUp } from "lucide-react";
 import { format, startOfYear, endOfYear, eachMonthOfInterval, startOfMonth, endOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
+import { normalizeSalesDocumentStatus } from "@/constants/salesInvoiceStatuses";
 
 interface MonthlyRevenue {
     month: string;
@@ -42,8 +43,9 @@ const RevenueChart = () => {
                     const monthInvoices = (invoicesData || []).filter((inv: any) => {
                         if (!inv.issue_date) return false;
                         const invDate = new Date(inv.issue_date);
+                        const documentStatus = normalizeSalesDocumentStatus(inv.status);
                         return invDate >= monthStart && invDate <= monthEnd 
-                            && inv.status !== 'CANCELLED' && inv.status !== 'DRAFT';
+                            && documentStatus === 'ISSUED';
                     });
                     
                     const revenue = monthInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);

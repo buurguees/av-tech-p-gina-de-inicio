@@ -9,17 +9,8 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
   Image,
 } from "@react-pdf/renderer";
-
-// Register font (using default)
-Font.register({
-  family: "Helvetica",
-  fonts: [
-    { src: "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5Q.ttf" },
-  ],
-});
 
 export interface QuoteLine {
   id: string;
@@ -440,24 +431,24 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project, docum
             <Text style={styles.boxName}>
               {company?.legal_name || company?.commercial_name || "TU EMPRESA"}
             </Text>
-            {company?.tax_id && (
+            {Boolean(company?.tax_id) && (
               <Text style={styles.boxDetail}>NIF: {company.tax_id}</Text>
             )}
-            {company?.fiscal_address && (
+            {Boolean(company?.fiscal_address) && (
               <Text style={styles.boxDetail}>{company.fiscal_address}</Text>
             )}
-            {company?.fiscal_postal_code && company?.fiscal_city && (
+            {Boolean(company?.fiscal_postal_code) && Boolean(company?.fiscal_city) && (
               <Text style={styles.boxDetail}>
                 {company.fiscal_postal_code} {company.fiscal_city}
               </Text>
             )}
-            {company?.fiscal_province && (
+            {Boolean(company?.fiscal_province) && (
               <Text style={styles.boxDetail}>{company.fiscal_province}</Text>
             )}
-            {company?.billing_email && (
+            {Boolean(company?.billing_email) && (
               <Text style={styles.boxDetail}>Email: {company.billing_email}</Text>
             )}
-            {company?.billing_phone && (
+            {Boolean(company?.billing_phone) && (
               <Text style={styles.boxDetail}>Teléfono: {company.billing_phone}</Text>
             )}
           </View>
@@ -468,24 +459,24 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project, docum
             <Text style={styles.boxName}>
               {client?.legal_name || client?.company_name || quote.client_name}
             </Text>
-            {client?.tax_id && (
+            {Boolean(client?.tax_id) && (
               <Text style={styles.boxDetail}>NIF: {client.tax_id}</Text>
             )}
-            {client?.billing_address && (
+            {Boolean(client?.billing_address) && (
               <Text style={styles.boxDetail}>{client.billing_address}</Text>
             )}
-            {client?.billing_postal_code && client?.billing_city && (
+            {Boolean(client?.billing_postal_code) && Boolean(client?.billing_city) && (
               <Text style={styles.boxDetail}>
                 {client.billing_postal_code} {client.billing_city}
               </Text>
             )}
-            {client?.billing_province && (
+            {Boolean(client?.billing_province) && (
               <Text style={styles.boxDetail}>{client.billing_province}</Text>
             )}
-            {client?.contact_email && (
+            {Boolean(client?.contact_email) && (
               <Text style={styles.boxDetail}>Email: {client.contact_email}</Text>
             )}
-            {client?.contact_phone && (
+            {Boolean(client?.contact_phone) && (
               <Text style={styles.boxDetail}>Teléfono: {client.contact_phone}</Text>
             )}
           </View>
@@ -496,16 +487,16 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project, docum
           <View style={styles.projectBox}>
             <Text style={styles.boxTitle}>Datos del Proyecto</Text>
             <Text style={styles.boxName}>{projectDisplayName}</Text>
-            {project.client_order_number && (
+            {Boolean(project.client_order_number) && (
               <Text style={styles.boxDetail}>Nº Pedido Cliente: {project.client_order_number}</Text>
             )}
-            {locationValue && (
+            {Boolean(locationValue) && (
               <Text style={styles.boxDetail}>{locationLabel}: {locationValue}</Text>
             )}
-            {project.project_address && (
+            {Boolean(project.project_address) && (
               <Text style={styles.boxDetail}>Dirección: {project.project_address}</Text>
             )}
-            {project.project_city && (
+            {Boolean(project.project_city) && (
               <Text style={styles.boxDetail}>{project.project_city}</Text>
             )}
           </View>
@@ -532,7 +523,7 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project, docum
               </Text>
               <View style={{ flex: hasDiscount ? 2.2 : 2.7 }}>
                 <Text style={styles.cellText}>{(line.concept || "").toUpperCase()}</Text>
-                {line.description && (
+                {Boolean(line.description) && (
                   <Text style={styles.cellDescription}>{line.description}</Text>
                 )}
               </View>
@@ -575,7 +566,7 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project, docum
 
         {/* Footer with validity note and company info */}
         <View style={styles.footer} fixed>
-          {quote.valid_until && (
+          {Boolean(quote.valid_until) && (
             <Text style={styles.validityNote}>
               Este presupuesto es válido hasta el {formatDate(quote.valid_until)}.
             </Text>
@@ -590,22 +581,22 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project, docum
             </View>
             <View style={styles.footerColumn}>
               <Text style={styles.footerTitle}>CONTACTO</Text>
-              {company?.billing_email && (
+              {Boolean(company?.billing_email) && (
                 <Text style={styles.footerText}>{company.billing_email}</Text>
               )}
-              {company?.billing_phone && (
+              {Boolean(company?.billing_phone) && (
                 <Text style={styles.footerText}>{company.billing_phone}</Text>
               )}
-              {company?.website && (
+              {Boolean(company?.website) && (
                 <Text style={styles.footerText}>{company.website}</Text>
               )}
             </View>
             <View style={styles.footerColumn}>
               <Text style={styles.footerTitle}>DIRECCIÓN FISCAL</Text>
-              {company?.fiscal_address && (
+              {Boolean(company?.fiscal_address) && (
                 <Text style={styles.footerText}>{company.fiscal_address}</Text>
               )}
-              {company?.fiscal_postal_code && company?.fiscal_city && (
+              {Boolean(company?.fiscal_postal_code) && Boolean(company?.fiscal_city) && (
                 <Text style={styles.footerText}>
                   {company.fiscal_postal_code} {company.fiscal_city}
                 </Text>
@@ -625,7 +616,7 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project, docum
         <Text
           style={styles.documentHash}
           render={({ pageNumber, totalPages }) =>
-            pageNumber === totalPages ? `Hash único: ${resolvedHash}` : ""
+            pageNumber === totalPages ? `Hash único: ${resolvedHash}` : null
           }
           fixed
         />
@@ -635,3 +626,4 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project, docum
 };
 
 export default QuotePDFDocument;
+

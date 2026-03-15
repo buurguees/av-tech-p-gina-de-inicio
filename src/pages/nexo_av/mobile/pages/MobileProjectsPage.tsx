@@ -14,7 +14,7 @@ import {
   Receipt
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getProjectStatusInfo } from "@/constants/projectStatuses";
+import { getProjectStatusInfo, normalizeProjectStatus } from "@/constants/projectStatuses";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
 
@@ -73,10 +73,10 @@ const MobileProjectsPage = () => {
         const projectsList = (data || []) as Project[];
         setProjects(projectsList);
         setProjectKPIs({
-          planned: projectsList.filter((project) => project.status === "PLANNED").length,
-          inProgress: projectsList.filter((project) => project.status === "IN_PROGRESS").length,
-          completed: projectsList.filter((project) => project.status === "COMPLETED").length,
-          invoiced: projectsList.filter((project) => project.status === "INVOICED").length,
+          planned: projectsList.filter((project) => normalizeProjectStatus(project.status) === "NEGOTIATION").length,
+          inProgress: projectsList.filter((project) => normalizeProjectStatus(project.status) === "IN_PROGRESS").length,
+          completed: projectsList.filter((project) => normalizeProjectStatus(project.status) === "COMPLETED").length,
+          invoiced: projectsList.filter((project) => normalizeProjectStatus(project.status) === "INVOICED").length,
         });
       } catch (error) {
         console.error("Error fetching projects:", error);

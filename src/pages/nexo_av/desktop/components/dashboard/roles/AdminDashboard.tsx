@@ -2,8 +2,16 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Receipt, AlertCircle, FileText, FolderKanban, TrendingUp,
-  Clock, CreditCard, Users, CalendarClock, Banknote
+  Receipt,
+  AlertCircle,
+  FileText,
+  FolderKanban,
+  TrendingUp,
+  Clock,
+  CreditCard,
+  Users,
+  CalendarClock,
+  Banknote,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +21,8 @@ interface AdminData {
   period: { start: string; end: string; type: string };
   kpis: {
     invoiced_amount: number;
+    invoiced_net_amount: number;
+    invoiced_tax_amount: number;
     invoiced_count: number;
     pending_collection: number;
     pending_collection_count: number;
@@ -40,7 +50,12 @@ interface AdminData {
 }
 
 const formatCurrency = (n: number) =>
-  new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(n);
 
 const AdminDashboard = () => {
   const [data, setData] = useState<AdminData | null>(null);
@@ -74,7 +89,7 @@ const AdminDashboard = () => {
             period === p ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          {p === "quarter" ? "Trimestre" : "Año"}
+          {p === "quarter" ? "Trimestre" : "Ano"}
         </button>
       ))}
     </div>
@@ -96,44 +111,80 @@ const AdminDashboard = () => {
   }
 
   const k = data.kpis;
-  const marginPct = k.gross_margin.revenue > 0
-    ? ((k.gross_margin.revenue - k.gross_margin.expenses) / k.gross_margin.revenue * 100).toFixed(1)
-    : "0";
   const totalPendingPayments = k.pending_payments_suppliers + k.pending_payroll + k.pending_financing;
+  const netResult = k.gross_margin.revenue - k.gross_margin.expenses;
+  const netMarginPct = k.gross_margin.revenue > 0
+    ? ((netResult / k.gross_margin.revenue) * 100).toFixed(1)
+    : "0";
 
   return (
     <div className="w-full h-full flex flex-col">
       <DetailNavigationBar pageTitle="Dashboard" contextInfo="Admin · Centro de mando financiero" tools={<PeriodFilter />} />
 
       <div className="flex-1 overflow-y-auto space-y-4 pb-6">
-        {/* Row 1: KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KpiCard icon={Receipt} label={`Facturado (${period === "quarter" ? "Trim." : "Año"})`} value={formatCurrency(k.invoiced_amount)} sub={`${k.invoiced_count} facturas`} color="emerald" delay={0.05} />
-          <KpiCard icon={AlertCircle} label="Pendiente cobrar" value={formatCurrency(k.pending_collection)} sub={`${k.pending_collection_count} facturas`} color="destructive" delay={0.1} />
-          <KpiCard icon={CreditCard} label="Pagos pendientes" value={formatCurrency(totalPendingPayments)} sub="Proveedores + nóminas + cuotas" color="amber" delay={0.15} />
-          <KpiCard icon={TrendingUp} label="Margen bruto" value={`${marginPct}%`} sub={formatCurrency(k.gross_margin.revenue - k.gross_margin.expenses)} color="cyan" delay={0.2} />
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <KpiCard
+            icon={Receipt}
+            label={`Facturado bruto (${period === "quarter" ? "Trim." : "Ano"})`}
+            value={formatCurrency(k.invoiced_amount)}
+            sub={`${k.invoiced_count} facturas emitidas`}
+            color="emerald"
+            delay={0.05}
+          />
+          <KpiCard
+            icon={TrendingUp}
+            label="Ingreso neto"
+            value={formatCurrency(k.invoiced_net_amount)}
+            sub={`IVA: ${formatCurrency(k.invoiced_tax_amount)}`}
+            color="cyan"
+            delay={0.1}
+          />
+          <KpiCard
+            icon={AlertCircle}
+            label="Pendiente cobrar"
+            value={formatCurrency(k.pending_collection)}
+            sub={`${k.pending_collection_count} facturas`}
+            color="destructive"
+            delay={0.15}
+          />
+          <KpiCard
+            icon={CreditCard}
+            label="Pagos pendientes"
+            value={formatCurrency(totalPendingPayments)}
+            sub="Proveedores + nominas + cuotas"
+            color="amber"
+            delay={0.2}
+          />
+          <KpiCard
+            icon={TrendingUp}
+            label="Resultado PyG"
+            value={formatCurrency(netResult)}
+            sub={`${netMarginPct}% margen neto`}
+            color="violet"
+            delay={0.25}
+          />
         </div>
 
-        {/* Row 2: Collection Risk */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-          className="bg-card/50 border border-border rounded-xl p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="bg-card/50 border border-border rounded-xl p-4"
+        >
           <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
             <AlertCircle className="h-4 w-4 text-destructive" /> Riesgo de cobro
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Overdue */}
             <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
               <div className="text-xs text-muted-foreground mb-1">Vencidas</div>
               <div className="text-xl font-bold text-destructive">{formatCurrency(data.collection_risk.overdue.amount)}</div>
               <div className="text-xs text-muted-foreground">{data.collection_risk.overdue.count} facturas</div>
             </div>
-            {/* Due 7 days */}
             <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
-              <div className="text-xs text-muted-foreground mb-1">Vencen en 7 días</div>
+              <div className="text-xs text-muted-foreground mb-1">Vencen en 7 dias</div>
               <div className="text-xl font-bold text-amber-500">{formatCurrency(data.collection_risk.due_7_days.amount)}</div>
               <div className="text-xs text-muted-foreground">{data.collection_risk.due_7_days.count} facturas</div>
             </div>
-            {/* Top debtors */}
             <div className="space-y-2">
               <div className="text-xs text-muted-foreground mb-1">Top deudores</div>
               {data.collection_risk.top_debtors.length === 0 ? (
@@ -152,14 +203,16 @@ const AdminDashboard = () => {
           </div>
         </motion.div>
 
-        {/* Row 3: Upcoming Payments */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-          className="bg-card/50 border border-border rounded-xl p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="bg-card/50 border border-border rounded-xl p-4"
+        >
           <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <CalendarClock className="h-4 w-4 text-amber-500" /> Pagos próximos 7 días
+            <CalendarClock className="h-4 w-4 text-amber-500" /> Pagos proximos 7 dias
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Purchase invoices */}
             <PaymentList
               title="Facturas de compra"
               icon={FileText}
@@ -177,9 +230,8 @@ const AdminDashboard = () => {
                 </div>
               )}
             />
-            {/* Credit installments */}
             <PaymentList
-              title="Cuotas financiación"
+              title="Cuotas financiacion"
               icon={Banknote}
               items={data.upcoming_payments.credit_installments}
               renderItem={(item) => (
@@ -195,9 +247,8 @@ const AdminDashboard = () => {
                 </div>
               )}
             />
-            {/* Payrolls */}
             <PaymentList
-              title="Nóminas pendientes"
+              title="Nominas pendientes"
               icon={Users}
               items={data.upcoming_payments.payrolls}
               renderItem={(item) => (
@@ -207,7 +258,6 @@ const AdminDashboard = () => {
                 </div>
               )}
             />
-            {/* Partner compensations */}
             <PaymentList
               title="Compensaciones socios"
               icon={Users}
@@ -222,9 +272,12 @@ const AdminDashboard = () => {
           </div>
         </motion.div>
 
-        {/* Row 4: Operations */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
-          className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-3"
+        >
           <div className="bg-card/50 border border-border rounded-xl p-4 flex flex-col items-center justify-center text-center">
             <FolderKanban className="h-6 w-6 text-violet-500 mb-2" />
             <div className="text-2xl font-bold text-foreground">{data.operations.sites_ready_to_invoice}</div>
@@ -236,14 +289,17 @@ const AdminDashboard = () => {
             <div className="text-xs text-muted-foreground">Proyectos en curso</div>
           </div>
           <div className="bg-card/50 border border-border rounded-xl p-4">
-            <div className="text-xs text-muted-foreground mb-2">Presupuestos grandes en negociación</div>
+            <div className="text-xs text-muted-foreground mb-2">Presupuestos grandes en negociacion</div>
             {data.operations.large_quotes_negotiation.length === 0 ? (
               <div className="text-xs text-muted-foreground italic">Sin presupuestos pendientes</div>
             ) : (
               <div className="space-y-1.5">
                 {data.operations.large_quotes_negotiation.map((q: any) => (
-                  <button key={q.id} onClick={() => navigate(`/nexo-av/${userId}/quotes/${q.id}`)}
-                    className="w-full flex justify-between text-xs hover:bg-secondary/50 rounded px-1 py-1 transition-colors">
+                  <button
+                    key={q.id}
+                    onClick={() => navigate(`/nexo-av/${userId}/quotes/${q.id}`)}
+                    className="w-full flex justify-between text-xs hover:bg-secondary/50 rounded px-1 py-1 transition-colors"
+                  >
                     <span className="text-foreground truncate max-w-[150px]">{q.client_name}</span>
                     <span className="font-semibold text-primary">{formatCurrency(q.total)}</span>
                   </button>
@@ -257,16 +313,22 @@ const AdminDashboard = () => {
   );
 };
 
-// Sub-components
 const KpiCard = ({ icon: Icon, label, value, sub, color, delay }: {
-  icon: any; label: string; value: string; sub: string; color: string; delay: number;
+  icon: any;
+  label: string;
+  value: string;
+  sub: string;
+  color: string;
+  delay: number;
 }) => {
   const colorMap: Record<string, string> = {
     emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     destructive: "bg-destructive/10 text-destructive",
     amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
     cyan: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
+    violet: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
   };
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}>
       <div className="bg-card/50 border border-border rounded-lg p-3">
@@ -284,7 +346,10 @@ const KpiCard = ({ icon: Icon, label, value, sub, color, delay }: {
 };
 
 const PaymentList = ({ title, icon: Icon, items, renderItem }: {
-  title: string; icon: any; items: any[]; renderItem: (item: any) => React.ReactNode;
+  title: string;
+  icon: any;
+  items: any[];
+  renderItem: (item: any) => React.ReactNode;
 }) => (
   <div>
     <div className="flex items-center gap-1.5 mb-2">

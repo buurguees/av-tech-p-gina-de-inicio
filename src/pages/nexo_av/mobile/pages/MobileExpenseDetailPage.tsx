@@ -19,6 +19,8 @@ import {
   getPaymentStatusInfo,
 } from "@/constants/purchaseInvoiceStatuses";
 import { getTicketCategoryInfo } from "@/constants/ticketCategories";
+import ArchivedPurchaseDocumentViewer from "../../shared/components/ArchivedPurchaseDocumentViewer";
+import { getPurchaseArchiveMetadata } from "../../shared/lib/purchaseDocumentArchive";
 
 interface ExpenseDetail {
   id: string;
@@ -38,12 +40,16 @@ interface ExpenseDetail {
   supplier_name: string | null;
   technician_id: string | null;
   technician_name: string | null;
+  manual_beneficiary_name?: string | null;
   project_id: string | null;
   project_name: string | null;
   project_number: string | null;
   notes: string | null;
   file_name: string | null;
   file_path: string | null;
+  archived_pdf_path?: string | null;
+  archived_pdf_file_name?: string | null;
+  sharepoint_item_id?: string | null;
   created_at: string;
 }
 
@@ -60,10 +66,23 @@ const MobileExpenseDetailPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase.rpc("get_purchase_invoice", { p_invoice_id: invoiceId });
+        const [{ data, error }, archiveMetadata] = await Promise.all([
+          supabase.rpc("get_purchase_invoice", { p_invoice_id: invoiceId }),
+          getPurchaseArchiveMetadata(invoiceId).catch((archiveError) => {
+            console.warn("Error fetching expense archive metadata:", archiveError);
+            return null;
+          }),
+        ]);
         if (error) throw error;
         if (data && data.length > 0) {
-          setExpense(data[0] as unknown as ExpenseDetail);
+          const baseExpense = data[0] as unknown as ExpenseDetail;
+          setExpense({
+            ...baseExpense,
+            archived_pdf_path: archiveMetadata?.archivedFilePath ?? baseExpense.archived_pdf_path ?? null,
+            archived_pdf_file_name:
+              archiveMetadata?.archivedFileName ?? baseExpense.archived_pdf_file_name ?? null,
+            sharepoint_item_id: archiveMetadata?.sharepointItemId ?? baseExpense.sharepoint_item_id ?? null,
+          });
         }
       } catch (e) {
         console.error("Error fetching expense:", e);
@@ -107,8 +126,9 @@ const MobileExpenseDetailPage = () => {
   const payStatus = calculatePaymentStatus(expense.paid_amount, expense.total, expense.due_date, expense.status);
   const payInfo = getPaymentStatusInfo(payStatus);
   const catInfo = expense.expense_category ? getTicketCategoryInfo(expense.expense_category) : null;
-
-  const beneficiary = expense.supplier_name || expense.technician_name || "Sin beneficiario";
+  const beneficiary =
+    expense.manual_beneficiary_name || expense.supplier_name || expense.technician_name || "Sin beneficiario";
+  const hasArchivedDocument = !!expense.archived_pdf_path;
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -241,17 +261,40 @@ const MobileExpenseDetailPage = () => {
         )}
 
         {/* Document */}
-        {expense.file_name && (
+        {hasArchivedDocument ? (
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-border">
+              <p className="text-xs text-muted-foreground">Archivo oficial en SharePoint</p>
+              <p className="text-sm text-foreground truncate">
+                {expense.archived_pdf_file_name || expense.file_name || "ticket-gasto"}
+              </p>
+            </div>
+            <div className="h-[420px]">
+              <ArchivedPurchaseDocumentViewer
+                documentId={expense.id}
+                filePath={expense.archived_pdf_path!}
+                fileName={expense.archived_pdf_file_name || expense.file_name || "ticket-gasto"}
+                title="Ticket archivado en SharePoint"
+                className="h-full"
+              />
+            </div>
+          </div>
+        ) : expense.file_name ? (
           <div className="bg-card border border-border rounded-xl p-4">
             <div className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">Documento adjunto</p>
+                <p className="text-xs text-muted-foreground">Documento original adjunto</p>
                 <p className="text-sm text-foreground truncate">{expense.file_name}</p>
+                {expense.status !== "DRAFT" && (
+                  <p className="text-xs text-amber-500 mt-1">
+                    Pendiente de archivo oficial en la biblioteca Compras.
+                  </p>
+                )}
               </div>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -586,14 +586,14 @@ const EditInvoicePageDesktop = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center pt-32">
-        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (!invoice) {
     return (
-      <div className="flex flex-col items-center justify-center pt-32 text-white/60">
+      <div className="flex flex-col items-center justify-center pt-32 text-muted-foreground">
         <FileText className="h-12 w-12 mb-4" />
         <p>Factura no encontrada</p>
       </div>
@@ -611,10 +611,10 @@ const EditInvoicePageDesktop = () => {
           {/* Top bar */}
           <div className="flex items-center justify-between gap-2 mb-4 md:mb-8">
             <div>
-              <h1 className="text-base md:text-2xl font-bold text-white">
+              <h1 className="text-base md:text-2xl font-bold text-foreground">
                 Editar {invoice.invoice_number}
               </h1>
-              <p className="text-white/60 text-[10px] md:text-sm hidden md:block">
+              <p className="text-muted-foreground text-[10px] md:text-sm hidden md:block">
                 Modifica los datos de la factura
               </p>
             </div>
@@ -635,17 +635,17 @@ const EditInvoicePageDesktop = () => {
           </div>
 
           {/* Invoice header info */}
-          <div className="bg-white/10 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/20 p-3 md:p-6 mb-3 md:mb-4 shadow-2xl shadow-black/30">
-            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/20">
-              <div className="p-1.5 rounded-xl bg-white/10 backdrop-blur-sm">
+          <div className="bg-card rounded-2xl md:rounded-3xl border border-border p-3 md:p-6 mb-3 md:mb-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
+              <div className="p-1.5 rounded-xl bg-muted">
                 <FileText className="h-3 w-3 md:h-4 md:w-4 text-orange-500" />
               </div>
-              <span className="text-white/70 text-[10px] md:text-xs font-medium uppercase tracking-wide">Datos de la factura</span>
+              <span className="text-muted-foreground text-[10px] md:text-xs font-medium uppercase tracking-wide">Datos de la factura</span>
               <span className="ml-auto text-orange-500 font-mono text-xs">{invoice.invoice_number}</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
-                <Label className="text-white/70 text-[10px] md:text-sm">Cliente</Label>
+                <Label className="text-muted-foreground text-[10px] md:text-sm">Cliente</Label>
                 <Select
                   value={selectedClientId || undefined}
                   onValueChange={(value) => {
@@ -665,7 +665,7 @@ const EditInvoicePageDesktop = () => {
               </div>
 
               <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
-                <Label className="text-white/70 text-[10px] md:text-sm">Proyecto</Label>
+                <Label className="text-muted-foreground text-[10px] md:text-sm">Proyecto</Label>
                 <Select
                   value={
                     !selectedClientId || projects.length === 0
@@ -700,7 +700,7 @@ const EditInvoicePageDesktop = () => {
               {/* Site Selector - MULTI_SITE */}
               {selectedProjectId && projects.find(p => p.id === selectedProjectId)?.site_mode === "MULTI_SITE" && projectSites.length > 0 && (
                 <div className="space-y-1 md:space-y-2 col-span-2">
-                  <Label className="text-white/70 text-[10px] md:text-sm flex items-center gap-1.5">
+                  <Label className="text-muted-foreground text-[10px] md:text-sm flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5" />
                     Sitio de instalación *
                   </Label>
@@ -722,56 +722,56 @@ const EditInvoicePageDesktop = () => {
               {/* Site info - SINGLE_SITE */}
               {selectedProjectId && projects.find(p => p.id === selectedProjectId)?.site_mode === "SINGLE_SITE" && projectSites.length > 0 && (
                 <div className="space-y-1 md:space-y-2 col-span-2">
-                  <Label className="text-white/70 text-[10px] md:text-sm flex items-center gap-1.5">
+                  <Label className="text-muted-foreground text-[10px] md:text-sm flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5" />
                     Sitio
                   </Label>
-                  <div className="text-sm font-medium text-white/80 px-3 py-2 bg-white/5 rounded-xl border border-white/10">
+                  <div className="text-sm font-medium text-foreground px-3 py-2 bg-muted rounded-xl border border-border">
                     {projectSites[0]?.site_name}{projectSites[0]?.city ? ` — ${projectSites[0].city}` : ""}
                   </div>
                 </div>
               )}
 
               <div className="space-y-1 md:space-y-2">
-                <Label className="text-white/70 text-[10px] md:text-sm">Fecha emisión</Label>
+                <Label className="text-muted-foreground text-[10px] md:text-sm">Fecha emisión</Label>
                 <Input
                   type="date"
                   value={issueDate}
                   onChange={(e) => setIssueDate(e.target.value)}
-                  className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 md:h-10 text-xs md:text-sm rounded-xl transition-all hover:bg-white/15"
+                  className="h-8 md:h-10 text-xs md:text-sm rounded-xl"
                 />
               </div>
 
               <div className="space-y-1 md:space-y-2">
-                <Label className="text-white/70 text-[10px] md:text-sm">Vencimiento</Label>
+                <Label className="text-muted-foreground text-[10px] md:text-sm">Vencimiento</Label>
                 <Input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="bg-white/10 backdrop-blur-sm border-white/20 text-white h-8 md:h-10 text-xs md:text-sm rounded-xl transition-all hover:bg-white/15"
+                  className="h-8 md:h-10 text-xs md:text-sm rounded-xl"
                 />
               </div>
             </div>
           </div>
 
           {/* Lines table */}
-          <div className="bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-2xl rounded-2xl border border-white/10 overflow-hidden mb-6 shadow-2xl shadow-black/40">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent">
-              <span className="text-white text-sm font-semibold uppercase tracking-wider">Líneas de la factura</span>
-              <span className="text-white/50 text-xs font-medium">Escribe @nombre para buscar en el catálogo</span>
+          <div className="bg-card rounded-2xl border border-border overflow-hidden mb-6 shadow-sm">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <span className="text-foreground text-sm font-semibold uppercase tracking-wider">Líneas de la factura</span>
+              <span className="text-muted-foreground text-xs font-medium">Escribe @nombre para buscar en el catálogo</span>
             </div>
-            <div className="overflow-x-auto bg-white/[0.02]">
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/5 hover:bg-transparent bg-white/[0.03]">
-                    <TableHead className="text-white/60 w-10 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
-                    <TableHead className="text-white/80 min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
-                    <TableHead className="text-white/80 text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>
-                    <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Precio</TableHead>
-                    <TableHead className="text-white/80 text-center w-20 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Dto %</TableHead>
-                    <TableHead className="text-white/80 w-36 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Impuestos</TableHead>
-                    <TableHead className="text-white/80 text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Total</TableHead>
-                    <TableHead className="text-white/60 w-14 px-5 py-3"></TableHead>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="text-muted-foreground w-10 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
+                    <TableHead className="text-muted-foreground min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
+                    <TableHead className="text-muted-foreground text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>
+                    <TableHead className="text-muted-foreground text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Precio</TableHead>
+                    <TableHead className="text-muted-foreground text-center w-20 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Dto %</TableHead>
+                    <TableHead className="text-muted-foreground w-36 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Impuestos</TableHead>
+                    <TableHead className="text-muted-foreground text-right w-32 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Total</TableHead>
+                    <TableHead className="text-muted-foreground w-14 px-5 py-3"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -780,9 +780,9 @@ const EditInvoicePageDesktop = () => {
                     return (
                       <TableRow
                         key={line.tempId || line.id}
-                        className="border-white/5 hover:bg-white/[0.04] transition-colors duration-150 group"
+                        className="border-border hover:bg-muted/40 transition-colors duration-150 group"
                       >
-                        <TableCell className="text-white/20 group-hover:text-white/40 px-5 py-3.5 transition-colors">
+                        <TableCell className="text-muted-foreground group-hover:text-foreground px-5 py-3.5 transition-colors">
                           <GripVertical className="h-4 w-4" />
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
@@ -791,7 +791,7 @@ const EditInvoicePageDesktop = () => {
                             onChange={(value) => updateLine(realIndex, "concept", value)}
                             onSelectItem={(item) => handleProductSelect(realIndex, item)}
                             placeholder="Concepto o @buscar"
-                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                            className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-primary/40 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
                           />
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
@@ -809,7 +809,7 @@ const EditInvoicePageDesktop = () => {
                                   return newValues;
                                 });
                               }}
-                              className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                              className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-primary/40 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
                               placeholder="0"
                             />
                           </div>
@@ -828,7 +828,7 @@ const EditInvoicePageDesktop = () => {
                                 return newValues;
                               });
                             }}
-                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-right font-medium px-0 py-2 hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                            className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-right font-medium px-0 py-2 hover:border-primary/40 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
                             placeholder="0,00"
                           />
                         </TableCell>
@@ -846,7 +846,7 @@ const EditInvoicePageDesktop = () => {
                                 return newValues;
                               });
                             }}
-                            className="bg-transparent border-0 border-b border-white/10 text-white h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-white/30 focus:border-orange-500/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                            className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-primary/40 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
                             placeholder="0"
                           />
                         </TableCell>
@@ -863,7 +863,7 @@ const EditInvoicePageDesktop = () => {
                             </select>
                           </div>
                         </TableCell>
-                        <TableCell className="text-white text-right font-semibold px-5 py-3.5">
+                        <TableCell className="text-foreground text-right font-semibold px-5 py-3.5">
                           {formatCurrency(line.total)}
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
@@ -871,7 +871,7 @@ const EditInvoicePageDesktop = () => {
                             variant="ghost"
                             size="icon"
                             onClick={() => removeLine(realIndex)}
-                            className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-8 w-8 transition-colors"
+                            className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 h-8 w-8 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -883,7 +883,7 @@ const EditInvoicePageDesktop = () => {
               </Table>
             </div>
 
-            <div className="p-5 border-t border-white/10 bg-gradient-to-r from-white/5 to-transparent">
+            <div className="p-5 border-t border-border">
               <Button
                 variant="outline"
                 onClick={addLine}
@@ -897,19 +897,19 @@ const EditInvoicePageDesktop = () => {
 
           {/* Totals */}
           <div className="flex justify-end">
-            <div className="bg-gradient-to-br from-white/[0.12] to-white/[0.06] backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-white/15 p-4 md:p-6 w-full md:w-80 shadow-2xl shadow-black/40">
+            <div className="bg-card rounded-2xl md:rounded-3xl border border-border p-4 md:p-6 w-full md:w-80 shadow-sm">
               <div className="space-y-3 md:space-y-4">
-                <div className="flex justify-between text-white/70 text-sm">
+                <div className="flex justify-between text-muted-foreground text-sm">
                   <span className="font-medium">Base imponible</span>
                   <span className="font-semibold">{formatCurrency(totals.subtotal)}</span>
                 </div>
                 {totals.taxes.map((tax) => (
-                  <div key={tax.rate} className="flex justify-between text-white/70 text-sm">
+                  <div key={tax.rate} className="flex justify-between text-muted-foreground text-sm">
                     <span className="font-medium">{tax.label}</span>
                     <span className="font-semibold">{formatCurrency(tax.amount)}</span>
                   </div>
                 ))}
-                <div className="flex justify-between text-white text-lg md:text-xl font-bold pt-3 md:pt-4 border-t border-white/20">
+                <div className="flex justify-between text-foreground text-lg md:text-xl font-bold pt-3 md:pt-4 border-t border-border">
                   <span>Total</span>
                   <span className="text-orange-400">{formatCurrency(totals.total)}</span>
                 </div>

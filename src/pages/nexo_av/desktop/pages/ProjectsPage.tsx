@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { FolderKanban, Loader2, Euro, TrendingUp, BarChart3, Target, CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react";
 import { usePagination } from "@/hooks/usePagination";
 import CreateProjectDialog from "../components/projects/CreateProjectDialog";
@@ -13,8 +12,7 @@ import DetailActionButton from "../components/navigation/DetailActionButton";
 import { cn } from "@/lib/utils";
 import DataList from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
-import { useToast } from "@/hooks/use-toast";
-import { PROJECT_STATUSES, getProjectStatusInfo } from "@/constants/projectStatuses";
+import { PROJECT_STATUSES, getProjectStatusInfo, normalizeProjectStatus } from "@/constants/projectStatuses";
 
 
 interface Project {
@@ -35,6 +33,14 @@ interface Project {
   budget: number;
 }
 
+interface ProjectFinancialStats {
+  total_budget: number;
+  total_invoiced: number;
+  total_expenses: number;
+  margin: number;
+  margin_percentage: number;
+}
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
@@ -49,7 +55,6 @@ import ProjectsListSidebar from "../components/projects/ProjectsListSidebar";
 const ProjectsPageDesktop = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,12 +98,87 @@ const ProjectsPageDesktop = () => {
     }
   };
 
+  const fetchProjectFinancialSnapshots = async (projectIds: string[]) => {
+    const statsMap = new Map<string, ProjectFinancialStats>();
+    const profitabilityMap = new Map<string, number>();
+
+    if (projectIds.length === 0) {
+      return { statsMap, profitabilityMap };
+    }
+
+    const batchSize = 5;
+
+    for (let i = 0; i < projectIds.length; i += batchSize) {
+      const batch = projectIds.slice(i, i + batchSize);
+      const results = await Promise.all(
+        batch.map(async (projectId) => {
+          try {
+            const { data: financialData, error: financialError } = await supabase.rpc('get_project_financial_stats', {
+              p_project_id: projectId
+            });
+
+            if (financialError || !financialData || !Array.isArray(financialData) || financialData.length === 0) {
+              return { projectId, stats: null };
+            }
+
+            return { projectId, stats: financialData[0] as ProjectFinancialStats };
+          } catch {
+            return { projectId, stats: null };
+          }
+        })
+      );
+
+      results.forEach(({ projectId, stats }) => {
+        if (!stats) return;
+
+        statsMap.set(projectId, stats);
+
+        const hasActivity = (stats.total_invoiced || 0) > 0 || (stats.total_expenses || 0) > 0;
+        if (!hasActivity) return;
+
+        let marginPercentage = stats.margin_percentage || 0;
+        if ((stats.total_invoiced || 0) === 0 && (stats.total_expenses || 0) > 0) {
+          marginPercentage = -100;
+        }
+
+        profitabilityMap.set(projectId, marginPercentage);
+      });
+
+      if (i + batchSize < projectIds.length) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
+
+    return { statsMap, profitabilityMap };
+  };
+
   const calculateProjectKPIs = async () => {
     try {
+      if (projects.length === 0) {
+        setProjectTotals(new Map());
+        setProjectExpenses(new Map());
+        setProjectProfitability(new Map());
+        setProjectKPIs({
+          byStatus: {} as Record<string, number>,
+          totalRevenue: 0,
+          totalCosts: 0,
+          profitability: 0,
+          profitMargin: 0,
+          avgProjectsPerClient: 0,
+          monthlyNewProjects: 0,
+          monthlyCompletedProjects: 0,
+          avgProjectValue: 0,
+          avgQuoteValue: 0,
+          totalQuotesValue: 0,
+          avgProfitabilityMargin: 0
+        });
+        return;
+      }
+
       // Contar proyectos por estado
       const byStatus: Record<string, number> = {};
       PROJECT_STATUSES.forEach(status => {
-        byStatus[status.value] = projects.filter(p => p.status === status.value).length;
+        byStatus[status.value] = projects.filter((project) => normalizeProjectStatus(project.status) === status.value).length;
       });
 
       // Obtener presupuestos (quotes) asignados a proyectos usando RPC
@@ -111,78 +191,36 @@ const ProjectsPageDesktop = () => {
         console.error('Error fetching quotes:', quotesError);
       }
 
-      // Calcular presupuestos totales y medios de proyectos (usando subtotales)
-      const projectQuotes = (quotesData || []).filter((quote: any) =>
-        quote.project_id && quote.status !== 'REJECTED' && quote.status !== 'EXPIRED'
+      // Presupuestos aprobados por proyecto: contrato mas fiable que mezclar enviados, borradores e historicos
+      const approvedProjectQuotes = (quotesData || []).filter((quote: any) =>
+        quote.project_id && quote.status === 'APPROVED'
       );
-      const totalQuotesValue = projectQuotes.reduce((sum: number, quote: any) => sum + (quote.subtotal || 0), 0);
-      const projectsWithQuotes = new Set(projectQuotes.map((q: any) => q.project_id));
+      const totalQuotesValue = approvedProjectQuotes.reduce((sum: number, quote: any) => sum + (quote.subtotal || 0), 0);
+      const projectsWithQuotes = new Set(approvedProjectQuotes.map((quote: any) => quote.project_id));
       const avgQuoteValue = projectsWithQuotes.size > 0
         ? totalQuotesValue / projectsWithQuotes.size
         : 0;
 
-      // Obtener facturas de venta relacionadas con proyectos usando RPC
-      const { data: invoicesData, error: invoicesError } = await supabase.rpc('finance_list_invoices', {
-        p_search: null,
-        p_status: null
-      });
+      setLoadingProfitability(true);
+      const { statsMap, profitabilityMap } = await fetchProjectFinancialSnapshots(projects.map((project) => project.id));
 
-      if (invoicesError) {
-        console.error('Error fetching invoices:', invoicesError);
-      }
+      const totalRevenue = Array.from(statsMap.values()).reduce((sum, stats) => sum + (stats.total_invoiced || 0), 0);
+      const totalCosts = Array.from(statsMap.values()).reduce((sum, stats) => sum + (stats.total_expenses || 0), 0);
+      const profitability = totalRevenue - totalCosts;
+      const profitMargin = totalRevenue > 0 ? (profitability / totalRevenue) * 100 : 0;
 
-      // Calcular facturación total de proyectos (solo facturas con project_id asignado, usando subtotales)
-      const projectInvoices = (invoicesData || []).filter((inv: any) =>
-        inv.project_id && inv.status !== 'CANCELLED' && inv.status !== 'DRAFT'
-      );
-      const totalRevenue = projectInvoices.reduce((sum: number, inv: any) => sum + (inv.subtotal || 0), 0);
-
-      // Calcular total facturado por proyecto
       const totalsMap = new Map<string, number>();
-      projectInvoices.forEach((inv: any) => {
-        if (inv.project_id) {
-          const currentTotal = totalsMap.get(inv.project_id) || 0;
-          totalsMap.set(inv.project_id, currentTotal + (inv.total || 0));
-        }
+      statsMap.forEach((stats, projectId) => {
+        totalsMap.set(projectId, stats.total_invoiced || 0);
       });
       setProjectTotals(totalsMap);
 
-      // Obtener facturas de compra relacionadas con proyectos usando RPC
-      const params: Record<string, unknown> = {
-        p_search: null,
-        p_status: null,
-        p_supplier_id: null,
-        p_technician_id: null,
-        p_document_type: null,
-        p_page: 1,
-        p_page_size: 10000
-      };
-      const { data: purchaseInvoicesData, error: purchaseInvoicesError } = await supabase.rpc('list_purchase_invoices', params);
-
-      if (purchaseInvoicesError) {
-        console.error('Error fetching purchase invoices:', purchaseInvoicesError);
-      }
-
-      // Calcular costes totales de proyectos (solo facturas de compra con project_id asignado, usando tax_base/subtotal)
-      // Incluir REGISTERED, APPROVED y PAID - excluir PENDING y CANCELLED
-      const projectPurchaseInvoices = (purchaseInvoicesData || []).filter((inv: any) =>
-        inv.project_id && (inv.status === 'REGISTERED' || inv.status === 'APPROVED' || inv.status === 'PAID')
-      );
-      const totalCosts = projectPurchaseInvoices.reduce((sum: number, inv: any) => sum + (inv.tax_base || 0), 0);
-
-      // Calcular gastos por proyecto
       const expensesMap = new Map<string, number>();
-      projectPurchaseInvoices.forEach((inv: any) => {
-        if (inv.project_id) {
-          const currentExpense = expensesMap.get(inv.project_id) || 0;
-          expensesMap.set(inv.project_id, currentExpense + (inv.tax_base || inv.subtotal || 0));
-        }
+      statsMap.forEach((stats, projectId) => {
+        expensesMap.set(projectId, stats.total_expenses || 0);
       });
       setProjectExpenses(expensesMap);
-
-      // Calcular rentabilidad
-      const profitability = totalRevenue - totalCosts;
-      const profitMargin = totalRevenue > 0 ? (profitability / totalRevenue) * 100 : 0;
+      setProjectProfitability(profitabilityMap);
 
       // Media de proyectos por cliente
       const projectsByClient = new Map<string, number>();
@@ -205,28 +243,19 @@ const ProjectsPageDesktop = () => {
       }).length;
 
       const monthlyCompletedProjects = projects.filter(p => {
-        return p.status === 'COMPLETED';
+        return normalizeProjectStatus(p.status) === 'COMPLETED';
       }).length;
 
-      // Valor medio de proyecto (facturación media por proyecto con facturas)
-      const projectsWithInvoices = new Set(projectInvoices.map((inv: any) => inv.project_id));
-      const avgProjectValue = projectsWithInvoices.size > 0
-        ? totalRevenue / projectsWithInvoices.size
+      // Valor medio de proyecto (facturacion neta media por proyecto con ingresos)
+      const projectsWithInvoices = Array.from(statsMap.values()).filter((stats) => (stats.total_invoiced || 0) > 0);
+      const avgProjectValue = projectsWithInvoices.length > 0
+        ? totalRevenue / projectsWithInvoices.length
         : 0;
 
-      // Calcular media de rentabilidad de los proyectos
-      // Usamos los datos ya cargados en projectProfitability si están disponibles
-      let avgProfitabilityMargin = 0;
-      try {
-        if (projectProfitability.size > 0) {
-          const margins = Array.from(projectProfitability.values());
-          if (margins.length > 0) {
-            avgProfitabilityMargin = margins.reduce((sum, margin) => sum + margin, 0) / margins.length;
-          }
-        }
-      } catch (err) {
-        console.error('Error calculating average profitability margin:', err);
-      }
+      const margins = Array.from(profitabilityMap.values());
+      const avgProfitabilityMargin = margins.length > 0
+        ? margins.reduce((sum, margin) => sum + margin, 0) / margins.length
+        : 0;
 
       setProjectKPIs({
         byStatus,
@@ -244,71 +273,6 @@ const ProjectsPageDesktop = () => {
       });
     } catch (error) {
       console.error('Error calculating project KPIs:', error);
-    }
-  };
-
-  const fetchProjectProfitability = async (projectIds: string[]) => {
-    if (projectIds.length === 0) {
-      setLoadingProfitability(false);
-      return;
-    }
-
-    try {
-      setLoadingProfitability(true);
-      const profitabilityMap = new Map<string, number>();
-
-      // Fetch profitability for all projects in parallel (batches of 5 to avoid overwhelming the server)
-      const batchSize = 5;
-      for (let i = 0; i < projectIds.length; i += batchSize) {
-        const batch = projectIds.slice(i, i + batchSize);
-        const promises = batch.map(async (projectId) => {
-          try {
-            const { data: financialData, error: financialError } = await supabase.rpc('get_project_financial_stats', {
-              p_project_id: projectId
-            });
-
-            if (financialError) {
-              // Silently skip errors for individual projects
-              return { projectId, margin: null };
-            }
-
-            if (financialData && Array.isArray(financialData) && financialData.length > 0) {
-              const stats = financialData[0];
-              // Mostrar rentabilidad si hay facturación O gastos
-              const hasActivity = (stats?.total_invoiced || 0) > 0 || (stats?.total_expenses || 0) > 0;
-              if (hasActivity) {
-                // Calcular margin_percentage: (margin / total_invoiced) * 100, o si no hay facturado, mostrar el margen absoluto
-                let marginPercentage = stats?.margin_percentage || 0;
-                // Si hay gastos pero no facturación, mostrar como -100% (todo son pérdidas)
-                if ((stats?.total_invoiced || 0) === 0 && (stats?.total_expenses || 0) > 0) {
-                  marginPercentage = -100;
-                }
-                return { projectId, margin: marginPercentage };
-              }
-            }
-            return { projectId, margin: null };
-          } catch (err) {
-            // Silently skip errors for individual projects
-            return { projectId, margin: null };
-          }
-        });
-
-        const results = await Promise.all(promises);
-        results.forEach(({ projectId, margin }) => {
-          if (margin !== null && margin !== undefined) {
-            profitabilityMap.set(projectId, margin);
-          }
-        });
-
-        // Small delay between batches to avoid overwhelming the server
-        if (i + batchSize < projectIds.length) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-      }
-
-      setProjectProfitability(profitabilityMap);
-    } catch (err) {
-      console.error('Error fetching project profitability:', err);
     } finally {
       setLoadingProfitability(false);
     }
@@ -320,16 +284,7 @@ const ProjectsPageDesktop = () => {
 
 
   useEffect(() => {
-    if (projects.length > 0) {
-      calculateProjectKPIs();
-    }
-  }, [projects]);
-
-  useEffect(() => {
-    if (projects.length > 0) {
-      // Fetch profitability for all projects separately to avoid blocking KPI calculation
-      fetchProjectProfitability(projects.map(p => p.id));
-    }
+    void calculateProjectKPIs();
   }, [projects]);
 
   const handleProjectClick = (projectId: string) => {
@@ -408,14 +363,14 @@ const ProjectsPageDesktop = () => {
           <div className="flex-1 min-w-0 w-full flex flex-col overflow-hidden">
             <div className="flex flex-col h-full overflow-hidden">
               {/* KPIs Cards - Diseño compacto en una sola fila */}
-              <div className="grid grid-cols-5 lg:grid-cols-10 gap-2 mb-4 flex-shrink-0">
+              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-12 gap-2 mb-4 flex-shrink-0">
                 {/* Estados */}
                 <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
                   <div className="flex items-center gap-1.5">
                     <Clock className="h-3 w-3 text-blue-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Plan.</span>
+                    <span className="text-[10px] text-muted-foreground font-medium">Negoc.</span>
                   </div>
-                  <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['PLANNED'] || 0}</span>
+                  <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['NEGOTIATION'] || 0}</span>
                 </div>
                 <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
                   <div className="flex items-center gap-1.5">
@@ -433,15 +388,29 @@ const ProjectsPageDesktop = () => {
                 </div>
                 <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle className="h-3 w-3 text-green-500" />
+                    <CheckCircle className="h-3 w-3 text-violet-500" />
                     <span className="text-[10px] text-muted-foreground font-medium">Fin</span>
                   </div>
                   <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['COMPLETED'] || 0}</span>
                 </div>
                 <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
                   <div className="flex items-center gap-1.5">
+                    <Euro className="h-3 w-3 text-emerald-500" />
+                    <span className="text-[10px] text-muted-foreground font-medium">Factur.</span>
+                  </div>
+                  <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['INVOICED'] || 0}</span>
+                </div>
+                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle className="h-3 w-3 text-emerald-600" />
+                    <span className="text-[10px] text-muted-foreground font-medium">Cerrad.</span>
+                  </div>
+                  <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['CLOSED'] || 0}</span>
+                </div>
+                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
+                  <div className="flex items-center gap-1.5">
                     <XCircle className="h-3 w-3 text-red-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Cancel</span>
+                    <span className="text-[10px] text-muted-foreground font-medium">Cancel.</span>
                   </div>
                   <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['CANCELLED'] || 0}</span>
                 </div>
@@ -450,14 +419,14 @@ const ProjectsPageDesktop = () => {
                 <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
                   <div className="flex items-center gap-1.5">
                     <Euro className="h-3 w-3 text-emerald-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Facturas</span>
+                    <span className="text-[10px] text-muted-foreground font-medium">Ing. netos</span>
                   </div>
                   <span className="text-sm font-bold text-foreground">{formatCurrency(projectKPIs.totalRevenue)}</span>
                 </div>
                 <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
                   <div className="flex items-center gap-1.5">
                     <Euro className="h-3 w-3 text-orange-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Gastos</span>
+                    <span className="text-[10px] text-muted-foreground font-medium">Costes</span>
                   </div>
                   <span className="text-sm font-bold text-foreground">{formatCurrency(projectKPIs.totalCosts)}</span>
                 </div>
@@ -473,14 +442,14 @@ const ProjectsPageDesktop = () => {
                 <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
                   <div className="flex items-center gap-1.5">
                     <BarChart3 className="h-3 w-3 text-purple-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Media</span>
+                    <span className="text-[10px] text-muted-foreground font-medium">Ticket</span>
                   </div>
                   <span className="text-sm font-bold text-foreground">{formatCurrency(projectKPIs.avgProjectValue)}</span>
                 </div>
                 <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
                   <div className="flex items-center gap-1.5">
                     <Target className="h-3 w-3 text-indigo-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Presup.</span>
+                    <span className="text-[10px] text-muted-foreground font-medium">Aprob.</span>
                   </div>
                   <span className="text-sm font-bold text-foreground">{formatCurrency(projectKPIs.totalQuotesValue)}</span>
                 </div>
@@ -652,7 +621,7 @@ const ProjectsPageDesktop = () => {
                     },
                     {
                       key: "total",
-                      label: "Total",
+                      label: "Fact. neta",
                       sortable: true,
                       align: "right",
                       priority: 4,

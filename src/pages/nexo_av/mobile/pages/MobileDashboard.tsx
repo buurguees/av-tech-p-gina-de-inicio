@@ -131,6 +131,8 @@ interface NegotiationQuote {
 interface AdminData {
   kpis: {
     invoiced_amount: number;
+    invoiced_net_amount: number;
+    invoiced_tax_amount: number;
     pending_collection: number;
     pending_payments_suppliers: number;
     pending_payroll: number;
@@ -289,20 +291,25 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
       <div className="bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20 rounded-2xl p-5">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-muted-foreground text-sm">Facturado</p>
+            <p className="text-muted-foreground text-sm">Facturado bruto</p>
             <p className="text-3xl font-bold text-foreground">{fmt(k.invoiced_amount)}</p>
+            <p className="text-xs text-muted-foreground">
+              Neto {fmt(k.invoiced_net_amount)} · IVA {fmt(k.invoiced_tax_amount)}
+            </p>
           </div>
           <div className="p-3 bg-primary/20 rounded-xl"><Euro className="h-6 w-6 text-primary" /></div>
         </div>
         <div className="mt-3 flex items-center gap-2 text-sm">
           <TrendingUp className="h-4 w-4 text-emerald-500" />
-          <span className="text-foreground font-medium">Margen: {marginPct}%</span>
+          <span className="text-foreground font-medium">Resultado PyG: {marginPct}% margen</span>
         </div>
       </div>
 
       {/* KPIs grid */}
       <div className="grid grid-cols-2 gap-3">
+        <MiniKpi icon={TrendingUp} label="Ingreso neto" value={fmt(k.invoiced_net_amount)} color="bg-cyan-500/10 text-cyan-500" />
         <MiniKpi icon={AlertCircle} label="Pendiente cobro" value={fmt(k.pending_collection)} color="bg-destructive/10 text-destructive" />
+        <MiniKpi icon={Banknote} label="IVA emitido" value={fmt(k.invoiced_tax_amount)} color="bg-violet-500/10 text-violet-500" />
         <MiniKpi icon={CreditCard} label="Pagos pendientes" value={fmt(totalPending)} color="bg-amber-500/10 text-amber-500" />
       </div>
 
@@ -544,7 +551,7 @@ const MobileCommercialDashboard = ({ userName, userId, navigate }: DashboardProp
         <div className="mt-3 flex items-center gap-3 text-sm">
           <span className="text-emerald-500 font-medium">{k.conversion_rate}% conversión</span>
           <span className="text-muted-foreground">·</span>
-          <span className="text-foreground">{fmt(k.invoiced_amount)} facturado</span>
+          <span className="text-foreground">{fmt(k.invoiced_amount)} facturado bruto</span>
         </div>
       </div>
 

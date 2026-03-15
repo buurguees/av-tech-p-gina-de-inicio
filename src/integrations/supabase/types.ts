@@ -1164,6 +1164,29 @@ export type Database = {
           transaction_count: number
         }[]
       }
+      get_sales_invoice_kpi_summary: {
+        Args: {
+          p_created_by?: string
+          p_end_date?: string
+          p_start_date?: string
+        }
+        Returns: {
+          billed_gross_total: number
+          billed_net_total: number
+          billed_tax_total: number
+          cancelled_invoice_count: number
+          collected_total: number
+          draft_invoice_count: number
+          issued_invoice_count: number
+          overdue_invoice_count: number
+          paid_invoice_count: number
+          partial_invoice_count: number
+          pending_collection_count: number
+          pending_total: number
+          period_end: string
+          period_start: string
+        }[]
+      }
       finance_issue_invoice: {
         Args: { p_invoice_id: string }
         Returns: {

@@ -17,10 +17,6 @@ interface TabNavProps {
 }
 
 const TabNav = ({ tabs, activeTab, onTabChange, className }: TabNavProps) => {
-  if (tabs.length < 2 || tabs.length > 7) {
-    console.warn(`TabNav: Se recomienda entre 2 y 7 tabs. Actualmente hay ${tabs.length}`);
-  }
-
   // Separar tabs por alineación
   const leftTabs = tabs.filter((tab) => tab.align !== "right");
   const rightTabs = tabs.filter((tab) => tab.align === "right");

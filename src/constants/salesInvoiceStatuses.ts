@@ -99,11 +99,15 @@ export const LEGACY_SALES_STATUS_TO_DOCUMENT: Record<string, SalesDocumentStatus
 // HELPER FUNCTIONS
 // ============================================
 
+export const normalizeSalesDocumentStatus = (status: string): SalesDocumentStatus => {
+  return LEGACY_SALES_STATUS_TO_DOCUMENT[status] || "DRAFT";
+};
+
 /**
  * Get the document status info
  */
 export const getSalesDocumentStatusInfo = (status: string) => {
-  const mapped = LEGACY_SALES_STATUS_TO_DOCUMENT[status] || "DRAFT";
+  const mapped = normalizeSalesDocumentStatus(status);
   return SALES_DOCUMENT_STATUSES.find(s => s.value === mapped) || SALES_DOCUMENT_STATUSES[0];
 };
 
@@ -115,7 +119,7 @@ export const calculatePaymentStatus = (
   totalAmount: number,
   documentStatus: string
 ): SalesPaymentStatus | null => {
-  const docStatus = LEGACY_SALES_STATUS_TO_DOCUMENT[documentStatus];
+  const docStatus = normalizeSalesDocumentStatus(documentStatus);
   if (docStatus !== "ISSUED") return null;
 
   if (totalAmount > 0 && paidAmount >= totalAmount) return "PAID";
@@ -131,7 +135,7 @@ export const isOverdue = (
   paymentStatus: SalesPaymentStatus | null,
   dueDate: string | null
 ): boolean => {
-  const docStatus = LEGACY_SALES_STATUS_TO_DOCUMENT[documentStatus];
+  const docStatus = normalizeSalesDocumentStatus(documentStatus);
   if (docStatus !== "ISSUED") return false;
   if (paymentStatus === "PAID") return false;
   if (!dueDate) return false;
@@ -215,7 +219,7 @@ export const LOCKED_SALES_STATUSES: SalesDocumentStatus[] = ["ISSUED", "CANCELLE
  * Check if document is editable
  */
 export const isSalesDocumentEditable = (status: string): boolean => {
-  const docStatus = LEGACY_SALES_STATUS_TO_DOCUMENT[status];
+  const docStatus = normalizeSalesDocumentStatus(status);
   return EDITABLE_SALES_STATUSES.includes(docStatus);
 };
 
@@ -223,6 +227,6 @@ export const isSalesDocumentEditable = (status: string): boolean => {
  * Check if payments tab should be enabled
  */
 export const isCollectionEnabled = (status: string): boolean => {
-  const docStatus = LEGACY_SALES_STATUS_TO_DOCUMENT[status];
+  const docStatus = normalizeSalesDocumentStatus(status);
   return docStatus === "ISSUED";
 };

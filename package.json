@@ -14,7 +14,10 @@
     "sharepoint:test:invoice1": "tsx scripts/sharepoint/manual-upload-invoice1.tsx",
     "sharepoint:sync:sales": "tsx scripts/sharepoint/sync-issued-sales-documents.tsx",
     "sharepoint:sync:invoices": "tsx scripts/sharepoint/sync-issued-sales-documents.tsx --invoices",
-    "sharepoint:sync:quotes": "tsx scripts/sharepoint/sync-issued-sales-documents.tsx --quotes"
+    "sharepoint:sync:quotes": "tsx scripts/sharepoint/sync-issued-sales-documents.tsx --quotes",
+    "sharepoint:sync:purchases": "tsx scripts/sharepoint/sync-purchase-documents.tsx",
+    "sharepoint:sync:purchase-invoices": "tsx scripts/sharepoint/sync-purchase-documents.tsx --invoices",
+    "sharepoint:sync:tickets": "tsx scripts/sharepoint/sync-purchase-documents.tsx --tickets"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

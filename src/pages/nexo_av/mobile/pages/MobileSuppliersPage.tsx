@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -69,8 +69,7 @@ const MobileSuppliersPage = () => {
     <div className="w-full h-full flex flex-col">
       {/* Header: KPIs + Search */}
       <div
-        className="flex-shrink-0 py-3 px-3 w-full"
-        style={{ background: "linear-gradient(0deg, rgba(0,0,0,1) 100%, rgba(255,255,255,0) 0%)", height: "fit-content" }}
+        className="flex-shrink-0 py-3 px-3 w-full bg-background/95 supports-[backdrop-filter]:backdrop-blur-sm"
       >
         <div className="grid grid-cols-2 gap-2 mb-3">
           <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
@@ -117,7 +116,7 @@ const MobileSuppliersPage = () => {
             <Truck className="h-16 w-16 text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No hay proveedores</p>
             <p className="text-muted-foreground text-sm">
-              {searchInput ? "Prueba con otra búsqueda" : "Aún no se han registrado proveedores"}
+              {searchInput ? "Prueba con otra bÃºsqueda" : "AÃºn no se han registrado proveedores"}
             </p>
           </div>
         ) : (
@@ -158,7 +157,7 @@ const MobileSuppliersPage = () => {
                     <div className="flex items-center gap-3 mt-1">
                       {sup.city && (
                         <span className="text-xs text-muted-foreground/70">
-                          📍 {sup.city}
+                          ðŸ“ {sup.city}
                         </span>
                       )}
                       {sup.phone && (
@@ -182,3 +181,4 @@ const MobileSuppliersPage = () => {
 };
 
 export default MobileSuppliersPage;
+

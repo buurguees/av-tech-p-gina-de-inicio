@@ -15,3 +15,8 @@ La documentacion del repo debe separarse por objetivo:
 ## Regla practica
 
 Si un documento define como debe organizarse o evolucionar el repo, debe vivir en `docs/architecture/`.
+
+## Referencias operativas utiles
+
+- SharePoint documental: `docs/sharepoint/SHAREPOINT_ERP_SITE_ESTRUCTURA_DOCUMENTAL.md`
+- Graph + calendarios M365 validados para NEXO: `docs/sharepoint/M365_CALENDARS_NEXO_AV.md`

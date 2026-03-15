@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import { Plus, Users, Send, Copy, Receipt, Edit, X, Save, Loader2, Building2, ClipboardList } from "lucide-react";
 import "../../styles/components/navigation/detail-action-button.css";
 
-export type DetailActionType = "quote" | "invoice" | "technicians" | "purchase" | "purchase-order" | "new_version" | "send" | "edit" | "new_invoice" | "new_client" | "new_project" | "new_technician" | "cancel" | "save" | "create_project";
+export type DetailActionType = "quote" | "invoice" | "technicians" | "purchase" | "purchase-order" | "new_version" | "send" | "edit" | "new_invoice" | "new_client" | "new_project" | "new_technician" | "new_supplier" | "cancel" | "save" | "create_project";
 
 interface DetailActionButtonProps {
   actionType: DetailActionType;
@@ -35,7 +35,7 @@ const DetailActionButton = ({
         };
       case "technicians":
         return {
-          label: "Asignar Técnicos",
+          label: "Asignar TÃ©cnicos",
           icon: <Users className="detail-action-button__icon" />,
           variant: "default" as const,
         };
@@ -53,7 +53,7 @@ const DetailActionButton = ({
         };
       case "new_version":
         return {
-          label: "Nueva Versión",
+          label: "Nueva VersiÃ³n",
           icon: <Copy className="detail-action-button__icon" />,
           variant: "default" as const,
         };
@@ -93,6 +93,12 @@ const DetailActionButton = ({
           icon: <Plus className="detail-action-button__icon" />,
           variant: "default" as const,
         };
+      case "new_supplier":
+        return {
+          label: "Nuevo Proveedor",
+          icon: <Plus className="detail-action-button__icon" />,
+          variant: "default" as const,
+        };
       case "cancel":
         return {
           label: "Cancelar",
@@ -113,7 +119,7 @@ const DetailActionButton = ({
         };
       default:
         return {
-          label: "Acción",
+          label: "AcciÃ³n",
           icon: <Plus className="detail-action-button__icon" />,
           variant: "default" as const,
         };
@@ -142,3 +148,5 @@ const DetailActionButton = ({
 };
 
 export default DetailActionButton;
+
+
