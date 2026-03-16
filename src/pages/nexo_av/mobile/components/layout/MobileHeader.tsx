@@ -31,8 +31,7 @@ export const MobileHeader = ({
   onThemeChange,
 }: MobileHeaderProps) => {
   const location = useLocation();
-  
-  // Mapeo de rutas a nombres de pÃ¡gina
+
   const getPageTitle = (pathname: string): string => {
     if (pathname.includes('/dashboard')) return 'Dashboard';
     if (pathname.includes('/projects')) {
@@ -43,21 +42,39 @@ export const MobileHeader = ({
       if (pathname.match(/\/clients\/[^/]+$/)) return 'Detalle Cliente';
       return 'Clientes';
     }
-    if (pathname.includes('/scanner')) return 'EscÃ¡ner';
+    if (pathname.includes('/scanner')) return 'Escáner';
     if (pathname.includes('/quotes')) {
       if (pathname.includes('/new')) return 'Nuevo Presupuesto';
       if (pathname.match(/\/quotes\/[^/]+$/)) return 'Detalle Presupuesto';
       if (pathname.includes('/edit')) return 'Editar Presupuesto';
       return 'Presupuestos';
     }
-    if (pathname.includes('/settings')) return 'ConfiguraciÃ³n';
-    if (pathname.includes('/audit')) return 'AuditorÃ­a';
-    if (pathname.includes('/catalog')) return 'CatÃ¡logo';
+    if (pathname.includes('/invoices')) {
+      if (pathname.match(/\/invoices\/new$/)) return 'Nueva Factura';
+      if (pathname.match(/\/invoices\/[^/]+\/edit$/)) return 'Editar Factura';
+      if (pathname.match(/\/invoices\/[^/]+$/)) return 'Detalle Factura';
+      return 'Facturas';
+    }
+    if (pathname.includes('/purchase-invoices')) {
+      if (pathname.match(/\/purchase-invoices\/new$/)) return 'Nueva Compra';
+      if (pathname.match(/\/purchase-invoices\/[^/]+\/edit$/)) return 'Editar Compra';
+      if (pathname.match(/\/purchase-invoices\/[^/]+$/)) return 'Detalle Compra';
+      return 'Compras';
+    }
+    if (pathname.includes('/expenses')) {
+      if (pathname.match(/\/expenses\/new$/)) return 'Nuevo Gasto';
+      if (pathname.match(/\/expenses\/[^/]+\/edit$/)) return 'Editar Gasto';
+      if (pathname.match(/\/expenses\/[^/]+$/)) return 'Detalle Gasto';
+      return 'Gastos';
+    }
+    if (pathname.includes('/settings')) return 'Configuración';
+    if (pathname.includes('/audit')) return 'Auditoría';
+    if (pathname.includes('/catalog')) return 'Catálogo';
     if (pathname.includes('/calculator')) return 'Calculadora';
     if (pathname.includes('/mapa')) return 'Mapa';
     if (pathname.includes('/technicians')) {
-      if (pathname.match(/\/technicians\/[^/]+$/)) return 'Detalle TÃ©cnico';
-      return 'TÃ©cnicos';
+      if (pathname.match(/\/technicians\/[^/]+$/)) return 'Detalle Técnico';
+      return 'Técnicos';
     }
     if (pathname.includes('/suppliers')) return 'Proveedores';
     if (pathname.includes('/users')) return 'Usuarios';
@@ -76,13 +93,13 @@ export const MobileHeader = ({
     >
       <div className="w-full h-[var(--mobile-header-height)] px-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div 
+          <div
             className="flex-shrink-0 active:scale-95 transition-all duration-200"
             style={{ touchAction: 'manipulation' }}
           >
-            <PlatformBrand 
-              userId={userId} 
-              logoOnly 
+            <PlatformBrand
+              userId={userId}
+              logoOnly
               compact
               className="scale-90"
             />
@@ -103,7 +120,7 @@ export const MobileHeader = ({
             >
               <Bell className="h-5 w-5" />
             </Button>
-            
+
             <UserAvatar
               fullName={userInfo.full_name}
               email={userInfo.email}

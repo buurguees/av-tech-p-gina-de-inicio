@@ -518,7 +518,12 @@ const MobileSiteCard = ({
         break;
       case "READY_TO_INVOICE":
         if (userId) {
-          navigate(`/nexo-av/${userId}/invoices/new?projectId=${projectId}&siteId=${site.id}`);
+          const params = new URLSearchParams({
+            projectId,
+            siteId: site.id,
+            returnTo: `/nexo-av/${userId}/projects/${projectId}?tab=planificacion`,
+          });
+          navigate(`/nexo-av/${userId}/invoices/new?${params.toString()}`);
         }
         break;
       case "INVOICED":

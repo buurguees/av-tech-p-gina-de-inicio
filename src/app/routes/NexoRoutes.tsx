@@ -84,6 +84,10 @@ const ResponsiveInvoicesPage = createResponsivePage(
   () => import('@/pages/nexo_av/desktop/pages/InvoicesPage'),
   () => import('@/pages/nexo_av/mobile/pages/MobileInvoicesPage')
 );
+const ResponsiveNewInvoicePage = createResponsivePage(
+  () => import('@/pages/nexo_av/desktop/pages/NewInvoicePage'),
+  () => import('@/pages/nexo_av/mobile/pages/MobileNewInvoicePage')
+);
 const ResponsiveCatalogPage = createResponsivePage(
   () => import('@/pages/nexo_av/desktop/pages/CatalogPage'),
   () => import('@/pages/nexo_av/mobile/pages/MobileCatalogPage')
@@ -195,7 +199,7 @@ export const nexoRoutes = (
       <Route path="partners/:partnerId" element={<NexoPartnerDetailPage />} />
       <Route path="workers" element={<NexoWorkersPage />} />
       <Route path="workers/:workerId" element={<NexoWorkerDetailPage />} />
-      <Route path="invoices/new" element={<NexoNewInvoicePage />} />
+      <Route path="invoices/new" element={<ResponsiveNewInvoicePage />} />
       <Route path="invoices/:invoiceId" element={<ResponsiveInvoiceDetailPage />} />
       <Route path="invoices/:invoiceId/edit" element={<NexoEditInvoicePage />} />
       <Route path="rectificativas" element={<NexoRectificativasPage />} />

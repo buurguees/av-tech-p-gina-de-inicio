@@ -3,7 +3,7 @@
  * VERSIÓN: 2.0 - Sin Histórico, botones pill, acción contextual
  */
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -24,8 +24,7 @@ import {
   Edit,
   LayoutDashboard,
   Users,
-  Plus,
-  ChevronRight
+  Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getProjectStatusInfo } from "@/constants/projectStatuses";
@@ -33,6 +32,7 @@ import { getQuoteStatusInfo } from "@/constants/quoteStatuses";
 import EditProjectSheet from "../components/projects/EditProjectSheet";
 import MobilePlanningTab from "../components/projects/MobilePlanningTab";
 import MobileSitesTab from "../components/projects/MobileSitesTab";
+import { MobileEmptyState, MobileListCard, MobileMetricCard, MobileSectionCard } from "../components/common/MobileUiBlocks";
 import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo } from "@/constants/salesInvoiceStatuses";
 import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
 
@@ -98,14 +98,27 @@ const TABS: Tab[] = [
   { id: 'tecnicos', label: 'Técnicos', icon: Users, iconOnly: true },
 ];
 
+const DEFAULT_TAB: TabId = 'resumen';
+
+const resolveTabFromSearchParams = (searchParams: URLSearchParams): TabId => {
+  const requestedTab = searchParams.get('tab');
+
+  if (!requestedTab) return DEFAULT_TAB;
+
+  return TABS.some((tab) => tab.id === requestedTab)
+    ? (requestedTab as TabId)
+    : DEFAULT_TAB;
+};
+
 const MobileProjectDetailPage = () => {
   const { userId, projectId } = useParams<{ userId: string; projectId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [client, setClient] = useState<ClientDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabId>('resumen');
+  const [activeTab, setActiveTab] = useState<TabId>(() => resolveTabFromSearchParams(searchParams));
   const [metrics, setMetrics] = useState<ProjectMetrics>({
     quotesTotal: 0,
     invoicesTotal: 0,
@@ -120,6 +133,11 @@ const MobileProjectDetailPage = () => {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const nextTab = resolveTabFromSearchParams(searchParams);
+    setActiveTab((currentTab) => (currentTab === nextTab ? currentTab : nextTab));
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -335,6 +353,28 @@ const MobileProjectDetailPage = () => {
     navigate(`/nexo-av/${userId}/projects`);
   };
 
+  const handleTabChange = (tab: TabId) => {
+    setActiveTab(tab);
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams);
+      if (tab === DEFAULT_TAB) {
+        nextParams.delete('tab');
+      } else {
+        nextParams.set('tab', tab);
+      }
+      return nextParams;
+    }, { replace: true });
+  };
+
+  const buildInvoiceCreatePath = (tab: TabId, extraParams?: Record<string, string>) => {
+    const params = new URLSearchParams({
+      returnTo: `/nexo-av/${userId}/projects/${projectId}?tab=${tab}`,
+      ...extraParams,
+    });
+
+    return `/nexo-av/${userId}/invoices/new?${params.toString()}`;
+  };
+
   if (loading) {
     return (
       <div className="w-full h-full flex items-center justify-center">
@@ -386,7 +426,12 @@ const MobileProjectDetailPage = () => {
         return {
           label: 'Nueva',
           icon: Plus,
-          onClick: () => navigate(`/nexo-av/${userId}/invoices/new?clientId=${currentClientId}&projectId=${projectId}`),
+          onClick: () => navigate(
+            buildInvoiceCreatePath('facturas', {
+              clientId: currentClientId,
+              projectId: projectId ?? '',
+            })
+          ),
         };
       case 'tecnicos':
         return {
@@ -466,7 +511,7 @@ const MobileProjectDetailPage = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={cn(
                   "flex min-w-0 min-h-[52px] items-center justify-center gap-1 rounded-xl px-2 py-2.5",
                   "text-[11px] font-medium leading-tight transition-colors duration-200",
@@ -551,7 +596,7 @@ const MobileProjectDetailPage = () => {
         
         
         {activeTab === 'tecnicos' && (
-          <EmptyTabContent 
+          <MobileEmptyState
             icon={Users}
             title="Técnicos"
             description="Técnicos asignados al proyecto"
@@ -626,7 +671,7 @@ const ResumenTab = ({
 }: ResumenTabProps) => (
   <div className="px-4 py-4 space-y-4">
     {/* ===== INFORMACIÓN DEL PROYECTO ===== */}
-    <SectionCard title="Información del Proyecto">
+    <MobileSectionCard title="Información del Proyecto">
       <div className="space-y-4">
         {/* Nombre y número */}
         <div className="space-y-1">
@@ -731,49 +776,49 @@ const ResumenTab = ({
           </div>
         )}
       </div>
-    </SectionCard>
+    </MobileSectionCard>
 
     {/* ===== MÉTRICAS FINANCIERAS ===== */}
     <div className="grid grid-cols-2 gap-3">
-      <MetricCard
+      <MobileMetricCard
         icon={FileText}
         label="Presupuesto"
         value={loadingMetrics ? "..." : formatCurrency(metrics.quotesTotal)}
-        color="blue"
+        tone="blue"
       />
-      <MetricCard
+      <MobileMetricCard
         icon={Receipt}
         label="Facturado"
         value={loadingMetrics ? "..." : formatCurrency(metrics.invoicesTotal)}
-        color="green"
+        tone="green"
       />
-      <MetricCard
+      <MobileMetricCard
         icon={ShoppingCart}
         label="Compras"
         value={loadingMetrics ? "..." : formatCurrency(metrics.purchasesTotal)}
-        color="orange"
+        tone="orange"
       />
-      <MetricCard
+      <MobileMetricCard
         icon={TrendingUp}
         label="Margen"
         value={loadingMetrics ? "..." : formatCurrency(metrics.margin)}
-        color={metrics.margin >= 0 ? "emerald" : "red"}
+        tone={metrics.margin >= 0 ? "emerald" : "red"}
       />
     </div>
 
     {/* ===== NOTAS ORIGINALES DEL PROYECTO ===== */}
     {project.notes && (
-      <SectionCard title="Notas del Proyecto">
+      <MobileSectionCard title="Notas del Proyecto">
         <p className="text-sm text-foreground whitespace-pre-wrap">
           {project.notes}
         </p>
-      </SectionCard>
+      </MobileSectionCard>
     )}
 
     {/* ===== NOTAS INTERNAS & ACTIVIDAD ===== */}
-    <SectionCard title="">
+    <MobileSectionCard>
       <ActivityTimeline entityType="project" entityId={projectId} compact />
-    </SectionCard>
+    </MobileSectionCard>
   </div>
 );
 
@@ -802,50 +847,6 @@ const InfoRow = ({ icon: Icon, label, value, subValue }: InfoRowProps) => (
   </div>
 );
 
-interface MetricCardProps {
-  icon: any;
-  label: string;
-  value: string;
-  color: 'blue' | 'green' | 'orange' | 'emerald' | 'red' | 'purple';
-}
-
-const MetricCard = ({ icon: Icon, label, value, color }: MetricCardProps) => {
-  const colorClasses = {
-    blue: 'bg-blue-500/10 text-blue-500',
-    green: 'bg-green-500/10 text-green-500',
-    orange: 'bg-orange-500/10 text-orange-500',
-    emerald: 'bg-emerald-500/10 text-emerald-500',
-    red: 'bg-red-500/10 text-red-500',
-    purple: 'bg-purple-500/10 text-purple-500',
-  };
-
-  return (
-    <div className="bg-card border border-border rounded-xl p-3">
-      <div className="flex items-center gap-2 mb-1">
-        <div className={cn("p-1.5 rounded-lg", colorClasses[color])}>
-          <Icon className="h-4 w-4" />
-        </div>
-        <span className="text-xs text-muted-foreground">{label}</span>
-      </div>
-      <p className="text-lg font-semibold text-foreground pl-1">{value}</p>
-    </div>
-  );
-};
-
-interface SectionCardProps {
-  title: string;
-  children: React.ReactNode;
-}
-
-const SectionCard = ({ title, children }: SectionCardProps) => (
-  <div className="bg-card border border-border rounded-xl p-4">
-    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-      {title}
-    </h3>
-    {children}
-  </div>
-);
-
 interface InfoChipProps {
   icon: any;
   value: string;
@@ -871,22 +872,6 @@ const InfoChip = ({ icon: Icon, value, href }: InfoChipProps) => {
   }
   return content;
 };
-
-interface EmptyTabContentProps {
-  icon: any;
-  title: string;
-  description: string;
-}
-
-const EmptyTabContent = ({ icon: Icon, title, description }: EmptyTabContentProps) => (
-  <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-    <div className="p-4 bg-muted/60 rounded-full mb-4">
-      <Icon className="h-8 w-8 text-muted-foreground" />
-    </div>
-    <h3 className="text-lg font-medium text-foreground mb-1">{title}</h3>
-    <p className="text-sm text-muted-foreground">{description}</p>
-  </div>
-);
 
 // ===== COMPONENTES DE LISTADO DE DOCUMENTOS =====
 
@@ -935,50 +920,32 @@ const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency, siteMode, d
         const statusInfo = getQuoteStatusInfo(quote.status);
         const resolvedSiteName = getResolvedSiteName(quote.site_name);
         return (
-          <button
+          <MobileListCard
             key={quote.id}
             onClick={() => onQuoteClick(quote.id)}
-            className={cn(
-              "w-full text-left p-3 rounded-xl",
-              "bg-card border border-border",
-              "active:scale-[0.98] transition-all duration-200",
-              "hover:border-primary/30"
-            )}
-            style={{ touchAction: 'manipulation' }}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-mono text-xs text-muted-foreground truncate">
-                    {quote.quote_number}
-                  </span>
-                  <Badge variant="outline" className={cn(statusInfo.className, "text-[10px] px-1.5 py-0")}>
-                    {statusInfo.label}
-                  </Badge>
-                </div>
-                <h4 className="text-sm font-medium text-foreground truncate">
-                  {quote.client_name || "Sin cliente"}
-                </h4>
-                <p className="text-xs text-muted-foreground/70 mt-0.5 flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {resolvedSiteName || "Sin asignar"}
-                </p>
-                {quote.issue_date && (
-                  <p className="text-xs text-muted-foreground/70 mt-0.5">
-                    {new Date(quote.issue_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                <span className="text-xs text-muted-foreground">{formatCurrency(quote.subtotal || 0)}</span>
-                <span className="text-sm font-semibold text-foreground">{formatCurrency(quote.total || 0)}</span>
-              </div>
-            </div>
-          </button>
+            eyebrow={quote.quote_number}
+            badges={
+              <Badge variant="outline" className={cn(statusInfo.className, "text-[10px] px-1.5 py-0")}>
+                {statusInfo.label}
+              </Badge>
+            }
+            title={quote.client_name || "Sin cliente"}
+            subtitle={
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                {resolvedSiteName || "Sin asignar"}
+              </span>
+            }
+            meta={quote.issue_date
+              ? new Date(quote.issue_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })
+              : undefined}
+            secondaryAmount={formatCurrency(quote.subtotal || 0)}
+            amount={formatCurrency(quote.total || 0)}
+          />
         );
       })}
       {/* Summary footer */}
-      <div className="bg-card/50 border border-border rounded-xl p-3 mt-3">
+      <div className="rounded-[20px] border border-border/70 bg-gradient-to-br from-card via-card to-muted/20 p-3 mt-3 shadow-[0_12px_30px_-26px_rgba(15,23,42,0.5)]">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>{quotes.length} presupuesto{quotes.length !== 1 ? 's' : ''}</span>
           <div className="flex items-center gap-3">
@@ -1045,57 +1012,39 @@ const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency, siteM
         const resolvedSiteName = getResolvedSiteName(invoice.site_name);
 
         return (
-          <button
+          <MobileListCard
             key={invoice.id}
             onClick={() => onInvoiceClick(invoice.id)}
-            className={cn(
-              "w-full text-left p-3 rounded-xl",
-              "bg-card border border-border",
-              "active:scale-[0.98] transition-all duration-200",
-              "hover:border-primary/30"
-            )}
-            style={{ touchAction: 'manipulation' }}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="font-mono text-xs text-muted-foreground truncate">
-                    {displayNumber}
-                  </span>
-                  <Badge variant="outline" className={cn("sales-status-badge sales-status-badge--document", docStatusInfo.className, "text-[10px] px-1.5 py-0")}>
-                    {docStatusInfo.label}
+            eyebrow={displayNumber}
+            badges={
+              <>
+                <Badge variant="outline" className={cn("sales-status-badge sales-status-badge--document", docStatusInfo.className, "text-[10px] px-1.5 py-0")}>
+                  {docStatusInfo.label}
+                </Badge>
+                {collectionInfo && (
+                  <Badge variant="outline" className={cn("sales-status-badge sales-status-badge--collection", collectionInfo.className, "text-[10px] px-1.5 py-0")}>
+                    {collectionInfo.label}
                   </Badge>
-                  {collectionInfo && (
-                    <Badge variant="outline" className={cn("sales-status-badge sales-status-badge--collection", collectionInfo.className, "text-[10px] px-1.5 py-0")}>
-                      {collectionInfo.label}
-                    </Badge>
-                  )}
-                </div>
-                <h4 className="text-sm font-medium text-foreground truncate">
-                  {invoice.client_name || "Sin cliente"}
-                </h4>
-                <p className="text-xs text-muted-foreground/70 mt-0.5 flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {resolvedSiteName || "Sin asignar"}
-                </p>
-                {invoice.issue_date && (
-                  <p className="text-xs text-muted-foreground/70 mt-0.5">
-                    {new Date(invoice.issue_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
-                  </p>
                 )}
-              </div>
-              <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                {invoice.pending_amount > 0 && (
-                  <span className="text-[10px] text-amber-500">Pend. {formatCurrency(invoice.pending_amount)}</span>
-                )}
-                <span className="text-sm font-semibold text-foreground">{formatCurrency(invoice.total || 0)}</span>
-              </div>
-            </div>
-          </button>
+              </>
+            }
+            title={invoice.client_name || "Sin cliente"}
+            subtitle={
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                {resolvedSiteName || "Sin asignar"}
+              </span>
+            }
+            meta={invoice.issue_date
+              ? new Date(invoice.issue_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })
+              : undefined}
+            secondaryAmount={invoice.pending_amount > 0 ? `Pend. ${formatCurrency(invoice.pending_amount)}` : undefined}
+            amount={formatCurrency(invoice.total || 0)}
+          />
         );
       })}
       {/* Summary footer */}
-      <div className="bg-card/50 border border-border rounded-xl p-3 mt-3">
+      <div className="rounded-[20px] border border-border/70 bg-gradient-to-br from-card via-card to-muted/20 p-3 mt-3 shadow-[0_12px_30px_-26px_rgba(15,23,42,0.5)]">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>{invoices.length} factura{invoices.length !== 1 ? 's' : ''}</span>
           <div className="flex items-center gap-3">

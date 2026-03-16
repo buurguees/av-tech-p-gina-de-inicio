@@ -3,7 +3,7 @@
  * VERSIÓN: 1.0 - Con pestañas: Información, Presupuestos, Facturas, Proyectos
  */
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -23,7 +23,6 @@ import {
   Edit,
   LayoutDashboard,
   Plus,
-  ChevronRight,
   Globe,
   Briefcase,
   Target,
@@ -33,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { getProjectStatusInfo } from "@/constants/projectStatuses";
 import { getQuoteStatusInfo } from "@/constants/quoteStatuses";
 import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo } from "@/constants/salesInvoiceStatuses";
+import { MobileEmptyState, MobileListCard, MobileMetricCard, MobileSectionCard } from "../components/common/MobileUiBlocks";
 // Definir LEAD_STAGES localmente (igual que en MobileClientsPage)
 const LEAD_STAGES = [
   { value: 'NEGOTIATION', label: 'En Negociación', className: 'bg-orange-500/15 text-orange-700 border-orange-500/30 dark:text-orange-400' },
@@ -117,13 +117,26 @@ const TABS: Tab[] = [
   { id: 'proyectos', label: 'Proyectos', icon: FolderKanban },
 ];
 
+const DEFAULT_TAB: TabId = 'informacion';
+
+const resolveTabFromSearchParams = (searchParams: URLSearchParams): TabId => {
+  const requestedTab = searchParams.get('tab');
+
+  if (!requestedTab) return DEFAULT_TAB;
+
+  return TABS.some((tab) => tab.id === requestedTab)
+    ? (requestedTab as TabId)
+    : DEFAULT_TAB;
+};
+
 const MobileClientDetailPage = () => {
   const { userId, clientId } = useParams<{ userId: string; clientId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const [client, setClient] = useState<ClientDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabId>('informacion');
+  const [activeTab, setActiveTab] = useState<TabId>(() => resolveTabFromSearchParams(searchParams));
   const [metrics, setMetrics] = useState<ClientMetrics>({
     quotesTotal: 0,
     invoicesTotal: 0,
@@ -138,6 +151,11 @@ const MobileClientDetailPage = () => {
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
+
+  useEffect(() => {
+    const nextTab = resolveTabFromSearchParams(searchParams);
+    setActiveTab((currentTab) => (currentTab === nextTab ? currentTab : nextTab));
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchClient = async () => {
@@ -294,6 +312,28 @@ const MobileClientDetailPage = () => {
     navigate(`/nexo-av/${userId}/clients`);
   };
 
+  const handleTabChange = (tab: TabId) => {
+    setActiveTab(tab);
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams);
+      if (tab === DEFAULT_TAB) {
+        nextParams.delete('tab');
+      } else {
+        nextParams.set('tab', tab);
+      }
+      return nextParams;
+    }, { replace: true });
+  };
+
+  const buildInvoiceCreatePath = () => {
+    const params = new URLSearchParams({
+      clientId: clientId ?? '',
+      returnTo: `/nexo-av/${userId}/clients/${clientId}?tab=facturas`,
+    });
+
+    return `/nexo-av/${userId}/invoices/new?${params.toString()}`;
+  };
+
   if (loading) {
     return (
       <div className="w-full h-full flex items-center justify-center">
@@ -338,7 +378,7 @@ const MobileClientDetailPage = () => {
         return {
           label: 'Nueva',
           icon: Plus,
-          onClick: () => console.log('Crear nueva factura'),
+          onClick: () => navigate(buildInvoiceCreatePath()),
         };
       case 'proyectos':
         return {
@@ -417,7 +457,7 @@ const MobileClientDetailPage = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={cn(
                   "flex min-w-0 min-h-[52px] flex-col items-center justify-center gap-1 rounded-xl px-2 py-2.5",
                   "text-[11px] font-medium leading-tight transition-colors duration-200",
@@ -508,7 +548,7 @@ const InformacionTab = ({
 }: InformacionTabProps) => (
   <div className="px-4 py-4 space-y-4">
     {/* ===== INFORMACIÓN DEL CLIENTE ===== */}
-    <SectionCard title="Información del Cliente">
+    <MobileSectionCard title="Información del Cliente">
       <div className="space-y-4">
         {/* Nombre y estado */}
         <div className="space-y-1">
@@ -620,43 +660,43 @@ const InformacionTab = ({
           )}
         </div>
       </div>
-    </SectionCard>
+    </MobileSectionCard>
 
     {/* ===== MÉTRICAS ===== */}
     <div className="grid grid-cols-2 gap-3">
-      <MetricCard
+      <MobileMetricCard
         icon={FileText}
         label="Presupuestos"
         value={loadingMetrics ? "..." : formatCurrency(metrics.quotesTotal)}
-        color="blue"
+        tone="blue"
       />
-      <MetricCard
+      <MobileMetricCard
         icon={Receipt}
         label="Facturado"
         value={loadingMetrics ? "..." : formatCurrency(metrics.invoicesTotal)}
-        color="green"
+        tone="green"
       />
-      <MetricCard
+      <MobileMetricCard
         icon={FolderKanban}
         label="Proyectos"
         value={loadingMetrics ? "..." : metrics.projectsCount.toString()}
-        color="purple"
+        tone="purple"
       />
-      <MetricCard
+      <MobileMetricCard
         icon={TrendingUp}
         label="Ticket Medio"
         value={loadingMetrics ? "..." : metrics.projectsCount > 0 ? formatCurrency(metrics.invoicesTotal / metrics.projectsCount) : formatCurrency(0)}
-        color="emerald"
+        tone="emerald"
       />
     </div>
 
     {/* ===== NOTAS ===== */}
     {client.notes && (
-      <SectionCard title="Notas">
+      <MobileSectionCard title="Notas">
         <p className="text-sm text-foreground whitespace-pre-wrap">
           {client.notes}
         </p>
-      </SectionCard>
+      </MobileSectionCard>
     )}
   </div>
 );
@@ -688,50 +728,6 @@ const InfoRow = ({ icon: Icon, label, value, href }: InfoRowProps) => {
   return content;
 };
 
-interface MetricCardProps {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-  color: 'blue' | 'green' | 'orange' | 'emerald' | 'red' | 'purple';
-}
-
-const MetricCard = ({ icon: Icon, label, value, color }: MetricCardProps) => {
-  const colorClasses = {
-    blue: 'bg-blue-500/10 text-blue-500',
-    green: 'bg-green-500/10 text-green-500',
-    orange: 'bg-orange-500/10 text-orange-500',
-    emerald: 'bg-emerald-500/10 text-emerald-500',
-    red: 'bg-red-500/10 text-red-500',
-    purple: 'bg-purple-500/10 text-purple-500',
-  };
-
-  return (
-    <div className="bg-card border border-border rounded-xl p-3">
-      <div className="flex items-center gap-2 mb-1">
-        <div className={cn("p-1.5 rounded-lg", colorClasses[color])}>
-          <Icon className="h-4 w-4" />
-        </div>
-        <span className="text-xs text-muted-foreground">{label}</span>
-      </div>
-      <p className="text-lg font-semibold text-foreground pl-1">{value}</p>
-    </div>
-  );
-};
-
-interface SectionCardProps {
-  title: string;
-  children: React.ReactNode;
-}
-
-const SectionCard = ({ title, children }: SectionCardProps) => (
-  <div className="bg-card border border-border rounded-xl p-4">
-    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-      {title}
-    </h3>
-    {children}
-  </div>
-);
-
 // ===== COMPONENTES DE LISTADO =====
 
 interface QuotesListProps {
@@ -752,12 +748,12 @@ const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency }: QuotesLis
 
   if (quotes.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="p-4 bg-muted/60 rounded-full mb-4">
-          <FileText className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-medium text-foreground mb-1">Presupuestos</h3>
-        <p className="text-sm text-muted-foreground">No hay presupuestos para este cliente</p>
+      <div className="px-4 py-4">
+        <MobileEmptyState
+          icon={FileText}
+          title="Presupuestos"
+          description="No hay presupuestos para este cliente"
+        />
       </div>
     );
   }
@@ -767,48 +763,22 @@ const QuotesList = ({ quotes, loading, onQuoteClick, formatCurrency }: QuotesLis
       {quotes.map((quote) => {
         const statusInfo = getQuoteStatusInfo(quote.status);
         return (
-          <button
+          <MobileListCard
             key={quote.id}
             onClick={() => onQuoteClick(quote.id)}
-            className={cn(
-              "w-full text-left px-3 py-2 rounded-xl",
-              "bg-card border border-border",
-              "active:scale-[0.98] transition-all duration-200",
-              "hover:border-primary/30"
-            )}
-            style={{ touchAction: 'manipulation' }}
-          >
-            <div className="flex items-center gap-2">
-              {/* Nº Documento - Columna fija */}
-              <span className="font-mono text-xs text-muted-foreground w-[100px] flex-shrink-0 truncate">
-                {quote.quote_number}
-              </span>
-              
-              {/* Estado */}
-              <Badge 
-                variant="outline" 
-                className={cn(
-                  statusInfo.className,
-                  "text-[10px] px-1.5 py-0 w-[70px] justify-center flex-shrink-0"
-                )}
+            eyebrow={quote.quote_number}
+            badges={
+              <Badge
+                variant="outline"
+                className={cn(statusInfo.className, "text-[10px] px-1.5 py-0")}
               >
                 {statusInfo.label}
               </Badge>
-              
-              {/* Subtotal - Columna flexible */}
-              <span className="text-sm text-foreground flex-1 text-right">
-                {formatCurrency(quote.subtotal || 0)}
-              </span>
-              
-              {/* Total - Columna fija */}
-              <span className="text-sm font-semibold text-foreground w-[80px] text-right flex-shrink-0">
-                {formatCurrency(quote.total || 0)}
-              </span>
-              
-              {/* Arrow */}
-              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-1" />
-            </div>
-          </button>
+            }
+            title="Presupuesto del cliente"
+            secondaryAmount={formatCurrency(quote.subtotal || 0)}
+            amount={formatCurrency(quote.total || 0)}
+          />
         );
       })}
     </div>
@@ -833,12 +803,12 @@ const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency }: Inv
 
   if (invoices.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="p-4 bg-muted/60 rounded-full mb-4">
-          <Receipt className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-medium text-foreground mb-1">Facturas</h3>
-        <p className="text-sm text-muted-foreground">No hay facturas para este cliente</p>
+      <div className="px-4 py-4">
+        <MobileEmptyState
+          icon={Receipt}
+          title="Facturas"
+          description="No hay facturas para este cliente"
+        />
       </div>
     );
   }
@@ -857,63 +827,40 @@ const InvoicesList = ({ invoices, loading, onInvoiceClick, formatCurrency }: Inv
         const collectionInfo = getCollectionStatusInfo(collectionStatus);
         
         return (
-          <button
+          <MobileListCard
             key={invoice.id}
             onClick={() => onInvoiceClick(invoice.id)}
-            className={cn(
-              "w-full text-left px-3 py-2 rounded-xl",
-              "bg-card border border-border",
-              "active:scale-[0.98] transition-all duration-200",
-              "hover:border-primary/30"
-            )}
-            style={{ touchAction: 'manipulation' }}
-          >
-            <div className="flex items-center gap-2">
-              {/* Nº Documento - Columna fija */}
-              <span className="font-mono text-xs text-muted-foreground w-[90px] flex-shrink-0 truncate">
-                {displayNumber}
-              </span>
-              
-              {/* Estado del documento */}
-              <Badge 
-                variant="outline" 
-                className={cn(
-                  "sales-status-badge sales-status-badge--document",
-                  docStatusInfo.className,
-                  "text-[10px] px-1.5 py-0 w-[65px] justify-center flex-shrink-0"
-                )}
-              >
-                {docStatusInfo.label}
-              </Badge>
-              
-              {/* Estado de cobro (solo si está emitida) */}
-              {collectionInfo && (
-                <Badge 
-                  variant="outline" 
+            eyebrow={displayNumber}
+            badges={
+              <>
+                <Badge
+                  variant="outline"
                   className={cn(
-                    "sales-status-badge sales-status-badge--collection",
-                    collectionInfo.className,
-                    "text-[10px] px-1.5 py-0 w-[60px] justify-center flex-shrink-0"
+                    "sales-status-badge sales-status-badge--document",
+                    docStatusInfo.className,
+                    "text-[10px] px-1.5 py-0"
                   )}
                 >
-                  {collectionInfo.label}
+                  {docStatusInfo.label}
                 </Badge>
-              )}
-              
-              {/* Subtotal - Columna flexible */}
-              <span className="text-sm text-foreground flex-1 text-right">
-                {formatCurrency(invoice.subtotal || 0)}
-              </span>
-              
-              {/* Total - Columna fija */}
-              <span className="text-sm font-semibold text-foreground w-[75px] text-right flex-shrink-0">
-                {formatCurrency(invoice.total || 0)}
-              </span>
-              
-              {/* Arrow */}
-              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-1" />
-            </div>
-          </button>
+                {collectionInfo && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "sales-status-badge sales-status-badge--collection",
+                      collectionInfo.className,
+                      "text-[10px] px-1.5 py-0"
+                    )}
+                  >
+                    {collectionInfo.label}
+                  </Badge>
+                )}
+              </>
+            }
+            title="Factura del cliente"
+            secondaryAmount={formatCurrency(invoice.subtotal || 0)}
+            amount={formatCurrency(invoice.total || 0)}
+          />
         );
       })}
     </div>
@@ -937,12 +884,12 @@ const ProjectsList = ({ projects, loading, onProjectClick }: ProjectsListProps) 
 
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="p-4 bg-muted/60 rounded-full mb-4">
-          <FolderKanban className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-medium text-foreground mb-1">Proyectos</h3>
-        <p className="text-sm text-muted-foreground">No hay proyectos para este cliente</p>
+      <div className="px-4 py-4">
+        <MobileEmptyState
+          icon={FolderKanban}
+          title="Proyectos"
+          description="No hay proyectos para este cliente"
+        />
       </div>
     );
   }
@@ -952,38 +899,23 @@ const ProjectsList = ({ projects, loading, onProjectClick }: ProjectsListProps) 
       {projects.map((project) => {
         const statusInfo = getProjectStatusInfo(project.status);
         return (
-          <button
+          <MobileListCard
             key={project.id}
             onClick={() => onProjectClick(project.id)}
-            className={cn(
-              "w-full text-left px-3 py-2 rounded-xl",
-              "bg-card border border-border",
-              "active:scale-[0.98] transition-all duration-200",
-              "hover:border-primary/30"
-            )}
-            style={{ touchAction: 'manipulation' }}
-          >
-            <div className="flex items-center gap-3">
-              {/* Status Badge - Fixed width column */}
-              <Badge 
-                variant="outline" 
+            eyebrow={project.project_number}
+            badges={
+              <Badge
+                variant="outline"
                 className={cn(
-                  statusInfo.className, 
-                  "text-[10px] px-2 py-0.5 w-[80px] justify-center flex-shrink-0 whitespace-nowrap"
+                  statusInfo.className,
+                  "text-[10px] px-2 py-0.5 whitespace-nowrap"
                 )}
               >
                 {statusInfo.label}
               </Badge>
-              
-              {/* Project Name - Flexible column */}
-              <span className="font-normal text-foreground truncate text-sm flex-1 min-w-0">
-                {project.project_name}
-              </span>
-              
-              {/* Arrow */}
-              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            </div>
-          </button>
+            }
+            title={project.project_name}
+          />
         );
       })}
     </div>
