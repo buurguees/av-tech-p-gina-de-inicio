@@ -52,15 +52,12 @@ BEGIN
   RETURN true;
 END;
 $$;
-
 ALTER FUNCTION public.sync_set_purchase_invoice_archive_metadata(
   uuid, text, text, text, text, text, text, text, text, text
 ) OWNER TO postgres;
-
 REVOKE ALL ON FUNCTION public.sync_set_purchase_invoice_archive_metadata(
   uuid, text, text, text, text, text, text, text, text, text
 ) FROM PUBLIC;
-
 GRANT ALL ON FUNCTION public.sync_set_purchase_invoice_archive_metadata(
   uuid, text, text, text, text, text, text, text, text, text
 ) TO service_role;

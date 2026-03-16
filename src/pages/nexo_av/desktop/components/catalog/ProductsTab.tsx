@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import DataList, { DataListColumn, DataListAction } from '../common/DataList';
 import { ProductImportDialog } from './ProductImportDialog';
 import SupplierSearchInput from '../suppliers/SupplierSearchInput';
+import type { Database } from '@/integrations/supabase/types';
 
 type ProductType = 'product' | 'service';
 
@@ -26,6 +27,10 @@ interface Product {
   product_type: 'PRODUCT' | 'SERVICE';
   category_id: string | null;
   category_name: string | null;
+  category_code?: string | null;
+  subcategory_id?: string | null;
+  subcategory_name?: string | null;
+  subcategory_code?: string | null;
   supplier_id: string | null;
   supplier_name: string | null;
   unit: string;
@@ -45,6 +50,7 @@ interface Product {
 interface Category {
   id: string;
   name: string;
+  code: string;
   slug: string;
   description: string | null;
   parent_id: string | null;
@@ -71,8 +77,8 @@ interface Tax {
 
 interface NewProductForm {
   categoryId: string;
+  subcategoryId: string;
   supplierId: string;
-  sku: string;
   name: string;
   description: string;
   costPrice: string;
@@ -85,6 +91,11 @@ interface NewProductForm {
   trackStock: boolean;
 }
 
+type CatalogCategoryRow = Database['public']['Functions']['list_catalog_categories']['Returns'][number];
+type CatalogProductRow = Database['public']['Functions']['list_catalog_products']['Returns'][number];
+type CatalogTaxRateRow = Database['public']['Functions']['list_catalog_tax_rates']['Returns'][number];
+type CatalogDomain = 'PRODUCT' | 'SERVICE';
+
 const TYPE_OPTIONS = [
   { value: 'product', label: 'Producto', description: 'Tiene stock y coste fijo' },
   { value: 'service', label: 'Servicio', description: 'Sin stock, coste variable' },
@@ -92,8 +103,8 @@ const TYPE_OPTIONS = [
 
 const getInitialFormState = (filterType: ProductType, defaultTaxId?: string, defaultTaxRate?: number): NewProductForm => ({
   categoryId: '',
+  subcategoryId: '',
   supplierId: '',
-  sku: '',
   name: '',
   description: '',
   costPrice: '0',
@@ -111,6 +122,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const { userId } = useParams<{ userId: string }>();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Category[]>([]);
   const [salesTaxes, setSalesTaxes] = useState<Tax[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -124,9 +136,12 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const [formData, setFormData] = useState<NewProductForm>(getInitialFormState(filterType));
   const [supplierSearchValue, setSupplierSearchValue] = useState('');
   const [saving, setSaving] = useState(false);
+  const [skuPreview, setSkuPreview] = useState('');
+  const [loadingSkuPreview, setLoadingSkuPreview] = useState(false);
 
   const isProductTab = filterType === 'product';
   const itemLabel = isProductTab ? 'Producto' : 'Servicio';
+  const catalogDomain: CatalogDomain = filterType === 'product' ? 'PRODUCT' : 'SERVICE';
 
   /* Prioridad 1-4 = siempre visible; 5+ = según ancho (DataList oculta sin priority en viewport < 2000px) */
   const catalogColumns: DataListColumn<Product>[] = [
@@ -134,7 +149,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
     { key: 'name', label: 'Nombre', align: 'left' as const, width: 'minmax(180px, 2.5fr)', priority: 2, render: (p) => <span className="text-foreground font-medium truncate block">{p.name}</span> },
     { key: 'status', label: 'Estado', align: 'center' as const, width: '80px', priority: 3, render: (p) => <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 w-14 justify-center", p.is_active ? "status-success" : "status-error")}>{p.is_active ? 'Activo' : 'Inactivo'}</Badge> },
     { key: 'pvp', label: 'PVP (con IVA)', align: 'right' as const, width: 'minmax(95px, 0.9fr)', priority: 4, render: (p) => <span className="text-foreground tabular-nums font-medium">{(p.sale_price_effective * (1 + p.tax_rate / 100)).toFixed(2)} €</span> },
-    { key: 'category_name', label: 'Categoría', align: 'left' as const, width: 'minmax(100px, 1fr)', priority: 5, render: (p) => <span className="text-muted-foreground">{p.category_name ?? '-'}</span> },
+    { key: 'category_name', label: 'Categoría', align: 'left' as const, width: 'minmax(120px, 1fr)', priority: 5, render: (p) => <span className="text-muted-foreground">{p.category_name ? `${p.category_name}${p.subcategory_name ? ` > ${p.subcategory_name}` : ''}` : '-'}</span> },
     ...(isProductTab ? [{ key: 'supplier_name', label: 'Proveedor', align: 'left' as const, width: 'minmax(110px, 1fr)', priority: 5, render: (p: Product) => <span className="text-muted-foreground">{p.supplier_name ?? '-'}</span> } as DataListColumn<Product>] : []),
     ...(isProductTab ? [{ key: 'stock_quantity', label: 'Stock', align: 'center' as const, width: '70px', priority: 5, render: (p: Product) => <span className="text-muted-foreground tabular-nums">{p.stock_quantity ?? 0}</span> } as DataListColumn<Product>] : []),
     { key: 'cost_price', label: isProductTab ? 'Coste' : 'Coste Ref.', align: 'right' as const, width: 'minmax(90px, 0.9fr)', priority: 6, render: (p) => <span className="text-muted-foreground tabular-nums">{(p.cost_price ?? 0).toFixed(2)} €</span> },
@@ -157,20 +172,77 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
     loadProducts();
   }, [filterCategory, search]);
 
-  const catalogDomain = filterType === 'product' ? 'PRODUCT' : 'SERVICE';
+  useEffect(() => {
+    const effectiveCategoryId = formData.subcategoryId;
+
+    if (!showAddDialog || !formData.categoryId || !effectiveCategoryId) {
+      setSkuPreview('');
+      setLoadingSkuPreview(false);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadSkuPreview = async () => {
+      setLoadingSkuPreview(true);
+      try {
+          const { data, error } = await supabase.rpc('preview_catalog_product_sku', {
+            p_category_id: effectiveCategoryId,
+            p_product_type: filterType === 'product' ? 'PRODUCT' : 'SERVICE',
+          });
+
+        if (error) throw error;
+
+        if (!isCancelled) {
+          setSkuPreview(typeof data === 'string' ? data : '');
+        }
+      } catch (error) {
+        console.error('Error previewing product sku:', error);
+        if (!isCancelled) {
+          setSkuPreview('');
+        }
+      } finally {
+        if (!isCancelled) {
+          setLoadingSkuPreview(false);
+        }
+      }
+    };
+
+    loadSkuPreview();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [showAddDialog, formData.categoryId, formData.subcategoryId, filterType]);
 
   const loadData = async () => {
     try {
       const [categoriesRes, taxesRes] = await Promise.all([
-        (supabase.rpc as any)('list_catalog_categories', { p_domain: catalogDomain }),
-        (supabase.rpc as any)('list_catalog_tax_rates')
+        supabase.rpc('list_catalog_categories', { p_domain: catalogDomain }),
+        supabase.rpc('list_catalog_tax_rates')
       ]);
 
       if (categoriesRes.error) throw categoriesRes.error;
       if (taxesRes.error) throw taxesRes.error;
 
-      setCategories(categoriesRes.data || []);
-      setSalesTaxes((taxesRes.data || []).map((t: { id: string; name: string; rate: number; is_default: boolean; is_active: boolean }) => ({
+      const rootCategories = (categoriesRes.data || []) as CatalogCategoryRow[];
+      const subcategoryResponses = await Promise.all(
+        rootCategories.map((category) =>
+          supabase.rpc('list_catalog_categories', {
+            p_domain: catalogDomain,
+            p_parent_id: category.id,
+          })
+        )
+      );
+
+      const nestedSubcategories = subcategoryResponses.flatMap((response) => {
+        if (response.error) throw response.error;
+        return (response.data || []) as CatalogCategoryRow[];
+      });
+
+      setCategories(rootCategories);
+      setSubcategories(nestedSubcategories);
+      setSalesTaxes((taxesRes.data || []).map((t: CatalogTaxRateRow) => ({
         id: t.id,
         code: t.name,
         name: t.name,
@@ -189,7 +261,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await (supabase.rpc as any)('list_catalog_products', {
+      const { data, error } = await supabase.rpc('list_catalog_products', {
         p_domain: catalogDomain,
         p_category_id: filterCategory !== 'all' ? filterCategory : null,
         p_search: search || null,
@@ -197,7 +269,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       });
 
       if (error) throw error;
-      setProducts((data || []) as Product[]);
+      setProducts((data || []) as CatalogProductRow[]);
     } catch (error) {
       console.error('Error loading products:', error);
       toast.error(`Error al cargar ${isProductTab ? 'productos' : 'servicios'}`);
@@ -214,6 +286,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
     const defaultTax = salesTaxes.find(t => t.is_default) || salesTaxes[0];
     setFormData(getInitialFormState(filterType, defaultTax?.id, defaultTax?.rate));
     setSupplierSearchValue('');
+    setSkuPreview('');
     setShowAddDialog(true);
   };
 
@@ -222,19 +295,25 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       toast.error('El nombre es obligatorio');
       return;
     }
-    const sku = formData.sku.trim() || (filterType === 'product' ? `PRD-${Date.now()}` : `SRV-${Date.now()}`);
     if (!formData.categoryId) {
       toast.error('Selecciona una categoría');
       return;
     }
 
+    if (!formData.subcategoryId) {
+      toast.error('La subcategorÃ­a es obligatoria');
+      return;
+    }
+
+    const effectiveCategoryId = formData.subcategoryId;
+
     setSaving(true);
     try {
-      const { data, error } = await (supabase.rpc as any)('create_catalog_product', {
-        p_sku: sku,
+      const { error } = await supabase.rpc('create_catalog_product', {
+        p_sku: null,
         p_name: formData.name.trim().toUpperCase(),
         p_product_type: filterType === 'product' ? 'PRODUCT' : 'SERVICE',
-        p_category_id: formData.categoryId || null,
+        p_category_id: effectiveCategoryId,
         p_unit: filterType === 'product' ? 'ud' : 'hora',
         p_cost_price: parseDecimalInput(formData.costPrice) || null,
         p_sale_price: parseDecimalInput(formData.salePrice) || 0,
@@ -248,7 +327,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
       if (error) throw error;
 
-      toast.success(`${itemLabel} ${sku} creado`);
+      toast.success(`${itemLabel} ${skuPreview || ''} creado`.trim());
       setShowAddDialog(false);
       await loadProducts();
     } catch (error) {
@@ -266,7 +345,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
     }
 
     try {
-      const { error } = await (supabase.rpc as any)('update_catalog_product', {
+      const { error } = await supabase.rpc('update_catalog_product', {
         p_id: productId,
         p_is_active: !currentlyActive
       });
@@ -344,10 +423,10 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
       worksheet.addRow([
         p.sku,                               // A
-        p.category_name ?? '',                // B
+        p.category_code ?? '',               // B
         p.category_name ?? '',                // C
-        '',                                  // D: Subcategoría (catalog no usa)
-        '',                                  // E
+        p.subcategory_code ?? '',            // D
+        p.subcategory_name ?? '',            // E
         p.name,                              // F
         p.description || '',                 // G
         p.product_type === 'SERVICE' ? 'Service' : 'product', // H
@@ -386,11 +465,11 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const downloadTemplate = () => {
     // Catalog V2: categorías pueden tener parent_id; subcategorías = categorías hijas
     const categoryInfo = categories.map(c => {
-      const subs = categories.filter(s => s.parent_id === c.id);
+      const subs = subcategories.filter(s => s.parent_id === c.id);
       const subInfo = subs.length > 0
-        ? subs.map(s => `${s.slug} = ${s.name}`).join(', ')
+        ? subs.map(s => `${c.code}-${s.code} = ${s.name}`).join(', ')
         : 'Sin subcategorías';
-      return `${c.slug} = ${c.name} (Subcats: ${subInfo})`;
+      return `${c.code} = ${c.name} (Subcats: ${subInfo})`;
     }).join('\n');
 
     const headers = ['Código Categoría', 'Código Subcategoría', 'Nombre', 'Descripción', 'Precio Coste', 'Precio Base', 'Impuesto %'];
@@ -402,7 +481,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
       '# Instrucciones:',
       '# - Rellena las filas debajo de las cabeceras',
       '# - El código de categoría debe coincidir con los existentes',
-      '# - El código de subcategoría es opcional (dejar vacío si no aplica)',
+      '# - El código de subcategoría es obligatorio y debe coincidir con los existentes',
       '# - Los precios usan punto como separador decimal',
       '# - Impuesto: 21 (IVA 21%), 10 (IVA 10%), 4 (IVA 4%), 0 (Exento)',
       '#',
@@ -455,21 +534,35 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         const cols = line.split('\t');
         if (cols.length < 6) continue;
 
-        const [catCode, _subCode, name, description, costPrice, basePrice, taxRate] = cols;
-        const category = categories.find(c => c.slug === catCode.trim());
+        const [catCode, subCode, name, description, costPrice, basePrice, taxRate] = cols;
+        const category = categories.find(c => c.code === catCode.trim().toUpperCase());
         if (!category) {
           console.error(`Categoría no encontrada: ${catCode}`);
           errors++;
           continue;
         }
 
-        const sku = (filterType === 'product' ? 'PRD' : 'SRV') + '-' + String(i + 1).padStart(4, '0');
+        const normalizedSubCode = String(subCode || '').trim().toUpperCase();
+        if (!normalizedSubCode) {
+          console.error(`SubcategorÃ­a obligatoria en fila ${i + 2}`);
+          errors++;
+          continue;
+        }
+
+        const subcategory = subcategories.find(
+          s => s.parent_id === category.id && (`${category.code}-${s.code}` === normalizedSubCode || s.code === normalizedSubCode)
+        );
+        if (!subcategory) {
+          console.error(`SubcategorÃ­a no encontrada: ${normalizedSubCode}`);
+          errors++;
+          continue;
+        }
         try {
-          const { error } = await (supabase.rpc as any)('create_catalog_product', {
-            p_sku: sku,
+          const { error } = await supabase.rpc('create_catalog_product', {
+            p_sku: null,
             p_name: name?.trim() || 'IMPORTADO',
             p_product_type: filterType === 'product' ? 'PRODUCT' : 'SERVICE',
-            p_category_id: category.id,
+            p_category_id: subcategory.id,
             p_unit: filterType === 'product' ? 'ud' : 'hora',
             p_cost_price: parseFloat(costPrice) || null,
             p_sale_price: parseFloat(basePrice) || 0,
@@ -482,7 +575,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
           if (error) throw error;
           imported++;
-        } catch (err) {
+        } catch (err: unknown) {
           console.error('Error importing product:', err);
           errors++;
         }
@@ -525,7 +618,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                 <Label className="text-muted-foreground text-xs">Categoría *</Label>
                 <Select 
                   value={formData.categoryId} 
-                  onValueChange={(v) => setFormData({ ...formData, categoryId: v })}
+                  onValueChange={(v) => setFormData({ ...formData, categoryId: v, subcategoryId: '' })}
                 >
                   <SelectTrigger className="h-9 bg-muted/50 border-border">
                     <SelectValue placeholder="Seleccionar..." />
@@ -533,7 +626,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
                   <SelectContent>
                     {categories.map(c => (
                       <SelectItem key={c.id} value={c.id}>
-                        {c.slug} - {c.name}
+                        {c.code} - {c.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -541,14 +634,36 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-xs">Código (SKU)</Label>
-                <Input
-                  value={formData.sku}
-                  onChange={(e) => setFormData({ ...formData, sku: e.target.value.toUpperCase() })}
-                  placeholder={isProductTab ? "Ej: PRD-0001" : "Ej: SRV-0001"}
-                  className="h-9 bg-muted/50 border-border font-mono text-sm"
-                />
+                <Label className="text-muted-foreground text-xs">Subcategoría *</Label>
+                <Select
+                  value={formData.subcategoryId}
+                  onValueChange={(value) => setFormData({ ...formData, subcategoryId: value === 'none' ? '' : value })}
+                  disabled={!formData.categoryId}
+                >
+                  <SelectTrigger className="h-9 bg-muted/50 border-border">
+                    <SelectValue placeholder={formData.categoryId ? 'Selecciona subcategoría' : 'Selecciona categoría'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subcategories
+                      .filter((subcategory) => subcategory.parent_id === formData.categoryId)
+                      .map((subcategory) => (
+                        <SelectItem key={subcategory.id} value={subcategory.id}>
+                          {subcategory.code} - {subcategory.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-muted-foreground text-xs">Nº producto (auto)</Label>
+              <Input
+                value={loadingSkuPreview ? 'Generando...' : skuPreview}
+                readOnly
+                placeholder="Selecciona categoría y subcategoría"
+                className="h-9 bg-muted/50 border-border font-mono text-sm"
+              />
             </div>
 
             {isProductTab && (
@@ -685,7 +800,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
             </Button>
             <Button
               onClick={handleSaveProduct}
-              disabled={saving || !formData.categoryId || !formData.name.trim()}
+              disabled={saving || !formData.categoryId || !formData.subcategoryId || !formData.name.trim()}
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Guardar {itemLabel}
@@ -713,7 +828,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
             <SelectContent>
               <SelectItem value="all">Todas las categorías</SelectItem>
               {categories.map(c => (
-                <SelectItem key={c.id} value={c.id}>{c.slug} - {c.name}</SelectItem>
+                <SelectItem key={c.id} value={c.id}>{c.code} - {c.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -773,8 +888,8 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
         onOpenChange={setShowImportDialog}
         onImportComplete={loadProducts}
         existingProducts={products.map(p => ({ product_number: p.sku, id: p.id }))}
-        categories={categories.map(c => ({ code: c.slug, id: c.id, name: c.name }))}
-        subcategories={[]}
+        categories={categories.map(c => ({ code: c.code, id: c.id, name: c.name }))}
+        subcategories={subcategories.map(s => ({ code: s.code, id: s.id, category_id: s.parent_id || '', name: s.name }))}
         taxes={salesTaxes.map(t => ({ id: t.id, code: t.code, rate: t.rate }))}
       />
     </div>

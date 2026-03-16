@@ -1013,7 +1013,7 @@ const EditQuotePageDesktop = () => {
                 <TableHeader>
                   <TableRow className="border-border/60 hover:bg-transparent bg-muted/20">
                     <TableHead className="text-muted-foreground w-16 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
-                    <TableHead className="text-muted-foreground w-24 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Grupo</TableHead>
+                    <TableHead className="text-muted-foreground w-24 px-5 py-3 text-xs font-semibold uppercase tracking-wider" title="Nº de producto (aparece como REF en el PDF)">REF</TableHead>
                     <TableHead className="text-muted-foreground min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
                     <TableHead className="text-muted-foreground min-w-[250px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Descripción</TableHead>
                     <TableHead className="text-muted-foreground text-center w-28 px-5 py-3 text-xs font-semibold uppercase tracking-wider">Cant.</TableHead>
@@ -1042,7 +1042,7 @@ const EditQuotePageDesktop = () => {
                           </div>
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
-                          <Input value={line.group_name || ''} onChange={e => updateLine(actualIndex, "group_name", e.target.value)} placeholder="Grupo" className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm pl-2 pr-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" />
+                          <Input value={line.group_name || ''} onChange={e => updateLine(actualIndex, "group_name", e.target.value)} placeholder="Nº producto" className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm pl-2 pr-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" title="Ej: PACK-0001, SP-01-0001. Se rellena automáticamente al buscar con @" />
                         </TableCell>
                         <TableCell className="px-5 py-3.5">
                           <ProductSearchInput value={line.concept} onChange={value => updateLine(actualIndex, "concept", value)} onSelectItem={item => handleProductSelect(actualIndex, item)} placeholder="@buscar producto" className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" />

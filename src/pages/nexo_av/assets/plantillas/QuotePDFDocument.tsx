@@ -517,7 +517,7 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project, docum
           </View>
 
           {lines.map((line) => (
-            <View key={line.id} style={styles.tableRow}>
+            <View key={line.id} style={styles.tableRow} wrap={false}>
               <Text style={[styles.cellText, { width: 55, fontSize: 7, color: "#888", fontFamily: "Courier" }]}>
                 {line.group_name || ""}
               </Text>

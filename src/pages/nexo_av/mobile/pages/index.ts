@@ -10,6 +10,7 @@ export { default as MobileQuotesPage } from './MobileQuotesPage';
 export { default as MobileQuoteDetailPage } from './MobileQuoteDetailPage';
 export { default as MobileInvoicesPage } from './MobileInvoicesPage';
 export { default as MobileInvoiceDetailPage } from './MobileInvoiceDetailPage';
+export { default as MobileCatalogPage } from './MobileCatalogPage';
 export { default as MobileEditClientPage } from './MobileEditClientPage';
 export { default as MobileScannerPage } from './MobileScannerPage';
 export { default as MobileScannerDetailPage } from './MobileScannerDetailPage';

@@ -54,6 +54,12 @@ Cada skill incluye una guia para agentes con cuando cargarla, cuando no y como i
 | **nexo-power-bi-kpi-contracts** | Contratos canonicos de KPI antes de modelar dashboards o Power BI | `.codex/skills/nexo-power-bi-kpi-contracts/SKILL.md` |
 | **nexo-mail-approvals** | Patrones de aprobacion por mail o Teams con trazabilidad dentro del ERP | `.codex/skills/nexo-mail-approvals/SKILL.md` |
 
+### Inventario, producto y operaciones
+
+| Skill | Cuando cargar | Ruta |
+|-------|---------------|------|
+| **nexo-inventory-product-ops** | Diseno o revision de stock, catalogo de productos, compras, ventas, recepcion, reservas, lotes, series, caducidades, KPIs de inventario o reglas de almacen | `.codex/skills/nexo-inventory-product-ops/SKILL.md` |
+
 ### Contabilidad y auditoria
 
 | Skill | Cuando cargar | Ruta |
@@ -87,6 +93,7 @@ Las siguientes skills viven en `.codex/skills/`:
 - `nexo-brand-guidelines`
 - `nexo-document-intelligence-ocr`
 - `nexo-entra-graph-governance`
+- `nexo-inventory-product-ops`
 - `nexo-mail-approvals`
 - `nexo-m365-calendar-sync`
 - `nexo-m365-excel-reporting`

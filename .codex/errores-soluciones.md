@@ -16,6 +16,38 @@ Este archivo se carga al iniciar cada chat para mantener memoria operativa de er
 
 ## Historial
 
+### [2026-03-16] Ruta de catalogo mobile cargaba la pagina desktop y sin acceso tactil real
+
+- Contexto: la ruta `/nexo-av/:userId/catalog` existia en el ERP, pero en mobile seguia renderizando `CatalogPage` desktop; ademas el acceso desde navegacion mobile no era consistente segun rol.
+- Causa raiz: `NexoRoutes` no usaba `createResponsivePage` para catalogo y el layout mobile no exponia un acceso claro a esa ruta.
+- Solucion aplicada: se creo `MobileCatalogPage` como vista mobile de consulta con tabs `Productos/Servicios/Packs`, busqueda, KPIs, tarjetas tactiles y drawer de detalle; se cambio la ruta `catalog` a responsive, se anadio acceso desde `BottomNavigation` para admin/manager y un acceso desde `MobileSettingsPage` para el resto.
+- Validacion realizada: `npx tsc --noEmit` OK y `npm run -s build` OK el `2026-03-16`.
+- Medidas para evitar recurrencia: cualquier modulo disponible en desktop debe revisarse explicitamente en `NexoRoutes` para asegurar paridad responsive y debe tener una entrada navegable en mobile antes de considerarse operativo.
+
+### [2026-03-16] Crash en PacksTab por `totalBase` no definido
+
+- Contexto: la ficha individual de packs fallaba al abrirse tras añadir el bloque de pricing manual, con `ReferenceError: totalBase is not defined`.
+- Causa raíz: el JSX del diálogo usaba `totalBase` para mostrar la base de componentes, pero el cálculo `packItems.reduce(...)` no estaba declarado en el scope del componente después del refactor.
+- Solución aplicada: se restauró la constante `totalBase` antes del `return` de `PacksTab.tsx`, manteniendo el bloque de pricing manual sin tocar la lógica de cálculo.
+- Validación realizada: `npx tsc --noEmit` OK y `npm run -s build` OK el `2026-03-16`.
+- Medidas para evitar recurrencia: revisar cualquier nuevo resumen derivado en diálogos o listados para asegurar que sus agregados quedan declarados en scope estable y cubiertos por build antes de probar en navegador.
+
+### [2026-03-15] db push falla tras repair: "create_catalog_category already exists"
+
+- Contexto: tras `migration repair --status reverted` de 4 versiones remote-only (20260315155943, 20260315171645, 20260315172211, 20260315173146), `db push --include-all` fallo con `function "create_catalog_category" already exists with same argument types`.
+- Causa raiz: `migration repair --status reverted` solo actualiza `schema_migrations`; no deshace los cambios reales en la BD. Los objetos (funciones, tablas) creados por esas migraciones remote-only siguen existiendo. Al aplicar migraciones locales que crean los mismos objetos, se produce conflicto. Ademas, MCP `apply_migration` y otras fuentes pueden registrar versiones en remoto sin archivo local.
+- Solucion aplicada: para los seeds de monitores y proveedor, se ejecuto el INSERT directamente via MCP `apply_migration` al no poder ejecutar `db push`; los archivos de migracion siguen en repo para trazabilidad. Diagnostico completo en `docs/supabase/2026-03-15_migration_history_drift_diagnosis.md`.
+- Validacion realizada: 13 monitores visibles en catalogo PA-02; proveedor Visiotech confirmado; documento de diagnostico creado.
+- Medidas para evitar recurrencia: (1) no usar MCP `apply_migration` para DDL; usar solo para seeds de datos cuando push este bloqueado; (2) antes de `migration repair`, capturar evidencia y evaluar si las migraciones remote-only ya crearon objetos que las locales intentaran crear; (3) preferir CREATE OR REPLACE e IF NOT EXISTS en migraciones para idempotencia; (4) documentar origen de versiones remote-only antes de repair.
+
+### [2026-03-15] Migraciones racks duplicadas y drift local/remoto
+
+- Contexto: tras crear la subcategoria PA-06 RACKS Y ACCESORIOS, habia dos archivos locales (20260315165919 y 20260315170000) para el mismo cambio, mientras el remoto figuraba como 20260315165956; ademas sort_order no se normalizaba y el INSERT no era idempotente.
+- Causa raiz: el comando `npx supabase migration new` creo 20260315165919 (vacio), se creo manualmente 20260315170000, y el MCP apply_migration registro 20260315165956 en remoto; la migracion original no contemplaba sort_order ni idempotencia.
+- Solucion aplicada: se elimino 20260315170000, se creo la canonica 20260315165956 con INSERT idempotente (WHERE NOT EXISTS), se creo la correctiva 20260315170501 para fijar sort_order 1..8 y renombrar PA-04 a "CONTROL, PROCESADO Y CONECTIVIDAD AV"; el archivo 20260315165919 quedo bloqueado por otro proceso y debe eliminarse manualmente antes de db push.
+- Validacion realizada: `migration list --linked` mostrando 20260315165956 y 20260315170501 alineados; consulta de categorias PA confirmando 01..08 con sort_order coherente y PA-04 renombrado.
+- Medidas para evitar recurrencia: usar un unico timestamp al crear migraciones; no duplicar archivos; hacer INSERT de datos maestros idempotentes (WHERE NOT EXISTS); incluir sort_order cuando se crean categorias; eliminar archivos vacios o duplicados antes de push.
+
 ### [2026-03-14] Enlaces mobile de ajustes y bottom nav llevaban a rutas inexistentes
 
 - Contexto: al revisar la version mobile para preparar push y deploy, parte de la navegacion interna seguia enviando al usuario a pantallas no definidas en `NexoRoutes`, lo que acababa en `MobileNotFound` o en un destino sin utilidad real.
@@ -55,3 +87,35 @@ Este archivo se carga al iniciar cada chat para mantener memoria operativa de er
 - Solucion aplicada: se normalizo estado de proyectos en `src/constants/projectStatuses.ts`, se reescribio la cabecera y los KPIs financieros de `src/pages/nexo_av/desktop/pages/ProjectsPage.tsx` para leer `get_project_financial_stats`, se alineo `src/pages/nexo_av/mobile/pages/MobileProjectsPage.tsx`, y se corrigio `src/pages/nexo_av/desktop/pages/QuotesPage.tsx` para separar dataset del listado y dataset de contadores, filtrar `SENT` de verdad y mostrar tambien `INVOICED` y `REJECTED`. Ademas se verifico que la migracion `20260313110000_resolve_sales_kpi_conflicts.sql` ya esta aplicada en vivo y da servicio a `InvoicesPage`.
 - Validacion realizada: `npm run build` OK el `2026-03-13`; contraste con Supabase autenticado como `alex.burgues@avtechesdeveniments.com` confirmando `Proyectos = 36` con cabecera canonica `21/7/1/2/4/1`, `12.000,05 EUR` ingresos netos y `6.487,83 EUR` costes; `Facturas Q1 2026 = 20.389,09 EUR` bruto, `16.850,49 EUR` neto, `15.800,59 EUR` cobrado, `4.588,50 EUR` pendiente; `Presupuestos = 65` con `SENT 18`, `APPROVED 6`, `EXPIRED 21`, `DRAFT 3`, `INVOICED 4`, `REJECTED 13`.
 - Medidas para evitar recurrencia: no calcular KPIs ejecutivos desde listados operativos si existe una RPC canonica; no reutilizar contadores sobre datasets ya filtrados para cards resumen; normalizar siempre estados documentales legacy antes de agregarlos en UI; revisar la base viva antes de concluir que una migracion sigue pendiente.
+
+### [2026-03-15] Alta de catalogo sin numeracion canonica por categoria/subcategoria en `catalog`
+
+- Contexto: el alta manual de productos y servicios en Catalogo permitia escribir el SKU libremente o lo inventaba con `PRD/SRV-${Date.now()}`, mientras importaciones y packs usaban otras estrategias distintas.
+- Causa raiz: la logica historica `CATEGORY-SUBCATEGORY-NNNN` seguia existiendo solo en `internal.generate_product_number`, pero el catalogo activo V2 ya trabaja sobre `catalog.products` y `public.create_catalog_product`, que solo insertaba el `p_sku` recibido sin generarlo.
+- Solucion aplicada: se creo la migracion `supabase/migrations/20260315153640_auto_assign_catalog_skus_by_category.sql` para anadir `catalog.categories.code`, secuencias por prefijo y funciones canonicas de preview/generacion de numero; se actualizaron `create_catalog_product`, `list_catalog_categories`, `list_catalog_products` y `get_catalog_product_detail`, y en UI `ProductsTab`, `ProductImportDialog` y `PacksTab` para usar categoria + subcategoria y delegar la numeracion a la BD.
+- Validacion realizada: `npx supabase migration list --linked` mostrando la nueva migracion solo en local; `npx supabase db push --linked --dry-run` detectando unicamente `20260315153640_auto_assign_catalog_skus_by_category.sql`; `npx tsc --noEmit` OK; `npm run -s build` OK el `2026-03-15`.
+- Medidas para evitar recurrencia: no volver a generar SKU en frontend con timestamps o contadores locales; usar siempre la RPC canonica y mantener la constraint unica de `catalog.products.sku` como ultimo guardarrail; cualquier evolucion de packs debe reutilizar la misma capa de numeracion y taxonomia en `catalog`.
+
+### [2026-03-15] Ajustes de categorias seguia editando taxonomia legacy `internal.*`
+
+- Contexto: tras mover el catalogo V2 a numeracion y categorias `catalog.*`, la pestana `Ajustes > Categorias` seguia creando, editando e importando datos maestros en RPCs legacy `list/create/update/delete_product_category` y `*_subcategory`.
+- Causa raiz: la pantalla de mantenimiento de taxonomia no habia sido migrada al nuevo modelo jerarquico `catalog.categories`, por lo que catalogo e importaciones consumian una fuente de verdad distinta a la que editaba administracion.
+- Solucion aplicada: se reescribieron `ProductCategoriesTab` y `CategoryImportDialog` para trabajar solo con `list/create/update/delete_catalog_category`, cargar categorias raiz por dominio (`PRODUCT`/`SERVICE`), gestionar subcategorias via `parent_id`, importar Excel contra el mismo contrato y dejar de depender del modelo legacy.
+- Validacion realizada: busqueda estatica sin referencias restantes a `create/list/update/delete_product_category` ni `*_subcategory` en `src/pages/nexo_av/desktop/components/settings`; `npx tsc --noEmit` OK; `npm run -s build` OK el `2026-03-15`.
+- Medidas para evitar recurrencia: cualquier mantenimiento de taxonomia debe pasar por `catalog.categories` y sus RPCs canonicas; si se anaden nuevos flujos de importacion o administracion, deben reutilizar `code`, `parent_id` y `domain` del catalogo activo en vez de reabrir integraciones con `internal.*`.
+
+### [2026-03-15] Altas e importaciones del catalogo seguian permitiendo productos sin subcategoria
+
+- Contexto: tras acordar que el SKU y la clasificacion deben depender siempre de categoria + subcategoria, el alta manual y algunos flujos de importacion todavia podian crear productos cayendo a la categoria raiz.
+- Causa raiz: `ProductsTab` seguia aceptando subcategoria vacia y usaba `formData.subcategoryId || formData.categoryId`; la importacion del tab y el importador avanzado tambien tenian fallback a `category.id` cuando no habia subcategoria valida.
+- Solucion aplicada: se hizo obligatoria la subcategoria en el guardado manual y en las importaciones de catalogo, se elimino el uso efectivo de la categoria raiz para crear productos y se fuerza siempre `p_category_id = subcategoryId` cuando se llama a `create_catalog_product`.
+- Validacion realizada: `rg` confirmando mensajes y guardrails nuevos en `ProductsTab.tsx` y `ProductImportDialog.tsx`; `npx tsc --noEmit` OK; `npm run -s build` OK el `2026-03-15`.
+- Medidas para evitar recurrencia: cualquier nuevo flujo de alta o importacion de catalogo debe validar primero una subcategoria real del arbol `catalog.categories`; no volver a usar fallback a categoria raiz para productos/servicios numerados.
+
+### [2026-03-16] Drift de migraciones catalogo/packs y SQL incorrecta en `16101500`
+
+- Contexto: al preparar el release gate del catalogo, `migration list --linked` mostraba drift local/remoto: migraciones locales ya vivas en BD pero sin historial, duplicados locales supersedidos por versiones remotas del `2026-03-16`, y dos RPC funcionales (`list_catalog_bundles` y `update_product_pack`) aun sin desplegar.
+- Causa raiz: parte del trabajo de catalogo y seeds se habia aplicado fuera del timeline local canonico; ademas la migracion `20260316101500_list_catalog_bundles_with_real_base_price.sql` asumio erróneamente que `catalog.products` tenia columnas fisicas `sale_price_effective` y `tax_rate`, cuando son valores derivados.
+- Solucion aplicada: se eliminaron del repo el duplicado `20260315165919` y las migraciones locales `20260315180500` a `20260315181200` reemplazadas por sus equivalentes remotas; se reparo el historial linked marcando como `applied` `20260315153640`, `20260315180000` y `20260315180200`; se desplegaron de forma real `20260315180100`, `20260315180300`, `20260315180400`, `20260316101500` y `20260316113000`; y se corrigio `20260316101500` para calcular `sale_price_effective`, `base_price_real`, `visible_discount_percent` y `tax_rate` mediante expresiones/lookup reales.
+- Validacion realizada: `npx supabase migration list --linked` alineado hasta `20260316113000`; `npx supabase gen types typescript --linked --schema public,catalog` confirmando en remoto `base_price_real`, `visible_discount_percent` y `p_sale_price`; `npm run build` OK; `npx tsc --noEmit` OK; `eslint` de los archivos tocados sin errores.
+- Medidas para evitar recurrencia: no dejar en repo migraciones locales supersedidas por versiones remotas canonicas; antes de marcar una migracion como pendiente, verificar el contrato remoto con `supabase gen types`; y en migraciones SQL sobre `catalog.products`, no referenciar como columnas los campos derivados que solo existen en RPCs/listados.

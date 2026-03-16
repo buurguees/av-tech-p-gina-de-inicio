@@ -428,6 +428,7 @@ export type Database = {
       }
       create_catalog_category: {
         Args: {
+          p_code?: string
           p_description?: string
           p_domain: "PRODUCT" | "SERVICE"
           p_name: string
@@ -448,7 +449,7 @@ export type Database = {
               p_name: string
               p_product_type: Database["public"]["Enums"]["product_type"]
               p_sale_price?: number
-              p_sku: string
+              p_sku?: string
               p_tax_rate_id?: string
               p_track_stock?: boolean
               p_unit?: "ud" | "m2" | "ml" | "hora" | "jornada" | "mes" | "kg"
@@ -465,7 +466,7 @@ export type Database = {
               p_name: string
               p_product_type: Database["public"]["Enums"]["product_type"]
               p_sale_price?: number
-              p_sku: string
+              p_sku?: string
               p_supplier_id?: string
               p_tax_rate_id?: string
               p_track_stock?: boolean
@@ -1413,6 +1414,7 @@ export type Database = {
         Args: { p_product_id: string }
         Returns: {
           category_id: string
+          category_code: string
           category_name: string
           cost_price: number
           created_at: string
@@ -1428,6 +1430,9 @@ export type Database = {
           product_type: Database["public"]["Enums"]["product_type"]
           sale_price: number
           sale_price_effective: number
+          subcategory_code: string
+          subcategory_id: string
+          subcategory_name: string
           sku: string
           stock_quantity: number
           supplier_id: string
@@ -2352,13 +2357,16 @@ export type Database = {
           component_product_id: string
           name: string
           quantity: number
+          subtotal: number
           sku: string
+          unit_price: number
           unit: "ud" | "m2" | "ml" | "hora" | "jornada" | "mes" | "kg"
         }[]
       }
       list_catalog_bundles: {
         Args: { p_search?: string }
         Returns: {
+          base_price_real: number
           category_id: string
           component_count: number
           description: string
@@ -2370,6 +2378,7 @@ export type Database = {
           sale_price_effective: number
           sku: string
           tax_rate: number
+          visible_discount_percent: number
         }[]
       }
       list_catalog_categories: {
@@ -2379,6 +2388,7 @@ export type Database = {
           p_search?: string
         }
         Returns: {
+          code: string
           description: string
           domain: "PRODUCT" | "SERVICE"
           id: string
@@ -2399,6 +2409,7 @@ export type Database = {
         }
         Returns: {
           category_id: string
+          category_code: string
           category_name: string
           cost_price: number
           description: string
@@ -2412,6 +2423,9 @@ export type Database = {
           product_type: Database["public"]["Enums"]["product_type"]
           sale_price: number
           sale_price_effective: number
+          subcategory_code: string
+          subcategory_id: string
+          subcategory_name: string
           sku: string
           stock_quantity: number
           supplier_id: string
@@ -3369,6 +3383,13 @@ export type Database = {
         }[]
       }
       post_payroll_run: { Args: { p_payroll_run_id: string }; Returns: string }
+      preview_catalog_product_sku: {
+        Args: {
+          p_category_id: string
+          p_product_type?: Database["public"]["Enums"]["product_type"]
+        }
+        Returns: string
+      }
       reassign_client: {
         Args: {
           p_client_id: string
@@ -3632,6 +3653,7 @@ export type Database = {
       }
       update_catalog_category: {
         Args: {
+          p_code?: string
           p_description?: string
           p_id: string
           p_is_active?: boolean
@@ -3861,6 +3883,7 @@ export type Database = {
       update_product_pack: {
         Args: {
           p_description?: string
+          p_sale_price?: number
           p_discount_percent?: number
           p_is_active?: boolean
           p_name?: string

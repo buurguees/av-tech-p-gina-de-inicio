@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,54 +40,43 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { 
-  Tags, 
-  Plus, 
-  Pencil, 
-  Trash2, 
-  Loader2, 
+import {
   FolderTree,
+  Loader2,
   Package,
+  Pencil,
+  Plus,
   RefreshCw,
-  Upload
+  Tags,
+  Trash2,
+  Upload,
+  Wrench,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { motion } from 'motion/react';
+import { toast } from 'sonner';
 import { CategoryImportDialog } from './CategoryImportDialog';
 
-interface Category {
-  id: string;
-  name: string;
-  code: string;
-  description: string | null;
-  display_order: number;
-  is_active: boolean;
-  subcategory_count: number;
-  product_count: number;
-  created_at: string;
-  updated_at: string;
-}
+type CategoryDomain = 'PRODUCT' | 'SERVICE';
 
-interface Subcategory {
+interface CatalogCategory {
   id: string;
-  category_id: string;
-  category_name: string;
-  category_code: string;
   name: string;
   code: string;
+  slug: string;
   description: string | null;
-  display_order: number;
+  parent_id: string | null;
+  sort_order: number;
   is_active: boolean;
+  domain: CategoryDomain;
   product_count: number;
-  created_at: string;
-  updated_at: string;
 }
 
 interface CategoryFormData {
   name: string;
   code: string;
   description: string;
-  display_order: number;
+  sort_order: number;
+  domain: CategoryDomain;
 }
 
 interface SubcategoryFormData {
@@ -95,84 +84,171 @@ interface SubcategoryFormData {
   name: string;
   code: string;
   description: string;
-  display_order: number;
+  sort_order: number;
+}
+
+const DOMAIN_META: Record<CategoryDomain, { label: string; icon: typeof Package }> = {
+  PRODUCT: { label: 'Productos', icon: Package },
+  SERVICE: { label: 'Servicios', icon: Wrench },
+};
+
+const DEFAULT_CATEGORY_FORM: CategoryFormData = {
+  name: '',
+  code: '',
+  description: '',
+  sort_order: 0,
+  domain: 'PRODUCT',
+};
+
+const DEFAULT_SUBCATEGORY_FORM: SubcategoryFormData = {
+  category_id: '',
+  name: '',
+  code: '',
+  description: '',
+  sort_order: 0,
+};
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : 'Error desconocido';
+
+function normalizeCode(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+}
+
+function slugify(parts: string[]) {
+  return parts
+    .join('-')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
 }
 
 export function ProductCategoriesTab() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [subcategories, setSubcategories] = useState<CatalogCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
 
-  // Category dialogs
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
-  const [categoryFormData, setCategoryFormData] = useState<CategoryFormData>({
-    name: '',
-    code: '',
-    description: '',
-    display_order: 0,
-  });
+  const [editingCategory, setEditingCategory] = useState<CatalogCategory | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<CatalogCategory | null>(null);
+  const [categoryFormData, setCategoryFormData] = useState<CategoryFormData>(DEFAULT_CATEGORY_FORM);
 
-  // Subcategory dialogs
   const [showSubcategoryDialog, setShowSubcategoryDialog] = useState(false);
-  const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null);
-  const [deletingSubcategory, setDeletingSubcategory] = useState<Subcategory | null>(null);
-  const [subcategoryFormData, setSubcategoryFormData] = useState<SubcategoryFormData>({
-    category_id: '',
-    name: '',
-    code: '',
-    description: '',
-    display_order: 0,
-  });
+  const [editingSubcategory, setEditingSubcategory] = useState<CatalogCategory | null>(null);
+  const [deletingSubcategory, setDeletingSubcategory] = useState<CatalogCategory | null>(null);
+  const [subcategoryFormData, setSubcategoryFormData] = useState<SubcategoryFormData>(DEFAULT_SUBCATEGORY_FORM);
 
   useEffect(() => {
-    fetchData();
+    void fetchData();
   }, []);
+
+  const categoryMap = useMemo(
+    () => new Map(categories.map((category) => [category.id, category])),
+    [categories],
+  );
+
+  const subcategoriesByParent = useMemo(() => {
+    const map = new Map<string, CatalogCategory[]>();
+    for (const subcategory of subcategories) {
+      const parentId = subcategory.parent_id;
+      if (!parentId) continue;
+      const list = map.get(parentId) || [];
+      list.push(subcategory);
+      map.set(parentId, list);
+    }
+
+    for (const list of map.values()) {
+      list.sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
+    }
+
+    return map;
+  }, [subcategories]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [categoriesResult, subcategoriesResult] = await Promise.all([
-        supabase.rpc('list_product_categories'),
-        supabase.rpc('list_product_subcategories'),
-      ]);
+      const rootResponses = await Promise.all(
+        (['PRODUCT', 'SERVICE'] as CategoryDomain[]).map((domain) =>
+          supabase.rpc('list_catalog_categories', { p_domain: domain }),
+        ),
+      );
 
-      if (categoriesResult.error) throw categoriesResult.error;
-      if (subcategoriesResult.error) throw subcategoriesResult.error;
+      for (const response of rootResponses) {
+        if (response.error) throw response.error;
+      }
 
-      setCategories(categoriesResult.data || []);
-      setSubcategories(subcategoriesResult.data || []);
-    } catch (error: any) {
-      console.error('Error fetching data:', error);
-      toast.error('Error al cargar los datos');
+      const rootCategories = rootResponses.flatMap((response) => (response.data || []) as CatalogCategory[]);
+      const childResponses = await Promise.all(
+        rootCategories.map((category) =>
+          supabase.rpc('list_catalog_categories', {
+            p_domain: category.domain,
+            p_parent_id: category.id,
+          }),
+        ),
+      );
+
+      for (const response of childResponses) {
+        if (response.error) throw response.error;
+      }
+
+      setCategories(rootCategories.sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)));
+      setSubcategories(
+        childResponses
+          .flatMap((response) => (response.data || []) as CatalogCategory[])
+          .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)),
+      );
+    } catch (error: unknown) {
+      console.error('Error fetching catalog categories:', error);
+      toast.error(getErrorMessage(error) || 'Error al cargar las categorías');
     } finally {
       setLoading(false);
     }
   };
 
-  // Category handlers
+  const getSubcategoriesForCategory = (categoryId: string) => subcategoriesByParent.get(categoryId) || [];
+
+  const getCategoryTotalProducts = (categoryId: string) => {
+    const category = categoryMap.get(categoryId);
+    const children = getSubcategoriesForCategory(categoryId);
+    return (category?.product_count || 0) + children.reduce((sum, child) => sum + child.product_count, 0);
+  };
+
   const openCreateCategory = () => {
     setEditingCategory(null);
-    setCategoryFormData({ name: '', code: '', description: '', display_order: categories.length });
+    setCategoryFormData({
+      ...DEFAULT_CATEGORY_FORM,
+      sort_order: categories.length,
+    });
     setShowCategoryDialog(true);
   };
 
-  const openEditCategory = (category: Category) => {
+  const openEditCategory = (category: CatalogCategory) => {
     setEditingCategory(category);
     setCategoryFormData({
       name: category.name,
       code: category.code,
       description: category.description || '',
-      display_order: category.display_order,
+      sort_order: category.sort_order,
+      domain: category.domain,
     });
     setShowCategoryDialog(true);
   };
 
   const handleSaveCategory = async () => {
-    if (!categoryFormData.name.trim() || !categoryFormData.code.trim()) {
+    const name = categoryFormData.name.trim();
+    const code = normalizeCode(categoryFormData.code);
+    if (!name || !code) {
       toast.error('Nombre y código son obligatorios');
       return;
     }
@@ -180,135 +256,144 @@ export function ProductCategoriesTab() {
     setIsSubmitting(true);
     try {
       if (editingCategory) {
-        const { error } = await supabase.rpc('update_product_category', {
-          p_category_id: editingCategory.id,
-          p_name: categoryFormData.name,
-          p_code: categoryFormData.code,
-          p_description: categoryFormData.description || null,
-          p_display_order: categoryFormData.display_order,
+        const { error } = await supabase.rpc('update_catalog_category', {
+          p_id: editingCategory.id,
+          p_name: name,
+          p_code: code,
+          p_description: categoryFormData.description.trim() || null,
+          p_sort_order: categoryFormData.sort_order,
+          p_slug: slugify([code, name]),
         });
         if (error) throw error;
         toast.success('Categoría actualizada');
       } else {
-        const { error } = await supabase.rpc('create_product_category', {
-          p_name: categoryFormData.name,
-          p_code: categoryFormData.code,
-          p_description: categoryFormData.description || null,
-          p_display_order: categoryFormData.display_order,
+        const { error } = await supabase.rpc('create_catalog_category', {
+          p_name: name,
+          p_code: code,
+          p_description: categoryFormData.description.trim() || null,
+          p_sort_order: categoryFormData.sort_order,
+          p_slug: slugify([code, name]),
+          p_domain: categoryFormData.domain,
         });
         if (error) throw error;
         toast.success('Categoría creada');
       }
+
       setShowCategoryDialog(false);
-      fetchData();
-    } catch (error: any) {
+      await fetchData();
+    } catch (error: unknown) {
       console.error('Error saving category:', error);
-      toast.error(error.message || 'Error al guardar la categoría');
+      toast.error(getErrorMessage(error) || 'Error al guardar la categoría');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteCategory = async () => {
-    if (!deletingCategory) {
-      console.log('No deletingCategory set');
-      return;
-    }
+    if (!deletingCategory) return;
 
-    console.log('Attempting to delete category:', deletingCategory.id, deletingCategory.name);
     setIsSubmitting(true);
     try {
-      const { data, error } = await supabase.rpc('delete_product_category', {
-        p_category_id: deletingCategory.id,
+      const { error } = await supabase.rpc('delete_catalog_category', {
+        p_id: deletingCategory.id,
       });
-      console.log('Delete result:', { data, error });
       if (error) throw error;
       toast.success('Categoría eliminada');
       setDeletingCategory(null);
-      fetchData();
-    } catch (error: any) {
+      await fetchData();
+    } catch (error: unknown) {
       console.error('Error deleting category:', error);
-      toast.error(error.message || 'Error al eliminar la categoría');
+      toast.error(getErrorMessage(error) || 'Error al eliminar la categoría');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleToggleCategoryStatus = async (category: Category) => {
+  const handleToggleCategoryStatus = async (category: CatalogCategory) => {
     try {
-      const { error } = await supabase.rpc('update_product_category', {
-        p_category_id: category.id,
+      const { error } = await supabase.rpc('update_catalog_category', {
+        p_id: category.id,
         p_is_active: !category.is_active,
       });
       if (error) throw error;
       toast.success(category.is_active ? 'Categoría desactivada' : 'Categoría activada');
-      fetchData();
-    } catch (error: any) {
+      await fetchData();
+    } catch (error: unknown) {
       console.error('Error toggling category status:', error);
-      toast.error('Error al cambiar el estado');
+      toast.error(getErrorMessage(error) || 'Error al cambiar el estado');
     }
   };
 
-  // Subcategory handlers
-  const openCreateSubcategory = (categoryId: string) => {
-    const categorySubcats = subcategories.filter(s => s.category_id === categoryId);
+  const openCreateSubcategory = (category: CatalogCategory) => {
+    const categorySubcategories = getSubcategoriesForCategory(category.id);
     setEditingSubcategory(null);
     setSubcategoryFormData({
-      category_id: categoryId,
-      name: '',
-      code: '',
-      description: '',
-      display_order: categorySubcats.length,
+      ...DEFAULT_SUBCATEGORY_FORM,
+      category_id: category.id,
+      sort_order: categorySubcategories.length,
     });
     setShowSubcategoryDialog(true);
   };
 
-  const openEditSubcategory = (subcategory: Subcategory) => {
+  const openEditSubcategory = (subcategory: CatalogCategory) => {
     setEditingSubcategory(subcategory);
     setSubcategoryFormData({
-      category_id: subcategory.category_id,
+      category_id: subcategory.parent_id || '',
       name: subcategory.name,
       code: subcategory.code,
       description: subcategory.description || '',
-      display_order: subcategory.display_order,
+      sort_order: subcategory.sort_order,
     });
     setShowSubcategoryDialog(true);
   };
 
   const handleSaveSubcategory = async () => {
-    if (!subcategoryFormData.name.trim() || !subcategoryFormData.code.trim()) {
+    const parent = categoryMap.get(subcategoryFormData.category_id);
+    const name = subcategoryFormData.name.trim();
+    const code = normalizeCode(subcategoryFormData.code);
+
+    if (!parent) {
+      toast.error('Selecciona una categoría válida');
+      return;
+    }
+
+    if (!name || !code) {
       toast.error('Nombre y código son obligatorios');
       return;
     }
 
     setIsSubmitting(true);
     try {
+      const payload = {
+        p_name: name,
+        p_code: code,
+        p_description: subcategoryFormData.description.trim() || null,
+        p_sort_order: subcategoryFormData.sort_order,
+        p_parent_id: parent.id,
+        p_slug: slugify([parent.code, code, name]),
+      };
+
       if (editingSubcategory) {
-        const { error } = await supabase.rpc('update_product_subcategory', {
-          p_subcategory_id: editingSubcategory.id,
-          p_name: subcategoryFormData.name,
-          p_code: subcategoryFormData.code,
-          p_description: subcategoryFormData.description || null,
-          p_display_order: subcategoryFormData.display_order,
+        const { error } = await supabase.rpc('update_catalog_category', {
+          p_id: editingSubcategory.id,
+          ...payload,
         });
         if (error) throw error;
         toast.success('Subcategoría actualizada');
       } else {
-        const { error } = await supabase.rpc('create_product_subcategory', {
-          p_category_id: subcategoryFormData.category_id,
-          p_name: subcategoryFormData.name,
-          p_code: subcategoryFormData.code,
-          p_description: subcategoryFormData.description || null,
-          p_display_order: subcategoryFormData.display_order,
+        const { error } = await supabase.rpc('create_catalog_category', {
+          ...payload,
+          p_domain: parent.domain,
         });
         if (error) throw error;
         toast.success('Subcategoría creada');
       }
+
       setShowSubcategoryDialog(false);
-      fetchData();
-    } catch (error: any) {
+      await fetchData();
+    } catch (error: unknown) {
       console.error('Error saving subcategory:', error);
-      toast.error(error.message || 'Error al guardar la subcategoría');
+      toast.error(getErrorMessage(error) || 'Error al guardar la subcategoría');
     } finally {
       setIsSubmitting(false);
     }
@@ -319,40 +404,34 @@ export function ProductCategoriesTab() {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.rpc('delete_product_subcategory', {
-        p_subcategory_id: deletingSubcategory.id,
+      const { error } = await supabase.rpc('delete_catalog_category', {
+        p_id: deletingSubcategory.id,
       });
       if (error) throw error;
       toast.success('Subcategoría eliminada');
       setDeletingSubcategory(null);
-      fetchData();
-    } catch (error: any) {
+      await fetchData();
+    } catch (error: unknown) {
       console.error('Error deleting subcategory:', error);
-      toast.error(error.message || 'Error al eliminar la subcategoría');
+      toast.error(getErrorMessage(error) || 'Error al eliminar la subcategoría');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleToggleSubcategoryStatus = async (subcategory: Subcategory) => {
+  const handleToggleSubcategoryStatus = async (subcategory: CatalogCategory) => {
     try {
-      const { error } = await supabase.rpc('update_product_subcategory', {
-        p_subcategory_id: subcategory.id,
+      const { error } = await supabase.rpc('update_catalog_category', {
+        p_id: subcategory.id,
         p_is_active: !subcategory.is_active,
       });
       if (error) throw error;
       toast.success(subcategory.is_active ? 'Subcategoría desactivada' : 'Subcategoría activada');
-      fetchData();
-    } catch (error: any) {
+      await fetchData();
+    } catch (error: unknown) {
       console.error('Error toggling subcategory status:', error);
-      toast.error('Error al cambiar el estado');
+      toast.error(getErrorMessage(error) || 'Error al cambiar el estado');
     }
-  };
-
-  const getSubcategoriesForCategory = (categoryId: string) => {
-    return subcategories
-      .filter(s => s.category_id === categoryId)
-      .sort((a, b) => a.display_order - b.display_order);
   };
 
   if (loading) {
@@ -372,14 +451,14 @@ export function ProductCategoriesTab() {
           <div>
             <CardTitle className="text-foreground flex items-center gap-2">
               <Tags className="w-5 h-5" />
-              Categorías de Producto
+              Categorías del Catálogo
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              Gestiona las categorías y subcategorías de productos para el catálogo.
+              Gestiona la taxonomía base de productos y servicios para catálogo, numeración y packs.
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={fetchData}>
+            <Button variant="outline" size="sm" onClick={() => void fetchData()}>
               <RefreshCw className="w-4 h-4" />
             </Button>
             <Button variant="outline" onClick={() => setShowImportDialog(true)}>
@@ -392,151 +471,164 @@ export function ProductCategoriesTab() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          {categories.length === 0 ? (
-            <div className="text-muted-foreground text-center py-12">
-              <FolderTree className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No hay categorías creadas</p>
-              <p className="text-sm mt-2">
-                Crea tu primera categoría para empezar a organizar el catálogo.
-              </p>
-            </div>
-          ) : (
-            <Accordion type="multiple" className="space-y-2">
-              {categories.map((category, index) => (
-                <motion.div
-                  key={category.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <AccordionItem 
-                    value={category.id} 
-                    className="border border-border rounded-lg overflow-hidden bg-muted/30"
-                  >
-                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline">
-                      <div className="flex items-center justify-between w-full pr-4">
-                        <div className="flex items-center gap-3">
-                          <Badge 
-                            variant="outline" 
-                            className={`${category.is_active ? 'border-primary/50 text-primary' : 'border-border text-muted-foreground'}`}
-                          >
-                            {category.code}
-                          </Badge>
-                          <span className={`font-medium ${category.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {category.name}
-                          </span>
-                          <span className="text-muted-foreground text-sm">
-                            ({category.subcategory_count} subcategorías, {category.product_count} productos)
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                          <Switch
-                            checked={category.is_active}
-                            onCheckedChange={() => handleToggleCategoryStatus(category)}
-                          />
-                          <Button variant="ghost" size="icon" onClick={() => openEditCategory(category)}>
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeletingCategory(category)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            disabled={category.product_count > 0}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="border-t border-border">
-                      <div className="p-4">
-                        {category.description && (
-                          <p className="text-muted-foreground text-sm mb-4">{category.description}</p>
-                        )}
-                        
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-foreground text-sm font-medium flex items-center gap-2">
-                            <FolderTree className="w-4 h-4" />
-                            Subcategorías
-                          </h4>
-                          <Button variant="outline" size="sm" onClick={() => openCreateSubcategory(category.id)}>
-                            <Plus className="w-3 h-3 mr-1" />
-                            Añadir
-                          </Button>
-                        </div>
+        <CardContent className="space-y-6">
+          {(['PRODUCT', 'SERVICE'] as CategoryDomain[]).map((domain) => {
+            const domainCategories = categories.filter((category) => category.domain === domain);
+            const DomainIcon = DOMAIN_META[domain].icon;
 
-                        {getSubcategoriesForCategory(category.id).length === 0 ? (
-                          <p className="text-muted-foreground text-sm text-center py-4">
-                            No hay subcategorías
-                          </p>
-                        ) : (
-                          <Table>
-                            <TableHeader>
-                              <TableRow className="border-border hover:bg-transparent">
-                                <TableHead className="text-muted-foreground">Código</TableHead>
-                                <TableHead className="text-muted-foreground">Nombre</TableHead>
-                                <TableHead className="text-muted-foreground">Productos</TableHead>
-                                <TableHead className="text-muted-foreground">Estado</TableHead>
-                                <TableHead className="text-muted-foreground text-right">Acciones</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {getSubcategoriesForCategory(category.id).map(subcategory => (
-                                <TableRow key={subcategory.id} className="border-border hover:bg-muted/50">
-                                  <TableCell>
-                                    <Badge variant="outline" className="border-border text-muted-foreground">
-                                      {category.code}-{subcategory.code}
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell className={subcategory.is_active ? 'text-foreground' : 'text-muted-foreground'}>
-                                    {subcategory.name}
-                                  </TableCell>
-                                  <TableCell className="text-muted-foreground">
-                                    <div className="flex items-center gap-1">
-                                      <Package className="w-3 h-3" />
-                                      {subcategory.product_count}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Switch
-                                      checked={subcategory.is_active}
-                                      onCheckedChange={() => handleToggleSubcategoryStatus(subcategory)}
-                                    />
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    <div className="flex items-center justify-end gap-1">
-                                      <Button variant="ghost" size="icon" onClick={() => openEditSubcategory(subcategory)}>
-                                        <Pencil className="w-4 h-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setDeletingSubcategory(subcategory)}
-                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                        disabled={subcategory.product_count > 0}
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        )}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </motion.div>
-              ))}
-            </Accordion>
-          )}
+            return (
+              <div key={domain} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <DomainIcon className="w-4 h-4 text-muted-foreground" />
+                  <h3 className="text-sm font-medium text-foreground">{DOMAIN_META[domain].label}</h3>
+                  <Badge variant="outline" className="border-border text-muted-foreground">
+                    {domainCategories.length}
+                  </Badge>
+                </div>
+
+                {domainCategories.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+                    No hay categorías en {DOMAIN_META[domain].label.toLowerCase()}.
+                  </div>
+                ) : (
+                  <Accordion type="multiple" className="space-y-2">
+                    {domainCategories.map((category, index) => {
+                      const childItems = getSubcategoriesForCategory(category.id);
+                      const totalProducts = getCategoryTotalProducts(category.id);
+                      const canDelete = childItems.length === 0 && totalProducts === 0;
+
+                      return (
+                        <motion.div
+                          key={category.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.03 }}
+                        >
+                          <AccordionItem
+                            value={category.id}
+                            className="overflow-hidden rounded-lg border border-border bg-muted/30"
+                          >
+                            <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 hover:no-underline">
+                              <div className="flex w-full items-center justify-between gap-4 pr-4">
+                                <div className="flex items-center gap-3">
+                                  <Badge
+                                    variant="outline"
+                                    className={category.is_active ? 'border-primary/50 text-primary' : 'border-border text-muted-foreground'}
+                                  >
+                                    {category.code}
+                                  </Badge>
+                                  <span className={category.is_active ? 'text-foreground font-medium' : 'text-muted-foreground font-medium'}>
+                                    {category.name}
+                                  </span>
+                                  <span className="text-sm text-muted-foreground">
+                                    {childItems.length} subcategorías, {totalProducts} referencias
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2" onClick={(event) => event.stopPropagation()}>
+                                  <Switch
+                                    checked={category.is_active}
+                                    onCheckedChange={() => void handleToggleCategoryStatus(category)}
+                                  />
+                                  <Button variant="ghost" size="icon" onClick={() => openEditCategory(category)}>
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setDeletingCategory(category)}
+                                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    disabled={!canDelete}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="border-t border-border">
+                              <div className="space-y-4 p-4">
+                                {category.description && (
+                                  <p className="text-sm text-muted-foreground">{category.description}</p>
+                                )}
+
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                                    <FolderTree className="w-4 h-4" />
+                                    Subcategorías
+                                  </div>
+                                  <Button variant="outline" size="sm" onClick={() => openCreateSubcategory(category)}>
+                                    <Plus className="w-3 h-3 mr-1" />
+                                    Añadir
+                                  </Button>
+                                </div>
+
+                                {childItems.length === 0 ? (
+                                  <div className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
+                                    No hay subcategorías.
+                                  </div>
+                                ) : (
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow className="border-border hover:bg-transparent">
+                                        <TableHead className="text-muted-foreground">Código</TableHead>
+                                        <TableHead className="text-muted-foreground">Nombre</TableHead>
+                                        <TableHead className="text-muted-foreground">Productos</TableHead>
+                                        <TableHead className="text-muted-foreground">Estado</TableHead>
+                                        <TableHead className="text-right text-muted-foreground">Acciones</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {childItems.map((subcategory) => (
+                                        <TableRow key={subcategory.id} className="border-border hover:bg-muted/50">
+                                          <TableCell>
+                                            <Badge variant="outline" className="border-border text-muted-foreground">
+                                              {category.code}-{subcategory.code}
+                                            </Badge>
+                                          </TableCell>
+                                          <TableCell className={subcategory.is_active ? 'text-foreground' : 'text-muted-foreground'}>
+                                            {subcategory.name}
+                                          </TableCell>
+                                          <TableCell className="text-muted-foreground">{subcategory.product_count}</TableCell>
+                                          <TableCell>
+                                            <Switch
+                                              checked={subcategory.is_active}
+                                              onCheckedChange={() => void handleToggleSubcategoryStatus(subcategory)}
+                                            />
+                                          </TableCell>
+                                          <TableCell className="text-right">
+                                            <div className="flex items-center justify-end gap-1">
+                                              <Button variant="ghost" size="icon" onClick={() => openEditSubcategory(subcategory)}>
+                                                <Pencil className="w-4 h-4" />
+                                              </Button>
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => setDeletingSubcategory(subcategory)}
+                                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                                disabled={subcategory.product_count > 0}
+                                              >
+                                                <Trash2 className="w-4 h-4" />
+                                              </Button>
+                                            </div>
+                                          </TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                )}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </motion.div>
+                      );
+                    })}
+                  </Accordion>
+                )}
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
 
-      {/* Category Dialog */}
       <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
@@ -544,9 +636,7 @@ export function ProductCategoriesTab() {
               {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              {editingCategory 
-                ? 'Modifica los datos de la categoría.' 
-                : 'Crea una nueva categoría para organizar tus productos.'}
+              Define el código base que se reutilizará en catálogo, numeración automática y packs.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -555,41 +645,73 @@ export function ProductCategoriesTab() {
                 <Label className="text-foreground">Nombre *</Label>
                 <Input
                   value={categoryFormData.name}
-                  onChange={e => setCategoryFormData(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(event) => setCategoryFormData((current) => ({ ...current, name: event.target.value }))}
+                  className="bg-background border-input text-foreground"
                   placeholder="Ej: Pantallas LED"
-                  className="bg-background border-input text-foreground uppercase"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-foreground">Código *</Label>
                 <Input
                   value={categoryFormData.code}
-                  onChange={e => setCategoryFormData(prev => ({ ...prev, code: e.target.value }))}
+                  onChange={(event) => setCategoryFormData((current) => ({ ...current, code: normalizeCode(event.target.value) }))}
+                  className="bg-background border-input text-foreground"
                   placeholder="Ej: LED"
-                  className="bg-background border-input text-foreground uppercase"
-                  maxLength={10}
+                  maxLength={12}
                 />
-                <p className="text-xs text-muted-foreground">Código único para identificar la categoría</p>
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-foreground">Dominio *</Label>
+                {editingCategory ? (
+                  <div className="flex h-10 items-center rounded-md border border-input bg-background px-3 text-sm text-foreground">
+                    {DOMAIN_META[categoryFormData.domain].label}
+                  </div>
+                ) : (
+                  <Select
+                    value={categoryFormData.domain}
+                    onValueChange={(value: CategoryDomain) =>
+                      setCategoryFormData((current) => ({ ...current, domain: value }))
+                    }
+                  >
+                    <SelectTrigger className="bg-background border-input text-foreground">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PRODUCT">Productos</SelectItem>
+                      <SelectItem value="SERVICE">Servicios</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label className="text-foreground">Orden</Label>
+                <Input
+                  type="number"
+                  value={categoryFormData.sort_order}
+                  onChange={(event) =>
+                    setCategoryFormData((current) => ({
+                      ...current,
+                      sort_order: Number.parseInt(event.target.value, 10) || 0,
+                    }))
+                  }
+                  className="bg-background border-input text-foreground"
+                  min={0}
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label className="text-foreground">Descripción</Label>
               <Textarea
                 value={categoryFormData.description}
-                onChange={e => setCategoryFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Descripción de la categoría..."
+                onChange={(event) =>
+                  setCategoryFormData((current) => ({ ...current, description: event.target.value }))
+                }
                 className="bg-background border-input text-foreground"
                 rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-foreground">Orden de visualización</Label>
-              <Input
-                type="number"
-                value={categoryFormData.display_order}
-                onChange={e => setCategoryFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
-                className="bg-background border-input text-foreground"
-                min={0}
               />
             </div>
           </div>
@@ -597,7 +719,7 @@ export function ProductCategoriesTab() {
             <Button variant="outline" onClick={() => setShowCategoryDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveCategory} disabled={isSubmitting}>
+            <Button onClick={() => void handleSaveCategory()} disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {editingCategory ? 'Guardar' : 'Crear'}
             </Button>
@@ -605,7 +727,6 @@ export function ProductCategoriesTab() {
         </DialogContent>
       </Dialog>
 
-      {/* Subcategory Dialog */}
       <Dialog open={showSubcategoryDialog} onOpenChange={setShowSubcategoryDialog}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
@@ -613,60 +734,97 @@ export function ProductCategoriesTab() {
               {editingSubcategory ? 'Editar Subcategoría' : 'Nueva Subcategoría'}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              {editingSubcategory 
-                ? 'Modifica los datos de la subcategoría.' 
-                : 'Crea una nueva subcategoría dentro de esta categoría.'}
+              Las subcategorías se numeran dentro del código de su categoría padre.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-foreground">Categoría *</Label>
+              <Select
+                value={subcategoryFormData.category_id}
+                onValueChange={(value) =>
+                  setSubcategoryFormData((current) => ({ ...current, category_id: value }))
+                }
+              >
+                <SelectTrigger className="bg-background border-input text-foreground">
+                  <SelectValue placeholder="Selecciona una categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.code} - {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-foreground">Nombre *</Label>
                 <Input
                   value={subcategoryFormData.name}
-                  onChange={e => setSubcategoryFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Ej: Interior"
-                  className="bg-background border-input text-foreground uppercase"
+                  onChange={(event) =>
+                    setSubcategoryFormData((current) => ({ ...current, name: event.target.value }))
+                  }
+                  className="bg-background border-input text-foreground"
+                  placeholder="Ej: Exterior"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-foreground">Código *</Label>
                 <Input
                   value={subcategoryFormData.code}
-                  onChange={e => setSubcategoryFormData(prev => ({ ...prev, code: e.target.value }))}
-                  placeholder="Ej: INT"
-                  className="bg-background border-input text-foreground uppercase"
-                  maxLength={10}
+                  onChange={(event) =>
+                    setSubcategoryFormData((current) => ({
+                      ...current,
+                      code: normalizeCode(event.target.value),
+                    }))
+                  }
+                  className="bg-background border-input text-foreground"
+                  placeholder="Ej: 01"
+                  maxLength={12}
                 />
-                <p className="text-xs text-muted-foreground">Código único dentro de la categoría</p>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-foreground">Descripción</Label>
-              <Textarea
-                value={subcategoryFormData.description}
-                onChange={e => setSubcategoryFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Descripción de la subcategoría..."
-                className="bg-background border-input text-foreground"
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-foreground">Orden de visualización</Label>
-              <Input
-                type="number"
-                value={subcategoryFormData.display_order}
-                onChange={e => setSubcategoryFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) || 0 }))}
-                className="bg-background border-input text-foreground w-24"
-                min={0}
-              />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-foreground">Descripción</Label>
+                <Textarea
+                  value={subcategoryFormData.description}
+                  onChange={(event) =>
+                    setSubcategoryFormData((current) => ({
+                      ...current,
+                      description: event.target.value,
+                    }))
+                  }
+                  className="bg-background border-input text-foreground"
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-foreground">Orden</Label>
+                <Input
+                  type="number"
+                  value={subcategoryFormData.sort_order}
+                  onChange={(event) =>
+                    setSubcategoryFormData((current) => ({
+                      ...current,
+                      sort_order: Number.parseInt(event.target.value, 10) || 0,
+                    }))
+                  }
+                  className="bg-background border-input text-foreground"
+                  min={0}
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSubcategoryDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveSubcategory} disabled={isSubmitting}>
+            <Button onClick={() => void handleSaveSubcategory()} disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {editingSubcategory ? 'Guardar' : 'Crear'}
             </Button>
@@ -674,20 +832,18 @@ export function ProductCategoriesTab() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Category Alert */}
       <AlertDialog open={!!deletingCategory} onOpenChange={() => setDeletingCategory(null)}>
         <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-foreground">¿Eliminar categoría?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Esta acción eliminará la categoría "{deletingCategory?.name}" y todas sus subcategorías.
-              Esta acción no se puede deshacer.
+              Se eliminará la categoría "{deletingCategory?.name}" solo si no tiene subcategorías ni productos asociados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteCategory}
+              onClick={() => void handleDeleteCategory()}
               disabled={isSubmitting}
               className="bg-destructive hover:bg-destructive/90"
             >
@@ -698,20 +854,18 @@ export function ProductCategoriesTab() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete Subcategory Alert */}
       <AlertDialog open={!!deletingSubcategory} onOpenChange={() => setDeletingSubcategory(null)}>
         <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-foreground">¿Eliminar subcategoría?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Esta acción eliminará la subcategoría "{deletingSubcategory?.name}".
-              Esta acción no se puede deshacer.
+              Se eliminará la subcategoría "{deletingSubcategory?.name}" si no tiene productos asociados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteSubcategory}
+              onClick={() => void handleDeleteSubcategory()}
               disabled={isSubmitting}
               className="bg-destructive hover:bg-destructive/90"
             >
@@ -722,13 +876,20 @@ export function ProductCategoriesTab() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Import Dialog */}
       <CategoryImportDialog
         open={showImportDialog}
         onOpenChange={setShowImportDialog}
-        onImportComplete={fetchData}
-        existingCategories={categories.map(c => ({ code: c.code, id: c.id }))}
-        existingSubcategories={subcategories.map(s => ({ code: s.code, id: s.id, category_id: s.category_id }))}
+        onImportComplete={() => void fetchData()}
+        existingCategories={categories.map((category) => ({
+          code: category.code,
+          id: category.id,
+          domain: category.domain,
+        }))}
+        existingSubcategories={subcategories.map((subcategory) => ({
+          code: subcategory.code,
+          id: subcategory.id,
+          category_id: subcategory.parent_id || '',
+        }))}
       />
     </>
   );

@@ -19,7 +19,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
+import {
   Upload, 
   FileSpreadsheet, 
   Loader2, 
@@ -70,6 +70,15 @@ interface ProductImportDialogProps {
 }
 
 type ImportStep = 'upload' | 'preview' | 'importing' | 'complete';
+type ExcelCellLike = { value: unknown };
+type ExcelRowLike = { getCell: (colIndex: number) => ExcelCellLike };
+type ExcelRichText = { richText: { text: string }[] };
+
+const hasRichText = (value: unknown): value is ExcelRichText =>
+  typeof value === 'object' && value !== null && 'richText' in value;
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : 'Error desconocido';
 
 export function ProductImportDialog({
   open,
@@ -101,7 +110,7 @@ export function ProductImportDialog({
     onOpenChange(false);
   };
 
-  const parseNumber = (value: any): number => {
+  const parseNumber = (value: unknown): number => {
     if (value === null || value === undefined || value === '') return 0;
     // Handle strings with euro symbol, spaces, etc.
     const cleaned = String(value)
@@ -112,14 +121,14 @@ export function ProductImportDialog({
     return isNaN(num) ? 0 : num;
   };
 
-  const parsePercentage = (value: any): number => {
+  const parsePercentage = (value: unknown): number => {
     if (value === null || value === undefined || value === '') return 0;
     const cleaned = String(value).replace(/%/g, '').trim();
     const num = parseFloat(cleaned);
     return isNaN(num) ? 0 : num;
   };
 
-  const parseType = (value: any): 'product' | 'service' => {
+  const parseType = (value: unknown): 'product' | 'service' => {
     const str = String(value || '').toLowerCase().trim();
     if (str.includes('serv') || str === 'service' || str === 'servicios' || str === 'servicio') {
       return 'service';
@@ -127,17 +136,16 @@ export function ProductImportDialog({
     return 'product';
   };
 
-  const parseStatus = (value: any): boolean => {
+  const parseStatus = (value: unknown): boolean => {
     const str = String(value || '').toLowerCase().trim();
     return str === 'activo' || str === 'active' || str === '1' || str === 'true' || str === 'sí' || str === 'si';
   };
 
-  const getCellValue = (row: any, colIndex: number): any => {
+  const getCellValue = (row: ExcelRowLike, colIndex: number): unknown => {
     const cell = row.getCell(colIndex);
     if (cell.value === null || cell.value === undefined) return '';
-    // Handle rich text
-    if (typeof cell.value === 'object' && 'richText' in cell.value) {
-      return (cell.value as any).richText.map((r: any) => r.text).join('');
+    if (hasRichText(cell.value)) {
+      return cell.value.richText.map((fragment) => fragment.text).join('');
     }
     return cell.value;
   };
@@ -316,25 +324,30 @@ export function ProductImportDialog({
         continue;
       }
 
-      // Catalog V2: subcategoría opcional; si existe se usa como category_id, si no la categoría raíz
-      let subcategoryId: string | null = null;
-      if (product.subcategoryCode) {
-        subcategoryId = findSubcategoryId(product.subcategoryCode, categoryId);
-        if (!subcategoryId) {
-          const sub = subcategories.find(s => s.code.toLowerCase() === product.subcategoryCode.toLowerCase());
-          subcategoryId = sub?.id || null;
-        }
+      if (!product.subcategoryCode?.trim()) {
+        result.errors.push(`Producto ${product.productNumber}: Subcategoría obligatoria`);
+        continue;
       }
-      const effectiveCategoryId = subcategoryId || categoryId;
+
+      let subcategoryId = findSubcategoryId(product.subcategoryCode, categoryId);
+      if (!subcategoryId) {
+        const sub = subcategories.find(s => s.code.toLowerCase() === product.subcategoryCode.toLowerCase());
+        subcategoryId = sub?.id || null;
+      }
+
+      if (!subcategoryId) {
+        result.errors.push(`Producto ${product.productNumber}: Subcategoría "${product.subcategoryCode}" no encontrada`);
+        continue;
+      }
 
       const taxId = findTaxId(product.taxCode, product.taxRate);
 
       try {
-        const { data: newId, error } = await (supabase.rpc as any)('create_catalog_product', {
-          p_sku: product.productNumber.trim() || `IMP-${Date.now()}-${result.productsCreated}`,
+        const { data: newId, error } = await supabase.rpc('create_catalog_product', {
+          p_sku: product.productNumber.trim() || null,
           p_name: product.name.toUpperCase(),
           p_product_type: product.type === 'service' ? 'SERVICE' : 'PRODUCT',
-          p_category_id: effectiveCategoryId,
+          p_category_id: subcategoryId,
           p_unit: product.type === 'service' ? 'hora' : 'ud',
           p_cost_price: product.costPrice,
           p_sale_price: product.basePrice,
@@ -350,14 +363,14 @@ export function ProductImportDialog({
         } else {
           result.productsCreated++;
           if (!product.status && newId) {
-            await (supabase.rpc as any)('update_catalog_product', {
+            await supabase.rpc('update_catalog_product', {
               p_id: newId,
               p_is_active: false,
             });
           }
         }
-      } catch (error: any) {
-        result.errors.push(`Producto ${product.productNumber}: ${error.message}`);
+      } catch (error: unknown) {
+        result.errors.push(`Producto ${product.productNumber}: ${getErrorMessage(error)}`);
       }
     }
 
@@ -383,6 +396,7 @@ export function ProductImportDialog({
 
   const getProductsWithoutSubcategory = () => {
     return parsedData.filter(p => {
+      if (!p.subcategoryCode?.trim()) return true;
       const categoryId = findCategoryId(p.categoryCode);
       if (!categoryId) return false;
       return !findSubcategoryId(p.subcategoryCode, categoryId);

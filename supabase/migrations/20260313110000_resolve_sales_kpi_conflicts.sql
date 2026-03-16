@@ -9,11 +9,8 @@ AS $$
     ELSE 'ISSUED'
   END;
 $$;
-
 COMMENT ON FUNCTION public.normalize_sales_invoice_doc_status(text)
 IS 'Maps legacy sales invoice statuses to canonical document status: DRAFT, ISSUED, CANCELLED.';
-
-
 CREATE OR REPLACE FUNCTION public.derive_sales_invoice_payment_status(
   p_status text,
   p_paid_amount numeric,
@@ -30,11 +27,8 @@ AS $$
     ELSE 'PENDING'
   END;
 $$;
-
 COMMENT ON FUNCTION public.derive_sales_invoice_payment_status(text, numeric, numeric)
 IS 'Derives canonical payment status for sales invoices from amounts instead of relying on legacy raw status.';
-
-
 CREATE OR REPLACE FUNCTION public.is_sales_invoice_overdue(
   p_status text,
   p_paid_amount numeric,
@@ -52,11 +46,8 @@ AS $$
     AND p_due_date IS NOT NULL
     AND p_due_date < COALESCE(p_reference_date, CURRENT_DATE);
 $$;
-
 COMMENT ON FUNCTION public.is_sales_invoice_overdue(text, numeric, numeric, date, date)
 IS 'Computes overdue condition for sales invoices from document state, amounts and due date.';
-
-
 CREATE OR REPLACE FUNCTION public.get_sales_invoice_kpi_summary(
   p_start_date date DEFAULT NULL,
   p_end_date date DEFAULT NULL,
@@ -131,15 +122,11 @@ BEGIN
   FROM normalized;
 END;
 $$;
-
 COMMENT ON FUNCTION public.get_sales_invoice_kpi_summary(date, date, uuid)
 IS 'Canonical sales invoice KPI summary. Separates billed gross, billed net, VAT, collected and open receivables using normalized document and payment logic.';
-
 GRANT ALL ON FUNCTION public.get_sales_invoice_kpi_summary(date, date, uuid) TO anon;
 GRANT ALL ON FUNCTION public.get_sales_invoice_kpi_summary(date, date, uuid) TO authenticated;
 GRANT ALL ON FUNCTION public.get_sales_invoice_kpi_summary(date, date, uuid) TO service_role;
-
-
 CREATE OR REPLACE FUNCTION public.finance_list_invoices(
   p_search text DEFAULT NULL,
   p_status text DEFAULT NULL
@@ -254,11 +241,8 @@ BEGIN
   ORDER BY i.created_at DESC;
 END;
 $$;
-
 COMMENT ON FUNCTION public.finance_list_invoices(text, text)
 IS 'Lists sales invoices with canonical-compatible status filtering and derived pending amount.';
-
-
 CREATE OR REPLACE FUNCTION public.dashboard_get_admin_overview(p_period text DEFAULT 'quarter'::text)
 RETURNS json
 LANGUAGE plpgsql
@@ -483,8 +467,6 @@ BEGIN
   RETURN v_result;
 END;
 $$;
-
-
 CREATE OR REPLACE FUNCTION public.dashboard_get_commercial_overview(p_user_id uuid DEFAULT NULL::uuid)
 RETURNS json
 LANGUAGE plpgsql
@@ -593,8 +575,6 @@ BEGIN
   RETURN v_result;
 END;
 $$;
-
-
 CREATE OR REPLACE FUNCTION public.finance_get_period_summary(
   p_start_date date DEFAULT NULL::date,
   p_end_date date DEFAULT NULL::date
@@ -638,8 +618,6 @@ BEGIN
   FROM public.get_sales_invoice_kpi_summary(v_start, v_end, NULL) s;
 END;
 $$;
-
-
 CREATE OR REPLACE FUNCTION public.get_fiscal_quarter_data(p_year integer, p_quarter integer)
 RETURNS json
 LANGUAGE plpgsql

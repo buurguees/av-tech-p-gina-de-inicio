@@ -18,181 +18,126 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
-
 --
 -- Name: accounting; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
 CREATE SCHEMA "accounting";
-
-
 ALTER SCHEMA "accounting" OWNER TO "postgres";
-
 --
 -- Name: SCHEMA "accounting"; Type: COMMENT; Schema: -; Owner: postgres
 --
 
 COMMENT ON SCHEMA "accounting" IS 'Sistema contable interno con gesti├│n de terceros, impuestos e informes';
-
-
 --
 -- Name: audit; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
 CREATE SCHEMA "audit";
-
-
 ALTER SCHEMA "audit" OWNER TO "postgres";
-
 --
 -- Name: backup; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
 CREATE SCHEMA "backup";
-
-
 ALTER SCHEMA "backup" OWNER TO "postgres";
-
 --
 -- Name: catalog; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
 CREATE SCHEMA "catalog";
-
-
 ALTER SCHEMA "catalog" OWNER TO "postgres";
-
 --
 -- Name: crm; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
 CREATE SCHEMA "crm";
-
-
 ALTER SCHEMA "crm" OWNER TO "postgres";
-
 --
 -- Name: internal; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
 CREATE SCHEMA "internal";
-
-
 ALTER SCHEMA "internal" OWNER TO "postgres";
-
 --
 -- Name: projects; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
 CREATE SCHEMA "projects";
-
-
 ALTER SCHEMA "projects" OWNER TO "postgres";
-
 --
 -- Name: SCHEMA "public"; Type: COMMENT; Schema: -; Owner: pg_database_owner
 --
 
 COMMENT ON SCHEMA "public" IS 'standard public schema';
-
-
 --
 -- Name: quotes; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
 CREATE SCHEMA "quotes";
-
-
 ALTER SCHEMA "quotes" OWNER TO "postgres";
-
 --
 -- Name: sales; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
 CREATE SCHEMA "sales";
-
-
 ALTER SCHEMA "sales" OWNER TO "postgres";
-
 --
 -- Name: security; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
 CREATE SCHEMA "security";
-
-
 ALTER SCHEMA "security" OWNER TO "postgres";
-
 --
 -- Name: pg_graphql; Type: EXTENSION; Schema: -; Owner: -
 --
 
 CREATE EXTENSION IF NOT EXISTS "pg_graphql" WITH SCHEMA "graphql";
-
-
 --
 -- Name: EXTENSION "pg_graphql"; Type: COMMENT; Schema: -; Owner: 
 --
 
 COMMENT ON EXTENSION "pg_graphql" IS 'pg_graphql: GraphQL support';
-
-
 --
 -- Name: pg_stat_statements; Type: EXTENSION; Schema: -; Owner: -
 --
 
 CREATE EXTENSION IF NOT EXISTS "pg_stat_statements" WITH SCHEMA "extensions";
-
-
 --
 -- Name: EXTENSION "pg_stat_statements"; Type: COMMENT; Schema: -; Owner: 
 --
 
 COMMENT ON EXTENSION "pg_stat_statements" IS 'track planning and execution statistics of all SQL statements executed';
-
-
 --
 -- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
 --
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA "extensions";
-
-
 --
 -- Name: EXTENSION "pgcrypto"; Type: COMMENT; Schema: -; Owner: 
 --
 
 COMMENT ON EXTENSION "pgcrypto" IS 'cryptographic functions';
-
-
 --
 -- Name: supabase_vault; Type: EXTENSION; Schema: -; Owner: -
 --
 
 CREATE EXTENSION IF NOT EXISTS "supabase_vault" WITH SCHEMA "vault";
-
-
 --
 -- Name: EXTENSION "supabase_vault"; Type: COMMENT; Schema: -; Owner: 
 --
 
 COMMENT ON EXTENSION "supabase_vault" IS 'Supabase Vault Extension';
-
-
 --
 -- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
 --
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
-
-
 --
 -- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
 --
 
 COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
-
-
 --
 -- Name: credit_installment_status; Type: TYPE; Schema: accounting; Owner: postgres
 --
@@ -201,10 +146,7 @@ CREATE TYPE "accounting"."credit_installment_status" AS ENUM (
     'PENDING',
     'PAID'
 );
-
-
 ALTER TYPE "accounting"."credit_installment_status" OWNER TO "postgres";
-
 --
 -- Name: credit_operation_status; Type: TYPE; Schema: accounting; Owner: postgres
 --
@@ -214,10 +156,7 @@ CREATE TYPE "accounting"."credit_operation_status" AS ENUM (
     'SETTLED',
     'CANCELLED'
 );
-
-
 ALTER TYPE "accounting"."credit_operation_status" OWNER TO "postgres";
-
 --
 -- Name: credit_provider_type; Type: TYPE; Schema: accounting; Owner: postgres
 --
@@ -226,10 +165,7 @@ CREATE TYPE "accounting"."credit_provider_type" AS ENUM (
     'BNPL',
     'OTHER'
 );
-
-
 ALTER TYPE "accounting"."credit_provider_type" OWNER TO "postgres";
-
 --
 -- Name: journal_entry_type; Type: TYPE; Schema: accounting; Owner: postgres
 --
@@ -253,10 +189,7 @@ CREATE TYPE "accounting"."journal_entry_type" AS ENUM (
     'REIMBURSEMENT',
     'INVOICE_RECTIFICATION'
 );
-
-
 ALTER TYPE "accounting"."journal_entry_type" OWNER TO "postgres";
-
 --
 -- Name: payer_type; Type: TYPE; Schema: accounting; Owner: postgres
 --
@@ -265,10 +198,7 @@ CREATE TYPE "accounting"."payer_type" AS ENUM (
     'COMPANY',
     'PERSONAL'
 );
-
-
 ALTER TYPE "accounting"."payer_type" OWNER TO "postgres";
-
 --
 -- Name: reimbursement_status; Type: TYPE; Schema: accounting; Owner: postgres
 --
@@ -278,10 +208,7 @@ CREATE TYPE "accounting"."reimbursement_status" AS ENUM (
     'REIMBURSED',
     'NOT_REQUIRED'
 );
-
-
 ALTER TYPE "accounting"."reimbursement_status" OWNER TO "postgres";
-
 --
 -- Name: third_party_type; Type: TYPE; Schema: accounting; Owner: postgres
 --
@@ -292,10 +219,7 @@ CREATE TYPE "accounting"."third_party_type" AS ENUM (
     'TECHNICIAN',
     'PARTNER'
 );
-
-
 ALTER TYPE "accounting"."third_party_type" OWNER TO "postgres";
-
 --
 -- Name: audit_action; Type: TYPE; Schema: audit; Owner: postgres
 --
@@ -308,10 +232,7 @@ CREATE TYPE "audit"."audit_action" AS ENUM (
     'REASSIGN',
     'VIEW_SENSITIVE'
 );
-
-
 ALTER TYPE "audit"."audit_action" OWNER TO "postgres";
-
 --
 -- Name: category_domain; Type: TYPE; Schema: catalog; Owner: postgres
 --
@@ -320,10 +241,7 @@ CREATE TYPE "catalog"."category_domain" AS ENUM (
     'PRODUCT',
     'SERVICE'
 );
-
-
 ALTER TYPE "catalog"."category_domain" OWNER TO "postgres";
-
 --
 -- Name: document_provider; Type: TYPE; Schema: catalog; Owner: postgres
 --
@@ -333,10 +251,7 @@ CREATE TYPE "catalog"."document_provider" AS ENUM (
     'upload',
     'external'
 );
-
-
 ALTER TYPE "catalog"."document_provider" OWNER TO "postgres";
-
 --
 -- Name: document_type; Type: TYPE; Schema: catalog; Owner: postgres
 --
@@ -348,10 +263,7 @@ CREATE TYPE "catalog"."document_type" AS ENUM (
     'image',
     'other'
 );
-
-
 ALTER TYPE "catalog"."document_type" OWNER TO "postgres";
-
 --
 -- Name: product_type; Type: TYPE; Schema: catalog; Owner: postgres
 --
@@ -361,10 +273,7 @@ CREATE TYPE "catalog"."product_type" AS ENUM (
     'SERVICE',
     'BUNDLE'
 );
-
-
 ALTER TYPE "catalog"."product_type" OWNER TO "postgres";
-
 --
 -- Name: stock_alert_status; Type: TYPE; Schema: catalog; Owner: postgres
 --
@@ -374,10 +283,7 @@ CREATE TYPE "catalog"."stock_alert_status" AS ENUM (
     'ack',
     'resolved'
 );
-
-
 ALTER TYPE "catalog"."stock_alert_status" OWNER TO "postgres";
-
 --
 -- Name: stock_movement_type; Type: TYPE; Schema: catalog; Owner: postgres
 --
@@ -389,10 +295,7 @@ CREATE TYPE "catalog"."stock_movement_type" AS ENUM (
     'RETURN_IN',
     'RETURN_OUT'
 );
-
-
 ALTER TYPE "catalog"."stock_movement_type" OWNER TO "postgres";
-
 --
 -- Name: unit_type; Type: TYPE; Schema: catalog; Owner: postgres
 --
@@ -406,10 +309,7 @@ CREATE TYPE "catalog"."unit_type" AS ENUM (
     'mes',
     'kg'
 );
-
-
 ALTER TYPE "catalog"."unit_type" OWNER TO "postgres";
-
 --
 -- Name: appointment_type; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -420,10 +320,7 @@ CREATE TYPE "crm"."appointment_type" AS ENUM (
     'CLOSING',
     'INSTALLATION'
 );
-
-
 ALTER TYPE "crm"."appointment_type" OWNER TO "postgres";
-
 --
 -- Name: av_solution_type; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -462,10 +359,7 @@ CREATE TYPE "crm"."av_solution_type" AS ENUM (
     'INSTALLATIONS',
     'TECH_SUPPORT'
 );
-
-
 ALTER TYPE "crm"."av_solution_type" OWNER TO "postgres";
-
 --
 -- Name: business_type; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -484,10 +378,7 @@ CREATE TYPE "crm"."business_type" AS ENUM (
     'EDUCATION',
     'OTHER'
 );
-
-
 ALTER TYPE "crm"."business_type" OWNER TO "postgres";
-
 --
 -- Name: canvassing_priority; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -497,10 +388,7 @@ CREATE TYPE "crm"."canvassing_priority" AS ENUM (
     'MEDIUM',
     'HIGH'
 );
-
-
 ALTER TYPE "crm"."canvassing_priority" OWNER TO "postgres";
-
 --
 -- Name: canvassing_status; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -519,10 +407,7 @@ CREATE TYPE "crm"."canvassing_status" AS ENUM (
     'NEG',
     'PRES'
 );
-
-
 ALTER TYPE "crm"."canvassing_status" OWNER TO "postgres";
-
 --
 -- Name: condition_level; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -532,10 +417,7 @@ CREATE TYPE "crm"."condition_level" AS ENUM (
     'REGULAR',
     'POOR'
 );
-
-
 ALTER TYPE "crm"."condition_level" OWNER TO "postgres";
-
 --
 -- Name: contact_method; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -546,10 +428,7 @@ CREATE TYPE "crm"."contact_method" AS ENUM (
     'SMS',
     'WHATSAPP'
 );
-
-
 ALTER TYPE "crm"."contact_method" OWNER TO "postgres";
-
 --
 -- Name: contact_time; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -559,10 +438,7 @@ CREATE TYPE "crm"."contact_time" AS ENUM (
     'AFTERNOON',
     'EVENING'
 );
-
-
 ALTER TYPE "crm"."contact_time" OWNER TO "postgres";
-
 --
 -- Name: contact_type; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -573,10 +449,7 @@ CREATE TYPE "crm"."contact_type" AS ENUM (
     'FINANCIAL',
     'ADMINISTRATIVE'
 );
-
-
 ALTER TYPE "crm"."contact_type" OWNER TO "postgres";
-
 --
 -- Name: industry_sector; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -592,10 +465,7 @@ CREATE TYPE "crm"."industry_sector" AS ENUM (
     'OTHER',
     'DIGITAL_SIGNAGE'
 );
-
-
 ALTER TYPE "crm"."industry_sector" OWNER TO "postgres";
-
 --
 -- Name: interaction_outcome; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -606,10 +476,7 @@ CREATE TYPE "crm"."interaction_outcome" AS ENUM (
     'NEGATIVE',
     'FOLLOW_UP_NEEDED'
 );
-
-
 ALTER TYPE "crm"."interaction_outcome" OWNER TO "postgres";
-
 --
 -- Name: interaction_type; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -622,10 +489,7 @@ CREATE TYPE "crm"."interaction_type" AS ENUM (
     'WHATSAPP',
     'OTHER'
 );
-
-
 ALTER TYPE "crm"."interaction_type" OWNER TO "postgres";
-
 --
 -- Name: lead_source; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -641,10 +505,7 @@ CREATE TYPE "crm"."lead_source" AS ENUM (
     'OTHER',
     'COMMERCIAL'
 );
-
-
 ALTER TYPE "crm"."lead_source" OWNER TO "postgres";
-
 --
 -- Name: lead_stage; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -660,10 +521,7 @@ CREATE TYPE "crm"."lead_stage" AS ENUM (
     'PAUSED',
     'RECURRING'
 );
-
-
 ALTER TYPE "crm"."lead_stage" OWNER TO "postgres";
-
 --
 -- Name: location_note_type; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -678,10 +536,7 @@ CREATE TYPE "crm"."location_note_type" AS ENUM (
     'INCIDENT',
     'INTERNAL'
 );
-
-
 ALTER TYPE "crm"."location_note_type" OWNER TO "postgres";
-
 --
 -- Name: maintenance_frequency; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -692,10 +547,7 @@ CREATE TYPE "crm"."maintenance_frequency" AS ENUM (
     'ANNUAL',
     'ON_DEMAND'
 );
-
-
 ALTER TYPE "crm"."maintenance_frequency" OWNER TO "postgres";
-
 --
 -- Name: need_urgency; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -706,10 +558,7 @@ CREATE TYPE "crm"."need_urgency" AS ENUM (
     '3_6_MONTHS',
     'MORE_6_MONTHS'
 );
-
-
 ALTER TYPE "crm"."need_urgency" OWNER TO "postgres";
-
 --
 -- Name: property_status; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -718,10 +567,7 @@ CREATE TYPE "crm"."property_status" AS ENUM (
     'OWNER',
     'RENTER'
 );
-
-
 ALTER TYPE "crm"."property_status" OWNER TO "postgres";
-
 --
 -- Name: property_type; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -732,10 +578,7 @@ CREATE TYPE "crm"."property_type" AS ENUM (
     'DUPLEX',
     'COMMERCIAL'
 );
-
-
 ALTER TYPE "crm"."property_type" OWNER TO "postgres";
-
 --
 -- Name: purchase_phase; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -746,10 +589,7 @@ CREATE TYPE "crm"."purchase_phase" AS ENUM (
     'READY_TO_DECIDE',
     'NEEDS_APPROVAL'
 );
-
-
 ALTER TYPE "crm"."purchase_phase" OWNER TO "postgres";
-
 --
 -- Name: roof_type; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -760,10 +600,7 @@ CREATE TYPE "crm"."roof_type" AS ENUM (
     'METAL',
     'OTHER'
 );
-
-
 ALTER TYPE "crm"."roof_type" OWNER TO "postgres";
-
 --
 -- Name: technical_service_type; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -775,10 +612,7 @@ CREATE TYPE "crm"."technical_service_type" AS ENUM (
     'UPGRADE',
     'TECH_SUPPORT'
 );
-
-
 ALTER TYPE "crm"."technical_service_type" OWNER TO "postgres";
-
 --
 -- Name: urgency_level; Type: TYPE; Schema: crm; Owner: postgres
 --
@@ -789,10 +623,7 @@ CREATE TYPE "crm"."urgency_level" AS ENUM (
     'HIGH',
     'URGENT'
 );
-
-
 ALTER TYPE "crm"."urgency_level" OWNER TO "postgres";
-
 --
 -- Name: app_role_extended; Type: TYPE; Schema: internal; Owner: postgres
 --
@@ -804,10 +635,7 @@ CREATE TYPE "internal"."app_role_extended" AS ENUM (
     'tech',
     'readonly'
 );
-
-
 ALTER TYPE "internal"."app_role_extended" OWNER TO "postgres";
-
 --
 -- Name: department_type; Type: TYPE; Schema: internal; Owner: postgres
 --
@@ -818,10 +646,7 @@ CREATE TYPE "internal"."department_type" AS ENUM (
     'ADMIN',
     'DIRECTION'
 );
-
-
 ALTER TYPE "internal"."department_type" OWNER TO "postgres";
-
 --
 -- Name: technician_status; Type: TYPE; Schema: internal; Owner: postgres
 --
@@ -831,10 +656,7 @@ CREATE TYPE "internal"."technician_status" AS ENUM (
     'INACTIVE',
     'BLOCKED'
 );
-
-
 ALTER TYPE "internal"."technician_status" OWNER TO "postgres";
-
 --
 -- Name: technician_type; Type: TYPE; Schema: internal; Owner: postgres
 --
@@ -844,10 +666,7 @@ CREATE TYPE "internal"."technician_type" AS ENUM (
     'FREELANCER',
     'EMPLOYEE'
 );
-
-
 ALTER TYPE "internal"."technician_type" OWNER TO "postgres";
-
 --
 -- Name: document_type; Type: TYPE; Schema: projects; Owner: postgres
 --
@@ -861,10 +680,7 @@ CREATE TYPE "projects"."document_type" AS ENUM (
     'CERTIFICATE',
     'OTHER'
 );
-
-
 ALTER TYPE "projects"."document_type" OWNER TO "postgres";
-
 --
 -- Name: phase_status; Type: TYPE; Schema: projects; Owner: postgres
 --
@@ -876,10 +692,7 @@ CREATE TYPE "projects"."phase_status" AS ENUM (
     'REVISION_NEEDED',
     'COMPLETED'
 );
-
-
 ALTER TYPE "projects"."phase_status" OWNER TO "postgres";
-
 --
 -- Name: priority_level; Type: TYPE; Schema: projects; Owner: postgres
 --
@@ -890,10 +703,7 @@ CREATE TYPE "projects"."priority_level" AS ENUM (
     'HIGH',
     'URGENT'
 );
-
-
 ALTER TYPE "projects"."priority_level" OWNER TO "postgres";
-
 --
 -- Name: project_category; Type: TYPE; Schema: projects; Owner: postgres
 --
@@ -906,10 +716,7 @@ CREATE TYPE "projects"."project_category" AS ENUM (
     'SIGNAGE',
     'CUSTOM'
 );
-
-
 ALTER TYPE "projects"."project_category" OWNER TO "postgres";
-
 --
 -- Name: project_status; Type: TYPE; Schema: projects; Owner: postgres
 --
@@ -925,10 +732,7 @@ CREATE TYPE "projects"."project_status" AS ENUM (
     'NEGOTIATION',
     'ACTIVE'
 );
-
-
 ALTER TYPE "projects"."project_status" OWNER TO "postgres";
-
 --
 -- Name: project_type; Type: TYPE; Schema: projects; Owner: postgres
 --
@@ -938,10 +742,7 @@ CREATE TYPE "projects"."project_type" AS ENUM (
     'AV_PROJECT',
     'INSTALLATION'
 );
-
-
 ALTER TYPE "projects"."project_type" OWNER TO "postgres";
-
 --
 -- Name: site_mode; Type: TYPE; Schema: projects; Owner: postgres
 --
@@ -950,10 +751,7 @@ CREATE TYPE "projects"."site_mode" AS ENUM (
     'SINGLE_SITE',
     'MULTI_SITE'
 );
-
-
 ALTER TYPE "projects"."site_mode" OWNER TO "postgres";
-
 --
 -- Name: task_status; Type: TYPE; Schema: projects; Owner: postgres
 --
@@ -965,10 +763,7 @@ CREATE TYPE "projects"."task_status" AS ENUM (
     'COMPLETED',
     'BLOCKED'
 );
-
-
 ALTER TYPE "projects"."task_status" OWNER TO "postgres";
-
 --
 -- Name: app_role; Type: TYPE; Schema: public; Owner: postgres
 --
@@ -979,10 +774,7 @@ CREATE TYPE "public"."app_role" AS ENUM (
     'tecnico',
     'manager'
 );
-
-
 ALTER TYPE "public"."app_role" OWNER TO "postgres";
-
 --
 -- Name: product_type; Type: TYPE; Schema: public; Owner: postgres
 --
@@ -991,10 +783,7 @@ CREATE TYPE "public"."product_type" AS ENUM (
     'product',
     'service'
 );
-
-
 ALTER TYPE "public"."product_type" OWNER TO "postgres";
-
 --
 -- Name: quote_status; Type: TYPE; Schema: quotes; Owner: postgres
 --
@@ -1007,10 +796,7 @@ CREATE TYPE "quotes"."quote_status" AS ENUM (
     'EXPIRED',
     'INVOICED'
 );
-
-
 ALTER TYPE "quotes"."quote_status" OWNER TO "postgres";
-
 --
 -- Name: document_type; Type: TYPE; Schema: sales; Owner: postgres
 --
@@ -1021,10 +807,7 @@ CREATE TYPE "sales"."document_type" AS ENUM (
     'IMAGE',
     'OTHER'
 );
-
-
 ALTER TYPE "sales"."document_type" OWNER TO "postgres";
-
 --
 -- Name: purchase_order_status; Type: TYPE; Schema: sales; Owner: postgres
 --
@@ -1037,10 +820,7 @@ CREATE TYPE "sales"."purchase_order_status" AS ENUM (
     'INVOICED',
     'CANCELLED'
 );
-
-
 ALTER TYPE "sales"."purchase_order_status" OWNER TO "postgres";
-
 --
 -- Name: assert_entry_balanced("uuid"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1069,10 +849,7 @@ BEGIN
   END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."assert_entry_balanced"("p_entry_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: assert_period_not_closed("date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1095,10 +872,7 @@ BEGIN
   RETURN true;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."assert_period_not_closed"("p_date" "date") OWNER TO "postgres";
-
 --
 -- Name: auto_close_previous_month_if_tenth(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1143,10 +917,7 @@ BEGIN
   RETURN QUERY SELECT v_prev_year, v_prev_month, 'closed'::TEXT;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."auto_close_previous_month_if_tenth"() OWNER TO "postgres";
-
 --
 -- Name: auto_create_invoice_purchase_entry(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1171,17 +942,12 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."auto_create_invoice_purchase_entry"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "auto_create_invoice_purchase_entry"(); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."auto_create_invoice_purchase_entry"() IS 'Asiento al APPROVED. Fecha contable: issue_date, updated_at (aprobaci├│n) o CURRENT_DATE.';
-
-
 --
 -- Name: auto_create_invoice_sale_entry(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1214,17 +980,12 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."auto_create_invoice_sale_entry"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "auto_create_invoice_sale_entry"(); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."auto_create_invoice_sale_entry"() IS 'Trigger que crea autom├íticamente un asiento contable de venta cuando una factura cambia a estado ISSUED';
-
-
 --
 -- Name: auto_create_purchase_payment_entry(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1346,10 +1107,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."auto_create_purchase_payment_entry"() OWNER TO "postgres";
-
 --
 -- Name: auto_recalculate_corporate_tax(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1388,17 +1146,12 @@ BEGIN
   RETURN COALESCE(NEW, OLD);
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."auto_recalculate_corporate_tax"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "auto_recalculate_corporate_tax"(); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."auto_recalculate_corporate_tax"() IS 'Recalcula IS al cambiar ingresos/gastos. Excluye TAX_PROVISION y TAX_SETTLEMENT para evitar recursi├│n.';
-
-
 --
 -- Name: backfill_all_historical_data(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1511,17 +1264,12 @@ BEGIN
   END;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."backfill_all_historical_data"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "backfill_all_historical_data"(); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."backfill_all_historical_data"() IS 'Ejecuta todo el proceso de contabilizaci├│n hist├│rica y devuelve un resumen';
-
-
 --
 -- Name: backfill_client_payments(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1590,17 +1338,12 @@ BEGIN
   RAISE NOTICE 'Procesados % pagos de clientes desde 2026', v_count;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."backfill_client_payments"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "backfill_client_payments"(); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."backfill_client_payments"() IS 'Genera asientos contables para pagos de clientes hist├│ricos desde 2026-01-01 que a├║n no est├ín contabilizados.';
-
-
 --
 -- Name: backfill_purchase_invoices(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1673,17 +1416,12 @@ BEGIN
   RAISE NOTICE 'Procesadas % facturas de compra desde 2026', v_count;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."backfill_purchase_invoices"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "backfill_purchase_invoices"(); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."backfill_purchase_invoices"() IS 'Genera asientos contables para facturas de compra hist├│ricas desde 2026-01-01 que a├║n no est├ín contabilizadas';
-
-
 --
 -- Name: backfill_purchase_payments(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1806,17 +1544,12 @@ BEGIN
   RAISE NOTICE 'Procesados % pagos de compra', v_count;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."backfill_purchase_payments"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "backfill_purchase_payments"(); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."backfill_purchase_payments"() IS 'Genera asientos contables para pagos de compra hist├│ricos desde 2026-01-01 que a├║n no est├ín contabilizados';
-
-
 --
 -- Name: backfill_sales_invoices(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1893,17 +1626,12 @@ BEGIN
   RAISE NOTICE 'Procesadas % facturas de venta desde 2026', v_count;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."backfill_sales_invoices"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "backfill_sales_invoices"(); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."backfill_sales_invoices"() IS 'Genera asientos contables para facturas de venta hist├│ricas desde 2026-01-01 que a├║n no est├ín contabilizadas';
-
-
 --
 -- Name: calculate_corporate_tax("date", "date", numeric, boolean); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -1980,17 +1708,12 @@ BEGIN
   RETURN v_entry_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."calculate_corporate_tax"("p_period_start" "date", "p_period_end" "date", "p_tax_rate" numeric, "p_force_recalculate" boolean) OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "calculate_corporate_tax"("p_period_start" "date", "p_period_end" "date", "p_tax_rate" numeric, "p_force_recalculate" boolean); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."calculate_corporate_tax"("p_period_start" "date", "p_period_end" "date", "p_tax_rate" numeric, "p_force_recalculate" boolean) IS 'Provisi├│n IS. Idempotente por period_start/period_end (o descripci├│n legacy).';
-
-
 --
 -- Name: calculate_profit_before_tax("date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -2042,17 +1765,12 @@ BEGIN
     v_revenue - v_expenses;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."calculate_profit_before_tax"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "calculate_profit_before_tax"("p_period_start" "date", "p_period_end" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."calculate_profit_before_tax"("p_period_start" "date", "p_period_end" "date") IS 'Calcula el resultado antes de impuestos (BAI) basado en ingresos y gastos contabilizados';
-
-
 --
 -- Name: check_journal_entry_period_not_closed(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -2068,17 +1786,12 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."check_journal_entry_period_not_closed"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "check_journal_entry_period_not_closed"(); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."check_journal_entry_period_not_closed"() IS 'Bloquea insert/update de asientos en periodo cerrado (period_closures).';
-
-
 --
 -- Name: check_month_closure_readiness(integer, integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -2123,10 +1836,7 @@ BEGIN
     format('N├│minas en DRAFT: %s', v_payroll_pending);
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."check_month_closure_readiness"("p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: close_period(integer, integer, "uuid"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -2169,10 +1879,7 @@ BEGIN
   RETURN v_closure_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."close_period"("p_year" integer, "p_month" integer, "p_closed_by" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_bank_balance_adjustment("text", "text", numeric, "date", "text"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -2320,17 +2027,12 @@ BEGIN
   RETURN QUERY SELECT v_entry_id, v_entry_number, v_adjustment_amount;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_bank_balance_adjustment"("p_bank_account_id" "text", "p_bank_name" "text", "p_new_balance" numeric, "p_adjustment_date" "date", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "create_bank_balance_adjustment"("p_bank_account_id" "text", "p_bank_name" "text", "p_new_balance" numeric, "p_adjustment_date" "date", "p_notes" "text"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."create_bank_balance_adjustment"("p_bank_account_id" "text", "p_bank_name" "text", "p_new_balance" numeric, "p_adjustment_date" "date", "p_notes" "text") IS 'Crea un asiento de ajuste para establecer el saldo bancario actual. Genera un asiento balanceado con contrapartida en la cuenta 129000.';
-
-
 --
 -- Name: create_bank_balance_adjustment("uuid", "text", numeric, "date", "text"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -2407,10 +2109,7 @@ BEGIN
   RETURN QUERY SELECT v_entry_id, v_entry_number, v_adjustment_amount;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_bank_balance_adjustment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_new_balance" numeric, "p_adjustment_date" "date", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: create_bank_opening_entry("jsonb", "date", "text"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -2521,17 +2220,12 @@ BEGIN
   RETURN QUERY SELECT v_entry_id, v_entry_number, v_total_amount;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_bank_opening_entry"("p_bank_balances" "jsonb", "p_entry_date" "date", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "create_bank_opening_entry"("p_bank_balances" "jsonb", "p_entry_date" "date", "p_notes" "text"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."create_bank_opening_entry"("p_bank_balances" "jsonb", "p_entry_date" "date", "p_notes" "text") IS 'Crea asiento de apertura con saldos iniciales de m├║ltiples bancos';
-
-
 --
 -- Name: create_bank_transfer("text", "text", "text", "text", numeric, "date", "text"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -2613,17 +2307,12 @@ BEGIN
   RETURN QUERY SELECT v_entry_id, v_entry_number;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_bank_transfer"("p_source_bank_id" "text", "p_source_bank_name" "text", "p_target_bank_id" "text", "p_target_bank_name" "text", "p_amount" numeric, "p_transfer_date" "date", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "create_bank_transfer"("p_source_bank_id" "text", "p_source_bank_name" "text", "p_target_bank_id" "text", "p_target_bank_name" "text", "p_amount" numeric, "p_transfer_date" "date", "p_notes" "text"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."create_bank_transfer"("p_source_bank_id" "text", "p_source_bank_name" "text", "p_target_bank_id" "text", "p_target_bank_name" "text", "p_amount" numeric, "p_transfer_date" "date", "p_notes" "text") IS 'Registra un traspaso entre cuentas bancarias';
-
-
 --
 -- Name: create_invoice_payment_entry("uuid", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -2705,17 +2394,12 @@ BEGIN
   RETURN v_entry_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_invoice_payment_entry"("p_payment_id" "uuid", "p_entry_date" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "create_invoice_payment_entry"("p_payment_id" "uuid", "p_entry_date" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."create_invoice_payment_entry"("p_payment_id" "uuid", "p_entry_date" "date") IS 'Crea un asiento contable para un pago recibido de cliente (cobro). DEBE: Banco (572000), HABER: Clientes (430000) con third_party_id.';
-
-
 --
 -- Name: create_invoice_purchase_entry("uuid", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -2846,10 +2530,7 @@ BEGIN
   RETURN v_entry_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_invoice_purchase_entry"("p_purchase_invoice_id" "uuid", "p_entry_date" "date") OWNER TO "postgres";
-
 --
 -- Name: create_invoice_sale_entry("uuid", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -3046,10 +2727,7 @@ BEGIN
   RETURN v_entry_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_invoice_sale_entry"("p_invoice_id" "uuid", "p_entry_date" "date") OWNER TO "postgres";
-
 --
 -- Name: create_irpf_settlement_entry("date", "date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -3146,10 +2824,7 @@ BEGIN
   RETURN v_entry_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_irpf_settlement_entry"("p_settlement_date" "date", "p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: create_manual_bank_movement("text", "text", numeric, "text", "text", "date", "text"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -3242,17 +2917,12 @@ BEGIN
   RETURN QUERY SELECT v_entry_id, v_entry_number;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_manual_bank_movement"("p_bank_account_id" "text", "p_bank_name" "text", "p_amount" numeric, "p_movement_type" "text", "p_category" "text", "p_movement_date" "date", "p_description" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "create_manual_bank_movement"("p_bank_account_id" "text", "p_bank_name" "text", "p_amount" numeric, "p_movement_type" "text", "p_category" "text", "p_movement_date" "date", "p_description" "text"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."create_manual_bank_movement"("p_bank_account_id" "text", "p_bank_name" "text", "p_amount" numeric, "p_movement_type" "text", "p_category" "text", "p_movement_date" "date", "p_description" "text") IS 'Registra gastos o ingresos sin factura';
-
-
 --
 -- Name: create_partner_compensation_entry("uuid", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -3327,17 +2997,12 @@ BEGIN
   RETURN v_entry_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_partner_compensation_entry"("p_compensation_run_id" "uuid", "p_entry_date" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "create_partner_compensation_entry"("p_compensation_run_id" "uuid", "p_entry_date" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."create_partner_compensation_entry"("p_compensation_run_id" "uuid", "p_entry_date" "date") IS 'Genera autom├íticamente el asiento contable al postear una retribuci├│n de socio';
-
-
 --
 -- Name: create_partner_compensation_run("uuid", integer, integer, numeric, numeric, "text"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -3407,17 +3072,12 @@ BEGIN
   RETURN v_compensation_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_partner_compensation_run"("p_partner_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "create_partner_compensation_run"("p_partner_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."create_partner_compensation_run"("p_partner_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") IS 'Crea una retribuci├│n de socio en estado DRAFT';
-
-
 --
 -- Name: create_payroll_entry("uuid", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -3492,17 +3152,12 @@ BEGIN
   RETURN v_entry_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_payroll_entry"("p_payroll_run_id" "uuid", "p_entry_date" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "create_payroll_entry"("p_payroll_run_id" "uuid", "p_entry_date" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."create_payroll_entry"("p_payroll_run_id" "uuid", "p_entry_date" "date") IS 'Genera autom├íticamente el asiento contable al postear una n├│mina de empleado';
-
-
 --
 -- Name: create_payroll_payment(numeric, "uuid", "uuid", "date", "text", "text", "text", "uuid"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -3576,10 +3231,7 @@ BEGIN
   RETURN v_payment_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_payroll_payment"("p_amount" numeric, "p_payroll_run_id" "uuid", "p_partner_compensation_run_id" "uuid", "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_payroll_payment_entry("uuid", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -3748,17 +3400,12 @@ BEGIN
   RETURN v_entry_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_payroll_payment_entry"("p_payment_id" "uuid", "p_entry_date" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "create_payroll_payment_entry"("p_payment_id" "uuid", "p_entry_date" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."create_payroll_payment_entry"("p_payment_id" "uuid", "p_entry_date" "date") IS 'Genera autom├íticamente el asiento contable al registrar un pago de n├│mina/retribuci├│n';
-
-
 --
 -- Name: create_payroll_run("uuid", integer, integer, numeric, numeric, "text"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -3834,17 +3481,12 @@ BEGIN
   RETURN v_payroll_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_payroll_run"("p_employee_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "create_payroll_run"("p_employee_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."create_payroll_run"("p_employee_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") IS 'Crea una n├│mina de empleado en estado DRAFT';
-
-
 --
 -- Name: create_tax_payment("text", "text", "text", numeric, "date", "text", "text"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -3948,17 +3590,12 @@ BEGIN
   RETURN QUERY SELECT v_entry_id, v_entry_number;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_tax_payment"("p_bank_account_id" "text", "p_bank_name" "text", "p_tax_type" "text", "p_amount" numeric, "p_payment_date" "date", "p_period" "text", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "create_tax_payment"("p_bank_account_id" "text", "p_bank_name" "text", "p_tax_type" "text", "p_amount" numeric, "p_payment_date" "date", "p_period" "text", "p_notes" "text"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."create_tax_payment"("p_bank_account_id" "text", "p_bank_name" "text", "p_tax_type" "text", "p_amount" numeric, "p_payment_date" "date", "p_period" "text", "p_notes" "text") IS 'Registra pago de impuestos (IVA, IRPF, IS)';
-
-
 --
 -- Name: create_vat_settlement_entry("date", "date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4084,10 +3721,7 @@ BEGIN
   RETURN v_entry_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."create_vat_settlement_entry"("p_settlement_date" "date", "p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: get_account_by_third_party_type("accounting"."third_party_type"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4109,10 +3743,7 @@ BEGIN
   END CASE;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_account_by_third_party_type"("p_third_party_type" "accounting"."third_party_type") OWNER TO "postgres";
-
 --
 -- Name: get_balance_sheet("date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4150,17 +3781,12 @@ CREATE FUNCTION "accounting"."get_balance_sheet"("p_as_of_date" "date" DEFAULT C
   GROUP BY coa.account_code, coa.account_name, coa.account_type
   ORDER BY coa.account_code;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_balance_sheet"("p_as_of_date" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_balance_sheet"("p_as_of_date" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_balance_sheet"("p_as_of_date" "date") IS 'Balance de situaci├│n a fecha. Solo incluye asientos con entry_date <= p_as_of_date.';
-
-
 --
 -- Name: get_bank_account_code("text"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4173,10 +3799,7 @@ BEGIN
   RETURN accounting.resolve_bank_accounting_code(p_bank_account_id);
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_bank_account_code"("p_bank_account_id" "text") OWNER TO "postgres";
-
 --
 -- Name: get_bank_balance("text", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4207,17 +3830,12 @@ BEGIN
   RETURN v_balance;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_bank_balance"("p_bank_account_id" "text", "p_as_of_date" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_bank_balance"("p_bank_account_id" "text", "p_as_of_date" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_bank_balance"("p_bank_account_id" "text", "p_as_of_date" "date") IS 'Obtiene saldo actual de un banco';
-
-
 --
 -- Name: get_bank_movements("text", "date", "date", integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4276,17 +3894,12 @@ BEGIN
   LIMIT p_limit;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_bank_movements"("p_bank_account_id" "text", "p_start_date" "date", "p_end_date" "date", "p_limit" integer) OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_bank_movements"("p_bank_account_id" "text", "p_start_date" "date", "p_end_date" "date", "p_limit" integer); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_bank_movements"("p_bank_account_id" "text", "p_start_date" "date", "p_end_date" "date", "p_limit" integer) IS 'Obtiene historial de movimientos de un banco';
-
-
 --
 -- Name: get_client_balances("date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4321,17 +3934,12 @@ CREATE FUNCTION "accounting"."get_client_balances"("p_as_of_date" "date" DEFAULT
   HAVING COALESCE(SUM(CASE WHEN l.debit_credit = 'DEBIT' THEN l.amount ELSE -l.amount END), 0) <> 0
   ORDER BY net_balance DESC;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_client_balances"("p_as_of_date" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_client_balances"("p_as_of_date" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_client_balances"("p_as_of_date" "date") IS 'Saldos por cliente (430000) a fecha. Solo asientos con entry_date <= p_as_of_date.';
-
-
 --
 -- Name: get_corporate_tax_summary("date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4375,17 +3983,12 @@ BEGIN
   LIMIT 1;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_corporate_tax_summary"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_corporate_tax_summary"("p_period_start" "date", "p_period_end" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_corporate_tax_summary"("p_period_start" "date", "p_period_end" "date") IS 'Obtiene un resumen del c├ílculo de IS con la provisi├│n actual';
-
-
 --
 -- Name: get_irpf_by_period("date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4416,17 +4019,12 @@ BEGIN
   ORDER BY COALESCE(pr.period_year, pcr.period_year) DESC, COALESCE(pr.period_month, pcr.period_month) DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_irpf_by_period"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_irpf_by_period"("p_period_start" "date", "p_period_end" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_irpf_by_period"("p_period_start" "date", "p_period_end" "date") IS 'Obtiene el IRPF retenido agrupado por per├¡odo (a├▒o/mes)';
-
-
 --
 -- Name: get_irpf_by_person("date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4486,17 +4084,12 @@ BEGIN
   ORDER BY total_irpf DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_irpf_by_person"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_irpf_by_person"("p_period_start" "date", "p_period_end" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_irpf_by_person"("p_period_start" "date", "p_period_end" "date") IS 'Obtiene el IRPF retenido agrupado por persona (empleado/socio)';
-
-
 --
 -- Name: get_irpf_model_111_summary("date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4538,17 +4131,12 @@ BEGIN
   ', v_start_filter, v_end_filter);
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_irpf_model_111_summary"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_irpf_model_111_summary"("p_period_start" "date", "p_period_end" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_irpf_model_111_summary"("p_period_start" "date", "p_period_end" "date") IS 'Obtiene el resumen total de IRPF para el Modelo 111';
-
-
 --
 -- Name: get_irpf_summary("date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4581,17 +4169,12 @@ BEGIN
   RETURN QUERY SELECT v_irpf;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_irpf_summary"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_irpf_summary"("p_period_start" "date", "p_period_end" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_irpf_summary"("p_period_start" "date", "p_period_end" "date") IS 'Obtiene el IRPF acumulado';
-
-
 --
 -- Name: get_monthly_closure_report_dataset(integer, integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4723,10 +4306,7 @@ BEGIN
   RETURN v_result;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_monthly_closure_report_dataset"("p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: get_next_bank_account_code(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4756,10 +4336,7 @@ BEGIN
   END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_next_bank_account_code"() OWNER TO "postgres";
-
 --
 -- Name: get_next_compensation_number(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4787,10 +4364,7 @@ BEGIN
   RETURN v_compensation_number;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_next_compensation_number"() OWNER TO "postgres";
-
 --
 -- Name: get_next_entry_number(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4818,17 +4392,12 @@ BEGIN
   RETURN v_entry_number;
 END;
 $_$;
-
-
 ALTER FUNCTION "accounting"."get_next_entry_number"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_next_entry_number"(); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_next_entry_number"() IS 'Genera el siguiente n├║mero de asiento ├║nico usando secuencia de PostgreSQL';
-
-
 --
 -- Name: get_next_entry_number(integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4859,10 +4428,7 @@ BEGIN
   RETURN v_entry_number;
 END;
 $_$;
-
-
 ALTER FUNCTION "accounting"."get_next_entry_number"("p_fiscal_year" integer) OWNER TO "postgres";
-
 --
 -- Name: get_next_payroll_number(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4890,10 +4456,7 @@ BEGIN
   RETURN v_payroll_number;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_next_payroll_number"() OWNER TO "postgres";
-
 --
 -- Name: get_period_profit_summary("date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4932,17 +4495,12 @@ CREATE FUNCTION "accounting"."get_period_profit_summary"("p_start" "date" DEFAUL
   FROM profit_base
   LEFT JOIN tax_base ON TRUE;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_period_profit_summary"("p_start" "date", "p_end" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_period_profit_summary"("p_start" "date", "p_end" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_period_profit_summary"("p_start" "date", "p_end" "date") IS 'Resumen canonico de PyG por periodo. Devuelve ingresos, gastos operativos, BAI, IS y neto con una sola logica consistente.';
-
-
 --
 -- Name: get_profit_loss("date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -4987,17 +4545,12 @@ CREATE FUNCTION "accounting"."get_profit_loss"("p_period_start" "date" DEFAULT N
   ), 0) <> 0
   ORDER BY coa.account_code;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_profit_loss"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_profit_loss"("p_period_start" "date", "p_period_end" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_profit_loss"("p_period_start" "date", "p_period_end" "date") IS 'Cuenta de resultados del per├¡odo. Solo incluye asientos con entry_date en [p_period_start, p_period_end].';
-
-
 --
 -- Name: get_supplier_technician_balances("date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5053,17 +4606,12 @@ CREATE FUNCTION "accounting"."get_supplier_technician_balances"("p_as_of_date" "
   )
   ORDER BY net_balance DESC;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_supplier_technician_balances"("p_as_of_date" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_supplier_technician_balances"("p_as_of_date" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_supplier_technician_balances"("p_as_of_date" "date") IS 'Saldos proveedores/t├®cnicos (400000/410000) a fecha. Solo asientos con entry_date <= p_as_of_date.';
-
-
 --
 -- Name: get_vat_summary("date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5111,17 +4659,12 @@ BEGIN
     CASE WHEN v_vat_received - v_vat_paid > 0 THEN v_vat_received - v_vat_paid ELSE 0 END;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."get_vat_summary"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_vat_summary"("p_period_start" "date", "p_period_end" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."get_vat_summary"("p_period_start" "date", "p_period_end" "date") IS 'Obtiene resumen de IVA repercutido vs soportado';
-
-
 --
 -- Name: is_period_closed(integer, integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5132,10 +4675,7 @@ CREATE FUNCTION "accounting"."is_period_closed"("p_year" integer, "p_month" inte
     AS $$
   SELECT EXISTS (SELECT 1 FROM accounting.period_closures WHERE year = p_year AND month = p_month AND is_locked);
 $$;
-
-
 ALTER FUNCTION "accounting"."is_period_closed"("p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: list_bank_account_movements("text", "date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5178,10 +4718,7 @@ BEGIN
   ORDER BY m.entry_date, m.entry_number;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."list_bank_account_movements"("p_account_code" "text", "p_start_date" "date", "p_end_date" "date") OWNER TO "postgres";
-
 --
 -- Name: list_bank_accounts_with_balances("date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5208,17 +4745,12 @@ BEGIN
   ORDER BY cba.accounting_code;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."list_bank_accounts_with_balances"("p_as_of_date" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "list_bank_accounts_with_balances"("p_as_of_date" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."list_bank_accounts_with_balances"("p_as_of_date" "date") IS 'Lista todos los bancos con sus saldos';
-
-
 --
 -- Name: list_cash_movements("date", "date", "text", integer, integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5352,17 +4884,12 @@ BEGIN
   OFFSET p_offset;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."list_cash_movements"("p_start_date" "date", "p_end_date" "date", "p_bank_account_code" "text", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "list_cash_movements"("p_start_date" "date", "p_end_date" "date", "p_bank_account_code" "text", "p_limit" integer, "p_offset" integer); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."list_cash_movements"("p_start_date" "date", "p_end_date" "date", "p_bank_account_code" "text", "p_limit" integer, "p_offset" integer) IS 'Lista movimientos de caja excluyendo ajustes bancarios iniciales (cuenta 129000)';
-
-
 --
 -- Name: list_journal_entries("date", "date", "accounting"."journal_entry_type", "uuid", integer, integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5405,17 +4932,12 @@ BEGIN
   OFFSET p_offset;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."list_journal_entries"("p_start_date" "date", "p_end_date" "date", "p_entry_type" "accounting"."journal_entry_type", "p_project_id" "uuid", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "list_journal_entries"("p_start_date" "date", "p_end_date" "date", "p_entry_type" "accounting"."journal_entry_type", "p_project_id" "uuid", "p_limit" integer, "p_offset" integer); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."list_journal_entries"("p_start_date" "date", "p_end_date" "date", "p_entry_type" "accounting"."journal_entry_type", "p_project_id" "uuid", "p_limit" integer, "p_offset" integer) IS 'Lista asientos contables con filtros';
-
-
 --
 -- Name: list_journal_entry_lines_by_period("date", "date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5445,10 +4967,7 @@ CREATE FUNCTION "accounting"."list_journal_entry_lines_by_period"("p_start_date"
   WHERE je.entry_date >= p_start_date AND je.entry_date <= p_end_date
   ORDER BY je.entry_date, je.entry_number, jel.id;
 $$;
-
-
 ALTER FUNCTION "accounting"."list_journal_entry_lines_by_period"("p_start_date" "date", "p_end_date" "date") OWNER TO "postgres";
-
 --
 -- Name: list_partner_compensation_runs(integer, integer, "uuid", "text", integer, integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5488,10 +5007,7 @@ BEGIN
   LIMIT p_limit OFFSET p_offset;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."list_partner_compensation_runs"("p_period_year" integer, "p_period_month" integer, "p_partner_id" "uuid", "p_status" "text", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
 --
 -- Name: list_payroll_payments("uuid", "uuid", "date", "date", integer, integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5539,10 +5055,7 @@ BEGIN
   OFFSET p_offset;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."list_payroll_payments"("p_payroll_run_id" "uuid", "p_partner_compensation_run_id" "uuid", "p_start_date" "date", "p_end_date" "date", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
 --
 -- Name: list_payroll_runs(integer, integer, "uuid", "text", integer, integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5582,10 +5095,7 @@ BEGIN
   OFFSET p_offset;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."list_payroll_runs"("p_period_year" integer, "p_period_month" integer, "p_employee_id" "uuid", "p_status" "text", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
 --
 -- Name: list_periods_for_closure(integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5617,10 +5127,7 @@ CREATE FUNCTION "accounting"."list_periods_for_closure"("p_months_back" integer 
   LEFT JOIN accounting.period_closures pc ON pc.year = m.year AND pc.month = m.month
   ORDER BY m.month ASC;
 $$;
-
-
 ALTER FUNCTION "accounting"."list_periods_for_closure"("p_months_back" integer) OWNER TO "postgres";
-
 --
 -- Name: open_period(integer, integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5642,10 +5149,7 @@ BEGIN
   WHERE year = p_year AND month = p_month;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."open_period"("p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: post_partner_compensation_run("uuid"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5667,17 +5171,12 @@ BEGIN
   RETURN v_entry_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."post_partner_compensation_run"("p_compensation_run_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "post_partner_compensation_run"("p_compensation_run_id" "uuid"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."post_partner_compensation_run"("p_compensation_run_id" "uuid") IS 'Postea una retribuci├│n generando el asiento contable autom├íticamente';
-
-
 --
 -- Name: post_payroll_run("uuid"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5710,17 +5209,12 @@ BEGIN
   RETURN v_entry_id;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."post_payroll_run"("p_payroll_run_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "post_payroll_run"("p_payroll_run_id" "uuid"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."post_payroll_run"("p_payroll_run_id" "uuid") IS 'Postea una n├│mina generando el asiento contable autom├íticamente';
-
-
 --
 -- Name: prevent_locked_compensation_modification(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5746,10 +5240,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."prevent_locked_compensation_modification"() OWNER TO "postgres";
-
 --
 -- Name: raise_if_period_closed_for_date("date"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5764,17 +5255,12 @@ BEGIN
   END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."raise_if_period_closed_for_date"("p_date" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "raise_if_period_closed_for_date"("p_date" "date"); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."raise_if_period_closed_for_date"("p_date" "date") IS 'Lanza excepcion si el periodo de p_date esta cerrado (period_closures).';
-
-
 --
 -- Name: raise_if_period_closed_for_ym(integer, integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5789,17 +5275,12 @@ BEGIN
   END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."raise_if_period_closed_for_ym"("p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "raise_if_period_closed_for_ym"("p_year" integer, "p_month" integer); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."raise_if_period_closed_for_ym"("p_year" integer, "p_month" integer) IS 'Lanza excepcion si el periodo a├▒o/mes esta cerrado.';
-
-
 --
 -- Name: recreate_corporate_tax_for_year(integer); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5858,10 +5339,7 @@ BEGIN
   END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."recreate_corporate_tax_for_year"("p_year" integer) OWNER TO "postgres";
-
 --
 -- Name: register_bank_account("text", "text", "text"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5913,10 +5391,7 @@ BEGIN
   RETURN v_account_code;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."register_bank_account"("p_bank_account_id" "text", "p_bank_name" "text", "p_iban" "text") OWNER TO "postgres";
-
 --
 -- Name: resolve_bank_accounting_code("text"); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5962,10 +5437,7 @@ BEGIN
   RETURN '572001';
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."resolve_bank_accounting_code"("p_bank_account_id" "text") OWNER TO "postgres";
-
 --
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -5979,10 +5451,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."update_updated_at_column"() OWNER TO "postgres";
-
 --
 -- Name: validate_balanced_entry(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -6023,17 +5492,12 @@ BEGIN
   END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."validate_balanced_entry"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "validate_balanced_entry"(); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."validate_balanced_entry"() IS 'Valida que un asiento est├® balanceado (DEBE = HABER) antes de bloquearlo';
-
-
 --
 -- Name: validate_month_consistency(integer, integer, numeric); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -6086,17 +5550,12 @@ BEGIN
   RETURN;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."validate_month_consistency"("p_year" integer, "p_month" integer, "p_tolerance" numeric) OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "validate_month_consistency"("p_year" integer, "p_month" integer, "p_tolerance" numeric); Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON FUNCTION "accounting"."validate_month_consistency"("p_year" integer, "p_month" integer, "p_tolerance" numeric) IS 'Valida consistencia contable del mes (cierre). Incluye balance, compras/ventas con asiento, IS ├║nico, asientos con l├¡neas, contrapartidas caja.';
-
-
 --
 -- Name: validate_payroll_payment(); Type: FUNCTION; Schema: accounting; Owner: postgres
 --
@@ -6132,10 +5591,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "accounting"."validate_payroll_payment"() OWNER TO "postgres";
-
 --
 -- Name: archive_old_records("text", "text", integer); Type: FUNCTION; Schema: audit; Owner: postgres
 --
@@ -6205,10 +5661,7 @@ BEGIN
   RETURN QUERY SELECT v_archived, v_deleted;
 END;
 $$;
-
-
 ALTER FUNCTION "audit"."archive_old_records"("p_source_schema" "text", "p_source_table" "text", "p_batch_size" integer) OWNER TO "postgres";
-
 --
 -- Name: cleanup_old_events(integer); Type: FUNCTION; Schema: audit; Owner: postgres
 --
@@ -6229,10 +5682,7 @@ BEGIN
   RETURN v_deleted_count;
 END;
 $$;
-
-
 ALTER FUNCTION "audit"."cleanup_old_events"("p_older_than_days" integer) OWNER TO "postgres";
-
 --
 -- Name: get_next_number("text", integer); Type: FUNCTION; Schema: audit; Owner: postgres
 --
@@ -6254,10 +5704,7 @@ BEGIN
   RETURN p_prefix || '-' || p_year || '-' || LPAD(v_number::TEXT, 6, '0');
 END;
 $$;
-
-
 ALTER FUNCTION "audit"."get_next_number"("p_prefix" "text", "p_year" integer) OWNER TO "postgres";
-
 --
 -- Name: get_stats(integer); Type: FUNCTION; Schema: audit; Owner: postgres
 --
@@ -6306,10 +5753,7 @@ BEGIN
     ) t);
 END;
 $$;
-
-
 ALTER FUNCTION "audit"."get_stats"("p_days" integer) OWNER TO "postgres";
-
 --
 -- Name: list_events(integer, integer, "text", "text", "uuid", "text", timestamp with time zone, timestamp with time zone, "text"); Type: FUNCTION; Schema: audit; Owner: postgres
 --
@@ -6375,10 +5819,7 @@ BEGIN
   OFFSET p_offset;
 END;
 $$;
-
-
 ALTER FUNCTION "audit"."list_events"("p_limit" integer, "p_offset" integer, "p_event_type" "text", "p_event_category" "text", "p_user_id" "uuid", "p_severity" "text", "p_from_date" timestamp with time zone, "p_to_date" timestamp with time zone, "p_search" "text") OWNER TO "postgres";
-
 --
 -- Name: log_action("text", "text", "uuid", "uuid", "text", "inet", "text", "jsonb", "jsonb", "jsonb"); Type: FUNCTION; Schema: audit; Owner: postgres
 --
@@ -6402,10 +5843,7 @@ BEGIN
     RETURN _log_id;
 END;
 $$;
-
-
 ALTER FUNCTION "audit"."log_action"("_action" "text", "_table_name" "text", "_record_id" "uuid", "_user_id" "uuid", "_user_email" "text", "_ip_address" "inet", "_user_agent" "text", "_old_data" "jsonb", "_new_data" "jsonb", "_metadata" "jsonb") OWNER TO "postgres";
-
 --
 -- Name: log_event("text", "text", "text", "uuid", "text", "text", "text", "text", "jsonb", "text", "inet", "text", "text"); Type: FUNCTION; Schema: audit; Owner: postgres
 --
@@ -6451,10 +5889,7 @@ BEGIN
   RETURN v_event_id;
 END;
 $$;
-
-
 ALTER FUNCTION "audit"."log_event"("p_event_type" "text", "p_event_category" "text", "p_action" "text", "p_user_id" "uuid", "p_user_email" "text", "p_user_name" "text", "p_resource_type" "text", "p_resource_id" "text", "p_details" "jsonb", "p_severity" "text", "p_ip_address" "inet", "p_user_agent" "text", "p_session_id" "text") OWNER TO "postgres";
-
 --
 -- Name: purge_old_archives(integer); Type: FUNCTION; Schema: audit; Owner: postgres
 --
@@ -6472,10 +5907,7 @@ BEGIN
   RETURN v_deleted;
 END;
 $$;
-
-
 ALTER FUNCTION "audit"."purge_old_archives"("p_older_than_days" integer) OWNER TO "postgres";
-
 --
 -- Name: run_all_archival(); Type: FUNCTION; Schema: audit; Owner: postgres
 --
@@ -6502,10 +5934,7 @@ BEGIN
   END LOOP;
 END;
 $$;
-
-
 ALTER FUNCTION "audit"."run_all_archival"() OWNER TO "postgres";
-
 --
 -- Name: trigger_authorized_users_audit(); Type: FUNCTION; Schema: audit; Owner: postgres
 --
@@ -6602,10 +6031,7 @@ BEGIN
   RETURN COALESCE(NEW, OLD);
 END;
 $$;
-
-
 ALTER FUNCTION "audit"."trigger_authorized_users_audit"() OWNER TO "postgres";
-
 --
 -- Name: trigger_clients_audit(); Type: FUNCTION; Schema: audit; Owner: postgres
 --
@@ -6664,10 +6090,7 @@ BEGIN
   RETURN COALESCE(NEW, OLD);
 END;
 $$;
-
-
 ALTER FUNCTION "audit"."trigger_clients_audit"() OWNER TO "postgres";
-
 --
 -- Name: trigger_user_roles_audit(); Type: FUNCTION; Schema: audit; Owner: postgres
 --
@@ -6743,10 +6166,7 @@ BEGIN
   RETURN COALESCE(NEW, OLD);
 END;
 $$;
-
-
 ALTER FUNCTION "audit"."trigger_user_roles_audit"() OWNER TO "postgres";
-
 --
 -- Name: cleanup_old_snapshots(integer); Type: FUNCTION; Schema: backup; Owner: postgres
 --
@@ -6764,10 +6184,7 @@ BEGIN
   RETURN v_deleted;
 END;
 $$;
-
-
 ALTER FUNCTION "backup"."cleanup_old_snapshots"("p_keep_days" integer) OWNER TO "postgres";
-
 --
 -- Name: get_snapshot("text", "text", "date"); Type: FUNCTION; Schema: backup; Owner: postgres
 --
@@ -6779,10 +6196,7 @@ CREATE FUNCTION "backup"."get_snapshot"("p_schema" "text", "p_table" "text", "p_
   SELECT data FROM backup.daily_snapshots
   WHERE table_schema = p_schema AND table_name = p_table AND snapshot_date = p_date;
 $$;
-
-
 ALTER FUNCTION "backup"."get_snapshot"("p_schema" "text", "p_table" "text", "p_date" "date") OWNER TO "postgres";
-
 --
 -- Name: list_snapshots("date"); Type: FUNCTION; Schema: backup; Owner: postgres
 --
@@ -6796,10 +6210,7 @@ CREATE FUNCTION "backup"."list_snapshots"("p_date" "date" DEFAULT NULL::"date") 
   WHERE (p_date IS NULL OR s.snapshot_date = p_date)
   ORDER BY s.snapshot_date DESC, s.table_schema, s.table_name;
 $$;
-
-
 ALTER FUNCTION "backup"."list_snapshots"("p_date" "date") OWNER TO "postgres";
-
 --
 -- Name: run_daily_backup(); Type: FUNCTION; Schema: backup; Owner: postgres
 --
@@ -6871,10 +6282,7 @@ BEGIN
   RETURN jsonb_build_object('date', CURRENT_DATE, 'tables', v_result);
 END;
 $$;
-
-
 ALTER FUNCTION "backup"."run_daily_backup"() OWNER TO "postgres";
-
 --
 -- Name: snapshot_table("text", "text"); Type: FUNCTION; Schema: backup; Owner: postgres
 --
@@ -6902,10 +6310,7 @@ BEGIN
   RETURN v_count;
 END;
 $$;
-
-
 ALTER FUNCTION "backup"."snapshot_table"("p_schema" "text", "p_table" "text") OWNER TO "postgres";
-
 --
 -- Name: apply_stock_movement(); Type: FUNCTION; Schema: catalog; Owner: postgres
 --
@@ -6923,10 +6328,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "catalog"."apply_stock_movement"() OWNER TO "postgres";
-
 --
 -- Name: calculate_margin(); Type: FUNCTION; Schema: catalog; Owner: postgres
 --
@@ -6947,10 +6349,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "catalog"."calculate_margin"() OWNER TO "postgres";
-
 --
 -- Name: check_product_category_domain(); Type: FUNCTION; Schema: catalog; Owner: postgres
 --
@@ -6969,10 +6368,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "catalog"."check_product_category_domain"() OWNER TO "postgres";
-
 --
 -- Name: on_invoice_line_stock(); Type: FUNCTION; Schema: catalog; Owner: postgres
 --
@@ -7065,17 +6461,12 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "catalog"."on_invoice_line_stock"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "on_invoice_line_stock"(); Type: COMMENT; Schema: catalog; Owner: postgres
 --
 
 COMMENT ON FUNCTION "catalog"."on_invoice_line_stock"() IS 'Ventas: OUT por l├¡nea (producto simple o componentes si BUNDLE). UPDATE/DELETE ajustan/revierten. Idempotencia por (reference_table, reference_id, product_id).';
-
-
 --
 -- Name: on_purchase_invoice_line_stock(); Type: FUNCTION; Schema: catalog; Owner: postgres
 --
@@ -7096,10 +6487,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "catalog"."on_purchase_invoice_line_stock"() OWNER TO "postgres";
-
 --
 -- Name: sync_stock_alert(); Type: FUNCTION; Schema: catalog; Owner: postgres
 --
@@ -7118,10 +6506,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "catalog"."sync_stock_alert"() OWNER TO "postgres";
-
 --
 -- Name: calculate_profile_score("uuid"); Type: FUNCTION; Schema: crm; Owner: postgres
 --
@@ -7246,10 +6631,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "crm"."calculate_profile_score"("p_client_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: can_access_client("uuid"); Type: FUNCTION; Schema: crm; Owner: postgres
 --
@@ -7268,10 +6650,7 @@ CREATE FUNCTION "crm"."can_access_client"("p_client_id" "uuid") RETURNS boolean
       AND assigned_to = internal.get_authorized_user_id(auth.uid())
     ))
 $$;
-
-
 ALTER FUNCTION "crm"."can_access_client"("p_client_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: generate_client_number(); Type: FUNCTION; Schema: crm; Owner: postgres
 --
@@ -7287,10 +6666,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "crm"."generate_client_number"() OWNER TO "postgres";
-
 --
 -- Name: get_canvassing_location("uuid"); Type: FUNCTION; Schema: crm; Owner: postgres
 --
@@ -7455,10 +6831,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "crm"."get_canvassing_location"("p_location_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_user_canvassing_locations("uuid"); Type: FUNCTION; Schema: crm; Owner: postgres
 --
@@ -7541,10 +6914,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "crm"."list_user_canvassing_locations"("p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: log_location_creation(); Type: FUNCTION; Schema: crm; Owner: postgres
 --
@@ -7575,10 +6945,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "crm"."log_location_creation"() OWNER TO "postgres";
-
 --
 -- Name: log_location_status_change(); Type: FUNCTION; Schema: crm; Owner: postgres
 --
@@ -7645,10 +7012,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "crm"."log_location_status_change"() OWNER TO "postgres";
-
 --
 -- Name: update_client_profile_score(); Type: FUNCTION; Schema: crm; Owner: postgres
 --
@@ -7663,10 +7027,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "crm"."update_client_profile_score"() OWNER TO "postgres";
-
 --
 -- Name: update_location_status_history(); Type: FUNCTION; Schema: crm; Owner: postgres
 --
@@ -7747,10 +7108,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "crm"."update_location_status_history"() OWNER TO "postgres";
-
 --
 -- Name: admin_update_payroll_settings("jsonb", "text"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -7821,10 +7179,7 @@ BEGIN
   VALUES (v_row.id, (SELECT id FROM internal.authorized_users WHERE auth_user_id = v_user_id LIMIT 1), v_old, v_new, p_reason);
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."admin_update_payroll_settings"("p_patch" "jsonb", "p_reason" "text") OWNER TO "postgres";
-
 --
 -- Name: admin_update_report_settings("jsonb"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -7892,14 +7247,9 @@ BEGIN
   WHERE id = v_row.id;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."admin_update_report_settings"("p_patch" "jsonb") OWNER TO "postgres";
-
 SET default_tablespace = '';
-
 SET default_table_access_method = "heap";
-
 --
 -- Name: partner_payroll_profiles; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -7913,10 +7263,7 @@ CREATE TABLE "internal"."partner_payroll_profiles" (
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_by" "uuid"
 );
-
-
 ALTER TABLE "internal"."partner_payroll_profiles" OWNER TO "postgres";
-
 --
 -- Name: admin_upsert_partner_payroll_profile("uuid", numeric, numeric, boolean, numeric); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -7981,10 +7328,7 @@ BEGIN
   RETURN v_result;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."admin_upsert_partner_payroll_profile"("p_partner_id" "uuid", "p_base_salary" numeric, "p_irpf_rate" numeric, "p_bonus_enabled_override" boolean, "p_bonus_cap_override" numeric) OWNER TO "postgres";
-
 --
 -- Name: assert_period_not_closed("date"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8007,10 +7351,7 @@ BEGIN
   RETURN true;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."assert_period_not_closed"("p_date" "date") OWNER TO "postgres";
-
 --
 -- Name: calculate_partner_productivity_bonus("uuid", integer, integer); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8104,10 +7445,7 @@ BEGIN
     CASE WHEN v_bonus > 0 THEN format('Bonus: %s%% de RN %s ref %s/%s', v_settings.bonus_percent, v_net_profit, v_ref_year, v_ref_month) ELSE NULL END;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."calculate_partner_productivity_bonus"("p_partner_id" "uuid", "p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: can_access_client("uuid"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8129,10 +7467,7 @@ CREATE FUNCTION "internal"."can_access_client"("p_client_id" "uuid") RETURNS boo
     )
   )
 $$;
-
-
 ALTER FUNCTION "internal"."can_access_client"("p_client_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_partner_compensation_run_from_policy("uuid", integer, integer); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8184,10 +7519,7 @@ BEGIN
   RETURN v_run_id;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."create_partner_compensation_run_from_policy"("p_partner_id" "uuid", "p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: create_supplier("text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8238,10 +7570,7 @@ BEGIN
     RETURN QUERY SELECT v_supplier_id, v_supplier_number;
 END;
 $_$;
-
-
 ALTER FUNCTION "internal"."create_supplier"("p_company_name" "text", "p_category" "text", "p_tax_id" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_payment_terms" "text") OWNER TO "postgres";
-
 --
 -- Name: create_technician("text", "internal"."technician_type", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text"[], numeric, numeric, numeric, "text", "text", "text"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8318,10 +7647,7 @@ BEGIN
     RETURN QUERY SELECT v_technician_id, v_technician_number;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."create_technician"("p_company_name" "text", "p_type" "internal"."technician_type", "p_legal_name" "text", "p_tax_id" "text", "p_contact_name" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_contact_email" "text", "p_billing_email" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_specialties" "text"[], "p_hourly_rate" numeric, "p_daily_rate" numeric, "p_monthly_salary" numeric, "p_iban" "text", "p_payment_terms" "text", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: generate_partner_compensation_number(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8338,10 +7664,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."generate_partner_compensation_number"() OWNER TO "postgres";
-
 --
 -- Name: generate_partner_compensations_for_month(integer, integer, "text"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8437,10 +7760,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."generate_partner_compensations_for_month"("p_year" integer, "p_month" integer, "p_mode" "text") OWNER TO "postgres";
-
 --
 -- Name: generate_preliminary_invoice_number(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8462,10 +7782,7 @@ BEGIN
   RETURN 'F-BORR-' || LPAD(v_next_num::text, 4, '0');
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."generate_preliminary_invoice_number"() OWNER TO "postgres";
-
 --
 -- Name: generate_product_number("uuid", "uuid"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8515,10 +7832,7 @@ BEGIN
   RETURN v_prefix || LPAD(v_next_number::TEXT, 4, '0');
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."generate_product_number"("p_category_id" "uuid", "p_subcategory_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: generate_purchase_order_number(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8543,10 +7857,7 @@ BEGIN
   RETURN 'PO-' || v_short_year || '-' || LPAD(v_next_num::text, 6, '0');
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."generate_purchase_order_number"() OWNER TO "postgres";
-
 --
 -- Name: get_auth_user_id("uuid"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8557,10 +7868,7 @@ CREATE FUNCTION "internal"."get_auth_user_id"("p_auth_uid" "uuid") RETURNS "uuid
     AS $$
   SELECT id FROM internal.authorized_users WHERE auth_user_id = p_auth_uid AND is_active = true
 $$;
-
-
 ALTER FUNCTION "internal"."get_auth_user_id"("p_auth_uid" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_authorized_user_id("uuid"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8571,10 +7879,7 @@ CREATE FUNCTION "internal"."get_authorized_user_id"("p_auth_user_id" "uuid") RET
     AS $$
   SELECT id FROM internal.authorized_users WHERE auth_user_id = p_auth_user_id AND is_active = true
 $$;
-
-
 ALTER FUNCTION "internal"."get_authorized_user_id"("p_auth_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_next_bank_account_code(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8594,10 +7899,7 @@ BEGIN
   RETURN '572' || LPAD(v_max_code::TEXT, 3, '0');
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."get_next_bank_account_code"() OWNER TO "postgres";
-
 --
 -- Name: get_or_create_partner_account_code("uuid"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8646,10 +7948,7 @@ BEGIN
   RETURN v_account_code;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."get_or_create_partner_account_code"("p_partner_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_payroll_settings(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8664,10 +7963,7 @@ CREATE FUNCTION "internal"."get_payroll_settings"() RETURNS TABLE("id" "uuid", "
   ORDER BY updated_at DESC
   LIMIT 1;
 $$;
-
-
 ALTER FUNCTION "internal"."get_payroll_settings"() OWNER TO "postgres";
-
 --
 -- Name: get_report_settings(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8684,10 +7980,7 @@ CREATE FUNCTION "internal"."get_report_settings"() RETURNS TABLE("id" "uuid", "s
   WHERE scope = 'company'
   LIMIT 1;
 $$;
-
-
 ALTER FUNCTION "internal"."get_report_settings"() OWNER TO "postgres";
-
 --
 -- Name: get_user_department(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8698,10 +7991,7 @@ CREATE FUNCTION "internal"."get_user_department"() RETURNS "internal"."departmen
     AS $$
   SELECT department FROM internal.authorized_users WHERE auth_user_id = auth.uid() AND is_active = true
 $$;
-
-
 ALTER FUNCTION "internal"."get_user_department"() OWNER TO "postgres";
-
 --
 -- Name: is_admin(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8712,10 +8002,7 @@ CREATE FUNCTION "internal"."is_admin"() RETURNS boolean
     AS $$
   SELECT internal.user_has_role(auth.uid(), 'admin')
 $$;
-
-
 ALTER FUNCTION "internal"."is_admin"() OWNER TO "postgres";
-
 --
 -- Name: is_manager(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8726,10 +8013,7 @@ CREATE FUNCTION "internal"."is_manager"() RETURNS boolean
     AS $$
   SELECT internal.user_has_role(auth.uid(), 'manager')
 $$;
-
-
 ALTER FUNCTION "internal"."is_manager"() OWNER TO "postgres";
-
 --
 -- Name: is_readonly(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8740,10 +8024,7 @@ CREATE FUNCTION "internal"."is_readonly"() RETURNS boolean
     AS $$
   SELECT internal.user_has_role(auth.uid(), 'readonly')
 $$;
-
-
 ALTER FUNCTION "internal"."is_readonly"() OWNER TO "postgres";
-
 --
 -- Name: is_sales(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8754,10 +8035,7 @@ CREATE FUNCTION "internal"."is_sales"() RETURNS boolean
     AS $$
   SELECT internal.user_has_role(auth.uid(), 'sales')
 $$;
-
-
 ALTER FUNCTION "internal"."is_sales"() OWNER TO "postgres";
-
 --
 -- Name: is_tech(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8768,10 +8046,7 @@ CREATE FUNCTION "internal"."is_tech"() RETURNS boolean
     AS $$
   SELECT internal.user_has_role(auth.uid(), 'tech')
 $$;
-
-
 ALTER FUNCTION "internal"."is_tech"() OWNER TO "postgres";
-
 --
 -- Name: link_auth_user(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8796,10 +8071,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."link_auth_user"() OWNER TO "postgres";
-
 --
 -- Name: list_partner_payroll_profiles("text"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8822,10 +8094,7 @@ CREATE FUNCTION "internal"."list_partner_payroll_profiles"("p_status" "text" DEF
   WHERE (p_status IS NULL OR p.status = p_status)
   ORDER BY p.partner_number;
 $$;
-
-
 ALTER FUNCTION "internal"."list_partner_payroll_profiles"("p_status" "text") OWNER TO "postgres";
-
 --
 -- Name: log_audit_event("uuid", "text", "text", "text", "jsonb", "text", "text"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8839,10 +8108,7 @@ BEGIN
   RETURN;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."log_audit_event"("p_user_id" "uuid", "p_event_type" "text", "p_resource_type" "text", "p_resource_id" "text", "p_details" "jsonb", "p_severity" "text", "p_category" "text") OWNER TO "postgres";
-
 --
 -- Name: recalculate_partner_compensation_run("uuid"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8890,10 +8156,7 @@ BEGIN
   WHERE id = p_run_id;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."recalculate_partner_compensation_run"("p_run_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: update_last_login(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8911,10 +8174,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."update_last_login"() OWNER TO "postgres";
-
 --
 -- Name: update_site_status_on_invoice_change(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8963,10 +8223,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."update_site_status_on_invoice_change"() OWNER TO "postgres";
-
 --
 -- Name: update_supplier_timestamp(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8980,10 +8237,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."update_supplier_timestamp"() OWNER TO "postgres";
-
 --
 -- Name: update_technician_updated_at(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -8997,10 +8251,7 @@ BEGIN
     RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."update_technician_updated_at"() OWNER TO "postgres";
-
 --
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -9014,10 +8265,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."update_updated_at_column"() OWNER TO "postgres";
-
 --
 -- Name: user_has_role("uuid", "text"); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -9037,10 +8285,7 @@ CREATE FUNCTION "internal"."user_has_role"("p_auth_user_id" "uuid", "p_role_name
       AND (ur.expires_at IS NULL OR ur.expires_at > now())
   )
 $$;
-
-
 ALTER FUNCTION "internal"."user_has_role"("p_auth_user_id" "uuid", "p_role_name" "text") OWNER TO "postgres";
-
 --
 -- Name: validate_task_status(); Type: FUNCTION; Schema: internal; Owner: postgres
 --
@@ -9066,10 +8311,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "internal"."validate_task_status"() OWNER TO "postgres";
-
 --
 -- Name: auto_update_project_on_invoice_created(); Type: FUNCTION; Schema: projects; Owner: postgres
 --
@@ -9090,17 +8332,12 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "projects"."auto_update_project_on_invoice_created"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "auto_update_project_on_invoice_created"(); Type: COMMENT; Schema: projects; Owner: postgres
 --
 
 COMMENT ON FUNCTION "projects"."auto_update_project_on_invoice_created"() IS 'Autom├íticamente cambia el proyecto a COMPLETED cuando se crea una factura desde un presupuesto';
-
-
 --
 -- Name: auto_update_project_on_invoice_issued(); Type: FUNCTION; Schema: projects; Owner: postgres
 --
@@ -9121,17 +8358,12 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "projects"."auto_update_project_on_invoice_issued"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "auto_update_project_on_invoice_issued"(); Type: COMMENT; Schema: projects; Owner: postgres
 --
 
 COMMENT ON FUNCTION "projects"."auto_update_project_on_invoice_issued"() IS 'Autom├íticamente cambia el proyecto a INVOICED cuando se emite una factura';
-
-
 --
 -- Name: auto_update_project_on_invoice_paid(); Type: FUNCTION; Schema: projects; Owner: postgres
 --
@@ -9160,17 +8392,12 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "projects"."auto_update_project_on_invoice_paid"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "auto_update_project_on_invoice_paid"(); Type: COMMENT; Schema: projects; Owner: postgres
 --
 
 COMMENT ON FUNCTION "projects"."auto_update_project_on_invoice_paid"() IS 'Autom├íticamente cambia el proyecto a CLOSED cuando todas las facturas del proyecto est├ín pagadas';
-
-
 --
 -- Name: auto_update_project_site_mode(); Type: FUNCTION; Schema: projects; Owner: postgres
 --
@@ -9233,10 +8460,7 @@ BEGIN
   END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "projects"."auto_update_project_site_mode"() OWNER TO "postgres";
-
 --
 -- Name: can_access_project("uuid"); Type: FUNCTION; Schema: projects; Owner: postgres
 --
@@ -9264,10 +8488,7 @@ CREATE FUNCTION "projects"."can_access_project"("p_project_id" "uuid") RETURNS b
       AND q.assigned_to = internal.get_authorized_user_id(auth.uid())
     ))
 $$;
-
-
 ALTER FUNCTION "projects"."can_access_project"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: generate_project_number(); Type: FUNCTION; Schema: projects; Owner: postgres
 --
@@ -9287,10 +8508,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "projects"."generate_project_number"() OWNER TO "postgres";
-
 --
 -- Name: get_next_project_number(); Type: FUNCTION; Schema: projects; Owner: postgres
 --
@@ -9318,10 +8536,7 @@ BEGIN
   RETURN v_project_number;
 END;
 $_$;
-
-
 ALTER FUNCTION "projects"."get_next_project_number"() OWNER TO "postgres";
-
 --
 -- Name: get_project_financial_stats("uuid"); Type: FUNCTION; Schema: projects; Owner: postgres
 --
@@ -9382,10 +8597,7 @@ BEGIN
     CASE WHEN v_invoiced > 0 THEN (v_margin / v_invoiced) * 100 ELSE 0 END;
 END;
 $$;
-
-
 ALTER FUNCTION "projects"."get_project_financial_stats"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_projects_portfolio_summary(); Type: FUNCTION; Schema: projects; Owner: postgres
 --
@@ -9500,10 +8712,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "projects"."get_projects_portfolio_summary"() OWNER TO "postgres";
-
 --
 -- Name: trg_block_locked_site_edits(); Type: FUNCTION; Schema: projects; Owner: postgres
 --
@@ -9529,10 +8738,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "projects"."trg_block_locked_site_edits"() OWNER TO "postgres";
-
 --
 -- Name: update_project_hours(); Type: FUNCTION; Schema: projects; Owner: postgres
 --
@@ -9556,10 +8762,7 @@ BEGIN
   RETURN COALESCE(NEW, OLD);
 END;
 $$;
-
-
 ALTER FUNCTION "projects"."update_project_hours"() OWNER TO "postgres";
-
 --
 -- Name: update_project_sites_updated_at(); Type: FUNCTION; Schema: projects; Owner: postgres
 --
@@ -9568,10 +8771,7 @@ CREATE FUNCTION "projects"."update_project_sites_updated_at"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'projects', 'public'
     AS $$ BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
-
-
 ALTER FUNCTION "projects"."update_project_sites_updated_at"() OWNER TO "postgres";
-
 --
 -- Name: add_catalog_bundle_component("uuid", "uuid", numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -9580,10 +8780,7 @@ CREATE FUNCTION "public"."add_catalog_bundle_component"("p_bundle_product_id" "u
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ BEGIN IF NOT internal.is_admin() THEN RAISE EXCEPTION 'Only admins can manage bundles'; END IF; INSERT INTO catalog.product_bundles (bundle_product_id, component_product_id, quantity) VALUES (p_bundle_product_id, p_component_product_id, p_quantity) ON CONFLICT (bundle_product_id, component_product_id) DO UPDATE SET quantity = EXCLUDED.quantity; RETURN true; END; $$;
-
-
 ALTER FUNCTION "public"."add_catalog_bundle_component"("p_bundle_product_id" "uuid", "p_component_product_id" "uuid", "p_quantity" numeric) OWNER TO "postgres";
-
 --
 -- Name: add_client_note("uuid", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -9626,10 +8823,7 @@ BEGIN
     RETURN v_note_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."add_client_note"("p_client_id" "uuid", "p_content" "text", "p_note_type" "text") OWNER TO "postgres";
-
 --
 -- Name: add_invoice_line("uuid", "text", "text", numeric, numeric, numeric, numeric, "uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -9679,10 +8873,7 @@ BEGIN
   RETURN v_line_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."add_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric, "p_tax_id" "uuid", "p_product_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: add_location_note("uuid", "text", "text", "text"[]); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -9765,10 +8956,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."add_location_note"("p_location_id" "uuid", "p_content" "text", "p_note_type" "text", "p_attachments" "text"[]) OWNER TO "postgres";
-
 --
 -- Name: add_pack_item("uuid", "uuid", integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -9791,10 +8979,7 @@ BEGIN
   RETURN v_item_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."add_pack_item"("p_pack_id" "uuid", "p_product_id" "uuid", "p_quantity" integer) OWNER TO "postgres";
-
 --
 -- Name: add_project_expense("uuid", "text", numeric, "text", "date", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -9828,10 +9013,7 @@ BEGIN
     RETURN v_expense_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."add_project_expense"("p_project_id" "uuid", "p_description" "text", "p_amount" numeric, "p_category" "text", "p_date" "date", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: add_project_note("uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -9863,10 +9045,7 @@ BEGIN
   RETURN v_note_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."add_project_note"("p_project_id" "uuid", "p_content" "text") OWNER TO "postgres";
-
 --
 -- Name: add_purchase_invoice_line("uuid", "text", "text", numeric, numeric, numeric, numeric, numeric, "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -9917,10 +9096,7 @@ BEGIN
     RETURN v_line_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."add_purchase_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_tax_rate" numeric, "p_discount_percent" numeric, "p_product_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: add_purchase_order_line("uuid", "text", "text", numeric, "text", numeric, numeric, numeric, numeric, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -9969,10 +9145,7 @@ BEGIN
     RETURN v_line_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."add_purchase_order_line"("p_order_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit" "text", "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text") OWNER TO "postgres";
-
 --
 -- Name: add_quote_line("uuid", "text", "text", numeric, numeric, numeric, numeric, "text", integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10030,10 +9203,7 @@ BEGIN
   RETURN v_line_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."add_quote_line"("p_quote_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text", "p_line_order" integer) OWNER TO "postgres";
-
 --
 -- Name: add_quote_note("uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10065,10 +9235,7 @@ BEGIN
   RETURN v_note_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."add_quote_note"("p_quote_id" "uuid", "p_content" "text") OWNER TO "postgres";
-
 --
 -- Name: admin_update_payroll_settings("jsonb", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10077,10 +9244,7 @@ CREATE FUNCTION "public"."admin_update_payroll_settings"("p_patch" "jsonb", "p_r
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT internal.admin_update_payroll_settings(p_patch, p_reason); $$;
-
-
 ALTER FUNCTION "public"."admin_update_payroll_settings"("p_patch" "jsonb", "p_reason" "text") OWNER TO "postgres";
-
 --
 -- Name: admin_update_report_settings("jsonb"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10089,10 +9253,7 @@ CREATE FUNCTION "public"."admin_update_report_settings"("p_patch" "jsonb") RETUR
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT internal.admin_update_report_settings(p_patch); $$;
-
-
 ALTER FUNCTION "public"."admin_update_report_settings"("p_patch" "jsonb") OWNER TO "postgres";
-
 --
 -- Name: admin_upsert_partner_payroll_profile("uuid", numeric, numeric, boolean, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10105,10 +9266,7 @@ CREATE FUNCTION "public"."admin_upsert_partner_payroll_profile"("p_partner_id" "
     p_partner_id, p_base_salary, p_irpf_rate, p_bonus_enabled_override, p_bonus_cap_override
   ));
 $$;
-
-
 ALTER FUNCTION "public"."admin_upsert_partner_payroll_profile"("p_partner_id" "uuid", "p_base_salary" numeric, "p_irpf_rate" numeric, "p_bonus_enabled_override" boolean, "p_bonus_cap_override" numeric) OWNER TO "postgres";
-
 --
 -- Name: approve_purchase_invoice("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10169,10 +9327,7 @@ BEGIN
   RETURN QUERY SELECT v_definitive, true;
 END;
 $_$;
-
-
 ALTER FUNCTION "public"."approve_purchase_invoice"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: approve_purchase_order("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10199,10 +9354,7 @@ BEGIN
     RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."approve_purchase_order"("p_order_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: archive_project_site("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10229,10 +9381,7 @@ BEGIN
   END IF;
   RETURN TRUE;
 END; $$;
-
-
 ALTER FUNCTION "public"."archive_project_site"("p_site_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: assert_period_not_closed("date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10241,10 +9390,7 @@ CREATE FUNCTION "public"."assert_period_not_closed"("p_date" "date") RETURNS boo
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT accounting.assert_period_not_closed(p_date); $$;
-
-
 ALTER FUNCTION "public"."assert_period_not_closed"("p_date" "date") OWNER TO "postgres";
-
 --
 -- Name: assign_user_role("uuid", "text", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10269,10 +9415,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."assign_user_role"("p_user_id" "uuid", "p_role_name" "text", "p_assigned_by" "uuid") OWNER TO "postgres";
-
 --
 -- Name: assign_worker_type("uuid", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10370,10 +9513,7 @@ BEGIN
   RETURN v_linked_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."assign_worker_type"("p_user_id" "uuid", "p_worker_type" "text", "p_tax_id" "text", "p_iban" "text") OWNER TO "postgres";
-
 --
 -- Name: audit_get_stats(integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10420,10 +9560,7 @@ BEGIN
     ) AS events_by_type;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."audit_get_stats"("p_days" integer) OWNER TO "postgres";
-
 --
 -- Name: audit_list_events(integer, integer, "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10492,10 +9629,7 @@ BEGIN
   OFFSET p_offset;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."audit_list_events"("p_limit" integer, "p_offset" integer, "p_search" "text", "p_event_category" "text", "p_severity" "text", "p_event_type" "text") OWNER TO "postgres";
-
 --
 -- Name: auto_close_previous_month_if_tenth(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10506,10 +9640,7 @@ CREATE FUNCTION "public"."auto_close_previous_month_if_tenth"() RETURNS TABLE("c
     AS $$
   SELECT * FROM accounting.auto_close_previous_month_if_tenth();
 $$;
-
-
 ALTER FUNCTION "public"."auto_close_previous_month_if_tenth"() OWNER TO "postgres";
-
 --
 -- Name: auto_save_quote_line("uuid", "text", "uuid", "text", numeric, numeric, numeric, numeric, "text", integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10654,17 +9785,12 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."auto_save_quote_line"("p_quote_id" "uuid", "p_concept" "text", "p_line_id" "uuid", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text", "p_line_order" integer) OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "auto_save_quote_line"("p_quote_id" "uuid", "p_concept" "text", "p_line_id" "uuid", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text", "p_line_order" integer); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."auto_save_quote_line"("p_quote_id" "uuid", "p_concept" "text", "p_line_id" "uuid", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text", "p_line_order" integer) IS 'Auto-saves a quote line (insert or update) and recalculates quote totals. Used for real-time line editing without explicit save button.';
-
-
 --
 -- Name: auto_save_quote_notes("uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10699,17 +9825,12 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."auto_save_quote_notes"("p_quote_id" "uuid", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "auto_save_quote_notes"("p_quote_id" "uuid", "p_notes" "text"); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."auto_save_quote_notes"("p_quote_id" "uuid", "p_notes" "text") IS 'Auto-saves quote notes field for real-time editing without explicit save button.';
-
-
 --
 -- Name: backfill_get_supplier_name("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10724,10 +9845,7 @@ BEGIN
   RETURN v_name;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."backfill_get_supplier_name"("p_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: backfill_get_technician_name("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10742,10 +9860,7 @@ BEGIN
   RETURN v_name;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."backfill_get_technician_name"("p_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: calculate_corporate_tax("date", "date", numeric, boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10760,10 +9875,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."calculate_corporate_tax"("p_period_start" "date", "p_period_end" "date", "p_tax_rate" numeric, "p_force_recalculate" boolean) OWNER TO "postgres";
-
 --
 -- Name: calculate_partner_productivity_bonus("uuid", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10772,10 +9884,7 @@ CREATE FUNCTION "public"."calculate_partner_productivity_bonus"("p_partner_id" "
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT * FROM internal.calculate_partner_productivity_bonus(p_partner_id, p_year, p_month); $$;
-
-
 ALTER FUNCTION "public"."calculate_partner_productivity_bonus"("p_partner_id" "uuid", "p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: check_email_exists("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10788,10 +9897,7 @@ CREATE FUNCTION "public"."check_email_exists"("p_email" "text") RETURNS boolean
     SELECT 1 FROM internal.authorized_users WHERE email = p_email
   );
 $$;
-
-
 ALTER FUNCTION "public"."check_email_exists"("p_email" "text") OWNER TO "postgres";
-
 --
 -- Name: check_month_closure_readiness(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10800,10 +9906,7 @@ CREATE FUNCTION "public"."check_month_closure_readiness"("p_year" integer, "p_mo
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT * FROM accounting.check_month_closure_readiness(p_year, p_month); $$;
-
-
 ALTER FUNCTION "public"."check_month_closure_readiness"("p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: check_rate_limit("text", "text", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10828,10 +9931,7 @@ BEGIN
   RETURN NEXT;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."check_rate_limit"("p_identifier" "text", "p_identifier_type" "text", "p_max_attempts" integer, "p_window_minutes" integer) OWNER TO "postgres";
-
 --
 -- Name: clear_user_roles("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10842,10 +9942,7 @@ CREATE FUNCTION "public"."clear_user_roles"("p_user_id" "uuid") RETURNS "void"
     AS $$
   DELETE FROM internal.user_roles WHERE user_id = p_user_id;
 $$;
-
-
 ALTER FUNCTION "public"."clear_user_roles"("p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: close_period(integer, integer, "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10854,10 +9951,7 @@ CREATE FUNCTION "public"."close_period"("p_year" integer, "p_month" integer, "p_
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT accounting.close_period(p_year, p_month, p_closed_by); $$;
-
-
 ALTER FUNCTION "public"."close_period"("p_year" integer, "p_month" integer, "p_closed_by" "uuid") OWNER TO "postgres";
-
 --
 -- Name: close_site_visit("uuid", timestamp with time zone, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10876,10 +9970,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."close_site_visit"("p_visit_id" "uuid", "p_check_out_at" timestamp with time zone, "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: confirm_purchase_invoice("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10931,10 +10022,7 @@ BEGIN
     RETURN v_internal_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."confirm_purchase_invoice"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_authorized_user("text", "text", "text", "text", "text", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10956,10 +10044,7 @@ BEGIN
   RETURN v_user_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_authorized_user"("p_email" "text", "p_full_name" "text", "p_phone" "text", "p_department" "text", "p_job_position" "text", "p_auth_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_bank_balance_adjustment("uuid", "text", numeric, "date", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -10978,10 +10063,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_bank_balance_adjustment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_new_balance" numeric, "p_adjustment_date" "date", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: create_bank_transfer("uuid", "text", "uuid", "text", numeric, "date", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11044,10 +10126,7 @@ BEGIN
   RETURN QUERY SELECT v_entry_id, v_entry_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_bank_transfer"("p_source_bank_id" "uuid", "p_source_bank_name" "text", "p_target_bank_id" "uuid", "p_target_bank_name" "text", "p_amount" numeric, "p_transfer_date" "date", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: create_canvassing_location("text", numeric, numeric, "text", "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11170,10 +10249,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."create_canvassing_location"("p_status" "text", "p_latitude" numeric, "p_longitude" numeric, "p_company_name" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_location_references" "text") OWNER TO "postgres";
-
 --
 -- Name: create_catalog_category("text", "text", "catalog"."category_domain", "text", "uuid", integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11182,10 +10258,7 @@ CREATE FUNCTION "public"."create_catalog_category"("p_name" "text", "p_slug" "te
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ DECLARE v_id UUID; BEGIN IF NOT internal.is_admin() THEN RAISE EXCEPTION 'Only admins can create categories'; END IF; INSERT INTO catalog.categories (name, slug, description, parent_id, sort_order, domain) VALUES (p_name, lower(regexp_replace(trim(p_slug), '\s+', '-', 'g')), p_description, p_parent_id, p_sort_order, p_domain) RETURNING id INTO v_id; RETURN v_id; END; $$;
-
-
 ALTER FUNCTION "public"."create_catalog_category"("p_name" "text", "p_slug" "text", "p_domain" "catalog"."category_domain", "p_description" "text", "p_parent_id" "uuid", "p_sort_order" integer) OWNER TO "postgres";
-
 --
 -- Name: create_catalog_product("text", "text", "catalog"."product_type", "uuid", "catalog"."unit_type", numeric, numeric, numeric, "uuid", "text", boolean, numeric, "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11204,10 +10277,7 @@ BEGIN
   RETURN v_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_catalog_product"("p_sku" "text", "p_name" "text", "p_product_type" "catalog"."product_type", "p_category_id" "uuid", "p_unit" "catalog"."unit_type", "p_cost_price" numeric, "p_sale_price" numeric, "p_discount_percent" numeric, "p_tax_rate_id" "uuid", "p_description" "text", "p_track_stock" boolean, "p_min_stock_alert" numeric, "p_supplier_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_client("text", "text", "text", "text", "text", "text", "text", "text", "text", "uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11235,10 +10305,7 @@ BEGIN
   RETURN QUERY SELECT v_client_id, v_client_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_client"("p_company_name" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_industry_sector" "text", "p_lead_source" "text", "p_lead_stage" "text", "p_tax_id" "text", "p_legal_name" "text", "p_notes" "text", "p_assigned_to" "uuid", "p_created_by" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_credit_operation("uuid", "uuid", numeric, numeric, integer, "date", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11324,10 +10391,7 @@ BEGIN
   RETURN v_op_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_credit_operation"("p_purchase_invoice_id" "uuid", "p_provider_id" "uuid", "p_gross_amount" numeric, "p_fee_amount" numeric, "p_num_installments" integer, "p_first_due_date" "date", "p_settlement_bank_account_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_external_credit_provider("text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11350,10 +10414,7 @@ BEGIN
   RETURN v_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_external_credit_provider"("p_name" "text", "p_code" "text", "p_provider_type" "text", "p_creditor_account_code" "text", "p_expense_account_code" "text") OWNER TO "postgres";
-
 --
 -- Name: create_invitation_token("uuid", "text", timestamp with time zone); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11367,10 +10428,7 @@ BEGIN
   VALUES (p_user_id, p_token, p_expires_at);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_invitation_token"("p_user_id" "uuid", "p_token" "text", "p_expires_at" timestamp with time zone) OWNER TO "postgres";
-
 --
 -- Name: create_invoice_from_quote("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11422,10 +10480,7 @@ BEGIN
     RETURN QUERY SELECT v_invoice_id, v_invoice_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_invoice_from_quote"("p_quote_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_invoice_with_number("uuid", "uuid", "text", "date", "date", "uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11469,10 +10524,7 @@ BEGIN
   RETURN QUERY SELECT v_invoice_id, v_invoice_number, v_preliminary_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_invoice_with_number"("p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_issue_date" "date", "p_due_date" "date", "p_source_quote_id" "uuid", "p_site_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_irpf_settlement_entry("date", "date", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11487,10 +10539,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_irpf_settlement_entry"("p_settlement_date" "date", "p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: create_partner("text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11533,10 +10582,7 @@ BEGIN
   RETURN QUERY SELECT v_partner_id AS partner_id, v_partner_number AS partner_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_partner"("p_full_name" "text", "p_tax_id" "text", "p_email" "text", "p_phone" "text") OWNER TO "postgres";
-
 --
 -- Name: create_partner_compensation_run("uuid", integer, integer, numeric, numeric, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11605,10 +10651,7 @@ BEGIN
   RETURN v_run_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_partner_compensation_run"("p_partner_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: create_partner_compensation_run_from_policy("uuid", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11617,10 +10660,7 @@ CREATE FUNCTION "public"."create_partner_compensation_run_from_policy"("p_partne
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT internal.create_partner_compensation_run_from_policy(p_partner_id, p_year, p_month); $$;
-
-
 ALTER FUNCTION "public"."create_partner_compensation_run_from_policy"("p_partner_id" "uuid", "p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: create_payroll_payment(numeric, "uuid", "uuid", "date", "text", "text", "text", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11642,10 +10682,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_payroll_payment"("p_amount" numeric, "p_payroll_run_id" "uuid", "p_partner_compensation_run_id" "uuid", "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_payroll_run("uuid", integer, integer, numeric, numeric, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11665,10 +10702,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_payroll_run"("p_employee_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: create_product("uuid", "uuid", "text", "text", numeric, numeric, numeric, "public"."product_type", integer, "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11724,10 +10758,7 @@ BEGIN
   RETURN QUERY SELECT v_product_id, v_product_number;
 END;
 $_$;
-
-
 ALTER FUNCTION "public"."create_product"("p_category_id" "uuid", "p_subcategory_id" "uuid", "p_name" "text", "p_description" "text", "p_cost_price" numeric, "p_base_price" numeric, "p_tax_rate" numeric, "p_type" "public"."product_type", "p_stock" integer, "p_default_tax_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_product_category("text", "text", "text", integer, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11752,10 +10783,7 @@ BEGIN
   RETURN v_category_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_product_category"("p_code" "text", "p_name" "text", "p_description" "text", "p_display_order" integer, "p_type" "text") OWNER TO "postgres";
-
 --
 -- Name: create_product_pack("text", "text", numeric, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11786,10 +10814,7 @@ BEGIN
   RETURN QUERY SELECT v_pack_id, v_pack_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_product_pack"("p_name" "text", "p_description" "text", "p_discount_percent" numeric, "p_tax_rate" numeric) OWNER TO "postgres";
-
 --
 -- Name: create_product_subcategory("uuid", "text", "text", "text", integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11813,10 +10838,7 @@ BEGIN
   RETURN v_subcategory_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_product_subcategory"("p_category_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer) OWNER TO "postgres";
-
 --
 -- Name: create_project("uuid", "text", "text", "text", "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11909,10 +10931,7 @@ BEGIN
   RETURN QUERY SELECT v_project_id, v_project_name, v_project_number;
 END;
 $_$;
-
-
 ALTER FUNCTION "public"."create_project"("p_client_id" "uuid", "p_client_order_number" "text", "p_local_name" "text", "p_notes" "text", "p_project_address" "text", "p_project_city" "text", "p_status" "text", "p_site_mode" "text", "p_site_name" "text", "p_project_type" "text") OWNER TO "postgres";
-
 --
 -- Name: create_project_site("uuid", "text", "text", "text", "text", "text", "text", double precision, double precision, "text", "text", "text", "text", "text", "text", boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -11933,10 +10952,7 @@ BEGIN
   IF p_set_as_default THEN UPDATE projects.projects SET default_site_id = v_site_id WHERE id = p_project_id; END IF;
   RETURN v_site_id;
 END; $$;
-
-
 ALTER FUNCTION "public"."create_project_site"("p_project_id" "uuid", "p_site_name" "text", "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_country" "text", "p_latitude" double precision, "p_longitude" double precision, "p_contact_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_site_reference" "text", "p_floor_area" "text", "p_notes" "text", "p_set_as_default" boolean) OWNER TO "postgres";
-
 --
 -- Name: create_purchase_invoice("text", "text", "text", "uuid", "uuid", "uuid", "date", "date", "text", "text", "text", "text", "text", "uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12032,10 +11048,7 @@ BEGIN
   RETURN v_invoice_id::text;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_purchase_invoice"("p_invoice_number" "text", "p_document_type" "text", "p_status" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_issue_date" "date", "p_due_date" "date", "p_notes" "text", "p_file_path" "text", "p_file_name" "text", "p_expense_category" "text", "p_supplier_invoice_number" "text", "p_client_id" "uuid", "p_site_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_purchase_order("uuid", "uuid", "uuid", "date", "text", "text", "date", "date", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12068,10 +11081,7 @@ BEGIN
   RETURN v_order_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_purchase_order"("p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_issue_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_expected_start_date" "date", "p_expected_end_date" "date", "p_site_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_quote("uuid", "text", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12090,10 +11100,7 @@ BEGIN
   RETURN v_quote_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_quote"("p_client_id" "uuid", "p_project_name" "text", "p_created_by" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_quote_with_number("uuid", "uuid", "text", "date", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12165,10 +11172,7 @@ BEGIN
   RETURN QUERY SELECT v_quote_id, v_quote_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_quote_with_number"("p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_valid_until" "date", "p_site_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_supplier("text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12193,10 +11197,7 @@ BEGIN
     );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_supplier"("p_company_name" "text", "p_category" "text", "p_tax_id" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_payment_terms" "text") OWNER TO "postgres";
-
 --
 -- Name: create_tax("text", "text", numeric, "text", "text", boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12220,10 +11221,7 @@ BEGIN
   RETURN v_tax_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_tax"("p_name" "text", "p_code" "text", "p_rate" numeric, "p_tax_type" "text", "p_description" "text", "p_is_default" boolean) OWNER TO "postgres";
-
 --
 -- Name: create_tax_payment("uuid", "text", "text", numeric, "date", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12304,10 +11302,7 @@ BEGIN
   RETURN QUERY SELECT v_entry_id, v_entry_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_tax_payment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_tax_type" "text", "p_amount" numeric, "p_payment_date" "date", "p_period" "text", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: create_technician("text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text"[], numeric, numeric, numeric, "text", "text", "text", numeric, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12354,10 +11349,7 @@ BEGIN
     RETURN QUERY SELECT v_technician_id, v_technician_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_technician"("p_company_name" "text", "p_type" "text", "p_legal_name" "text", "p_tax_id" "text", "p_contact_name" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_contact_email" "text", "p_billing_email" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_specialties" "text"[], "p_hourly_rate" numeric, "p_daily_rate" numeric, "p_monthly_salary" numeric, "p_iban" "text", "p_payment_terms" "text", "p_notes" "text", "p_vat_rate" numeric, "p_withholding_tax_rate" numeric) OWNER TO "postgres";
-
 --
 -- Name: create_vat_settlement_entry("date", "date", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12372,10 +11364,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."create_vat_settlement_entry"("p_settlement_date" "date", "p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: credit_get_operation_detail("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12441,10 +11430,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."credit_get_operation_detail"("p_operation_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: credit_list_operations("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12490,10 +11476,7 @@ BEGIN
   ORDER BY COALESCE(next_inst.next_due, '9999-12-31'::date) ASC, co.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."credit_list_operations"("p_status" "text") OWNER TO "postgres";
-
 --
 -- Name: dashboard_get_admin_overview("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12705,10 +11688,7 @@ BEGIN
   RETURN v_result;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."dashboard_get_admin_overview"("p_period" "text") OWNER TO "postgres";
-
 --
 -- Name: dashboard_get_commercial_overview("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12823,10 +11803,7 @@ BEGIN
   RETURN v_result;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."dashboard_get_commercial_overview"("p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: dashboard_get_manager_overview(integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -12974,10 +11951,7 @@ BEGIN
   RETURN v_result;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."dashboard_get_manager_overview"("p_days_ahead" integer) OWNER TO "postgres";
-
 --
 -- Name: dashboard_get_technician_overview("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13099,10 +12073,7 @@ BEGIN
   RETURN v_result;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."dashboard_get_technician_overview"("p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_authorized_user("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13127,10 +12098,7 @@ BEGIN
   RETURN v_auth_user_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_authorized_user"("p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_catalog_category("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13139,10 +12107,7 @@ CREATE FUNCTION "public"."delete_catalog_category"("p_id" "uuid") RETURNS boolea
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ BEGIN IF NOT internal.is_admin() THEN RAISE EXCEPTION 'Only admins can delete categories'; END IF; IF EXISTS (SELECT 1 FROM catalog.products WHERE category_id = p_id) THEN RAISE EXCEPTION 'Cannot delete category with products'; END IF; DELETE FROM catalog.categories WHERE id = p_id; RETURN FOUND; END; $$;
-
-
 ALTER FUNCTION "public"."delete_catalog_category"("p_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_catalog_product("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13151,10 +12116,7 @@ CREATE FUNCTION "public"."delete_catalog_product"("p_id" "uuid") RETURNS boolean
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ BEGIN IF NOT internal.is_admin() THEN RAISE EXCEPTION 'Only admins can delete products'; END IF; DELETE FROM catalog.products WHERE id = p_id; RETURN FOUND; END; $$;
-
-
 ALTER FUNCTION "public"."delete_catalog_product"("p_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_client("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13171,10 +12133,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_client"("p_client_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_external_credit_provider("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13197,10 +12156,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_external_credit_provider"("p_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_invoice_line("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13239,10 +12195,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."delete_invoice_line"("p_line_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_partner_compensation_run("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13260,10 +12213,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_partner_compensation_run"("p_compensation_run_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_product("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13277,10 +12227,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_product"("p_product_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_product_category("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13307,10 +12254,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_product_category"("p_category_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_product_pack("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13324,10 +12268,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_product_pack"("p_pack_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_product_subcategory("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13354,10 +12295,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_product_subcategory"("p_subcategory_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_purchase_invoice("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13400,10 +12338,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_purchase_invoice"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_purchase_invoice_line("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13446,10 +12381,7 @@ BEGIN
     RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_purchase_invoice_line"("p_line_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_purchase_order("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13475,10 +12407,7 @@ BEGIN
     RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_purchase_order"("p_order_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_purchase_order_line("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13492,10 +12421,7 @@ BEGIN
     RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_purchase_order_line"("p_line_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_purchase_payment("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13509,10 +12435,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_purchase_payment"("p_payment_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_quote_line("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13556,10 +12479,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_quote_line"("p_line_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_site_assignment("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13573,10 +12493,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_site_assignment"("p_assignment_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_supplier("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13593,10 +12510,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_supplier"("p_supplier_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_tax("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13610,10 +12524,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_tax"("p_tax_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: delete_technician("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13645,17 +12556,12 @@ BEGIN
     RETURN TRUE;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."delete_technician"("p_technician_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "delete_technician"("p_technician_id" "uuid"); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."delete_technician"("p_technician_id" "uuid") IS 'Elimina un t├®cnico si no tiene facturas de compra asociadas';
-
-
 --
 -- Name: finance_add_invoice_line("uuid", "text", "text", numeric, numeric, numeric, numeric, "uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13668,10 +12574,7 @@ CREATE FUNCTION "public"."finance_add_invoice_line"("p_invoice_id" "uuid", "p_co
   SELECT public.add_invoice_line($1, $2, $3, $4, $5, $6, $7, $8, $9);
 
 $_$;
-
-
 ALTER FUNCTION "public"."finance_add_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric, "p_tax_id" "uuid", "p_product_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: finance_cancel_invoice("uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13696,10 +12599,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_cancel_invoice"("p_invoice_id" "uuid", "p_reason" "text") OWNER TO "postgres";
-
 --
 -- Name: finance_create_invoice("uuid", "uuid", "uuid", "text", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13740,10 +12640,7 @@ BEGIN
   RETURN QUERY SELECT v_invoice_id, v_preliminary_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_create_invoice"("p_client_id" "uuid", "p_project_id" "uuid", "p_source_quote_id" "uuid", "p_project_name" "text", "p_due_date" "date") OWNER TO "postgres";
-
 --
 -- Name: finance_create_rectificativa("uuid", "text", "text", "uuid"[]); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13964,10 +12861,7 @@ BEGIN
   RETURN QUERY SELECT v_rect_id, v_rect_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_create_rectificativa"("p_original_invoice_id" "uuid", "p_rectification_type" "text", "p_rectification_reason" "text", "p_line_ids" "uuid"[]) OWNER TO "postgres";
-
 --
 -- Name: finance_delete_invoice_line("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -13980,10 +12874,7 @@ CREATE FUNCTION "public"."finance_delete_invoice_line"("p_line_id" "uuid") RETUR
   SELECT public.delete_invoice_line($1);
 
 $_$;
-
-
 ALTER FUNCTION "public"."finance_delete_invoice_line"("p_line_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: finance_delete_payment("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14022,10 +12913,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_delete_payment"("p_payment_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: finance_get_client_payments("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14053,10 +12941,7 @@ BEGIN
   ORDER BY ip.payment_date DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_get_client_payments"("p_client_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: finance_get_invoice("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14084,10 +12969,7 @@ BEGIN
   WHERE i.id = p_invoice_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_get_invoice"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: finance_get_invoice_lines("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14127,10 +13009,7 @@ BEGIN
   ORDER BY il.line_order;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_get_invoice_lines"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: finance_get_invoice_payments("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14179,10 +13058,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."finance_get_invoice_payments"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: finance_get_period_summary("date", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14215,10 +13091,7 @@ BEGIN
     OR (v_start IS NULL AND v_end IS NULL);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_get_period_summary"("p_start_date" "date", "p_end_date" "date") OWNER TO "postgres";
-
 --
 -- Name: finance_get_project_payments("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14247,10 +13120,7 @@ BEGIN
   ORDER BY ip.payment_date DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_get_project_payments"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: finance_get_tax_summary(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14289,10 +13159,7 @@ BEGIN
   ORDER BY ts.tax_type, ts.tax_code;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_get_tax_summary"("p_fiscal_year" integer, "p_fiscal_quarter" integer) OWNER TO "postgres";
-
 --
 -- Name: finance_issue_invoice("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14372,10 +13239,7 @@ BEGIN
     CURRENT_DATE;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_issue_invoice"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: finance_list_invoices("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14460,10 +13324,7 @@ BEGIN
   ORDER BY i.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_list_invoices"("p_search" "text", "p_status" "text") OWNER TO "postgres";
-
 --
 -- Name: finance_register_payment("uuid", numeric, "date", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14567,17 +13428,12 @@ BEGIN
   RETURN v_payment_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_register_payment"("p_invoice_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "finance_register_payment"("p_invoice_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "text"); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."finance_register_payment"("p_invoice_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "text") IS 'Registra un pago de cliente y genera autom├íticamente el asiento contable si la factura y el pago son del 2026 o posterior.';
-
-
 --
 -- Name: finance_update_invoice("uuid", "uuid", "uuid", "text", "date", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14641,10 +13497,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."finance_update_invoice"("p_invoice_id" "uuid", "p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_due_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_payment_terms" "text", "p_status" "text") OWNER TO "postgres";
-
 --
 -- Name: finance_update_invoice_line("uuid", "text", "text", numeric, numeric, numeric, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14657,10 +13510,7 @@ CREATE FUNCTION "public"."finance_update_invoice_line"("p_line_id" "uuid", "p_co
   SELECT public.update_invoice_line($1, $2, $3, $4, $5, $6, $7);
 
 $_$;
-
-
 ALTER FUNCTION "public"."finance_update_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric) OWNER TO "postgres";
-
 --
 -- Name: finance_update_payment("uuid", numeric, "date", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14777,10 +13627,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."finance_update_payment"("p_payment_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "text") OWNER TO "postgres";
-
 --
 -- Name: fix_purchase_payments_bank_to_caixabank("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14809,17 +13656,12 @@ BEGIN
   RETURN v_updated;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."fix_purchase_payments_bank_to_caixabank"("p_revolut_bank_id" "text", "p_caixabank_bank_id" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "fix_purchase_payments_bank_to_caixabank"("p_revolut_bank_id" "text", "p_caixabank_bank_id" "text"); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."fix_purchase_payments_bank_to_caixabank"("p_revolut_bank_id" "text", "p_caixabank_bank_id" "text") IS 'Reasigna pagos de compras de Revolut a CaixaBank. Revolut debe usarse solo para n├│minas. Ejecutar desde SQL Editor con los IDs de Ajustes > Preferencias.';
-
-
 --
 -- Name: generate_internal_purchase_number("text", "uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14837,10 +13679,7 @@ BEGIN
   RETURN 'C-' || v_year || '-' || lpad(v_next::TEXT, 6, '0');
 END;
 $$;
-
-
 ALTER FUNCTION "public"."generate_internal_purchase_number"("p_document_type" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: generate_otp("text", "inet", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14853,10 +13692,7 @@ BEGIN
   RETURN security.generate_otp(p_email, p_ip_address, p_user_agent);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."generate_otp"("p_email" "text", "p_ip_address" "inet", "p_user_agent" "text") OWNER TO "postgres";
-
 --
 -- Name: generate_partner_compensations_for_month(integer, integer, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14865,10 +13701,7 @@ CREATE FUNCTION "public"."generate_partner_compensations_for_month"("p_year" int
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT internal.generate_partner_compensations_for_month(p_year, p_month, p_mode); $$;
-
-
 ALTER FUNCTION "public"."generate_partner_compensations_for_month"("p_year" integer, "p_month" integer, "p_mode" "text") OWNER TO "postgres";
-
 --
 -- Name: get_authorized_user_by_auth_id("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14883,10 +13716,7 @@ CREATE FUNCTION "public"."get_authorized_user_by_auth_id"("p_auth_user_id" "uuid
     AND au.is_active = true
   LIMIT 1;
 $$;
-
-
 ALTER FUNCTION "public"."get_authorized_user_by_auth_id"("p_auth_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_balance_sheet("date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14900,10 +13730,7 @@ BEGIN
   SELECT * FROM accounting.get_balance_sheet(p_as_of_date);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_balance_sheet"("p_as_of_date" "date") OWNER TO "postgres";
-
 --
 -- Name: get_bank_account_code("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -14925,10 +13752,7 @@ BEGIN
   RETURN v_account_code;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_bank_account_code"("p_bank_account_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_canvassing_location("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15153,10 +13977,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."get_canvassing_location"("p_location_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_catalog_explorer_tree(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15208,10 +14029,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_catalog_explorer_tree"() OWNER TO "postgres";
-
 --
 -- Name: get_catalog_product_detail("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15255,10 +14073,7 @@ BEGIN
   WHERE p.id = p_product_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_catalog_product_detail"("p_product_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_catalog_product_storage_path("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15301,10 +14116,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_catalog_product_storage_path"("p_product_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_client("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15351,10 +14163,7 @@ BEGIN
     AND c.deleted_at IS NULL;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_client"("p_client_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_client_balances("date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15384,10 +14193,7 @@ BEGIN
   ORDER BY net_balance DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_client_balances"("p_as_of_date" "date") OWNER TO "postgres";
-
 --
 -- Name: get_client_for_map("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15420,10 +14226,7 @@ BEGIN
     WHERE c.id = p_client_id AND c.deleted_at IS NULL;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_client_for_map"("p_client_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_company_contacts(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15447,10 +14250,7 @@ BEGIN
   LIMIT 1;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_company_contacts"() OWNER TO "postgres";
-
 --
 -- Name: get_company_preferences(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15471,10 +14271,7 @@ BEGIN
   LIMIT 1;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_company_preferences"() OWNER TO "postgres";
-
 --
 -- Name: get_company_settings(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15512,10 +14309,7 @@ BEGIN
   LIMIT 1;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_company_settings"() OWNER TO "postgres";
-
 --
 -- Name: get_corporate_tax_summary("date", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15529,10 +14323,7 @@ BEGIN
   SELECT * FROM accounting.get_corporate_tax_summary(p_period_start, p_period_end);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_corporate_tax_summary"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: get_credit_installments("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15549,10 +14340,7 @@ BEGIN
   ORDER BY ci.installment_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_credit_installments"("p_operation_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_credit_operations("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15575,10 +14363,7 @@ BEGIN
   ORDER BY co.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_credit_operations"("p_purchase_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_current_user_info(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15617,10 +14402,7 @@ CREATE FUNCTION "public"."get_current_user_info"() RETURNS TABLE("user_id" "uuid
     au.theme_preference,
     au.last_otp_verified_at;
 $$;
-
-
 ALTER FUNCTION "public"."get_current_user_info"() OWNER TO "postgres";
-
 --
 -- Name: get_dashboard_metrics("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15836,10 +14618,7 @@ BEGIN
   RETURN v_result;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_dashboard_metrics"("p_period" "text") OWNER TO "postgres";
-
 --
 -- Name: get_fiscal_quarter_data(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15939,10 +14718,7 @@ BEGIN
   RETURN result;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_fiscal_quarter_data"("p_year" integer, "p_quarter" integer) OWNER TO "postgres";
-
 --
 -- Name: get_invoice("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -15989,10 +14765,7 @@ BEGIN
   WHERE i.id = p_invoice_id AND i.deleted_at IS NULL;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_invoice"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_invoice_archive_metadata("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16014,10 +14787,7 @@ BEGIN
   WHERE i.id = p_invoice_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_invoice_archive_metadata"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_invoice_lines("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16049,10 +14819,7 @@ BEGIN
   ORDER BY il.line_order;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_invoice_lines"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_irpf_by_period("date", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16066,10 +14833,7 @@ BEGIN
   SELECT * FROM accounting.get_irpf_by_period(p_period_start, p_period_end);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_irpf_by_period"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: get_irpf_by_person("date", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16083,10 +14847,7 @@ BEGIN
   SELECT * FROM accounting.get_irpf_by_person(p_period_start, p_period_end);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_irpf_by_person"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: get_irpf_model_111_summary("date", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16100,10 +14861,7 @@ BEGIN
   SELECT * FROM accounting.get_irpf_model_111_summary(p_period_start, p_period_end);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_irpf_model_111_summary"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: get_irpf_summary("date", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16133,10 +14891,7 @@ BEGIN
   RETURN v_irpf;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_irpf_summary"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: get_journal_entry_lines("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16174,10 +14929,7 @@ BEGIN
   ORDER BY jel.line_order;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_journal_entry_lines"("p_entry_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_lead_stats("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16199,10 +14951,7 @@ BEGIN
     ORDER BY c.lead_stage;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_lead_stats"("p_assigned_to" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_monthly_closure_report_dataset(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16211,10 +14960,7 @@ CREATE FUNCTION "public"."get_monthly_closure_report_dataset"("p_year" integer, 
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT accounting.get_monthly_closure_report_dataset(p_year, p_month); $$;
-
-
 ALTER FUNCTION "public"."get_monthly_closure_report_dataset"("p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: get_next_factura_borr_number(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16232,10 +14978,7 @@ BEGIN
   RETURN 'C-BORR-' || v_year || '-' || lpad(v_next::TEXT, 6, '0');
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_next_factura_borr_number"() OWNER TO "postgres";
-
 --
 -- Name: get_next_invoice_number(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16263,10 +15006,7 @@ BEGIN
     RETURN v_invoice_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_next_invoice_number"() OWNER TO "postgres";
-
 --
 -- Name: get_next_pending_monthly_report(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16282,10 +15022,7 @@ CREATE FUNCTION "public"."get_next_pending_monthly_report"() RETURNS TABLE("id" 
   ORDER BY mr.updated_at ASC
   LIMIT 1;
 $$;
-
-
 ALTER FUNCTION "public"."get_next_pending_monthly_report"() OWNER TO "postgres";
-
 --
 -- Name: get_next_provisional_purchase_number("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16298,10 +15035,7 @@ BEGIN
   RETURN 'PENDIENTE-' || lpad(nextval('sales.purchase_invoice_provisional_seq')::TEXT, 6, '0');
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_next_provisional_purchase_number"("p_document_type" "text") OWNER TO "postgres";
-
 --
 -- Name: get_next_ticket_number(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16319,10 +15053,7 @@ BEGIN
   RETURN 'TICKET-BORR-' || v_year || '-' || lpad(v_next::TEXT, 6, '0');
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_next_ticket_number"() OWNER TO "postgres";
-
 --
 -- Name: get_pack_items("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16347,10 +15078,7 @@ BEGIN
   ORDER BY p.product_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_pack_items"("p_pack_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_payroll_settings(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16359,10 +15087,7 @@ CREATE FUNCTION "public"."get_payroll_settings"() RETURNS TABLE("id" "uuid", "sc
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT * FROM internal.get_payroll_settings(); $$;
-
-
 ALTER FUNCTION "public"."get_payroll_settings"() OWNER TO "postgres";
-
 --
 -- Name: get_period_profit_summary("date", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16372,17 +15097,12 @@ CREATE FUNCTION "public"."get_period_profit_summary"("p_start" "date" DEFAULT NU
     AS $$
   SELECT * FROM accounting.get_period_profit_summary(p_start, p_end);
 $$;
-
-
 ALTER FUNCTION "public"."get_period_profit_summary"("p_start" "date", "p_end" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_period_profit_summary"("p_start" "date", "p_end" "date"); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."get_period_profit_summary"("p_start" "date", "p_end" "date") IS 'Wrapper publico para accounting.get_period_profit_summary.';
-
-
 --
 -- Name: get_profit_loss("date", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16396,10 +15116,7 @@ BEGIN
   SELECT * FROM accounting.get_profit_loss(p_period_start, p_period_end);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_profit_loss"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: get_project("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16424,10 +15141,7 @@ BEGIN
   LEFT JOIN projects.project_sites ps ON ps.id = p.default_site_id
   WHERE p.id = p_project_id;
 END; $$;
-
-
 ALTER FUNCTION "public"."get_project"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_project_financial_stats("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16441,10 +15155,7 @@ BEGIN
   SELECT * FROM projects.get_project_financial_stats(p_project_id);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_project_financial_stats"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_project_history("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16563,10 +15274,7 @@ BEGIN
   ORDER BY created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_project_history"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_projects_portfolio_summary(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16579,10 +15287,7 @@ CREATE FUNCTION "public"."get_projects_portfolio_summary"() RETURNS TABLE("total
   SELECT * FROM projects.get_projects_portfolio_summary();
 
 $$;
-
-
 ALTER FUNCTION "public"."get_projects_portfolio_summary"() OWNER TO "postgres";
-
 --
 -- Name: get_provider_purchase_invoices("uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16624,10 +15329,7 @@ BEGIN
   ORDER BY pi.issue_date DESC, pi.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_provider_purchase_invoices"("p_provider_id" "uuid", "p_provider_type" "text") OWNER TO "postgres";
-
 --
 -- Name: get_purchase_invoice("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16688,10 +15390,7 @@ BEGIN
   WHERE pi.id = p_invoice_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_purchase_invoice"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_purchase_invoice_lines("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16722,10 +15421,7 @@ BEGIN
   ORDER BY pil.line_order;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_purchase_invoice_lines"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_purchase_invoice_payments("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16753,10 +15449,7 @@ BEGIN
   ORDER BY p.payment_date DESC, p.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_purchase_invoice_payments"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_purchase_order("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16787,10 +15480,7 @@ BEGIN
   WHERE po.id = p_order_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_purchase_order"("p_order_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_purchase_order_lines("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16823,10 +15513,7 @@ BEGIN
     ORDER BY pol.line_order;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_purchase_order_lines"("p_order_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_quote("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16850,10 +15537,7 @@ BEGIN
   WHERE q.id = p_quote_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_quote"("p_quote_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_quote_archive_metadata("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16875,10 +15559,7 @@ BEGIN
   WHERE q.id = p_quote_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_quote_archive_metadata"("p_quote_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_quote_lines("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16917,10 +15598,7 @@ BEGIN
   ORDER BY ql.line_order ASC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_quote_lines"("p_quote_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_report_settings(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16929,10 +15607,7 @@ CREATE FUNCTION "public"."get_report_settings"() RETURNS TABLE("id" "uuid", "sco
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT * FROM internal.get_report_settings(); $$;
-
-
 ALTER FUNCTION "public"."get_report_settings"() OWNER TO "postgres";
-
 --
 -- Name: get_sales_by_product_category("date", "date", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -16994,10 +15669,7 @@ BEGIN
   ORDER BY a.sum_total DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_sales_by_product_category"("p_period_start" "date", "p_period_end" "date", "p_status" "text") OWNER TO "postgres";
-
 --
 -- Name: get_site_financials("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17028,10 +15700,7 @@ BEGIN
     ), 0)::NUMERIC AS paid_total;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_site_financials"("p_site_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_suggested_project_status("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17102,10 +15771,7 @@ BEGIN
     jsonb_build_object('total', v_total, 'planned', v_planned, 'scheduled', v_scheduled);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_suggested_project_status"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_supplier("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17132,17 +15798,12 @@ BEGIN
   WHERE s.id = p_supplier_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_supplier"("p_supplier_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_supplier"("p_supplier_id" "uuid"); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."get_supplier"("p_supplier_id" "uuid") IS 'Obtiene los datos de un proveedor por su ID';
-
-
 --
 -- Name: get_supplier_technician_balances("date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17193,10 +15854,7 @@ BEGIN
   ORDER BY net_balance DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_supplier_technician_balances"("p_as_of_date" "date") OWNER TO "postgres";
-
 --
 -- Name: get_technician("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17243,10 +15901,7 @@ BEGIN
     WHERE t.id = p_technician_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_technician"("p_technician_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_technician_projects_count("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17268,10 +15923,7 @@ BEGIN
   RETURN COALESCE(v_count, 0);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_technician_projects_count"("p_technician_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_user_auth_id("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17282,10 +15934,7 @@ CREATE FUNCTION "public"."get_user_auth_id"("p_user_id" "uuid") RETURNS "uuid"
     AS $$
   SELECT auth_user_id FROM internal.authorized_users WHERE id = p_user_id;
 $$;
-
-
 ALTER FUNCTION "public"."get_user_auth_id"("p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_user_auth_id_by_email("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17304,10 +15953,7 @@ BEGIN
   RETURN v_auth_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_user_auth_id_by_email"("p_email" "text") OWNER TO "postgres";
-
 --
 -- Name: get_user_id_by_email("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17326,10 +15972,7 @@ BEGIN
   RETURN v_user_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_user_id_by_email"("p_email" "text") OWNER TO "postgres";
-
 --
 -- Name: get_user_roles_by_user_id("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17344,10 +15987,7 @@ CREATE FUNCTION "public"."get_user_roles_by_user_id"("p_user_id" "uuid") RETURNS
   WHERE ur.user_id = p_user_id
     AND (ur.expires_at IS NULL OR ur.expires_at > now());
 $$;
-
-
 ALTER FUNCTION "public"."get_user_roles_by_user_id"("p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: get_vat_summary("date", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17361,10 +16001,7 @@ BEGIN
   SELECT * FROM accounting.get_vat_summary(p_period_start, p_period_end);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_vat_summary"("p_period_start" "date", "p_period_end" "date") OWNER TO "postgres";
-
 --
 -- Name: get_worker_detail("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17411,10 +16048,7 @@ BEGIN
   WHERE au.id = p_user_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."get_worker_detail"("p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: has_role("uuid", "public"."app_role"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17430,10 +16064,7 @@ CREATE FUNCTION "public"."has_role"("_user_id" "uuid", "_role" "public"."app_rol
       AND role = _role
   )
 $$;
-
-
 ALTER FUNCTION "public"."has_role"("_user_id" "uuid", "_role" "public"."app_role") OWNER TO "postgres";
-
 --
 -- Name: insert_contact_message("text", "text", "text", "text", "text", "text", "text", "inet", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17459,10 +16090,7 @@ BEGIN
     RETURN _message_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."insert_contact_message"("_nombre" "text", "_empresa" "text", "_email" "text", "_telefono" "text", "_tipo_solicitud" "text", "_tipo_espacio" "text", "_mensaje" "text", "_ip_address" "inet", "_user_agent" "text") OWNER TO "postgres";
-
 --
 -- Name: is_allowed_domain("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17473,10 +16101,7 @@ CREATE FUNCTION "public"."is_allowed_domain"("_email" "text") RETURNS boolean
     AS $$
   SELECT _email LIKE '%@avtechesdeveniments.com'
 $$;
-
-
 ALTER FUNCTION "public"."is_allowed_domain"("_email" "text") OWNER TO "postgres";
-
 --
 -- Name: is_email_authorized("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17490,10 +16115,7 @@ CREATE FUNCTION "public"."is_email_authorized"("p_email" "text") RETURNS boolean
     WHERE email = p_email AND is_active = true
   )
 $$;
-
-
 ALTER FUNCTION "public"."is_email_authorized"("p_email" "text") OWNER TO "postgres";
-
 --
 -- Name: is_period_closed(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17502,10 +16124,7 @@ CREATE FUNCTION "public"."is_period_closed"("p_year" integer, "p_month" integer)
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT accounting.is_period_closed(p_year, p_month); $$;
-
-
 ALTER FUNCTION "public"."is_period_closed"("p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: link_po_to_purchase_invoice("uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17524,10 +16143,7 @@ BEGIN
     RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."link_po_to_purchase_invoice"("p_order_id" "uuid", "p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_assignable_users(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17545,10 +16161,7 @@ CREATE FUNCTION "public"."list_assignable_users"() RETURNS TABLE("id" "uuid", "f
   WHERE au.is_active = true
   ORDER BY au.full_name;
 $$;
-
-
 ALTER FUNCTION "public"."list_assignable_users"() OWNER TO "postgres";
-
 --
 -- Name: list_authorized_users(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17593,10 +16206,7 @@ BEGIN
   ORDER BY au.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_authorized_users"() OWNER TO "postgres";
-
 --
 -- Name: list_bank_account_movements("text", "date", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17653,17 +16263,12 @@ BEGIN
   FROM with_balance wb;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_bank_account_movements"("p_account_code" "text", "p_start_date" "date", "p_end_date" "date") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "list_bank_account_movements"("p_account_code" "text", "p_start_date" "date", "p_end_date" "date"); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."list_bank_account_movements"("p_account_code" "text", "p_start_date" "date", "p_end_date" "date") IS 'Movimientos de una cuenta bancaria (572xxx) para la vista detalle. Incluye traspasos (BANK_TRANSFER), cobros, pagos, etc.';
-
-
 --
 -- Name: list_bank_accounts_with_balances("date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17697,10 +16302,7 @@ BEGIN
   ORDER BY cba.accounting_code;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_bank_accounts_with_balances"("p_as_of_date" "date") OWNER TO "postgres";
-
 --
 -- Name: list_cash_movements("date", "date", "text", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17720,17 +16322,12 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_cash_movements"("p_start_date" "date", "p_end_date" "date", "p_bank_account_code" "text", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "list_cash_movements"("p_start_date" "date", "p_end_date" "date", "p_bank_account_code" "text", "p_limit" integer, "p_offset" integer); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."list_cash_movements"("p_start_date" "date", "p_end_date" "date", "p_bank_account_code" "text", "p_limit" integer, "p_offset" integer) IS 'Wrapper p├║blico para accounting.list_cash_movements';
-
-
 --
 -- Name: list_catalog_bundle_components("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17739,10 +16336,7 @@ CREATE FUNCTION "public"."list_catalog_bundle_components"("p_bundle_product_id" 
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ BEGIN IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF; RETURN QUERY SELECT p.id, p.sku, p.name, pb.quantity, p.unit FROM catalog.product_bundles pb JOIN catalog.products p ON p.id = pb.component_product_id WHERE pb.bundle_product_id = p_bundle_product_id; END; $$;
-
-
 ALTER FUNCTION "public"."list_catalog_bundle_components"("p_bundle_product_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_catalog_bundles("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17751,10 +16345,7 @@ CREATE FUNCTION "public"."list_catalog_bundles"("p_search" "text" DEFAULT NULL::
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ BEGIN IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF; RETURN QUERY SELECT p.id, p.sku, p.name, p.description, p.category_id, p.sale_price, p.discount_percent, (p.sale_price * (1 - COALESCE(p.discount_percent, 0) / 100))::NUMERIC, (SELECT tr.rate FROM catalog.tax_rates tr WHERE tr.id = p.tax_rate_id)::NUMERIC, p.is_active, (SELECT COUNT(*) FROM catalog.product_bundles pb WHERE pb.bundle_product_id = p.id)::BIGINT FROM catalog.products p WHERE p.product_type = 'BUNDLE' AND (p_search IS NULL OR p_search = '' OR p.name ILIKE '%' || p_search || '%' OR p.sku ILIKE '%' || p_search || '%') ORDER BY p.sku; END; $$;
-
-
 ALTER FUNCTION "public"."list_catalog_bundles"("p_search" "text") OWNER TO "postgres";
-
 --
 -- Name: list_catalog_categories("catalog"."category_domain", "uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17763,10 +16354,7 @@ CREATE FUNCTION "public"."list_catalog_categories"("p_domain" "catalog"."categor
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ BEGIN IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF; RETURN QUERY SELECT c.id, c.name, c.slug, c.description, c.parent_id, c.sort_order, c.is_active, c.domain, (SELECT COUNT(*) FROM catalog.products p WHERE p.category_id = c.id)::BIGINT FROM catalog.categories c WHERE (p_domain IS NULL OR c.domain = p_domain) AND (p_parent_id IS NULL AND c.parent_id IS NULL OR c.parent_id = p_parent_id) AND (p_search IS NULL OR p_search = '' OR c.name ILIKE '%' || p_search || '%' OR c.slug ILIKE '%' || p_search || '%') ORDER BY c.sort_order, c.name; END; $$;
-
-
 ALTER FUNCTION "public"."list_catalog_categories"("p_domain" "catalog"."category_domain", "p_parent_id" "uuid", "p_search" "text") OWNER TO "postgres";
-
 --
 -- Name: list_catalog_products("catalog"."category_domain", "uuid", "text", boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17811,10 +16399,7 @@ BEGIN
   ORDER BY p.sku;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_catalog_products"("p_domain" "catalog"."category_domain", "p_category_id" "uuid", "p_search" "text", "p_include_inactive" boolean) OWNER TO "postgres";
-
 --
 -- Name: list_catalog_products_search("text", "catalog"."category_domain", boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17823,10 +16408,7 @@ CREATE FUNCTION "public"."list_catalog_products_search"("p_search" "text" DEFAUL
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ BEGIN IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF; RETURN QUERY SELECT p.id, p.sku, p.name, p.description, p.product_type, c.name::TEXT, p.unit, (p.sale_price * (1 - COALESCE(p.discount_percent, 0) / 100))::NUMERIC, (SELECT tr.rate FROM catalog.tax_rates tr WHERE tr.id = p.tax_rate_id)::NUMERIC, p.track_stock, COALESCE(p.stock_quantity, 0)::NUMERIC(12,3), (p.track_stock AND p.min_stock_alert IS NOT NULL AND COALESCE(p.stock_quantity, 0) <= p.min_stock_alert) FROM catalog.products p LEFT JOIN catalog.categories c ON c.id = p.category_id WHERE (p_search IS NULL OR p_search = '' OR p.name ILIKE '%' || p_search || '%' OR p.sku ILIKE '%' || p_search || '%' OR p.description ILIKE '%' || p_search || '%') AND (p_include_inactive OR p.is_active) AND (p_domain IS NULL OR c.domain = p_domain OR (p.product_type = 'BUNDLE')); END; $$;
-
-
 ALTER FUNCTION "public"."list_catalog_products_search"("p_search" "text", "p_domain" "catalog"."category_domain", "p_include_inactive" boolean) OWNER TO "postgres";
-
 --
 -- Name: list_catalog_tax_rates(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17835,10 +16417,7 @@ CREATE FUNCTION "public"."list_catalog_tax_rates"() RETURNS TABLE("id" "uuid", "
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT id, name, rate, is_default, is_active FROM catalog.tax_rates WHERE is_active = true ORDER BY is_default DESC, rate DESC; $$;
-
-
 ALTER FUNCTION "public"."list_catalog_tax_rates"() OWNER TO "postgres";
-
 --
 -- Name: list_chart_of_accounts("text", boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17861,10 +16440,7 @@ BEGIN
   ORDER BY coa.account_code;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_chart_of_accounts"("p_account_type" "text", "p_only_active" boolean) OWNER TO "postgres";
-
 --
 -- Name: list_client_notes("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17891,10 +16467,7 @@ BEGIN
     ORDER BY cn.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_client_notes"("p_client_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_clients("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17934,10 +16507,7 @@ BEGIN
   ORDER BY c.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_clients"("p_search" "text", "p_lead_stage" "text") OWNER TO "postgres";
-
 --
 -- Name: list_clients_for_map("uuid", "text"[]); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -17985,10 +16555,7 @@ BEGIN
     AND (p_lead_stages IS NULL OR c.lead_stage::text = ANY(p_lead_stages));
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_clients_for_map"("p_assigned_to" "uuid", "p_lead_stages" "text"[]) OWNER TO "postgres";
-
 --
 -- Name: list_company_bank_accounts(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18009,10 +16576,7 @@ CREATE FUNCTION "public"."list_company_bank_accounts"() RETURNS TABLE("id" "uuid
   WHERE is_active = TRUE
   ORDER BY accounting_code;
 $$;
-
-
 ALTER FUNCTION "public"."list_company_bank_accounts"() OWNER TO "postgres";
-
 --
 -- Name: list_employees("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18037,10 +16601,7 @@ BEGIN
   ORDER BY e.full_name;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_employees"("p_status" "text") OWNER TO "postgres";
-
 --
 -- Name: list_external_credit_providers(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18058,10 +16619,7 @@ BEGIN
   ORDER BY p.name;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_external_credit_providers"() OWNER TO "postgres";
-
 --
 -- Name: list_invoices("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18097,10 +16655,7 @@ BEGIN
     ORDER BY i.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_invoices"("p_search" "text", "p_status" "text") OWNER TO "postgres";
-
 --
 -- Name: list_journal_entries("date", "date", "text", "text", "uuid", "text", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18154,10 +16709,7 @@ BEGIN
   OFFSET p_offset;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_journal_entries"("p_start_date" "date", "p_end_date" "date", "p_entry_type" "text", "p_reference_type" "text", "p_project_id" "uuid", "p_search" "text", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
 --
 -- Name: list_location_notes("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18234,10 +16786,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."list_location_notes"("p_location_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_partner_compensation_runs(integer, integer, "uuid", "text", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18253,10 +16802,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_partner_compensation_runs"("p_period_year" integer, "p_period_month" integer, "p_partner_id" "uuid", "p_status" "text", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
 --
 -- Name: list_partner_payroll_profiles("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18267,10 +16813,7 @@ CREATE FUNCTION "public"."list_partner_payroll_profiles"("p_status" "text" DEFAU
     AS $$
   SELECT * FROM internal.list_partner_payroll_profiles(p_status);
 $$;
-
-
 ALTER FUNCTION "public"."list_partner_payroll_profiles"("p_status" "text") OWNER TO "postgres";
-
 --
 -- Name: list_partners("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18295,10 +16838,7 @@ BEGIN
   ORDER BY p.full_name;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_partners"("p_status" "text") OWNER TO "postgres";
-
 --
 -- Name: list_partners_for_selector(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18315,10 +16855,7 @@ BEGIN
   ORDER BY p.full_name;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_partners_for_selector"() OWNER TO "postgres";
-
 --
 -- Name: list_payroll_payments("uuid", "uuid", "date", "date", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18339,10 +16876,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_payroll_payments"("p_payroll_run_id" "uuid", "p_partner_compensation_run_id" "uuid", "p_start_date" "date", "p_end_date" "date", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
 --
 -- Name: list_payroll_runs(integer, integer, "uuid", "text", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18363,10 +16897,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_payroll_runs"("p_period_year" integer, "p_period_month" integer, "p_employee_id" "uuid", "p_status" "text", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
 --
 -- Name: list_pending_reimbursements(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18392,10 +16923,7 @@ BEGIN
   ORDER BY pip.payment_date DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_pending_reimbursements"() OWNER TO "postgres";
-
 --
 -- Name: list_periods_for_closure(integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18406,10 +16934,7 @@ CREATE FUNCTION "public"."list_periods_for_closure"("p_months_back" integer DEFA
     AS $$
   SELECT * FROM accounting.list_periods_for_closure(p_months_back);
 $$;
-
-
 ALTER FUNCTION "public"."list_periods_for_closure"("p_months_back" integer) OWNER TO "postgres";
-
 --
 -- Name: list_product_categories(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18435,10 +16960,7 @@ BEGIN
   ORDER BY c.display_order, c.name;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_product_categories"() OWNER TO "postgres";
-
 --
 -- Name: list_product_packs("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18472,10 +16994,7 @@ BEGIN
   ORDER BY pp.pack_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_product_packs"("p_search" "text") OWNER TO "postgres";
-
 --
 -- Name: list_product_subcategories("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18510,10 +17029,7 @@ BEGIN
   ORDER BY c.display_order, c.name, s.display_order, s.name;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_product_subcategories"("p_category_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_products("text", "uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18556,10 +17072,7 @@ BEGIN
   ORDER BY p.product_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_products"("p_search" "text", "p_category_id" "uuid", "p_subcategory_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_project_activity("uuid", integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18579,10 +17092,7 @@ BEGIN
   LIMIT p_limit;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_project_activity"("p_project_id" "uuid", "p_limit" integer) OWNER TO "postgres";
-
 --
 -- Name: list_project_expenses("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18609,10 +17119,7 @@ BEGIN
     ORDER BY e.date DESC, e.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_project_expenses"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_project_purchase_orders("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18643,10 +17150,7 @@ BEGIN
     ORDER BY po.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_project_purchase_orders"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_project_quotes("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18689,10 +17193,7 @@ BEGIN
     ORDER BY q.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_project_quotes"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_project_sites("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18725,10 +17226,7 @@ BEGIN
   ORDER BY ps.is_active DESC, ps.site_name;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_project_sites"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_project_technicians("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18758,10 +17256,7 @@ BEGIN
     ORDER BY total_invoiced DESC, last_invoice_date DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_project_technicians"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_projects("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18807,10 +17302,7 @@ CREATE FUNCTION "public"."list_projects"("p_status" "text" DEFAULT NULL::"text",
          p.client_order_number ILIKE '%' || p_search || '%')
   ORDER BY p.project_number DESC;
 $$;
-
-
 ALTER FUNCTION "public"."list_projects"("p_status" "text", "p_search" "text") OWNER TO "postgres";
-
 --
 -- Name: list_purchase_invoices("text", "text", "uuid", "uuid", "text", "uuid", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18888,10 +17380,7 @@ BEGIN
   OFFSET v_offset;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_purchase_invoices"("p_search" "text", "p_status" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_document_type" "text", "p_project_id" "uuid", "p_page" integer, "p_page_size" integer) OWNER TO "postgres";
-
 --
 -- Name: list_purchase_orders("text", "text", "uuid", "uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18943,10 +17432,7 @@ BEGIN
     ORDER BY po.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_purchase_orders"("p_search" "text", "p_status" "text", "p_project_id" "uuid", "p_supplier_id" "uuid", "p_technician_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_quote_activity("uuid", integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -18966,10 +17452,7 @@ BEGIN
   LIMIT p_limit;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_quote_activity"("p_quote_id" "uuid", "p_limit" integer) OWNER TO "postgres";
-
 --
 -- Name: list_quotes("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19019,10 +17502,7 @@ BEGIN
   ORDER BY q.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_quotes"("p_search" "text", "p_status" "text") OWNER TO "postgres";
-
 --
 -- Name: list_roles(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19035,10 +17515,7 @@ CREATE FUNCTION "public"."list_roles"() RETURNS TABLE("id" "uuid", "name" "text"
   FROM internal.roles r
   ORDER BY r.level;
 $$;
-
-
 ALTER FUNCTION "public"."list_roles"() OWNER TO "postgres";
-
 --
 -- Name: list_sales_archive_incidents(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19094,10 +17571,7 @@ BEGIN
   ORDER BY issue_date DESC NULLS LAST, document_type, document_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_sales_archive_incidents"() OWNER TO "postgres";
-
 --
 -- Name: list_site_assignments("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19119,10 +17593,7 @@ BEGIN
   ORDER BY a.date_from NULLS LAST, a.created_at;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_site_assignments"("p_site_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_site_visits("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19144,10 +17615,7 @@ BEGIN
   ORDER BY v.visit_date DESC, v.check_in_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_site_visits"("p_site_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_suppliers("text", "text", "text", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19197,10 +17665,7 @@ BEGIN
   OFFSET v_offset;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_suppliers"("p_search" "text", "p_status" "text", "p_category" "text", "p_page" integer, "p_page_size" integer) OWNER TO "postgres";
-
 --
 -- Name: list_taxes("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19219,10 +17684,7 @@ BEGIN
   ORDER BY t.tax_type, t.display_order, t.name;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_taxes"("p_tax_type" "text") OWNER TO "postgres";
-
 --
 -- Name: list_technicians("text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19266,10 +17728,7 @@ BEGIN
     ORDER BY t.created_at DESC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_technicians"("p_search" "text", "p_type" "text", "p_status" "text", "p_specialty" "text") OWNER TO "postgres";
-
 --
 -- Name: list_technicians_for_map("text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19305,10 +17764,7 @@ BEGIN
     ORDER BY t.company_name;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_technicians_for_map"("p_type" "text", "p_status" "text", "p_specialty" "text") OWNER TO "postgres";
-
 --
 -- Name: list_user_canvassing_locations("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19393,10 +17849,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."list_user_canvassing_locations"("p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: list_workers(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19433,10 +17886,7 @@ BEGIN
   ORDER BY au.full_name;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."list_workers"() OWNER TO "postgres";
-
 --
 -- Name: mark_current_user_otp_verified(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19464,10 +17914,7 @@ BEGIN
   RETURN v_verified_at;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."mark_current_user_otp_verified"() OWNER TO "postgres";
-
 --
 -- Name: mark_invitation_token_used("text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19482,10 +17929,7 @@ BEGIN
   WHERE token = p_token;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."mark_invitation_token_used"("p_token" "text") OWNER TO "postgres";
-
 --
 -- Name: notifications_count_unread("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19501,10 +17945,7 @@ BEGIN
   SELECT count(*)::INT INTO v_count FROM internal.user_notifications WHERE user_id = v_user_id AND NOT is_read;
   RETURN v_count;
 END; $$;
-
-
 ALTER FUNCTION "public"."notifications_count_unread"("p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: notifications_list("uuid", integer, boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19524,10 +17965,7 @@ BEGIN
   WHERE n.user_id = v_user_id AND (NOT p_only_unread OR NOT n.is_read)
   ORDER BY n.created_at DESC LIMIT p_limit;
 END; $$;
-
-
 ALTER FUNCTION "public"."notifications_list"("p_user_id" "uuid", "p_limit" integer, "p_only_unread" boolean) OWNER TO "postgres";
-
 --
 -- Name: notifications_mark_all_read("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19544,10 +17982,7 @@ BEGIN
   GET DIAGNOSTICS v_count = ROW_COUNT;
   RETURN v_count;
 END; $$;
-
-
 ALTER FUNCTION "public"."notifications_mark_all_read"("p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: notifications_mark_read("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19561,10 +17996,7 @@ BEGIN
   WHERE id = p_notification_id AND user_id = internal.get_authorized_user_id(auth.uid());
   RETURN true;
 END; $$;
-
-
 ALTER FUNCTION "public"."notifications_mark_read"("p_notification_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: notifications_refresh_for_user("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19660,10 +18092,7 @@ BEGIN
   RETURN v_count;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."notifications_refresh_for_user"("p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: open_period(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19674,10 +18103,7 @@ CREATE FUNCTION "public"."open_period"("p_year" integer, "p_month" integer) RETU
     AS $$
   SELECT accounting.open_period(p_year, p_month);
 $$;
-
-
 ALTER FUNCTION "public"."open_period"("p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: pay_partner_compensation_run("uuid", "uuid", "text", numeric, "date", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19812,10 +18238,7 @@ BEGIN
   RETURN QUERY SELECT v_payment_id, v_entry_id, v_entry_number;
 END;
 $_$;
-
-
 ALTER FUNCTION "public"."pay_partner_compensation_run"("p_compensation_run_id" "uuid", "p_bank_account_id" "uuid", "p_bank_name" "text", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: payroll_calculate_partner_compensation("uuid", integer, integer, numeric, numeric, boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -19913,10 +18336,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."payroll_calculate_partner_compensation"("p_partner_id" "uuid", "p_year" integer, "p_month" integer, "p_base_amount" numeric, "p_irpf_rate" numeric, "p_dry_run" boolean) OWNER TO "postgres";
-
 --
 -- Name: payroll_calculate_with_ss("uuid", integer, integer, numeric, numeric, numeric, boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20035,10 +18455,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."payroll_calculate_with_ss"("p_employee_id" "uuid", "p_year" integer, "p_month" integer, "p_gross_salary" numeric, "p_ss_base" numeric, "p_irpf_rate" numeric, "p_dry_run" boolean) OWNER TO "postgres";
-
 --
 -- Name: payroll_get_partner_compensation_basis(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20099,10 +18516,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."payroll_get_partner_compensation_basis"("p_year" integer, "p_month" integer) OWNER TO "postgres";
-
 --
 -- Name: post_partner_compensation_run("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20186,17 +18600,12 @@ BEGIN
   RETURN QUERY SELECT v_entry_id, v_entry_number;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."post_partner_compensation_run"("p_compensation_run_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "post_partner_compensation_run"("p_compensation_run_id" "uuid"); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."post_partner_compensation_run"("p_compensation_run_id" "uuid") IS 'Confirma una n├│mina de socio y genera el asiento contable';
-
-
 --
 -- Name: post_payroll_run("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20209,10 +18618,7 @@ BEGIN
   RETURN accounting.post_payroll_run(p_payroll_run_id);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."post_payroll_run"("p_payroll_run_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: reassign_client("uuid", "uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20298,10 +18704,7 @@ BEGIN
     RETURN TRUE;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."reassign_client"("p_client_id" "uuid", "p_new_assignee_id" "uuid", "p_note" "text") OWNER TO "postgres";
-
 --
 -- Name: recalculate_partner_compensation_run("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20310,10 +18713,7 @@ CREATE FUNCTION "public"."recalculate_partner_compensation_run"("p_run_id" "uuid
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ SELECT internal.recalculate_partner_compensation_run(p_run_id); $$;
-
-
 ALTER FUNCTION "public"."recalculate_partner_compensation_run"("p_run_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: recalculate_purchase_invoice("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20348,10 +18748,7 @@ BEGIN
   WHERE id = p_invoice_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."recalculate_purchase_invoice"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: recalculate_quote_totals("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20406,10 +18803,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."recalculate_quote_totals"("p_quote_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: record_login_attempt("text", "text", boolean, "inet", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20422,10 +18816,7 @@ BEGIN
   PERFORM security.record_login_attempt(p_identifier, p_identifier_type, p_success, p_ip_address, p_user_agent);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."record_login_attempt"("p_identifier" "text", "p_identifier_type" "text", "p_success" boolean, "p_ip_address" "inet", "p_user_agent" "text") OWNER TO "postgres";
-
 --
 -- Name: register_personal_purchase_payment("uuid", numeric, "uuid", "date", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20471,10 +18862,7 @@ BEGIN
   RETURN v_payment_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."register_personal_purchase_payment"("p_purchase_invoice_id" "uuid", "p_amount" numeric, "p_payer_person_id" "uuid", "p_payment_date" "date", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: register_purchase_invoice("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20495,10 +18883,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."register_purchase_invoice"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: register_purchase_payment("uuid", numeric, "date", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20539,10 +18924,7 @@ BEGIN
   RETURN v_payment_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."register_purchase_payment"("p_invoice_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_company_bank_account_id" "text", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: register_site_visit("uuid", "uuid", "date", timestamp with time zone, timestamp with time zone, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20580,10 +18962,7 @@ BEGIN
   RETURN v_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."register_site_visit"("p_site_id" "uuid", "p_technician_id" "uuid", "p_visit_date" "date", "p_check_in_at" timestamp with time zone, "p_check_out_at" timestamp with time zone, "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: reimburse_personal_purchase("uuid", "uuid", "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20647,10 +19026,7 @@ BEGIN
   RETURN true;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."reimburse_personal_purchase"("p_payment_id" "uuid", "p_bank_account_id" "uuid", "p_reimbursement_date" "date") OWNER TO "postgres";
-
 --
 -- Name: remove_catalog_bundle_component("uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20659,10 +19035,7 @@ CREATE FUNCTION "public"."remove_catalog_bundle_component"("p_bundle_product_id"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ BEGIN IF NOT internal.is_admin() THEN RAISE EXCEPTION 'Only admins can manage bundles'; END IF; DELETE FROM catalog.product_bundles WHERE bundle_product_id = p_bundle_product_id AND component_product_id = p_component_product_id; RETURN FOUND; END; $$;
-
-
 ALTER FUNCTION "public"."remove_catalog_bundle_component"("p_bundle_product_id" "uuid", "p_component_product_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: remove_pack_item("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20686,10 +19059,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."remove_pack_item"("p_item_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: reorder_quote_line("uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20758,10 +19128,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."reorder_quote_line"("p_line_id" "uuid", "p_direction" "text") OWNER TO "postgres";
-
 --
 -- Name: replace_purchase_invoice_lines("uuid", "jsonb"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20798,10 +19165,7 @@ BEGIN
   END LOOP;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."replace_purchase_invoice_lines"("p_invoice_id" "uuid", "p_lines" "jsonb") OWNER TO "postgres";
-
 --
 -- Name: reset_rate_limit("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20814,10 +19178,7 @@ BEGIN
   PERFORM security.reset_rate_limit(p_identifier, p_identifier_type);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."reset_rate_limit"("p_identifier" "text", "p_identifier_type" "text") OWNER TO "postgres";
-
 --
 -- Name: set_default_project_site("uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20834,10 +19195,7 @@ BEGIN
   UPDATE projects.projects SET default_site_id = p_site_id WHERE id = p_project_id;
   RETURN FOUND;
 END; $$;
-
-
 ALTER FUNCTION "public"."set_default_project_site"("p_project_id" "uuid", "p_site_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: set_invoice_archive_metadata("uuid", "text", "text", "text", "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20890,17 +19248,12 @@ BEGIN
   RETURN true;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."set_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "set_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text"); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."set_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") IS 'Persiste metadata del PDF final archivado en SharePoint para facturas emitidas.';
-
-
 --
 -- Name: set_purchase_invoice_archive_metadata("uuid", "text", "text", "text", "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -20953,17 +19306,12 @@ BEGIN
   RETURN true;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."set_purchase_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "set_purchase_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text"); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."set_purchase_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") IS 'Persiste metadata del PDF final archivado en SharePoint para compras aprobadas.';
-
-
 --
 -- Name: set_quote_archive_metadata("uuid", "text", "text", "text", "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21016,17 +19364,12 @@ BEGIN
   RETURN true;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."set_quote_archive_metadata"("p_quote_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "set_quote_archive_metadata"("p_quote_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text"); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."set_quote_archive_metadata"("p_quote_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") IS 'Persiste metadata del PDF final archivado en SharePoint para presupuestos emitidos.';
-
-
 --
 -- Name: set_site_actual_dates("uuid", timestamp with time zone, timestamp with time zone, boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21072,10 +19415,7 @@ BEGIN
   RETURN json_build_object('status', v_new_status);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."set_site_actual_dates"("p_site_id" "uuid", "p_actual_start_at" timestamp with time zone, "p_actual_end_at" timestamp with time zone, "p_mark_ready_to_invoice" boolean) OWNER TO "postgres";
-
 --
 -- Name: set_updated_at(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21089,10 +19429,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."set_updated_at"() OWNER TO "postgres";
-
 --
 -- Name: settle_credit_installment("uuid", "uuid", "date", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21195,10 +19532,7 @@ BEGIN
   RETURN v_settlement_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."settle_credit_installment"("p_installment_id" "uuid", "p_bank_account_id" "uuid", "p_settlement_date" "date", "p_bank_reference" "text", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: sync_get_company_settings_for_archive(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21231,10 +19565,7 @@ BEGIN
   LIMIT 1;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."sync_get_company_settings_for_archive"() OWNER TO "postgres";
-
 --
 -- Name: sync_get_invoice_lines_for_archive("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21264,10 +19595,7 @@ BEGIN
   ORDER BY il.line_order;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."sync_get_invoice_lines_for_archive"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: sync_get_project_for_archive("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21292,10 +19620,7 @@ BEGIN
   WHERE p.id = p_project_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."sync_get_project_for_archive"("p_project_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: sync_get_quote_lines_for_archive("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21324,10 +19649,7 @@ BEGIN
   ORDER BY ql.line_order ASC;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."sync_get_quote_lines_for_archive"("p_quote_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: sync_list_invoices_for_archive(integer, "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21364,10 +19686,7 @@ BEGIN
   LIMIT GREATEST(COALESCE(p_limit, 50), 1);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."sync_list_invoices_for_archive"("p_limit" integer, "p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: sync_list_quotes_for_archive(integer, "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21403,10 +19722,7 @@ BEGIN
   LIMIT GREATEST(COALESCE(p_limit, 50), 1);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."sync_list_quotes_for_archive"("p_limit" integer, "p_quote_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: sync_set_invoice_archive_metadata("uuid", "text", "text", "text", "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21451,10 +19767,7 @@ BEGIN
   RETURN true;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."sync_set_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") OWNER TO "postgres";
-
 --
 -- Name: sync_set_quote_archive_metadata("uuid", "text", "text", "text", "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21499,10 +19812,7 @@ BEGIN
   RETURN true;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."sync_set_quote_archive_metadata"("p_quote_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") OWNER TO "postgres";
-
 --
 -- Name: tasks_add_comment("uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21519,10 +19829,7 @@ BEGIN
   UPDATE internal.tasks SET updated_at = now() WHERE id = p_task_id;
   RETURN v_id;
 END; $$;
-
-
 ALTER FUNCTION "public"."tasks_add_comment"("p_task_id" "uuid", "p_message" "text") OWNER TO "postgres";
-
 --
 -- Name: tasks_assign("uuid", "uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21542,10 +19849,7 @@ BEGIN
   VALUES (p_task_id, v_caller, 'ASSIGNMENT', 'Asignado: ' || COALESCE(v_name, ''), jsonb_build_object('user_id', p_user_id, 'role', p_role));
   RETURN true;
 END; $$;
-
-
 ALTER FUNCTION "public"."tasks_assign"("p_task_id" "uuid", "p_user_id" "uuid", "p_role" "text") OWNER TO "postgres";
-
 --
 -- Name: tasks_create("text", "text", "text", "date", "date", "uuid", "uuid", "uuid", "uuid", "uuid", "text"[], "uuid"[]); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21578,10 +19882,7 @@ BEGIN
   INSERT INTO internal.task_activity (task_id, created_by, type, message) VALUES (v_task_id, v_user_id, 'STATUS_CHANGE', 'Tarea creada');
   RETURN v_task_id;
 END; $$;
-
-
 ALTER FUNCTION "public"."tasks_create"("p_title" "text", "p_description" "text", "p_priority" "text", "p_due_date" "date", "p_start_date" "date", "p_project_id" "uuid", "p_site_id" "uuid", "p_quote_id" "uuid", "p_invoice_id" "uuid", "p_visit_id" "uuid", "p_tags" "text"[], "p_assignee_ids" "uuid"[]) OWNER TO "postgres";
-
 --
 -- Name: tasks_get("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21603,10 +19904,7 @@ BEGIN
   LEFT JOIN internal.authorized_users au ON au.id = t.created_by
   WHERE t.id = p_task_id;
 END; $$;
-
-
 ALTER FUNCTION "public"."tasks_get"("p_task_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: tasks_get_activity("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21622,10 +19920,7 @@ BEGIN
   LEFT JOIN internal.authorized_users au ON au.id = a.created_by
   WHERE a.task_id = p_task_id ORDER BY a.created_at DESC;
 END; $$;
-
-
 ALTER FUNCTION "public"."tasks_get_activity"("p_task_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: tasks_get_assignees("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21641,10 +19936,7 @@ BEGIN
   LEFT JOIN internal.authorized_users au ON au.id = ta.user_id
   WHERE ta.task_id = p_task_id ORDER BY ta.role_in_task, ta.assigned_at;
 END; $$;
-
-
 ALTER FUNCTION "public"."tasks_get_assignees"("p_task_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: tasks_list_for_user("uuid", "text", "text", boolean, "uuid", "uuid", boolean, integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21680,10 +19972,7 @@ BEGIN
   ORDER BY t.updated_at DESC, t.id
   LIMIT p_limit OFFSET p_offset;
 END; $$;
-
-
 ALTER FUNCTION "public"."tasks_list_for_user"("p_user_id" "uuid", "p_status" "text", "p_priority" "text", "p_due_today" boolean, "p_project_id" "uuid", "p_site_id" "uuid", "p_include_archived" boolean, "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
 --
 -- Name: tasks_set_status("uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21703,10 +19992,7 @@ BEGIN
     jsonb_build_object('old_status', v_old, 'new_status', p_status));
   RETURN true;
 END; $$;
-
-
 ALTER FUNCTION "public"."tasks_set_status"("p_task_id" "uuid", "p_status" "text") OWNER TO "postgres";
-
 --
 -- Name: tasks_unassign("uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21724,10 +20010,7 @@ BEGIN
   INSERT INTO internal.task_activity (task_id, created_by, type, message) VALUES (p_task_id, v_caller, 'ASSIGNMENT', 'Desasignado: ' || COALESCE(v_name, ''));
   RETURN true;
 END; $$;
-
-
 ALTER FUNCTION "public"."tasks_unassign"("p_task_id" "uuid", "p_user_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: tasks_update("uuid", "text", "text", "text", "date", "date", "text"[]); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21747,10 +20030,7 @@ BEGIN
   INSERT INTO internal.task_activity (task_id, created_by, type, message) VALUES (p_task_id, v_user_id, 'FIELD_CHANGE', 'Tarea actualizada');
   RETURN true;
 END; $$;
-
-
 ALTER FUNCTION "public"."tasks_update"("p_task_id" "uuid", "p_title" "text", "p_description" "text", "p_priority" "text", "p_due_date" "date", "p_start_date" "date", "p_tags" "text"[]) OWNER TO "postgres";
-
 --
 -- Name: toggle_user_status("uuid", boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21767,10 +20047,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."toggle_user_status"("p_user_id" "uuid", "p_is_active" boolean) OWNER TO "postgres";
-
 --
 -- Name: update_authorized_user("uuid", "text", "text", "text", "text", boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -21793,10 +20070,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_authorized_user"("p_user_id" "uuid", "p_full_name" "text", "p_phone" "text", "p_department" "text", "p_job_position" "text", "p_is_active" boolean) OWNER TO "postgres";
-
 --
 -- Name: update_canvassing_location("uuid", "jsonb"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22019,10 +20293,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."update_canvassing_location"("p_location_id" "uuid", "p_data" "jsonb") OWNER TO "postgres";
-
 --
 -- Name: update_catalog_category("uuid", "text", "text", "text", "uuid", integer, boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22031,10 +20302,7 @@ CREATE FUNCTION "public"."update_catalog_category"("p_id" "uuid", "p_name" "text
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$ BEGIN IF NOT internal.is_admin() THEN RAISE EXCEPTION 'Only admins can update categories'; END IF; UPDATE catalog.categories SET name = COALESCE(p_name, name), slug = COALESCE(lower(regexp_replace(trim(p_slug), '\s+', '-', 'g')), slug), description = COALESCE(p_description, description), parent_id = COALESCE(p_parent_id, parent_id), sort_order = COALESCE(p_sort_order, sort_order), is_active = COALESCE(p_is_active, is_active), updated_at = now() WHERE id = p_id; RETURN FOUND; END; $$;
-
-
 ALTER FUNCTION "public"."update_catalog_category"("p_id" "uuid", "p_name" "text", "p_slug" "text", "p_description" "text", "p_parent_id" "uuid", "p_sort_order" integer, "p_is_active" boolean) OWNER TO "postgres";
-
 --
 -- Name: update_catalog_product("uuid", "text", "text", "text", "uuid", "catalog"."unit_type", numeric, numeric, numeric, "uuid", boolean, numeric, "uuid", boolean, boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22064,10 +20332,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_catalog_product"("p_id" "uuid", "p_name" "text", "p_sku" "text", "p_description" "text", "p_category_id" "uuid", "p_unit" "catalog"."unit_type", "p_cost_price" numeric, "p_sale_price" numeric, "p_discount_percent" numeric, "p_tax_rate_id" "uuid", "p_track_stock" boolean, "p_min_stock_alert" numeric, "p_supplier_id" "uuid", "p_clear_supplier" boolean, "p_is_active" boolean) OWNER TO "postgres";
-
 --
 -- Name: update_client("uuid", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "uuid", "date", timestamp with time zone, "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22150,10 +20415,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."update_client"("p_client_id" "uuid", "p_company_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_lead_stage" "text", "p_lead_source" "text", "p_industry_sector" "text", "p_urgency" "text", "p_tax_id" "text", "p_legal_name" "text", "p_billing_address" "text", "p_billing_city" "text", "p_billing_province" "text", "p_billing_postal_code" "text", "p_billing_country" "text", "p_website" "text", "p_notes" "text", "p_assigned_to" "uuid", "p_next_follow_up_date" "date", "p_created_at" timestamp with time zone, "p_instagram_handle" "text", "p_tiktok_handle" "text", "p_linkedin_url" "text") OWNER TO "postgres";
-
 --
 -- Name: update_client_coordinates("uuid", numeric, numeric, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22174,10 +20436,7 @@ BEGIN
     RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_client_coordinates"("p_client_id" "uuid", "p_latitude" numeric, "p_longitude" numeric, "p_full_address" "text") OWNER TO "postgres";
-
 --
 -- Name: update_client_status("uuid", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22247,10 +20506,7 @@ BEGIN
     RETURN TRUE;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_client_status"("p_client_id" "uuid", "p_new_status" "text", "p_note" "text") OWNER TO "postgres";
-
 --
 -- Name: update_external_credit_provider("uuid", "text", "text", "text", boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22275,10 +20531,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_external_credit_provider"("p_id" "uuid", "p_name" "text", "p_creditor_account_code" "text", "p_expense_account_code" "text", "p_is_active" boolean) OWNER TO "postgres";
-
 --
 -- Name: update_invoice("uuid", "uuid", "uuid", "text", "date", "date", "text", "text", "text", "text", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22313,10 +20566,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_invoice"("p_invoice_id" "uuid", "p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_issue_date" "date", "p_due_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_payment_terms" "text", "p_status" "text", "p_site_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: update_invoice_line("uuid", "text", "text", numeric, numeric, numeric, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22375,10 +20625,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."update_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric) OWNER TO "postgres";
-
 --
 -- Name: update_own_user_info("uuid", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22459,10 +20706,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "public"."update_own_user_info"("p_user_id" "uuid", "p_full_name" "text", "p_phone" "text", "p_job_position" "text", "p_theme_preference" "text") OWNER TO "postgres";
-
 --
 -- Name: update_pack_item("uuid", integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22488,10 +20732,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_pack_item"("p_item_id" "uuid", "p_quantity" integer) OWNER TO "postgres";
-
 --
 -- Name: update_partner_compensation_run("uuid", numeric, numeric, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22532,10 +20773,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_partner_compensation_run"("p_compensation_run_id" "uuid", "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: update_product("uuid", "text", "text", "public"."product_type", numeric, numeric, numeric, integer, boolean, "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22576,10 +20814,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_product"("p_product_id" "uuid", "p_name" "text", "p_description" "text", "p_type" "public"."product_type", "p_base_price" numeric, "p_cost_price" numeric, "p_tax_rate" numeric, "p_stock" integer, "p_is_active" boolean, "p_default_tax_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: update_product_category("uuid", "text", "text", "text", integer, boolean, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22611,10 +20846,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_product_category"("p_category_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer, "p_is_active" boolean, "p_type" "text") OWNER TO "postgres";
-
 --
 -- Name: update_product_pack("uuid", "text", "text", numeric, numeric, boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22658,10 +20890,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_product_pack"("p_pack_id" "uuid", "p_name" "text", "p_description" "text", "p_discount_percent" numeric, "p_tax_rate" numeric, "p_is_active" boolean) OWNER TO "postgres";
-
 --
 -- Name: update_product_subcategory("uuid", "text", "text", "text", integer, boolean); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22688,10 +20917,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_product_subcategory"("p_subcategory_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer, "p_is_active" boolean) OWNER TO "postgres";
-
 --
 -- Name: update_project("uuid", "text", "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22722,10 +20948,7 @@ BEGIN
   WHERE id = p_project_id;
   RETURN FOUND;
 END; $$;
-
-
 ALTER FUNCTION "public"."update_project"("p_project_id" "uuid", "p_client_order_number" "text", "p_local_name" "text", "p_notes" "text", "p_project_address" "text", "p_project_city" "text", "p_status" "text", "p_site_mode" "text") OWNER TO "postgres";
-
 --
 -- Name: update_project_site("uuid", "text", "text", "text", "text", "text", "text", double precision, double precision, "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22747,10 +20970,7 @@ BEGIN
   WHERE id = p_site_id;
   RETURN FOUND;
 END; $$;
-
-
 ALTER FUNCTION "public"."update_project_site"("p_site_id" "uuid", "p_site_name" "text", "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_country" "text", "p_latitude" double precision, "p_longitude" double precision, "p_contact_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_site_reference" "text", "p_floor_area" "text", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: update_purchase_invoice("uuid", "text", "date", "date", "text", "text", "text", "text", "uuid", "uuid", "uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22780,10 +21000,7 @@ BEGIN
   WHERE id = p_invoice_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", "p_supplier_invoice_number" "text", "p_issue_date" "date", "p_due_date" "date", "p_status" "text", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_manual_beneficiary_name" "text") OWNER TO "postgres";
-
 --
 -- Name: update_purchase_invoice("uuid", "text", "date", "date", "text", "text", "text", "text", "uuid", "uuid", "uuid", "text", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22847,10 +21064,7 @@ BEGIN
   WHERE id = p_invoice_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", "p_supplier_invoice_number" "text", "p_issue_date" "date", "p_due_date" "date", "p_status" "text", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_manual_beneficiary_name" "text", "p_site_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: update_purchase_invoice("uuid", "text", "uuid", "uuid", "date", "date", "uuid", "text", "text", "text", "text", "uuid", numeric, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22950,10 +21164,7 @@ BEGIN
     END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", "p_invoice_number" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_issue_date" "date", "p_due_date" "date", "p_project_id" "uuid", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_status" "text", "p_client_id" "uuid", "p_withholding_amount" numeric, "p_supplier_invoice_number" "text") OWNER TO "postgres";
-
 --
 -- Name: update_purchase_invoice_line("uuid", "text", "text", numeric, numeric, numeric, numeric, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -22992,10 +21203,7 @@ BEGIN
     PERFORM public.recalculate_purchase_invoice(v_invoice_id);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_purchase_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_tax_rate" numeric, "p_discount_percent" numeric) OWNER TO "postgres";
-
 --
 -- Name: update_purchase_order("uuid", "uuid", "uuid", "uuid", "text", "date", "date", "date", "date", "date", "text", "text", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23047,10 +21255,7 @@ BEGIN
     RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_purchase_order"("p_order_id" "uuid", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_status" "text", "p_issue_date" "date", "p_expected_start_date" "date", "p_expected_end_date" "date", "p_actual_start_date" "date", "p_actual_end_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_linked_purchase_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: update_purchase_order_line("uuid", "text", "text", numeric, "text", numeric, numeric, numeric, numeric, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23076,10 +21281,7 @@ BEGIN
     RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_purchase_order_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit" "text", "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text") OWNER TO "postgres";
-
 --
 -- Name: update_quote("uuid", "uuid", "text", "date", "text", "uuid", "text", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23146,10 +21348,7 @@ BEGIN
   PERFORM public.recalculate_quote_totals(p_quote_id);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_quote"("p_quote_id" "uuid", "p_client_id" "uuid", "p_project_name" "text", "p_valid_until" "date", "p_status" "text", "p_project_id" "uuid", "p_notes" "text", "p_site_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: update_quote_line("uuid", "text", "text", numeric, numeric, numeric, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23191,10 +21390,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_quote_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric) OWNER TO "postgres";
-
 --
 -- Name: update_quote_lines_order("uuid", "uuid"[]); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23226,10 +21422,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_quote_lines_order"("p_quote_id" "uuid", "p_line_ids" "uuid"[]) OWNER TO "postgres";
-
 --
 -- Name: update_site_planning("uuid", "date", integer, "date"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23278,10 +21471,7 @@ BEGIN
   RETURN json_build_object('status', v_new_status, 'planned_end_date', v_calc_end);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_site_planning"("p_site_id" "uuid", "p_planned_start_date" "date", "p_planned_days" integer, "p_planned_end_date" "date") OWNER TO "postgres";
-
 --
 -- Name: update_supplier("uuid", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23310,10 +21500,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_supplier"("p_supplier_id" "uuid", "p_company_name" "text", "p_tax_id" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_payment_terms" "text", "p_status" "text") OWNER TO "postgres";
-
 --
 -- Name: update_tax("uuid", "text", "text", numeric, "text", boolean, boolean, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23347,10 +21534,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_tax"("p_tax_id" "uuid", "p_name" "text", "p_code" "text", "p_rate" numeric, "p_description" "text", "p_is_default" boolean, "p_is_active" boolean, "p_display_order" integer) OWNER TO "postgres";
-
 --
 -- Name: update_technician("uuid", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", numeric, numeric, "text"[], numeric, numeric, "text", "text", "text", integer, "text", numeric, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23392,10 +21576,7 @@ BEGIN
     WHERE id = p_technician_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_technician"("p_technician_id" "uuid", "p_company_name" "text", "p_type" "text", "p_legal_name" "text", "p_tax_id" "text", "p_contact_name" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_contact_email" "text", "p_billing_email" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_latitude" numeric, "p_longitude" numeric, "p_specialties" "text"[], "p_hourly_rate" numeric, "p_daily_rate" numeric, "p_iban" "text", "p_payment_terms" "text", "p_status" "text", "p_rating" integer, "p_notes" "text", "p_vat_rate" numeric, "p_withholding_tax_rate" numeric) OWNER TO "postgres";
-
 --
 -- Name: update_technician_coordinates("uuid", numeric, numeric, "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23414,10 +21595,7 @@ BEGIN
     RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_technician_coordinates"("p_technician_id" "uuid", "p_latitude" numeric, "p_longitude" numeric, "p_full_address" "text") OWNER TO "postgres";
-
 --
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23431,10 +21609,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_updated_at_column"() OWNER TO "postgres";
-
 --
 -- Name: update_worker("uuid", "text", "text", "text", "text", "text", numeric, "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23467,10 +21642,7 @@ BEGIN
   RETURN FOUND;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."update_worker"("p_user_id" "uuid", "p_department" "text", "p_job_position" "text", "p_phone" "text", "p_tax_id" "text", "p_iban" "text", "p_irpf_rate" numeric, "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_ss_regime" "text") OWNER TO "postgres";
-
 --
 -- Name: upsert_company_contacts("text", "text", "text", "text", "jsonb", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23517,10 +21689,7 @@ BEGIN
   RETURN v_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."upsert_company_contacts"("p_contact_email" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_whatsapp_number" "text", "p_social_networks" "jsonb", "p_business_hours" "text", "p_google_maps_url" "text") OWNER TO "postgres";
-
 --
 -- Name: upsert_company_preferences(integer, integer, "text", "jsonb"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23569,10 +21738,7 @@ BEGIN
   RETURN v_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."upsert_company_preferences"("p_quote_validity_days" integer, "p_invoice_payment_days" integer, "p_default_currency" "text", "p_bank_accounts" "jsonb") OWNER TO "postgres";
-
 --
 -- Name: upsert_company_settings("text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23629,10 +21795,7 @@ BEGIN
   RETURN v_settings_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."upsert_company_settings"("p_legal_name" "text", "p_tax_id" "text", "p_vat_number" "text", "p_commercial_name" "text", "p_company_type" "text", "p_country" "text", "p_fiscal_address" "text", "p_fiscal_postal_code" "text", "p_fiscal_city" "text", "p_fiscal_province" "text", "p_billing_email" "text", "p_billing_phone" "text", "p_website" "text", "p_logo_url" "text") OWNER TO "postgres";
-
 --
 -- Name: upsert_site_assignment("uuid", "uuid", "text", "date", "date", "text", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23666,10 +21829,7 @@ BEGIN
   RETURN v_id;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."upsert_site_assignment"("p_site_id" "uuid", "p_technician_id" "uuid", "p_role" "text", "p_date_from" "date", "p_date_to" "date", "p_notes" "text", "p_assignment_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: v4_get_group_settings("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23723,10 +21883,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."v4_get_group_settings"("p_conversation_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: v4_join_department_conversation("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23763,10 +21920,7 @@ BEGIN
   RETURN true;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."v4_join_department_conversation"("p_conversation_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: v4_set_group_settings("uuid", "text", "text", boolean, "text", integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23826,10 +21980,7 @@ BEGIN
   );
 END;
 $$;
-
-
 ALTER FUNCTION "public"."v4_set_group_settings"("p_conversation_id" "uuid", "p_agent_name" "text", "p_model" "text", "p_auto_mode" boolean, "p_intervention_level" "text", "p_cooldown_minutes" integer) OWNER TO "postgres";
-
 --
 -- Name: validate_invitation_token("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23878,10 +22029,7 @@ BEGIN
   RETURN QUERY SELECT true::boolean, v_token_record.user_id, NULL::text;
 END;
 $$;
-
-
 ALTER FUNCTION "public"."validate_invitation_token"("p_token" "text", "p_email" "text") OWNER TO "postgres";
-
 --
 -- Name: validate_month_consistency(integer, integer, numeric); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23892,17 +22040,12 @@ CREATE FUNCTION "public"."validate_month_consistency"("p_year" integer, "p_month
     AS $$
   SELECT * FROM accounting.validate_month_consistency(p_year, p_month, p_tolerance);
 $$;
-
-
 ALTER FUNCTION "public"."validate_month_consistency"("p_year" integer, "p_month" integer, "p_tolerance" numeric) OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "validate_month_consistency"("p_year" integer, "p_month" integer, "p_tolerance" numeric); Type: COMMENT; Schema: public; Owner: postgres
 --
 
 COMMENT ON FUNCTION "public"."validate_month_consistency"("p_year" integer, "p_month" integer, "p_tolerance" numeric) IS 'Wrapper: validaci├│n de consistencia contable mensual (cierre).';
-
-
 --
 -- Name: verify_otp("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
 --
@@ -23915,10 +22058,7 @@ BEGIN
   RETURN QUERY SELECT * FROM security.verify_otp(p_email, p_code);
 END;
 $$;
-
-
 ALTER FUNCTION "public"."verify_otp"("p_email" "text", "p_code" "text") OWNER TO "postgres";
-
 --
 -- Name: delete_stale_drafts(); Type: FUNCTION; Schema: quotes; Owner: postgres
 --
@@ -23938,10 +22078,7 @@ BEGIN
   RETURN v_count;
 END;
 $$;
-
-
 ALTER FUNCTION "quotes"."delete_stale_drafts"() OWNER TO "postgres";
-
 --
 -- Name: duplicate_quote("uuid"); Type: FUNCTION; Schema: quotes; Owner: postgres
 --
@@ -24051,10 +22188,7 @@ BEGIN
   RETURN QUERY SELECT v_new_quote_id, v_new_number;
 END;
 $$;
-
-
 ALTER FUNCTION "quotes"."duplicate_quote"("p_quote_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: expire_overdue_quotes(); Type: FUNCTION; Schema: quotes; Owner: postgres
 --
@@ -24077,10 +22211,7 @@ BEGIN
   RETURN v_count;
 END;
 $$;
-
-
 ALTER FUNCTION "quotes"."expire_overdue_quotes"() OWNER TO "postgres";
-
 --
 -- Name: generate_quote_number(); Type: FUNCTION; Schema: quotes; Owner: postgres
 --
@@ -24099,10 +22230,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "quotes"."generate_quote_number"() OWNER TO "postgres";
-
 --
 -- Name: get_next_draft_number(); Type: FUNCTION; Schema: quotes; Owner: postgres
 --
@@ -24169,18 +22297,13 @@ BEGIN
 END;
 
 $_$;
-
-
 ALTER FUNCTION "quotes"."get_next_draft_number"() OWNER TO "postgres";
-
 --
 -- Name: FUNCTION "get_next_draft_number"(); Type: COMMENT; Schema: quotes; Owner: postgres
 --
 
 COMMENT ON FUNCTION "quotes"."get_next_draft_number"() IS 'Genera un n├║mero provisional ├║nico para borradores usando una secuencia. 
 El n├║mero definitivo (P-YY-XXXXXX) se asigna cuando pasa a estado SENT.';
-
-
 --
 -- Name: get_next_quote_number(); Type: FUNCTION; Schema: quotes; Owner: postgres
 --
@@ -24218,10 +22341,7 @@ BEGIN
   RETURN v_new_number;
 END;
 $_$;
-
-
 ALTER FUNCTION "quotes"."get_next_quote_number"() OWNER TO "postgres";
-
 --
 -- Name: log_quote_change(); Type: FUNCTION; Schema: quotes; Owner: postgres
 --
@@ -24274,10 +22394,7 @@ BEGIN
 END;
 
 $$;
-
-
 ALTER FUNCTION "quotes"."log_quote_change"() OWNER TO "postgres";
-
 --
 -- Name: log_quote_status_to_project(); Type: FUNCTION; Schema: quotes; Owner: postgres
 --
@@ -24327,10 +22444,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "quotes"."log_quote_status_to_project"() OWNER TO "postgres";
-
 --
 -- Name: set_quote_issue_date(); Type: FUNCTION; Schema: quotes; Owner: postgres
 --
@@ -24355,10 +22469,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "quotes"."set_quote_issue_date"() OWNER TO "postgres";
-
 --
 -- Name: update_quote("uuid", "uuid", "text", "date", "text", "text"); Type: FUNCTION; Schema: quotes; Owner: postgres
 --
@@ -24413,10 +22524,7 @@ BEGIN
   RETURN true;
 END;
 $$;
-
-
 ALTER FUNCTION "quotes"."update_quote"("p_quote_id" "uuid", "p_client_id" "uuid", "p_project_name" "text", "p_valid_until" "date", "p_status" "text", "p_notes" "text") OWNER TO "postgres";
-
 --
 -- Name: update_quote_totals("uuid"); Type: FUNCTION; Schema: quotes; Owner: postgres
 --
@@ -24447,10 +22555,7 @@ BEGIN
   WHERE id = p_quote_id;
 END;
 $$;
-
-
 ALTER FUNCTION "quotes"."update_quote_totals"("p_quote_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: can_access_invoice_archive("uuid"); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24494,10 +22599,7 @@ BEGIN
   RETURN FALSE;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."can_access_invoice_archive"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: create_invoice_from_quote("uuid"); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24556,10 +22658,7 @@ BEGIN
     RETURN QUERY SELECT v_invoice_id, v_invoice_number;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."create_invoice_from_quote"("p_quote_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: generate_po_number(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24588,10 +22687,7 @@ BEGIN
     RETURN v_po_number;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."generate_po_number"() OWNER TO "postgres";
-
 --
 -- Name: generate_purchase_invoice_number("date"); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24623,10 +22719,7 @@ BEGIN
   RETURN v_invoice_number;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."generate_purchase_invoice_number"("p_issue_date" "date") OWNER TO "postgres";
-
 --
 -- Name: get_next_draft_invoice_number(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24660,10 +22753,7 @@ BEGIN
   RETURN v_next_number;
 END;
 $_$;
-
-
 ALTER FUNCTION "sales"."get_next_draft_invoice_number"() OWNER TO "postgres";
-
 --
 -- Name: get_next_draft_number(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24679,10 +22769,7 @@ BEGIN
   RETURN 'F-BORR-' || LPAD(v_next_num::TEXT, 4, '0');
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."get_next_draft_number"() OWNER TO "postgres";
-
 --
 -- Name: get_next_invoice_number(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24712,10 +22799,7 @@ BEGIN
   RETURN v_invoice_number;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."get_next_invoice_number"() OWNER TO "postgres";
-
 --
 -- Name: lock_invoice_on_issue(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24735,10 +22819,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."lock_invoice_on_issue"() OWNER TO "postgres";
-
 --
 -- Name: log_invoice_status_to_project(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24782,10 +22863,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."log_invoice_status_to_project"() OWNER TO "postgres";
-
 --
 -- Name: log_purchase_invoice_status_to_project(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24829,10 +22907,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."log_purchase_invoice_status_to_project"() OWNER TO "postgres";
-
 --
 -- Name: prevent_locked_purchase_invoice_modification(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24860,10 +22935,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."prevent_locked_purchase_invoice_modification"() OWNER TO "postgres";
-
 --
 -- Name: prevent_locked_purchase_line_modification(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24889,10 +22961,7 @@ BEGIN
   RETURN COALESCE(NEW, OLD);
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."prevent_locked_purchase_line_modification"() OWNER TO "postgres";
-
 --
 -- Name: recalculate_invoice_paid_amount("uuid"); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -24916,10 +22985,7 @@ BEGIN
   WHERE id = p_invoice_id;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."recalculate_invoice_paid_amount"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: recalculate_purchase_invoice_paid_amount(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -25022,10 +23088,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."recalculate_purchase_invoice_paid_amount"() OWNER TO "postgres";
-
 --
 -- Name: recalculate_purchase_invoice_totals(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -25062,10 +23125,7 @@ BEGIN
   RETURN COALESCE(NEW, OLD);
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."recalculate_purchase_invoice_totals"() OWNER TO "postgres";
-
 --
 -- Name: recalculate_purchase_order_totals(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -25110,10 +23170,7 @@ BEGIN
     RETURN COALESCE(NEW, OLD);
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."recalculate_purchase_order_totals"() OWNER TO "postgres";
-
 --
 -- Name: recalculate_purchase_paid_amount(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -25157,10 +23214,7 @@ BEGIN
   RETURN COALESCE(NEW, OLD);
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."recalculate_purchase_paid_amount"() OWNER TO "postgres";
-
 --
 -- Name: trigger_recalculate_invoice_totals(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -25189,10 +23243,7 @@ BEGIN
   END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."trigger_recalculate_invoice_totals"() OWNER TO "postgres";
-
 --
 -- Name: trigger_recalculate_paid_amount(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -25218,10 +23269,7 @@ BEGIN
   END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."trigger_recalculate_paid_amount"() OWNER TO "postgres";
-
 --
 -- Name: update_invoice_payment_updated_at(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -25235,10 +23283,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."update_invoice_payment_updated_at"() OWNER TO "postgres";
-
 --
 -- Name: update_invoice_status_from_payments("uuid"); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -25285,10 +23330,7 @@ BEGIN
   END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."update_invoice_status_from_payments"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: update_invoice_totals("uuid"); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -25330,10 +23372,7 @@ BEGIN
   WHERE id = p_invoice_id;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."update_invoice_totals"("p_invoice_id" "uuid") OWNER TO "postgres";
-
 --
 -- Name: update_purchase_order_timestamp(); Type: FUNCTION; Schema: sales; Owner: postgres
 --
@@ -25347,10 +23386,7 @@ BEGIN
     RETURN NEW;
 END;
 $$;
-
-
 ALTER FUNCTION "sales"."update_purchase_order_timestamp"() OWNER TO "postgres";
-
 --
 -- Name: check_rate_limit("text", "text", integer, integer); Type: FUNCTION; Schema: security; Owner: postgres
 --
@@ -25391,10 +23427,7 @@ BEGIN
   END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "security"."check_rate_limit"("p_identifier" "text", "p_identifier_type" "text", "p_max_attempts" integer, "p_window_minutes" integer) OWNER TO "postgres";
-
 --
 -- Name: cleanup_expired_otps(); Type: FUNCTION; Schema: security; Owner: postgres
 --
@@ -25413,10 +23446,7 @@ BEGIN
   RETURN COALESCE(v_deleted, 0);
 END;
 $$;
-
-
 ALTER FUNCTION "security"."cleanup_expired_otps"() OWNER TO "postgres";
-
 --
 -- Name: cleanup_old_attempts(integer); Type: FUNCTION; Schema: security; Owner: postgres
 --
@@ -25436,10 +23466,7 @@ BEGIN
   RETURN v_deleted_count;
 END;
 $$;
-
-
 ALTER FUNCTION "security"."cleanup_old_attempts"("p_older_than_hours" integer) OWNER TO "postgres";
-
 --
 -- Name: generate_otp("text", "inet", "text"); Type: FUNCTION; Schema: security; Owner: postgres
 --
@@ -25465,10 +23492,7 @@ BEGIN
   RETURN v_code;
 END;
 $$;
-
-
 ALTER FUNCTION "security"."generate_otp"("p_email" "text", "p_ip_address" "inet", "p_user_agent" "text") OWNER TO "postgres";
-
 --
 -- Name: record_login_attempt("text", "text", boolean, "inet", "text"); Type: FUNCTION; Schema: security; Owner: postgres
 --
@@ -25498,10 +23522,7 @@ BEGIN
   RETURN v_attempt_id;
 END;
 $$;
-
-
 ALTER FUNCTION "security"."record_login_attempt"("p_identifier" "text", "p_identifier_type" "text", "p_success" boolean, "p_ip_address" "inet", "p_user_agent" "text") OWNER TO "postgres";
-
 --
 -- Name: reset_rate_limit("text", "text"); Type: FUNCTION; Schema: security; Owner: postgres
 --
@@ -25518,10 +23539,7 @@ BEGIN
   RETURN true;
 END;
 $$;
-
-
 ALTER FUNCTION "security"."reset_rate_limit"("p_identifier" "text", "p_identifier_type" "text") OWNER TO "postgres";
-
 --
 -- Name: verify_otp("text", "text"); Type: FUNCTION; Schema: security; Owner: postgres
 --
@@ -25571,10 +23589,7 @@ BEGIN
   END IF;
 END;
 $$;
-
-
 ALTER FUNCTION "security"."verify_otp"("p_email" "text", "p_code" "text") OWNER TO "postgres";
-
 --
 -- Name: account_balances; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -25591,17 +23606,12 @@ CREATE TABLE "accounting"."account_balances" (
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"()
 );
-
-
 ALTER TABLE "accounting"."account_balances" OWNER TO "postgres";
-
 --
 -- Name: TABLE "account_balances"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON TABLE "accounting"."account_balances" IS 'Saldos contables por cuenta y tercero';
-
-
 --
 -- Name: chart_of_accounts; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -25618,17 +23628,12 @@ CREATE TABLE "accounting"."chart_of_accounts" (
     "updated_at" timestamp with time zone DEFAULT "now"(),
     CONSTRAINT "chart_of_accounts_account_type_check" CHECK (("account_type" = ANY (ARRAY['ASSET'::"text", 'LIABILITY'::"text", 'EQUITY'::"text", 'REVENUE'::"text", 'EXPENSE'::"text", 'TAX'::"text"])))
 );
-
-
 ALTER TABLE "accounting"."chart_of_accounts" OWNER TO "postgres";
-
 --
 -- Name: TABLE "chart_of_accounts"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON TABLE "accounting"."chart_of_accounts" IS 'Plan de cuentas contables';
-
-
 --
 -- Name: credit_installments; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -25648,10 +23653,7 @@ CREATE TABLE "accounting"."credit_installments" (
     "outstanding_principal" numeric,
     "bank_account_id" "uuid"
 );
-
-
 ALTER TABLE "accounting"."credit_installments" OWNER TO "postgres";
-
 --
 -- Name: credit_operations; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -25675,10 +23677,7 @@ CREATE TABLE "accounting"."credit_operations" (
     "accounting_code" "text",
     CONSTRAINT "credit_operations_direction_check" CHECK (("direction" = 'PAY'::"text"))
 );
-
-
 ALTER TABLE "accounting"."credit_operations" OWNER TO "postgres";
-
 --
 -- Name: credit_settlements; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -25695,10 +23694,7 @@ CREATE TABLE "accounting"."credit_settlements" (
     "created_by" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "accounting"."credit_settlements" OWNER TO "postgres";
-
 --
 -- Name: external_credit_providers; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -25714,10 +23710,7 @@ CREATE TABLE "accounting"."external_credit_providers" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "accounting"."external_credit_providers" OWNER TO "postgres";
-
 --
 -- Name: journal_entries; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -25740,31 +23733,22 @@ CREATE TABLE "accounting"."journal_entries" (
     "period_start" "date",
     "period_end" "date"
 );
-
-
 ALTER TABLE "accounting"."journal_entries" OWNER TO "postgres";
-
 --
 -- Name: TABLE "journal_entries"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON TABLE "accounting"."journal_entries" IS 'Asientos contables (cabecera)';
-
-
 --
 -- Name: COLUMN "journal_entries"."period_start"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON COLUMN "accounting"."journal_entries"."period_start" IS 'Inicio del per├¡odo fiscal (ej. provisi├│n IS).';
-
-
 --
 -- Name: COLUMN "journal_entries"."period_end"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON COLUMN "accounting"."journal_entries"."period_end" IS 'Fin del per├¡odo fiscal (ej. provisi├│n IS).';
-
-
 --
 -- Name: journal_entry_lines; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -25784,17 +23768,12 @@ CREATE TABLE "accounting"."journal_entry_lines" (
     CONSTRAINT "journal_entry_lines_amount_check" CHECK (("amount" >= (0)::numeric)),
     CONSTRAINT "journal_entry_lines_debit_credit_check" CHECK (("debit_credit" = ANY (ARRAY['DEBIT'::"text", 'CREDIT'::"text"])))
 );
-
-
 ALTER TABLE "accounting"."journal_entry_lines" OWNER TO "postgres";
-
 --
 -- Name: TABLE "journal_entry_lines"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON TABLE "accounting"."journal_entry_lines" IS 'L├¡neas de asiento contable (DEBE/HABER)';
-
-
 --
 -- Name: journal_entry_number_seq; Type: SEQUENCE; Schema: accounting; Owner: postgres
 --
@@ -25805,17 +23784,12 @@ CREATE SEQUENCE "accounting"."journal_entry_number_seq"
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 ALTER SEQUENCE "accounting"."journal_entry_number_seq" OWNER TO "postgres";
-
 --
 -- Name: SEQUENCE "journal_entry_number_seq"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON SEQUENCE "accounting"."journal_entry_number_seq" IS 'Secuencia para generar n├║meros ├║nicos de asientos contables';
-
-
 --
 -- Name: monthly_reports; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -25843,17 +23817,12 @@ CREATE TABLE "accounting"."monthly_reports" (
     "updated_at" timestamp with time zone DEFAULT "now"(),
     CONSTRAINT "monthly_reports_status_check" CHECK (("status" = ANY (ARRAY['PENDING'::"text", 'GENERATING'::"text", 'READY'::"text", 'EMAIL_SENDING'::"text", 'SENT'::"text", 'FAILED'::"text"])))
 );
-
-
 ALTER TABLE "accounting"."monthly_reports" OWNER TO "postgres";
-
 --
 -- Name: TABLE "monthly_reports"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON TABLE "accounting"."monthly_reports" IS 'Cola de informes mensuales. Worker procesa PENDING. run_after controla reintentos.';
-
-
 --
 -- Name: partner_compensation_runs; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -25896,73 +23865,52 @@ CREATE TABLE "accounting"."partner_compensation_runs" (
     CONSTRAINT "partner_compensation_runs_period_month_check" CHECK ((("period_month" >= 1) AND ("period_month" <= 12))),
     CONSTRAINT "partner_compensation_runs_status_check" CHECK (("status" = ANY (ARRAY['DRAFT'::"text", 'POSTED'::"text", 'PAID'::"text", 'CANCELLED'::"text"])))
 );
-
-
 ALTER TABLE "accounting"."partner_compensation_runs" OWNER TO "postgres";
-
 --
 -- Name: TABLE "partner_compensation_runs"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON TABLE "accounting"."partner_compensation_runs" IS 'Retribuciones de socios/administradores con generaci├│n autom├ítica de asientos contables';
-
-
 --
 -- Name: COLUMN "partner_compensation_runs"."base_amount"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON COLUMN "accounting"."partner_compensation_runs"."base_amount" IS 'Sueldo base del per├¡odo';
-
-
 --
 -- Name: COLUMN "partner_compensation_runs"."productivity_bonus"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON COLUMN "accounting"."partner_compensation_runs"."productivity_bonus" IS 'Plus de productividad calculado seg├║n pol├¡tica';
-
-
 --
 -- Name: COLUMN "partner_compensation_runs"."bonus_reference_year"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON COLUMN "accounting"."partner_compensation_runs"."bonus_reference_year" IS 'A├▒o del per├¡odo de referencia para el bonus';
-
-
 --
 -- Name: COLUMN "partner_compensation_runs"."bonus_reference_month"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON COLUMN "accounting"."partner_compensation_runs"."bonus_reference_month" IS 'Mes del per├¡odo de referencia para el bonus';
-
-
 --
 -- Name: COLUMN "partner_compensation_runs"."bonus_reference_net_profit"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON COLUMN "accounting"."partner_compensation_runs"."bonus_reference_net_profit" IS 'Resultado neto del per├¡odo de referencia';
-
-
 --
 -- Name: COLUMN "partner_compensation_runs"."bonus_percent_applied"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON COLUMN "accounting"."partner_compensation_runs"."bonus_percent_applied" IS 'Porcentaje de bonus aplicado';
-
-
 --
 -- Name: COLUMN "partner_compensation_runs"."bonus_cap_applied"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON COLUMN "accounting"."partner_compensation_runs"."bonus_cap_applied" IS 'Techo de bonus aplicado (Ôé¼)';
-
-
 --
 -- Name: COLUMN "partner_compensation_runs"."bonus_policy_version"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON COLUMN "accounting"."partner_compensation_runs"."bonus_policy_version" IS 'Versi├│n de la pol├¡tica de bonus aplicada';
-
-
 --
 -- Name: payroll_payments; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -25986,17 +23934,12 @@ CREATE TABLE "accounting"."payroll_payments" (
     CONSTRAINT "payroll_payments_amount_check" CHECK (("amount" > (0)::numeric)),
     CONSTRAINT "payroll_payments_payment_method_check" CHECK (("payment_method" = ANY (ARRAY['TRANSFER'::"text", 'CASH'::"text", 'CHECK'::"text"])))
 );
-
-
 ALTER TABLE "accounting"."payroll_payments" OWNER TO "postgres";
-
 --
 -- Name: TABLE "payroll_payments"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON TABLE "accounting"."payroll_payments" IS 'Pagos de n├│minas y retribuciones con generaci├│n autom├ítica de asientos contables';
-
-
 --
 -- Name: payroll_runs; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -26030,17 +23973,12 @@ CREATE TABLE "accounting"."payroll_runs" (
     CONSTRAINT "payroll_runs_ss_employee_check" CHECK (("ss_employee" >= (0)::numeric)),
     CONSTRAINT "payroll_runs_status_check" CHECK (("status" = ANY (ARRAY['DRAFT'::"text", 'POSTED'::"text", 'PAID'::"text", 'CANCELLED'::"text"])))
 );
-
-
 ALTER TABLE "accounting"."payroll_runs" OWNER TO "postgres";
-
 --
 -- Name: TABLE "payroll_runs"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON TABLE "accounting"."payroll_runs" IS 'N├│minas de empleados con generaci├│n autom├ítica de asientos contables';
-
-
 --
 -- Name: period_closures; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -26057,10 +23995,7 @@ CREATE TABLE "accounting"."period_closures" (
     "is_locked" boolean DEFAULT true NOT NULL,
     CONSTRAINT "period_closures_month_check" CHECK ((("month" >= 1) AND ("month" <= 12)))
 );
-
-
 ALTER TABLE "accounting"."period_closures" OWNER TO "postgres";
-
 --
 -- Name: tax_config; Type: TABLE; Schema: accounting; Owner: postgres
 --
@@ -26079,17 +24014,12 @@ CREATE TABLE "accounting"."tax_config" (
     "updated_at" timestamp with time zone DEFAULT "now"(),
     CONSTRAINT "tax_config_tax_type_check" CHECK (("tax_type" = ANY (ARRAY['IVA'::"text", 'IRPF'::"text", 'IS'::"text"])))
 );
-
-
 ALTER TABLE "accounting"."tax_config" OWNER TO "postgres";
-
 --
 -- Name: TABLE "tax_config"; Type: COMMENT; Schema: accounting; Owner: postgres
 --
 
 COMMENT ON TABLE "accounting"."tax_config" IS 'Configuraci├│n de impuestos (IVA, IRPF, IS)';
-
-
 --
 -- Name: archived_records; Type: TABLE; Schema: audit; Owner: postgres
 --
@@ -26103,10 +24033,7 @@ CREATE TABLE "audit"."archived_records" (
     "archived_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "original_created_at" timestamp with time zone
 );
-
-
 ALTER TABLE "audit"."archived_records" OWNER TO "postgres";
-
 --
 -- Name: audit_log; Type: TABLE; Schema: audit; Owner: postgres
 --
@@ -26122,10 +24049,7 @@ CREATE TABLE "audit"."audit_log" (
     "ip_address" "inet",
     "user_agent" "text"
 );
-
-
 ALTER TABLE "audit"."audit_log" OWNER TO "postgres";
-
 --
 -- Name: events; Type: TABLE; Schema: audit; Owner: postgres
 --
@@ -26148,10 +24072,7 @@ CREATE TABLE "audit"."events" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     CONSTRAINT "events_severity_check" CHECK (("severity" = ANY (ARRAY['info'::"text", 'warning'::"text", 'error'::"text", 'critical'::"text"])))
 );
-
-
 ALTER TABLE "audit"."events" OWNER TO "postgres";
-
 --
 -- Name: logs; Type: TABLE; Schema: audit; Owner: postgres
 --
@@ -26170,10 +24091,7 @@ CREATE TABLE "audit"."logs" (
     "new_data" "jsonb",
     "metadata" "jsonb"
 );
-
-
 ALTER TABLE "audit"."logs" OWNER TO "postgres";
-
 --
 -- Name: retention_policy; Type: TABLE; Schema: audit; Owner: postgres
 --
@@ -26188,10 +24106,7 @@ CREATE TABLE "audit"."retention_policy" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "audit"."retention_policy" OWNER TO "postgres";
-
 --
 -- Name: sequence_counters; Type: TABLE; Schema: audit; Owner: postgres
 --
@@ -26204,10 +24119,7 @@ CREATE TABLE "audit"."sequence_counters" (
     CONSTRAINT "check_number_range" CHECK ((("current_number" >= 0) AND ("current_number" < 100000))),
     CONSTRAINT "check_year_range" CHECK ((("year" >= 2024) AND ("year" <= 2100)))
 );
-
-
 ALTER TABLE "audit"."sequence_counters" OWNER TO "postgres";
-
 --
 -- Name: daily_snapshots; Type: TABLE; Schema: backup; Owner: postgres
 --
@@ -26221,10 +24133,7 @@ CREATE TABLE "backup"."daily_snapshots" (
     "data" "jsonb" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "backup"."daily_snapshots" OWNER TO "postgres";
-
 --
 -- Name: _mig_category_map; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26233,10 +24142,7 @@ CREATE TABLE "catalog"."_mig_category_map" (
     "internal_id" "uuid" NOT NULL,
     "catalog_id" "uuid" NOT NULL
 );
-
-
 ALTER TABLE "catalog"."_mig_category_map" OWNER TO "postgres";
-
 --
 -- Name: _mig_pack_map; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26245,10 +24151,7 @@ CREATE TABLE "catalog"."_mig_pack_map" (
     "internal_pack_id" "uuid" NOT NULL,
     "catalog_product_id" "uuid" NOT NULL
 );
-
-
 ALTER TABLE "catalog"."_mig_pack_map" OWNER TO "postgres";
-
 --
 -- Name: _mig_product_map; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26257,10 +24160,7 @@ CREATE TABLE "catalog"."_mig_product_map" (
     "internal_id" "uuid" NOT NULL,
     "catalog_id" "uuid" NOT NULL
 );
-
-
 ALTER TABLE "catalog"."_mig_product_map" OWNER TO "postgres";
-
 --
 -- Name: _mig_subcategory_map; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26269,10 +24169,7 @@ CREATE TABLE "catalog"."_mig_subcategory_map" (
     "internal_id" "uuid" NOT NULL,
     "catalog_id" "uuid" NOT NULL
 );
-
-
 ALTER TABLE "catalog"."_mig_subcategory_map" OWNER TO "postgres";
-
 --
 -- Name: categories; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26290,17 +24187,12 @@ CREATE TABLE "catalog"."categories" (
     "domain" "catalog"."category_domain" NOT NULL,
     CONSTRAINT "check_no_self_parent" CHECK ((("parent_id" IS NULL) OR ("parent_id" <> "id")))
 );
-
-
 ALTER TABLE "catalog"."categories" OWNER TO "postgres";
-
 --
 -- Name: COLUMN "categories"."domain"; Type: COMMENT; Schema: catalog; Owner: postgres
 --
 
 COMMENT ON COLUMN "catalog"."categories"."domain" IS 'PRODUCT: categor├¡as de productos f├¡sicos. SERVICE: categor├¡as de servicios.';
-
-
 --
 -- Name: erp_sync_log; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26318,10 +24210,7 @@ CREATE TABLE "catalog"."erp_sync_log" (
     "error_details" "jsonb",
     "initiated_by" "uuid"
 );
-
-
 ALTER TABLE "catalog"."erp_sync_log" OWNER TO "postgres";
-
 --
 -- Name: external_catalog_sources; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26345,10 +24234,7 @@ CREATE TABLE "catalog"."external_catalog_sources" (
     CONSTRAINT "external_catalog_sources_provider_check" CHECK (("provider" = 'sharepoint'::"text")),
     CONSTRAINT "external_catalog_sources_source_type_check" CHECK (("source_type" = 'excel'::"text"))
 );
-
-
 ALTER TABLE "catalog"."external_catalog_sources" OWNER TO "postgres";
-
 --
 -- Name: external_catalog_sync_runs; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26363,10 +24249,7 @@ CREATE TABLE "catalog"."external_catalog_sync_runs" (
     "errors" "jsonb" DEFAULT '[]'::"jsonb",
     CONSTRAINT "external_catalog_sync_runs_status_check" CHECK (("status" = ANY (ARRAY['running'::"text", 'success'::"text", 'failed'::"text", 'cancelled'::"text"])))
 );
-
-
 ALTER TABLE "catalog"."external_catalog_sync_runs" OWNER TO "postgres";
-
 --
 -- Name: product_bundles; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26380,10 +24263,7 @@ CREATE TABLE "catalog"."product_bundles" (
     CONSTRAINT "check_bundle_quantity" CHECK (("quantity" > (0)::numeric)),
     CONSTRAINT "check_not_same" CHECK (("bundle_product_id" <> "component_product_id"))
 );
-
-
 ALTER TABLE "catalog"."product_bundles" OWNER TO "postgres";
-
 --
 -- Name: product_documents; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26405,10 +24285,7 @@ CREATE TABLE "catalog"."product_documents" (
     "is_primary" boolean DEFAULT false NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"()
 );
-
-
 ALTER TABLE "catalog"."product_documents" OWNER TO "postgres";
-
 --
 -- Name: products; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26444,24 +24321,17 @@ CREATE TABLE "catalog"."products" (
     CONSTRAINT "check_sale_price" CHECK (("sale_price" >= (0)::numeric)),
     CONSTRAINT "check_stock" CHECK (("stock_quantity" >= (0)::numeric))
 );
-
-
 ALTER TABLE "catalog"."products" OWNER TO "postgres";
-
 --
 -- Name: COLUMN "products"."discount_percent"; Type: COMMENT; Schema: catalog; Owner: postgres
 --
 
 COMMENT ON COLUMN "catalog"."products"."discount_percent" IS 'Descuento en % sobre sale_price.';
-
-
 --
 -- Name: COLUMN "products"."supplier_id"; Type: COMMENT; Schema: catalog; Owner: postgres
 --
 
 COMMENT ON COLUMN "catalog"."products"."supplier_id" IS 'Proveedor habitual del que se compra el material. Opcional.';
-
-
 --
 -- Name: stock_alerts; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26474,17 +24344,12 @@ CREATE TABLE "catalog"."stock_alerts" (
     "last_notified_at" timestamp with time zone,
     "resolved_at" timestamp with time zone
 );
-
-
 ALTER TABLE "catalog"."stock_alerts" OWNER TO "postgres";
-
 --
 -- Name: TABLE "stock_alerts"; Type: COMMENT; Schema: catalog; Owner: postgres
 --
 
 COMMENT ON TABLE "catalog"."stock_alerts" IS 'Alertas de stock bajo.';
-
-
 --
 -- Name: stock_movements; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26502,24 +24367,17 @@ CREATE TABLE "catalog"."stock_movements" (
     "created_by" "uuid",
     CONSTRAINT "check_quantity_nonzero" CHECK (("quantity" <> (0)::numeric))
 );
-
-
 ALTER TABLE "catalog"."stock_movements" OWNER TO "postgres";
-
 --
 -- Name: TABLE "stock_movements"; Type: COMMENT; Schema: catalog; Owner: postgres
 --
 
 COMMENT ON TABLE "catalog"."stock_movements" IS 'Ledger de movimientos de stock.';
-
-
 --
 -- Name: COLUMN "stock_movements"."created_by"; Type: COMMENT; Schema: catalog; Owner: postgres
 --
 
 COMMENT ON COLUMN "catalog"."stock_movements"."created_by" IS 'Usuario que registr├│ el movimiento. Sin FK; la app puede rellenar con internal.get_authorized_user_id(auth.uid()).';
-
-
 --
 -- Name: tax_rates; Type: TABLE; Schema: catalog; Owner: postgres
 --
@@ -26535,10 +24393,7 @@ CREATE TABLE "catalog"."tax_rates" (
     "updated_at" timestamp with time zone DEFAULT "now"(),
     CONSTRAINT "check_rate_range" CHECK ((("rate" >= (0)::numeric) AND ("rate" <= (100)::numeric)))
 );
-
-
 ALTER TABLE "catalog"."tax_rates" OWNER TO "postgres";
-
 --
 -- Name: client_notes; Type: TABLE; Schema: crm; Owner: postgres
 --
@@ -26559,10 +24414,7 @@ CREATE TABLE "crm"."client_notes" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     CONSTRAINT "client_notes_note_type_check" CHECK (("note_type" = ANY (ARRAY['manual'::"text", 'status_change'::"text", 'reassignment'::"text", 'creation'::"text"])))
 );
-
-
 ALTER TABLE "crm"."client_notes" OWNER TO "postgres";
-
 --
 -- Name: client_number_seq; Type: SEQUENCE; Schema: crm; Owner: postgres
 --
@@ -26573,10 +24425,7 @@ CREATE SEQUENCE "crm"."client_number_seq"
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 ALTER SEQUENCE "crm"."client_number_seq" OWNER TO "postgres";
-
 --
 -- Name: clients; Type: TABLE; Schema: crm; Owner: postgres
 --
@@ -26623,10 +24472,7 @@ CREATE TABLE "crm"."clients" (
     CONSTRAINT "check_locations" CHECK (("number_of_locations" >= 1)),
     CONSTRAINT "check_profile_score" CHECK ((("profile_completeness_score" >= 0) AND ("profile_completeness_score" <= 100)))
 );
-
-
 ALTER TABLE "crm"."clients" OWNER TO "postgres";
-
 --
 -- Name: contact_messages; Type: TABLE; Schema: crm; Owner: postgres
 --
@@ -26650,10 +24496,7 @@ CREATE TABLE "crm"."contact_messages" (
     CONSTRAINT "contact_messages_tipo_espacio_check" CHECK (("tipo_espacio" = ANY (ARRAY['retail'::"text", 'corporativo'::"text", 'evento'::"text", 'otro'::"text"]))),
     CONSTRAINT "contact_messages_tipo_solicitud_check" CHECK (("tipo_solicitud" = ANY (ARRAY['presupuesto'::"text", 'visita'::"text"])))
 );
-
-
 ALTER TABLE "crm"."contact_messages" OWNER TO "postgres";
-
 --
 -- Name: contacts; Type: TABLE; Schema: crm; Owner: postgres
 --
@@ -26672,10 +24515,7 @@ CREATE TABLE "crm"."contacts" (
     "updated_at" timestamp with time zone DEFAULT "now"(),
     CONSTRAINT "check_contact_method" CHECK ((("email" IS NOT NULL) OR ("phone" IS NOT NULL)))
 );
-
-
 ALTER TABLE "crm"."contacts" OWNER TO "postgres";
-
 --
 -- Name: interactions; Type: TABLE; Schema: crm; Owner: postgres
 --
@@ -26695,10 +24535,7 @@ CREATE TABLE "crm"."interactions" (
     "updated_at" timestamp with time zone DEFAULT "now"(),
     CONSTRAINT "check_duration" CHECK ((("duration_minutes" IS NULL) OR (("duration_minutes" >= 0) AND ("duration_minutes" <= 480))))
 );
-
-
 ALTER TABLE "crm"."interactions" OWNER TO "postgres";
-
 --
 -- Name: lead_sources; Type: TABLE; Schema: crm; Owner: postgres
 --
@@ -26714,10 +24551,7 @@ CREATE TABLE "crm"."lead_sources" (
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"()
 );
-
-
 ALTER TABLE "crm"."lead_sources" OWNER TO "postgres";
-
 --
 -- Name: location; Type: TABLE; Schema: crm; Owner: postgres
 --
@@ -26817,38 +24651,27 @@ CREATE TABLE "crm"."location" (
     CONSTRAINT "location_interest_level_check" CHECK ((("interest_level" >= 1) AND ("interest_level" <= 10))),
     CONSTRAINT "location_lead_score_check" CHECK ((("lead_score" >= 0) AND ("lead_score" <= 100)))
 );
-
-
 ALTER TABLE "crm"."location" OWNER TO "postgres";
-
 --
 -- Name: TABLE "location"; Type: COMMENT; Schema: crm; Owner: postgres
 --
 
 COMMENT ON TABLE "crm"."location" IS 'Puntos de Canvassing marcados por comerciales en el mapa. Cada punto est├í asociado ├║nicamente al usuario que lo crea.';
-
-
 --
 -- Name: COLUMN "location"."created_by"; Type: COMMENT; Schema: crm; Owner: postgres
 --
 
 COMMENT ON COLUMN "crm"."location"."created_by" IS 'Usuario que cre├│ el punto. Solo este usuario puede verlo (excepto admin/manager).';
-
-
 --
 -- Name: COLUMN "location"."status"; Type: COMMENT; Schema: crm; Owner: postgres
 --
 
 COMMENT ON COLUMN "crm"."location"."status" IS 'Estado del lead seg├║n el pin seleccionado (CB, CX, GB, NH, NI, OTH, DK, RNT, INT, APP, PRES, NEG)';
-
-
 --
 -- Name: COLUMN "location"."status_history"; Type: COMMENT; Schema: crm; Owner: postgres
 --
 
 COMMENT ON COLUMN "crm"."location"."status_history" IS 'Historial JSON de cambios de estado: [{"status": "CB", "previous_status": "NH", "date": "2024-01-15T10:00:00Z", "user_id": "uuid", "user_name": "Nombre", "reason": "Motivo"}]';
-
-
 --
 -- Name: location_notes; Type: TABLE; Schema: crm; Owner: postgres
 --
@@ -26865,17 +24688,12 @@ CREATE TABLE "crm"."location_notes" (
     "edited_at" timestamp with time zone,
     "edited_by" "uuid"
 );
-
-
 ALTER TABLE "crm"."location_notes" OWNER TO "postgres";
-
 --
 -- Name: TABLE "location_notes"; Type: COMMENT; Schema: crm; Owner: postgres
 --
 
 COMMENT ON TABLE "crm"."location_notes" IS 'Sistema de notas para ubicaciones de Canvassing. Similar al sistema de notas de clientes.';
-
-
 --
 -- Name: authorized_users; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -26913,17 +24731,12 @@ CREATE TABLE "internal"."authorized_users" (
     CONSTRAINT "authorized_users_worker_type_check" CHECK (("worker_type" = ANY (ARRAY['EMPLOYEE'::"text", 'PARTNER'::"text", NULL::"text"]))),
     CONSTRAINT "check_email_format" CHECK (("email" ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'::"text"))
 );
-
-
 ALTER TABLE "internal"."authorized_users" OWNER TO "postgres";
-
 --
 -- Name: COLUMN "authorized_users"."ss_regime"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."authorized_users"."ss_regime" IS 'R├®gimen de cotizaci├│n: RETA (aut├│nomo, SS empresa = 0) o SSG (r├®gimen general, SS trabajador + empresa)';
-
-
 --
 -- Name: company_bank_accounts; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -26939,10 +24752,7 @@ CREATE TABLE "internal"."company_bank_accounts" (
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"()
 );
-
-
 ALTER TABLE "internal"."company_bank_accounts" OWNER TO "postgres";
-
 --
 -- Name: company_contacts; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -26959,24 +24769,17 @@ CREATE TABLE "internal"."company_contacts" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "internal"."company_contacts" OWNER TO "postgres";
-
 --
 -- Name: TABLE "company_contacts"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON TABLE "internal"."company_contacts" IS 'Datos de contacto p├║blico de la empresa para web y documentos';
-
-
 --
 -- Name: COLUMN "company_contacts"."social_networks"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."company_contacts"."social_networks" IS 'Array de redes sociales con tipo y URL';
-
-
 --
 -- Name: company_preferences; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -26990,38 +24793,27 @@ CREATE TABLE "internal"."company_preferences" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "internal"."company_preferences" OWNER TO "postgres";
-
 --
 -- Name: TABLE "company_preferences"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON TABLE "internal"."company_preferences" IS 'Preferencias operativas de la empresa separadas de los datos legales';
-
-
 --
 -- Name: COLUMN "company_preferences"."quote_validity_days"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."company_preferences"."quote_validity_days" IS 'D├¡as de validez por defecto para presupuestos nuevos';
-
-
 --
 -- Name: COLUMN "company_preferences"."invoice_payment_days"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."company_preferences"."invoice_payment_days" IS 'D├¡as que tiene el cliente para pagar una factura';
-
-
 --
 -- Name: COLUMN "company_preferences"."bank_accounts"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."company_preferences"."bank_accounts" IS 'Array de cuentas bancarias en formato JSON';
-
-
 --
 -- Name: company_settings; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27046,10 +24838,7 @@ CREATE TABLE "internal"."company_settings" (
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     CONSTRAINT "company_settings_company_type_check" CHECK (("company_type" = ANY (ARRAY['freelance'::"text", 'company'::"text"])))
 );
-
-
 ALTER TABLE "internal"."company_settings" OWNER TO "postgres";
-
 --
 -- Name: employees; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27072,10 +24861,7 @@ CREATE TABLE "internal"."employees" (
     CONSTRAINT "employees_contract_type_check" CHECK (("contract_type" = ANY (ARRAY['indefinido'::"text", 'temporal'::"text"]))),
     CONSTRAINT "employees_status_check" CHECK (("status" = ANY (ARRAY['ACTIVE'::"text", 'INACTIVE'::"text"])))
 );
-
-
 ALTER TABLE "internal"."employees" OWNER TO "postgres";
-
 --
 -- Name: invitation_tokens; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27088,17 +24874,12 @@ CREATE TABLE "internal"."invitation_tokens" (
     "used_at" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "internal"."invitation_tokens" OWNER TO "postgres";
-
 --
 -- Name: TABLE "invitation_tokens"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON TABLE "internal"."invitation_tokens" IS 'Tokens de invitaci├│n para nuevos usuarios. Solo accesible por administradores.';
-
-
 --
 -- Name: partner_compensation_number_seq; Type: SEQUENCE; Schema: internal; Owner: postgres
 --
@@ -27109,10 +24890,7 @@ CREATE SEQUENCE "internal"."partner_compensation_number_seq"
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 ALTER SEQUENCE "internal"."partner_compensation_number_seq" OWNER TO "postgres";
-
 --
 -- Name: partner_compensation_runs; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27147,10 +24925,7 @@ CREATE TABLE "internal"."partner_compensation_runs" (
     CONSTRAINT "partner_compensation_runs_period_year_check" CHECK (("period_year" >= 2020)),
     CONSTRAINT "partner_compensation_runs_status_check" CHECK (("status" = ANY (ARRAY['DRAFT'::"text", 'POSTED'::"text", 'PARTIAL'::"text", 'PAID'::"text", 'CANCELLED'::"text"])))
 );
-
-
 ALTER TABLE "internal"."partner_compensation_runs" OWNER TO "postgres";
-
 --
 -- Name: partners; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27168,10 +24943,7 @@ CREATE TABLE "internal"."partners" (
     "account_code" "text",
     CONSTRAINT "partners_status_check" CHECK (("status" = ANY (ARRAY['ACTIVE'::"text", 'INACTIVE'::"text"])))
 );
-
-
 ALTER TABLE "internal"."partners" OWNER TO "postgres";
-
 --
 -- Name: payroll_settings; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27193,10 +24965,7 @@ CREATE TABLE "internal"."payroll_settings" (
     CONSTRAINT "payroll_settings_bonus_percent_check" CHECK ((("bonus_percent" >= (0)::numeric) AND ("bonus_percent" <= (100)::numeric))),
     CONSTRAINT "payroll_settings_min_profit_to_pay_bonus_check" CHECK (("min_profit_to_pay_bonus" >= (0)::numeric))
 );
-
-
 ALTER TABLE "internal"."payroll_settings" OWNER TO "postgres";
-
 --
 -- Name: payroll_settings_audit; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27210,10 +24979,7 @@ CREATE TABLE "internal"."payroll_settings_audit" (
     "new_values" "jsonb",
     "reason" "text" NOT NULL
 );
-
-
 ALTER TABLE "internal"."payroll_settings_audit" OWNER TO "postgres";
-
 --
 -- Name: product_categories; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27230,24 +24996,17 @@ CREATE TABLE "internal"."product_categories" (
     "type" "text" DEFAULT 'product'::"text",
     CONSTRAINT "check_type_value" CHECK (("type" = ANY (ARRAY['product'::"text", 'service'::"text"])))
 );
-
-
 ALTER TABLE "internal"."product_categories" OWNER TO "postgres";
-
 --
 -- Name: TABLE "product_categories"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON TABLE "internal"."product_categories" IS 'Categor├¡as de productos. Acceso controlado via funciones RPC.';
-
-
 --
 -- Name: COLUMN "product_categories"."type"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."product_categories"."type" IS 'Type of category: product or service';
-
-
 --
 -- Name: product_pack_items; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27259,10 +25018,7 @@ CREATE TABLE "internal"."product_pack_items" (
     "quantity" integer DEFAULT 1 NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "internal"."product_pack_items" OWNER TO "postgres";
-
 --
 -- Name: product_packs; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27280,10 +25036,7 @@ CREATE TABLE "internal"."product_packs" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "internal"."product_packs" OWNER TO "postgres";
-
 --
 -- Name: product_sequences; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27292,10 +25045,7 @@ CREATE TABLE "internal"."product_sequences" (
     "category_code" "text" NOT NULL,
     "last_number" integer DEFAULT 0 NOT NULL
 );
-
-
 ALTER TABLE "internal"."product_sequences" OWNER TO "postgres";
-
 --
 -- Name: product_subcategories; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27311,10 +25061,7 @@ CREATE TABLE "internal"."product_subcategories" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "internal"."product_subcategories" OWNER TO "postgres";
-
 --
 -- Name: products; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27336,31 +25083,22 @@ CREATE TABLE "internal"."products" (
     "stock" integer,
     "default_tax_id" "uuid"
 );
-
-
 ALTER TABLE "internal"."products" OWNER TO "postgres";
-
 --
 -- Name: TABLE "products"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON TABLE "internal"."products" IS 'Cat├ílogo de productos. Acceso controlado via funciones RPC.';
-
-
 --
 -- Name: COLUMN "products"."type"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."products"."type" IS 'product = has fixed cost and can have stock; service = variable cost, no stock';
-
-
 --
 -- Name: COLUMN "products"."stock"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."products"."stock" IS 'Current stock quantity. Only applicable for type=product, should be NULL for services';
-
-
 --
 -- Name: report_settings; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27383,10 +25121,7 @@ CREATE TABLE "internal"."report_settings" (
     "updated_by" "uuid",
     CONSTRAINT "report_settings_language_check" CHECK (("language" = ANY (ARRAY['ES'::"text", 'CAT'::"text"])))
 );
-
-
 ALTER TABLE "internal"."report_settings" OWNER TO "postgres";
-
 --
 -- Name: roles; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27400,10 +25135,7 @@ CREATE TABLE "internal"."roles" (
     "is_system" boolean DEFAULT false,
     "created_at" timestamp with time zone DEFAULT "now"()
 );
-
-
 ALTER TABLE "internal"."roles" OWNER TO "postgres";
-
 --
 -- Name: supplier_number_seq; Type: SEQUENCE; Schema: internal; Owner: postgres
 --
@@ -27414,10 +25146,7 @@ CREATE SEQUENCE "internal"."supplier_number_seq"
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 ALTER SEQUENCE "internal"."supplier_number_seq" OWNER TO "postgres";
-
 --
 -- Name: suppliers; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27442,17 +25171,12 @@ CREATE TABLE "internal"."suppliers" (
     CONSTRAINT "check_supplier_number_not_000000" CHECK ((("supplier_number" IS NULL) OR ("supplier_number" <> 'PRO-000000'::"text"))),
     CONSTRAINT "suppliers_category_check" CHECK ((("category" IS NULL) OR ("category" = ANY (ARRAY['SOFTWARE'::"text", 'EXTERNAL_SERVICES'::"text", 'MATERIAL'::"text"]))))
 );
-
-
 ALTER TABLE "internal"."suppliers" OWNER TO "postgres";
-
 --
 -- Name: COLUMN "suppliers"."category"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."suppliers"."category" IS 'Categor├¡a del proveedor: SOFTWARE, EXTERNAL_SERVICES (gestor, notario, abogado), MATERIAL';
-
-
 --
 -- Name: task_activity; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27466,10 +25190,7 @@ CREATE TABLE "internal"."task_activity" (
     "message" "text",
     "meta" "jsonb"
 );
-
-
 ALTER TABLE "internal"."task_activity" OWNER TO "postgres";
-
 --
 -- Name: task_assignees; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27480,10 +25201,7 @@ CREATE TABLE "internal"."task_assignees" (
     "role_in_task" "text" DEFAULT 'ASSIGNEE'::"text" NOT NULL,
     "assigned_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "internal"."task_assignees" OWNER TO "postgres";
-
 --
 -- Name: tasks; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27509,10 +25227,7 @@ CREATE TABLE "internal"."tasks" (
     "source" "text" DEFAULT 'manual'::"text",
     "is_archived" boolean DEFAULT false NOT NULL
 );
-
-
 ALTER TABLE "internal"."tasks" OWNER TO "postgres";
-
 --
 -- Name: taxes; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27531,17 +25246,12 @@ CREATE TABLE "internal"."taxes" (
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     CONSTRAINT "taxes_tax_type_check" CHECK (("tax_type" = ANY (ARRAY['sales'::"text", 'purchase'::"text", 'profit'::"text"])))
 );
-
-
 ALTER TABLE "internal"."taxes" OWNER TO "postgres";
-
 --
 -- Name: TABLE "taxes"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON TABLE "internal"."taxes" IS 'Configuraci├│n de impuestos. Acceso controlado via funciones RPC.';
-
-
 --
 -- Name: technician_number_seq; Type: SEQUENCE; Schema: internal; Owner: postgres
 --
@@ -27552,10 +25262,7 @@ CREATE SEQUENCE "internal"."technician_number_seq"
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 ALTER SEQUENCE "internal"."technician_number_seq" OWNER TO "postgres";
-
 --
 -- Name: technicians; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27598,66 +25305,47 @@ CREATE TABLE "internal"."technicians" (
     CONSTRAINT "technicians_rating_check" CHECK ((("rating" >= 1) AND ("rating" <= 5))),
     CONSTRAINT "technicians_vat_rate_check" CHECK ((("vat_rate" IS NULL) OR (("vat_rate" >= (0)::numeric) AND ("vat_rate" <= (100)::numeric))))
 );
-
-
 ALTER TABLE "internal"."technicians" OWNER TO "postgres";
-
 --
 -- Name: TABLE "technicians"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON TABLE "internal"."technicians" IS 'T├®cnicos externos: empresas, aut├│nomos y empleados que realizan trabajos';
-
-
 --
 -- Name: COLUMN "technicians"."type"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."technicians"."type" IS 'Tipo: COMPANY (empresa), FREELANCER (aut├│nomo), EMPLOYEE (plantilla)';
-
-
 --
 -- Name: COLUMN "technicians"."specialties"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."technicians"."specialties" IS 'Especialidades del t├®cnico (LED, Audio, etc.)';
-
-
 --
 -- Name: COLUMN "technicians"."hourly_rate"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."technicians"."hourly_rate" IS 'Tarifa por hora en euros';
-
-
 --
 -- Name: COLUMN "technicians"."daily_rate"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."technicians"."daily_rate" IS 'Tarifa por d├¡a en euros';
-
-
 --
 -- Name: COLUMN "technicians"."withholding_tax_rate"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."technicians"."withholding_tax_rate" IS 'Porcentaje de retenci├│n IRPF a aplicar en facturas (t├¡picamente 15% para aut├│nomos, puede ser NULL si no aplica)';
-
-
 --
 -- Name: COLUMN "technicians"."monthly_salary"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."technicians"."monthly_salary" IS 'Sueldo mensual para t├®cnicos tipo EMPLOYEE (plantilla). No aplica para COMPANY ni FREELANCER.';
-
-
 --
 -- Name: COLUMN "technicians"."vat_rate"; Type: COMMENT; Schema: internal; Owner: postgres
 --
 
 COMMENT ON COLUMN "internal"."technicians"."vat_rate" IS 'Porcentaje de IVA que aplica el t├®cnico (t├¡picamente 21%, 10%, 0%)';
-
-
 --
 -- Name: user_notifications; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27677,10 +25365,7 @@ CREATE TABLE "internal"."user_notifications" (
     "read_at" timestamp with time zone,
     "dedupe_key" "text"
 );
-
-
 ALTER TABLE "internal"."user_notifications" OWNER TO "postgres";
-
 --
 -- Name: user_roles; Type: TABLE; Schema: internal; Owner: postgres
 --
@@ -27693,10 +25378,7 @@ CREATE TABLE "internal"."user_roles" (
     "granted_by" "uuid",
     "expires_at" timestamp with time zone
 );
-
-
 ALTER TABLE "internal"."user_roles" OWNER TO "postgres";
-
 --
 -- Name: av_projects; Type: TABLE; Schema: projects; Owner: postgres
 --
@@ -27722,10 +25404,7 @@ CREATE TABLE "projects"."av_projects" (
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"()
 );
-
-
 ALTER TABLE "projects"."av_projects" OWNER TO "postgres";
-
 --
 -- Name: customer_orders; Type: TABLE; Schema: projects; Owner: postgres
 --
@@ -27747,10 +25426,7 @@ CREATE TABLE "projects"."customer_orders" (
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"()
 );
-
-
 ALTER TABLE "projects"."customer_orders" OWNER TO "postgres";
-
 --
 -- Name: expenses; Type: TABLE; Schema: projects; Owner: postgres
 --
@@ -27769,10 +25445,7 @@ CREATE TABLE "projects"."expenses" (
     CONSTRAINT "check_amount_positive" CHECK (("amount" >= (0)::numeric)),
     CONSTRAINT "expenses_category_check" CHECK (("category" = ANY (ARRAY['MATERIAL'::"text", 'LABOR'::"text", 'TRANSPORT'::"text", 'OTHER'::"text"])))
 );
-
-
 ALTER TABLE "projects"."expenses" OWNER TO "postgres";
-
 --
 -- Name: project_activity; Type: TABLE; Schema: projects; Owner: postgres
 --
@@ -27787,10 +25460,7 @@ CREATE TABLE "projects"."project_activity" (
     "created_by_name" "text",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "projects"."project_activity" OWNER TO "postgres";
-
 --
 -- Name: project_documents; Type: TABLE; Schema: projects; Owner: postgres
 --
@@ -27807,10 +25477,7 @@ CREATE TABLE "projects"."project_documents" (
     "created_at" timestamp with time zone DEFAULT "now"(),
     CONSTRAINT "check_doc_file_size" CHECK ((("file_size_bytes" IS NULL) OR ("file_size_bytes" > 0)))
 );
-
-
 ALTER TABLE "projects"."project_documents" OWNER TO "postgres";
-
 --
 -- Name: project_sites; Type: TABLE; Schema: projects; Owner: postgres
 --
@@ -27846,10 +25513,7 @@ CREATE TABLE "projects"."project_sites" (
     CONSTRAINT "chk_planned_days_non_negative" CHECK ((("planned_days" IS NULL) OR ("planned_days" >= 0))),
     CONSTRAINT "chk_site_status" CHECK (("site_status" = ANY (ARRAY['PLANNED'::"text", 'SCHEDULED'::"text", 'IN_PROGRESS'::"text", 'READY_TO_INVOICE'::"text", 'INVOICED'::"text", 'CLOSED'::"text"])))
 );
-
-
 ALTER TABLE "projects"."project_sites" OWNER TO "postgres";
-
 --
 -- Name: project_tasks; Type: TABLE; Schema: projects; Owner: postgres
 --
@@ -27876,10 +25540,7 @@ CREATE TABLE "projects"."project_tasks" (
     CONSTRAINT "check_no_self_parent" CHECK ((("parent_task_id" IS NULL) OR ("parent_task_id" <> "id"))),
     CONSTRAINT "check_task_hours" CHECK (((("estimated_hours" IS NULL) OR ("estimated_hours" >= (0)::numeric)) AND ("actual_hours" >= (0)::numeric)))
 );
-
-
 ALTER TABLE "projects"."project_tasks" OWNER TO "postgres";
-
 --
 -- Name: projects; Type: TABLE; Schema: projects; Owner: postgres
 --
@@ -27920,10 +25581,7 @@ CREATE TABLE "projects"."projects" (
     CONSTRAINT "check_dates" CHECK ((("end_date" IS NULL) OR ("start_date" IS NULL) OR ("end_date" >= "start_date"))),
     CONSTRAINT "check_hours" CHECK (((("estimated_hours" IS NULL) OR ("estimated_hours" >= (0)::numeric)) AND ("actual_hours" >= (0)::numeric)))
 );
-
-
 ALTER TABLE "projects"."projects" OWNER TO "postgres";
-
 --
 -- Name: site_technician_assignments; Type: TABLE; Schema: projects; Owner: postgres
 --
@@ -27940,10 +25598,7 @@ CREATE TABLE "projects"."site_technician_assignments" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "projects"."site_technician_assignments" OWNER TO "postgres";
-
 --
 -- Name: site_visits; Type: TABLE; Schema: projects; Owner: postgres
 --
@@ -27960,10 +25615,7 @@ CREATE TABLE "projects"."site_visits" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "projects"."site_visits" OWNER TO "postgres";
-
 --
 -- Name: scanned_documents; Type: TABLE; Schema: public; Owner: postgres
 --
@@ -27983,10 +25635,7 @@ CREATE TABLE "public"."scanned_documents" (
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     CONSTRAINT "scanned_documents_status_check" CHECK (("status" = ANY (ARRAY['UNASSIGNED'::"text", 'ASSIGNED'::"text"])))
 );
-
-
 ALTER TABLE "public"."scanned_documents" OWNER TO "postgres";
-
 --
 -- Name: user_roles; Type: TABLE; Schema: public; Owner: postgres
 --
@@ -27997,12 +25646,8 @@ CREATE TABLE "public"."user_roles" (
     "role" "public"."app_role" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
 ALTER TABLE ONLY "public"."user_roles" FORCE ROW LEVEL SECURITY;
-
-
 ALTER TABLE "public"."user_roles" OWNER TO "postgres";
-
 --
 -- Name: draft_number_seq; Type: SEQUENCE; Schema: quotes; Owner: postgres
 --
@@ -28013,10 +25658,7 @@ CREATE SEQUENCE "quotes"."draft_number_seq"
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 ALTER SEQUENCE "quotes"."draft_number_seq" OWNER TO "postgres";
-
 --
 -- Name: quote_activity; Type: TABLE; Schema: quotes; Owner: postgres
 --
@@ -28031,10 +25673,7 @@ CREATE TABLE "quotes"."quote_activity" (
     "created_by_name" "text",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "quotes"."quote_activity" OWNER TO "postgres";
-
 --
 -- Name: quote_history; Type: TABLE; Schema: quotes; Owner: postgres
 --
@@ -28048,38 +25687,27 @@ CREATE TABLE "quotes"."quote_history" (
     "changed_by" "uuid",
     "changed_at" timestamp with time zone DEFAULT "now"()
 );
-
-
 ALTER TABLE "quotes"."quote_history" OWNER TO "postgres";
-
 --
 -- Name: TABLE "quote_history"; Type: COMMENT; Schema: quotes; Owner: postgres
 --
 
 COMMENT ON TABLE "quotes"."quote_history" IS 'Tracks all changes made to quotes for audit trail and history display';
-
-
 --
 -- Name: COLUMN "quote_history"."field_name"; Type: COMMENT; Schema: quotes; Owner: postgres
 --
 
 COMMENT ON COLUMN "quotes"."quote_history"."field_name" IS 'Name of the field that was changed (e.g., "status", "notes", "client_id")';
-
-
 --
 -- Name: COLUMN "quote_history"."old_value"; Type: COMMENT; Schema: quotes; Owner: postgres
 --
 
 COMMENT ON COLUMN "quotes"."quote_history"."old_value" IS 'Previous value before change (stored as text)';
-
-
 --
 -- Name: COLUMN "quote_history"."new_value"; Type: COMMENT; Schema: quotes; Owner: postgres
 --
 
 COMMENT ON COLUMN "quotes"."quote_history"."new_value" IS 'New value after change (stored as text)';
-
-
 --
 -- Name: quote_lines; Type: TABLE; Schema: quotes; Owner: postgres
 --
@@ -28101,17 +25729,12 @@ CREATE TABLE "quotes"."quote_lines" (
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "group_name" "text"
 );
-
-
 ALTER TABLE "quotes"."quote_lines" OWNER TO "postgres";
-
 --
 -- Name: COLUMN "quote_lines"."group_name"; Type: COMMENT; Schema: quotes; Owner: postgres
 --
 
 COMMENT ON COLUMN "quotes"."quote_lines"."group_name" IS 'Optional group name for organizing quote lines into logical sections (e.g., "Audio Equipment", "Lighting")';
-
-
 --
 -- Name: quote_number_seq; Type: SEQUENCE; Schema: quotes; Owner: postgres
 --
@@ -28122,10 +25745,7 @@ CREATE SEQUENCE "quotes"."quote_number_seq"
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 ALTER SEQUENCE "quotes"."quote_number_seq" OWNER TO "postgres";
-
 --
 -- Name: quotes; Type: TABLE; Schema: quotes; Owner: postgres
 --
@@ -28167,38 +25787,27 @@ CREATE TABLE "quotes"."quotes" (
     "archived_pdf_last_synced_at" timestamp with time zone,
     CONSTRAINT "quotes_archived_pdf_provider_check" CHECK ((("archived_pdf_provider" IS NULL) OR ("archived_pdf_provider" = 'SHAREPOINT'::"text")))
 );
-
-
 ALTER TABLE "quotes"."quotes" OWNER TO "postgres";
-
 --
 -- Name: TABLE "quotes"; Type: COMMENT; Schema: quotes; Owner: postgres
 --
 
 COMMENT ON TABLE "quotes"."quotes" IS 'Tabla principal de presupuestos. ├Ünico punto de verdad para quotes.';
-
-
 --
 -- Name: COLUMN "quotes"."assigned_to"; Type: COMMENT; Schema: quotes; Owner: postgres
 --
 
 COMMENT ON COLUMN "quotes"."quotes"."assigned_to" IS 'UUID del usuario comercial asignado al presupuesto (referencia a auth.users).';
-
-
 --
 -- Name: COLUMN "quotes"."issue_date"; Type: COMMENT; Schema: quotes; Owner: postgres
 --
 
 COMMENT ON COLUMN "quotes"."quotes"."issue_date" IS 'Fecha de emisi├│n. Se establece autom├íticamente al cambiar de DRAFT a SENT.';
-
-
 --
 -- Name: COLUMN "quotes"."archived_pdf_provider"; Type: COMMENT; Schema: quotes; Owner: postgres
 --
 
 COMMENT ON COLUMN "quotes"."quotes"."archived_pdf_provider" IS 'Provider of the immutable archived quote PDF. Initial value: SHAREPOINT.';
-
-
 --
 -- Name: invoice_payments; Type: TABLE; Schema: sales; Owner: postgres
 --
@@ -28219,17 +25828,12 @@ CREATE TABLE "sales"."invoice_payments" (
     CONSTRAINT "check_amount_positive" CHECK (("amount" > (0)::numeric)),
     CONSTRAINT "invoice_payments_payment_method_check" CHECK (("payment_method" = ANY (ARRAY['TRANSFER'::"text", 'CASH'::"text", 'CARD'::"text", 'DIRECT_DEBIT'::"text", 'CHECK'::"text", 'OTHER'::"text"])))
 );
-
-
 ALTER TABLE "sales"."invoice_payments" OWNER TO "postgres";
-
 --
 -- Name: COLUMN "invoice_payments"."company_bank_account_id"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON COLUMN "sales"."invoice_payments"."company_bank_account_id" IS 'ID de la cuenta bancaria de la empresa donde se recibi├│ el pago';
-
-
 --
 -- Name: invoices; Type: TABLE; Schema: sales; Owner: postgres
 --
@@ -28288,31 +25892,22 @@ CREATE TABLE "sales"."invoices" (
     CONSTRAINT "invoices_rectification_type_check" CHECK (("rectification_type" = ANY (ARRAY['TOTAL'::"text", 'PARTIAL'::"text"]))),
     CONSTRAINT "invoices_status_check" CHECK (("status" = ANY (ARRAY['DRAFT'::"text", 'ISSUED'::"text", 'SENT'::"text", 'PARTIAL'::"text", 'PAID'::"text", 'OVERDUE'::"text", 'CANCELLED'::"text", 'RECTIFIED'::"text"])))
 );
-
-
 ALTER TABLE "sales"."invoices" OWNER TO "postgres";
-
 --
 -- Name: COLUMN "invoices"."archived_pdf_provider"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON COLUMN "sales"."invoices"."archived_pdf_provider" IS 'Provider of the immutable archived PDF. Initial value: SHAREPOINT.';
-
-
 --
 -- Name: COLUMN "invoices"."archived_pdf_hash"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON COLUMN "sales"."invoices"."archived_pdf_hash" IS 'SHA-256 hash of the final archived PDF.';
-
-
 --
 -- Name: COLUMN "invoices"."archived_record_hash"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON COLUMN "sales"."invoices"."archived_record_hash" IS 'Optional chainable record hash, separate from the PDF file hash.';
-
-
 --
 -- Name: client_payment_summary; Type: VIEW; Schema: sales; Owner: postgres
 --
@@ -28330,10 +25925,7 @@ CREATE VIEW "sales"."client_payment_summary" AS
      LEFT JOIN "crm"."clients" "c" ON (("c"."id" = "i"."client_id")))
   WHERE ("i"."status" <> 'CANCELLED'::"text")
   GROUP BY "i"."client_id", "c"."company_name";
-
-
 ALTER VIEW "sales"."client_payment_summary" OWNER TO "postgres";
-
 --
 -- Name: draft_invoice_seq; Type: SEQUENCE; Schema: sales; Owner: postgres
 --
@@ -28344,10 +25936,7 @@ CREATE SEQUENCE "sales"."draft_invoice_seq"
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 ALTER SEQUENCE "sales"."draft_invoice_seq" OWNER TO "postgres";
-
 --
 -- Name: purchase_invoices; Type: TABLE; Schema: sales; Owner: postgres
 --
@@ -28404,10 +25993,7 @@ CREATE TABLE "sales"."purchase_invoices" (
     CONSTRAINT "purchase_invoices_document_type_check" CHECK (("document_type" = ANY (ARRAY['INVOICE'::"text", 'TICKET'::"text", 'EXPENSE'::"text"]))),
     CONSTRAINT "purchase_invoices_status_check" CHECK (("status" = ANY (ARRAY['DRAFT'::"text", 'PENDING'::"text", 'PENDING_VALIDATION'::"text", 'CONFIRMED'::"text", 'REGISTERED'::"text", 'APPROVED'::"text", 'PARTIAL'::"text", 'PAID'::"text", 'CANCELLED'::"text", 'OVERDUE'::"text"])))
 );
-
-
 ALTER TABLE "sales"."purchase_invoices" OWNER TO "postgres";
-
 --
 -- Name: COLUMN "purchase_invoices"."status"; Type: COMMENT; Schema: sales; Owner: postgres
 --
@@ -28423,43 +26009,31 @@ COMMENT ON COLUMN "sales"."purchase_invoices"."status" IS 'Estados posibles:
 - PAID: Pagada completamente
 - CANCELLED: Cancelada
 - OVERDUE: Vencida';
-
-
 --
 -- Name: COLUMN "purchase_invoices"."client_id"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON COLUMN "sales"."purchase_invoices"."client_id" IS 'Cliente al que se asigna el gasto (opcional)';
-
-
 --
 -- Name: COLUMN "purchase_invoices"."withholding_amount"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON COLUMN "sales"."purchase_invoices"."withholding_amount" IS 'IRPF total retenido en la factura. Retenci├│n que se paga a Hacienda (modelo 111 trimestral, modelo 190 anual). NO reduce el gasto contable, solo reduce el pago al aut├│nomo.';
-
-
 --
 -- Name: COLUMN "purchase_invoices"."manual_beneficiary_name"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON COLUMN "sales"."purchase_invoices"."manual_beneficiary_name" IS 'Concepto manual para tickets (parking, peajes, dietas, gasolina, etc.) cuando no hay proveedor/t├®cnico.';
-
-
 --
 -- Name: COLUMN "purchase_invoices"."archived_pdf_provider"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON COLUMN "sales"."purchase_invoices"."archived_pdf_provider" IS 'Provider of the immutable archived purchase document PDF. Initial value: SHAREPOINT.';
-
-
 --
 -- Name: CONSTRAINT "purchase_invoices_document_type_check" ON "purchase_invoices"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON CONSTRAINT "purchase_invoices_document_type_check" ON "sales"."purchase_invoices" IS 'INVOICE=factura proveedor, TICKET/EXPENSE=gastos/tickets (frontend usa EXPENSE).';
-
-
 --
 -- Name: financial_movements; Type: VIEW; Schema: sales; Owner: postgres
 --
@@ -28493,10 +26067,7 @@ UNION ALL
      LEFT JOIN "internal"."suppliers" "s" ON (("pi"."supplier_id" = "s"."id")))
      LEFT JOIN "internal"."technicians" "t" ON (("pi"."technician_id" = "t"."id")))
   WHERE ("pi"."status" = ANY (ARRAY['ISSUED'::"text", 'REGISTERED'::"text", 'PARTIAL'::"text", 'PAID'::"text"]));
-
-
 ALTER VIEW "sales"."financial_movements" OWNER TO "postgres";
-
 --
 -- Name: financial_summary; Type: VIEW; Schema: sales; Owner: postgres
 --
@@ -28517,10 +26088,7 @@ UNION ALL
     "count"(*) AS "transaction_count"
    FROM "sales"."purchase_invoices" "pi"
   WHERE ("pi"."status" <> 'CANCELLED'::"text");
-
-
 ALTER VIEW "sales"."financial_summary" OWNER TO "postgres";
-
 --
 -- Name: invoice_lines; Type: TABLE; Schema: sales; Owner: postgres
 --
@@ -28538,10 +26106,7 @@ CREATE TABLE "sales"."invoice_lines" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "sales"."invoice_lines" OWNER TO "postgres";
-
 --
 -- Name: invoice_payments_with_details; Type: VIEW; Schema: sales; Owner: postgres
 --
@@ -28569,10 +26134,7 @@ CREATE VIEW "sales"."invoice_payments_with_details" AS
      LEFT JOIN "crm"."clients" "c" ON (("c"."id" = "i"."client_id")))
      LEFT JOIN "projects"."projects" "p" ON (("p"."id" = "i"."project_id")))
      LEFT JOIN "internal"."authorized_users" "au" ON (("au"."id" = "ip"."registered_by")));
-
-
 ALTER VIEW "sales"."invoice_payments_with_details" OWNER TO "postgres";
-
 --
 -- Name: invoice_sequences; Type: TABLE; Schema: sales; Owner: postgres
 --
@@ -28584,10 +26146,7 @@ CREATE TABLE "sales"."invoice_sequences" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
-
-
 ALTER TABLE "sales"."invoice_sequences" OWNER TO "postgres";
-
 --
 -- Name: project_payment_summary; Type: VIEW; Schema: sales; Owner: postgres
 --
@@ -28606,10 +26165,7 @@ CREATE VIEW "sales"."project_payment_summary" AS
      LEFT JOIN "projects"."projects" "p" ON (("p"."id" = "i"."project_id")))
   WHERE (("i"."status" <> 'CANCELLED'::"text") AND ("i"."project_id" IS NOT NULL))
   GROUP BY "i"."project_id", "p"."project_number", "i"."project_name";
-
-
 ALTER VIEW "sales"."project_payment_summary" OWNER TO "postgres";
-
 --
 -- Name: purchase_invoice_definitive_seq; Type: SEQUENCE; Schema: sales; Owner: postgres
 --
@@ -28620,10 +26176,7 @@ CREATE SEQUENCE "sales"."purchase_invoice_definitive_seq"
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 ALTER SEQUENCE "sales"."purchase_invoice_definitive_seq" OWNER TO "postgres";
-
 --
 -- Name: purchase_invoice_lines; Type: TABLE; Schema: sales; Owner: postgres
 --
@@ -28647,24 +26200,17 @@ CREATE TABLE "sales"."purchase_invoice_lines" (
     "total" numeric GENERATED ALWAYS AS ((((("quantity" * "unit_price") * ((1)::numeric - ("discount_percent" / (100)::numeric))) * ((1)::numeric + ("tax_rate" / (100)::numeric))) - ((("quantity" * "unit_price") * ((1)::numeric - ("discount_percent" / (100)::numeric))) * (COALESCE("withholding_tax_rate", (0)::numeric) / (100)::numeric)))) STORED,
     "withholding_amount" numeric GENERATED ALWAYS AS (((("quantity" * "unit_price") * ((1)::numeric - ("discount_percent" / (100)::numeric))) * (COALESCE("withholding_tax_rate", (0)::numeric) / (100)::numeric))) STORED
 );
-
-
 ALTER TABLE "sales"."purchase_invoice_lines" OWNER TO "postgres";
-
 --
 -- Name: COLUMN "purchase_invoice_lines"."withholding_tax_rate"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON COLUMN "sales"."purchase_invoice_lines"."withholding_tax_rate" IS 'IRPF: Porcentaje de retenci├│n a cuenta de Hacienda. NO es un descuento comercial. Es una retenci├│n que se paga a Hacienda trimestralmente (modelo 111). El gasto real es la base imponible completa.';
-
-
 --
 -- Name: COLUMN "purchase_invoice_lines"."withholding_amount"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON COLUMN "sales"."purchase_invoice_lines"."withholding_amount" IS 'IRPF: Importe retenido a cuenta de Hacienda. Es un pasivo (deuda con Hacienda), no reduce el gasto, solo reduce el pago al aut├│nomo. Se ingresa a Hacienda trimestralmente.';
-
-
 --
 -- Name: purchase_invoice_payments; Type: TABLE; Schema: sales; Owner: postgres
 --
@@ -28691,17 +26237,12 @@ CREATE TABLE "sales"."purchase_invoice_payments" (
     CONSTRAINT "chk_personal_payer" CHECK ((("payer_type" = 'COMPANY'::"text") OR (("payer_type" = 'PERSONAL'::"text") AND ("payer_person_id" IS NOT NULL)))),
     CONSTRAINT "purchase_invoice_payments_payment_method_check" CHECK (("payment_method" = ANY (ARRAY['TRANSFER'::"text", 'CASH'::"text", 'CARD'::"text", 'CHECK'::"text", 'DIRECT_DEBIT'::"text", 'PERSONAL'::"text", 'EXTERNAL_CREDIT'::"text", 'OTHER'::"text"])))
 );
-
-
 ALTER TABLE "sales"."purchase_invoice_payments" OWNER TO "postgres";
-
 --
 -- Name: CONSTRAINT "check_purchase_amount_not_zero" ON "purchase_invoice_payments"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON CONSTRAINT "check_purchase_amount_not_zero" ON "sales"."purchase_invoice_payments" IS 'Permite pagos positivos (facturas normales) y negativos (reembolsos de notas de cr├®dito). Solo impide valores cero.';
-
-
 --
 -- Name: purchase_invoice_provisional_seq; Type: SEQUENCE; Schema: sales; Owner: postgres
 --
@@ -28712,10 +26253,7 @@ CREATE SEQUENCE "sales"."purchase_invoice_provisional_seq"
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 ALTER SEQUENCE "sales"."purchase_invoice_provisional_seq" OWNER TO "postgres";
-
 --
 -- Name: purchase_invoice_ticket_seq; Type: SEQUENCE; Schema: sales; Owner: postgres
 --
@@ -28726,10 +26264,7 @@ CREATE SEQUENCE "sales"."purchase_invoice_ticket_seq"
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 ALTER SEQUENCE "sales"."purchase_invoice_ticket_seq" OWNER TO "postgres";
-
 --
 -- Name: purchase_order_lines; Type: TABLE; Schema: sales; Owner: postgres
 --
@@ -28754,17 +26289,12 @@ CREATE TABLE "sales"."purchase_order_lines" (
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"()
 );
-
-
 ALTER TABLE "sales"."purchase_order_lines" OWNER TO "postgres";
-
 --
 -- Name: TABLE "purchase_order_lines"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON TABLE "sales"."purchase_order_lines" IS 'L├¡neas de detalle de los Pedidos de Compra';
-
-
 --
 -- Name: purchase_order_sequences; Type: TABLE; Schema: sales; Owner: postgres
 --
@@ -28773,10 +26303,7 @@ CREATE TABLE "sales"."purchase_order_sequences" (
     "year" integer NOT NULL,
     "last_number" integer DEFAULT 0 NOT NULL
 );
-
-
 ALTER TABLE "sales"."purchase_order_sequences" OWNER TO "postgres";
-
 --
 -- Name: purchase_orders; Type: TABLE; Schema: sales; Owner: postgres
 --
@@ -28811,31 +26338,22 @@ CREATE TABLE "sales"."purchase_orders" (
     "updated_at" timestamp with time zone DEFAULT "now"(),
     "site_id" "uuid"
 );
-
-
 ALTER TABLE "sales"."purchase_orders" OWNER TO "postgres";
-
 --
 -- Name: TABLE "purchase_orders"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON TABLE "sales"."purchase_orders" IS 'Pedidos de Compra (PO) - Documento NO fiscal para estimaci├│n de costes. NO genera asientos contables.';
-
-
 --
 -- Name: COLUMN "purchase_orders"."po_number"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON COLUMN "sales"."purchase_orders"."po_number" IS 'Formato: PO-YY-XXXXXX (autom├ítico, incremental por a├▒o)';
-
-
 --
 -- Name: COLUMN "purchase_orders"."linked_purchase_invoice_id"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON COLUMN "sales"."purchase_orders"."linked_purchase_invoice_id" IS 'Factura de compra real vinculada (cuando el proveedor env├¡a factura)';
-
-
 --
 -- Name: rectificativa_number_seq; Type: SEQUENCE; Schema: sales; Owner: postgres
 --
@@ -28846,10 +26364,7 @@ CREATE SEQUENCE "sales"."rectificativa_number_seq"
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
 ALTER SEQUENCE "sales"."rectificativa_number_seq" OWNER TO "postgres";
-
 --
 -- Name: login_attempts; Type: TABLE; Schema: security; Owner: postgres
 --
@@ -28864,10 +26379,7 @@ CREATE TABLE "security"."login_attempts" (
     "ip_address" "inet",
     CONSTRAINT "login_attempts_identifier_type_check" CHECK (("identifier_type" = ANY (ARRAY['email'::"text", 'ip'::"text"])))
 );
-
-
 ALTER TABLE "security"."login_attempts" OWNER TO "postgres";
-
 --
 -- Name: otp_codes; Type: TABLE; Schema: security; Owner: postgres
 --
@@ -28884,4615 +26396,3388 @@ CREATE TABLE "security"."otp_codes" (
     "ip_address" "inet",
     "user_agent" "text"
 );
-
-
 ALTER TABLE "security"."otp_codes" OWNER TO "postgres";
-
 --
 -- Name: account_balances account_balances_account_code_third_party_id_third_party_ty_key; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."account_balances"
     ADD CONSTRAINT "account_balances_account_code_third_party_id_third_party_ty_key" UNIQUE ("account_code", "third_party_id", "third_party_type", "balance_date");
-
-
 --
 -- Name: account_balances account_balances_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."account_balances"
     ADD CONSTRAINT "account_balances_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: chart_of_accounts chart_of_accounts_account_code_key; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."chart_of_accounts"
     ADD CONSTRAINT "chart_of_accounts_account_code_key" UNIQUE ("account_code");
-
-
 --
 -- Name: chart_of_accounts chart_of_accounts_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."chart_of_accounts"
     ADD CONSTRAINT "chart_of_accounts_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: credit_installments credit_installments_operation_id_installment_number_key; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."credit_installments"
     ADD CONSTRAINT "credit_installments_operation_id_installment_number_key" UNIQUE ("operation_id", "installment_number");
-
-
 --
 -- Name: credit_installments credit_installments_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."credit_installments"
     ADD CONSTRAINT "credit_installments_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: credit_operations credit_operations_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."credit_operations"
     ADD CONSTRAINT "credit_operations_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: credit_operations credit_operations_provider_id_purchase_invoice_id_key; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."credit_operations"
     ADD CONSTRAINT "credit_operations_provider_id_purchase_invoice_id_key" UNIQUE ("provider_id", "purchase_invoice_id");
-
-
 --
 -- Name: credit_settlements credit_settlements_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."credit_settlements"
     ADD CONSTRAINT "credit_settlements_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: external_credit_providers external_credit_providers_code_key; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."external_credit_providers"
     ADD CONSTRAINT "external_credit_providers_code_key" UNIQUE ("code");
-
-
 --
 -- Name: external_credit_providers external_credit_providers_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."external_credit_providers"
     ADD CONSTRAINT "external_credit_providers_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: journal_entries journal_entries_entry_number_key; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."journal_entries"
     ADD CONSTRAINT "journal_entries_entry_number_key" UNIQUE ("entry_number");
-
-
 --
 -- Name: journal_entries journal_entries_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."journal_entries"
     ADD CONSTRAINT "journal_entries_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: journal_entry_lines journal_entry_lines_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."journal_entry_lines"
     ADD CONSTRAINT "journal_entry_lines_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: monthly_reports monthly_reports_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."monthly_reports"
     ADD CONSTRAINT "monthly_reports_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: monthly_reports monthly_reports_year_month_key; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."monthly_reports"
     ADD CONSTRAINT "monthly_reports_year_month_key" UNIQUE ("year", "month");
-
-
 --
 -- Name: partner_compensation_runs partner_compensation_runs_compensation_number_key; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."partner_compensation_runs"
     ADD CONSTRAINT "partner_compensation_runs_compensation_number_key" UNIQUE ("compensation_number");
-
-
 --
 -- Name: partner_compensation_runs partner_compensation_runs_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."partner_compensation_runs"
     ADD CONSTRAINT "partner_compensation_runs_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: payroll_payments payroll_payments_payment_number_key; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."payroll_payments"
     ADD CONSTRAINT "payroll_payments_payment_number_key" UNIQUE ("payment_number");
-
-
 --
 -- Name: payroll_payments payroll_payments_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."payroll_payments"
     ADD CONSTRAINT "payroll_payments_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: payroll_runs payroll_runs_payroll_number_key; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."payroll_runs"
     ADD CONSTRAINT "payroll_runs_payroll_number_key" UNIQUE ("payroll_number");
-
-
 --
 -- Name: payroll_runs payroll_runs_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."payroll_runs"
     ADD CONSTRAINT "payroll_runs_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: period_closures period_closures_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."period_closures"
     ADD CONSTRAINT "period_closures_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: period_closures period_closures_year_month_key; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."period_closures"
     ADD CONSTRAINT "period_closures_year_month_key" UNIQUE ("year", "month");
-
-
 --
 -- Name: tax_config tax_config_pkey; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."tax_config"
     ADD CONSTRAINT "tax_config_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: tax_config tax_config_tax_code_key; Type: CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."tax_config"
     ADD CONSTRAINT "tax_config_tax_code_key" UNIQUE ("tax_code");
-
-
 --
 -- Name: archived_records archived_records_pkey; Type: CONSTRAINT; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE ONLY "audit"."archived_records"
     ADD CONSTRAINT "archived_records_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: audit_log audit_log_pkey; Type: CONSTRAINT; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE ONLY "audit"."audit_log"
     ADD CONSTRAINT "audit_log_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: events events_pkey; Type: CONSTRAINT; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE ONLY "audit"."events"
     ADD CONSTRAINT "events_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: logs logs_pkey; Type: CONSTRAINT; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE ONLY "audit"."logs"
     ADD CONSTRAINT "logs_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: retention_policy retention_policy_pkey; Type: CONSTRAINT; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE ONLY "audit"."retention_policy"
     ADD CONSTRAINT "retention_policy_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: retention_policy retention_policy_source_schema_source_table_key; Type: CONSTRAINT; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE ONLY "audit"."retention_policy"
     ADD CONSTRAINT "retention_policy_source_schema_source_table_key" UNIQUE ("source_schema", "source_table");
-
-
 --
 -- Name: sequence_counters sequence_counters_pkey; Type: CONSTRAINT; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE ONLY "audit"."sequence_counters"
     ADD CONSTRAINT "sequence_counters_pkey" PRIMARY KEY ("prefix", "year");
-
-
 --
 -- Name: daily_snapshots daily_snapshots_pkey; Type: CONSTRAINT; Schema: backup; Owner: postgres
 --
 
 ALTER TABLE ONLY "backup"."daily_snapshots"
     ADD CONSTRAINT "daily_snapshots_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: daily_snapshots daily_snapshots_table_schema_table_name_snapshot_date_key; Type: CONSTRAINT; Schema: backup; Owner: postgres
 --
 
 ALTER TABLE ONLY "backup"."daily_snapshots"
     ADD CONSTRAINT "daily_snapshots_table_schema_table_name_snapshot_date_key" UNIQUE ("table_schema", "table_name", "snapshot_date");
-
-
 --
 -- Name: _mig_category_map _mig_category_map_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."_mig_category_map"
     ADD CONSTRAINT "_mig_category_map_pkey" PRIMARY KEY ("internal_id");
-
-
 --
 -- Name: _mig_pack_map _mig_pack_map_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."_mig_pack_map"
     ADD CONSTRAINT "_mig_pack_map_pkey" PRIMARY KEY ("internal_pack_id");
-
-
 --
 -- Name: _mig_product_map _mig_product_map_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."_mig_product_map"
     ADD CONSTRAINT "_mig_product_map_pkey" PRIMARY KEY ("internal_id");
-
-
 --
 -- Name: _mig_subcategory_map _mig_subcategory_map_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."_mig_subcategory_map"
     ADD CONSTRAINT "_mig_subcategory_map_pkey" PRIMARY KEY ("internal_id");
-
-
 --
 -- Name: categories categories_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."categories"
     ADD CONSTRAINT "categories_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: categories categories_slug_key; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."categories"
     ADD CONSTRAINT "categories_slug_key" UNIQUE ("slug");
-
-
 --
 -- Name: erp_sync_log erp_sync_log_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."erp_sync_log"
     ADD CONSTRAINT "erp_sync_log_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: external_catalog_sources external_catalog_sources_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."external_catalog_sources"
     ADD CONSTRAINT "external_catalog_sources_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: external_catalog_sync_runs external_catalog_sync_runs_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."external_catalog_sync_runs"
     ADD CONSTRAINT "external_catalog_sync_runs_pkey" PRIMARY KEY ("run_id");
-
-
 --
 -- Name: product_bundles product_bundles_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."product_bundles"
     ADD CONSTRAINT "product_bundles_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: product_documents product_documents_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."product_documents"
     ADD CONSTRAINT "product_documents_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: products products_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."products"
     ADD CONSTRAINT "products_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: products products_sku_key; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."products"
     ADD CONSTRAINT "products_sku_key" UNIQUE ("sku");
-
-
 --
 -- Name: stock_alerts stock_alerts_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."stock_alerts"
     ADD CONSTRAINT "stock_alerts_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: stock_movements stock_movements_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."stock_movements"
     ADD CONSTRAINT "stock_movements_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: tax_rates tax_rates_pkey; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."tax_rates"
     ADD CONSTRAINT "tax_rates_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: product_bundles unique_bundle_component; Type: CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."product_bundles"
     ADD CONSTRAINT "unique_bundle_component" UNIQUE ("bundle_product_id", "component_product_id");
-
-
 --
 -- Name: client_notes client_notes_pkey; Type: CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."client_notes"
     ADD CONSTRAINT "client_notes_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: clients clients_client_number_unique; Type: CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."clients"
     ADD CONSTRAINT "clients_client_number_unique" UNIQUE ("client_number");
-
-
 --
 -- Name: clients clients_pkey; Type: CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."clients"
     ADD CONSTRAINT "clients_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: clients clients_tax_id_key; Type: CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."clients"
     ADD CONSTRAINT "clients_tax_id_key" UNIQUE ("tax_id");
-
-
 --
 -- Name: contact_messages contact_messages_pkey; Type: CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."contact_messages"
     ADD CONSTRAINT "contact_messages_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: contacts contacts_pkey; Type: CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."contacts"
     ADD CONSTRAINT "contacts_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: interactions interactions_pkey; Type: CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."interactions"
     ADD CONSTRAINT "interactions_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: lead_sources lead_sources_code_key; Type: CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."lead_sources"
     ADD CONSTRAINT "lead_sources_code_key" UNIQUE ("code");
-
-
 --
 -- Name: lead_sources lead_sources_pkey; Type: CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."lead_sources"
     ADD CONSTRAINT "lead_sources_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: location_notes location_notes_pkey; Type: CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."location_notes"
     ADD CONSTRAINT "location_notes_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: location location_pkey; Type: CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."location"
     ADD CONSTRAINT "location_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: authorized_users authorized_users_auth_user_id_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."authorized_users"
     ADD CONSTRAINT "authorized_users_auth_user_id_key" UNIQUE ("auth_user_id");
-
-
 --
 -- Name: authorized_users authorized_users_email_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."authorized_users"
     ADD CONSTRAINT "authorized_users_email_key" UNIQUE ("email");
-
-
 --
 -- Name: authorized_users authorized_users_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."authorized_users"
     ADD CONSTRAINT "authorized_users_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: company_bank_accounts company_bank_accounts_accounting_code_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."company_bank_accounts"
     ADD CONSTRAINT "company_bank_accounts_accounting_code_key" UNIQUE ("accounting_code");
-
-
 --
 -- Name: company_bank_accounts company_bank_accounts_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."company_bank_accounts"
     ADD CONSTRAINT "company_bank_accounts_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: company_contacts company_contacts_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."company_contacts"
     ADD CONSTRAINT "company_contacts_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: company_preferences company_preferences_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."company_preferences"
     ADD CONSTRAINT "company_preferences_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: company_settings company_settings_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."company_settings"
     ADD CONSTRAINT "company_settings_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: employees employees_employee_number_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."employees"
     ADD CONSTRAINT "employees_employee_number_key" UNIQUE ("employee_number");
-
-
 --
 -- Name: employees employees_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."employees"
     ADD CONSTRAINT "employees_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: invitation_tokens invitation_tokens_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."invitation_tokens"
     ADD CONSTRAINT "invitation_tokens_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: invitation_tokens invitation_tokens_token_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."invitation_tokens"
     ADD CONSTRAINT "invitation_tokens_token_key" UNIQUE ("token");
-
-
 --
 -- Name: partner_compensation_runs partner_compensation_runs_compensation_number_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."partner_compensation_runs"
     ADD CONSTRAINT "partner_compensation_runs_compensation_number_key" UNIQUE ("compensation_number");
-
-
 --
 -- Name: partner_compensation_runs partner_compensation_runs_partner_id_period_month_period_ye_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."partner_compensation_runs"
     ADD CONSTRAINT "partner_compensation_runs_partner_id_period_month_period_ye_key" UNIQUE ("partner_id", "period_month", "period_year");
-
-
 --
 -- Name: partner_compensation_runs partner_compensation_runs_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."partner_compensation_runs"
     ADD CONSTRAINT "partner_compensation_runs_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: partner_payroll_profiles partner_payroll_profiles_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."partner_payroll_profiles"
     ADD CONSTRAINT "partner_payroll_profiles_pkey" PRIMARY KEY ("partner_id");
-
-
 --
 -- Name: partners partners_partner_number_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."partners"
     ADD CONSTRAINT "partners_partner_number_key" UNIQUE ("partner_number");
-
-
 --
 -- Name: partners partners_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."partners"
     ADD CONSTRAINT "partners_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: payroll_settings_audit payroll_settings_audit_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."payroll_settings_audit"
     ADD CONSTRAINT "payroll_settings_audit_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: payroll_settings payroll_settings_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."payroll_settings"
     ADD CONSTRAINT "payroll_settings_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: product_categories product_categories_code_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."product_categories"
     ADD CONSTRAINT "product_categories_code_key" UNIQUE ("code");
-
-
 --
 -- Name: product_categories product_categories_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."product_categories"
     ADD CONSTRAINT "product_categories_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: product_pack_items product_pack_items_pack_id_product_id_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."product_pack_items"
     ADD CONSTRAINT "product_pack_items_pack_id_product_id_key" UNIQUE ("pack_id", "product_id");
-
-
 --
 -- Name: product_pack_items product_pack_items_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."product_pack_items"
     ADD CONSTRAINT "product_pack_items_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: product_packs product_packs_pack_number_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."product_packs"
     ADD CONSTRAINT "product_packs_pack_number_key" UNIQUE ("pack_number");
-
-
 --
 -- Name: product_packs product_packs_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."product_packs"
     ADD CONSTRAINT "product_packs_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: product_sequences product_sequences_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."product_sequences"
     ADD CONSTRAINT "product_sequences_pkey" PRIMARY KEY ("category_code");
-
-
 --
 -- Name: product_subcategories product_subcategories_category_id_code_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."product_subcategories"
     ADD CONSTRAINT "product_subcategories_category_id_code_key" UNIQUE ("category_id", "code");
-
-
 --
 -- Name: product_subcategories product_subcategories_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."product_subcategories"
     ADD CONSTRAINT "product_subcategories_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: products products_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."products"
     ADD CONSTRAINT "products_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: products products_product_number_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."products"
     ADD CONSTRAINT "products_product_number_key" UNIQUE ("product_number");
-
-
 --
 -- Name: report_settings report_settings_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."report_settings"
     ADD CONSTRAINT "report_settings_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: report_settings report_settings_scope_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."report_settings"
     ADD CONSTRAINT "report_settings_scope_key" UNIQUE ("scope");
-
-
 --
 -- Name: roles roles_name_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."roles"
     ADD CONSTRAINT "roles_name_key" UNIQUE ("name");
-
-
 --
 -- Name: roles roles_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."roles"
     ADD CONSTRAINT "roles_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: suppliers suppliers_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."suppliers"
     ADD CONSTRAINT "suppliers_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: suppliers suppliers_supplier_number_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."suppliers"
     ADD CONSTRAINT "suppliers_supplier_number_key" UNIQUE ("supplier_number");
-
-
 --
 -- Name: task_activity task_activity_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."task_activity"
     ADD CONSTRAINT "task_activity_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: task_assignees task_assignees_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."task_assignees"
     ADD CONSTRAINT "task_assignees_pkey" PRIMARY KEY ("task_id", "user_id");
-
-
 --
 -- Name: tasks tasks_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."tasks"
     ADD CONSTRAINT "tasks_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: taxes taxes_code_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."taxes"
     ADD CONSTRAINT "taxes_code_key" UNIQUE ("code");
-
-
 --
 -- Name: taxes taxes_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."taxes"
     ADD CONSTRAINT "taxes_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: technicians technicians_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."technicians"
     ADD CONSTRAINT "technicians_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: technicians technicians_technician_number_key; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."technicians"
     ADD CONSTRAINT "technicians_technician_number_key" UNIQUE ("technician_number");
-
-
 --
 -- Name: user_roles unique_user_role; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."user_roles"
     ADD CONSTRAINT "unique_user_role" UNIQUE ("user_id", "role_id");
-
-
 --
 -- Name: user_notifications user_notifications_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."user_notifications"
     ADD CONSTRAINT "user_notifications_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."user_roles"
     ADD CONSTRAINT "user_roles_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: av_projects av_projects_internal_project_code_key; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."av_projects"
     ADD CONSTRAINT "av_projects_internal_project_code_key" UNIQUE ("internal_project_code");
-
-
 --
 -- Name: av_projects av_projects_pkey; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."av_projects"
     ADD CONSTRAINT "av_projects_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: av_projects av_projects_project_id_key; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."av_projects"
     ADD CONSTRAINT "av_projects_project_id_key" UNIQUE ("project_id");
-
-
 --
 -- Name: customer_orders customer_orders_customer_order_number_key; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."customer_orders"
     ADD CONSTRAINT "customer_orders_customer_order_number_key" UNIQUE ("customer_order_number");
-
-
 --
 -- Name: customer_orders customer_orders_pkey; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."customer_orders"
     ADD CONSTRAINT "customer_orders_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: customer_orders customer_orders_project_id_key; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."customer_orders"
     ADD CONSTRAINT "customer_orders_project_id_key" UNIQUE ("project_id");
-
-
 --
 -- Name: expenses expenses_pkey; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."expenses"
     ADD CONSTRAINT "expenses_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: project_activity project_activity_pkey; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_activity"
     ADD CONSTRAINT "project_activity_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: project_documents project_documents_pkey; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_documents"
     ADD CONSTRAINT "project_documents_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: project_sites project_sites_pkey; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_sites"
     ADD CONSTRAINT "project_sites_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: project_tasks project_tasks_pkey; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_tasks"
     ADD CONSTRAINT "project_tasks_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: projects projects_pkey; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."projects"
     ADD CONSTRAINT "projects_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: projects projects_project_number_key; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."projects"
     ADD CONSTRAINT "projects_project_number_key" UNIQUE ("project_number");
-
-
 --
 -- Name: site_technician_assignments site_technician_assignments_pkey; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."site_technician_assignments"
     ADD CONSTRAINT "site_technician_assignments_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: site_visits site_visits_pkey; Type: CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."site_visits"
     ADD CONSTRAINT "site_visits_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: scanned_documents scanned_documents_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY "public"."scanned_documents"
     ADD CONSTRAINT "scanned_documents_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY "public"."user_roles"
     ADD CONSTRAINT "user_roles_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: user_roles user_roles_user_id_role_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY "public"."user_roles"
     ADD CONSTRAINT "user_roles_user_id_role_key" UNIQUE ("user_id", "role");
-
-
 --
 -- Name: quote_activity quote_activity_pkey; Type: CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quote_activity"
     ADD CONSTRAINT "quote_activity_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: quote_history quote_history_pkey; Type: CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quote_history"
     ADD CONSTRAINT "quote_history_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: quote_lines quote_lines_pkey; Type: CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quote_lines"
     ADD CONSTRAINT "quote_lines_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: quotes quotes_pkey; Type: CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quotes"
     ADD CONSTRAINT "quotes_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: quotes quotes_quote_number_key; Type: CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quotes"
     ADD CONSTRAINT "quotes_quote_number_key" UNIQUE ("quote_number");
-
-
 --
 -- Name: invoice_lines invoice_lines_pkey; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoice_lines"
     ADD CONSTRAINT "invoice_lines_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: invoice_payments invoice_payments_pkey; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoice_payments"
     ADD CONSTRAINT "invoice_payments_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: invoice_sequences invoice_sequences_pkey; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoice_sequences"
     ADD CONSTRAINT "invoice_sequences_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: invoice_sequences invoice_sequences_year_key; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoice_sequences"
     ADD CONSTRAINT "invoice_sequences_year_key" UNIQUE ("year");
-
-
 --
 -- Name: invoices invoices_invoice_hash_key; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoices"
     ADD CONSTRAINT "invoices_invoice_hash_key" UNIQUE ("invoice_hash");
-
-
 --
 -- Name: invoices invoices_invoice_number_key; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoices"
     ADD CONSTRAINT "invoices_invoice_number_key" UNIQUE ("invoice_number");
-
-
 --
 -- Name: invoices invoices_pkey; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoices"
     ADD CONSTRAINT "invoices_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: purchase_invoice_lines purchase_invoice_lines_pkey; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoice_lines"
     ADD CONSTRAINT "purchase_invoice_lines_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: purchase_invoice_payments purchase_invoice_payments_pkey; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoice_payments"
     ADD CONSTRAINT "purchase_invoice_payments_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: purchase_invoices purchase_invoices_invoice_number_key; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoices"
     ADD CONSTRAINT "purchase_invoices_invoice_number_key" UNIQUE ("invoice_number");
-
-
 --
 -- Name: purchase_invoices purchase_invoices_pkey; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoices"
     ADD CONSTRAINT "purchase_invoices_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: purchase_order_lines purchase_order_lines_pkey; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_order_lines"
     ADD CONSTRAINT "purchase_order_lines_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: purchase_order_sequences purchase_order_sequences_pkey; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_order_sequences"
     ADD CONSTRAINT "purchase_order_sequences_pkey" PRIMARY KEY ("year");
-
-
 --
 -- Name: purchase_orders purchase_orders_pkey; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_orders"
     ADD CONSTRAINT "purchase_orders_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: purchase_orders purchase_orders_po_number_key; Type: CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_orders"
     ADD CONSTRAINT "purchase_orders_po_number_key" UNIQUE ("po_number");
-
-
 --
 -- Name: login_attempts login_attempts_pkey; Type: CONSTRAINT; Schema: security; Owner: postgres
 --
 
 ALTER TABLE ONLY "security"."login_attempts"
     ADD CONSTRAINT "login_attempts_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: otp_codes otp_codes_pkey; Type: CONSTRAINT; Schema: security; Owner: postgres
 --
 
 ALTER TABLE ONLY "security"."otp_codes"
     ADD CONSTRAINT "otp_codes_pkey" PRIMARY KEY ("id");
-
-
 --
 -- Name: idx_account_balances_account; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_account_balances_account" ON "accounting"."account_balances" USING "btree" ("account_code", "balance_date" DESC);
-
-
 --
 -- Name: idx_account_balances_date; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_account_balances_date" ON "accounting"."account_balances" USING "btree" ("balance_date" DESC);
-
-
 --
 -- Name: idx_account_balances_third_party; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_account_balances_third_party" ON "accounting"."account_balances" USING "btree" ("third_party_id", "third_party_type", "balance_date" DESC);
-
-
 --
 -- Name: idx_chart_of_accounts_active; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_chart_of_accounts_active" ON "accounting"."chart_of_accounts" USING "btree" ("is_active") WHERE ("is_active" = true);
-
-
 --
 -- Name: idx_chart_of_accounts_code; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_chart_of_accounts_code" ON "accounting"."chart_of_accounts" USING "btree" ("account_code");
-
-
 --
 -- Name: idx_chart_of_accounts_type; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_chart_of_accounts_type" ON "accounting"."chart_of_accounts" USING "btree" ("account_type");
-
-
 --
 -- Name: idx_credit_installments_due_date; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_credit_installments_due_date" ON "accounting"."credit_installments" USING "btree" ("due_date") WHERE ("status" <> 'PAID'::"accounting"."credit_installment_status");
-
-
 --
 -- Name: idx_credit_installments_operation; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_credit_installments_operation" ON "accounting"."credit_installments" USING "btree" ("operation_id");
-
-
 --
 -- Name: idx_journal_entries_date; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_journal_entries_date" ON "accounting"."journal_entries" USING "btree" ("entry_date" DESC);
-
-
 --
 -- Name: idx_journal_entries_number; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_journal_entries_number" ON "accounting"."journal_entries" USING "btree" ("entry_number");
-
-
 --
 -- Name: idx_journal_entries_project; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_journal_entries_project" ON "accounting"."journal_entries" USING "btree" ("project_id");
-
-
 --
 -- Name: idx_journal_entries_reference; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_journal_entries_reference" ON "accounting"."journal_entries" USING "btree" ("reference_type", "reference_id");
-
-
 --
 -- Name: idx_journal_entries_type; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_journal_entries_type" ON "accounting"."journal_entries" USING "btree" ("entry_type");
-
-
 --
 -- Name: idx_journal_entry_lines_account; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_journal_entry_lines_account" ON "accounting"."journal_entry_lines" USING "btree" ("account_code");
-
-
 --
 -- Name: idx_journal_entry_lines_date; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_journal_entry_lines_date" ON "accounting"."journal_entry_lines" USING "btree" ("created_at" DESC);
-
-
 --
 -- Name: idx_journal_entry_lines_entry; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_journal_entry_lines_entry" ON "accounting"."journal_entry_lines" USING "btree" ("journal_entry_id");
-
-
 --
 -- Name: idx_journal_entry_lines_third_party; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_journal_entry_lines_third_party" ON "accounting"."journal_entry_lines" USING "btree" ("third_party_id", "third_party_type");
-
-
 --
 -- Name: idx_monthly_reports_run_after; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_monthly_reports_run_after" ON "accounting"."monthly_reports" USING "btree" ("run_after") WHERE ("status" = ANY (ARRAY['PENDING'::"text", 'FAILED'::"text"]));
-
-
 --
 -- Name: idx_monthly_reports_status_updated; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_monthly_reports_status_updated" ON "accounting"."monthly_reports" USING "btree" ("status", "updated_at") WHERE ("status" = ANY (ARRAY['PENDING'::"text", 'FAILED'::"text"]));
-
-
 --
 -- Name: idx_partner_compensation_entry; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_partner_compensation_entry" ON "accounting"."partner_compensation_runs" USING "btree" ("journal_entry_id");
-
-
 --
 -- Name: idx_partner_compensation_partner; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_partner_compensation_partner" ON "accounting"."partner_compensation_runs" USING "btree" ("partner_id");
-
-
 --
 -- Name: idx_partner_compensation_period; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_partner_compensation_period" ON "accounting"."partner_compensation_runs" USING "btree" ("period_year", "period_month");
-
-
 --
 -- Name: idx_partner_compensation_runs_unique_period; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE UNIQUE INDEX "idx_partner_compensation_runs_unique_period" ON "accounting"."partner_compensation_runs" USING "btree" ("period_year", "period_month", "partner_id") WHERE ("status" <> 'CANCELLED'::"text");
-
-
 --
 -- Name: idx_partner_compensation_status; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_partner_compensation_status" ON "accounting"."partner_compensation_runs" USING "btree" ("status");
-
-
 --
 -- Name: idx_payroll_payments_date; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_payroll_payments_date" ON "accounting"."payroll_payments" USING "btree" ("payment_date");
-
-
 --
 -- Name: idx_payroll_payments_entry; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_payroll_payments_entry" ON "accounting"."payroll_payments" USING "btree" ("journal_entry_id");
-
-
 --
 -- Name: idx_payroll_payments_partner; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_payroll_payments_partner" ON "accounting"."payroll_payments" USING "btree" ("partner_compensation_run_id");
-
-
 --
 -- Name: idx_payroll_payments_payroll; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_payroll_payments_payroll" ON "accounting"."payroll_payments" USING "btree" ("payroll_run_id");
-
-
 --
 -- Name: idx_payroll_runs_employee; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_payroll_runs_employee" ON "accounting"."payroll_runs" USING "btree" ("employee_id");
-
-
 --
 -- Name: idx_payroll_runs_entry; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_payroll_runs_entry" ON "accounting"."payroll_runs" USING "btree" ("journal_entry_id");
-
-
 --
 -- Name: idx_payroll_runs_period; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_payroll_runs_period" ON "accounting"."payroll_runs" USING "btree" ("period_year", "period_month");
-
-
 --
 -- Name: idx_payroll_runs_status; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_payroll_runs_status" ON "accounting"."payroll_runs" USING "btree" ("status");
-
-
 --
 -- Name: idx_payroll_runs_unique_period; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE UNIQUE INDEX "idx_payroll_runs_unique_period" ON "accounting"."payroll_runs" USING "btree" ("period_year", "period_month", "employee_id") WHERE ("status" <> 'CANCELLED'::"text");
-
-
 --
 -- Name: idx_tax_config_active; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_tax_config_active" ON "accounting"."tax_config" USING "btree" ("is_active") WHERE ("is_active" = true);
-
-
 --
 -- Name: idx_tax_config_code; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_tax_config_code" ON "accounting"."tax_config" USING "btree" ("tax_code");
-
-
 --
 -- Name: idx_tax_config_type; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE INDEX "idx_tax_config_type" ON "accounting"."tax_config" USING "btree" ("tax_type");
-
-
 --
 -- Name: uq_tax_provision_period; Type: INDEX; Schema: accounting; Owner: postgres
 --
 
 CREATE UNIQUE INDEX "uq_tax_provision_period" ON "accounting"."journal_entries" USING "btree" ("period_start", "period_end") WHERE (("entry_type" = 'TAX_PROVISION'::"accounting"."journal_entry_type") AND ("reference_type" = 'corporate_tax'::"text"));
-
-
 --
 -- Name: idx_archived_records_archived_at; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_archived_records_archived_at" ON "audit"."archived_records" USING "btree" ("archived_at");
-
-
 --
 -- Name: idx_archived_records_original_id; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_archived_records_original_id" ON "audit"."archived_records" USING "btree" ("original_id");
-
-
 --
 -- Name: idx_archived_records_source; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_archived_records_source" ON "audit"."archived_records" USING "btree" ("source_schema", "source_table");
-
-
 --
 -- Name: idx_audit_action; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_audit_action" ON "audit"."audit_log" USING "btree" ("action", "timestamp" DESC);
-
-
 --
 -- Name: idx_audit_events_category; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_audit_events_category" ON "audit"."events" USING "btree" ("event_category");
-
-
 --
 -- Name: idx_audit_events_created_at; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_audit_events_created_at" ON "audit"."events" USING "btree" ("created_at" DESC);
-
-
 --
 -- Name: idx_audit_events_event_type; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_audit_events_event_type" ON "audit"."events" USING "btree" ("event_type");
-
-
 --
 -- Name: idx_audit_events_resource; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_audit_events_resource" ON "audit"."events" USING "btree" ("resource_type", "resource_id");
-
-
 --
 -- Name: idx_audit_events_user_id; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_audit_events_user_id" ON "audit"."events" USING "btree" ("user_id");
-
-
 --
 -- Name: idx_audit_logs_created_at; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_audit_logs_created_at" ON "audit"."logs" USING "btree" ("created_at" DESC);
-
-
 --
 -- Name: idx_audit_logs_table; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_audit_logs_table" ON "audit"."logs" USING "btree" ("table_name");
-
-
 --
 -- Name: idx_audit_table; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_audit_table" ON "audit"."audit_log" USING "btree" ("table_name", "record_id");
-
-
 --
 -- Name: idx_audit_timestamp; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_audit_timestamp" ON "audit"."audit_log" USING "btree" ("timestamp" DESC);
-
-
 --
 -- Name: idx_audit_user; Type: INDEX; Schema: audit; Owner: postgres
 --
 
 CREATE INDEX "idx_audit_user" ON "audit"."audit_log" USING "btree" ("user_id", "timestamp" DESC);
-
-
 --
 -- Name: idx_snapshots_date; Type: INDEX; Schema: backup; Owner: postgres
 --
 
 CREATE INDEX "idx_snapshots_date" ON "backup"."daily_snapshots" USING "btree" ("snapshot_date" DESC);
-
-
 --
 -- Name: idx_snapshots_table; Type: INDEX; Schema: backup; Owner: postgres
 --
 
 CREATE INDEX "idx_snapshots_table" ON "backup"."daily_snapshots" USING "btree" ("table_schema", "table_name");
-
-
 --
 -- Name: catalog_idx_stock_alerts_open; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE UNIQUE INDEX "catalog_idx_stock_alerts_open" ON "catalog"."stock_alerts" USING "btree" ("product_id") WHERE ("status" = 'open'::"catalog"."stock_alert_status");
-
-
 --
 -- Name: idx_bundles_product; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_bundles_product" ON "catalog"."product_bundles" USING "btree" ("bundle_product_id");
-
-
 --
 -- Name: idx_categories_active; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_categories_active" ON "catalog"."categories" USING "btree" ("is_active", "sort_order");
-
-
 --
 -- Name: idx_categories_domain; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_categories_domain" ON "catalog"."categories" USING "btree" ("domain", "is_active", "sort_order");
-
-
 --
 -- Name: idx_categories_parent; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_categories_parent" ON "catalog"."categories" USING "btree" ("parent_id");
-
-
 --
 -- Name: idx_categories_slug; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_categories_slug" ON "catalog"."categories" USING "btree" ("slug");
-
-
 --
 -- Name: idx_erp_sync_log_status; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_erp_sync_log_status" ON "catalog"."erp_sync_log" USING "btree" ("status", "started_at" DESC);
-
-
 --
 -- Name: idx_external_sync_runs_source; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_external_sync_runs_source" ON "catalog"."external_catalog_sync_runs" USING "btree" ("source_id", "started_at" DESC);
-
-
 --
 -- Name: idx_product_documents_product; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_product_documents_product" ON "catalog"."product_documents" USING "btree" ("product_id");
-
-
 --
 -- Name: idx_products_active; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_products_active" ON "catalog"."products" USING "btree" ("is_active", "is_featured");
-
-
 --
 -- Name: idx_products_category; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_products_category" ON "catalog"."products" USING "btree" ("category_id", "is_active");
-
-
 --
 -- Name: idx_products_erp; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_products_erp" ON "catalog"."products" USING "btree" ("erp_product_id") WHERE ("erp_product_id" IS NOT NULL);
-
-
 --
 -- Name: idx_products_sku; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_products_sku" ON "catalog"."products" USING "btree" ("sku");
-
-
 --
 -- Name: idx_products_supplier; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_products_supplier" ON "catalog"."products" USING "btree" ("supplier_id") WHERE ("supplier_id" IS NOT NULL);
-
-
 --
 -- Name: idx_stock_movements_product; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_stock_movements_product" ON "catalog"."stock_movements" USING "btree" ("product_id", "created_at" DESC);
-
-
 --
 -- Name: idx_stock_movements_ref_product_unique; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE UNIQUE INDEX "idx_stock_movements_ref_product_unique" ON "catalog"."stock_movements" USING "btree" ("reference_table", "reference_id", "product_id") WHERE (("reference_table" IS NOT NULL) AND ("reference_id" IS NOT NULL) AND ("movement_type" = ANY (ARRAY['IN'::"catalog"."stock_movement_type", 'OUT'::"catalog"."stock_movement_type"])));
-
-
 --
 -- Name: idx_stock_movements_reference; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_stock_movements_reference" ON "catalog"."stock_movements" USING "btree" ("reference_table", "reference_id") WHERE ("reference_id" IS NOT NULL);
-
-
 --
 -- Name: idx_tax_rates_active; Type: INDEX; Schema: catalog; Owner: postgres
 --
 
 CREATE INDEX "idx_tax_rates_active" ON "catalog"."tax_rates" USING "btree" ("is_active", "is_default");
-
-
 --
 -- Name: idx_client_notes_client_id; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_client_notes_client_id" ON "crm"."client_notes" USING "btree" ("client_id");
-
-
 --
 -- Name: idx_client_notes_created_at; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_client_notes_created_at" ON "crm"."client_notes" USING "btree" ("created_at" DESC);
-
-
 --
 -- Name: idx_clients_assigned; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_clients_assigned" ON "crm"."clients" USING "btree" ("assigned_to", "lead_stage");
-
-
 --
 -- Name: idx_clients_coordinates; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_clients_coordinates" ON "crm"."clients" USING "btree" ("latitude", "longitude") WHERE (("latitude" IS NOT NULL) AND ("longitude" IS NOT NULL));
-
-
 --
 -- Name: idx_clients_deleted; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_clients_deleted" ON "crm"."clients" USING "btree" ("deleted_at") WHERE ("deleted_at" IS NULL);
-
-
 --
 -- Name: idx_clients_pipeline; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_clients_pipeline" ON "crm"."clients" USING "btree" ("lead_stage", "assigned_to", "next_follow_up_date");
-
-
 --
 -- Name: idx_clients_stage; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_clients_stage" ON "crm"."clients" USING "btree" ("lead_stage", "updated_at" DESC);
-
-
 --
 -- Name: idx_clients_tax_id; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_clients_tax_id" ON "crm"."clients" USING "btree" ("tax_id") WHERE ("tax_id" IS NOT NULL);
-
-
 --
 -- Name: idx_contact_messages_created_at; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_contact_messages_created_at" ON "crm"."contact_messages" USING "btree" ("created_at" DESC);
-
-
 --
 -- Name: idx_contact_messages_status; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_contact_messages_status" ON "crm"."contact_messages" USING "btree" ("status");
-
-
 --
 -- Name: idx_contact_messages_tipo; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_contact_messages_tipo" ON "crm"."contact_messages" USING "btree" ("tipo_solicitud");
-
-
 --
 -- Name: idx_contacts_client; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_contacts_client" ON "crm"."contacts" USING "btree" ("client_id");
-
-
 --
 -- Name: idx_contacts_primary; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_contacts_primary" ON "crm"."contacts" USING "btree" ("client_id") WHERE ("is_primary" = true);
-
-
 --
 -- Name: idx_interactions_client; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_interactions_client" ON "crm"."interactions" USING "btree" ("client_id", "interaction_date" DESC);
-
-
 --
 -- Name: idx_interactions_date; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_interactions_date" ON "crm"."interactions" USING "btree" ("interaction_date" DESC);
-
-
 --
 -- Name: idx_interactions_follow_up; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_interactions_follow_up" ON "crm"."interactions" USING "btree" ("outcome") WHERE ("outcome" = 'FOLLOW_UP_NEEDED'::"crm"."interaction_outcome");
-
-
 --
 -- Name: idx_interactions_user; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_interactions_user" ON "crm"."interactions" USING "btree" ("created_by", "interaction_date" DESC);
-
-
 --
 -- Name: idx_location_appointment_date; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_appointment_date" ON "crm"."location" USING "btree" ("appointment_date") WHERE ("appointment_date" IS NOT NULL);
-
-
 --
 -- Name: idx_location_assigned_to; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_assigned_to" ON "crm"."location" USING "btree" ("assigned_to") WHERE ("assigned_to" IS NOT NULL);
-
-
 --
 -- Name: idx_location_av_solutions; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_av_solutions" ON "crm"."location" USING "gin" ("av_solutions_required");
-
-
 --
 -- Name: idx_location_business_type; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_business_type" ON "crm"."location" USING "btree" ("business_type");
-
-
 --
 -- Name: idx_location_callback_date; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_callback_date" ON "crm"."location" USING "btree" ("callback_date") WHERE ("callback_date" IS NOT NULL);
-
-
 --
 -- Name: idx_location_city; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_city" ON "crm"."location" USING "btree" ("city", "province");
-
-
 --
 -- Name: idx_location_company_name; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_company_name" ON "crm"."location" USING "btree" ("company_name");
-
-
 --
 -- Name: idx_location_coordinates; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_coordinates" ON "crm"."location" USING "btree" ("latitude", "longitude");
-
-
 --
 -- Name: idx_location_created_at; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_created_at" ON "crm"."location" USING "btree" ("created_at" DESC);
-
-
 --
 -- Name: idx_location_created_by; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_created_by" ON "crm"."location" USING "btree" ("created_by");
-
-
 --
 -- Name: idx_location_notes_location; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_notes_location" ON "crm"."location_notes" USING "btree" ("location_id", "created_at" DESC);
-
-
 --
 -- Name: idx_location_notes_type; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_notes_type" ON "crm"."location_notes" USING "btree" ("note_type");
-
-
 --
 -- Name: idx_location_notes_user; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_notes_user" ON "crm"."location_notes" USING "btree" ("created_by");
-
-
 --
 -- Name: idx_location_status; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_status" ON "crm"."location" USING "btree" ("status");
-
-
 --
 -- Name: idx_location_status_history; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_status_history" ON "crm"."location" USING "gin" ("status_history");
-
-
 --
 -- Name: idx_location_tags; Type: INDEX; Schema: crm; Owner: postgres
 --
 
 CREATE INDEX "idx_location_tags" ON "crm"."location" USING "gin" ("tags");
-
-
 --
 -- Name: idx_authorized_users_active; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_authorized_users_active" ON "internal"."authorized_users" USING "btree" ("is_active", "department");
-
-
 --
 -- Name: idx_authorized_users_auth; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_authorized_users_auth" ON "internal"."authorized_users" USING "btree" ("auth_user_id");
-
-
 --
 -- Name: idx_authorized_users_email; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_authorized_users_email" ON "internal"."authorized_users" USING "btree" ("email");
-
-
 --
 -- Name: idx_internal_user_roles_expires; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_internal_user_roles_expires" ON "internal"."user_roles" USING "btree" ("user_id", "role_id", "expires_at");
-
-
 --
 -- Name: idx_internal_user_roles_user; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_internal_user_roles_user" ON "internal"."user_roles" USING "btree" ("user_id");
-
-
 --
 -- Name: idx_notifications_dedupe; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE UNIQUE INDEX "idx_notifications_dedupe" ON "internal"."user_notifications" USING "btree" ("dedupe_key") WHERE ("dedupe_key" IS NOT NULL);
-
-
 --
 -- Name: idx_notifications_user_created; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_notifications_user_created" ON "internal"."user_notifications" USING "btree" ("user_id", "created_at" DESC);
-
-
 --
 -- Name: idx_notifications_user_unread; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_notifications_user_unread" ON "internal"."user_notifications" USING "btree" ("user_id", "is_read") WHERE ("is_read" = false);
-
-
 --
 -- Name: idx_product_subcategories_category; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_product_subcategories_category" ON "internal"."product_subcategories" USING "btree" ("category_id");
-
-
 --
 -- Name: idx_products_category; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_products_category" ON "internal"."products" USING "btree" ("category_id");
-
-
 --
 -- Name: idx_products_number; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_products_number" ON "internal"."products" USING "btree" ("product_number");
-
-
 --
 -- Name: idx_products_subcategory; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_products_subcategory" ON "internal"."products" USING "btree" ("subcategory_id");
-
-
 --
 -- Name: idx_suppliers_company_name; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_suppliers_company_name" ON "internal"."suppliers" USING "btree" ("company_name");
-
-
 --
 -- Name: idx_suppliers_status; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_suppliers_status" ON "internal"."suppliers" USING "btree" ("status");
-
-
 --
 -- Name: idx_suppliers_tax_id; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_suppliers_tax_id" ON "internal"."suppliers" USING "btree" ("tax_id");
-
-
 --
 -- Name: idx_task_activity_task; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_task_activity_task" ON "internal"."task_activity" USING "btree" ("task_id", "created_at" DESC);
-
-
 --
 -- Name: idx_tasks_created_by; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_tasks_created_by" ON "internal"."tasks" USING "btree" ("created_by");
-
-
 --
 -- Name: idx_tasks_project; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_tasks_project" ON "internal"."tasks" USING "btree" ("project_id") WHERE ("project_id" IS NOT NULL);
-
-
 --
 -- Name: idx_tasks_site; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_tasks_site" ON "internal"."tasks" USING "btree" ("site_id") WHERE ("site_id" IS NOT NULL);
-
-
 --
 -- Name: idx_tasks_status_due; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_tasks_status_due" ON "internal"."tasks" USING "btree" ("status", "due_date");
-
-
 --
 -- Name: idx_tasks_updated; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_tasks_updated" ON "internal"."tasks" USING "btree" ("updated_at" DESC);
-
-
 --
 -- Name: idx_technicians_company_name; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_technicians_company_name" ON "internal"."technicians" USING "btree" ("company_name");
-
-
 --
 -- Name: idx_technicians_specialties; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_technicians_specialties" ON "internal"."technicians" USING "gin" ("specialties");
-
-
 --
 -- Name: idx_technicians_status; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_technicians_status" ON "internal"."technicians" USING "btree" ("status");
-
-
 --
 -- Name: idx_technicians_tax_id; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_technicians_tax_id" ON "internal"."technicians" USING "btree" ("tax_id");
-
-
 --
 -- Name: idx_technicians_type; Type: INDEX; Schema: internal; Owner: postgres
 --
 
 CREATE INDEX "idx_technicians_type" ON "internal"."technicians" USING "btree" ("type");
-
-
 --
 -- Name: idx_av_projects_category; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_av_projects_category" ON "projects"."av_projects" USING "btree" ("project_category");
-
-
 --
 -- Name: idx_av_projects_code; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_av_projects_code" ON "projects"."av_projects" USING "btree" ("internal_project_code");
-
-
 --
 -- Name: idx_av_projects_project; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_av_projects_project" ON "projects"."av_projects" USING "btree" ("project_id");
-
-
 --
 -- Name: idx_customer_orders_date; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_customer_orders_date" ON "projects"."customer_orders" USING "btree" ("installation_date");
-
-
 --
 -- Name: idx_customer_orders_number; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_customer_orders_number" ON "projects"."customer_orders" USING "btree" ("customer_order_number");
-
-
 --
 -- Name: idx_customer_orders_project; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_customer_orders_project" ON "projects"."customer_orders" USING "btree" ("project_id");
-
-
 --
 -- Name: idx_project_activity_created_at; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_project_activity_created_at" ON "projects"."project_activity" USING "btree" ("created_at" DESC);
-
-
 --
 -- Name: idx_project_activity_project_id; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_project_activity_project_id" ON "projects"."project_activity" USING "btree" ("project_id");
-
-
 --
 -- Name: idx_project_docs_project; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_project_docs_project" ON "projects"."project_documents" USING "btree" ("project_id", "document_type");
-
-
 --
 -- Name: idx_project_expenses_date; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_project_expenses_date" ON "projects"."expenses" USING "btree" ("date");
-
-
 --
 -- Name: idx_project_expenses_project; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_project_expenses_project" ON "projects"."expenses" USING "btree" ("project_id");
-
-
 --
 -- Name: idx_project_sites_project_id; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_project_sites_project_id" ON "projects"."project_sites" USING "btree" ("project_id");
-
-
 --
 -- Name: idx_project_tasks_assigned; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_project_tasks_assigned" ON "projects"."project_tasks" USING "btree" ("assigned_to", "status", "due_date");
-
-
 --
 -- Name: idx_project_tasks_due; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_project_tasks_due" ON "projects"."project_tasks" USING "btree" ("due_date") WHERE ("status" <> 'COMPLETED'::"projects"."task_status");
-
-
 --
 -- Name: idx_project_tasks_parent; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_project_tasks_parent" ON "projects"."project_tasks" USING "btree" ("parent_task_id");
-
-
 --
 -- Name: idx_project_tasks_project; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_project_tasks_project" ON "projects"."project_tasks" USING "btree" ("project_id", "status");
-
-
 --
 -- Name: idx_projects_assigned; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_projects_assigned" ON "projects"."projects" USING "btree" ("assigned_to", "status");
-
-
 --
 -- Name: idx_projects_client; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_projects_client" ON "projects"."projects" USING "btree" ("client_id", "start_date" DESC);
-
-
 --
 -- Name: idx_projects_dates; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_projects_dates" ON "projects"."projects" USING "btree" ("start_date", "end_date") WHERE ("status" <> 'CANCELLED'::"projects"."project_status");
-
-
 --
 -- Name: idx_projects_number; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_projects_number" ON "projects"."projects" USING "btree" ("project_number");
-
-
 --
 -- Name: idx_projects_type_status; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_projects_type_status" ON "projects"."projects" USING "btree" ("project_type", "status", "start_date");
-
-
 --
 -- Name: idx_site_assignments_site; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_site_assignments_site" ON "projects"."site_technician_assignments" USING "btree" ("site_id");
-
-
 --
 -- Name: idx_site_assignments_tech; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_site_assignments_tech" ON "projects"."site_technician_assignments" USING "btree" ("technician_id");
-
-
 --
 -- Name: idx_site_visits_site; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_site_visits_site" ON "projects"."site_visits" USING "btree" ("site_id");
-
-
 --
 -- Name: idx_site_visits_tech; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE INDEX "idx_site_visits_tech" ON "projects"."site_visits" USING "btree" ("technician_id");
-
-
 --
 -- Name: uq_one_open_visit_per_tech_site; Type: INDEX; Schema: projects; Owner: postgres
 --
 
 CREATE UNIQUE INDEX "uq_one_open_visit_per_tech_site" ON "projects"."site_visits" USING "btree" ("technician_id", "site_id") WHERE ("check_out_at" IS NULL);
-
-
 --
 -- Name: idx_scanned_documents_assigned; Type: INDEX; Schema: public; Owner: postgres
 --
 
 CREATE INDEX "idx_scanned_documents_assigned" ON "public"."scanned_documents" USING "btree" ("assigned_to_type", "assigned_to_id");
-
-
 --
 -- Name: idx_scanned_documents_status; Type: INDEX; Schema: public; Owner: postgres
 --
 
 CREATE INDEX "idx_scanned_documents_status" ON "public"."scanned_documents" USING "btree" ("status");
-
-
 --
 -- Name: idx_user_roles_user_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
 CREATE INDEX "idx_user_roles_user_id" ON "public"."user_roles" USING "btree" ("user_id");
-
-
 --
 -- Name: idx_quote_activity_created_at; Type: INDEX; Schema: quotes; Owner: postgres
 --
 
 CREATE INDEX "idx_quote_activity_created_at" ON "quotes"."quote_activity" USING "btree" ("created_at" DESC);
-
-
 --
 -- Name: idx_quote_activity_quote_id; Type: INDEX; Schema: quotes; Owner: postgres
 --
 
 CREATE INDEX "idx_quote_activity_quote_id" ON "quotes"."quote_activity" USING "btree" ("quote_id");
-
-
 --
 -- Name: idx_quote_history_quote; Type: INDEX; Schema: quotes; Owner: postgres
 --
 
 CREATE INDEX "idx_quote_history_quote" ON "quotes"."quote_history" USING "btree" ("quote_id", "changed_at" DESC);
-
-
 --
 -- Name: idx_quote_history_user; Type: INDEX; Schema: quotes; Owner: postgres
 --
 
 CREATE INDEX "idx_quote_history_user" ON "quotes"."quote_history" USING "btree" ("changed_by", "changed_at" DESC);
-
-
 --
 -- Name: idx_quote_lines_group; Type: INDEX; Schema: quotes; Owner: postgres
 --
 
 CREATE INDEX "idx_quote_lines_group" ON "quotes"."quote_lines" USING "btree" ("quote_id", "group_name") WHERE ("group_name" IS NOT NULL);
-
-
 --
 -- Name: idx_quote_lines_quote_id; Type: INDEX; Schema: quotes; Owner: postgres
 --
 
 CREATE INDEX "idx_quote_lines_quote_id" ON "quotes"."quote_lines" USING "btree" ("quote_id");
-
-
 --
 -- Name: idx_quotes_project_id; Type: INDEX; Schema: quotes; Owner: postgres
 --
 
 CREATE INDEX "idx_quotes_project_id" ON "quotes"."quotes" USING "btree" ("project_id");
-
-
 --
 -- Name: idx_quotes_sharepoint_item_id; Type: INDEX; Schema: quotes; Owner: postgres
 --
 
 CREATE UNIQUE INDEX "idx_quotes_sharepoint_item_id" ON "quotes"."quotes" USING "btree" ("sharepoint_item_id") WHERE ("sharepoint_item_id" IS NOT NULL);
-
-
 --
 -- Name: idx_quotes_site_id; Type: INDEX; Schema: quotes; Owner: postgres
 --
 
 CREATE INDEX "idx_quotes_site_id" ON "quotes"."quotes" USING "btree" ("site_id");
-
-
 --
 -- Name: idx_invoice_lines_invoice; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_invoice_lines_invoice" ON "sales"."invoice_lines" USING "btree" ("invoice_id");
-
-
 --
 -- Name: idx_invoice_payments_invoice_id; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_invoice_payments_invoice_id" ON "sales"."invoice_payments" USING "btree" ("invoice_id");
-
-
 --
 -- Name: idx_invoice_payments_payment_date; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_invoice_payments_payment_date" ON "sales"."invoice_payments" USING "btree" ("payment_date");
-
-
 --
 -- Name: idx_invoice_payments_registered_by; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_invoice_payments_registered_by" ON "sales"."invoice_payments" USING "btree" ("registered_by");
-
-
 --
 -- Name: idx_invoices_client; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_invoices_client" ON "sales"."invoices" USING "btree" ("client_id");
-
-
 --
 -- Name: idx_invoices_invoice_hash; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_invoices_invoice_hash" ON "sales"."invoices" USING "btree" ("invoice_hash") WHERE ("invoice_hash" IS NOT NULL);
-
-
 --
 -- Name: idx_invoices_issue_date; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_invoices_issue_date" ON "sales"."invoices" USING "btree" ("issue_date");
-
-
 --
 -- Name: idx_invoices_original_invoice_id; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_invoices_original_invoice_id" ON "sales"."invoices" USING "btree" ("original_invoice_id") WHERE ("original_invoice_id" IS NOT NULL);
-
-
 --
 -- Name: idx_invoices_project; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_invoices_project" ON "sales"."invoices" USING "btree" ("project_id");
-
-
 --
 -- Name: idx_invoices_site_id; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_invoices_site_id" ON "sales"."invoices" USING "btree" ("site_id");
-
-
 --
 -- Name: idx_invoices_source_quote; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_invoices_source_quote" ON "sales"."invoices" USING "btree" ("source_quote_id");
-
-
 --
 -- Name: idx_invoices_status; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_invoices_status" ON "sales"."invoices" USING "btree" ("status");
-
-
 --
 -- Name: idx_pi_site_id; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_pi_site_id" ON "sales"."purchase_invoices" USING "btree" ("site_id");
-
-
 --
 -- Name: idx_po_site_id; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_po_site_id" ON "sales"."purchase_orders" USING "btree" ("site_id");
-
-
 --
 -- Name: idx_purchase_invoice_lines_invoice; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_invoice_lines_invoice" ON "sales"."purchase_invoice_lines" USING "btree" ("purchase_invoice_id");
-
-
 --
 -- Name: idx_purchase_invoice_payments_date; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_invoice_payments_date" ON "sales"."purchase_invoice_payments" USING "btree" ("payment_date");
-
-
 --
 -- Name: idx_purchase_invoice_payments_invoice; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_invoice_payments_invoice" ON "sales"."purchase_invoice_payments" USING "btree" ("purchase_invoice_id");
-
-
 --
 -- Name: idx_purchase_invoices_internal_number; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_invoices_internal_number" ON "sales"."purchase_invoices" USING "btree" ("internal_purchase_number") WHERE ("internal_purchase_number" IS NOT NULL);
-
-
 --
 -- Name: idx_purchase_invoices_internal_number_unique; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE UNIQUE INDEX "idx_purchase_invoices_internal_number_unique" ON "sales"."purchase_invoices" USING "btree" ("internal_purchase_number") WHERE (("internal_purchase_number" IS NOT NULL) AND (TRIM(BOTH FROM "internal_purchase_number") <> ''::"text"));
-
-
 --
 -- Name: idx_purchase_invoices_project; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_invoices_project" ON "sales"."purchase_invoices" USING "btree" ("project_id");
-
-
 --
 -- Name: idx_purchase_invoices_sharepoint_item_id; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE UNIQUE INDEX "idx_purchase_invoices_sharepoint_item_id" ON "sales"."purchase_invoices" USING "btree" ("sharepoint_item_id") WHERE ("sharepoint_item_id" IS NOT NULL);
-
-
 --
 -- Name: idx_purchase_invoices_status; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_invoices_status" ON "sales"."purchase_invoices" USING "btree" ("status");
-
-
 --
 -- Name: idx_purchase_order_lines_order; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_order_lines_order" ON "sales"."purchase_order_lines" USING "btree" ("purchase_order_id");
-
-
 --
 -- Name: idx_purchase_orders_issue_date; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_orders_issue_date" ON "sales"."purchase_orders" USING "btree" ("issue_date");
-
-
 --
 -- Name: idx_purchase_orders_po_number; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_orders_po_number" ON "sales"."purchase_orders" USING "btree" ("po_number");
-
-
 --
 -- Name: idx_purchase_orders_project; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_orders_project" ON "sales"."purchase_orders" USING "btree" ("project_id");
-
-
 --
 -- Name: idx_purchase_orders_status; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_orders_status" ON "sales"."purchase_orders" USING "btree" ("status");
-
-
 --
 -- Name: idx_purchase_orders_supplier; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_orders_supplier" ON "sales"."purchase_orders" USING "btree" ("supplier_id");
-
-
 --
 -- Name: idx_purchase_orders_technician; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE INDEX "idx_purchase_orders_technician" ON "sales"."purchase_orders" USING "btree" ("technician_id");
-
-
 --
 -- Name: idx_sales_invoices_sharepoint_item_id; Type: INDEX; Schema: sales; Owner: postgres
 --
 
 CREATE UNIQUE INDEX "idx_sales_invoices_sharepoint_item_id" ON "sales"."invoices" USING "btree" ("sharepoint_item_id") WHERE ("sharepoint_item_id" IS NOT NULL);
-
-
 --
 -- Name: idx_login_attempts_cleanup; Type: INDEX; Schema: security; Owner: postgres
 --
 
 CREATE INDEX "idx_login_attempts_cleanup" ON "security"."login_attempts" USING "btree" ("attempted_at");
-
-
 --
 -- Name: idx_login_attempts_identifier; Type: INDEX; Schema: security; Owner: postgres
 --
 
 CREATE INDEX "idx_login_attempts_identifier" ON "security"."login_attempts" USING "btree" ("identifier", "attempted_at" DESC);
-
-
 --
 -- Name: idx_otp_codes_email_expires; Type: INDEX; Schema: security; Owner: postgres
 --
 
 CREATE INDEX "idx_otp_codes_email_expires" ON "security"."otp_codes" USING "btree" ("user_email", "expires_at");
-
-
 --
 -- Name: partner_compensation_runs trg_prevent_locked_compensation_modification; Type: TRIGGER; Schema: accounting; Owner: postgres
 --
 
 CREATE TRIGGER "trg_prevent_locked_compensation_modification" BEFORE UPDATE ON "accounting"."partner_compensation_runs" FOR EACH ROW EXECUTE FUNCTION "accounting"."prevent_locked_compensation_modification"();
-
-
 --
 -- Name: journal_entry_lines trigger_auto_recalculate_corporate_tax; Type: TRIGGER; Schema: accounting; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_auto_recalculate_corporate_tax" AFTER INSERT OR DELETE OR UPDATE ON "accounting"."journal_entry_lines" FOR EACH ROW EXECUTE FUNCTION "accounting"."auto_recalculate_corporate_tax"();
-
-
 --
 -- Name: journal_entries trigger_check_journal_entry_period_closed; Type: TRIGGER; Schema: accounting; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_check_journal_entry_period_closed" BEFORE INSERT OR UPDATE OF "entry_date" ON "accounting"."journal_entries" FOR EACH ROW EXECUTE FUNCTION "accounting"."check_journal_entry_period_not_closed"();
-
-
 --
 -- Name: journal_entries trigger_validate_balanced_entry; Type: TRIGGER; Schema: accounting; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_validate_balanced_entry" BEFORE UPDATE OF "is_locked" ON "accounting"."journal_entries" FOR EACH ROW WHEN ((("new"."is_locked" = true) AND (("old"."is_locked" IS NULL) OR ("old"."is_locked" = false)))) EXECUTE FUNCTION "accounting"."validate_balanced_entry"();
-
-
 --
 -- Name: payroll_payments trigger_validate_payroll_payment; Type: TRIGGER; Schema: accounting; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_validate_payroll_payment" BEFORE INSERT ON "accounting"."payroll_payments" FOR EACH ROW EXECUTE FUNCTION "accounting"."validate_payroll_payment"();
-
-
 --
 -- Name: account_balances update_account_balances_updated_at; Type: TRIGGER; Schema: accounting; Owner: postgres
 --
 
 CREATE TRIGGER "update_account_balances_updated_at" BEFORE UPDATE ON "accounting"."account_balances" FOR EACH ROW EXECUTE FUNCTION "accounting"."update_updated_at_column"();
-
-
 --
 -- Name: chart_of_accounts update_chart_of_accounts_updated_at; Type: TRIGGER; Schema: accounting; Owner: postgres
 --
 
 CREATE TRIGGER "update_chart_of_accounts_updated_at" BEFORE UPDATE ON "accounting"."chart_of_accounts" FOR EACH ROW EXECUTE FUNCTION "accounting"."update_updated_at_column"();
-
-
 --
 -- Name: journal_entries update_journal_entries_updated_at; Type: TRIGGER; Schema: accounting; Owner: postgres
 --
 
 CREATE TRIGGER "update_journal_entries_updated_at" BEFORE UPDATE ON "accounting"."journal_entries" FOR EACH ROW EXECUTE FUNCTION "accounting"."update_updated_at_column"();
-
-
 --
 -- Name: partner_compensation_runs update_partner_compensation_runs_updated_at; Type: TRIGGER; Schema: accounting; Owner: postgres
 --
 
 CREATE TRIGGER "update_partner_compensation_runs_updated_at" BEFORE UPDATE ON "accounting"."partner_compensation_runs" FOR EACH ROW EXECUTE FUNCTION "accounting"."update_updated_at_column"();
-
-
 --
 -- Name: payroll_payments update_payroll_payments_updated_at; Type: TRIGGER; Schema: accounting; Owner: postgres
 --
 
 CREATE TRIGGER "update_payroll_payments_updated_at" BEFORE UPDATE ON "accounting"."payroll_payments" FOR EACH ROW EXECUTE FUNCTION "accounting"."update_updated_at_column"();
-
-
 --
 -- Name: payroll_runs update_payroll_runs_updated_at; Type: TRIGGER; Schema: accounting; Owner: postgres
 --
 
 CREATE TRIGGER "update_payroll_runs_updated_at" BEFORE UPDATE ON "accounting"."payroll_runs" FOR EACH ROW EXECUTE FUNCTION "accounting"."update_updated_at_column"();
-
-
 --
 -- Name: tax_config update_tax_config_updated_at; Type: TRIGGER; Schema: accounting; Owner: postgres
 --
 
 CREATE TRIGGER "update_tax_config_updated_at" BEFORE UPDATE ON "accounting"."tax_config" FOR EACH ROW EXECUTE FUNCTION "accounting"."update_updated_at_column"();
-
-
 --
 -- Name: stock_movements trigger_apply_stock_movement; Type: TRIGGER; Schema: catalog; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_apply_stock_movement" AFTER INSERT ON "catalog"."stock_movements" FOR EACH ROW EXECUTE FUNCTION "catalog"."apply_stock_movement"();
-
-
 --
 -- Name: products trigger_calculate_margin; Type: TRIGGER; Schema: catalog; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_calculate_margin" BEFORE INSERT OR UPDATE ON "catalog"."products" FOR EACH ROW EXECUTE FUNCTION "catalog"."calculate_margin"();
-
-
 --
 -- Name: products trigger_check_product_category_domain; Type: TRIGGER; Schema: catalog; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_check_product_category_domain" BEFORE INSERT OR UPDATE ON "catalog"."products" FOR EACH ROW EXECUTE FUNCTION "catalog"."check_product_category_domain"();
-
-
 --
 -- Name: products trigger_sync_stock_alert; Type: TRIGGER; Schema: catalog; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_sync_stock_alert" AFTER INSERT OR UPDATE OF "stock_quantity", "min_stock_alert", "track_stock" ON "catalog"."products" FOR EACH ROW EXECUTE FUNCTION "catalog"."sync_stock_alert"();
-
-
 --
 -- Name: categories update_categories_updated_at; Type: TRIGGER; Schema: catalog; Owner: postgres
 --
 
 CREATE TRIGGER "update_categories_updated_at" BEFORE UPDATE ON "catalog"."categories" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: tax_rates update_tax_rates_updated_at; Type: TRIGGER; Schema: catalog; Owner: postgres
 --
 
 CREATE TRIGGER "update_tax_rates_updated_at" BEFORE UPDATE ON "catalog"."tax_rates" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: clients audit_clients; Type: TRIGGER; Schema: crm; Owner: postgres
 --
 
 CREATE TRIGGER "audit_clients" AFTER INSERT OR DELETE OR UPDATE ON "crm"."clients" FOR EACH ROW EXECUTE FUNCTION "audit"."trigger_clients_audit"();
-
-
 --
 -- Name: clients set_client_number; Type: TRIGGER; Schema: crm; Owner: postgres
 --
 
 CREATE TRIGGER "set_client_number" BEFORE INSERT ON "crm"."clients" FOR EACH ROW WHEN (("new"."client_number" IS NULL)) EXECUTE FUNCTION "crm"."generate_client_number"();
-
-
 --
 -- Name: location trg_log_location_creation; Type: TRIGGER; Schema: crm; Owner: postgres
 --
 
 CREATE TRIGGER "trg_log_location_creation" AFTER INSERT ON "crm"."location" FOR EACH ROW EXECUTE FUNCTION "crm"."log_location_creation"();
-
-
 --
 -- Name: location trg_log_location_status_change; Type: TRIGGER; Schema: crm; Owner: postgres
 --
 
 CREATE TRIGGER "trg_log_location_status_change" AFTER UPDATE ON "crm"."location" FOR EACH ROW EXECUTE FUNCTION "crm"."log_location_status_change"();
-
-
 --
 -- Name: clients trigger_update_client_profile_score; Type: TRIGGER; Schema: crm; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_update_client_profile_score" BEFORE UPDATE ON "crm"."clients" FOR EACH ROW EXECUTE FUNCTION "crm"."update_client_profile_score"();
-
-
 --
 -- Name: location trigger_update_location_status_history; Type: TRIGGER; Schema: crm; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_update_location_status_history" BEFORE UPDATE ON "crm"."location" FOR EACH ROW EXECUTE FUNCTION "crm"."update_location_status_history"();
-
-
 --
 -- Name: contacts update_contacts_updated_at; Type: TRIGGER; Schema: crm; Owner: postgres
 --
 
 CREATE TRIGGER "update_contacts_updated_at" BEFORE UPDATE ON "crm"."contacts" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: interactions update_interactions_updated_at; Type: TRIGGER; Schema: crm; Owner: postgres
 --
 
 CREATE TRIGGER "update_interactions_updated_at" BEFORE UPDATE ON "crm"."interactions" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: lead_sources update_lead_sources_updated_at; Type: TRIGGER; Schema: crm; Owner: postgres
 --
 
 CREATE TRIGGER "update_lead_sources_updated_at" BEFORE UPDATE ON "crm"."lead_sources" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: location update_location_updated_at; Type: TRIGGER; Schema: crm; Owner: postgres
 --
 
 CREATE TRIGGER "update_location_updated_at" BEFORE UPDATE ON "crm"."location" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: authorized_users audit_authorized_users; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "audit_authorized_users" AFTER INSERT OR DELETE OR UPDATE ON "internal"."authorized_users" FOR EACH ROW EXECUTE FUNCTION "audit"."trigger_authorized_users_audit"();
-
-
 --
 -- Name: partner_compensation_runs generate_partner_compensation_number_trigger; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "generate_partner_compensation_number_trigger" BEFORE INSERT ON "internal"."partner_compensation_runs" FOR EACH ROW EXECUTE FUNCTION "internal"."generate_partner_compensation_number"();
-
-
 --
 -- Name: tasks trg_validate_task; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "trg_validate_task" BEFORE INSERT OR UPDATE ON "internal"."tasks" FOR EACH ROW EXECUTE FUNCTION "internal"."validate_task_status"();
-
-
 --
 -- Name: suppliers trigger_update_supplier_timestamp; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_update_supplier_timestamp" BEFORE UPDATE ON "internal"."suppliers" FOR EACH ROW EXECUTE FUNCTION "internal"."update_supplier_timestamp"();
-
-
 --
 -- Name: technicians trigger_update_technician_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_update_technician_updated_at" BEFORE UPDATE ON "internal"."technicians" FOR EACH ROW EXECUTE FUNCTION "internal"."update_technician_updated_at"();
-
-
 --
 -- Name: authorized_users update_authorized_users_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "update_authorized_users_updated_at" BEFORE UPDATE ON "internal"."authorized_users" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: company_contacts update_company_contacts_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "update_company_contacts_updated_at" BEFORE UPDATE ON "internal"."company_contacts" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: company_preferences update_company_preferences_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "update_company_preferences_updated_at" BEFORE UPDATE ON "internal"."company_preferences" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: company_settings update_company_settings_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "update_company_settings_updated_at" BEFORE UPDATE ON "internal"."company_settings" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
-
-
 --
 -- Name: employees update_employees_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "update_employees_updated_at" BEFORE UPDATE ON "internal"."employees" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: partner_compensation_runs update_partner_compensation_runs_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "update_partner_compensation_runs_updated_at" BEFORE UPDATE ON "internal"."partner_compensation_runs" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: partners update_partners_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "update_partners_updated_at" BEFORE UPDATE ON "internal"."partners" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: product_categories update_product_categories_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "update_product_categories_updated_at" BEFORE UPDATE ON "internal"."product_categories" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: product_packs update_product_packs_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "update_product_packs_updated_at" BEFORE UPDATE ON "internal"."product_packs" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: product_subcategories update_product_subcategories_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "update_product_subcategories_updated_at" BEFORE UPDATE ON "internal"."product_subcategories" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: products update_products_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "update_products_updated_at" BEFORE UPDATE ON "internal"."products" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: taxes update_taxes_updated_at; Type: TRIGGER; Schema: internal; Owner: postgres
 --
 
 CREATE TRIGGER "update_taxes_updated_at" BEFORE UPDATE ON "internal"."taxes" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: project_sites trg_auto_site_mode; Type: TRIGGER; Schema: projects; Owner: postgres
 --
 
 CREATE TRIGGER "trg_auto_site_mode" AFTER INSERT OR DELETE OR UPDATE ON "projects"."project_sites" FOR EACH ROW EXECUTE FUNCTION "projects"."auto_update_project_site_mode"();
-
-
 --
 -- Name: project_sites trg_project_sites_updated_at; Type: TRIGGER; Schema: projects; Owner: postgres
 --
 
 CREATE TRIGGER "trg_project_sites_updated_at" BEFORE UPDATE ON "projects"."project_sites" FOR EACH ROW EXECUTE FUNCTION "projects"."update_project_sites_updated_at"();
-
-
 --
 -- Name: project_sites trg_site_lock_check; Type: TRIGGER; Schema: projects; Owner: postgres
 --
 
 CREATE TRIGGER "trg_site_lock_check" BEFORE UPDATE ON "projects"."project_sites" FOR EACH ROW EXECUTE FUNCTION "projects"."trg_block_locked_site_edits"();
-
-
 --
 -- Name: projects trigger_generate_project_number; Type: TRIGGER; Schema: projects; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_generate_project_number" BEFORE INSERT ON "projects"."projects" FOR EACH ROW EXECUTE FUNCTION "projects"."generate_project_number"();
-
-
 --
 -- Name: project_tasks trigger_update_project_hours; Type: TRIGGER; Schema: projects; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_update_project_hours" AFTER INSERT OR DELETE OR UPDATE ON "projects"."project_tasks" FOR EACH ROW EXECUTE FUNCTION "projects"."update_project_hours"();
-
-
 --
 -- Name: av_projects update_av_projects_updated_at; Type: TRIGGER; Schema: projects; Owner: postgres
 --
 
 CREATE TRIGGER "update_av_projects_updated_at" BEFORE UPDATE ON "projects"."av_projects" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: customer_orders update_customer_orders_updated_at; Type: TRIGGER; Schema: projects; Owner: postgres
 --
 
 CREATE TRIGGER "update_customer_orders_updated_at" BEFORE UPDATE ON "projects"."customer_orders" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: project_tasks update_project_tasks_updated_at; Type: TRIGGER; Schema: projects; Owner: postgres
 --
 
 CREATE TRIGGER "update_project_tasks_updated_at" BEFORE UPDATE ON "projects"."project_tasks" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: projects update_projects_updated_at; Type: TRIGGER; Schema: projects; Owner: postgres
 --
 
 CREATE TRIGGER "update_projects_updated_at" BEFORE UPDATE ON "projects"."projects" FOR EACH ROW EXECUTE FUNCTION "internal"."update_updated_at_column"();
-
-
 --
 -- Name: user_roles audit_user_roles; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
 CREATE TRIGGER "audit_user_roles" AFTER INSERT OR DELETE ON "public"."user_roles" FOR EACH ROW EXECUTE FUNCTION "audit"."trigger_user_roles_audit"();
-
-
 --
 -- Name: scanned_documents update_scanned_documents_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
 CREATE TRIGGER "update_scanned_documents_updated_at" BEFORE UPDATE ON "public"."scanned_documents" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
-
-
 --
 -- Name: quotes generate_quote_number_trigger; Type: TRIGGER; Schema: quotes; Owner: postgres
 --
 
 CREATE TRIGGER "generate_quote_number_trigger" BEFORE INSERT ON "quotes"."quotes" FOR EACH ROW WHEN ((("new"."quote_number" IS NULL) OR ("new"."quote_number" = ''::"text"))) EXECUTE FUNCTION "quotes"."generate_quote_number"();
-
-
 --
 -- Name: quotes quote_change_logger; Type: TRIGGER; Schema: quotes; Owner: postgres
 --
 
 CREATE TRIGGER "quote_change_logger" AFTER UPDATE ON "quotes"."quotes" FOR EACH ROW EXECUTE FUNCTION "quotes"."log_quote_change"();
-
-
 --
 -- Name: quotes trigger_quote_status_to_project; Type: TRIGGER; Schema: quotes; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_quote_status_to_project" AFTER UPDATE OF "status" ON "quotes"."quotes" FOR EACH ROW EXECUTE FUNCTION "quotes"."log_quote_status_to_project"();
-
-
 --
 -- Name: quotes trigger_set_quote_issue_date; Type: TRIGGER; Schema: quotes; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_set_quote_issue_date" BEFORE UPDATE ON "quotes"."quotes" FOR EACH ROW EXECUTE FUNCTION "quotes"."set_quote_issue_date"();
-
-
 --
 -- Name: quotes update_quotes_updated_at; Type: TRIGGER; Schema: quotes; Owner: postgres
 --
 
 CREATE TRIGGER "update_quotes_updated_at" BEFORE UPDATE ON "quotes"."quotes" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
-
-
 --
 -- Name: invoices trg_invoice_site_status; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trg_invoice_site_status" AFTER UPDATE ON "sales"."invoices" FOR EACH ROW EXECUTE FUNCTION "internal"."update_site_status_on_invoice_change"();
-
-
 --
 -- Name: purchase_invoices trg_prevent_locked_purchase_invoice_modification; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trg_prevent_locked_purchase_invoice_modification" BEFORE UPDATE ON "sales"."purchase_invoices" FOR EACH ROW EXECUTE FUNCTION "sales"."prevent_locked_purchase_invoice_modification"();
-
-
 --
 -- Name: purchase_invoice_lines trg_prevent_locked_purchase_line_modification; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trg_prevent_locked_purchase_line_modification" BEFORE INSERT OR DELETE OR UPDATE ON "sales"."purchase_invoice_lines" FOR EACH ROW EXECUTE FUNCTION "sales"."prevent_locked_purchase_line_modification"();
-
-
 --
 -- Name: purchase_invoices trigger_auto_create_invoice_purchase_entry; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_auto_create_invoice_purchase_entry" AFTER UPDATE OF "status" ON "sales"."purchase_invoices" FOR EACH ROW WHEN ((("new"."status" = 'APPROVED'::"text") AND (("old"."status" IS NULL) OR ("old"."status" <> 'APPROVED'::"text")))) EXECUTE FUNCTION "accounting"."auto_create_invoice_purchase_entry"();
-
-
 --
 -- Name: invoices trigger_auto_create_invoice_sale_entry; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_auto_create_invoice_sale_entry" AFTER UPDATE ON "sales"."invoices" FOR EACH ROW EXECUTE FUNCTION "accounting"."auto_create_invoice_sale_entry"();
-
-
 --
 -- Name: TRIGGER "trigger_auto_create_invoice_sale_entry" ON "invoices"; Type: COMMENT; Schema: sales; Owner: postgres
 --
 
 COMMENT ON TRIGGER "trigger_auto_create_invoice_sale_entry" ON "sales"."invoices" IS 'Trigger que crea autom├íticamente un asiento contable cuando una factura cambia a estado ISSUED';
-
-
 --
 -- Name: purchase_invoice_payments trigger_auto_create_purchase_payment_entry; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_auto_create_purchase_payment_entry" AFTER INSERT ON "sales"."purchase_invoice_payments" FOR EACH ROW EXECUTE FUNCTION "accounting"."auto_create_purchase_payment_entry"();
-
-
 --
 -- Name: invoices trigger_auto_project_closed; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_auto_project_closed" AFTER UPDATE ON "sales"."invoices" FOR EACH ROW WHEN ((("new"."status" = 'PAID'::"text") AND ("old"."status" IS DISTINCT FROM "new"."status"))) EXECUTE FUNCTION "projects"."auto_update_project_on_invoice_paid"();
-
-
 --
 -- Name: invoices trigger_auto_project_completed; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_auto_project_completed" AFTER INSERT ON "sales"."invoices" FOR EACH ROW WHEN (("new"."source_quote_id" IS NOT NULL)) EXECUTE FUNCTION "projects"."auto_update_project_on_invoice_created"();
-
-
 --
 -- Name: invoices trigger_auto_project_invoiced; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_auto_project_invoiced" AFTER UPDATE ON "sales"."invoices" FOR EACH ROW WHEN ((("new"."status" = 'ISSUED'::"text") AND ("old"."status" IS DISTINCT FROM "new"."status"))) EXECUTE FUNCTION "projects"."auto_update_project_on_invoice_issued"();
-
-
 --
 -- Name: invoices trigger_invoice_status_to_project; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_invoice_status_to_project" AFTER UPDATE OF "status" ON "sales"."invoices" FOR EACH ROW EXECUTE FUNCTION "sales"."log_invoice_status_to_project"();
-
-
 --
 -- Name: invoices trigger_lock_invoice_on_issue; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_lock_invoice_on_issue" BEFORE UPDATE OF "status" ON "sales"."invoices" FOR EACH ROW EXECUTE FUNCTION "sales"."lock_invoice_on_issue"();
-
-
 --
 -- Name: purchase_invoice_lines trigger_purchase_invoice_line_stock; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_purchase_invoice_line_stock" AFTER INSERT OR DELETE OR UPDATE OF "quantity", "product_id" ON "sales"."purchase_invoice_lines" FOR EACH ROW EXECUTE FUNCTION "catalog"."on_purchase_invoice_line_stock"();
-
-
 --
 -- Name: purchase_invoices trigger_purchase_invoice_status_to_project; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_purchase_invoice_status_to_project" AFTER UPDATE OF "status" ON "sales"."purchase_invoices" FOR EACH ROW EXECUTE FUNCTION "sales"."log_purchase_invoice_status_to_project"();
-
-
 --
 -- Name: purchase_order_lines trigger_purchase_order_lines_updated_at; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_purchase_order_lines_updated_at" BEFORE UPDATE ON "sales"."purchase_order_lines" FOR EACH ROW EXECUTE FUNCTION "sales"."update_purchase_order_timestamp"();
-
-
 --
 -- Name: purchase_orders trigger_purchase_orders_updated_at; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_purchase_orders_updated_at" BEFORE UPDATE ON "sales"."purchase_orders" FOR EACH ROW EXECUTE FUNCTION "sales"."update_purchase_order_timestamp"();
-
-
 --
 -- Name: invoice_lines trigger_recalculate_invoice_totals; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_recalculate_invoice_totals" AFTER INSERT OR DELETE OR UPDATE ON "sales"."invoice_lines" FOR EACH ROW EXECUTE FUNCTION "sales"."trigger_recalculate_invoice_totals"();
-
-
 --
 -- Name: invoice_payments trigger_recalculate_paid_amount; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_recalculate_paid_amount" AFTER INSERT OR DELETE OR UPDATE ON "sales"."invoice_payments" FOR EACH ROW EXECUTE FUNCTION "sales"."trigger_recalculate_paid_amount"();
-
-
 --
 -- Name: purchase_order_lines trigger_recalculate_po_totals; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_recalculate_po_totals" AFTER INSERT OR DELETE OR UPDATE ON "sales"."purchase_order_lines" FOR EACH ROW EXECUTE FUNCTION "sales"."recalculate_purchase_order_totals"();
-
-
 --
 -- Name: purchase_invoice_payments trigger_recalculate_purchase_paid; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_recalculate_purchase_paid" AFTER INSERT OR DELETE OR UPDATE ON "sales"."purchase_invoice_payments" FOR EACH ROW EXECUTE FUNCTION "sales"."recalculate_purchase_paid_amount"();
-
-
 --
 -- Name: purchase_invoice_payments trigger_recalculate_purchase_paid_amount; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_recalculate_purchase_paid_amount" AFTER INSERT OR DELETE OR UPDATE ON "sales"."purchase_invoice_payments" FOR EACH ROW EXECUTE FUNCTION "sales"."recalculate_purchase_invoice_paid_amount"();
-
-
 --
 -- Name: purchase_invoice_lines trigger_recalculate_purchase_totals; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_recalculate_purchase_totals" AFTER INSERT OR DELETE OR UPDATE ON "sales"."purchase_invoice_lines" FOR EACH ROW EXECUTE FUNCTION "sales"."recalculate_purchase_invoice_totals"();
-
-
 --
 -- Name: invoice_payments trigger_update_invoice_payment_updated_at; Type: TRIGGER; Schema: sales; Owner: postgres
 --
 
 CREATE TRIGGER "trigger_update_invoice_payment_updated_at" BEFORE UPDATE ON "sales"."invoice_payments" FOR EACH ROW EXECUTE FUNCTION "sales"."update_invoice_payment_updated_at"();
-
-
 --
 -- Name: account_balances account_balances_account_code_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."account_balances"
     ADD CONSTRAINT "account_balances_account_code_fkey" FOREIGN KEY ("account_code") REFERENCES "accounting"."chart_of_accounts"("account_code");
-
-
 --
 -- Name: chart_of_accounts chart_of_accounts_parent_account_code_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."chart_of_accounts"
     ADD CONSTRAINT "chart_of_accounts_parent_account_code_fkey" FOREIGN KEY ("parent_account_code") REFERENCES "accounting"."chart_of_accounts"("account_code");
-
-
 --
 -- Name: credit_installments credit_installments_bank_account_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."credit_installments"
     ADD CONSTRAINT "credit_installments_bank_account_id_fkey" FOREIGN KEY ("bank_account_id") REFERENCES "internal"."company_bank_accounts"("id");
-
-
 --
 -- Name: credit_installments credit_installments_operation_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."credit_installments"
     ADD CONSTRAINT "credit_installments_operation_id_fkey" FOREIGN KEY ("operation_id") REFERENCES "accounting"."credit_operations"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: credit_installments credit_installments_settlement_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."credit_installments"
     ADD CONSTRAINT "credit_installments_settlement_id_fkey" FOREIGN KEY ("settlement_id") REFERENCES "accounting"."credit_settlements"("id");
-
-
 --
 -- Name: credit_operations credit_operations_journal_entry_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."credit_operations"
     ADD CONSTRAINT "credit_operations_journal_entry_id_fkey" FOREIGN KEY ("journal_entry_id") REFERENCES "accounting"."journal_entries"("id");
-
-
 --
 -- Name: credit_operations credit_operations_provider_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."credit_operations"
     ADD CONSTRAINT "credit_operations_provider_id_fkey" FOREIGN KEY ("provider_id") REFERENCES "accounting"."external_credit_providers"("id");
-
-
 --
 -- Name: credit_settlements credit_settlements_journal_entry_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."credit_settlements"
     ADD CONSTRAINT "credit_settlements_journal_entry_id_fkey" FOREIGN KEY ("journal_entry_id") REFERENCES "accounting"."journal_entries"("id");
-
-
 --
 -- Name: credit_settlements credit_settlements_operation_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."credit_settlements"
     ADD CONSTRAINT "credit_settlements_operation_id_fkey" FOREIGN KEY ("operation_id") REFERENCES "accounting"."credit_operations"("id");
-
-
 --
 -- Name: journal_entries journal_entries_created_by_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."journal_entries"
     ADD CONSTRAINT "journal_entries_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: journal_entries journal_entries_project_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."journal_entries"
     ADD CONSTRAINT "journal_entries_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"."projects"("id");
-
-
 --
 -- Name: journal_entry_lines journal_entry_lines_account_code_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."journal_entry_lines"
     ADD CONSTRAINT "journal_entry_lines_account_code_fkey" FOREIGN KEY ("account_code") REFERENCES "accounting"."chart_of_accounts"("account_code");
-
-
 --
 -- Name: journal_entry_lines journal_entry_lines_journal_entry_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."journal_entry_lines"
     ADD CONSTRAINT "journal_entry_lines_journal_entry_id_fkey" FOREIGN KEY ("journal_entry_id") REFERENCES "accounting"."journal_entries"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: monthly_reports monthly_reports_generated_by_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."monthly_reports"
     ADD CONSTRAINT "monthly_reports_generated_by_fkey" FOREIGN KEY ("generated_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: monthly_reports monthly_reports_period_closure_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."monthly_reports"
     ADD CONSTRAINT "monthly_reports_period_closure_id_fkey" FOREIGN KEY ("period_closure_id") REFERENCES "accounting"."period_closures"("id");
-
-
 --
 -- Name: partner_compensation_runs partner_compensation_runs_created_by_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."partner_compensation_runs"
     ADD CONSTRAINT "partner_compensation_runs_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: partner_compensation_runs partner_compensation_runs_journal_entry_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."partner_compensation_runs"
     ADD CONSTRAINT "partner_compensation_runs_journal_entry_id_fkey" FOREIGN KEY ("journal_entry_id") REFERENCES "accounting"."journal_entries"("id");
-
-
 --
 -- Name: partner_compensation_runs partner_compensation_runs_partner_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."partner_compensation_runs"
     ADD CONSTRAINT "partner_compensation_runs_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "internal"."partners"("id");
-
-
 --
 -- Name: payroll_payments payroll_payments_company_bank_account_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."payroll_payments"
     ADD CONSTRAINT "payroll_payments_company_bank_account_id_fkey" FOREIGN KEY ("company_bank_account_id") REFERENCES "internal"."company_bank_accounts"("id");
-
-
 --
 -- Name: payroll_payments payroll_payments_created_by_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."payroll_payments"
     ADD CONSTRAINT "payroll_payments_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: payroll_payments payroll_payments_journal_entry_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."payroll_payments"
     ADD CONSTRAINT "payroll_payments_journal_entry_id_fkey" FOREIGN KEY ("journal_entry_id") REFERENCES "accounting"."journal_entries"("id");
-
-
 --
 -- Name: payroll_payments payroll_payments_partner_compensation_run_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."payroll_payments"
     ADD CONSTRAINT "payroll_payments_partner_compensation_run_id_fkey" FOREIGN KEY ("partner_compensation_run_id") REFERENCES "internal"."partner_compensation_runs"("id");
-
-
 --
 -- Name: payroll_payments payroll_payments_payroll_run_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."payroll_payments"
     ADD CONSTRAINT "payroll_payments_payroll_run_id_fkey" FOREIGN KEY ("payroll_run_id") REFERENCES "accounting"."payroll_runs"("id");
-
-
 --
 -- Name: payroll_runs payroll_runs_created_by_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."payroll_runs"
     ADD CONSTRAINT "payroll_runs_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: payroll_runs payroll_runs_employee_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."payroll_runs"
     ADD CONSTRAINT "payroll_runs_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "internal"."employees"("id");
-
-
 --
 -- Name: payroll_runs payroll_runs_journal_entry_id_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."payroll_runs"
     ADD CONSTRAINT "payroll_runs_journal_entry_id_fkey" FOREIGN KEY ("journal_entry_id") REFERENCES "accounting"."journal_entries"("id");
-
-
 --
 -- Name: period_closures period_closures_closed_by_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."period_closures"
     ADD CONSTRAINT "period_closures_closed_by_fkey" FOREIGN KEY ("closed_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: tax_config tax_config_account_code_credit_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."tax_config"
     ADD CONSTRAINT "tax_config_account_code_credit_fkey" FOREIGN KEY ("account_code_credit") REFERENCES "accounting"."chart_of_accounts"("account_code");
-
-
 --
 -- Name: tax_config tax_config_account_code_debit_fkey; Type: FK CONSTRAINT; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE ONLY "accounting"."tax_config"
     ADD CONSTRAINT "tax_config_account_code_debit_fkey" FOREIGN KEY ("account_code_debit") REFERENCES "accounting"."chart_of_accounts"("account_code");
-
-
 --
 -- Name: logs logs_user_id_fkey; Type: FK CONSTRAINT; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE ONLY "audit"."logs"
     ADD CONSTRAINT "logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id");
-
-
 --
 -- Name: _mig_category_map _mig_category_map_catalog_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."_mig_category_map"
     ADD CONSTRAINT "_mig_category_map_catalog_id_fkey" FOREIGN KEY ("catalog_id") REFERENCES "catalog"."categories"("id");
-
-
 --
 -- Name: _mig_pack_map _mig_pack_map_catalog_product_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."_mig_pack_map"
     ADD CONSTRAINT "_mig_pack_map_catalog_product_id_fkey" FOREIGN KEY ("catalog_product_id") REFERENCES "catalog"."products"("id");
-
-
 --
 -- Name: _mig_product_map _mig_product_map_catalog_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."_mig_product_map"
     ADD CONSTRAINT "_mig_product_map_catalog_id_fkey" FOREIGN KEY ("catalog_id") REFERENCES "catalog"."products"("id");
-
-
 --
 -- Name: _mig_subcategory_map _mig_subcategory_map_catalog_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."_mig_subcategory_map"
     ADD CONSTRAINT "_mig_subcategory_map_catalog_id_fkey" FOREIGN KEY ("catalog_id") REFERENCES "catalog"."categories"("id");
-
-
 --
 -- Name: categories categories_parent_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."categories"
     ADD CONSTRAINT "categories_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "catalog"."categories"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: erp_sync_log erp_sync_log_initiated_by_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."erp_sync_log"
     ADD CONSTRAINT "erp_sync_log_initiated_by_fkey" FOREIGN KEY ("initiated_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: external_catalog_sync_runs external_catalog_sync_runs_source_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."external_catalog_sync_runs"
     ADD CONSTRAINT "external_catalog_sync_runs_source_id_fkey" FOREIGN KEY ("source_id") REFERENCES "catalog"."external_catalog_sources"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: product_bundles product_bundles_bundle_product_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."product_bundles"
     ADD CONSTRAINT "product_bundles_bundle_product_id_fkey" FOREIGN KEY ("bundle_product_id") REFERENCES "catalog"."products"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: product_bundles product_bundles_component_product_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."product_bundles"
     ADD CONSTRAINT "product_bundles_component_product_id_fkey" FOREIGN KEY ("component_product_id") REFERENCES "catalog"."products"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: product_documents product_documents_product_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."product_documents"
     ADD CONSTRAINT "product_documents_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "catalog"."products"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: products products_category_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."products"
     ADD CONSTRAINT "products_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "catalog"."categories"("id");
-
-
 --
 -- Name: products products_created_by_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."products"
     ADD CONSTRAINT "products_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: products products_supplier_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."products"
     ADD CONSTRAINT "products_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "internal"."suppliers"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: products products_tax_rate_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."products"
     ADD CONSTRAINT "products_tax_rate_id_fkey" FOREIGN KEY ("tax_rate_id") REFERENCES "catalog"."tax_rates"("id");
-
-
 --
 -- Name: stock_alerts stock_alerts_product_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."stock_alerts"
     ADD CONSTRAINT "stock_alerts_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "catalog"."products"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: stock_movements stock_movements_product_id_fkey; Type: FK CONSTRAINT; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE ONLY "catalog"."stock_movements"
     ADD CONSTRAINT "stock_movements_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "catalog"."products"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: client_notes client_notes_client_id_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."client_notes"
     ADD CONSTRAINT "client_notes_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "crm"."clients"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: clients clients_assigned_to_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."clients"
     ADD CONSTRAINT "clients_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: clients clients_created_by_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."clients"
     ADD CONSTRAINT "clients_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: contact_messages contact_messages_assigned_to_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."contact_messages"
     ADD CONSTRAINT "contact_messages_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "auth"."users"("id");
-
-
 --
 -- Name: contacts contacts_client_id_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."contacts"
     ADD CONSTRAINT "contacts_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "crm"."clients"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: interactions interactions_client_id_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."interactions"
     ADD CONSTRAINT "interactions_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "crm"."clients"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: interactions interactions_created_by_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."interactions"
     ADD CONSTRAINT "interactions_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: location location_assigned_to_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."location"
     ADD CONSTRAINT "location_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: location location_created_by_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."location"
     ADD CONSTRAINT "location_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: location location_modified_by_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."location"
     ADD CONSTRAINT "location_modified_by_fkey" FOREIGN KEY ("modified_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: location_notes location_notes_created_by_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."location_notes"
     ADD CONSTRAINT "location_notes_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: location_notes location_notes_edited_by_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."location_notes"
     ADD CONSTRAINT "location_notes_edited_by_fkey" FOREIGN KEY ("edited_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: location_notes location_notes_location_id_fkey; Type: FK CONSTRAINT; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE ONLY "crm"."location_notes"
     ADD CONSTRAINT "location_notes_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "crm"."location"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: authorized_users authorized_users_linked_employee_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."authorized_users"
     ADD CONSTRAINT "authorized_users_linked_employee_id_fkey" FOREIGN KEY ("linked_employee_id") REFERENCES "internal"."employees"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: authorized_users authorized_users_linked_partner_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."authorized_users"
     ADD CONSTRAINT "authorized_users_linked_partner_id_fkey" FOREIGN KEY ("linked_partner_id") REFERENCES "internal"."partners"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: authorized_users fk_auth_user; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."authorized_users"
     ADD CONSTRAINT "fk_auth_user" FOREIGN KEY ("auth_user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: invitation_tokens invitation_tokens_user_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."invitation_tokens"
     ADD CONSTRAINT "invitation_tokens_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "internal"."authorized_users"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: partner_compensation_runs partner_compensation_runs_created_by_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."partner_compensation_runs"
     ADD CONSTRAINT "partner_compensation_runs_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: partner_compensation_runs partner_compensation_runs_journal_entry_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."partner_compensation_runs"
     ADD CONSTRAINT "partner_compensation_runs_journal_entry_id_fkey" FOREIGN KEY ("journal_entry_id") REFERENCES "accounting"."journal_entries"("id");
-
-
 --
 -- Name: partner_compensation_runs partner_compensation_runs_partner_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."partner_compensation_runs"
     ADD CONSTRAINT "partner_compensation_runs_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "internal"."partners"("id") ON DELETE RESTRICT;
-
-
 --
 -- Name: partner_payroll_profiles partner_payroll_profiles_partner_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."partner_payroll_profiles"
     ADD CONSTRAINT "partner_payroll_profiles_partner_id_fkey" FOREIGN KEY ("partner_id") REFERENCES "internal"."partners"("id");
-
-
 --
 -- Name: partner_payroll_profiles partner_payroll_profiles_updated_by_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."partner_payroll_profiles"
     ADD CONSTRAINT "partner_payroll_profiles_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: payroll_settings_audit payroll_settings_audit_changed_by_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."payroll_settings_audit"
     ADD CONSTRAINT "payroll_settings_audit_changed_by_fkey" FOREIGN KEY ("changed_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: payroll_settings_audit payroll_settings_audit_settings_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."payroll_settings_audit"
     ADD CONSTRAINT "payroll_settings_audit_settings_id_fkey" FOREIGN KEY ("settings_id") REFERENCES "internal"."payroll_settings"("id");
-
-
 --
 -- Name: payroll_settings payroll_settings_updated_by_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."payroll_settings"
     ADD CONSTRAINT "payroll_settings_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: product_pack_items product_pack_items_pack_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."product_pack_items"
     ADD CONSTRAINT "product_pack_items_pack_id_fkey" FOREIGN KEY ("pack_id") REFERENCES "internal"."product_packs"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: product_pack_items product_pack_items_product_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."product_pack_items"
     ADD CONSTRAINT "product_pack_items_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "internal"."products"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: product_subcategories product_subcategories_category_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."product_subcategories"
     ADD CONSTRAINT "product_subcategories_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "internal"."product_categories"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: products products_category_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."products"
     ADD CONSTRAINT "products_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "internal"."product_categories"("id");
-
-
 --
 -- Name: products products_default_tax_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."products"
     ADD CONSTRAINT "products_default_tax_id_fkey" FOREIGN KEY ("default_tax_id") REFERENCES "internal"."taxes"("id");
-
-
 --
 -- Name: products products_subcategory_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."products"
     ADD CONSTRAINT "products_subcategory_id_fkey" FOREIGN KEY ("subcategory_id") REFERENCES "internal"."product_subcategories"("id");
-
-
 --
 -- Name: report_settings report_settings_updated_by_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."report_settings"
     ADD CONSTRAINT "report_settings_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: task_activity task_activity_task_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."task_activity"
     ADD CONSTRAINT "task_activity_task_id_fkey" FOREIGN KEY ("task_id") REFERENCES "internal"."tasks"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: task_assignees task_assignees_task_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."task_assignees"
     ADD CONSTRAINT "task_assignees_task_id_fkey" FOREIGN KEY ("task_id") REFERENCES "internal"."tasks"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: technicians technicians_created_by_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."technicians"
     ADD CONSTRAINT "technicians_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: user_roles user_roles_granted_by_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."user_roles"
     ADD CONSTRAINT "user_roles_granted_by_fkey" FOREIGN KEY ("granted_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: user_roles user_roles_role_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."user_roles"
     ADD CONSTRAINT "user_roles_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "internal"."roles"("id") ON DELETE RESTRICT;
-
-
 --
 -- Name: user_roles user_roles_user_id_fkey; Type: FK CONSTRAINT; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE ONLY "internal"."user_roles"
     ADD CONSTRAINT "user_roles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "internal"."authorized_users"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: av_projects av_projects_project_id_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."av_projects"
     ADD CONSTRAINT "av_projects_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"."projects"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: customer_orders customer_orders_project_id_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."customer_orders"
     ADD CONSTRAINT "customer_orders_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"."projects"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: expenses expenses_created_by_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."expenses"
     ADD CONSTRAINT "expenses_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: expenses expenses_project_id_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."expenses"
     ADD CONSTRAINT "expenses_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"."projects"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: projects fk_projects_default_site; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."projects"
     ADD CONSTRAINT "fk_projects_default_site" FOREIGN KEY ("default_site_id") REFERENCES "projects"."project_sites"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: project_activity project_activity_created_by_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_activity"
     ADD CONSTRAINT "project_activity_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
-
-
 --
 -- Name: project_activity project_activity_project_id_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_activity"
     ADD CONSTRAINT "project_activity_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"."projects"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: project_documents project_documents_project_id_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_documents"
     ADD CONSTRAINT "project_documents_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"."projects"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: project_documents project_documents_uploaded_by_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_documents"
     ADD CONSTRAINT "project_documents_uploaded_by_fkey" FOREIGN KEY ("uploaded_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: project_sites project_sites_project_id_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_sites"
     ADD CONSTRAINT "project_sites_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"."projects"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: project_tasks project_tasks_assigned_to_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_tasks"
     ADD CONSTRAINT "project_tasks_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: project_tasks project_tasks_created_by_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_tasks"
     ADD CONSTRAINT "project_tasks_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: project_tasks project_tasks_parent_task_id_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_tasks"
     ADD CONSTRAINT "project_tasks_parent_task_id_fkey" FOREIGN KEY ("parent_task_id") REFERENCES "projects"."project_tasks"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: project_tasks project_tasks_project_id_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."project_tasks"
     ADD CONSTRAINT "project_tasks_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"."projects"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: projects projects_assigned_to_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."projects"
     ADD CONSTRAINT "projects_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: projects projects_client_id_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."projects"
     ADD CONSTRAINT "projects_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "crm"."clients"("id");
-
-
 --
 -- Name: projects projects_created_by_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."projects"
     ADD CONSTRAINT "projects_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: projects projects_quote_id_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."projects"
     ADD CONSTRAINT "projects_quote_id_fkey" FOREIGN KEY ("quote_id") REFERENCES "quotes"."quotes"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: site_technician_assignments site_technician_assignments_site_id_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."site_technician_assignments"
     ADD CONSTRAINT "site_technician_assignments_site_id_fkey" FOREIGN KEY ("site_id") REFERENCES "projects"."project_sites"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: site_visits site_visits_site_id_fkey; Type: FK CONSTRAINT; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE ONLY "projects"."site_visits"
     ADD CONSTRAINT "site_visits_site_id_fkey" FOREIGN KEY ("site_id") REFERENCES "projects"."project_sites"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: scanned_documents scanned_documents_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY "public"."scanned_documents"
     ADD CONSTRAINT "scanned_documents_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: user_roles user_roles_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY "public"."user_roles"
     ADD CONSTRAINT "user_roles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: quote_activity quote_activity_created_by_fkey; Type: FK CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quote_activity"
     ADD CONSTRAINT "quote_activity_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
-
-
 --
 -- Name: quote_activity quote_activity_quote_id_fkey; Type: FK CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quote_activity"
     ADD CONSTRAINT "quote_activity_quote_id_fkey" FOREIGN KEY ("quote_id") REFERENCES "quotes"."quotes"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: quote_history quote_history_changed_by_fkey; Type: FK CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quote_history"
     ADD CONSTRAINT "quote_history_changed_by_fkey" FOREIGN KEY ("changed_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: quote_history quote_history_quote_id_fkey; Type: FK CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quote_history"
     ADD CONSTRAINT "quote_history_quote_id_fkey" FOREIGN KEY ("quote_id") REFERENCES "quotes"."quotes"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: quote_lines quote_lines_quote_id_fkey; Type: FK CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quote_lines"
     ADD CONSTRAINT "quote_lines_quote_id_fkey" FOREIGN KEY ("quote_id") REFERENCES "quotes"."quotes"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: quotes quotes_archived_pdf_generated_by_fkey; Type: FK CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quotes"
     ADD CONSTRAINT "quotes_archived_pdf_generated_by_fkey" FOREIGN KEY ("archived_pdf_generated_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: quotes quotes_project_id_fkey; Type: FK CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quotes"
     ADD CONSTRAINT "quotes_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"."projects"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: quotes quotes_site_id_fkey; Type: FK CONSTRAINT; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE ONLY "quotes"."quotes"
     ADD CONSTRAINT "quotes_site_id_fkey" FOREIGN KEY ("site_id") REFERENCES "projects"."project_sites"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: invoice_lines invoice_lines_invoice_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoice_lines"
     ADD CONSTRAINT "invoice_lines_invoice_id_fkey" FOREIGN KEY ("invoice_id") REFERENCES "sales"."invoices"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: invoice_payments invoice_payments_invoice_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoice_payments"
     ADD CONSTRAINT "invoice_payments_invoice_id_fkey" FOREIGN KEY ("invoice_id") REFERENCES "sales"."invoices"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: invoice_payments invoice_payments_registered_by_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoice_payments"
     ADD CONSTRAINT "invoice_payments_registered_by_fkey" FOREIGN KEY ("registered_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: invoices invoices_archived_pdf_generated_by_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoices"
     ADD CONSTRAINT "invoices_archived_pdf_generated_by_fkey" FOREIGN KEY ("archived_pdf_generated_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: invoices invoices_client_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoices"
     ADD CONSTRAINT "invoices_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "crm"."clients"("id") ON DELETE RESTRICT;
-
-
 --
 -- Name: invoices invoices_original_invoice_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoices"
     ADD CONSTRAINT "invoices_original_invoice_id_fkey" FOREIGN KEY ("original_invoice_id") REFERENCES "sales"."invoices"("id");
-
-
 --
 -- Name: invoices invoices_project_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoices"
     ADD CONSTRAINT "invoices_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"."projects"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: invoices invoices_rectified_by_invoice_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoices"
     ADD CONSTRAINT "invoices_rectified_by_invoice_id_fkey" FOREIGN KEY ("rectified_by_invoice_id") REFERENCES "sales"."invoices"("id");
-
-
 --
 -- Name: invoices invoices_site_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoices"
     ADD CONSTRAINT "invoices_site_id_fkey" FOREIGN KEY ("site_id") REFERENCES "projects"."project_sites"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: invoices invoices_source_quote_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."invoices"
     ADD CONSTRAINT "invoices_source_quote_id_fkey" FOREIGN KEY ("source_quote_id") REFERENCES "quotes"."quotes"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: purchase_invoice_lines purchase_invoice_lines_purchase_invoice_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoice_lines"
     ADD CONSTRAINT "purchase_invoice_lines_purchase_invoice_id_fkey" FOREIGN KEY ("purchase_invoice_id") REFERENCES "sales"."purchase_invoices"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: purchase_invoice_payments purchase_invoice_payments_purchase_invoice_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoice_payments"
     ADD CONSTRAINT "purchase_invoice_payments_purchase_invoice_id_fkey" FOREIGN KEY ("purchase_invoice_id") REFERENCES "sales"."purchase_invoices"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: purchase_invoice_payments purchase_invoice_payments_registered_by_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoice_payments"
     ADD CONSTRAINT "purchase_invoice_payments_registered_by_fkey" FOREIGN KEY ("registered_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: purchase_invoices purchase_invoices_archived_pdf_generated_by_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoices"
     ADD CONSTRAINT "purchase_invoices_archived_pdf_generated_by_fkey" FOREIGN KEY ("archived_pdf_generated_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: purchase_invoices purchase_invoices_client_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoices"
     ADD CONSTRAINT "purchase_invoices_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "crm"."clients"("id");
-
-
 --
 -- Name: purchase_invoices purchase_invoices_project_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoices"
     ADD CONSTRAINT "purchase_invoices_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"."projects"("id");
-
-
 --
 -- Name: purchase_invoices purchase_invoices_site_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoices"
     ADD CONSTRAINT "purchase_invoices_site_id_fkey" FOREIGN KEY ("site_id") REFERENCES "projects"."project_sites"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: purchase_invoices purchase_invoices_supplier_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoices"
     ADD CONSTRAINT "purchase_invoices_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "internal"."suppliers"("id");
-
-
 --
 -- Name: purchase_invoices purchase_invoices_technician_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_invoices"
     ADD CONSTRAINT "purchase_invoices_technician_id_fkey" FOREIGN KEY ("technician_id") REFERENCES "internal"."technicians"("id");
-
-
 --
 -- Name: purchase_order_lines purchase_order_lines_purchase_order_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_order_lines"
     ADD CONSTRAINT "purchase_order_lines_purchase_order_id_fkey" FOREIGN KEY ("purchase_order_id") REFERENCES "sales"."purchase_orders"("id") ON DELETE CASCADE;
-
-
 --
 -- Name: purchase_orders purchase_orders_approved_by_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_orders"
     ADD CONSTRAINT "purchase_orders_approved_by_fkey" FOREIGN KEY ("approved_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: purchase_orders purchase_orders_created_by_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_orders"
     ADD CONSTRAINT "purchase_orders_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "internal"."authorized_users"("id");
-
-
 --
 -- Name: purchase_orders purchase_orders_linked_purchase_invoice_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_orders"
     ADD CONSTRAINT "purchase_orders_linked_purchase_invoice_id_fkey" FOREIGN KEY ("linked_purchase_invoice_id") REFERENCES "sales"."purchase_invoices"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: purchase_orders purchase_orders_project_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_orders"
     ADD CONSTRAINT "purchase_orders_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"."projects"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: purchase_orders purchase_orders_site_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_orders"
     ADD CONSTRAINT "purchase_orders_site_id_fkey" FOREIGN KEY ("site_id") REFERENCES "projects"."project_sites"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: purchase_orders purchase_orders_supplier_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_orders"
     ADD CONSTRAINT "purchase_orders_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "internal"."suppliers"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: purchase_orders purchase_orders_technician_id_fkey; Type: FK CONSTRAINT; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE ONLY "sales"."purchase_orders"
     ADD CONSTRAINT "purchase_orders_technician_id_fkey" FOREIGN KEY ("technician_id") REFERENCES "internal"."technicians"("id") ON DELETE SET NULL;
-
-
 --
 -- Name: account_balances Admin can manage account balances; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage account balances" ON "accounting"."account_balances" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: chart_of_accounts Admin can manage chart of accounts; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage chart of accounts" ON "accounting"."chart_of_accounts" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: journal_entries Admin can manage journal entries; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage journal entries" ON "accounting"."journal_entries" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: journal_entry_lines Admin can manage journal entry lines; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage journal entry lines" ON "accounting"."journal_entry_lines" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: partner_compensation_runs Admin can manage partner compensations; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage partner compensations" ON "accounting"."partner_compensation_runs" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: payroll_payments Admin can manage payroll payments; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage payroll payments" ON "accounting"."payroll_payments" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: payroll_runs Admin can manage payroll runs; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage payroll runs" ON "accounting"."payroll_runs" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: tax_config Admin can manage tax config; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage tax config" ON "accounting"."tax_config" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: account_balances Admin can view account balances; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can view account balances" ON "accounting"."account_balances" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: chart_of_accounts Admin can view chart of accounts; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can view chart of accounts" ON "accounting"."chart_of_accounts" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: journal_entries Admin can view journal entries; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can view journal entries" ON "accounting"."journal_entries" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: journal_entry_lines Admin can view journal entry lines; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can view journal entry lines" ON "accounting"."journal_entry_lines" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: partner_compensation_runs Admin can view partner compensations; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can view partner compensations" ON "accounting"."partner_compensation_runs" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: payroll_payments Admin can view payroll payments; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can view payroll payments" ON "accounting"."payroll_payments" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: payroll_runs Admin can view payroll runs; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can view payroll runs" ON "accounting"."payroll_runs" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: tax_config Admin can view tax config; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "Admin can view tax config" ON "accounting"."tax_config" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: account_balances; Type: ROW SECURITY; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE "accounting"."account_balances" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: credit_installments admin_manager_all; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "admin_manager_all" ON "accounting"."credit_installments" USING (("internal"."is_admin"() OR "internal"."is_manager"())) WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: credit_operations admin_manager_all; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "admin_manager_all" ON "accounting"."credit_operations" USING (("internal"."is_admin"() OR "internal"."is_manager"())) WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: credit_settlements admin_manager_all; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "admin_manager_all" ON "accounting"."credit_settlements" USING (("internal"."is_admin"() OR "internal"."is_manager"())) WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: external_credit_providers admin_manager_all; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "admin_manager_all" ON "accounting"."external_credit_providers" USING (("internal"."is_admin"() OR "internal"."is_manager"())) WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: chart_of_accounts; Type: ROW SECURITY; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE "accounting"."chart_of_accounts" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: credit_installments; Type: ROW SECURITY; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE "accounting"."credit_installments" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: credit_operations; Type: ROW SECURITY; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE "accounting"."credit_operations" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: credit_settlements; Type: ROW SECURITY; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE "accounting"."credit_settlements" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: external_credit_providers; Type: ROW SECURITY; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE "accounting"."external_credit_providers" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: journal_entries; Type: ROW SECURITY; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE "accounting"."journal_entries" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: journal_entry_lines; Type: ROW SECURITY; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE "accounting"."journal_entry_lines" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: partner_compensation_runs; Type: ROW SECURITY; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE "accounting"."partner_compensation_runs" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: payroll_payments; Type: ROW SECURITY; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE "accounting"."payroll_payments" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: payroll_runs; Type: ROW SECURITY; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE "accounting"."payroll_runs" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: tax_config; Type: ROW SECURITY; Schema: accounting; Owner: postgres
 --
 
 ALTER TABLE "accounting"."tax_config" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: credit_installments users_select; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "users_select" ON "accounting"."credit_installments" FOR SELECT USING (true);
-
-
 --
 -- Name: credit_operations users_select; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "users_select" ON "accounting"."credit_operations" FOR SELECT USING (true);
-
-
 --
 -- Name: credit_settlements users_select; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "users_select" ON "accounting"."credit_settlements" FOR SELECT USING (true);
-
-
 --
 -- Name: external_credit_providers users_select; Type: POLICY; Schema: accounting; Owner: postgres
 --
 
 CREATE POLICY "users_select" ON "accounting"."external_credit_providers" FOR SELECT USING (true);
-
-
 --
 -- Name: sequence_counters Admin can manage sequence counters; Type: POLICY; Schema: audit; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage sequence counters" ON "audit"."sequence_counters" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: audit_log Admin can view all audit logs; Type: POLICY; Schema: audit; Owner: postgres
 --
 
 CREATE POLICY "Admin can view all audit logs" ON "audit"."audit_log" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: logs Admin can view audit logs; Type: POLICY; Schema: audit; Owner: postgres
 --
 
 CREATE POLICY "Admin can view audit logs" ON "audit"."logs" FOR SELECT TO "authenticated" USING ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role"));
-
-
 --
 -- Name: sequence_counters Authenticated can use sequences; Type: POLICY; Schema: audit; Owner: postgres
 --
 
 CREATE POLICY "Authenticated can use sequences" ON "audit"."sequence_counters" TO "authenticated" USING (("auth"."uid"() IS NOT NULL)) WITH CHECK (("auth"."uid"() IS NOT NULL));
-
-
 --
 -- Name: audit_log Internal can insert audit logs; Type: POLICY; Schema: audit; Owner: postgres
 --
 
 CREATE POLICY "Internal can insert audit logs" ON "audit"."audit_log" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() IS NOT NULL));
-
-
 --
 -- Name: audit_log Manager can view audit logs; Type: POLICY; Schema: audit; Owner: postgres
 --
 
 CREATE POLICY "Manager can view audit logs" ON "audit"."audit_log" FOR SELECT USING ("internal"."is_manager"());
-
-
 --
 -- Name: events Only admins can view audit events; Type: POLICY; Schema: audit; Owner: postgres
 --
@@ -33500,488 +29785,366 @@ CREATE POLICY "Manager can view audit logs" ON "audit"."audit_log" FOR SELECT US
 CREATE POLICY "Only admins can view audit events" ON "audit"."events" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles" "ur"
   WHERE (("ur"."user_id" = "auth"."uid"()) AND ("ur"."role" = 'admin'::"public"."app_role")))));
-
-
 --
 -- Name: events Service role can insert audit events; Type: POLICY; Schema: audit; Owner: postgres
 --
 
 CREATE POLICY "Service role can insert audit events" ON "audit"."events" FOR INSERT TO "service_role" WITH CHECK (true);
-
-
 --
 -- Name: logs Service role can insert audit logs; Type: POLICY; Schema: audit; Owner: postgres
 --
 
 CREATE POLICY "Service role can insert audit logs" ON "audit"."logs" FOR INSERT TO "service_role" WITH CHECK (true);
-
-
 --
 -- Name: archived_records admin_access_archive; Type: POLICY; Schema: audit; Owner: postgres
 --
 
 CREATE POLICY "admin_access_archive" ON "audit"."archived_records" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: retention_policy admin_manage_retention; Type: POLICY; Schema: audit; Owner: postgres
 --
 
 CREATE POLICY "admin_manage_retention" ON "audit"."retention_policy" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: archived_records; Type: ROW SECURITY; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE "audit"."archived_records" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: audit_log; Type: ROW SECURITY; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE "audit"."audit_log" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: events; Type: ROW SECURITY; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE "audit"."events" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: logs; Type: ROW SECURITY; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE "audit"."logs" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: archived_records manager_view_archive; Type: POLICY; Schema: audit; Owner: postgres
 --
 
 CREATE POLICY "manager_view_archive" ON "audit"."archived_records" FOR SELECT USING ("internal"."is_manager"());
-
-
 --
 -- Name: retention_policy manager_view_retention; Type: POLICY; Schema: audit; Owner: postgres
 --
 
 CREATE POLICY "manager_view_retention" ON "audit"."retention_policy" FOR SELECT USING ("internal"."is_manager"());
-
-
 --
 -- Name: retention_policy; Type: ROW SECURITY; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE "audit"."retention_policy" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: sequence_counters; Type: ROW SECURITY; Schema: audit; Owner: postgres
 --
 
 ALTER TABLE "audit"."sequence_counters" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: external_catalog_sync_runs Admin can insert external_catalog_sync_runs; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Admin can insert external_catalog_sync_runs" ON "catalog"."external_catalog_sync_runs" FOR INSERT TO "authenticated" WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: product_bundles Admin can manage bundles; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage bundles" ON "catalog"."product_bundles" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: categories Admin can manage categories; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage categories" ON "catalog"."categories" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: external_catalog_sources Admin can manage external_catalog_sources; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage external_catalog_sources" ON "catalog"."external_catalog_sources" TO "authenticated" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: product_documents Admin can manage product_documents; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage product_documents" ON "catalog"."product_documents" TO "authenticated" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: products Admin can manage products; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage products" ON "catalog"."products" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: stock_alerts Admin can manage stock_alerts; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage stock_alerts" ON "catalog"."stock_alerts" TO "authenticated" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: erp_sync_log Admin can manage sync logs; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage sync logs" ON "catalog"."erp_sync_log" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: tax_rates Admin can manage tax rates; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage tax rates" ON "catalog"."tax_rates" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: external_catalog_sync_runs Admin can view external_catalog_sync_runs; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Admin can view external_catalog_sync_runs" ON "catalog"."external_catalog_sync_runs" FOR SELECT TO "authenticated" USING ("internal"."is_admin"());
-
-
 --
 -- Name: erp_sync_log Admin can view sync logs; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Admin can view sync logs" ON "catalog"."erp_sync_log" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: stock_movements Admin/manager can insert stock_movements; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Admin/manager can insert stock_movements" ON "catalog"."stock_movements" FOR INSERT TO "authenticated" WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: product_bundles Authenticated can view bundles; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Authenticated can view bundles" ON "catalog"."product_bundles" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: categories Authenticated can view categories; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Authenticated can view categories" ON "catalog"."categories" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: product_documents Authenticated can view product_documents; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Authenticated can view product_documents" ON "catalog"."product_documents" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: products Authenticated can view products; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Authenticated can view products" ON "catalog"."products" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: stock_alerts Authenticated can view stock_alerts; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Authenticated can view stock_alerts" ON "catalog"."stock_alerts" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: stock_movements Authenticated can view stock_movements; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Authenticated can view stock_movements" ON "catalog"."stock_movements" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: tax_rates Authenticated can view tax rates; Type: POLICY; Schema: catalog; Owner: postgres
 --
 
 CREATE POLICY "Authenticated can view tax rates" ON "catalog"."tax_rates" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: categories; Type: ROW SECURITY; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE "catalog"."categories" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: erp_sync_log; Type: ROW SECURITY; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE "catalog"."erp_sync_log" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: external_catalog_sources; Type: ROW SECURITY; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE "catalog"."external_catalog_sources" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: external_catalog_sync_runs; Type: ROW SECURITY; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE "catalog"."external_catalog_sync_runs" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: product_bundles; Type: ROW SECURITY; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE "catalog"."product_bundles" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: product_documents; Type: ROW SECURITY; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE "catalog"."product_documents" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: products; Type: ROW SECURITY; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE "catalog"."products" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: stock_alerts; Type: ROW SECURITY; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE "catalog"."stock_alerts" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: stock_movements; Type: ROW SECURITY; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE "catalog"."stock_movements" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: tax_rates; Type: ROW SECURITY; Schema: catalog; Owner: postgres
 --
 
 ALTER TABLE "catalog"."tax_rates" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: contact_messages Admin and comercial can update contact messages; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Admin and comercial can update contact messages" ON "crm"."contact_messages" FOR UPDATE TO "authenticated" USING (("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role") OR "public"."has_role"("auth"."uid"(), 'comercial'::"public"."app_role")));
-
-
 --
 -- Name: location Admin and manager can view all canvassing locations; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Admin and manager can view all canvassing locations" ON "crm"."location" FOR SELECT TO "authenticated" USING (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: clients Admin can delete clients; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Admin can delete clients" ON "crm"."clients" FOR DELETE USING ("internal"."is_admin"());
-
-
 --
 -- Name: lead_sources Admin can manage lead sources; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage lead sources" ON "crm"."lead_sources" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: clients Admin manager can update all clients; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Admin manager can update all clients" ON "crm"."clients" FOR UPDATE USING (("internal"."is_admin"() OR "internal"."is_manager"())) WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: clients Admin manager readonly can view all clients; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Admin manager readonly can view all clients" ON "crm"."clients" FOR SELECT USING (("internal"."is_admin"() OR "internal"."is_manager"() OR "internal"."is_readonly"()));
-
-
 --
 -- Name: clients Admin manager sales can create clients; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Admin manager sales can create clients" ON "crm"."clients" FOR INSERT WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"() OR "internal"."is_sales"()));
-
-
 --
 -- Name: lead_sources Authenticated can view lead sources; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Authenticated can view lead sources" ON "crm"."lead_sources" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: contact_messages Authenticated users can view contact messages; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can view contact messages" ON "crm"."contact_messages" FOR SELECT TO "authenticated" USING (("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role") OR "public"."has_role"("auth"."uid"(), 'comercial'::"public"."app_role") OR "public"."has_role"("auth"."uid"(), 'tecnico'::"public"."app_role")));
-
-
 --
 -- Name: client_notes Only admins can delete notes; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Only admins can delete notes" ON "crm"."client_notes" FOR DELETE USING ("internal"."is_admin"());
-
-
 --
 -- Name: clients Sales can update assigned clients; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Sales can update assigned clients" ON "crm"."clients" FOR UPDATE USING (("internal"."is_sales"() AND ("assigned_to" = "internal"."get_authorized_user_id"("auth"."uid"())))) WITH CHECK (("internal"."is_sales"() AND ("assigned_to" = "internal"."get_authorized_user_id"("auth"."uid"()))));
-
-
 --
 -- Name: clients Sales can view assigned clients; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Sales can view assigned clients" ON "crm"."clients" FOR SELECT USING (("internal"."is_sales"() AND ("assigned_to" = "internal"."get_authorized_user_id"("auth"."uid"()))));
-
-
 --
 -- Name: contact_messages Service role can insert contact messages; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Service role can insert contact messages" ON "crm"."contact_messages" FOR INSERT TO "service_role" WITH CHECK (true);
-
-
 --
 -- Name: client_notes Users can add notes to accessible clients; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Users can add notes to accessible clients" ON "crm"."client_notes" FOR INSERT WITH CHECK (("internal"."can_access_client"("client_id") AND ("user_id" = "internal"."get_authorized_user_id"("auth"."uid"()))));
-
-
 --
 -- Name: location Users can create own canvassing locations; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Users can create own canvassing locations" ON "crm"."location" FOR INSERT TO "authenticated" WITH CHECK (("created_by" = "internal"."get_authorized_user_id"("auth"."uid"())));
-
-
 --
 -- Name: location Users can delete own canvassing locations; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Users can delete own canvassing locations" ON "crm"."location" FOR DELETE TO "authenticated" USING (("created_by" = "internal"."get_authorized_user_id"("auth"."uid"())));
-
-
 --
 -- Name: contacts Users can manage contacts of accessible clients; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Users can manage contacts of accessible clients" ON "crm"."contacts" USING ("crm"."can_access_client"("client_id")) WITH CHECK ("crm"."can_access_client"("client_id"));
-
-
 --
 -- Name: interactions Users can manage interactions of accessible clients; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Users can manage interactions of accessible clients" ON "crm"."interactions" USING ("crm"."can_access_client"("client_id")) WITH CHECK ("crm"."can_access_client"("client_id"));
-
-
 --
 -- Name: location Users can update own canvassing locations; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Users can update own canvassing locations" ON "crm"."location" FOR UPDATE TO "authenticated" USING (("created_by" = "internal"."get_authorized_user_id"("auth"."uid"()))) WITH CHECK (("created_by" = "internal"."get_authorized_user_id"("auth"."uid"())));
-
-
 --
 -- Name: client_notes Users can view client notes; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Users can view client notes" ON "crm"."client_notes" FOR SELECT USING ("internal"."can_access_client"("client_id"));
-
-
 --
 -- Name: contacts Users can view contacts of accessible clients; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Users can view contacts of accessible clients" ON "crm"."contacts" FOR SELECT USING ("crm"."can_access_client"("client_id"));
-
-
 --
 -- Name: interactions Users can view interactions of accessible clients; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Users can view interactions of accessible clients" ON "crm"."interactions" FOR SELECT USING ("crm"."can_access_client"("client_id"));
-
-
 --
 -- Name: location Users can view own canvassing locations; Type: POLICY; Schema: crm; Owner: postgres
 --
 
 CREATE POLICY "Users can view own canvassing locations" ON "crm"."location" FOR SELECT TO "authenticated" USING (("created_by" = "internal"."get_authorized_user_id"("auth"."uid"())));
-
-
 --
 -- Name: client_notes; Type: ROW SECURITY; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE "crm"."client_notes" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: clients; Type: ROW SECURITY; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE "crm"."clients" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: contact_messages; Type: ROW SECURITY; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE "crm"."contact_messages" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: contacts; Type: ROW SECURITY; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE "crm"."contacts" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: interactions; Type: ROW SECURITY; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE "crm"."interactions" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: lead_sources; Type: ROW SECURITY; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE "crm"."lead_sources" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: location; Type: ROW SECURITY; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE "crm"."location" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: location_notes; Type: ROW SECURITY; Schema: crm; Owner: postgres
 --
 
 ALTER TABLE "crm"."location_notes" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: location_notes location_notes_user_policy; Type: POLICY; Schema: crm; Owner: postgres
 --
@@ -33989,224 +30152,161 @@ ALTER TABLE "crm"."location_notes" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "location_notes_user_policy" ON "crm"."location_notes" USING ((("location_id" IN ( SELECT "location"."id"
    FROM "crm"."location"
   WHERE ("location"."created_by" = "internal"."get_authorized_user_id"("auth"."uid"())))) OR "internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: user_roles Admin and managers can view role assignments; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin and managers can view role assignments" ON "internal"."user_roles" FOR SELECT USING (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: invitation_tokens Admin can create invitation tokens; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can create invitation tokens" ON "internal"."invitation_tokens" FOR INSERT TO "authenticated" WITH CHECK ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role"));
-
-
 --
 -- Name: invitation_tokens Admin can delete invitation tokens; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can delete invitation tokens" ON "internal"."invitation_tokens" FOR DELETE TO "authenticated" USING ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role"));
-
-
 --
 -- Name: company_contacts Admin can manage contacts; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage contacts" ON "internal"."company_contacts" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: employees Admin can manage employees; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage employees" ON "internal"."employees" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: partners Admin can manage partners; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage partners" ON "internal"."partners" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: company_preferences Admin can manage preferences; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage preferences" ON "internal"."company_preferences" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: user_roles Admin can manage role assignments; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage role assignments" ON "internal"."user_roles" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: roles Admin can manage roles; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage roles" ON "internal"."roles" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: authorized_users Admin can manage users; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can manage users" ON "internal"."authorized_users" USING ("internal"."is_admin"()) WITH CHECK ("internal"."is_admin"());
-
-
 --
 -- Name: invitation_tokens Admin can update invitation tokens; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can update invitation tokens" ON "internal"."invitation_tokens" FOR UPDATE TO "authenticated" USING ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role")) WITH CHECK ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role"));
-
-
 --
 -- Name: authorized_users Admin can view all users; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can view all users" ON "internal"."authorized_users" FOR SELECT USING (("internal"."is_admin"() OR "internal"."is_manager"() OR "internal"."is_readonly"()));
-
-
 --
 -- Name: employees Admin can view employees; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can view employees" ON "internal"."employees" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: invitation_tokens Admin can view invitation tokens; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can view invitation tokens" ON "internal"."invitation_tokens" FOR SELECT TO "authenticated" USING ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role"));
-
-
 --
 -- Name: partners Admin can view partners; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Admin can view partners" ON "internal"."partners" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: company_settings Authenticated admins can insert company settings; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Authenticated admins can insert company settings" ON "internal"."company_settings" FOR INSERT TO "authenticated" WITH CHECK ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role"));
-
-
 --
 -- Name: company_settings Authenticated admins can update company settings; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Authenticated admins can update company settings" ON "internal"."company_settings" FOR UPDATE TO "authenticated" USING ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role"));
-
-
 --
 -- Name: company_settings Authenticated admins can view company settings; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Authenticated admins can view company settings" ON "internal"."company_settings" FOR SELECT TO "authenticated" USING ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role"));
-
-
 --
 -- Name: roles Authenticated users can view roles; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can view roles" ON "internal"."roles" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: company_contacts Authorized users can view contacts; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Authorized users can view contacts" ON "internal"."company_contacts" FOR SELECT USING (("internal"."get_authorized_user_id"("auth"."uid"()) IS NOT NULL));
-
-
 --
 -- Name: company_preferences Authorized users can view preferences; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Authorized users can view preferences" ON "internal"."company_preferences" FOR SELECT USING (("internal"."get_authorized_user_id"("auth"."uid"()) IS NOT NULL));
-
-
 --
 -- Name: authorized_users User can view own profile; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "User can view own profile" ON "internal"."authorized_users" FOR SELECT USING (("auth_user_id" = "auth"."uid"()));
-
-
 --
 -- Name: user_roles User can view own roles; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "User can view own roles" ON "internal"."user_roles" FOR SELECT USING (("user_id" = "internal"."get_authorized_user_id"("auth"."uid"())));
-
-
 --
 -- Name: suppliers Users can delete suppliers; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Users can delete suppliers" ON "internal"."suppliers" FOR DELETE TO "authenticated" USING (true);
-
-
 --
 -- Name: partner_compensation_runs Users can insert partner compensation runs; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Users can insert partner compensation runs" ON "internal"."partner_compensation_runs" FOR INSERT WITH CHECK (true);
-
-
 --
 -- Name: suppliers Users can insert suppliers; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Users can insert suppliers" ON "internal"."suppliers" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
 --
 -- Name: partner_compensation_runs Users can update partner compensation runs; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Users can update partner compensation runs" ON "internal"."partner_compensation_runs" FOR UPDATE USING (("status" = ANY (ARRAY['DRAFT'::"text", 'POSTED'::"text", 'PARTIAL'::"text"])));
-
-
 --
 -- Name: suppliers Users can update suppliers; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Users can update suppliers" ON "internal"."suppliers" FOR UPDATE TO "authenticated" USING (true);
-
-
 --
 -- Name: partner_compensation_runs Users can view partner compensation runs; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Users can view partner compensation runs" ON "internal"."partner_compensation_runs" FOR SELECT USING (true);
-
-
 --
 -- Name: suppliers Users can view suppliers; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "Users can view suppliers" ON "internal"."suppliers" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: authorized_users; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."authorized_users" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: company_bank_accounts bank_accounts_modify; Type: POLICY; Schema: internal; Owner: postgres
 --
@@ -34214,8 +30314,6 @@ ALTER TABLE "internal"."authorized_users" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "bank_accounts_modify" ON "internal"."company_bank_accounts" TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"public"."app_role")))));
-
-
 --
 -- Name: company_bank_accounts bank_accounts_select; Type: POLICY; Schema: internal; Owner: postgres
 --
@@ -34223,197 +30321,151 @@ CREATE POLICY "bank_accounts_modify" ON "internal"."company_bank_accounts" TO "a
 CREATE POLICY "bank_accounts_select" ON "internal"."company_bank_accounts" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'manager'::"public"."app_role"]))))));
-
-
 --
 -- Name: company_bank_accounts; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."company_bank_accounts" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: company_contacts; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."company_contacts" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: company_preferences; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."company_preferences" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: company_settings; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."company_settings" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: employees; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."employees" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: invitation_tokens; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."invitation_tokens" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: user_notifications notifications_admin_select; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "notifications_admin_select" ON "internal"."user_notifications" FOR SELECT USING ("internal"."is_admin"());
-
-
 --
 -- Name: user_notifications notifications_user_own; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "notifications_user_own" ON "internal"."user_notifications" USING (("user_id" = "internal"."get_authorized_user_id"("auth"."uid"()))) WITH CHECK (("user_id" = "internal"."get_authorized_user_id"("auth"."uid"())));
-
-
 --
 -- Name: partner_compensation_runs; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."partner_compensation_runs" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: partner_payroll_profiles; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."partner_payroll_profiles" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: partner_payroll_profiles partner_payroll_profiles_delete; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "partner_payroll_profiles_delete" ON "internal"."partner_payroll_profiles" FOR DELETE USING (false);
-
-
 --
 -- Name: partner_payroll_profiles partner_payroll_profiles_insert; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "partner_payroll_profiles_insert" ON "internal"."partner_payroll_profiles" FOR INSERT WITH CHECK (false);
-
-
 --
 -- Name: partner_payroll_profiles partner_payroll_profiles_select; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "partner_payroll_profiles_select" ON "internal"."partner_payroll_profiles" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: partner_payroll_profiles partner_payroll_profiles_update; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "partner_payroll_profiles_update" ON "internal"."partner_payroll_profiles" FOR UPDATE USING (false);
-
-
 --
 -- Name: partners; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."partners" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: payroll_settings; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."payroll_settings" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: payroll_settings payroll_settings_delete; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "payroll_settings_delete" ON "internal"."payroll_settings" FOR DELETE USING (false);
-
-
 --
 -- Name: payroll_settings payroll_settings_insert; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "payroll_settings_insert" ON "internal"."payroll_settings" FOR INSERT WITH CHECK (false);
-
-
 --
 -- Name: payroll_settings payroll_settings_select; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "payroll_settings_select" ON "internal"."payroll_settings" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: payroll_settings payroll_settings_update; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "payroll_settings_update" ON "internal"."payroll_settings" FOR UPDATE USING (false);
-
-
 --
 -- Name: report_settings; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."report_settings" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: report_settings report_settings_insert; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "report_settings_insert" ON "internal"."report_settings" FOR INSERT WITH CHECK (false);
-
-
 --
 -- Name: report_settings report_settings_select; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "report_settings_select" ON "internal"."report_settings" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: report_settings report_settings_update; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "report_settings_update" ON "internal"."report_settings" FOR UPDATE USING (false);
-
-
 --
 -- Name: roles; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."roles" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: suppliers; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."suppliers" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: task_activity; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."task_activity" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: task_activity task_activity_admin_manager; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "task_activity_admin_manager" ON "internal"."task_activity" USING (("internal"."is_admin"() OR "internal"."is_manager"())) WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: task_activity task_activity_user_insert; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "task_activity_user_insert" ON "internal"."task_activity" FOR INSERT WITH CHECK (("created_by" = "internal"."get_authorized_user_id"("auth"."uid"())));
-
-
 --
 -- Name: task_activity task_activity_user_select; Type: POLICY; Schema: internal; Owner: postgres
 --
@@ -34423,21 +30475,16 @@ CREATE POLICY "task_activity_user_select" ON "internal"."task_activity" FOR SELE
   WHERE (("ta"."task_id" = "ta"."task_id") AND ("ta"."user_id" = "internal"."get_authorized_user_id"("auth"."uid"()))))) OR (EXISTS ( SELECT 1
    FROM "internal"."tasks" "t"
   WHERE (("t"."id" = "task_activity"."task_id") AND ("t"."created_by" = "internal"."get_authorized_user_id"("auth"."uid"())))))));
-
-
 --
 -- Name: task_assignees; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."task_assignees" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: task_assignees task_assignees_admin_manager; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "task_assignees_admin_manager" ON "internal"."task_assignees" USING (("internal"."is_admin"() OR "internal"."is_manager"())) WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: task_assignees task_assignees_user_insert; Type: POLICY; Schema: internal; Owner: postgres
 --
@@ -34445,35 +30492,26 @@ CREATE POLICY "task_assignees_admin_manager" ON "internal"."task_assignees" USIN
 CREATE POLICY "task_assignees_user_insert" ON "internal"."task_assignees" FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
    FROM "internal"."tasks" "t"
   WHERE (("t"."id" = "task_assignees"."task_id") AND ("t"."created_by" = "internal"."get_authorized_user_id"("auth"."uid"()))))));
-
-
 --
 -- Name: task_assignees task_assignees_user_select; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "task_assignees_user_select" ON "internal"."task_assignees" FOR SELECT USING (("user_id" = "internal"."get_authorized_user_id"("auth"."uid"())));
-
-
 --
 -- Name: tasks; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."tasks" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: tasks tasks_admin_manager_all; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "tasks_admin_manager_all" ON "internal"."tasks" USING (("internal"."is_admin"() OR "internal"."is_manager"())) WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: tasks tasks_user_insert_own; Type: POLICY; Schema: internal; Owner: postgres
 --
 
 CREATE POLICY "tasks_user_insert_own" ON "internal"."tasks" FOR INSERT WITH CHECK (("created_by" = "internal"."get_authorized_user_id"("auth"."uid"())));
-
-
 --
 -- Name: tasks tasks_user_select_assigned; Type: POLICY; Schema: internal; Owner: postgres
 --
@@ -34481,8 +30519,6 @@ CREATE POLICY "tasks_user_insert_own" ON "internal"."tasks" FOR INSERT WITH CHEC
 CREATE POLICY "tasks_user_select_assigned" ON "internal"."tasks" FOR SELECT USING (((EXISTS ( SELECT 1
    FROM "internal"."task_assignees" "ta"
   WHERE (("ta"."task_id" = "tasks"."id") AND ("ta"."user_id" = "internal"."get_authorized_user_id"("auth"."uid"()))))) OR ("created_by" = "internal"."get_authorized_user_id"("auth"."uid"()))));
-
-
 --
 -- Name: tasks tasks_user_update_assigned; Type: POLICY; Schema: internal; Owner: postgres
 --
@@ -34490,14 +30526,11 @@ CREATE POLICY "tasks_user_select_assigned" ON "internal"."tasks" FOR SELECT USIN
 CREATE POLICY "tasks_user_update_assigned" ON "internal"."tasks" FOR UPDATE USING (((EXISTS ( SELECT 1
    FROM "internal"."task_assignees" "ta"
   WHERE (("ta"."task_id" = "tasks"."id") AND ("ta"."user_id" = "internal"."get_authorized_user_id"("auth"."uid"())) AND ("ta"."role_in_task" = ANY (ARRAY['OWNER'::"text", 'ASSIGNEE'::"text"]))))) OR ("created_by" = "internal"."get_authorized_user_id"("auth"."uid"()))));
-
-
 --
 -- Name: technicians; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."technicians" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: technicians technicians_delete; Type: POLICY; Schema: internal; Owner: postgres
 --
@@ -34505,8 +30538,6 @@ ALTER TABLE "internal"."technicians" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "technicians_delete" ON "internal"."technicians" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"public"."app_role")))));
-
-
 --
 -- Name: technicians technicians_modify; Type: POLICY; Schema: internal; Owner: postgres
 --
@@ -34514,8 +30545,6 @@ CREATE POLICY "technicians_delete" ON "internal"."technicians" FOR DELETE TO "au
 CREATE POLICY "technicians_modify" ON "internal"."technicians" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'manager'::"public"."app_role"]))))));
-
-
 --
 -- Name: technicians technicians_select; Type: POLICY; Schema: internal; Owner: postgres
 --
@@ -34523,8 +30552,6 @@ CREATE POLICY "technicians_modify" ON "internal"."technicians" FOR INSERT TO "au
 CREATE POLICY "technicians_select" ON "internal"."technicians" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'manager'::"public"."app_role", 'comercial'::"public"."app_role", 'tecnico'::"public"."app_role"]))))));
-
-
 --
 -- Name: technicians technicians_update; Type: POLICY; Schema: internal; Owner: postgres
 --
@@ -34532,417 +30559,311 @@ CREATE POLICY "technicians_select" ON "internal"."technicians" FOR SELECT TO "au
 CREATE POLICY "technicians_update" ON "internal"."technicians" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'manager'::"public"."app_role"]))))));
-
-
 --
 -- Name: user_notifications; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."user_notifications" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: user_roles; Type: ROW SECURITY; Schema: internal; Owner: postgres
 --
 
 ALTER TABLE "internal"."user_roles" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: projects Admin can delete projects; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Admin can delete projects" ON "projects"."projects" FOR DELETE USING ("internal"."is_admin"());
-
-
 --
 -- Name: projects Admin manager can update all projects; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Admin manager can update all projects" ON "projects"."projects" FOR UPDATE USING (("internal"."is_admin"() OR "internal"."is_manager"())) WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: projects Admin manager readonly can view all projects; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Admin manager readonly can view all projects" ON "projects"."projects" FOR SELECT USING (("internal"."is_admin"() OR "internal"."is_manager"() OR "internal"."is_readonly"()));
-
-
 --
 -- Name: projects Admin manager tech can create projects; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Admin manager tech can create projects" ON "projects"."projects" FOR INSERT WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"() OR "internal"."is_tech"()));
-
-
 --
 -- Name: project_activity Authenticated users can insert project activity; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can insert project activity" ON "projects"."project_activity" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
 --
 -- Name: project_activity Authenticated users can view project activity; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can view project activity" ON "projects"."project_activity" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: projects Tech can update assigned projects; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Tech can update assigned projects" ON "projects"."projects" FOR UPDATE USING (("internal"."is_tech"() AND (("assigned_to" = "internal"."get_authorized_user_id"("auth"."uid"())) OR ("internal"."get_authorized_user_id"("auth"."uid"()) = ANY ("assigned_team"))))) WITH CHECK (("internal"."is_tech"() AND (("assigned_to" = "internal"."get_authorized_user_id"("auth"."uid"())) OR ("internal"."get_authorized_user_id"("auth"."uid"()) = ANY ("assigned_team")))));
-
-
 --
 -- Name: projects Tech can view assigned projects; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Tech can view assigned projects" ON "projects"."projects" FOR SELECT USING (("internal"."is_tech"() AND (("assigned_to" = "internal"."get_authorized_user_id"("auth"."uid"())) OR ("internal"."get_authorized_user_id"("auth"."uid"()) = ANY ("assigned_team")))));
-
-
 --
 -- Name: av_projects Users can manage av projects; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Users can manage av projects" ON "projects"."av_projects" USING ("projects"."can_access_project"("project_id")) WITH CHECK ("projects"."can_access_project"("project_id"));
-
-
 --
 -- Name: customer_orders Users can manage customer orders; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Users can manage customer orders" ON "projects"."customer_orders" USING ("projects"."can_access_project"("project_id")) WITH CHECK ("projects"."can_access_project"("project_id"));
-
-
 --
 -- Name: expenses Users can manage expenses of accessible projects; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Users can manage expenses of accessible projects" ON "projects"."expenses" USING ("projects"."can_access_project"("project_id")) WITH CHECK ("projects"."can_access_project"("project_id"));
-
-
 --
 -- Name: project_documents Users can manage project documents; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Users can manage project documents" ON "projects"."project_documents" USING ("projects"."can_access_project"("project_id")) WITH CHECK ("projects"."can_access_project"("project_id"));
-
-
 --
 -- Name: project_tasks Users can manage project tasks; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Users can manage project tasks" ON "projects"."project_tasks" USING ("projects"."can_access_project"("project_id")) WITH CHECK ("projects"."can_access_project"("project_id"));
-
-
 --
 -- Name: av_projects Users can view av projects; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Users can view av projects" ON "projects"."av_projects" FOR SELECT USING ("projects"."can_access_project"("project_id"));
-
-
 --
 -- Name: customer_orders Users can view customer orders; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Users can view customer orders" ON "projects"."customer_orders" FOR SELECT USING ("projects"."can_access_project"("project_id"));
-
-
 --
 -- Name: expenses Users can view expenses of accessible projects; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Users can view expenses of accessible projects" ON "projects"."expenses" FOR SELECT USING ("projects"."can_access_project"("project_id"));
-
-
 --
 -- Name: project_documents Users can view project documents; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Users can view project documents" ON "projects"."project_documents" FOR SELECT USING ("projects"."can_access_project"("project_id"));
-
-
 --
 -- Name: project_tasks Users can view project tasks; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "Users can view project tasks" ON "projects"."project_tasks" FOR SELECT USING ("projects"."can_access_project"("project_id"));
-
-
 --
 -- Name: av_projects; Type: ROW SECURITY; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE "projects"."av_projects" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: customer_orders; Type: ROW SECURITY; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE "projects"."customer_orders" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: expenses; Type: ROW SECURITY; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE "projects"."expenses" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: project_activity; Type: ROW SECURITY; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE "projects"."project_activity" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: project_documents; Type: ROW SECURITY; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE "projects"."project_documents" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: project_sites; Type: ROW SECURITY; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE "projects"."project_sites" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: project_sites project_sites_delete_admin; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "project_sites_delete_admin" ON "projects"."project_sites" FOR DELETE USING (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: project_sites project_sites_insert_auth; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "project_sites_insert_auth" ON "projects"."project_sites" FOR INSERT WITH CHECK (("auth"."uid"() IS NOT NULL));
-
-
 --
 -- Name: project_sites project_sites_select_auth; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "project_sites_select_auth" ON "projects"."project_sites" FOR SELECT USING (("auth"."uid"() IS NOT NULL));
-
-
 --
 -- Name: project_sites project_sites_update_auth; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "project_sites_update_auth" ON "projects"."project_sites" FOR UPDATE USING (("auth"."uid"() IS NOT NULL));
-
-
 --
 -- Name: project_tasks; Type: ROW SECURITY; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE "projects"."project_tasks" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: projects; Type: ROW SECURITY; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE "projects"."projects" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: site_technician_assignments site_assignments_access; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "site_assignments_access" ON "projects"."site_technician_assignments" USING (true) WITH CHECK (true);
-
-
 --
 -- Name: site_technician_assignments; Type: ROW SECURITY; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE "projects"."site_technician_assignments" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: site_visits; Type: ROW SECURITY; Schema: projects; Owner: postgres
 --
 
 ALTER TABLE "projects"."site_visits" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: site_visits site_visits_access; Type: POLICY; Schema: projects; Owner: postgres
 --
 
 CREATE POLICY "site_visits_access" ON "projects"."site_visits" USING (true) WITH CHECK (true);
-
-
 --
 -- Name: user_roles Admins can delete roles; Type: POLICY; Schema: public; Owner: postgres
 --
 
 CREATE POLICY "Admins can delete roles" ON "public"."user_roles" FOR DELETE TO "authenticated" USING ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role"));
-
-
 --
 -- Name: user_roles Admins can insert roles; Type: POLICY; Schema: public; Owner: postgres
 --
 
 CREATE POLICY "Admins can insert roles" ON "public"."user_roles" FOR INSERT TO "authenticated" WITH CHECK ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role"));
-
-
 --
 -- Name: user_roles Admins can update roles; Type: POLICY; Schema: public; Owner: postgres
 --
 
 CREATE POLICY "Admins can update roles" ON "public"."user_roles" FOR UPDATE TO "authenticated" USING ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role"));
-
-
 --
 -- Name: user_roles Admins can view all roles; Type: POLICY; Schema: public; Owner: postgres
 --
 
 CREATE POLICY "Admins can view all roles" ON "public"."user_roles" FOR SELECT TO "authenticated" USING ("public"."has_role"("auth"."uid"(), 'admin'::"public"."app_role"));
-
-
 --
 -- Name: scanned_documents Users can delete own unassigned documents or admins delete any; Type: POLICY; Schema: public; Owner: postgres
 --
 
 CREATE POLICY "Users can delete own unassigned documents or admins delete any" ON "public"."scanned_documents" FOR DELETE TO "authenticated" USING (((("created_by" = "internal"."get_authorized_user_id"("auth"."uid"())) AND ("status" <> 'ASSIGNED'::"text")) OR "internal"."is_admin"()));
-
-
 --
 -- Name: scanned_documents Users can insert own documents; Type: POLICY; Schema: public; Owner: postgres
 --
 
 CREATE POLICY "Users can insert own documents" ON "public"."scanned_documents" FOR INSERT TO "authenticated" WITH CHECK ((("created_by" IS NULL) OR ("created_by" = "internal"."get_authorized_user_id"("auth"."uid"()))));
-
-
 --
 -- Name: scanned_documents Users can update own unassigned documents or admins update any; Type: POLICY; Schema: public; Owner: postgres
 --
 
 CREATE POLICY "Users can update own unassigned documents or admins update any" ON "public"."scanned_documents" FOR UPDATE TO "authenticated" USING (((("created_by" = "internal"."get_authorized_user_id"("auth"."uid"())) AND ("status" = 'UNASSIGNED'::"text")) OR "internal"."is_admin"()));
-
-
 --
 -- Name: scanned_documents Users can view own documents or all if admin/manager; Type: POLICY; Schema: public; Owner: postgres
 --
 
 CREATE POLICY "Users can view own documents or all if admin/manager" ON "public"."scanned_documents" FOR SELECT TO "authenticated" USING ((("created_by" = "internal"."get_authorized_user_id"("auth"."uid"())) OR "internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: user_roles Users can view own roles; Type: POLICY; Schema: public; Owner: postgres
 --
 
 CREATE POLICY "Users can view own roles" ON "public"."user_roles" FOR SELECT TO "authenticated" USING (("user_id" = "auth"."uid"()));
-
-
 --
 -- Name: scanned_documents; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE "public"."scanned_documents" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: user_roles; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE "public"."user_roles" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: quotes Admin and managers can manage quotes; Type: POLICY; Schema: quotes; Owner: postgres
 --
 
 CREATE POLICY "Admin and managers can manage quotes" ON "quotes"."quotes" USING (("internal"."is_admin"() OR "internal"."is_manager"()));
-
-
 --
 -- Name: quote_activity Authenticated users can insert quote activity; Type: POLICY; Schema: quotes; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can insert quote activity" ON "quotes"."quote_activity" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
 --
 -- Name: quote_activity Authenticated users can view quote activity; Type: POLICY; Schema: quotes; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can view quote activity" ON "quotes"."quote_activity" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: quotes Authenticated users can view quotes; Type: POLICY; Schema: quotes; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can view quotes" ON "quotes"."quotes" FOR SELECT USING (("auth"."uid"() IS NOT NULL));
-
-
 --
 -- Name: quotes Sales can create quotes; Type: POLICY; Schema: quotes; Owner: postgres
 --
 
 CREATE POLICY "Sales can create quotes" ON "quotes"."quotes" FOR INSERT WITH CHECK (("internal"."is_sales"() AND ("created_by" = "internal"."get_authorized_user_id"("auth"."uid"()))));
-
-
 --
 -- Name: quotes Sales can update own quotes; Type: POLICY; Schema: quotes; Owner: postgres
 --
 
 CREATE POLICY "Sales can update own quotes" ON "quotes"."quotes" FOR UPDATE USING (("internal"."is_sales"() AND ("created_by" = "internal"."get_authorized_user_id"("auth"."uid"()))));
-
-
 --
 -- Name: quote_history System can insert history; Type: POLICY; Schema: quotes; Owner: postgres
 --
 
 CREATE POLICY "System can insert history" ON "quotes"."quote_history" FOR INSERT WITH CHECK (true);
-
-
 --
 -- Name: quote_lines Users can manage quote lines; Type: POLICY; Schema: quotes; Owner: postgres
 --
 
 CREATE POLICY "Users can manage quote lines" ON "quotes"."quote_lines" USING (("internal"."is_admin"() OR "internal"."is_manager"() OR "internal"."is_sales"())) WITH CHECK (("internal"."is_admin"() OR "internal"."is_manager"() OR "internal"."is_sales"()));
-
-
 --
 -- Name: quote_history Users can view quote history; Type: POLICY; Schema: quotes; Owner: postgres
 --
 
 CREATE POLICY "Users can view quote history" ON "quotes"."quote_history" FOR SELECT USING (("auth"."uid"() IS NOT NULL));
-
-
 --
 -- Name: quote_lines Users can view quote lines; Type: POLICY; Schema: quotes; Owner: postgres
 --
 
 CREATE POLICY "Users can view quote lines" ON "quotes"."quote_lines" FOR SELECT USING (("internal"."is_admin"() OR "internal"."is_manager"() OR "internal"."is_sales"()));
-
-
 --
 -- Name: quote_activity; Type: ROW SECURITY; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE "quotes"."quote_activity" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: quote_history; Type: ROW SECURITY; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE "quotes"."quote_history" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: quote_lines; Type: ROW SECURITY; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE "quotes"."quote_lines" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: quotes; Type: ROW SECURITY; Schema: quotes; Owner: postgres
 --
 
 ALTER TABLE "quotes"."quotes" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: invoices Admins and comerciales can insert invoices; Type: POLICY; Schema: sales; Owner: postgres
 --
@@ -34950,8 +30871,6 @@ ALTER TABLE "quotes"."quotes" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admins and comerciales can insert invoices" ON "sales"."invoices" FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'comercial'::"public"."app_role"]))))));
-
-
 --
 -- Name: invoice_lines Admins and comerciales can manage invoice lines; Type: POLICY; Schema: sales; Owner: postgres
 --
@@ -34961,8 +30880,6 @@ CREATE POLICY "Admins and comerciales can manage invoice lines" ON "sales"."invo
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'comercial'::"public"."app_role"])))))) WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'comercial'::"public"."app_role"]))))));
-
-
 --
 -- Name: invoice_sequences Admins and comerciales can manage invoice sequences; Type: POLICY; Schema: sales; Owner: postgres
 --
@@ -34972,8 +30889,6 @@ CREATE POLICY "Admins and comerciales can manage invoice sequences" ON "sales"."
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'comercial'::"public"."app_role"])))))) WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'comercial'::"public"."app_role"]))))));
-
-
 --
 -- Name: invoices Admins and comerciales can update invoices; Type: POLICY; Schema: sales; Owner: postgres
 --
@@ -34981,128 +30896,96 @@ CREATE POLICY "Admins and comerciales can manage invoice sequences" ON "sales"."
 CREATE POLICY "Admins and comerciales can update invoices" ON "sales"."invoices" FOR UPDATE USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'comercial'::"public"."app_role"]))))));
-
-
 --
 -- Name: invoice_payments Authenticated users can create invoice payments; Type: POLICY; Schema: sales; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can create invoice payments" ON "sales"."invoice_payments" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
 --
 -- Name: invoices Authenticated users can delete draft invoices; Type: POLICY; Schema: sales; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can delete draft invoices" ON "sales"."invoices" FOR DELETE TO "authenticated" USING (("status" = 'DRAFT'::"text"));
-
-
 --
 -- Name: invoice_payments Authenticated users can delete invoice payments; Type: POLICY; Schema: sales; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can delete invoice payments" ON "sales"."invoice_payments" FOR DELETE TO "authenticated" USING (true);
-
-
 --
 -- Name: invoice_payments Authenticated users can update invoice payments; Type: POLICY; Schema: sales; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can update invoice payments" ON "sales"."invoice_payments" FOR UPDATE TO "authenticated" USING (true) WITH CHECK (true);
-
-
 --
 -- Name: invoice_lines Authenticated users can view invoice lines; Type: POLICY; Schema: sales; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can view invoice lines" ON "sales"."invoice_lines" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: invoice_payments Authenticated users can view invoice payments; Type: POLICY; Schema: sales; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can view invoice payments" ON "sales"."invoice_payments" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: invoice_sequences Authenticated users can view invoice sequences; Type: POLICY; Schema: sales; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can view invoice sequences" ON "sales"."invoice_sequences" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: invoices Authenticated users can view invoices; Type: POLICY; Schema: sales; Owner: postgres
 --
 
 CREATE POLICY "Authenticated users can view invoices" ON "sales"."invoices" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: purchase_invoice_lines Users can delete purchase lines; Type: POLICY; Schema: sales; Owner: postgres
 --
 
 CREATE POLICY "Users can delete purchase lines" ON "sales"."purchase_invoice_lines" FOR DELETE TO "authenticated" USING (true);
-
-
 --
 -- Name: purchase_invoice_lines Users can insert purchase lines; Type: POLICY; Schema: sales; Owner: postgres
 --
 
 CREATE POLICY "Users can insert purchase lines" ON "sales"."purchase_invoice_lines" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
 --
 -- Name: purchase_invoice_lines Users can update purchase lines; Type: POLICY; Schema: sales; Owner: postgres
 --
 
 CREATE POLICY "Users can update purchase lines" ON "sales"."purchase_invoice_lines" FOR UPDATE TO "authenticated" USING (true);
-
-
 --
 -- Name: purchase_invoice_lines Users can view purchase lines; Type: POLICY; Schema: sales; Owner: postgres
 --
 
 CREATE POLICY "Users can view purchase lines" ON "sales"."purchase_invoice_lines" FOR SELECT TO "authenticated" USING (true);
-
-
 --
 -- Name: invoice_lines; Type: ROW SECURITY; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE "sales"."invoice_lines" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: invoice_payments; Type: ROW SECURITY; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE "sales"."invoice_payments" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: invoice_sequences; Type: ROW SECURITY; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE "sales"."invoice_sequences" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: invoices; Type: ROW SECURITY; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE "sales"."invoices" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: purchase_invoice_lines; Type: ROW SECURITY; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE "sales"."purchase_invoice_lines" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: purchase_invoice_payments; Type: ROW SECURITY; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE "sales"."purchase_invoice_payments" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: purchase_invoice_payments purchase_invoice_payments_delete; Type: POLICY; Schema: sales; Owner: postgres
 --
@@ -35110,8 +30993,6 @@ ALTER TABLE "sales"."purchase_invoice_payments" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "purchase_invoice_payments_delete" ON "sales"."purchase_invoice_payments" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"public"."app_role")))));
-
-
 --
 -- Name: purchase_invoice_payments purchase_invoice_payments_insert; Type: POLICY; Schema: sales; Owner: postgres
 --
@@ -35119,8 +31000,6 @@ CREATE POLICY "purchase_invoice_payments_delete" ON "sales"."purchase_invoice_pa
 CREATE POLICY "purchase_invoice_payments_insert" ON "sales"."purchase_invoice_payments" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'manager'::"public"."app_role"]))))));
-
-
 --
 -- Name: purchase_invoice_payments purchase_invoice_payments_select; Type: POLICY; Schema: sales; Owner: postgres
 --
@@ -35128,8 +31007,6 @@ CREATE POLICY "purchase_invoice_payments_insert" ON "sales"."purchase_invoice_pa
 CREATE POLICY "purchase_invoice_payments_select" ON "sales"."purchase_invoice_payments" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'manager'::"public"."app_role", 'comercial'::"public"."app_role"]))))));
-
-
 --
 -- Name: purchase_invoice_payments purchase_invoice_payments_update; Type: POLICY; Schema: sales; Owner: postgres
 --
@@ -35137,14 +31014,11 @@ CREATE POLICY "purchase_invoice_payments_select" ON "sales"."purchase_invoice_pa
 CREATE POLICY "purchase_invoice_payments_update" ON "sales"."purchase_invoice_payments" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'manager'::"public"."app_role"]))))));
-
-
 --
 -- Name: purchase_invoices; Type: ROW SECURITY; Schema: sales; Owner: postgres
 --
 
 ALTER TABLE "sales"."purchase_invoices" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: purchase_invoices purchase_invoices_delete; Type: POLICY; Schema: sales; Owner: postgres
 --
@@ -35152,8 +31026,6 @@ ALTER TABLE "sales"."purchase_invoices" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "purchase_invoices_delete" ON "sales"."purchase_invoices" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = 'admin'::"public"."app_role")))));
-
-
 --
 -- Name: purchase_invoices purchase_invoices_insert; Type: POLICY; Schema: sales; Owner: postgres
 --
@@ -35161,8 +31033,6 @@ CREATE POLICY "purchase_invoices_delete" ON "sales"."purchase_invoices" FOR DELE
 CREATE POLICY "purchase_invoices_insert" ON "sales"."purchase_invoices" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'manager'::"public"."app_role"]))))));
-
-
 --
 -- Name: purchase_invoices purchase_invoices_select; Type: POLICY; Schema: sales; Owner: postgres
 --
@@ -35170,8 +31040,6 @@ CREATE POLICY "purchase_invoices_insert" ON "sales"."purchase_invoices" FOR INSE
 CREATE POLICY "purchase_invoices_select" ON "sales"."purchase_invoices" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'manager'::"public"."app_role", 'comercial'::"public"."app_role"]))))));
-
-
 --
 -- Name: purchase_invoices purchase_invoices_update; Type: POLICY; Schema: sales; Owner: postgres
 --
@@ -35179,73 +31047,53 @@ CREATE POLICY "purchase_invoices_select" ON "sales"."purchase_invoices" FOR SELE
 CREATE POLICY "purchase_invoices_update" ON "sales"."purchase_invoices" FOR UPDATE TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."user_roles"
   WHERE (("user_roles"."user_id" = "auth"."uid"()) AND ("user_roles"."role" = ANY (ARRAY['admin'::"public"."app_role", 'manager'::"public"."app_role"]))))));
-
-
 --
 -- Name: login_attempts Service role can manage login attempts; Type: POLICY; Schema: security; Owner: postgres
 --
 
 CREATE POLICY "Service role can manage login attempts" ON "security"."login_attempts" TO "service_role" USING (true) WITH CHECK (true);
-
-
 --
 -- Name: otp_codes Service role full access on otp_codes; Type: POLICY; Schema: security; Owner: postgres
 --
 
 CREATE POLICY "Service role full access on otp_codes" ON "security"."otp_codes" USING (("auth"."role"() = 'service_role'::"text")) WITH CHECK (("auth"."role"() = 'service_role'::"text"));
-
-
 --
 -- Name: login_attempts; Type: ROW SECURITY; Schema: security; Owner: postgres
 --
 
 ALTER TABLE "security"."login_attempts" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: otp_codes; Type: ROW SECURITY; Schema: security; Owner: postgres
 --
 
 ALTER TABLE "security"."otp_codes" ENABLE ROW LEVEL SECURITY;
-
 --
 -- Name: supabase_realtime; Type: PUBLICATION; Schema: -; Owner: postgres
 --
 
 CREATE PUBLICATION "supabase_realtime" WITH (publish = 'insert, update, delete, truncate');
-
-
 ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
-
 --
 -- Name: supabase_realtime_messages_publication; Type: PUBLICATION; Schema: -; Owner: supabase_admin
 --
 
 CREATE PUBLICATION "supabase_realtime_messages_publication" WITH (publish = 'insert, update, delete, truncate');
-
-
 ALTER PUBLICATION "supabase_realtime_messages_publication" OWNER TO "supabase_admin";
-
 --
 -- Name: SCHEMA "backup"; Type: ACL; Schema: -; Owner: postgres
 --
 
 GRANT USAGE ON SCHEMA "backup" TO "service_role";
-
-
 --
 -- Name: SCHEMA "catalog"; Type: ACL; Schema: -; Owner: postgres
 --
 
 GRANT USAGE ON SCHEMA "catalog" TO "authenticated";
-
-
 --
 -- Name: SCHEMA "internal"; Type: ACL; Schema: -; Owner: postgres
 --
 
 GRANT USAGE ON SCHEMA "internal" TO "authenticated";
-
-
 --
 -- Name: SCHEMA "public"; Type: ACL; Schema: -; Owner: pg_database_owner
 --
@@ -35254,85 +31102,61 @@ GRANT USAGE ON SCHEMA "public" TO "postgres";
 GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
-
-
 --
 -- Name: SCHEMA "sales"; Type: ACL; Schema: -; Owner: postgres
 --
 
 GRANT USAGE ON SCHEMA "sales" TO "authenticated";
-
-
 --
 -- Name: FUNCTION "assert_entry_balanced"("p_entry_id" "uuid"); Type: ACL; Schema: accounting; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "accounting"."assert_entry_balanced"("p_entry_id" "uuid") TO "authenticated";
-
-
 --
 -- Name: FUNCTION "create_bank_balance_adjustment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_new_balance" numeric, "p_adjustment_date" "date", "p_notes" "text"); Type: ACL; Schema: accounting; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "accounting"."create_bank_balance_adjustment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_new_balance" numeric, "p_adjustment_date" "date", "p_notes" "text") TO "authenticated";
-
-
 --
 -- Name: FUNCTION "create_invoice_sale_entry"("p_invoice_id" "uuid", "p_entry_date" "date"); Type: ACL; Schema: accounting; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "accounting"."create_invoice_sale_entry"("p_invoice_id" "uuid", "p_entry_date" "date") TO "authenticated";
-
-
 --
 -- Name: FUNCTION "get_next_entry_number"("p_fiscal_year" integer); Type: ACL; Schema: accounting; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "accounting"."get_next_entry_number"("p_fiscal_year" integer) TO "authenticated";
-
-
 --
 -- Name: FUNCTION "list_bank_account_movements"("p_account_code" "text", "p_start_date" "date", "p_end_date" "date"); Type: ACL; Schema: accounting; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "accounting"."list_bank_account_movements"("p_account_code" "text", "p_start_date" "date", "p_end_date" "date") TO "authenticated";
-
-
 --
 -- Name: FUNCTION "cleanup_old_snapshots"("p_keep_days" integer); Type: ACL; Schema: backup; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "backup"."cleanup_old_snapshots"("p_keep_days" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_snapshot"("p_schema" "text", "p_table" "text", "p_date" "date"); Type: ACL; Schema: backup; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "backup"."get_snapshot"("p_schema" "text", "p_table" "text", "p_date" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_snapshots"("p_date" "date"); Type: ACL; Schema: backup; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "backup"."list_snapshots"("p_date" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "run_daily_backup"(); Type: ACL; Schema: backup; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "backup"."run_daily_backup"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "snapshot_table"("p_schema" "text", "p_table" "text"); Type: ACL; Schema: backup; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "backup"."snapshot_table"("p_schema" "text", "p_table" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "armor"("bytea"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35340,8 +31164,6 @@ GRANT ALL ON FUNCTION "backup"."snapshot_table"("p_schema" "text", "p_table" "te
 REVOKE ALL ON FUNCTION "extensions"."armor"("bytea") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."armor"("bytea") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."armor"("bytea") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "armor"("bytea", "text"[], "text"[]); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35349,8 +31171,6 @@ GRANT ALL ON FUNCTION "extensions"."armor"("bytea") TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."armor"("bytea", "text"[], "text"[]) FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."armor"("bytea", "text"[], "text"[]) TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."armor"("bytea", "text"[], "text"[]) TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "crypt"("text", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35358,8 +31178,6 @@ GRANT ALL ON FUNCTION "extensions"."armor"("bytea", "text"[], "text"[]) TO "dash
 REVOKE ALL ON FUNCTION "extensions"."crypt"("text", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."crypt"("text", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."crypt"("text", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "dearmor"("text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35367,8 +31185,6 @@ GRANT ALL ON FUNCTION "extensions"."crypt"("text", "text") TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."dearmor"("text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."dearmor"("text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."dearmor"("text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "decrypt"("bytea", "bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35376,8 +31192,6 @@ GRANT ALL ON FUNCTION "extensions"."dearmor"("text") TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."decrypt"("bytea", "bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."decrypt"("bytea", "bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."decrypt"("bytea", "bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "decrypt_iv"("bytea", "bytea", "bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35385,8 +31199,6 @@ GRANT ALL ON FUNCTION "extensions"."decrypt"("bytea", "bytea", "text") TO "dashb
 REVOKE ALL ON FUNCTION "extensions"."decrypt_iv"("bytea", "bytea", "bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."decrypt_iv"("bytea", "bytea", "bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."decrypt_iv"("bytea", "bytea", "bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "digest"("bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35394,8 +31206,6 @@ GRANT ALL ON FUNCTION "extensions"."decrypt_iv"("bytea", "bytea", "bytea", "text
 REVOKE ALL ON FUNCTION "extensions"."digest"("bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."digest"("bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."digest"("bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "digest"("text", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35403,8 +31213,6 @@ GRANT ALL ON FUNCTION "extensions"."digest"("bytea", "text") TO "dashboard_user"
 REVOKE ALL ON FUNCTION "extensions"."digest"("text", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."digest"("text", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."digest"("text", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "encrypt"("bytea", "bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35412,8 +31220,6 @@ GRANT ALL ON FUNCTION "extensions"."digest"("text", "text") TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."encrypt"("bytea", "bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."encrypt"("bytea", "bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."encrypt"("bytea", "bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "encrypt_iv"("bytea", "bytea", "bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35421,8 +31227,6 @@ GRANT ALL ON FUNCTION "extensions"."encrypt"("bytea", "bytea", "text") TO "dashb
 REVOKE ALL ON FUNCTION "extensions"."encrypt_iv"("bytea", "bytea", "bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."encrypt_iv"("bytea", "bytea", "bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."encrypt_iv"("bytea", "bytea", "bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "gen_random_bytes"(integer); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35430,8 +31234,6 @@ GRANT ALL ON FUNCTION "extensions"."encrypt_iv"("bytea", "bytea", "bytea", "text
 REVOKE ALL ON FUNCTION "extensions"."gen_random_bytes"(integer) FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."gen_random_bytes"(integer) TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."gen_random_bytes"(integer) TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "gen_random_uuid"(); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35439,8 +31241,6 @@ GRANT ALL ON FUNCTION "extensions"."gen_random_bytes"(integer) TO "dashboard_use
 REVOKE ALL ON FUNCTION "extensions"."gen_random_uuid"() FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."gen_random_uuid"() TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."gen_random_uuid"() TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "gen_salt"("text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35448,8 +31248,6 @@ GRANT ALL ON FUNCTION "extensions"."gen_random_uuid"() TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."gen_salt"("text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."gen_salt"("text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."gen_salt"("text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "gen_salt"("text", integer); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35457,8 +31255,6 @@ GRANT ALL ON FUNCTION "extensions"."gen_salt"("text") TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."gen_salt"("text", integer) FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."gen_salt"("text", integer) TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."gen_salt"("text", integer) TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "hmac"("bytea", "bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35466,8 +31262,6 @@ GRANT ALL ON FUNCTION "extensions"."gen_salt"("text", integer) TO "dashboard_use
 REVOKE ALL ON FUNCTION "extensions"."hmac"("bytea", "bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."hmac"("bytea", "bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."hmac"("bytea", "bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "hmac"("text", "text", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35475,8 +31269,6 @@ GRANT ALL ON FUNCTION "extensions"."hmac"("bytea", "bytea", "text") TO "dashboar
 REVOKE ALL ON FUNCTION "extensions"."hmac"("text", "text", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."hmac"("text", "text", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."hmac"("text", "text", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pg_stat_statements"("showtext" boolean, OUT "userid" "oid", OUT "dbid" "oid", OUT "toplevel" boolean, OUT "queryid" bigint, OUT "query" "text", OUT "plans" bigint, OUT "total_plan_time" double precision, OUT "min_plan_time" double precision, OUT "max_plan_time" double precision, OUT "mean_plan_time" double precision, OUT "stddev_plan_time" double precision, OUT "calls" bigint, OUT "total_exec_time" double precision, OUT "min_exec_time" double precision, OUT "max_exec_time" double precision, OUT "mean_exec_time" double precision, OUT "stddev_exec_time" double precision, OUT "rows" bigint, OUT "shared_blks_hit" bigint, OUT "shared_blks_read" bigint, OUT "shared_blks_dirtied" bigint, OUT "shared_blks_written" bigint, OUT "local_blks_hit" bigint, OUT "local_blks_read" bigint, OUT "local_blks_dirtied" bigint, OUT "local_blks_written" bigint, OUT "temp_blks_read" bigint, OUT "temp_blks_written" bigint, OUT "shared_blk_read_time" double precision, OUT "shared_blk_write_time" double precision, OUT "local_blk_read_time" double precision, OUT "local_blk_write_time" double precision, OUT "temp_blk_read_time" double precision, OUT "temp_blk_write_time" double precision, OUT "wal_records" bigint, OUT "wal_fpi" bigint, OUT "wal_bytes" numeric, OUT "jit_functions" bigint, OUT "jit_generation_time" double precision, OUT "jit_inlining_count" bigint, OUT "jit_inlining_time" double precision, OUT "jit_optimization_count" bigint, OUT "jit_optimization_time" double precision, OUT "jit_emission_count" bigint, OUT "jit_emission_time" double precision, OUT "jit_deform_count" bigint, OUT "jit_deform_time" double precision, OUT "stats_since" timestamp with time zone, OUT "minmax_stats_since" timestamp with time zone); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35484,8 +31276,6 @@ GRANT ALL ON FUNCTION "extensions"."hmac"("text", "text", "text") TO "dashboard_
 REVOKE ALL ON FUNCTION "extensions"."pg_stat_statements"("showtext" boolean, OUT "userid" "oid", OUT "dbid" "oid", OUT "toplevel" boolean, OUT "queryid" bigint, OUT "query" "text", OUT "plans" bigint, OUT "total_plan_time" double precision, OUT "min_plan_time" double precision, OUT "max_plan_time" double precision, OUT "mean_plan_time" double precision, OUT "stddev_plan_time" double precision, OUT "calls" bigint, OUT "total_exec_time" double precision, OUT "min_exec_time" double precision, OUT "max_exec_time" double precision, OUT "mean_exec_time" double precision, OUT "stddev_exec_time" double precision, OUT "rows" bigint, OUT "shared_blks_hit" bigint, OUT "shared_blks_read" bigint, OUT "shared_blks_dirtied" bigint, OUT "shared_blks_written" bigint, OUT "local_blks_hit" bigint, OUT "local_blks_read" bigint, OUT "local_blks_dirtied" bigint, OUT "local_blks_written" bigint, OUT "temp_blks_read" bigint, OUT "temp_blks_written" bigint, OUT "shared_blk_read_time" double precision, OUT "shared_blk_write_time" double precision, OUT "local_blk_read_time" double precision, OUT "local_blk_write_time" double precision, OUT "temp_blk_read_time" double precision, OUT "temp_blk_write_time" double precision, OUT "wal_records" bigint, OUT "wal_fpi" bigint, OUT "wal_bytes" numeric, OUT "jit_functions" bigint, OUT "jit_generation_time" double precision, OUT "jit_inlining_count" bigint, OUT "jit_inlining_time" double precision, OUT "jit_optimization_count" bigint, OUT "jit_optimization_time" double precision, OUT "jit_emission_count" bigint, OUT "jit_emission_time" double precision, OUT "jit_deform_count" bigint, OUT "jit_deform_time" double precision, OUT "stats_since" timestamp with time zone, OUT "minmax_stats_since" timestamp with time zone) FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pg_stat_statements"("showtext" boolean, OUT "userid" "oid", OUT "dbid" "oid", OUT "toplevel" boolean, OUT "queryid" bigint, OUT "query" "text", OUT "plans" bigint, OUT "total_plan_time" double precision, OUT "min_plan_time" double precision, OUT "max_plan_time" double precision, OUT "mean_plan_time" double precision, OUT "stddev_plan_time" double precision, OUT "calls" bigint, OUT "total_exec_time" double precision, OUT "min_exec_time" double precision, OUT "max_exec_time" double precision, OUT "mean_exec_time" double precision, OUT "stddev_exec_time" double precision, OUT "rows" bigint, OUT "shared_blks_hit" bigint, OUT "shared_blks_read" bigint, OUT "shared_blks_dirtied" bigint, OUT "shared_blks_written" bigint, OUT "local_blks_hit" bigint, OUT "local_blks_read" bigint, OUT "local_blks_dirtied" bigint, OUT "local_blks_written" bigint, OUT "temp_blks_read" bigint, OUT "temp_blks_written" bigint, OUT "shared_blk_read_time" double precision, OUT "shared_blk_write_time" double precision, OUT "local_blk_read_time" double precision, OUT "local_blk_write_time" double precision, OUT "temp_blk_read_time" double precision, OUT "temp_blk_write_time" double precision, OUT "wal_records" bigint, OUT "wal_fpi" bigint, OUT "wal_bytes" numeric, OUT "jit_functions" bigint, OUT "jit_generation_time" double precision, OUT "jit_inlining_count" bigint, OUT "jit_inlining_time" double precision, OUT "jit_optimization_count" bigint, OUT "jit_optimization_time" double precision, OUT "jit_emission_count" bigint, OUT "jit_emission_time" double precision, OUT "jit_deform_count" bigint, OUT "jit_deform_time" double precision, OUT "stats_since" timestamp with time zone, OUT "minmax_stats_since" timestamp with time zone) TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pg_stat_statements"("showtext" boolean, OUT "userid" "oid", OUT "dbid" "oid", OUT "toplevel" boolean, OUT "queryid" bigint, OUT "query" "text", OUT "plans" bigint, OUT "total_plan_time" double precision, OUT "min_plan_time" double precision, OUT "max_plan_time" double precision, OUT "mean_plan_time" double precision, OUT "stddev_plan_time" double precision, OUT "calls" bigint, OUT "total_exec_time" double precision, OUT "min_exec_time" double precision, OUT "max_exec_time" double precision, OUT "mean_exec_time" double precision, OUT "stddev_exec_time" double precision, OUT "rows" bigint, OUT "shared_blks_hit" bigint, OUT "shared_blks_read" bigint, OUT "shared_blks_dirtied" bigint, OUT "shared_blks_written" bigint, OUT "local_blks_hit" bigint, OUT "local_blks_read" bigint, OUT "local_blks_dirtied" bigint, OUT "local_blks_written" bigint, OUT "temp_blks_read" bigint, OUT "temp_blks_written" bigint, OUT "shared_blk_read_time" double precision, OUT "shared_blk_write_time" double precision, OUT "local_blk_read_time" double precision, OUT "local_blk_write_time" double precision, OUT "temp_blk_read_time" double precision, OUT "temp_blk_write_time" double precision, OUT "wal_records" bigint, OUT "wal_fpi" bigint, OUT "wal_bytes" numeric, OUT "jit_functions" bigint, OUT "jit_generation_time" double precision, OUT "jit_inlining_count" bigint, OUT "jit_inlining_time" double precision, OUT "jit_optimization_count" bigint, OUT "jit_optimization_time" double precision, OUT "jit_emission_count" bigint, OUT "jit_emission_time" double precision, OUT "jit_deform_count" bigint, OUT "jit_deform_time" double precision, OUT "stats_since" timestamp with time zone, OUT "minmax_stats_since" timestamp with time zone) TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pg_stat_statements_info"(OUT "dealloc" bigint, OUT "stats_reset" timestamp with time zone); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35493,8 +31283,6 @@ GRANT ALL ON FUNCTION "extensions"."pg_stat_statements"("showtext" boolean, OUT 
 REVOKE ALL ON FUNCTION "extensions"."pg_stat_statements_info"(OUT "dealloc" bigint, OUT "stats_reset" timestamp with time zone) FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pg_stat_statements_info"(OUT "dealloc" bigint, OUT "stats_reset" timestamp with time zone) TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pg_stat_statements_info"(OUT "dealloc" bigint, OUT "stats_reset" timestamp with time zone) TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pg_stat_statements_reset"("userid" "oid", "dbid" "oid", "queryid" bigint, "minmax_only" boolean); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35502,8 +31290,6 @@ GRANT ALL ON FUNCTION "extensions"."pg_stat_statements_info"(OUT "dealloc" bigin
 REVOKE ALL ON FUNCTION "extensions"."pg_stat_statements_reset"("userid" "oid", "dbid" "oid", "queryid" bigint, "minmax_only" boolean) FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pg_stat_statements_reset"("userid" "oid", "dbid" "oid", "queryid" bigint, "minmax_only" boolean) TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pg_stat_statements_reset"("userid" "oid", "dbid" "oid", "queryid" bigint, "minmax_only" boolean) TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_armor_headers"("text", OUT "key" "text", OUT "value" "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35511,8 +31297,6 @@ GRANT ALL ON FUNCTION "extensions"."pg_stat_statements_reset"("userid" "oid", "d
 REVOKE ALL ON FUNCTION "extensions"."pgp_armor_headers"("text", OUT "key" "text", OUT "value" "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_armor_headers"("text", OUT "key" "text", OUT "value" "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_armor_headers"("text", OUT "key" "text", OUT "value" "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_key_id"("bytea"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35520,8 +31304,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_armor_headers"("text", OUT "key" "text",
 REVOKE ALL ON FUNCTION "extensions"."pgp_key_id"("bytea") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_key_id"("bytea") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_key_id"("bytea") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_pub_decrypt"("bytea", "bytea"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35529,8 +31311,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_key_id"("bytea") TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."pgp_pub_decrypt"("bytea", "bytea") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt"("bytea", "bytea") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt"("bytea", "bytea") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_pub_decrypt"("bytea", "bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35538,8 +31318,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt"("bytea", "bytea") TO "dashb
 REVOKE ALL ON FUNCTION "extensions"."pgp_pub_decrypt"("bytea", "bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt"("bytea", "bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt"("bytea", "bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_pub_decrypt"("bytea", "bytea", "text", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35547,8 +31325,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt"("bytea", "bytea", "text") T
 REVOKE ALL ON FUNCTION "extensions"."pgp_pub_decrypt"("bytea", "bytea", "text", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt"("bytea", "bytea", "text", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt"("bytea", "bytea", "text", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_pub_decrypt_bytea"("bytea", "bytea"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35556,8 +31332,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt"("bytea", "bytea", "text", "
 REVOKE ALL ON FUNCTION "extensions"."pgp_pub_decrypt_bytea"("bytea", "bytea") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt_bytea"("bytea", "bytea") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt_bytea"("bytea", "bytea") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_pub_decrypt_bytea"("bytea", "bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35565,8 +31339,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt_bytea"("bytea", "bytea") TO 
 REVOKE ALL ON FUNCTION "extensions"."pgp_pub_decrypt_bytea"("bytea", "bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt_bytea"("bytea", "bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt_bytea"("bytea", "bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_pub_decrypt_bytea"("bytea", "bytea", "text", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35574,8 +31346,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt_bytea"("bytea", "bytea", "te
 REVOKE ALL ON FUNCTION "extensions"."pgp_pub_decrypt_bytea"("bytea", "bytea", "text", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt_bytea"("bytea", "bytea", "text", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt_bytea"("bytea", "bytea", "text", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_pub_encrypt"("text", "bytea"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35583,8 +31353,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_pub_decrypt_bytea"("bytea", "bytea", "te
 REVOKE ALL ON FUNCTION "extensions"."pgp_pub_encrypt"("text", "bytea") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_encrypt"("text", "bytea") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_encrypt"("text", "bytea") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_pub_encrypt"("text", "bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35592,8 +31360,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_pub_encrypt"("text", "bytea") TO "dashbo
 REVOKE ALL ON FUNCTION "extensions"."pgp_pub_encrypt"("text", "bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_encrypt"("text", "bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_encrypt"("text", "bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_pub_encrypt_bytea"("bytea", "bytea"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35601,8 +31367,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_pub_encrypt"("text", "bytea", "text") TO
 REVOKE ALL ON FUNCTION "extensions"."pgp_pub_encrypt_bytea"("bytea", "bytea") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_encrypt_bytea"("bytea", "bytea") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_encrypt_bytea"("bytea", "bytea") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_pub_encrypt_bytea"("bytea", "bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35610,8 +31374,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_pub_encrypt_bytea"("bytea", "bytea") TO 
 REVOKE ALL ON FUNCTION "extensions"."pgp_pub_encrypt_bytea"("bytea", "bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_encrypt_bytea"("bytea", "bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_pub_encrypt_bytea"("bytea", "bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_sym_decrypt"("bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35619,8 +31381,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_pub_encrypt_bytea"("bytea", "bytea", "te
 REVOKE ALL ON FUNCTION "extensions"."pgp_sym_decrypt"("bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_decrypt"("bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_decrypt"("bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_sym_decrypt"("bytea", "text", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35628,8 +31388,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_sym_decrypt"("bytea", "text") TO "dashbo
 REVOKE ALL ON FUNCTION "extensions"."pgp_sym_decrypt"("bytea", "text", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_decrypt"("bytea", "text", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_decrypt"("bytea", "text", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_sym_decrypt_bytea"("bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35637,8 +31395,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_sym_decrypt"("bytea", "text", "text") TO
 REVOKE ALL ON FUNCTION "extensions"."pgp_sym_decrypt_bytea"("bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_decrypt_bytea"("bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_decrypt_bytea"("bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_sym_decrypt_bytea"("bytea", "text", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35646,8 +31402,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_sym_decrypt_bytea"("bytea", "text") TO "
 REVOKE ALL ON FUNCTION "extensions"."pgp_sym_decrypt_bytea"("bytea", "text", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_decrypt_bytea"("bytea", "text", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_decrypt_bytea"("bytea", "text", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_sym_encrypt"("text", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35655,8 +31409,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_sym_decrypt_bytea"("bytea", "text", "tex
 REVOKE ALL ON FUNCTION "extensions"."pgp_sym_encrypt"("text", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_encrypt"("text", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_encrypt"("text", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_sym_encrypt"("text", "text", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35664,8 +31416,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_sym_encrypt"("text", "text") TO "dashboa
 REVOKE ALL ON FUNCTION "extensions"."pgp_sym_encrypt"("text", "text", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_encrypt"("text", "text", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_encrypt"("text", "text", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_sym_encrypt_bytea"("bytea", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35673,8 +31423,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_sym_encrypt"("text", "text", "text") TO 
 REVOKE ALL ON FUNCTION "extensions"."pgp_sym_encrypt_bytea"("bytea", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_encrypt_bytea"("bytea", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_encrypt_bytea"("bytea", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "pgp_sym_encrypt_bytea"("bytea", "text", "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35682,8 +31430,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_sym_encrypt_bytea"("bytea", "text") TO "
 REVOKE ALL ON FUNCTION "extensions"."pgp_sym_encrypt_bytea"("bytea", "text", "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_encrypt_bytea"("bytea", "text", "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."pgp_sym_encrypt_bytea"("bytea", "text", "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "uuid_generate_v1"(); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35691,8 +31437,6 @@ GRANT ALL ON FUNCTION "extensions"."pgp_sym_encrypt_bytea"("bytea", "text", "tex
 REVOKE ALL ON FUNCTION "extensions"."uuid_generate_v1"() FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."uuid_generate_v1"() TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."uuid_generate_v1"() TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "uuid_generate_v1mc"(); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35700,8 +31444,6 @@ GRANT ALL ON FUNCTION "extensions"."uuid_generate_v1"() TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."uuid_generate_v1mc"() FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."uuid_generate_v1mc"() TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."uuid_generate_v1mc"() TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "uuid_generate_v3"("namespace" "uuid", "name" "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35709,8 +31451,6 @@ GRANT ALL ON FUNCTION "extensions"."uuid_generate_v1mc"() TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."uuid_generate_v3"("namespace" "uuid", "name" "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."uuid_generate_v3"("namespace" "uuid", "name" "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."uuid_generate_v3"("namespace" "uuid", "name" "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "uuid_generate_v4"(); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35718,8 +31458,6 @@ GRANT ALL ON FUNCTION "extensions"."uuid_generate_v3"("namespace" "uuid", "name"
 REVOKE ALL ON FUNCTION "extensions"."uuid_generate_v4"() FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."uuid_generate_v4"() TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."uuid_generate_v4"() TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "uuid_generate_v5"("namespace" "uuid", "name" "text"); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35727,8 +31465,6 @@ GRANT ALL ON FUNCTION "extensions"."uuid_generate_v4"() TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."uuid_generate_v5"("namespace" "uuid", "name" "text") FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."uuid_generate_v5"("namespace" "uuid", "name" "text") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."uuid_generate_v5"("namespace" "uuid", "name" "text") TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "uuid_nil"(); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35736,8 +31472,6 @@ GRANT ALL ON FUNCTION "extensions"."uuid_generate_v5"("namespace" "uuid", "name"
 REVOKE ALL ON FUNCTION "extensions"."uuid_nil"() FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."uuid_nil"() TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."uuid_nil"() TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "uuid_ns_dns"(); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35745,8 +31479,6 @@ GRANT ALL ON FUNCTION "extensions"."uuid_nil"() TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."uuid_ns_dns"() FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."uuid_ns_dns"() TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."uuid_ns_dns"() TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "uuid_ns_oid"(); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35754,8 +31486,6 @@ GRANT ALL ON FUNCTION "extensions"."uuid_ns_dns"() TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."uuid_ns_oid"() FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."uuid_ns_oid"() TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."uuid_ns_oid"() TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "uuid_ns_url"(); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35763,8 +31493,6 @@ GRANT ALL ON FUNCTION "extensions"."uuid_ns_oid"() TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."uuid_ns_url"() FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."uuid_ns_url"() TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."uuid_ns_url"() TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "uuid_ns_x500"(); Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -35772,8 +31500,6 @@ GRANT ALL ON FUNCTION "extensions"."uuid_ns_url"() TO "dashboard_user";
 REVOKE ALL ON FUNCTION "extensions"."uuid_ns_x500"() FROM "postgres";
 GRANT ALL ON FUNCTION "extensions"."uuid_ns_x500"() TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "extensions"."uuid_ns_x500"() TO "dashboard_user";
-
-
 --
 -- Name: FUNCTION "graphql"("operationName" "text", "query" "text", "variables" "jsonb", "extensions" "jsonb"); Type: ACL; Schema: graphql_public; Owner: supabase_admin
 --
@@ -35782,15 +31508,11 @@ GRANT ALL ON FUNCTION "graphql_public"."graphql"("operationName" "text", "query"
 GRANT ALL ON FUNCTION "graphql_public"."graphql"("operationName" "text", "query" "text", "variables" "jsonb", "extensions" "jsonb") TO "anon";
 GRANT ALL ON FUNCTION "graphql_public"."graphql"("operationName" "text", "query" "text", "variables" "jsonb", "extensions" "jsonb") TO "authenticated";
 GRANT ALL ON FUNCTION "graphql_public"."graphql"("operationName" "text", "query" "text", "variables" "jsonb", "extensions" "jsonb") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_or_create_partner_account_code"("p_partner_id" "uuid"); Type: ACL; Schema: internal; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "internal"."get_or_create_partner_account_code"("p_partner_id" "uuid") TO "authenticated";
-
-
 --
 -- Name: FUNCTION "add_catalog_bundle_component"("p_bundle_product_id" "uuid", "p_component_product_id" "uuid", "p_quantity" numeric); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35798,8 +31520,6 @@ GRANT ALL ON FUNCTION "internal"."get_or_create_partner_account_code"("p_partner
 GRANT ALL ON FUNCTION "public"."add_catalog_bundle_component"("p_bundle_product_id" "uuid", "p_component_product_id" "uuid", "p_quantity" numeric) TO "anon";
 GRANT ALL ON FUNCTION "public"."add_catalog_bundle_component"("p_bundle_product_id" "uuid", "p_component_product_id" "uuid", "p_quantity" numeric) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."add_catalog_bundle_component"("p_bundle_product_id" "uuid", "p_component_product_id" "uuid", "p_quantity" numeric) TO "service_role";
-
-
 --
 -- Name: FUNCTION "add_client_note"("p_client_id" "uuid", "p_content" "text", "p_note_type" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35807,8 +31527,6 @@ GRANT ALL ON FUNCTION "public"."add_catalog_bundle_component"("p_bundle_product_
 GRANT ALL ON FUNCTION "public"."add_client_note"("p_client_id" "uuid", "p_content" "text", "p_note_type" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."add_client_note"("p_client_id" "uuid", "p_content" "text", "p_note_type" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."add_client_note"("p_client_id" "uuid", "p_content" "text", "p_note_type" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "add_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric, "p_tax_id" "uuid", "p_product_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35816,8 +31534,6 @@ GRANT ALL ON FUNCTION "public"."add_client_note"("p_client_id" "uuid", "p_conten
 GRANT ALL ON FUNCTION "public"."add_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric, "p_tax_id" "uuid", "p_product_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."add_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric, "p_tax_id" "uuid", "p_product_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."add_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric, "p_tax_id" "uuid", "p_product_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "add_location_note"("p_location_id" "uuid", "p_content" "text", "p_note_type" "text", "p_attachments" "text"[]); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35825,8 +31541,6 @@ GRANT ALL ON FUNCTION "public"."add_invoice_line"("p_invoice_id" "uuid", "p_conc
 GRANT ALL ON FUNCTION "public"."add_location_note"("p_location_id" "uuid", "p_content" "text", "p_note_type" "text", "p_attachments" "text"[]) TO "anon";
 GRANT ALL ON FUNCTION "public"."add_location_note"("p_location_id" "uuid", "p_content" "text", "p_note_type" "text", "p_attachments" "text"[]) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."add_location_note"("p_location_id" "uuid", "p_content" "text", "p_note_type" "text", "p_attachments" "text"[]) TO "service_role";
-
-
 --
 -- Name: FUNCTION "add_pack_item"("p_pack_id" "uuid", "p_product_id" "uuid", "p_quantity" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35834,8 +31548,6 @@ GRANT ALL ON FUNCTION "public"."add_location_note"("p_location_id" "uuid", "p_co
 GRANT ALL ON FUNCTION "public"."add_pack_item"("p_pack_id" "uuid", "p_product_id" "uuid", "p_quantity" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."add_pack_item"("p_pack_id" "uuid", "p_product_id" "uuid", "p_quantity" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."add_pack_item"("p_pack_id" "uuid", "p_product_id" "uuid", "p_quantity" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "add_project_expense"("p_project_id" "uuid", "p_description" "text", "p_amount" numeric, "p_category" "text", "p_date" "date", "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35843,8 +31555,6 @@ GRANT ALL ON FUNCTION "public"."add_pack_item"("p_pack_id" "uuid", "p_product_id
 GRANT ALL ON FUNCTION "public"."add_project_expense"("p_project_id" "uuid", "p_description" "text", "p_amount" numeric, "p_category" "text", "p_date" "date", "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."add_project_expense"("p_project_id" "uuid", "p_description" "text", "p_amount" numeric, "p_category" "text", "p_date" "date", "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."add_project_expense"("p_project_id" "uuid", "p_description" "text", "p_amount" numeric, "p_category" "text", "p_date" "date", "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "add_project_note"("p_project_id" "uuid", "p_content" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35852,8 +31562,6 @@ GRANT ALL ON FUNCTION "public"."add_project_expense"("p_project_id" "uuid", "p_d
 GRANT ALL ON FUNCTION "public"."add_project_note"("p_project_id" "uuid", "p_content" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."add_project_note"("p_project_id" "uuid", "p_content" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."add_project_note"("p_project_id" "uuid", "p_content" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "add_purchase_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_tax_rate" numeric, "p_discount_percent" numeric, "p_product_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35861,8 +31569,6 @@ GRANT ALL ON FUNCTION "public"."add_project_note"("p_project_id" "uuid", "p_cont
 GRANT ALL ON FUNCTION "public"."add_purchase_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_tax_rate" numeric, "p_discount_percent" numeric, "p_product_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."add_purchase_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_tax_rate" numeric, "p_discount_percent" numeric, "p_product_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."add_purchase_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_tax_rate" numeric, "p_discount_percent" numeric, "p_product_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "add_purchase_order_line"("p_order_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit" "text", "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35870,8 +31576,6 @@ GRANT ALL ON FUNCTION "public"."add_purchase_invoice_line"("p_invoice_id" "uuid"
 GRANT ALL ON FUNCTION "public"."add_purchase_order_line"("p_order_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit" "text", "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."add_purchase_order_line"("p_order_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit" "text", "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."add_purchase_order_line"("p_order_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit" "text", "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "add_quote_line"("p_quote_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text", "p_line_order" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35879,8 +31583,6 @@ GRANT ALL ON FUNCTION "public"."add_purchase_order_line"("p_order_id" "uuid", "p
 GRANT ALL ON FUNCTION "public"."add_quote_line"("p_quote_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text", "p_line_order" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."add_quote_line"("p_quote_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text", "p_line_order" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."add_quote_line"("p_quote_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text", "p_line_order" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "add_quote_note"("p_quote_id" "uuid", "p_content" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35888,8 +31590,6 @@ GRANT ALL ON FUNCTION "public"."add_quote_line"("p_quote_id" "uuid", "p_concept"
 GRANT ALL ON FUNCTION "public"."add_quote_note"("p_quote_id" "uuid", "p_content" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."add_quote_note"("p_quote_id" "uuid", "p_content" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."add_quote_note"("p_quote_id" "uuid", "p_content" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "admin_update_payroll_settings"("p_patch" "jsonb", "p_reason" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35897,8 +31597,6 @@ GRANT ALL ON FUNCTION "public"."add_quote_note"("p_quote_id" "uuid", "p_content"
 GRANT ALL ON FUNCTION "public"."admin_update_payroll_settings"("p_patch" "jsonb", "p_reason" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."admin_update_payroll_settings"("p_patch" "jsonb", "p_reason" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."admin_update_payroll_settings"("p_patch" "jsonb", "p_reason" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "admin_update_report_settings"("p_patch" "jsonb"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35906,8 +31604,6 @@ GRANT ALL ON FUNCTION "public"."admin_update_payroll_settings"("p_patch" "jsonb"
 GRANT ALL ON FUNCTION "public"."admin_update_report_settings"("p_patch" "jsonb") TO "anon";
 GRANT ALL ON FUNCTION "public"."admin_update_report_settings"("p_patch" "jsonb") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."admin_update_report_settings"("p_patch" "jsonb") TO "service_role";
-
-
 --
 -- Name: FUNCTION "admin_upsert_partner_payroll_profile"("p_partner_id" "uuid", "p_base_salary" numeric, "p_irpf_rate" numeric, "p_bonus_enabled_override" boolean, "p_bonus_cap_override" numeric); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35915,8 +31611,6 @@ GRANT ALL ON FUNCTION "public"."admin_update_report_settings"("p_patch" "jsonb")
 GRANT ALL ON FUNCTION "public"."admin_upsert_partner_payroll_profile"("p_partner_id" "uuid", "p_base_salary" numeric, "p_irpf_rate" numeric, "p_bonus_enabled_override" boolean, "p_bonus_cap_override" numeric) TO "anon";
 GRANT ALL ON FUNCTION "public"."admin_upsert_partner_payroll_profile"("p_partner_id" "uuid", "p_base_salary" numeric, "p_irpf_rate" numeric, "p_bonus_enabled_override" boolean, "p_bonus_cap_override" numeric) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."admin_upsert_partner_payroll_profile"("p_partner_id" "uuid", "p_base_salary" numeric, "p_irpf_rate" numeric, "p_bonus_enabled_override" boolean, "p_bonus_cap_override" numeric) TO "service_role";
-
-
 --
 -- Name: FUNCTION "approve_purchase_invoice"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35924,8 +31618,6 @@ GRANT ALL ON FUNCTION "public"."admin_upsert_partner_payroll_profile"("p_partner
 GRANT ALL ON FUNCTION "public"."approve_purchase_invoice"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."approve_purchase_invoice"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."approve_purchase_invoice"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "approve_purchase_order"("p_order_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35933,8 +31625,6 @@ GRANT ALL ON FUNCTION "public"."approve_purchase_invoice"("p_invoice_id" "uuid")
 GRANT ALL ON FUNCTION "public"."approve_purchase_order"("p_order_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."approve_purchase_order"("p_order_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."approve_purchase_order"("p_order_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "archive_project_site"("p_site_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35942,8 +31632,6 @@ GRANT ALL ON FUNCTION "public"."approve_purchase_order"("p_order_id" "uuid") TO 
 GRANT ALL ON FUNCTION "public"."archive_project_site"("p_site_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."archive_project_site"("p_site_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."archive_project_site"("p_site_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "assert_period_not_closed"("p_date" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35951,8 +31639,6 @@ GRANT ALL ON FUNCTION "public"."archive_project_site"("p_site_id" "uuid") TO "se
 GRANT ALL ON FUNCTION "public"."assert_period_not_closed"("p_date" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."assert_period_not_closed"("p_date" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."assert_period_not_closed"("p_date" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "assign_user_role"("p_user_id" "uuid", "p_role_name" "text", "p_assigned_by" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35960,8 +31646,6 @@ GRANT ALL ON FUNCTION "public"."assert_period_not_closed"("p_date" "date") TO "s
 GRANT ALL ON FUNCTION "public"."assign_user_role"("p_user_id" "uuid", "p_role_name" "text", "p_assigned_by" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."assign_user_role"("p_user_id" "uuid", "p_role_name" "text", "p_assigned_by" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."assign_user_role"("p_user_id" "uuid", "p_role_name" "text", "p_assigned_by" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "assign_worker_type"("p_user_id" "uuid", "p_worker_type" "text", "p_tax_id" "text", "p_iban" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35969,8 +31653,6 @@ GRANT ALL ON FUNCTION "public"."assign_user_role"("p_user_id" "uuid", "p_role_na
 GRANT ALL ON FUNCTION "public"."assign_worker_type"("p_user_id" "uuid", "p_worker_type" "text", "p_tax_id" "text", "p_iban" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."assign_worker_type"("p_user_id" "uuid", "p_worker_type" "text", "p_tax_id" "text", "p_iban" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."assign_worker_type"("p_user_id" "uuid", "p_worker_type" "text", "p_tax_id" "text", "p_iban" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "audit_get_stats"("p_days" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35978,8 +31660,6 @@ GRANT ALL ON FUNCTION "public"."assign_worker_type"("p_user_id" "uuid", "p_worke
 GRANT ALL ON FUNCTION "public"."audit_get_stats"("p_days" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."audit_get_stats"("p_days" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."audit_get_stats"("p_days" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "audit_list_events"("p_limit" integer, "p_offset" integer, "p_search" "text", "p_event_category" "text", "p_severity" "text", "p_event_type" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35987,8 +31667,6 @@ GRANT ALL ON FUNCTION "public"."audit_get_stats"("p_days" integer) TO "service_r
 GRANT ALL ON FUNCTION "public"."audit_list_events"("p_limit" integer, "p_offset" integer, "p_search" "text", "p_event_category" "text", "p_severity" "text", "p_event_type" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."audit_list_events"("p_limit" integer, "p_offset" integer, "p_search" "text", "p_event_category" "text", "p_severity" "text", "p_event_type" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."audit_list_events"("p_limit" integer, "p_offset" integer, "p_search" "text", "p_event_category" "text", "p_severity" "text", "p_event_type" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "auto_close_previous_month_if_tenth"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -35996,8 +31674,6 @@ GRANT ALL ON FUNCTION "public"."audit_list_events"("p_limit" integer, "p_offset"
 GRANT ALL ON FUNCTION "public"."auto_close_previous_month_if_tenth"() TO "anon";
 GRANT ALL ON FUNCTION "public"."auto_close_previous_month_if_tenth"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."auto_close_previous_month_if_tenth"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "auto_save_quote_line"("p_quote_id" "uuid", "p_concept" "text", "p_line_id" "uuid", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text", "p_line_order" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36005,8 +31681,6 @@ GRANT ALL ON FUNCTION "public"."auto_close_previous_month_if_tenth"() TO "servic
 GRANT ALL ON FUNCTION "public"."auto_save_quote_line"("p_quote_id" "uuid", "p_concept" "text", "p_line_id" "uuid", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text", "p_line_order" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."auto_save_quote_line"("p_quote_id" "uuid", "p_concept" "text", "p_line_id" "uuid", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text", "p_line_order" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."auto_save_quote_line"("p_quote_id" "uuid", "p_concept" "text", "p_line_id" "uuid", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text", "p_line_order" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "auto_save_quote_notes"("p_quote_id" "uuid", "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36014,8 +31688,6 @@ GRANT ALL ON FUNCTION "public"."auto_save_quote_line"("p_quote_id" "uuid", "p_co
 GRANT ALL ON FUNCTION "public"."auto_save_quote_notes"("p_quote_id" "uuid", "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."auto_save_quote_notes"("p_quote_id" "uuid", "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."auto_save_quote_notes"("p_quote_id" "uuid", "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "backfill_get_supplier_name"("p_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36023,8 +31695,6 @@ GRANT ALL ON FUNCTION "public"."auto_save_quote_notes"("p_quote_id" "uuid", "p_n
 GRANT ALL ON FUNCTION "public"."backfill_get_supplier_name"("p_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."backfill_get_supplier_name"("p_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."backfill_get_supplier_name"("p_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "backfill_get_technician_name"("p_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36032,8 +31702,6 @@ GRANT ALL ON FUNCTION "public"."backfill_get_supplier_name"("p_id" "uuid") TO "s
 GRANT ALL ON FUNCTION "public"."backfill_get_technician_name"("p_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."backfill_get_technician_name"("p_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."backfill_get_technician_name"("p_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "calculate_corporate_tax"("p_period_start" "date", "p_period_end" "date", "p_tax_rate" numeric, "p_force_recalculate" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36041,8 +31709,6 @@ GRANT ALL ON FUNCTION "public"."backfill_get_technician_name"("p_id" "uuid") TO 
 GRANT ALL ON FUNCTION "public"."calculate_corporate_tax"("p_period_start" "date", "p_period_end" "date", "p_tax_rate" numeric, "p_force_recalculate" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."calculate_corporate_tax"("p_period_start" "date", "p_period_end" "date", "p_tax_rate" numeric, "p_force_recalculate" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."calculate_corporate_tax"("p_period_start" "date", "p_period_end" "date", "p_tax_rate" numeric, "p_force_recalculate" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "calculate_partner_productivity_bonus"("p_partner_id" "uuid", "p_year" integer, "p_month" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36050,8 +31716,6 @@ GRANT ALL ON FUNCTION "public"."calculate_corporate_tax"("p_period_start" "date"
 GRANT ALL ON FUNCTION "public"."calculate_partner_productivity_bonus"("p_partner_id" "uuid", "p_year" integer, "p_month" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."calculate_partner_productivity_bonus"("p_partner_id" "uuid", "p_year" integer, "p_month" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."calculate_partner_productivity_bonus"("p_partner_id" "uuid", "p_year" integer, "p_month" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "check_email_exists"("p_email" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36059,8 +31723,6 @@ GRANT ALL ON FUNCTION "public"."calculate_partner_productivity_bonus"("p_partner
 GRANT ALL ON FUNCTION "public"."check_email_exists"("p_email" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."check_email_exists"("p_email" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."check_email_exists"("p_email" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "check_month_closure_readiness"("p_year" integer, "p_month" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36068,8 +31730,6 @@ GRANT ALL ON FUNCTION "public"."check_email_exists"("p_email" "text") TO "servic
 GRANT ALL ON FUNCTION "public"."check_month_closure_readiness"("p_year" integer, "p_month" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."check_month_closure_readiness"("p_year" integer, "p_month" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."check_month_closure_readiness"("p_year" integer, "p_month" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "check_rate_limit"("p_identifier" "text", "p_identifier_type" "text", "p_max_attempts" integer, "p_window_minutes" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36077,8 +31737,6 @@ GRANT ALL ON FUNCTION "public"."check_month_closure_readiness"("p_year" integer,
 GRANT ALL ON FUNCTION "public"."check_rate_limit"("p_identifier" "text", "p_identifier_type" "text", "p_max_attempts" integer, "p_window_minutes" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."check_rate_limit"("p_identifier" "text", "p_identifier_type" "text", "p_max_attempts" integer, "p_window_minutes" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."check_rate_limit"("p_identifier" "text", "p_identifier_type" "text", "p_max_attempts" integer, "p_window_minutes" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "clear_user_roles"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36086,8 +31744,6 @@ GRANT ALL ON FUNCTION "public"."check_rate_limit"("p_identifier" "text", "p_iden
 GRANT ALL ON FUNCTION "public"."clear_user_roles"("p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."clear_user_roles"("p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."clear_user_roles"("p_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "close_period"("p_year" integer, "p_month" integer, "p_closed_by" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36095,8 +31751,6 @@ GRANT ALL ON FUNCTION "public"."clear_user_roles"("p_user_id" "uuid") TO "servic
 GRANT ALL ON FUNCTION "public"."close_period"("p_year" integer, "p_month" integer, "p_closed_by" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."close_period"("p_year" integer, "p_month" integer, "p_closed_by" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."close_period"("p_year" integer, "p_month" integer, "p_closed_by" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "close_site_visit"("p_visit_id" "uuid", "p_check_out_at" timestamp with time zone, "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36104,8 +31758,6 @@ GRANT ALL ON FUNCTION "public"."close_period"("p_year" integer, "p_month" intege
 GRANT ALL ON FUNCTION "public"."close_site_visit"("p_visit_id" "uuid", "p_check_out_at" timestamp with time zone, "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."close_site_visit"("p_visit_id" "uuid", "p_check_out_at" timestamp with time zone, "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."close_site_visit"("p_visit_id" "uuid", "p_check_out_at" timestamp with time zone, "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "confirm_purchase_invoice"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36113,8 +31765,6 @@ GRANT ALL ON FUNCTION "public"."close_site_visit"("p_visit_id" "uuid", "p_check_
 GRANT ALL ON FUNCTION "public"."confirm_purchase_invoice"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."confirm_purchase_invoice"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."confirm_purchase_invoice"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_authorized_user"("p_email" "text", "p_full_name" "text", "p_phone" "text", "p_department" "text", "p_job_position" "text", "p_auth_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36122,8 +31772,6 @@ GRANT ALL ON FUNCTION "public"."confirm_purchase_invoice"("p_invoice_id" "uuid")
 GRANT ALL ON FUNCTION "public"."create_authorized_user"("p_email" "text", "p_full_name" "text", "p_phone" "text", "p_department" "text", "p_job_position" "text", "p_auth_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_authorized_user"("p_email" "text", "p_full_name" "text", "p_phone" "text", "p_department" "text", "p_job_position" "text", "p_auth_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_authorized_user"("p_email" "text", "p_full_name" "text", "p_phone" "text", "p_department" "text", "p_job_position" "text", "p_auth_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_bank_balance_adjustment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_new_balance" numeric, "p_adjustment_date" "date", "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36131,8 +31779,6 @@ GRANT ALL ON FUNCTION "public"."create_authorized_user"("p_email" "text", "p_ful
 GRANT ALL ON FUNCTION "public"."create_bank_balance_adjustment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_new_balance" numeric, "p_adjustment_date" "date", "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_bank_balance_adjustment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_new_balance" numeric, "p_adjustment_date" "date", "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_bank_balance_adjustment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_new_balance" numeric, "p_adjustment_date" "date", "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_bank_transfer"("p_source_bank_id" "uuid", "p_source_bank_name" "text", "p_target_bank_id" "uuid", "p_target_bank_name" "text", "p_amount" numeric, "p_transfer_date" "date", "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36140,8 +31786,6 @@ GRANT ALL ON FUNCTION "public"."create_bank_balance_adjustment"("p_bank_account_
 GRANT ALL ON FUNCTION "public"."create_bank_transfer"("p_source_bank_id" "uuid", "p_source_bank_name" "text", "p_target_bank_id" "uuid", "p_target_bank_name" "text", "p_amount" numeric, "p_transfer_date" "date", "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_bank_transfer"("p_source_bank_id" "uuid", "p_source_bank_name" "text", "p_target_bank_id" "uuid", "p_target_bank_name" "text", "p_amount" numeric, "p_transfer_date" "date", "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_bank_transfer"("p_source_bank_id" "uuid", "p_source_bank_name" "text", "p_target_bank_id" "uuid", "p_target_bank_name" "text", "p_amount" numeric, "p_transfer_date" "date", "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_canvassing_location"("p_status" "text", "p_latitude" numeric, "p_longitude" numeric, "p_company_name" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_location_references" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36149,8 +31793,6 @@ GRANT ALL ON FUNCTION "public"."create_bank_transfer"("p_source_bank_id" "uuid",
 GRANT ALL ON FUNCTION "public"."create_canvassing_location"("p_status" "text", "p_latitude" numeric, "p_longitude" numeric, "p_company_name" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_location_references" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_canvassing_location"("p_status" "text", "p_latitude" numeric, "p_longitude" numeric, "p_company_name" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_location_references" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_canvassing_location"("p_status" "text", "p_latitude" numeric, "p_longitude" numeric, "p_company_name" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_location_references" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_catalog_category"("p_name" "text", "p_slug" "text", "p_domain" "catalog"."category_domain", "p_description" "text", "p_parent_id" "uuid", "p_sort_order" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36158,8 +31800,6 @@ GRANT ALL ON FUNCTION "public"."create_canvassing_location"("p_status" "text", "
 GRANT ALL ON FUNCTION "public"."create_catalog_category"("p_name" "text", "p_slug" "text", "p_domain" "catalog"."category_domain", "p_description" "text", "p_parent_id" "uuid", "p_sort_order" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."create_catalog_category"("p_name" "text", "p_slug" "text", "p_domain" "catalog"."category_domain", "p_description" "text", "p_parent_id" "uuid", "p_sort_order" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_catalog_category"("p_name" "text", "p_slug" "text", "p_domain" "catalog"."category_domain", "p_description" "text", "p_parent_id" "uuid", "p_sort_order" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_catalog_product"("p_sku" "text", "p_name" "text", "p_product_type" "catalog"."product_type", "p_category_id" "uuid", "p_unit" "catalog"."unit_type", "p_cost_price" numeric, "p_sale_price" numeric, "p_discount_percent" numeric, "p_tax_rate_id" "uuid", "p_description" "text", "p_track_stock" boolean, "p_min_stock_alert" numeric, "p_supplier_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36167,8 +31807,6 @@ GRANT ALL ON FUNCTION "public"."create_catalog_category"("p_name" "text", "p_slu
 GRANT ALL ON FUNCTION "public"."create_catalog_product"("p_sku" "text", "p_name" "text", "p_product_type" "catalog"."product_type", "p_category_id" "uuid", "p_unit" "catalog"."unit_type", "p_cost_price" numeric, "p_sale_price" numeric, "p_discount_percent" numeric, "p_tax_rate_id" "uuid", "p_description" "text", "p_track_stock" boolean, "p_min_stock_alert" numeric, "p_supplier_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_catalog_product"("p_sku" "text", "p_name" "text", "p_product_type" "catalog"."product_type", "p_category_id" "uuid", "p_unit" "catalog"."unit_type", "p_cost_price" numeric, "p_sale_price" numeric, "p_discount_percent" numeric, "p_tax_rate_id" "uuid", "p_description" "text", "p_track_stock" boolean, "p_min_stock_alert" numeric, "p_supplier_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_catalog_product"("p_sku" "text", "p_name" "text", "p_product_type" "catalog"."product_type", "p_category_id" "uuid", "p_unit" "catalog"."unit_type", "p_cost_price" numeric, "p_sale_price" numeric, "p_discount_percent" numeric, "p_tax_rate_id" "uuid", "p_description" "text", "p_track_stock" boolean, "p_min_stock_alert" numeric, "p_supplier_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_client"("p_company_name" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_industry_sector" "text", "p_lead_source" "text", "p_lead_stage" "text", "p_tax_id" "text", "p_legal_name" "text", "p_notes" "text", "p_assigned_to" "uuid", "p_created_by" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36176,8 +31814,6 @@ GRANT ALL ON FUNCTION "public"."create_catalog_product"("p_sku" "text", "p_name"
 GRANT ALL ON FUNCTION "public"."create_client"("p_company_name" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_industry_sector" "text", "p_lead_source" "text", "p_lead_stage" "text", "p_tax_id" "text", "p_legal_name" "text", "p_notes" "text", "p_assigned_to" "uuid", "p_created_by" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_client"("p_company_name" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_industry_sector" "text", "p_lead_source" "text", "p_lead_stage" "text", "p_tax_id" "text", "p_legal_name" "text", "p_notes" "text", "p_assigned_to" "uuid", "p_created_by" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_client"("p_company_name" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_industry_sector" "text", "p_lead_source" "text", "p_lead_stage" "text", "p_tax_id" "text", "p_legal_name" "text", "p_notes" "text", "p_assigned_to" "uuid", "p_created_by" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_credit_operation"("p_purchase_invoice_id" "uuid", "p_provider_id" "uuid", "p_gross_amount" numeric, "p_fee_amount" numeric, "p_num_installments" integer, "p_first_due_date" "date", "p_settlement_bank_account_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36185,8 +31821,6 @@ GRANT ALL ON FUNCTION "public"."create_client"("p_company_name" "text", "p_conta
 GRANT ALL ON FUNCTION "public"."create_credit_operation"("p_purchase_invoice_id" "uuid", "p_provider_id" "uuid", "p_gross_amount" numeric, "p_fee_amount" numeric, "p_num_installments" integer, "p_first_due_date" "date", "p_settlement_bank_account_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_credit_operation"("p_purchase_invoice_id" "uuid", "p_provider_id" "uuid", "p_gross_amount" numeric, "p_fee_amount" numeric, "p_num_installments" integer, "p_first_due_date" "date", "p_settlement_bank_account_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_credit_operation"("p_purchase_invoice_id" "uuid", "p_provider_id" "uuid", "p_gross_amount" numeric, "p_fee_amount" numeric, "p_num_installments" integer, "p_first_due_date" "date", "p_settlement_bank_account_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_external_credit_provider"("p_name" "text", "p_code" "text", "p_provider_type" "text", "p_creditor_account_code" "text", "p_expense_account_code" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36194,8 +31828,6 @@ GRANT ALL ON FUNCTION "public"."create_credit_operation"("p_purchase_invoice_id"
 GRANT ALL ON FUNCTION "public"."create_external_credit_provider"("p_name" "text", "p_code" "text", "p_provider_type" "text", "p_creditor_account_code" "text", "p_expense_account_code" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_external_credit_provider"("p_name" "text", "p_code" "text", "p_provider_type" "text", "p_creditor_account_code" "text", "p_expense_account_code" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_external_credit_provider"("p_name" "text", "p_code" "text", "p_provider_type" "text", "p_creditor_account_code" "text", "p_expense_account_code" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_invitation_token"("p_user_id" "uuid", "p_token" "text", "p_expires_at" timestamp with time zone); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36203,8 +31835,6 @@ GRANT ALL ON FUNCTION "public"."create_external_credit_provider"("p_name" "text"
 GRANT ALL ON FUNCTION "public"."create_invitation_token"("p_user_id" "uuid", "p_token" "text", "p_expires_at" timestamp with time zone) TO "anon";
 GRANT ALL ON FUNCTION "public"."create_invitation_token"("p_user_id" "uuid", "p_token" "text", "p_expires_at" timestamp with time zone) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_invitation_token"("p_user_id" "uuid", "p_token" "text", "p_expires_at" timestamp with time zone) TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_invoice_from_quote"("p_quote_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36212,8 +31842,6 @@ GRANT ALL ON FUNCTION "public"."create_invitation_token"("p_user_id" "uuid", "p_
 GRANT ALL ON FUNCTION "public"."create_invoice_from_quote"("p_quote_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_invoice_from_quote"("p_quote_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_invoice_from_quote"("p_quote_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_invoice_with_number"("p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_issue_date" "date", "p_due_date" "date", "p_source_quote_id" "uuid", "p_site_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36221,8 +31849,6 @@ GRANT ALL ON FUNCTION "public"."create_invoice_from_quote"("p_quote_id" "uuid") 
 GRANT ALL ON FUNCTION "public"."create_invoice_with_number"("p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_issue_date" "date", "p_due_date" "date", "p_source_quote_id" "uuid", "p_site_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_invoice_with_number"("p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_issue_date" "date", "p_due_date" "date", "p_source_quote_id" "uuid", "p_site_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_invoice_with_number"("p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_issue_date" "date", "p_due_date" "date", "p_source_quote_id" "uuid", "p_site_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_irpf_settlement_entry"("p_settlement_date" "date", "p_period_start" "date", "p_period_end" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36230,8 +31856,6 @@ GRANT ALL ON FUNCTION "public"."create_invoice_with_number"("p_client_id" "uuid"
 GRANT ALL ON FUNCTION "public"."create_irpf_settlement_entry"("p_settlement_date" "date", "p_period_start" "date", "p_period_end" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_irpf_settlement_entry"("p_settlement_date" "date", "p_period_start" "date", "p_period_end" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_irpf_settlement_entry"("p_settlement_date" "date", "p_period_start" "date", "p_period_end" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_partner"("p_full_name" "text", "p_tax_id" "text", "p_email" "text", "p_phone" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36239,8 +31863,6 @@ GRANT ALL ON FUNCTION "public"."create_irpf_settlement_entry"("p_settlement_date
 GRANT ALL ON FUNCTION "public"."create_partner"("p_full_name" "text", "p_tax_id" "text", "p_email" "text", "p_phone" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_partner"("p_full_name" "text", "p_tax_id" "text", "p_email" "text", "p_phone" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_partner"("p_full_name" "text", "p_tax_id" "text", "p_email" "text", "p_phone" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_partner_compensation_run"("p_partner_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36248,8 +31870,6 @@ GRANT ALL ON FUNCTION "public"."create_partner"("p_full_name" "text", "p_tax_id"
 GRANT ALL ON FUNCTION "public"."create_partner_compensation_run"("p_partner_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_partner_compensation_run"("p_partner_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_partner_compensation_run"("p_partner_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_partner_compensation_run_from_policy"("p_partner_id" "uuid", "p_year" integer, "p_month" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36257,8 +31877,6 @@ GRANT ALL ON FUNCTION "public"."create_partner_compensation_run"("p_partner_id" 
 GRANT ALL ON FUNCTION "public"."create_partner_compensation_run_from_policy"("p_partner_id" "uuid", "p_year" integer, "p_month" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."create_partner_compensation_run_from_policy"("p_partner_id" "uuid", "p_year" integer, "p_month" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_partner_compensation_run_from_policy"("p_partner_id" "uuid", "p_year" integer, "p_month" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_payroll_payment"("p_amount" numeric, "p_payroll_run_id" "uuid", "p_partner_compensation_run_id" "uuid", "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36266,8 +31884,6 @@ GRANT ALL ON FUNCTION "public"."create_partner_compensation_run_from_policy"("p_
 GRANT ALL ON FUNCTION "public"."create_payroll_payment"("p_amount" numeric, "p_payroll_run_id" "uuid", "p_partner_compensation_run_id" "uuid", "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_payroll_payment"("p_amount" numeric, "p_payroll_run_id" "uuid", "p_partner_compensation_run_id" "uuid", "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_payroll_payment"("p_amount" numeric, "p_payroll_run_id" "uuid", "p_partner_compensation_run_id" "uuid", "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_payroll_run"("p_employee_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36275,8 +31891,6 @@ GRANT ALL ON FUNCTION "public"."create_payroll_payment"("p_amount" numeric, "p_p
 GRANT ALL ON FUNCTION "public"."create_payroll_run"("p_employee_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_payroll_run"("p_employee_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_payroll_run"("p_employee_id" "uuid", "p_period_year" integer, "p_period_month" integer, "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_product"("p_category_id" "uuid", "p_subcategory_id" "uuid", "p_name" "text", "p_description" "text", "p_cost_price" numeric, "p_base_price" numeric, "p_tax_rate" numeric, "p_type" "public"."product_type", "p_stock" integer, "p_default_tax_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36284,8 +31898,6 @@ GRANT ALL ON FUNCTION "public"."create_payroll_run"("p_employee_id" "uuid", "p_p
 GRANT ALL ON FUNCTION "public"."create_product"("p_category_id" "uuid", "p_subcategory_id" "uuid", "p_name" "text", "p_description" "text", "p_cost_price" numeric, "p_base_price" numeric, "p_tax_rate" numeric, "p_type" "public"."product_type", "p_stock" integer, "p_default_tax_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_product"("p_category_id" "uuid", "p_subcategory_id" "uuid", "p_name" "text", "p_description" "text", "p_cost_price" numeric, "p_base_price" numeric, "p_tax_rate" numeric, "p_type" "public"."product_type", "p_stock" integer, "p_default_tax_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_product"("p_category_id" "uuid", "p_subcategory_id" "uuid", "p_name" "text", "p_description" "text", "p_cost_price" numeric, "p_base_price" numeric, "p_tax_rate" numeric, "p_type" "public"."product_type", "p_stock" integer, "p_default_tax_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_product_category"("p_code" "text", "p_name" "text", "p_description" "text", "p_display_order" integer, "p_type" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36293,8 +31905,6 @@ GRANT ALL ON FUNCTION "public"."create_product"("p_category_id" "uuid", "p_subca
 GRANT ALL ON FUNCTION "public"."create_product_category"("p_code" "text", "p_name" "text", "p_description" "text", "p_display_order" integer, "p_type" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_product_category"("p_code" "text", "p_name" "text", "p_description" "text", "p_display_order" integer, "p_type" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_product_category"("p_code" "text", "p_name" "text", "p_description" "text", "p_display_order" integer, "p_type" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_product_pack"("p_name" "text", "p_description" "text", "p_discount_percent" numeric, "p_tax_rate" numeric); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36302,8 +31912,6 @@ GRANT ALL ON FUNCTION "public"."create_product_category"("p_code" "text", "p_nam
 GRANT ALL ON FUNCTION "public"."create_product_pack"("p_name" "text", "p_description" "text", "p_discount_percent" numeric, "p_tax_rate" numeric) TO "anon";
 GRANT ALL ON FUNCTION "public"."create_product_pack"("p_name" "text", "p_description" "text", "p_discount_percent" numeric, "p_tax_rate" numeric) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_product_pack"("p_name" "text", "p_description" "text", "p_discount_percent" numeric, "p_tax_rate" numeric) TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_product_subcategory"("p_category_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36311,8 +31919,6 @@ GRANT ALL ON FUNCTION "public"."create_product_pack"("p_name" "text", "p_descrip
 GRANT ALL ON FUNCTION "public"."create_product_subcategory"("p_category_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."create_product_subcategory"("p_category_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_product_subcategory"("p_category_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_project"("p_client_id" "uuid", "p_client_order_number" "text", "p_local_name" "text", "p_notes" "text", "p_project_address" "text", "p_project_city" "text", "p_status" "text", "p_site_mode" "text", "p_site_name" "text", "p_project_type" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36320,8 +31926,6 @@ GRANT ALL ON FUNCTION "public"."create_product_subcategory"("p_category_id" "uui
 GRANT ALL ON FUNCTION "public"."create_project"("p_client_id" "uuid", "p_client_order_number" "text", "p_local_name" "text", "p_notes" "text", "p_project_address" "text", "p_project_city" "text", "p_status" "text", "p_site_mode" "text", "p_site_name" "text", "p_project_type" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_project"("p_client_id" "uuid", "p_client_order_number" "text", "p_local_name" "text", "p_notes" "text", "p_project_address" "text", "p_project_city" "text", "p_status" "text", "p_site_mode" "text", "p_site_name" "text", "p_project_type" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_project"("p_client_id" "uuid", "p_client_order_number" "text", "p_local_name" "text", "p_notes" "text", "p_project_address" "text", "p_project_city" "text", "p_status" "text", "p_site_mode" "text", "p_site_name" "text", "p_project_type" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_project_site"("p_project_id" "uuid", "p_site_name" "text", "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_country" "text", "p_latitude" double precision, "p_longitude" double precision, "p_contact_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_site_reference" "text", "p_floor_area" "text", "p_notes" "text", "p_set_as_default" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36329,8 +31933,6 @@ GRANT ALL ON FUNCTION "public"."create_project"("p_client_id" "uuid", "p_client_
 GRANT ALL ON FUNCTION "public"."create_project_site"("p_project_id" "uuid", "p_site_name" "text", "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_country" "text", "p_latitude" double precision, "p_longitude" double precision, "p_contact_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_site_reference" "text", "p_floor_area" "text", "p_notes" "text", "p_set_as_default" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."create_project_site"("p_project_id" "uuid", "p_site_name" "text", "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_country" "text", "p_latitude" double precision, "p_longitude" double precision, "p_contact_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_site_reference" "text", "p_floor_area" "text", "p_notes" "text", "p_set_as_default" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_project_site"("p_project_id" "uuid", "p_site_name" "text", "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_country" "text", "p_latitude" double precision, "p_longitude" double precision, "p_contact_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_site_reference" "text", "p_floor_area" "text", "p_notes" "text", "p_set_as_default" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_purchase_invoice"("p_invoice_number" "text", "p_document_type" "text", "p_status" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_issue_date" "date", "p_due_date" "date", "p_notes" "text", "p_file_path" "text", "p_file_name" "text", "p_expense_category" "text", "p_supplier_invoice_number" "text", "p_client_id" "uuid", "p_site_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36338,8 +31940,6 @@ GRANT ALL ON FUNCTION "public"."create_project_site"("p_project_id" "uuid", "p_s
 GRANT ALL ON FUNCTION "public"."create_purchase_invoice"("p_invoice_number" "text", "p_document_type" "text", "p_status" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_issue_date" "date", "p_due_date" "date", "p_notes" "text", "p_file_path" "text", "p_file_name" "text", "p_expense_category" "text", "p_supplier_invoice_number" "text", "p_client_id" "uuid", "p_site_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_purchase_invoice"("p_invoice_number" "text", "p_document_type" "text", "p_status" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_issue_date" "date", "p_due_date" "date", "p_notes" "text", "p_file_path" "text", "p_file_name" "text", "p_expense_category" "text", "p_supplier_invoice_number" "text", "p_client_id" "uuid", "p_site_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_purchase_invoice"("p_invoice_number" "text", "p_document_type" "text", "p_status" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_issue_date" "date", "p_due_date" "date", "p_notes" "text", "p_file_path" "text", "p_file_name" "text", "p_expense_category" "text", "p_supplier_invoice_number" "text", "p_client_id" "uuid", "p_site_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_purchase_order"("p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_issue_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_expected_start_date" "date", "p_expected_end_date" "date", "p_site_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36347,8 +31947,6 @@ GRANT ALL ON FUNCTION "public"."create_purchase_invoice"("p_invoice_number" "tex
 GRANT ALL ON FUNCTION "public"."create_purchase_order"("p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_issue_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_expected_start_date" "date", "p_expected_end_date" "date", "p_site_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_purchase_order"("p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_issue_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_expected_start_date" "date", "p_expected_end_date" "date", "p_site_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_purchase_order"("p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_issue_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_expected_start_date" "date", "p_expected_end_date" "date", "p_site_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_quote"("p_client_id" "uuid", "p_project_name" "text", "p_created_by" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36356,8 +31954,6 @@ GRANT ALL ON FUNCTION "public"."create_purchase_order"("p_supplier_id" "uuid", "
 GRANT ALL ON FUNCTION "public"."create_quote"("p_client_id" "uuid", "p_project_name" "text", "p_created_by" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_quote"("p_client_id" "uuid", "p_project_name" "text", "p_created_by" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_quote"("p_client_id" "uuid", "p_project_name" "text", "p_created_by" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_quote_with_number"("p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_valid_until" "date", "p_site_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36365,8 +31961,6 @@ GRANT ALL ON FUNCTION "public"."create_quote"("p_client_id" "uuid", "p_project_n
 GRANT ALL ON FUNCTION "public"."create_quote_with_number"("p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_valid_until" "date", "p_site_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_quote_with_number"("p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_valid_until" "date", "p_site_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_quote_with_number"("p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_valid_until" "date", "p_site_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_supplier"("p_company_name" "text", "p_category" "text", "p_tax_id" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_payment_terms" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36374,8 +31968,6 @@ GRANT ALL ON FUNCTION "public"."create_quote_with_number"("p_client_id" "uuid", 
 GRANT ALL ON FUNCTION "public"."create_supplier"("p_company_name" "text", "p_category" "text", "p_tax_id" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_payment_terms" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_supplier"("p_company_name" "text", "p_category" "text", "p_tax_id" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_payment_terms" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_supplier"("p_company_name" "text", "p_category" "text", "p_tax_id" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_payment_terms" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_tax"("p_name" "text", "p_code" "text", "p_rate" numeric, "p_tax_type" "text", "p_description" "text", "p_is_default" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36383,8 +31975,6 @@ GRANT ALL ON FUNCTION "public"."create_supplier"("p_company_name" "text", "p_cat
 GRANT ALL ON FUNCTION "public"."create_tax"("p_name" "text", "p_code" "text", "p_rate" numeric, "p_tax_type" "text", "p_description" "text", "p_is_default" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."create_tax"("p_name" "text", "p_code" "text", "p_rate" numeric, "p_tax_type" "text", "p_description" "text", "p_is_default" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_tax"("p_name" "text", "p_code" "text", "p_rate" numeric, "p_tax_type" "text", "p_description" "text", "p_is_default" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_tax_payment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_tax_type" "text", "p_amount" numeric, "p_payment_date" "date", "p_period" "text", "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36392,8 +31982,6 @@ GRANT ALL ON FUNCTION "public"."create_tax"("p_name" "text", "p_code" "text", "p
 GRANT ALL ON FUNCTION "public"."create_tax_payment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_tax_type" "text", "p_amount" numeric, "p_payment_date" "date", "p_period" "text", "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_tax_payment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_tax_type" "text", "p_amount" numeric, "p_payment_date" "date", "p_period" "text", "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_tax_payment"("p_bank_account_id" "uuid", "p_bank_name" "text", "p_tax_type" "text", "p_amount" numeric, "p_payment_date" "date", "p_period" "text", "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_technician"("p_company_name" "text", "p_type" "text", "p_legal_name" "text", "p_tax_id" "text", "p_contact_name" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_contact_email" "text", "p_billing_email" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_specialties" "text"[], "p_hourly_rate" numeric, "p_daily_rate" numeric, "p_monthly_salary" numeric, "p_iban" "text", "p_payment_terms" "text", "p_notes" "text", "p_vat_rate" numeric, "p_withholding_tax_rate" numeric); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36401,8 +31989,6 @@ GRANT ALL ON FUNCTION "public"."create_tax_payment"("p_bank_account_id" "uuid", 
 GRANT ALL ON FUNCTION "public"."create_technician"("p_company_name" "text", "p_type" "text", "p_legal_name" "text", "p_tax_id" "text", "p_contact_name" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_contact_email" "text", "p_billing_email" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_specialties" "text"[], "p_hourly_rate" numeric, "p_daily_rate" numeric, "p_monthly_salary" numeric, "p_iban" "text", "p_payment_terms" "text", "p_notes" "text", "p_vat_rate" numeric, "p_withholding_tax_rate" numeric) TO "anon";
 GRANT ALL ON FUNCTION "public"."create_technician"("p_company_name" "text", "p_type" "text", "p_legal_name" "text", "p_tax_id" "text", "p_contact_name" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_contact_email" "text", "p_billing_email" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_specialties" "text"[], "p_hourly_rate" numeric, "p_daily_rate" numeric, "p_monthly_salary" numeric, "p_iban" "text", "p_payment_terms" "text", "p_notes" "text", "p_vat_rate" numeric, "p_withholding_tax_rate" numeric) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_technician"("p_company_name" "text", "p_type" "text", "p_legal_name" "text", "p_tax_id" "text", "p_contact_name" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_contact_email" "text", "p_billing_email" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_specialties" "text"[], "p_hourly_rate" numeric, "p_daily_rate" numeric, "p_monthly_salary" numeric, "p_iban" "text", "p_payment_terms" "text", "p_notes" "text", "p_vat_rate" numeric, "p_withholding_tax_rate" numeric) TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_vat_settlement_entry"("p_settlement_date" "date", "p_period_start" "date", "p_period_end" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36410,8 +31996,6 @@ GRANT ALL ON FUNCTION "public"."create_technician"("p_company_name" "text", "p_t
 GRANT ALL ON FUNCTION "public"."create_vat_settlement_entry"("p_settlement_date" "date", "p_period_start" "date", "p_period_end" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."create_vat_settlement_entry"("p_settlement_date" "date", "p_period_start" "date", "p_period_end" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."create_vat_settlement_entry"("p_settlement_date" "date", "p_period_start" "date", "p_period_end" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "credit_get_operation_detail"("p_operation_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36419,8 +32003,6 @@ GRANT ALL ON FUNCTION "public"."create_vat_settlement_entry"("p_settlement_date"
 GRANT ALL ON FUNCTION "public"."credit_get_operation_detail"("p_operation_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."credit_get_operation_detail"("p_operation_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."credit_get_operation_detail"("p_operation_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "credit_list_operations"("p_status" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36428,8 +32010,6 @@ GRANT ALL ON FUNCTION "public"."credit_get_operation_detail"("p_operation_id" "u
 GRANT ALL ON FUNCTION "public"."credit_list_operations"("p_status" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."credit_list_operations"("p_status" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."credit_list_operations"("p_status" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "dashboard_get_admin_overview"("p_period" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36437,8 +32017,6 @@ GRANT ALL ON FUNCTION "public"."credit_list_operations"("p_status" "text") TO "s
 GRANT ALL ON FUNCTION "public"."dashboard_get_admin_overview"("p_period" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."dashboard_get_admin_overview"("p_period" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."dashboard_get_admin_overview"("p_period" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "dashboard_get_commercial_overview"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36446,8 +32024,6 @@ GRANT ALL ON FUNCTION "public"."dashboard_get_admin_overview"("p_period" "text")
 GRANT ALL ON FUNCTION "public"."dashboard_get_commercial_overview"("p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."dashboard_get_commercial_overview"("p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."dashboard_get_commercial_overview"("p_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "dashboard_get_manager_overview"("p_days_ahead" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36455,8 +32031,6 @@ GRANT ALL ON FUNCTION "public"."dashboard_get_commercial_overview"("p_user_id" "
 GRANT ALL ON FUNCTION "public"."dashboard_get_manager_overview"("p_days_ahead" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."dashboard_get_manager_overview"("p_days_ahead" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."dashboard_get_manager_overview"("p_days_ahead" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "dashboard_get_technician_overview"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36464,8 +32038,6 @@ GRANT ALL ON FUNCTION "public"."dashboard_get_manager_overview"("p_days_ahead" i
 GRANT ALL ON FUNCTION "public"."dashboard_get_technician_overview"("p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."dashboard_get_technician_overview"("p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."dashboard_get_technician_overview"("p_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_authorized_user"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36473,8 +32045,6 @@ GRANT ALL ON FUNCTION "public"."dashboard_get_technician_overview"("p_user_id" "
 GRANT ALL ON FUNCTION "public"."delete_authorized_user"("p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_authorized_user"("p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_authorized_user"("p_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_catalog_category"("p_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36482,8 +32052,6 @@ GRANT ALL ON FUNCTION "public"."delete_authorized_user"("p_user_id" "uuid") TO "
 GRANT ALL ON FUNCTION "public"."delete_catalog_category"("p_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_catalog_category"("p_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_catalog_category"("p_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_catalog_product"("p_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36491,8 +32059,6 @@ GRANT ALL ON FUNCTION "public"."delete_catalog_category"("p_id" "uuid") TO "serv
 GRANT ALL ON FUNCTION "public"."delete_catalog_product"("p_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_catalog_product"("p_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_catalog_product"("p_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_client"("p_client_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36500,8 +32066,6 @@ GRANT ALL ON FUNCTION "public"."delete_catalog_product"("p_id" "uuid") TO "servi
 GRANT ALL ON FUNCTION "public"."delete_client"("p_client_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_client"("p_client_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_client"("p_client_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_external_credit_provider"("p_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36509,8 +32073,6 @@ GRANT ALL ON FUNCTION "public"."delete_client"("p_client_id" "uuid") TO "service
 GRANT ALL ON FUNCTION "public"."delete_external_credit_provider"("p_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_external_credit_provider"("p_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_external_credit_provider"("p_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_invoice_line"("p_line_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36518,8 +32080,6 @@ GRANT ALL ON FUNCTION "public"."delete_external_credit_provider"("p_id" "uuid") 
 GRANT ALL ON FUNCTION "public"."delete_invoice_line"("p_line_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_invoice_line"("p_line_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_invoice_line"("p_line_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_partner_compensation_run"("p_compensation_run_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36527,8 +32087,6 @@ GRANT ALL ON FUNCTION "public"."delete_invoice_line"("p_line_id" "uuid") TO "ser
 GRANT ALL ON FUNCTION "public"."delete_partner_compensation_run"("p_compensation_run_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_partner_compensation_run"("p_compensation_run_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_partner_compensation_run"("p_compensation_run_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_product"("p_product_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36536,8 +32094,6 @@ GRANT ALL ON FUNCTION "public"."delete_partner_compensation_run"("p_compensation
 GRANT ALL ON FUNCTION "public"."delete_product"("p_product_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_product"("p_product_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_product"("p_product_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_product_category"("p_category_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36545,8 +32101,6 @@ GRANT ALL ON FUNCTION "public"."delete_product"("p_product_id" "uuid") TO "servi
 GRANT ALL ON FUNCTION "public"."delete_product_category"("p_category_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_product_category"("p_category_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_product_category"("p_category_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_product_pack"("p_pack_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36554,8 +32108,6 @@ GRANT ALL ON FUNCTION "public"."delete_product_category"("p_category_id" "uuid")
 GRANT ALL ON FUNCTION "public"."delete_product_pack"("p_pack_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_product_pack"("p_pack_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_product_pack"("p_pack_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_product_subcategory"("p_subcategory_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36563,8 +32115,6 @@ GRANT ALL ON FUNCTION "public"."delete_product_pack"("p_pack_id" "uuid") TO "ser
 GRANT ALL ON FUNCTION "public"."delete_product_subcategory"("p_subcategory_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_product_subcategory"("p_subcategory_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_product_subcategory"("p_subcategory_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_purchase_invoice"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36572,8 +32122,6 @@ GRANT ALL ON FUNCTION "public"."delete_product_subcategory"("p_subcategory_id" "
 GRANT ALL ON FUNCTION "public"."delete_purchase_invoice"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_purchase_invoice"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_purchase_invoice"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_purchase_invoice_line"("p_line_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36581,8 +32129,6 @@ GRANT ALL ON FUNCTION "public"."delete_purchase_invoice"("p_invoice_id" "uuid") 
 GRANT ALL ON FUNCTION "public"."delete_purchase_invoice_line"("p_line_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_purchase_invoice_line"("p_line_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_purchase_invoice_line"("p_line_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_purchase_order"("p_order_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36590,8 +32136,6 @@ GRANT ALL ON FUNCTION "public"."delete_purchase_invoice_line"("p_line_id" "uuid"
 GRANT ALL ON FUNCTION "public"."delete_purchase_order"("p_order_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_purchase_order"("p_order_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_purchase_order"("p_order_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_purchase_order_line"("p_line_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36599,8 +32143,6 @@ GRANT ALL ON FUNCTION "public"."delete_purchase_order"("p_order_id" "uuid") TO "
 GRANT ALL ON FUNCTION "public"."delete_purchase_order_line"("p_line_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_purchase_order_line"("p_line_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_purchase_order_line"("p_line_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_purchase_payment"("p_payment_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36608,8 +32150,6 @@ GRANT ALL ON FUNCTION "public"."delete_purchase_order_line"("p_line_id" "uuid") 
 GRANT ALL ON FUNCTION "public"."delete_purchase_payment"("p_payment_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_purchase_payment"("p_payment_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_purchase_payment"("p_payment_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_quote_line"("p_line_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36617,8 +32157,6 @@ GRANT ALL ON FUNCTION "public"."delete_purchase_payment"("p_payment_id" "uuid") 
 GRANT ALL ON FUNCTION "public"."delete_quote_line"("p_line_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_quote_line"("p_line_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_quote_line"("p_line_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_site_assignment"("p_assignment_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36626,8 +32164,6 @@ GRANT ALL ON FUNCTION "public"."delete_quote_line"("p_line_id" "uuid") TO "servi
 GRANT ALL ON FUNCTION "public"."delete_site_assignment"("p_assignment_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_site_assignment"("p_assignment_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_site_assignment"("p_assignment_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_supplier"("p_supplier_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36635,8 +32171,6 @@ GRANT ALL ON FUNCTION "public"."delete_site_assignment"("p_assignment_id" "uuid"
 GRANT ALL ON FUNCTION "public"."delete_supplier"("p_supplier_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_supplier"("p_supplier_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_supplier"("p_supplier_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_tax"("p_tax_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36644,8 +32178,6 @@ GRANT ALL ON FUNCTION "public"."delete_supplier"("p_supplier_id" "uuid") TO "ser
 GRANT ALL ON FUNCTION "public"."delete_tax"("p_tax_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_tax"("p_tax_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_tax"("p_tax_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "delete_technician"("p_technician_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36653,8 +32185,6 @@ GRANT ALL ON FUNCTION "public"."delete_tax"("p_tax_id" "uuid") TO "service_role"
 GRANT ALL ON FUNCTION "public"."delete_technician"("p_technician_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."delete_technician"("p_technician_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."delete_technician"("p_technician_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_add_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric, "p_tax_id" "uuid", "p_product_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36662,8 +32192,6 @@ GRANT ALL ON FUNCTION "public"."delete_technician"("p_technician_id" "uuid") TO 
 GRANT ALL ON FUNCTION "public"."finance_add_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric, "p_tax_id" "uuid", "p_product_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_add_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric, "p_tax_id" "uuid", "p_product_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_add_invoice_line"("p_invoice_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric, "p_tax_id" "uuid", "p_product_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_cancel_invoice"("p_invoice_id" "uuid", "p_reason" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36671,8 +32199,6 @@ GRANT ALL ON FUNCTION "public"."finance_add_invoice_line"("p_invoice_id" "uuid",
 GRANT ALL ON FUNCTION "public"."finance_cancel_invoice"("p_invoice_id" "uuid", "p_reason" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_cancel_invoice"("p_invoice_id" "uuid", "p_reason" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_cancel_invoice"("p_invoice_id" "uuid", "p_reason" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_create_invoice"("p_client_id" "uuid", "p_project_id" "uuid", "p_source_quote_id" "uuid", "p_project_name" "text", "p_due_date" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36680,8 +32206,6 @@ GRANT ALL ON FUNCTION "public"."finance_cancel_invoice"("p_invoice_id" "uuid", "
 GRANT ALL ON FUNCTION "public"."finance_create_invoice"("p_client_id" "uuid", "p_project_id" "uuid", "p_source_quote_id" "uuid", "p_project_name" "text", "p_due_date" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_create_invoice"("p_client_id" "uuid", "p_project_id" "uuid", "p_source_quote_id" "uuid", "p_project_name" "text", "p_due_date" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_create_invoice"("p_client_id" "uuid", "p_project_id" "uuid", "p_source_quote_id" "uuid", "p_project_name" "text", "p_due_date" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_create_rectificativa"("p_original_invoice_id" "uuid", "p_rectification_type" "text", "p_rectification_reason" "text", "p_line_ids" "uuid"[]); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36689,8 +32213,6 @@ GRANT ALL ON FUNCTION "public"."finance_create_invoice"("p_client_id" "uuid", "p
 GRANT ALL ON FUNCTION "public"."finance_create_rectificativa"("p_original_invoice_id" "uuid", "p_rectification_type" "text", "p_rectification_reason" "text", "p_line_ids" "uuid"[]) TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_create_rectificativa"("p_original_invoice_id" "uuid", "p_rectification_type" "text", "p_rectification_reason" "text", "p_line_ids" "uuid"[]) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_create_rectificativa"("p_original_invoice_id" "uuid", "p_rectification_type" "text", "p_rectification_reason" "text", "p_line_ids" "uuid"[]) TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_delete_invoice_line"("p_line_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36698,8 +32220,6 @@ GRANT ALL ON FUNCTION "public"."finance_create_rectificativa"("p_original_invoic
 GRANT ALL ON FUNCTION "public"."finance_delete_invoice_line"("p_line_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_delete_invoice_line"("p_line_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_delete_invoice_line"("p_line_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_delete_payment"("p_payment_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36707,8 +32227,6 @@ GRANT ALL ON FUNCTION "public"."finance_delete_invoice_line"("p_line_id" "uuid")
 GRANT ALL ON FUNCTION "public"."finance_delete_payment"("p_payment_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_delete_payment"("p_payment_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_delete_payment"("p_payment_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_get_client_payments"("p_client_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36716,8 +32234,6 @@ GRANT ALL ON FUNCTION "public"."finance_delete_payment"("p_payment_id" "uuid") T
 GRANT ALL ON FUNCTION "public"."finance_get_client_payments"("p_client_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_get_client_payments"("p_client_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_get_client_payments"("p_client_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_get_invoice"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36725,8 +32241,6 @@ GRANT ALL ON FUNCTION "public"."finance_get_client_payments"("p_client_id" "uuid
 GRANT ALL ON FUNCTION "public"."finance_get_invoice"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_get_invoice"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_get_invoice"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_get_invoice_lines"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36734,8 +32248,6 @@ GRANT ALL ON FUNCTION "public"."finance_get_invoice"("p_invoice_id" "uuid") TO "
 GRANT ALL ON FUNCTION "public"."finance_get_invoice_lines"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_get_invoice_lines"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_get_invoice_lines"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_get_invoice_payments"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36743,8 +32255,6 @@ GRANT ALL ON FUNCTION "public"."finance_get_invoice_lines"("p_invoice_id" "uuid"
 GRANT ALL ON FUNCTION "public"."finance_get_invoice_payments"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_get_invoice_payments"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_get_invoice_payments"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_get_period_summary"("p_start_date" "date", "p_end_date" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36752,8 +32262,6 @@ GRANT ALL ON FUNCTION "public"."finance_get_invoice_payments"("p_invoice_id" "uu
 GRANT ALL ON FUNCTION "public"."finance_get_period_summary"("p_start_date" "date", "p_end_date" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_get_period_summary"("p_start_date" "date", "p_end_date" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_get_period_summary"("p_start_date" "date", "p_end_date" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_get_project_payments"("p_project_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36761,8 +32269,6 @@ GRANT ALL ON FUNCTION "public"."finance_get_period_summary"("p_start_date" "date
 GRANT ALL ON FUNCTION "public"."finance_get_project_payments"("p_project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_get_project_payments"("p_project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_get_project_payments"("p_project_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_get_tax_summary"("p_fiscal_year" integer, "p_fiscal_quarter" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36770,8 +32276,6 @@ GRANT ALL ON FUNCTION "public"."finance_get_project_payments"("p_project_id" "uu
 GRANT ALL ON FUNCTION "public"."finance_get_tax_summary"("p_fiscal_year" integer, "p_fiscal_quarter" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_get_tax_summary"("p_fiscal_year" integer, "p_fiscal_quarter" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_get_tax_summary"("p_fiscal_year" integer, "p_fiscal_quarter" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_issue_invoice"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36779,8 +32283,6 @@ GRANT ALL ON FUNCTION "public"."finance_get_tax_summary"("p_fiscal_year" integer
 GRANT ALL ON FUNCTION "public"."finance_issue_invoice"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_issue_invoice"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_issue_invoice"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_list_invoices"("p_search" "text", "p_status" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36788,8 +32290,6 @@ GRANT ALL ON FUNCTION "public"."finance_issue_invoice"("p_invoice_id" "uuid") TO
 GRANT ALL ON FUNCTION "public"."finance_list_invoices"("p_search" "text", "p_status" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_list_invoices"("p_search" "text", "p_status" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_list_invoices"("p_search" "text", "p_status" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_register_payment"("p_invoice_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36797,8 +32297,6 @@ GRANT ALL ON FUNCTION "public"."finance_list_invoices"("p_search" "text", "p_sta
 GRANT ALL ON FUNCTION "public"."finance_register_payment"("p_invoice_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_register_payment"("p_invoice_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_register_payment"("p_invoice_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_update_invoice"("p_invoice_id" "uuid", "p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_due_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_payment_terms" "text", "p_status" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36806,8 +32304,6 @@ GRANT ALL ON FUNCTION "public"."finance_register_payment"("p_invoice_id" "uuid",
 GRANT ALL ON FUNCTION "public"."finance_update_invoice"("p_invoice_id" "uuid", "p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_due_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_payment_terms" "text", "p_status" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_update_invoice"("p_invoice_id" "uuid", "p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_due_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_payment_terms" "text", "p_status" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_update_invoice"("p_invoice_id" "uuid", "p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_due_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_payment_terms" "text", "p_status" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_update_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36815,8 +32311,6 @@ GRANT ALL ON FUNCTION "public"."finance_update_invoice"("p_invoice_id" "uuid", "
 GRANT ALL ON FUNCTION "public"."finance_update_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric) TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_update_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_update_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric) TO "service_role";
-
-
 --
 -- Name: FUNCTION "finance_update_payment"("p_payment_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36824,8 +32318,6 @@ GRANT ALL ON FUNCTION "public"."finance_update_invoice_line"("p_line_id" "uuid",
 GRANT ALL ON FUNCTION "public"."finance_update_payment"("p_payment_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."finance_update_payment"("p_payment_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."finance_update_payment"("p_payment_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_notes" "text", "p_company_bank_account_id" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "fix_purchase_payments_bank_to_caixabank"("p_revolut_bank_id" "text", "p_caixabank_bank_id" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36833,8 +32325,6 @@ GRANT ALL ON FUNCTION "public"."finance_update_payment"("p_payment_id" "uuid", "
 GRANT ALL ON FUNCTION "public"."fix_purchase_payments_bank_to_caixabank"("p_revolut_bank_id" "text", "p_caixabank_bank_id" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."fix_purchase_payments_bank_to_caixabank"("p_revolut_bank_id" "text", "p_caixabank_bank_id" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."fix_purchase_payments_bank_to_caixabank"("p_revolut_bank_id" "text", "p_caixabank_bank_id" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "generate_internal_purchase_number"("p_document_type" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36842,8 +32332,6 @@ GRANT ALL ON FUNCTION "public"."fix_purchase_payments_bank_to_caixabank"("p_revo
 GRANT ALL ON FUNCTION "public"."generate_internal_purchase_number"("p_document_type" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."generate_internal_purchase_number"("p_document_type" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."generate_internal_purchase_number"("p_document_type" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "generate_otp"("p_email" "text", "p_ip_address" "inet", "p_user_agent" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36851,8 +32339,6 @@ GRANT ALL ON FUNCTION "public"."generate_internal_purchase_number"("p_document_t
 GRANT ALL ON FUNCTION "public"."generate_otp"("p_email" "text", "p_ip_address" "inet", "p_user_agent" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."generate_otp"("p_email" "text", "p_ip_address" "inet", "p_user_agent" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."generate_otp"("p_email" "text", "p_ip_address" "inet", "p_user_agent" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "generate_partner_compensations_for_month"("p_year" integer, "p_month" integer, "p_mode" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36860,8 +32346,6 @@ GRANT ALL ON FUNCTION "public"."generate_otp"("p_email" "text", "p_ip_address" "
 GRANT ALL ON FUNCTION "public"."generate_partner_compensations_for_month"("p_year" integer, "p_month" integer, "p_mode" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."generate_partner_compensations_for_month"("p_year" integer, "p_month" integer, "p_mode" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."generate_partner_compensations_for_month"("p_year" integer, "p_month" integer, "p_mode" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_authorized_user_by_auth_id"("p_auth_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36869,8 +32353,6 @@ GRANT ALL ON FUNCTION "public"."generate_partner_compensations_for_month"("p_yea
 GRANT ALL ON FUNCTION "public"."get_authorized_user_by_auth_id"("p_auth_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_authorized_user_by_auth_id"("p_auth_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_authorized_user_by_auth_id"("p_auth_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_balance_sheet"("p_as_of_date" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36878,8 +32360,6 @@ GRANT ALL ON FUNCTION "public"."get_authorized_user_by_auth_id"("p_auth_user_id"
 GRANT ALL ON FUNCTION "public"."get_balance_sheet"("p_as_of_date" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_balance_sheet"("p_as_of_date" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_balance_sheet"("p_as_of_date" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_bank_account_code"("p_bank_account_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36887,8 +32367,6 @@ GRANT ALL ON FUNCTION "public"."get_balance_sheet"("p_as_of_date" "date") TO "se
 GRANT ALL ON FUNCTION "public"."get_bank_account_code"("p_bank_account_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_bank_account_code"("p_bank_account_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_bank_account_code"("p_bank_account_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_canvassing_location"("p_location_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36896,8 +32374,6 @@ GRANT ALL ON FUNCTION "public"."get_bank_account_code"("p_bank_account_id" "uuid
 GRANT ALL ON FUNCTION "public"."get_canvassing_location"("p_location_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_canvassing_location"("p_location_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_canvassing_location"("p_location_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_catalog_explorer_tree"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36905,8 +32381,6 @@ GRANT ALL ON FUNCTION "public"."get_canvassing_location"("p_location_id" "uuid")
 GRANT ALL ON FUNCTION "public"."get_catalog_explorer_tree"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_catalog_explorer_tree"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_catalog_explorer_tree"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_catalog_product_detail"("p_product_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36914,8 +32388,6 @@ GRANT ALL ON FUNCTION "public"."get_catalog_explorer_tree"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_catalog_product_detail"("p_product_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_catalog_product_detail"("p_product_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_catalog_product_detail"("p_product_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_catalog_product_storage_path"("p_product_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36923,8 +32395,6 @@ GRANT ALL ON FUNCTION "public"."get_catalog_product_detail"("p_product_id" "uuid
 GRANT ALL ON FUNCTION "public"."get_catalog_product_storage_path"("p_product_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_catalog_product_storage_path"("p_product_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_catalog_product_storage_path"("p_product_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_client"("p_client_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36932,8 +32402,6 @@ GRANT ALL ON FUNCTION "public"."get_catalog_product_storage_path"("p_product_id"
 GRANT ALL ON FUNCTION "public"."get_client"("p_client_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_client"("p_client_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_client"("p_client_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_client_balances"("p_as_of_date" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36941,8 +32409,6 @@ GRANT ALL ON FUNCTION "public"."get_client"("p_client_id" "uuid") TO "service_ro
 GRANT ALL ON FUNCTION "public"."get_client_balances"("p_as_of_date" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_client_balances"("p_as_of_date" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_client_balances"("p_as_of_date" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_client_for_map"("p_client_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36950,8 +32416,6 @@ GRANT ALL ON FUNCTION "public"."get_client_balances"("p_as_of_date" "date") TO "
 GRANT ALL ON FUNCTION "public"."get_client_for_map"("p_client_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_client_for_map"("p_client_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_client_for_map"("p_client_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_company_contacts"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36959,8 +32423,6 @@ GRANT ALL ON FUNCTION "public"."get_client_for_map"("p_client_id" "uuid") TO "se
 GRANT ALL ON FUNCTION "public"."get_company_contacts"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_company_contacts"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_company_contacts"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_company_preferences"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36968,8 +32430,6 @@ GRANT ALL ON FUNCTION "public"."get_company_contacts"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_company_preferences"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_company_preferences"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_company_preferences"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_company_settings"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36977,8 +32437,6 @@ GRANT ALL ON FUNCTION "public"."get_company_preferences"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_company_settings"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_company_settings"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_company_settings"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_corporate_tax_summary"("p_period_start" "date", "p_period_end" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36986,8 +32444,6 @@ GRANT ALL ON FUNCTION "public"."get_company_settings"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_corporate_tax_summary"("p_period_start" "date", "p_period_end" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_corporate_tax_summary"("p_period_start" "date", "p_period_end" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_corporate_tax_summary"("p_period_start" "date", "p_period_end" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_credit_installments"("p_operation_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -36995,8 +32451,6 @@ GRANT ALL ON FUNCTION "public"."get_corporate_tax_summary"("p_period_start" "dat
 GRANT ALL ON FUNCTION "public"."get_credit_installments"("p_operation_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_credit_installments"("p_operation_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_credit_installments"("p_operation_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_credit_operations"("p_purchase_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37004,8 +32458,6 @@ GRANT ALL ON FUNCTION "public"."get_credit_installments"("p_operation_id" "uuid"
 GRANT ALL ON FUNCTION "public"."get_credit_operations"("p_purchase_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_credit_operations"("p_purchase_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_credit_operations"("p_purchase_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_current_user_info"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37013,8 +32465,6 @@ GRANT ALL ON FUNCTION "public"."get_credit_operations"("p_purchase_invoice_id" "
 REVOKE ALL ON FUNCTION "public"."get_current_user_info"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."get_current_user_info"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_current_user_info"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_dashboard_metrics"("p_period" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37022,8 +32472,6 @@ GRANT ALL ON FUNCTION "public"."get_current_user_info"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_dashboard_metrics"("p_period" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_dashboard_metrics"("p_period" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_dashboard_metrics"("p_period" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_fiscal_quarter_data"("p_year" integer, "p_quarter" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37031,8 +32479,6 @@ GRANT ALL ON FUNCTION "public"."get_dashboard_metrics"("p_period" "text") TO "se
 GRANT ALL ON FUNCTION "public"."get_fiscal_quarter_data"("p_year" integer, "p_quarter" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."get_fiscal_quarter_data"("p_year" integer, "p_quarter" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_fiscal_quarter_data"("p_year" integer, "p_quarter" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_invoice"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37040,8 +32486,6 @@ GRANT ALL ON FUNCTION "public"."get_fiscal_quarter_data"("p_year" integer, "p_qu
 GRANT ALL ON FUNCTION "public"."get_invoice"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_invoice"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_invoice"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_invoice_archive_metadata"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37049,8 +32493,6 @@ GRANT ALL ON FUNCTION "public"."get_invoice"("p_invoice_id" "uuid") TO "service_
 REVOKE ALL ON FUNCTION "public"."get_invoice_archive_metadata"("p_invoice_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."get_invoice_archive_metadata"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_invoice_archive_metadata"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_invoice_lines"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37058,8 +32500,6 @@ GRANT ALL ON FUNCTION "public"."get_invoice_archive_metadata"("p_invoice_id" "uu
 GRANT ALL ON FUNCTION "public"."get_invoice_lines"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_invoice_lines"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_invoice_lines"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_irpf_by_period"("p_period_start" "date", "p_period_end" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37067,8 +32507,6 @@ GRANT ALL ON FUNCTION "public"."get_invoice_lines"("p_invoice_id" "uuid") TO "se
 GRANT ALL ON FUNCTION "public"."get_irpf_by_period"("p_period_start" "date", "p_period_end" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_irpf_by_period"("p_period_start" "date", "p_period_end" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_irpf_by_period"("p_period_start" "date", "p_period_end" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_irpf_by_person"("p_period_start" "date", "p_period_end" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37076,8 +32514,6 @@ GRANT ALL ON FUNCTION "public"."get_irpf_by_period"("p_period_start" "date", "p_
 GRANT ALL ON FUNCTION "public"."get_irpf_by_person"("p_period_start" "date", "p_period_end" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_irpf_by_person"("p_period_start" "date", "p_period_end" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_irpf_by_person"("p_period_start" "date", "p_period_end" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_irpf_model_111_summary"("p_period_start" "date", "p_period_end" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37085,8 +32521,6 @@ GRANT ALL ON FUNCTION "public"."get_irpf_by_person"("p_period_start" "date", "p_
 GRANT ALL ON FUNCTION "public"."get_irpf_model_111_summary"("p_period_start" "date", "p_period_end" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_irpf_model_111_summary"("p_period_start" "date", "p_period_end" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_irpf_model_111_summary"("p_period_start" "date", "p_period_end" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_irpf_summary"("p_period_start" "date", "p_period_end" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37094,8 +32528,6 @@ GRANT ALL ON FUNCTION "public"."get_irpf_model_111_summary"("p_period_start" "da
 GRANT ALL ON FUNCTION "public"."get_irpf_summary"("p_period_start" "date", "p_period_end" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_irpf_summary"("p_period_start" "date", "p_period_end" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_irpf_summary"("p_period_start" "date", "p_period_end" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_journal_entry_lines"("p_entry_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37103,8 +32535,6 @@ GRANT ALL ON FUNCTION "public"."get_irpf_summary"("p_period_start" "date", "p_pe
 GRANT ALL ON FUNCTION "public"."get_journal_entry_lines"("p_entry_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_journal_entry_lines"("p_entry_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_journal_entry_lines"("p_entry_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_lead_stats"("p_assigned_to" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37112,8 +32542,6 @@ GRANT ALL ON FUNCTION "public"."get_journal_entry_lines"("p_entry_id" "uuid") TO
 GRANT ALL ON FUNCTION "public"."get_lead_stats"("p_assigned_to" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_lead_stats"("p_assigned_to" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_lead_stats"("p_assigned_to" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_monthly_closure_report_dataset"("p_year" integer, "p_month" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37121,8 +32549,6 @@ GRANT ALL ON FUNCTION "public"."get_lead_stats"("p_assigned_to" "uuid") TO "serv
 GRANT ALL ON FUNCTION "public"."get_monthly_closure_report_dataset"("p_year" integer, "p_month" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."get_monthly_closure_report_dataset"("p_year" integer, "p_month" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_monthly_closure_report_dataset"("p_year" integer, "p_month" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_next_factura_borr_number"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37130,8 +32556,6 @@ GRANT ALL ON FUNCTION "public"."get_monthly_closure_report_dataset"("p_year" int
 GRANT ALL ON FUNCTION "public"."get_next_factura_borr_number"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_next_factura_borr_number"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_next_factura_borr_number"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_next_invoice_number"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37139,8 +32563,6 @@ GRANT ALL ON FUNCTION "public"."get_next_factura_borr_number"() TO "service_role
 GRANT ALL ON FUNCTION "public"."get_next_invoice_number"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_next_invoice_number"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_next_invoice_number"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_next_pending_monthly_report"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37148,8 +32570,6 @@ GRANT ALL ON FUNCTION "public"."get_next_invoice_number"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_next_pending_monthly_report"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_next_pending_monthly_report"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_next_pending_monthly_report"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_next_provisional_purchase_number"("p_document_type" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37157,8 +32577,6 @@ GRANT ALL ON FUNCTION "public"."get_next_pending_monthly_report"() TO "service_r
 GRANT ALL ON FUNCTION "public"."get_next_provisional_purchase_number"("p_document_type" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_next_provisional_purchase_number"("p_document_type" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_next_provisional_purchase_number"("p_document_type" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_next_ticket_number"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37166,8 +32584,6 @@ GRANT ALL ON FUNCTION "public"."get_next_provisional_purchase_number"("p_documen
 GRANT ALL ON FUNCTION "public"."get_next_ticket_number"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_next_ticket_number"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_next_ticket_number"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_pack_items"("p_pack_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37175,8 +32591,6 @@ GRANT ALL ON FUNCTION "public"."get_next_ticket_number"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_pack_items"("p_pack_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_pack_items"("p_pack_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_pack_items"("p_pack_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_payroll_settings"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37184,8 +32598,6 @@ GRANT ALL ON FUNCTION "public"."get_pack_items"("p_pack_id" "uuid") TO "service_
 GRANT ALL ON FUNCTION "public"."get_payroll_settings"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_payroll_settings"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_payroll_settings"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_period_profit_summary"("p_start" "date", "p_end" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37193,8 +32605,6 @@ GRANT ALL ON FUNCTION "public"."get_payroll_settings"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_period_profit_summary"("p_start" "date", "p_end" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_period_profit_summary"("p_start" "date", "p_end" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_period_profit_summary"("p_start" "date", "p_end" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_profit_loss"("p_period_start" "date", "p_period_end" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37202,8 +32612,6 @@ GRANT ALL ON FUNCTION "public"."get_period_profit_summary"("p_start" "date", "p_
 GRANT ALL ON FUNCTION "public"."get_profit_loss"("p_period_start" "date", "p_period_end" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_profit_loss"("p_period_start" "date", "p_period_end" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_profit_loss"("p_period_start" "date", "p_period_end" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_project"("p_project_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37211,8 +32619,6 @@ GRANT ALL ON FUNCTION "public"."get_profit_loss"("p_period_start" "date", "p_per
 GRANT ALL ON FUNCTION "public"."get_project"("p_project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_project"("p_project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_project"("p_project_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_project_financial_stats"("p_project_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37220,8 +32626,6 @@ GRANT ALL ON FUNCTION "public"."get_project"("p_project_id" "uuid") TO "service_
 GRANT ALL ON FUNCTION "public"."get_project_financial_stats"("p_project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_project_financial_stats"("p_project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_project_financial_stats"("p_project_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_project_history"("p_project_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37229,8 +32633,6 @@ GRANT ALL ON FUNCTION "public"."get_project_financial_stats"("p_project_id" "uui
 GRANT ALL ON FUNCTION "public"."get_project_history"("p_project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_project_history"("p_project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_project_history"("p_project_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_projects_portfolio_summary"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37238,8 +32640,6 @@ GRANT ALL ON FUNCTION "public"."get_project_history"("p_project_id" "uuid") TO "
 GRANT ALL ON FUNCTION "public"."get_projects_portfolio_summary"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_projects_portfolio_summary"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_projects_portfolio_summary"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_provider_purchase_invoices"("p_provider_id" "uuid", "p_provider_type" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37247,8 +32647,6 @@ GRANT ALL ON FUNCTION "public"."get_projects_portfolio_summary"() TO "service_ro
 GRANT ALL ON FUNCTION "public"."get_provider_purchase_invoices"("p_provider_id" "uuid", "p_provider_type" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_provider_purchase_invoices"("p_provider_id" "uuid", "p_provider_type" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_provider_purchase_invoices"("p_provider_id" "uuid", "p_provider_type" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_purchase_invoice"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37256,8 +32654,6 @@ GRANT ALL ON FUNCTION "public"."get_provider_purchase_invoices"("p_provider_id" 
 GRANT ALL ON FUNCTION "public"."get_purchase_invoice"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_purchase_invoice"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_purchase_invoice"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_purchase_invoice_lines"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37265,8 +32661,6 @@ GRANT ALL ON FUNCTION "public"."get_purchase_invoice"("p_invoice_id" "uuid") TO 
 GRANT ALL ON FUNCTION "public"."get_purchase_invoice_lines"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_purchase_invoice_lines"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_purchase_invoice_lines"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_purchase_invoice_payments"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37274,8 +32668,6 @@ GRANT ALL ON FUNCTION "public"."get_purchase_invoice_lines"("p_invoice_id" "uuid
 GRANT ALL ON FUNCTION "public"."get_purchase_invoice_payments"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_purchase_invoice_payments"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_purchase_invoice_payments"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_purchase_order"("p_order_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37283,8 +32675,6 @@ GRANT ALL ON FUNCTION "public"."get_purchase_invoice_payments"("p_invoice_id" "u
 GRANT ALL ON FUNCTION "public"."get_purchase_order"("p_order_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_purchase_order"("p_order_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_purchase_order"("p_order_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_purchase_order_lines"("p_order_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37292,8 +32682,6 @@ GRANT ALL ON FUNCTION "public"."get_purchase_order"("p_order_id" "uuid") TO "ser
 GRANT ALL ON FUNCTION "public"."get_purchase_order_lines"("p_order_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_purchase_order_lines"("p_order_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_purchase_order_lines"("p_order_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_quote"("p_quote_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37301,8 +32689,6 @@ GRANT ALL ON FUNCTION "public"."get_purchase_order_lines"("p_order_id" "uuid") T
 GRANT ALL ON FUNCTION "public"."get_quote"("p_quote_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_quote"("p_quote_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_quote"("p_quote_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_quote_archive_metadata"("p_quote_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37310,8 +32696,6 @@ GRANT ALL ON FUNCTION "public"."get_quote"("p_quote_id" "uuid") TO "service_role
 REVOKE ALL ON FUNCTION "public"."get_quote_archive_metadata"("p_quote_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."get_quote_archive_metadata"("p_quote_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_quote_archive_metadata"("p_quote_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_quote_lines"("p_quote_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37319,8 +32703,6 @@ GRANT ALL ON FUNCTION "public"."get_quote_archive_metadata"("p_quote_id" "uuid")
 GRANT ALL ON FUNCTION "public"."get_quote_lines"("p_quote_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_quote_lines"("p_quote_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_quote_lines"("p_quote_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_report_settings"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37328,8 +32710,6 @@ GRANT ALL ON FUNCTION "public"."get_quote_lines"("p_quote_id" "uuid") TO "servic
 GRANT ALL ON FUNCTION "public"."get_report_settings"() TO "anon";
 GRANT ALL ON FUNCTION "public"."get_report_settings"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_report_settings"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_sales_by_product_category"("p_period_start" "date", "p_period_end" "date", "p_status" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37337,8 +32717,6 @@ GRANT ALL ON FUNCTION "public"."get_report_settings"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."get_sales_by_product_category"("p_period_start" "date", "p_period_end" "date", "p_status" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_sales_by_product_category"("p_period_start" "date", "p_period_end" "date", "p_status" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_sales_by_product_category"("p_period_start" "date", "p_period_end" "date", "p_status" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_site_financials"("p_site_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37346,8 +32724,6 @@ GRANT ALL ON FUNCTION "public"."get_sales_by_product_category"("p_period_start" 
 GRANT ALL ON FUNCTION "public"."get_site_financials"("p_site_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_site_financials"("p_site_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_site_financials"("p_site_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_suggested_project_status"("p_project_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37355,8 +32731,6 @@ GRANT ALL ON FUNCTION "public"."get_site_financials"("p_site_id" "uuid") TO "ser
 GRANT ALL ON FUNCTION "public"."get_suggested_project_status"("p_project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_suggested_project_status"("p_project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_suggested_project_status"("p_project_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_supplier"("p_supplier_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37364,8 +32738,6 @@ GRANT ALL ON FUNCTION "public"."get_suggested_project_status"("p_project_id" "uu
 GRANT ALL ON FUNCTION "public"."get_supplier"("p_supplier_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_supplier"("p_supplier_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_supplier"("p_supplier_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_supplier_technician_balances"("p_as_of_date" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37373,8 +32745,6 @@ GRANT ALL ON FUNCTION "public"."get_supplier"("p_supplier_id" "uuid") TO "servic
 GRANT ALL ON FUNCTION "public"."get_supplier_technician_balances"("p_as_of_date" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_supplier_technician_balances"("p_as_of_date" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_supplier_technician_balances"("p_as_of_date" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_technician"("p_technician_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37382,8 +32752,6 @@ GRANT ALL ON FUNCTION "public"."get_supplier_technician_balances"("p_as_of_date"
 GRANT ALL ON FUNCTION "public"."get_technician"("p_technician_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_technician"("p_technician_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_technician"("p_technician_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_technician_projects_count"("p_technician_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37391,8 +32759,6 @@ GRANT ALL ON FUNCTION "public"."get_technician"("p_technician_id" "uuid") TO "se
 GRANT ALL ON FUNCTION "public"."get_technician_projects_count"("p_technician_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_technician_projects_count"("p_technician_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_technician_projects_count"("p_technician_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_user_auth_id"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37400,8 +32766,6 @@ GRANT ALL ON FUNCTION "public"."get_technician_projects_count"("p_technician_id"
 GRANT ALL ON FUNCTION "public"."get_user_auth_id"("p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_user_auth_id"("p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_user_auth_id"("p_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_user_auth_id_by_email"("p_email" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37409,8 +32773,6 @@ GRANT ALL ON FUNCTION "public"."get_user_auth_id"("p_user_id" "uuid") TO "servic
 GRANT ALL ON FUNCTION "public"."get_user_auth_id_by_email"("p_email" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_user_auth_id_by_email"("p_email" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_user_auth_id_by_email"("p_email" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_user_id_by_email"("p_email" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37418,8 +32780,6 @@ GRANT ALL ON FUNCTION "public"."get_user_auth_id_by_email"("p_email" "text") TO 
 GRANT ALL ON FUNCTION "public"."get_user_id_by_email"("p_email" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_user_id_by_email"("p_email" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_user_id_by_email"("p_email" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_user_roles_by_user_id"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37427,8 +32787,6 @@ GRANT ALL ON FUNCTION "public"."get_user_id_by_email"("p_email" "text") TO "serv
 GRANT ALL ON FUNCTION "public"."get_user_roles_by_user_id"("p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_user_roles_by_user_id"("p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_user_roles_by_user_id"("p_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_vat_summary"("p_period_start" "date", "p_period_end" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37436,8 +32794,6 @@ GRANT ALL ON FUNCTION "public"."get_user_roles_by_user_id"("p_user_id" "uuid") T
 GRANT ALL ON FUNCTION "public"."get_vat_summary"("p_period_start" "date", "p_period_end" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_vat_summary"("p_period_start" "date", "p_period_end" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_vat_summary"("p_period_start" "date", "p_period_end" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "get_worker_detail"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37445,8 +32801,6 @@ GRANT ALL ON FUNCTION "public"."get_vat_summary"("p_period_start" "date", "p_per
 GRANT ALL ON FUNCTION "public"."get_worker_detail"("p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_worker_detail"("p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_worker_detail"("p_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "has_role"("_user_id" "uuid", "_role" "public"."app_role"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37454,8 +32808,6 @@ GRANT ALL ON FUNCTION "public"."get_worker_detail"("p_user_id" "uuid") TO "servi
 GRANT ALL ON FUNCTION "public"."has_role"("_user_id" "uuid", "_role" "public"."app_role") TO "anon";
 GRANT ALL ON FUNCTION "public"."has_role"("_user_id" "uuid", "_role" "public"."app_role") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."has_role"("_user_id" "uuid", "_role" "public"."app_role") TO "service_role";
-
-
 --
 -- Name: FUNCTION "insert_contact_message"("_nombre" "text", "_empresa" "text", "_email" "text", "_telefono" "text", "_tipo_solicitud" "text", "_tipo_espacio" "text", "_mensaje" "text", "_ip_address" "inet", "_user_agent" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37463,8 +32815,6 @@ GRANT ALL ON FUNCTION "public"."has_role"("_user_id" "uuid", "_role" "public"."a
 GRANT ALL ON FUNCTION "public"."insert_contact_message"("_nombre" "text", "_empresa" "text", "_email" "text", "_telefono" "text", "_tipo_solicitud" "text", "_tipo_espacio" "text", "_mensaje" "text", "_ip_address" "inet", "_user_agent" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."insert_contact_message"("_nombre" "text", "_empresa" "text", "_email" "text", "_telefono" "text", "_tipo_solicitud" "text", "_tipo_espacio" "text", "_mensaje" "text", "_ip_address" "inet", "_user_agent" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."insert_contact_message"("_nombre" "text", "_empresa" "text", "_email" "text", "_telefono" "text", "_tipo_solicitud" "text", "_tipo_espacio" "text", "_mensaje" "text", "_ip_address" "inet", "_user_agent" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "is_allowed_domain"("_email" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37472,8 +32822,6 @@ GRANT ALL ON FUNCTION "public"."insert_contact_message"("_nombre" "text", "_empr
 GRANT ALL ON FUNCTION "public"."is_allowed_domain"("_email" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."is_allowed_domain"("_email" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."is_allowed_domain"("_email" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "is_email_authorized"("p_email" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37481,8 +32829,6 @@ GRANT ALL ON FUNCTION "public"."is_allowed_domain"("_email" "text") TO "service_
 GRANT ALL ON FUNCTION "public"."is_email_authorized"("p_email" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."is_email_authorized"("p_email" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."is_email_authorized"("p_email" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "is_period_closed"("p_year" integer, "p_month" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37490,8 +32836,6 @@ GRANT ALL ON FUNCTION "public"."is_email_authorized"("p_email" "text") TO "servi
 GRANT ALL ON FUNCTION "public"."is_period_closed"("p_year" integer, "p_month" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."is_period_closed"("p_year" integer, "p_month" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."is_period_closed"("p_year" integer, "p_month" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "link_po_to_purchase_invoice"("p_order_id" "uuid", "p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37499,8 +32843,6 @@ GRANT ALL ON FUNCTION "public"."is_period_closed"("p_year" integer, "p_month" in
 GRANT ALL ON FUNCTION "public"."link_po_to_purchase_invoice"("p_order_id" "uuid", "p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."link_po_to_purchase_invoice"("p_order_id" "uuid", "p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."link_po_to_purchase_invoice"("p_order_id" "uuid", "p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_assignable_users"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37508,8 +32850,6 @@ GRANT ALL ON FUNCTION "public"."link_po_to_purchase_invoice"("p_order_id" "uuid"
 GRANT ALL ON FUNCTION "public"."list_assignable_users"() TO "anon";
 GRANT ALL ON FUNCTION "public"."list_assignable_users"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_assignable_users"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_authorized_users"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37517,8 +32857,6 @@ GRANT ALL ON FUNCTION "public"."list_assignable_users"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."list_authorized_users"() TO "anon";
 GRANT ALL ON FUNCTION "public"."list_authorized_users"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_authorized_users"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_bank_account_movements"("p_account_code" "text", "p_start_date" "date", "p_end_date" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37526,8 +32864,6 @@ GRANT ALL ON FUNCTION "public"."list_authorized_users"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."list_bank_account_movements"("p_account_code" "text", "p_start_date" "date", "p_end_date" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_bank_account_movements"("p_account_code" "text", "p_start_date" "date", "p_end_date" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_bank_account_movements"("p_account_code" "text", "p_start_date" "date", "p_end_date" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_bank_accounts_with_balances"("p_as_of_date" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37535,8 +32871,6 @@ GRANT ALL ON FUNCTION "public"."list_bank_account_movements"("p_account_code" "t
 GRANT ALL ON FUNCTION "public"."list_bank_accounts_with_balances"("p_as_of_date" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_bank_accounts_with_balances"("p_as_of_date" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_bank_accounts_with_balances"("p_as_of_date" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_cash_movements"("p_start_date" "date", "p_end_date" "date", "p_bank_account_code" "text", "p_limit" integer, "p_offset" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37544,8 +32878,6 @@ GRANT ALL ON FUNCTION "public"."list_bank_accounts_with_balances"("p_as_of_date"
 GRANT ALL ON FUNCTION "public"."list_cash_movements"("p_start_date" "date", "p_end_date" "date", "p_bank_account_code" "text", "p_limit" integer, "p_offset" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_cash_movements"("p_start_date" "date", "p_end_date" "date", "p_bank_account_code" "text", "p_limit" integer, "p_offset" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_cash_movements"("p_start_date" "date", "p_end_date" "date", "p_bank_account_code" "text", "p_limit" integer, "p_offset" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_catalog_bundle_components"("p_bundle_product_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37553,8 +32885,6 @@ GRANT ALL ON FUNCTION "public"."list_cash_movements"("p_start_date" "date", "p_e
 GRANT ALL ON FUNCTION "public"."list_catalog_bundle_components"("p_bundle_product_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_catalog_bundle_components"("p_bundle_product_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_catalog_bundle_components"("p_bundle_product_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_catalog_bundles"("p_search" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37562,8 +32892,6 @@ GRANT ALL ON FUNCTION "public"."list_catalog_bundle_components"("p_bundle_produc
 GRANT ALL ON FUNCTION "public"."list_catalog_bundles"("p_search" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_catalog_bundles"("p_search" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_catalog_bundles"("p_search" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_catalog_categories"("p_domain" "catalog"."category_domain", "p_parent_id" "uuid", "p_search" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37571,8 +32899,6 @@ GRANT ALL ON FUNCTION "public"."list_catalog_bundles"("p_search" "text") TO "ser
 GRANT ALL ON FUNCTION "public"."list_catalog_categories"("p_domain" "catalog"."category_domain", "p_parent_id" "uuid", "p_search" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_catalog_categories"("p_domain" "catalog"."category_domain", "p_parent_id" "uuid", "p_search" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_catalog_categories"("p_domain" "catalog"."category_domain", "p_parent_id" "uuid", "p_search" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_catalog_products"("p_domain" "catalog"."category_domain", "p_category_id" "uuid", "p_search" "text", "p_include_inactive" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37580,8 +32906,6 @@ GRANT ALL ON FUNCTION "public"."list_catalog_categories"("p_domain" "catalog"."c
 GRANT ALL ON FUNCTION "public"."list_catalog_products"("p_domain" "catalog"."category_domain", "p_category_id" "uuid", "p_search" "text", "p_include_inactive" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_catalog_products"("p_domain" "catalog"."category_domain", "p_category_id" "uuid", "p_search" "text", "p_include_inactive" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_catalog_products"("p_domain" "catalog"."category_domain", "p_category_id" "uuid", "p_search" "text", "p_include_inactive" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_catalog_products_search"("p_search" "text", "p_domain" "catalog"."category_domain", "p_include_inactive" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37589,8 +32913,6 @@ GRANT ALL ON FUNCTION "public"."list_catalog_products"("p_domain" "catalog"."cat
 GRANT ALL ON FUNCTION "public"."list_catalog_products_search"("p_search" "text", "p_domain" "catalog"."category_domain", "p_include_inactive" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_catalog_products_search"("p_search" "text", "p_domain" "catalog"."category_domain", "p_include_inactive" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_catalog_products_search"("p_search" "text", "p_domain" "catalog"."category_domain", "p_include_inactive" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_catalog_tax_rates"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37598,8 +32920,6 @@ GRANT ALL ON FUNCTION "public"."list_catalog_products_search"("p_search" "text",
 GRANT ALL ON FUNCTION "public"."list_catalog_tax_rates"() TO "anon";
 GRANT ALL ON FUNCTION "public"."list_catalog_tax_rates"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_catalog_tax_rates"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_chart_of_accounts"("p_account_type" "text", "p_only_active" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37607,8 +32927,6 @@ GRANT ALL ON FUNCTION "public"."list_catalog_tax_rates"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."list_chart_of_accounts"("p_account_type" "text", "p_only_active" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_chart_of_accounts"("p_account_type" "text", "p_only_active" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_chart_of_accounts"("p_account_type" "text", "p_only_active" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_client_notes"("p_client_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37616,8 +32934,6 @@ GRANT ALL ON FUNCTION "public"."list_chart_of_accounts"("p_account_type" "text",
 GRANT ALL ON FUNCTION "public"."list_client_notes"("p_client_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_client_notes"("p_client_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_client_notes"("p_client_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_clients"("p_search" "text", "p_lead_stage" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37625,8 +32941,6 @@ GRANT ALL ON FUNCTION "public"."list_client_notes"("p_client_id" "uuid") TO "ser
 GRANT ALL ON FUNCTION "public"."list_clients"("p_search" "text", "p_lead_stage" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_clients"("p_search" "text", "p_lead_stage" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_clients"("p_search" "text", "p_lead_stage" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_clients_for_map"("p_assigned_to" "uuid", "p_lead_stages" "text"[]); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37634,8 +32948,6 @@ GRANT ALL ON FUNCTION "public"."list_clients"("p_search" "text", "p_lead_stage" 
 GRANT ALL ON FUNCTION "public"."list_clients_for_map"("p_assigned_to" "uuid", "p_lead_stages" "text"[]) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_clients_for_map"("p_assigned_to" "uuid", "p_lead_stages" "text"[]) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_clients_for_map"("p_assigned_to" "uuid", "p_lead_stages" "text"[]) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_company_bank_accounts"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37643,8 +32955,6 @@ GRANT ALL ON FUNCTION "public"."list_clients_for_map"("p_assigned_to" "uuid", "p
 GRANT ALL ON FUNCTION "public"."list_company_bank_accounts"() TO "anon";
 GRANT ALL ON FUNCTION "public"."list_company_bank_accounts"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_company_bank_accounts"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_employees"("p_status" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37652,8 +32962,6 @@ GRANT ALL ON FUNCTION "public"."list_company_bank_accounts"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."list_employees"("p_status" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_employees"("p_status" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_employees"("p_status" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_external_credit_providers"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37661,8 +32969,6 @@ GRANT ALL ON FUNCTION "public"."list_employees"("p_status" "text") TO "service_r
 GRANT ALL ON FUNCTION "public"."list_external_credit_providers"() TO "anon";
 GRANT ALL ON FUNCTION "public"."list_external_credit_providers"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_external_credit_providers"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_invoices"("p_search" "text", "p_status" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37670,8 +32976,6 @@ GRANT ALL ON FUNCTION "public"."list_external_credit_providers"() TO "service_ro
 GRANT ALL ON FUNCTION "public"."list_invoices"("p_search" "text", "p_status" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_invoices"("p_search" "text", "p_status" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_invoices"("p_search" "text", "p_status" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_journal_entries"("p_start_date" "date", "p_end_date" "date", "p_entry_type" "text", "p_reference_type" "text", "p_project_id" "uuid", "p_search" "text", "p_limit" integer, "p_offset" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37679,8 +32983,6 @@ GRANT ALL ON FUNCTION "public"."list_invoices"("p_search" "text", "p_status" "te
 GRANT ALL ON FUNCTION "public"."list_journal_entries"("p_start_date" "date", "p_end_date" "date", "p_entry_type" "text", "p_reference_type" "text", "p_project_id" "uuid", "p_search" "text", "p_limit" integer, "p_offset" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_journal_entries"("p_start_date" "date", "p_end_date" "date", "p_entry_type" "text", "p_reference_type" "text", "p_project_id" "uuid", "p_search" "text", "p_limit" integer, "p_offset" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_journal_entries"("p_start_date" "date", "p_end_date" "date", "p_entry_type" "text", "p_reference_type" "text", "p_project_id" "uuid", "p_search" "text", "p_limit" integer, "p_offset" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_location_notes"("p_location_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37688,8 +32990,6 @@ GRANT ALL ON FUNCTION "public"."list_journal_entries"("p_start_date" "date", "p_
 GRANT ALL ON FUNCTION "public"."list_location_notes"("p_location_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_location_notes"("p_location_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_location_notes"("p_location_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_partner_compensation_runs"("p_period_year" integer, "p_period_month" integer, "p_partner_id" "uuid", "p_status" "text", "p_limit" integer, "p_offset" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37697,8 +32997,6 @@ GRANT ALL ON FUNCTION "public"."list_location_notes"("p_location_id" "uuid") TO 
 GRANT ALL ON FUNCTION "public"."list_partner_compensation_runs"("p_period_year" integer, "p_period_month" integer, "p_partner_id" "uuid", "p_status" "text", "p_limit" integer, "p_offset" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_partner_compensation_runs"("p_period_year" integer, "p_period_month" integer, "p_partner_id" "uuid", "p_status" "text", "p_limit" integer, "p_offset" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_partner_compensation_runs"("p_period_year" integer, "p_period_month" integer, "p_partner_id" "uuid", "p_status" "text", "p_limit" integer, "p_offset" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_partner_payroll_profiles"("p_status" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37706,8 +33004,6 @@ GRANT ALL ON FUNCTION "public"."list_partner_compensation_runs"("p_period_year" 
 GRANT ALL ON FUNCTION "public"."list_partner_payroll_profiles"("p_status" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_partner_payroll_profiles"("p_status" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_partner_payroll_profiles"("p_status" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_partners"("p_status" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37715,8 +33011,6 @@ GRANT ALL ON FUNCTION "public"."list_partner_payroll_profiles"("p_status" "text"
 GRANT ALL ON FUNCTION "public"."list_partners"("p_status" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_partners"("p_status" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_partners"("p_status" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_partners_for_selector"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37724,8 +33018,6 @@ GRANT ALL ON FUNCTION "public"."list_partners"("p_status" "text") TO "service_ro
 GRANT ALL ON FUNCTION "public"."list_partners_for_selector"() TO "anon";
 GRANT ALL ON FUNCTION "public"."list_partners_for_selector"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_partners_for_selector"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_payroll_payments"("p_payroll_run_id" "uuid", "p_partner_compensation_run_id" "uuid", "p_start_date" "date", "p_end_date" "date", "p_limit" integer, "p_offset" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37733,8 +33025,6 @@ GRANT ALL ON FUNCTION "public"."list_partners_for_selector"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."list_payroll_payments"("p_payroll_run_id" "uuid", "p_partner_compensation_run_id" "uuid", "p_start_date" "date", "p_end_date" "date", "p_limit" integer, "p_offset" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_payroll_payments"("p_payroll_run_id" "uuid", "p_partner_compensation_run_id" "uuid", "p_start_date" "date", "p_end_date" "date", "p_limit" integer, "p_offset" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_payroll_payments"("p_payroll_run_id" "uuid", "p_partner_compensation_run_id" "uuid", "p_start_date" "date", "p_end_date" "date", "p_limit" integer, "p_offset" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_payroll_runs"("p_period_year" integer, "p_period_month" integer, "p_employee_id" "uuid", "p_status" "text", "p_limit" integer, "p_offset" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37742,8 +33032,6 @@ GRANT ALL ON FUNCTION "public"."list_payroll_payments"("p_payroll_run_id" "uuid"
 GRANT ALL ON FUNCTION "public"."list_payroll_runs"("p_period_year" integer, "p_period_month" integer, "p_employee_id" "uuid", "p_status" "text", "p_limit" integer, "p_offset" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_payroll_runs"("p_period_year" integer, "p_period_month" integer, "p_employee_id" "uuid", "p_status" "text", "p_limit" integer, "p_offset" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_payroll_runs"("p_period_year" integer, "p_period_month" integer, "p_employee_id" "uuid", "p_status" "text", "p_limit" integer, "p_offset" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_pending_reimbursements"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37751,8 +33039,6 @@ GRANT ALL ON FUNCTION "public"."list_payroll_runs"("p_period_year" integer, "p_p
 GRANT ALL ON FUNCTION "public"."list_pending_reimbursements"() TO "anon";
 GRANT ALL ON FUNCTION "public"."list_pending_reimbursements"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_pending_reimbursements"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_periods_for_closure"("p_months_back" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37760,8 +33046,6 @@ GRANT ALL ON FUNCTION "public"."list_pending_reimbursements"() TO "service_role"
 GRANT ALL ON FUNCTION "public"."list_periods_for_closure"("p_months_back" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_periods_for_closure"("p_months_back" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_periods_for_closure"("p_months_back" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_product_categories"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37769,8 +33053,6 @@ GRANT ALL ON FUNCTION "public"."list_periods_for_closure"("p_months_back" intege
 GRANT ALL ON FUNCTION "public"."list_product_categories"() TO "anon";
 GRANT ALL ON FUNCTION "public"."list_product_categories"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_product_categories"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_product_packs"("p_search" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37778,8 +33060,6 @@ GRANT ALL ON FUNCTION "public"."list_product_categories"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."list_product_packs"("p_search" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_product_packs"("p_search" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_product_packs"("p_search" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_product_subcategories"("p_category_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37787,8 +33067,6 @@ GRANT ALL ON FUNCTION "public"."list_product_packs"("p_search" "text") TO "servi
 GRANT ALL ON FUNCTION "public"."list_product_subcategories"("p_category_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_product_subcategories"("p_category_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_product_subcategories"("p_category_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_products"("p_search" "text", "p_category_id" "uuid", "p_subcategory_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37796,8 +33074,6 @@ GRANT ALL ON FUNCTION "public"."list_product_subcategories"("p_category_id" "uui
 GRANT ALL ON FUNCTION "public"."list_products"("p_search" "text", "p_category_id" "uuid", "p_subcategory_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_products"("p_search" "text", "p_category_id" "uuid", "p_subcategory_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_products"("p_search" "text", "p_category_id" "uuid", "p_subcategory_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_project_activity"("p_project_id" "uuid", "p_limit" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37805,8 +33081,6 @@ GRANT ALL ON FUNCTION "public"."list_products"("p_search" "text", "p_category_id
 GRANT ALL ON FUNCTION "public"."list_project_activity"("p_project_id" "uuid", "p_limit" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_project_activity"("p_project_id" "uuid", "p_limit" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_project_activity"("p_project_id" "uuid", "p_limit" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_project_expenses"("p_project_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37814,8 +33088,6 @@ GRANT ALL ON FUNCTION "public"."list_project_activity"("p_project_id" "uuid", "p
 GRANT ALL ON FUNCTION "public"."list_project_expenses"("p_project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_project_expenses"("p_project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_project_expenses"("p_project_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_project_purchase_orders"("p_project_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37823,8 +33095,6 @@ GRANT ALL ON FUNCTION "public"."list_project_expenses"("p_project_id" "uuid") TO
 GRANT ALL ON FUNCTION "public"."list_project_purchase_orders"("p_project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_project_purchase_orders"("p_project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_project_purchase_orders"("p_project_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_project_quotes"("p_project_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37832,8 +33102,6 @@ GRANT ALL ON FUNCTION "public"."list_project_purchase_orders"("p_project_id" "uu
 GRANT ALL ON FUNCTION "public"."list_project_quotes"("p_project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_project_quotes"("p_project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_project_quotes"("p_project_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_project_sites"("p_project_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37841,8 +33109,6 @@ GRANT ALL ON FUNCTION "public"."list_project_quotes"("p_project_id" "uuid") TO "
 GRANT ALL ON FUNCTION "public"."list_project_sites"("p_project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_project_sites"("p_project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_project_sites"("p_project_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_project_technicians"("p_project_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37850,8 +33116,6 @@ GRANT ALL ON FUNCTION "public"."list_project_sites"("p_project_id" "uuid") TO "s
 GRANT ALL ON FUNCTION "public"."list_project_technicians"("p_project_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_project_technicians"("p_project_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_project_technicians"("p_project_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_projects"("p_status" "text", "p_search" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37859,8 +33123,6 @@ GRANT ALL ON FUNCTION "public"."list_project_technicians"("p_project_id" "uuid")
 GRANT ALL ON FUNCTION "public"."list_projects"("p_status" "text", "p_search" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_projects"("p_status" "text", "p_search" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_projects"("p_status" "text", "p_search" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_purchase_invoices"("p_search" "text", "p_status" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_document_type" "text", "p_project_id" "uuid", "p_page" integer, "p_page_size" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37868,8 +33130,6 @@ GRANT ALL ON FUNCTION "public"."list_projects"("p_status" "text", "p_search" "te
 GRANT ALL ON FUNCTION "public"."list_purchase_invoices"("p_search" "text", "p_status" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_document_type" "text", "p_project_id" "uuid", "p_page" integer, "p_page_size" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_purchase_invoices"("p_search" "text", "p_status" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_document_type" "text", "p_project_id" "uuid", "p_page" integer, "p_page_size" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_purchase_invoices"("p_search" "text", "p_status" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_document_type" "text", "p_project_id" "uuid", "p_page" integer, "p_page_size" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_purchase_orders"("p_search" "text", "p_status" "text", "p_project_id" "uuid", "p_supplier_id" "uuid", "p_technician_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37877,8 +33137,6 @@ GRANT ALL ON FUNCTION "public"."list_purchase_invoices"("p_search" "text", "p_st
 GRANT ALL ON FUNCTION "public"."list_purchase_orders"("p_search" "text", "p_status" "text", "p_project_id" "uuid", "p_supplier_id" "uuid", "p_technician_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_purchase_orders"("p_search" "text", "p_status" "text", "p_project_id" "uuid", "p_supplier_id" "uuid", "p_technician_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_purchase_orders"("p_search" "text", "p_status" "text", "p_project_id" "uuid", "p_supplier_id" "uuid", "p_technician_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_quote_activity"("p_quote_id" "uuid", "p_limit" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37886,8 +33144,6 @@ GRANT ALL ON FUNCTION "public"."list_purchase_orders"("p_search" "text", "p_stat
 GRANT ALL ON FUNCTION "public"."list_quote_activity"("p_quote_id" "uuid", "p_limit" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_quote_activity"("p_quote_id" "uuid", "p_limit" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_quote_activity"("p_quote_id" "uuid", "p_limit" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_quotes"("p_search" "text", "p_status" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37895,8 +33151,6 @@ GRANT ALL ON FUNCTION "public"."list_quote_activity"("p_quote_id" "uuid", "p_lim
 GRANT ALL ON FUNCTION "public"."list_quotes"("p_search" "text", "p_status" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_quotes"("p_search" "text", "p_status" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_quotes"("p_search" "text", "p_status" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_roles"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37904,8 +33158,6 @@ GRANT ALL ON FUNCTION "public"."list_quotes"("p_search" "text", "p_status" "text
 GRANT ALL ON FUNCTION "public"."list_roles"() TO "anon";
 GRANT ALL ON FUNCTION "public"."list_roles"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_roles"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_sales_archive_incidents"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37913,8 +33165,6 @@ GRANT ALL ON FUNCTION "public"."list_roles"() TO "service_role";
 REVOKE ALL ON FUNCTION "public"."list_sales_archive_incidents"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."list_sales_archive_incidents"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_sales_archive_incidents"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_site_assignments"("p_site_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37922,8 +33172,6 @@ GRANT ALL ON FUNCTION "public"."list_sales_archive_incidents"() TO "service_role
 GRANT ALL ON FUNCTION "public"."list_site_assignments"("p_site_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_site_assignments"("p_site_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_site_assignments"("p_site_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_site_visits"("p_site_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37931,8 +33179,6 @@ GRANT ALL ON FUNCTION "public"."list_site_assignments"("p_site_id" "uuid") TO "s
 GRANT ALL ON FUNCTION "public"."list_site_visits"("p_site_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_site_visits"("p_site_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_site_visits"("p_site_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_suppliers"("p_search" "text", "p_status" "text", "p_category" "text", "p_page" integer, "p_page_size" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37940,8 +33186,6 @@ GRANT ALL ON FUNCTION "public"."list_site_visits"("p_site_id" "uuid") TO "servic
 GRANT ALL ON FUNCTION "public"."list_suppliers"("p_search" "text", "p_status" "text", "p_category" "text", "p_page" integer, "p_page_size" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."list_suppliers"("p_search" "text", "p_status" "text", "p_category" "text", "p_page" integer, "p_page_size" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_suppliers"("p_search" "text", "p_status" "text", "p_category" "text", "p_page" integer, "p_page_size" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_taxes"("p_tax_type" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37949,8 +33193,6 @@ GRANT ALL ON FUNCTION "public"."list_suppliers"("p_search" "text", "p_status" "t
 GRANT ALL ON FUNCTION "public"."list_taxes"("p_tax_type" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_taxes"("p_tax_type" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_taxes"("p_tax_type" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_technicians"("p_search" "text", "p_type" "text", "p_status" "text", "p_specialty" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37958,8 +33200,6 @@ GRANT ALL ON FUNCTION "public"."list_taxes"("p_tax_type" "text") TO "service_rol
 GRANT ALL ON FUNCTION "public"."list_technicians"("p_search" "text", "p_type" "text", "p_status" "text", "p_specialty" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_technicians"("p_search" "text", "p_type" "text", "p_status" "text", "p_specialty" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_technicians"("p_search" "text", "p_type" "text", "p_status" "text", "p_specialty" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_technicians_for_map"("p_type" "text", "p_status" "text", "p_specialty" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37967,8 +33207,6 @@ GRANT ALL ON FUNCTION "public"."list_technicians"("p_search" "text", "p_type" "t
 GRANT ALL ON FUNCTION "public"."list_technicians_for_map"("p_type" "text", "p_status" "text", "p_specialty" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_technicians_for_map"("p_type" "text", "p_status" "text", "p_specialty" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_technicians_for_map"("p_type" "text", "p_status" "text", "p_specialty" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_user_canvassing_locations"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37976,8 +33214,6 @@ GRANT ALL ON FUNCTION "public"."list_technicians_for_map"("p_type" "text", "p_st
 GRANT ALL ON FUNCTION "public"."list_user_canvassing_locations"("p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."list_user_canvassing_locations"("p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_user_canvassing_locations"("p_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "list_workers"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37985,8 +33221,6 @@ GRANT ALL ON FUNCTION "public"."list_user_canvassing_locations"("p_user_id" "uui
 GRANT ALL ON FUNCTION "public"."list_workers"() TO "anon";
 GRANT ALL ON FUNCTION "public"."list_workers"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."list_workers"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "mark_current_user_otp_verified"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -37994,8 +33228,6 @@ GRANT ALL ON FUNCTION "public"."list_workers"() TO "service_role";
 REVOKE ALL ON FUNCTION "public"."mark_current_user_otp_verified"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."mark_current_user_otp_verified"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."mark_current_user_otp_verified"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "mark_invitation_token_used"("p_token" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38003,8 +33235,6 @@ GRANT ALL ON FUNCTION "public"."mark_current_user_otp_verified"() TO "service_ro
 GRANT ALL ON FUNCTION "public"."mark_invitation_token_used"("p_token" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."mark_invitation_token_used"("p_token" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."mark_invitation_token_used"("p_token" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "notifications_count_unread"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38012,8 +33242,6 @@ GRANT ALL ON FUNCTION "public"."mark_invitation_token_used"("p_token" "text") TO
 GRANT ALL ON FUNCTION "public"."notifications_count_unread"("p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."notifications_count_unread"("p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."notifications_count_unread"("p_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "notifications_list"("p_user_id" "uuid", "p_limit" integer, "p_only_unread" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38021,8 +33249,6 @@ GRANT ALL ON FUNCTION "public"."notifications_count_unread"("p_user_id" "uuid") 
 GRANT ALL ON FUNCTION "public"."notifications_list"("p_user_id" "uuid", "p_limit" integer, "p_only_unread" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."notifications_list"("p_user_id" "uuid", "p_limit" integer, "p_only_unread" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."notifications_list"("p_user_id" "uuid", "p_limit" integer, "p_only_unread" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "notifications_mark_all_read"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38030,8 +33256,6 @@ GRANT ALL ON FUNCTION "public"."notifications_list"("p_user_id" "uuid", "p_limit
 GRANT ALL ON FUNCTION "public"."notifications_mark_all_read"("p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."notifications_mark_all_read"("p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."notifications_mark_all_read"("p_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "notifications_mark_read"("p_notification_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38039,8 +33263,6 @@ GRANT ALL ON FUNCTION "public"."notifications_mark_all_read"("p_user_id" "uuid")
 GRANT ALL ON FUNCTION "public"."notifications_mark_read"("p_notification_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."notifications_mark_read"("p_notification_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."notifications_mark_read"("p_notification_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "notifications_refresh_for_user"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38048,8 +33270,6 @@ GRANT ALL ON FUNCTION "public"."notifications_mark_read"("p_notification_id" "uu
 GRANT ALL ON FUNCTION "public"."notifications_refresh_for_user"("p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."notifications_refresh_for_user"("p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."notifications_refresh_for_user"("p_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "open_period"("p_year" integer, "p_month" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38057,8 +33277,6 @@ GRANT ALL ON FUNCTION "public"."notifications_refresh_for_user"("p_user_id" "uui
 GRANT ALL ON FUNCTION "public"."open_period"("p_year" integer, "p_month" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."open_period"("p_year" integer, "p_month" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."open_period"("p_year" integer, "p_month" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "pay_partner_compensation_run"("p_compensation_run_id" "uuid", "p_bank_account_id" "uuid", "p_bank_name" "text", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38066,8 +33284,6 @@ GRANT ALL ON FUNCTION "public"."open_period"("p_year" integer, "p_month" integer
 GRANT ALL ON FUNCTION "public"."pay_partner_compensation_run"("p_compensation_run_id" "uuid", "p_bank_account_id" "uuid", "p_bank_name" "text", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."pay_partner_compensation_run"("p_compensation_run_id" "uuid", "p_bank_account_id" "uuid", "p_bank_name" "text", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."pay_partner_compensation_run"("p_compensation_run_id" "uuid", "p_bank_account_id" "uuid", "p_bank_name" "text", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "payroll_calculate_partner_compensation"("p_partner_id" "uuid", "p_year" integer, "p_month" integer, "p_base_amount" numeric, "p_irpf_rate" numeric, "p_dry_run" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38075,8 +33291,6 @@ GRANT ALL ON FUNCTION "public"."pay_partner_compensation_run"("p_compensation_ru
 GRANT ALL ON FUNCTION "public"."payroll_calculate_partner_compensation"("p_partner_id" "uuid", "p_year" integer, "p_month" integer, "p_base_amount" numeric, "p_irpf_rate" numeric, "p_dry_run" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."payroll_calculate_partner_compensation"("p_partner_id" "uuid", "p_year" integer, "p_month" integer, "p_base_amount" numeric, "p_irpf_rate" numeric, "p_dry_run" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."payroll_calculate_partner_compensation"("p_partner_id" "uuid", "p_year" integer, "p_month" integer, "p_base_amount" numeric, "p_irpf_rate" numeric, "p_dry_run" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "payroll_calculate_with_ss"("p_employee_id" "uuid", "p_year" integer, "p_month" integer, "p_gross_salary" numeric, "p_ss_base" numeric, "p_irpf_rate" numeric, "p_dry_run" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38084,8 +33298,6 @@ GRANT ALL ON FUNCTION "public"."payroll_calculate_partner_compensation"("p_partn
 GRANT ALL ON FUNCTION "public"."payroll_calculate_with_ss"("p_employee_id" "uuid", "p_year" integer, "p_month" integer, "p_gross_salary" numeric, "p_ss_base" numeric, "p_irpf_rate" numeric, "p_dry_run" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."payroll_calculate_with_ss"("p_employee_id" "uuid", "p_year" integer, "p_month" integer, "p_gross_salary" numeric, "p_ss_base" numeric, "p_irpf_rate" numeric, "p_dry_run" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."payroll_calculate_with_ss"("p_employee_id" "uuid", "p_year" integer, "p_month" integer, "p_gross_salary" numeric, "p_ss_base" numeric, "p_irpf_rate" numeric, "p_dry_run" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "payroll_get_partner_compensation_basis"("p_year" integer, "p_month" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38093,8 +33305,6 @@ GRANT ALL ON FUNCTION "public"."payroll_calculate_with_ss"("p_employee_id" "uuid
 GRANT ALL ON FUNCTION "public"."payroll_get_partner_compensation_basis"("p_year" integer, "p_month" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."payroll_get_partner_compensation_basis"("p_year" integer, "p_month" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."payroll_get_partner_compensation_basis"("p_year" integer, "p_month" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "post_partner_compensation_run"("p_compensation_run_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38102,8 +33312,6 @@ GRANT ALL ON FUNCTION "public"."payroll_get_partner_compensation_basis"("p_year"
 GRANT ALL ON FUNCTION "public"."post_partner_compensation_run"("p_compensation_run_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."post_partner_compensation_run"("p_compensation_run_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."post_partner_compensation_run"("p_compensation_run_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "post_payroll_run"("p_payroll_run_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38111,8 +33319,6 @@ GRANT ALL ON FUNCTION "public"."post_partner_compensation_run"("p_compensation_r
 GRANT ALL ON FUNCTION "public"."post_payroll_run"("p_payroll_run_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."post_payroll_run"("p_payroll_run_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."post_payroll_run"("p_payroll_run_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "reassign_client"("p_client_id" "uuid", "p_new_assignee_id" "uuid", "p_note" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38120,8 +33326,6 @@ GRANT ALL ON FUNCTION "public"."post_payroll_run"("p_payroll_run_id" "uuid") TO 
 GRANT ALL ON FUNCTION "public"."reassign_client"("p_client_id" "uuid", "p_new_assignee_id" "uuid", "p_note" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."reassign_client"("p_client_id" "uuid", "p_new_assignee_id" "uuid", "p_note" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."reassign_client"("p_client_id" "uuid", "p_new_assignee_id" "uuid", "p_note" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "recalculate_partner_compensation_run"("p_run_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38129,8 +33333,6 @@ GRANT ALL ON FUNCTION "public"."reassign_client"("p_client_id" "uuid", "p_new_as
 GRANT ALL ON FUNCTION "public"."recalculate_partner_compensation_run"("p_run_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."recalculate_partner_compensation_run"("p_run_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."recalculate_partner_compensation_run"("p_run_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "recalculate_purchase_invoice"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38138,8 +33340,6 @@ GRANT ALL ON FUNCTION "public"."recalculate_partner_compensation_run"("p_run_id"
 GRANT ALL ON FUNCTION "public"."recalculate_purchase_invoice"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."recalculate_purchase_invoice"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."recalculate_purchase_invoice"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "recalculate_quote_totals"("p_quote_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38147,8 +33347,6 @@ GRANT ALL ON FUNCTION "public"."recalculate_purchase_invoice"("p_invoice_id" "uu
 GRANT ALL ON FUNCTION "public"."recalculate_quote_totals"("p_quote_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."recalculate_quote_totals"("p_quote_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."recalculate_quote_totals"("p_quote_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "record_login_attempt"("p_identifier" "text", "p_identifier_type" "text", "p_success" boolean, "p_ip_address" "inet", "p_user_agent" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38156,8 +33354,6 @@ GRANT ALL ON FUNCTION "public"."recalculate_quote_totals"("p_quote_id" "uuid") T
 GRANT ALL ON FUNCTION "public"."record_login_attempt"("p_identifier" "text", "p_identifier_type" "text", "p_success" boolean, "p_ip_address" "inet", "p_user_agent" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."record_login_attempt"("p_identifier" "text", "p_identifier_type" "text", "p_success" boolean, "p_ip_address" "inet", "p_user_agent" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."record_login_attempt"("p_identifier" "text", "p_identifier_type" "text", "p_success" boolean, "p_ip_address" "inet", "p_user_agent" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "register_personal_purchase_payment"("p_purchase_invoice_id" "uuid", "p_amount" numeric, "p_payer_person_id" "uuid", "p_payment_date" "date", "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38165,8 +33361,6 @@ GRANT ALL ON FUNCTION "public"."record_login_attempt"("p_identifier" "text", "p_
 GRANT ALL ON FUNCTION "public"."register_personal_purchase_payment"("p_purchase_invoice_id" "uuid", "p_amount" numeric, "p_payer_person_id" "uuid", "p_payment_date" "date", "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."register_personal_purchase_payment"("p_purchase_invoice_id" "uuid", "p_amount" numeric, "p_payer_person_id" "uuid", "p_payment_date" "date", "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."register_personal_purchase_payment"("p_purchase_invoice_id" "uuid", "p_amount" numeric, "p_payer_person_id" "uuid", "p_payment_date" "date", "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "register_purchase_invoice"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38174,8 +33368,6 @@ GRANT ALL ON FUNCTION "public"."register_personal_purchase_payment"("p_purchase_
 GRANT ALL ON FUNCTION "public"."register_purchase_invoice"("p_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."register_purchase_invoice"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."register_purchase_invoice"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "register_purchase_payment"("p_invoice_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_company_bank_account_id" "text", "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38183,8 +33375,6 @@ GRANT ALL ON FUNCTION "public"."register_purchase_invoice"("p_invoice_id" "uuid"
 GRANT ALL ON FUNCTION "public"."register_purchase_payment"("p_invoice_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_company_bank_account_id" "text", "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."register_purchase_payment"("p_invoice_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_company_bank_account_id" "text", "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."register_purchase_payment"("p_invoice_id" "uuid", "p_amount" numeric, "p_payment_date" "date", "p_payment_method" "text", "p_bank_reference" "text", "p_company_bank_account_id" "text", "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "register_site_visit"("p_site_id" "uuid", "p_technician_id" "uuid", "p_visit_date" "date", "p_check_in_at" timestamp with time zone, "p_check_out_at" timestamp with time zone, "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38192,8 +33382,6 @@ GRANT ALL ON FUNCTION "public"."register_purchase_payment"("p_invoice_id" "uuid"
 GRANT ALL ON FUNCTION "public"."register_site_visit"("p_site_id" "uuid", "p_technician_id" "uuid", "p_visit_date" "date", "p_check_in_at" timestamp with time zone, "p_check_out_at" timestamp with time zone, "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."register_site_visit"("p_site_id" "uuid", "p_technician_id" "uuid", "p_visit_date" "date", "p_check_in_at" timestamp with time zone, "p_check_out_at" timestamp with time zone, "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."register_site_visit"("p_site_id" "uuid", "p_technician_id" "uuid", "p_visit_date" "date", "p_check_in_at" timestamp with time zone, "p_check_out_at" timestamp with time zone, "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "reimburse_personal_purchase"("p_payment_id" "uuid", "p_bank_account_id" "uuid", "p_reimbursement_date" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38201,8 +33389,6 @@ GRANT ALL ON FUNCTION "public"."register_site_visit"("p_site_id" "uuid", "p_tech
 GRANT ALL ON FUNCTION "public"."reimburse_personal_purchase"("p_payment_id" "uuid", "p_bank_account_id" "uuid", "p_reimbursement_date" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."reimburse_personal_purchase"("p_payment_id" "uuid", "p_bank_account_id" "uuid", "p_reimbursement_date" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."reimburse_personal_purchase"("p_payment_id" "uuid", "p_bank_account_id" "uuid", "p_reimbursement_date" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "remove_catalog_bundle_component"("p_bundle_product_id" "uuid", "p_component_product_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38210,8 +33396,6 @@ GRANT ALL ON FUNCTION "public"."reimburse_personal_purchase"("p_payment_id" "uui
 GRANT ALL ON FUNCTION "public"."remove_catalog_bundle_component"("p_bundle_product_id" "uuid", "p_component_product_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."remove_catalog_bundle_component"("p_bundle_product_id" "uuid", "p_component_product_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."remove_catalog_bundle_component"("p_bundle_product_id" "uuid", "p_component_product_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "remove_pack_item"("p_item_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38219,8 +33403,6 @@ GRANT ALL ON FUNCTION "public"."remove_catalog_bundle_component"("p_bundle_produ
 GRANT ALL ON FUNCTION "public"."remove_pack_item"("p_item_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."remove_pack_item"("p_item_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."remove_pack_item"("p_item_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "reorder_quote_line"("p_line_id" "uuid", "p_direction" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38228,8 +33410,6 @@ GRANT ALL ON FUNCTION "public"."remove_pack_item"("p_item_id" "uuid") TO "servic
 GRANT ALL ON FUNCTION "public"."reorder_quote_line"("p_line_id" "uuid", "p_direction" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."reorder_quote_line"("p_line_id" "uuid", "p_direction" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."reorder_quote_line"("p_line_id" "uuid", "p_direction" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "replace_purchase_invoice_lines"("p_invoice_id" "uuid", "p_lines" "jsonb"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38237,8 +33417,6 @@ GRANT ALL ON FUNCTION "public"."reorder_quote_line"("p_line_id" "uuid", "p_direc
 GRANT ALL ON FUNCTION "public"."replace_purchase_invoice_lines"("p_invoice_id" "uuid", "p_lines" "jsonb") TO "anon";
 GRANT ALL ON FUNCTION "public"."replace_purchase_invoice_lines"("p_invoice_id" "uuid", "p_lines" "jsonb") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."replace_purchase_invoice_lines"("p_invoice_id" "uuid", "p_lines" "jsonb") TO "service_role";
-
-
 --
 -- Name: FUNCTION "reset_rate_limit"("p_identifier" "text", "p_identifier_type" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38246,8 +33424,6 @@ GRANT ALL ON FUNCTION "public"."replace_purchase_invoice_lines"("p_invoice_id" "
 GRANT ALL ON FUNCTION "public"."reset_rate_limit"("p_identifier" "text", "p_identifier_type" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."reset_rate_limit"("p_identifier" "text", "p_identifier_type" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."reset_rate_limit"("p_identifier" "text", "p_identifier_type" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "set_default_project_site"("p_project_id" "uuid", "p_site_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38255,8 +33431,6 @@ GRANT ALL ON FUNCTION "public"."reset_rate_limit"("p_identifier" "text", "p_iden
 GRANT ALL ON FUNCTION "public"."set_default_project_site"("p_project_id" "uuid", "p_site_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."set_default_project_site"("p_project_id" "uuid", "p_site_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."set_default_project_site"("p_project_id" "uuid", "p_site_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "set_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38264,8 +33438,6 @@ GRANT ALL ON FUNCTION "public"."set_default_project_site"("p_project_id" "uuid",
 GRANT ALL ON FUNCTION "public"."set_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."set_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."set_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "set_purchase_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38273,8 +33445,6 @@ GRANT ALL ON FUNCTION "public"."set_invoice_archive_metadata"("p_invoice_id" "uu
 GRANT ALL ON FUNCTION "public"."set_purchase_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."set_purchase_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."set_purchase_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "set_quote_archive_metadata"("p_quote_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38282,8 +33452,6 @@ GRANT ALL ON FUNCTION "public"."set_purchase_invoice_archive_metadata"("p_invoic
 GRANT ALL ON FUNCTION "public"."set_quote_archive_metadata"("p_quote_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."set_quote_archive_metadata"("p_quote_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."set_quote_archive_metadata"("p_quote_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "set_site_actual_dates"("p_site_id" "uuid", "p_actual_start_at" timestamp with time zone, "p_actual_end_at" timestamp with time zone, "p_mark_ready_to_invoice" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38291,8 +33459,6 @@ GRANT ALL ON FUNCTION "public"."set_quote_archive_metadata"("p_quote_id" "uuid",
 GRANT ALL ON FUNCTION "public"."set_site_actual_dates"("p_site_id" "uuid", "p_actual_start_at" timestamp with time zone, "p_actual_end_at" timestamp with time zone, "p_mark_ready_to_invoice" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."set_site_actual_dates"("p_site_id" "uuid", "p_actual_start_at" timestamp with time zone, "p_actual_end_at" timestamp with time zone, "p_mark_ready_to_invoice" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."set_site_actual_dates"("p_site_id" "uuid", "p_actual_start_at" timestamp with time zone, "p_actual_end_at" timestamp with time zone, "p_mark_ready_to_invoice" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "set_updated_at"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38300,8 +33466,6 @@ GRANT ALL ON FUNCTION "public"."set_site_actual_dates"("p_site_id" "uuid", "p_ac
 GRANT ALL ON FUNCTION "public"."set_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."set_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."set_updated_at"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "settle_credit_installment"("p_installment_id" "uuid", "p_bank_account_id" "uuid", "p_settlement_date" "date", "p_bank_reference" "text", "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38309,72 +33473,54 @@ GRANT ALL ON FUNCTION "public"."set_updated_at"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."settle_credit_installment"("p_installment_id" "uuid", "p_bank_account_id" "uuid", "p_settlement_date" "date", "p_bank_reference" "text", "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."settle_credit_installment"("p_installment_id" "uuid", "p_bank_account_id" "uuid", "p_settlement_date" "date", "p_bank_reference" "text", "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."settle_credit_installment"("p_installment_id" "uuid", "p_bank_account_id" "uuid", "p_settlement_date" "date", "p_bank_reference" "text", "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "sync_get_company_settings_for_archive"(); Type: ACL; Schema: public; Owner: postgres
 --
 
 REVOKE ALL ON FUNCTION "public"."sync_get_company_settings_for_archive"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."sync_get_company_settings_for_archive"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "sync_get_invoice_lines_for_archive"("p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
 
 REVOKE ALL ON FUNCTION "public"."sync_get_invoice_lines_for_archive"("p_invoice_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."sync_get_invoice_lines_for_archive"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "sync_get_project_for_archive"("p_project_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
 
 REVOKE ALL ON FUNCTION "public"."sync_get_project_for_archive"("p_project_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."sync_get_project_for_archive"("p_project_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "sync_get_quote_lines_for_archive"("p_quote_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
 
 REVOKE ALL ON FUNCTION "public"."sync_get_quote_lines_for_archive"("p_quote_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."sync_get_quote_lines_for_archive"("p_quote_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "sync_list_invoices_for_archive"("p_limit" integer, "p_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
 
 REVOKE ALL ON FUNCTION "public"."sync_list_invoices_for_archive"("p_limit" integer, "p_invoice_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."sync_list_invoices_for_archive"("p_limit" integer, "p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "sync_list_quotes_for_archive"("p_limit" integer, "p_quote_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
 
 REVOKE ALL ON FUNCTION "public"."sync_list_quotes_for_archive"("p_limit" integer, "p_quote_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."sync_list_quotes_for_archive"("p_limit" integer, "p_quote_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "sync_set_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text"); Type: ACL; Schema: public; Owner: postgres
 --
 
 REVOKE ALL ON FUNCTION "public"."sync_set_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."sync_set_invoice_archive_metadata"("p_invoice_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "sync_set_quote_archive_metadata"("p_quote_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text"); Type: ACL; Schema: public; Owner: postgres
 --
 
 REVOKE ALL ON FUNCTION "public"."sync_set_quote_archive_metadata"("p_quote_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."sync_set_quote_archive_metadata"("p_quote_id" "uuid", "p_sharepoint_site_id" "text", "p_sharepoint_drive_id" "text", "p_sharepoint_item_id" "text", "p_sharepoint_web_url" "text", "p_sharepoint_etag" "text", "p_archived_pdf_path" "text", "p_archived_pdf_file_name" "text", "p_archived_pdf_hash" "text", "p_archived_record_hash" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "tasks_add_comment"("p_task_id" "uuid", "p_message" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38382,8 +33528,6 @@ GRANT ALL ON FUNCTION "public"."sync_set_quote_archive_metadata"("p_quote_id" "u
 GRANT ALL ON FUNCTION "public"."tasks_add_comment"("p_task_id" "uuid", "p_message" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."tasks_add_comment"("p_task_id" "uuid", "p_message" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."tasks_add_comment"("p_task_id" "uuid", "p_message" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "tasks_assign"("p_task_id" "uuid", "p_user_id" "uuid", "p_role" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38391,8 +33535,6 @@ GRANT ALL ON FUNCTION "public"."tasks_add_comment"("p_task_id" "uuid", "p_messag
 GRANT ALL ON FUNCTION "public"."tasks_assign"("p_task_id" "uuid", "p_user_id" "uuid", "p_role" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."tasks_assign"("p_task_id" "uuid", "p_user_id" "uuid", "p_role" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."tasks_assign"("p_task_id" "uuid", "p_user_id" "uuid", "p_role" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "tasks_create"("p_title" "text", "p_description" "text", "p_priority" "text", "p_due_date" "date", "p_start_date" "date", "p_project_id" "uuid", "p_site_id" "uuid", "p_quote_id" "uuid", "p_invoice_id" "uuid", "p_visit_id" "uuid", "p_tags" "text"[], "p_assignee_ids" "uuid"[]); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38400,8 +33542,6 @@ GRANT ALL ON FUNCTION "public"."tasks_assign"("p_task_id" "uuid", "p_user_id" "u
 GRANT ALL ON FUNCTION "public"."tasks_create"("p_title" "text", "p_description" "text", "p_priority" "text", "p_due_date" "date", "p_start_date" "date", "p_project_id" "uuid", "p_site_id" "uuid", "p_quote_id" "uuid", "p_invoice_id" "uuid", "p_visit_id" "uuid", "p_tags" "text"[], "p_assignee_ids" "uuid"[]) TO "anon";
 GRANT ALL ON FUNCTION "public"."tasks_create"("p_title" "text", "p_description" "text", "p_priority" "text", "p_due_date" "date", "p_start_date" "date", "p_project_id" "uuid", "p_site_id" "uuid", "p_quote_id" "uuid", "p_invoice_id" "uuid", "p_visit_id" "uuid", "p_tags" "text"[], "p_assignee_ids" "uuid"[]) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."tasks_create"("p_title" "text", "p_description" "text", "p_priority" "text", "p_due_date" "date", "p_start_date" "date", "p_project_id" "uuid", "p_site_id" "uuid", "p_quote_id" "uuid", "p_invoice_id" "uuid", "p_visit_id" "uuid", "p_tags" "text"[], "p_assignee_ids" "uuid"[]) TO "service_role";
-
-
 --
 -- Name: FUNCTION "tasks_get"("p_task_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38409,8 +33549,6 @@ GRANT ALL ON FUNCTION "public"."tasks_create"("p_title" "text", "p_description" 
 GRANT ALL ON FUNCTION "public"."tasks_get"("p_task_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."tasks_get"("p_task_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."tasks_get"("p_task_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "tasks_get_activity"("p_task_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38418,8 +33556,6 @@ GRANT ALL ON FUNCTION "public"."tasks_get"("p_task_id" "uuid") TO "service_role"
 GRANT ALL ON FUNCTION "public"."tasks_get_activity"("p_task_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."tasks_get_activity"("p_task_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."tasks_get_activity"("p_task_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "tasks_get_assignees"("p_task_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38427,8 +33563,6 @@ GRANT ALL ON FUNCTION "public"."tasks_get_activity"("p_task_id" "uuid") TO "serv
 GRANT ALL ON FUNCTION "public"."tasks_get_assignees"("p_task_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."tasks_get_assignees"("p_task_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."tasks_get_assignees"("p_task_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "tasks_list_for_user"("p_user_id" "uuid", "p_status" "text", "p_priority" "text", "p_due_today" boolean, "p_project_id" "uuid", "p_site_id" "uuid", "p_include_archived" boolean, "p_limit" integer, "p_offset" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38436,8 +33570,6 @@ GRANT ALL ON FUNCTION "public"."tasks_get_assignees"("p_task_id" "uuid") TO "ser
 GRANT ALL ON FUNCTION "public"."tasks_list_for_user"("p_user_id" "uuid", "p_status" "text", "p_priority" "text", "p_due_today" boolean, "p_project_id" "uuid", "p_site_id" "uuid", "p_include_archived" boolean, "p_limit" integer, "p_offset" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."tasks_list_for_user"("p_user_id" "uuid", "p_status" "text", "p_priority" "text", "p_due_today" boolean, "p_project_id" "uuid", "p_site_id" "uuid", "p_include_archived" boolean, "p_limit" integer, "p_offset" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."tasks_list_for_user"("p_user_id" "uuid", "p_status" "text", "p_priority" "text", "p_due_today" boolean, "p_project_id" "uuid", "p_site_id" "uuid", "p_include_archived" boolean, "p_limit" integer, "p_offset" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "tasks_set_status"("p_task_id" "uuid", "p_status" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38445,8 +33577,6 @@ GRANT ALL ON FUNCTION "public"."tasks_list_for_user"("p_user_id" "uuid", "p_stat
 GRANT ALL ON FUNCTION "public"."tasks_set_status"("p_task_id" "uuid", "p_status" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."tasks_set_status"("p_task_id" "uuid", "p_status" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."tasks_set_status"("p_task_id" "uuid", "p_status" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "tasks_unassign"("p_task_id" "uuid", "p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38454,8 +33584,6 @@ GRANT ALL ON FUNCTION "public"."tasks_set_status"("p_task_id" "uuid", "p_status"
 GRANT ALL ON FUNCTION "public"."tasks_unassign"("p_task_id" "uuid", "p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."tasks_unassign"("p_task_id" "uuid", "p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."tasks_unassign"("p_task_id" "uuid", "p_user_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "tasks_update"("p_task_id" "uuid", "p_title" "text", "p_description" "text", "p_priority" "text", "p_due_date" "date", "p_start_date" "date", "p_tags" "text"[]); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38463,8 +33591,6 @@ GRANT ALL ON FUNCTION "public"."tasks_unassign"("p_task_id" "uuid", "p_user_id" 
 GRANT ALL ON FUNCTION "public"."tasks_update"("p_task_id" "uuid", "p_title" "text", "p_description" "text", "p_priority" "text", "p_due_date" "date", "p_start_date" "date", "p_tags" "text"[]) TO "anon";
 GRANT ALL ON FUNCTION "public"."tasks_update"("p_task_id" "uuid", "p_title" "text", "p_description" "text", "p_priority" "text", "p_due_date" "date", "p_start_date" "date", "p_tags" "text"[]) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."tasks_update"("p_task_id" "uuid", "p_title" "text", "p_description" "text", "p_priority" "text", "p_due_date" "date", "p_start_date" "date", "p_tags" "text"[]) TO "service_role";
-
-
 --
 -- Name: FUNCTION "toggle_user_status"("p_user_id" "uuid", "p_is_active" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38472,8 +33598,6 @@ GRANT ALL ON FUNCTION "public"."tasks_update"("p_task_id" "uuid", "p_title" "tex
 GRANT ALL ON FUNCTION "public"."toggle_user_status"("p_user_id" "uuid", "p_is_active" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."toggle_user_status"("p_user_id" "uuid", "p_is_active" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."toggle_user_status"("p_user_id" "uuid", "p_is_active" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_authorized_user"("p_user_id" "uuid", "p_full_name" "text", "p_phone" "text", "p_department" "text", "p_job_position" "text", "p_is_active" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38481,8 +33605,6 @@ GRANT ALL ON FUNCTION "public"."toggle_user_status"("p_user_id" "uuid", "p_is_ac
 GRANT ALL ON FUNCTION "public"."update_authorized_user"("p_user_id" "uuid", "p_full_name" "text", "p_phone" "text", "p_department" "text", "p_job_position" "text", "p_is_active" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_authorized_user"("p_user_id" "uuid", "p_full_name" "text", "p_phone" "text", "p_department" "text", "p_job_position" "text", "p_is_active" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_authorized_user"("p_user_id" "uuid", "p_full_name" "text", "p_phone" "text", "p_department" "text", "p_job_position" "text", "p_is_active" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_canvassing_location"("p_location_id" "uuid", "p_data" "jsonb"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38490,8 +33612,6 @@ GRANT ALL ON FUNCTION "public"."update_authorized_user"("p_user_id" "uuid", "p_f
 GRANT ALL ON FUNCTION "public"."update_canvassing_location"("p_location_id" "uuid", "p_data" "jsonb") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_canvassing_location"("p_location_id" "uuid", "p_data" "jsonb") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_canvassing_location"("p_location_id" "uuid", "p_data" "jsonb") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_catalog_category"("p_id" "uuid", "p_name" "text", "p_slug" "text", "p_description" "text", "p_parent_id" "uuid", "p_sort_order" integer, "p_is_active" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38499,8 +33619,6 @@ GRANT ALL ON FUNCTION "public"."update_canvassing_location"("p_location_id" "uui
 GRANT ALL ON FUNCTION "public"."update_catalog_category"("p_id" "uuid", "p_name" "text", "p_slug" "text", "p_description" "text", "p_parent_id" "uuid", "p_sort_order" integer, "p_is_active" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_catalog_category"("p_id" "uuid", "p_name" "text", "p_slug" "text", "p_description" "text", "p_parent_id" "uuid", "p_sort_order" integer, "p_is_active" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_catalog_category"("p_id" "uuid", "p_name" "text", "p_slug" "text", "p_description" "text", "p_parent_id" "uuid", "p_sort_order" integer, "p_is_active" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_catalog_product"("p_id" "uuid", "p_name" "text", "p_sku" "text", "p_description" "text", "p_category_id" "uuid", "p_unit" "catalog"."unit_type", "p_cost_price" numeric, "p_sale_price" numeric, "p_discount_percent" numeric, "p_tax_rate_id" "uuid", "p_track_stock" boolean, "p_min_stock_alert" numeric, "p_supplier_id" "uuid", "p_clear_supplier" boolean, "p_is_active" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38508,8 +33626,6 @@ GRANT ALL ON FUNCTION "public"."update_catalog_category"("p_id" "uuid", "p_name"
 GRANT ALL ON FUNCTION "public"."update_catalog_product"("p_id" "uuid", "p_name" "text", "p_sku" "text", "p_description" "text", "p_category_id" "uuid", "p_unit" "catalog"."unit_type", "p_cost_price" numeric, "p_sale_price" numeric, "p_discount_percent" numeric, "p_tax_rate_id" "uuid", "p_track_stock" boolean, "p_min_stock_alert" numeric, "p_supplier_id" "uuid", "p_clear_supplier" boolean, "p_is_active" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_catalog_product"("p_id" "uuid", "p_name" "text", "p_sku" "text", "p_description" "text", "p_category_id" "uuid", "p_unit" "catalog"."unit_type", "p_cost_price" numeric, "p_sale_price" numeric, "p_discount_percent" numeric, "p_tax_rate_id" "uuid", "p_track_stock" boolean, "p_min_stock_alert" numeric, "p_supplier_id" "uuid", "p_clear_supplier" boolean, "p_is_active" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_catalog_product"("p_id" "uuid", "p_name" "text", "p_sku" "text", "p_description" "text", "p_category_id" "uuid", "p_unit" "catalog"."unit_type", "p_cost_price" numeric, "p_sale_price" numeric, "p_discount_percent" numeric, "p_tax_rate_id" "uuid", "p_track_stock" boolean, "p_min_stock_alert" numeric, "p_supplier_id" "uuid", "p_clear_supplier" boolean, "p_is_active" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_client"("p_client_id" "uuid", "p_company_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_lead_stage" "text", "p_lead_source" "text", "p_industry_sector" "text", "p_urgency" "text", "p_tax_id" "text", "p_legal_name" "text", "p_billing_address" "text", "p_billing_city" "text", "p_billing_province" "text", "p_billing_postal_code" "text", "p_billing_country" "text", "p_website" "text", "p_notes" "text", "p_assigned_to" "uuid", "p_next_follow_up_date" "date", "p_created_at" timestamp with time zone, "p_instagram_handle" "text", "p_tiktok_handle" "text", "p_linkedin_url" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38517,8 +33633,6 @@ GRANT ALL ON FUNCTION "public"."update_catalog_product"("p_id" "uuid", "p_name" 
 GRANT ALL ON FUNCTION "public"."update_client"("p_client_id" "uuid", "p_company_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_lead_stage" "text", "p_lead_source" "text", "p_industry_sector" "text", "p_urgency" "text", "p_tax_id" "text", "p_legal_name" "text", "p_billing_address" "text", "p_billing_city" "text", "p_billing_province" "text", "p_billing_postal_code" "text", "p_billing_country" "text", "p_website" "text", "p_notes" "text", "p_assigned_to" "uuid", "p_next_follow_up_date" "date", "p_created_at" timestamp with time zone, "p_instagram_handle" "text", "p_tiktok_handle" "text", "p_linkedin_url" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_client"("p_client_id" "uuid", "p_company_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_lead_stage" "text", "p_lead_source" "text", "p_industry_sector" "text", "p_urgency" "text", "p_tax_id" "text", "p_legal_name" "text", "p_billing_address" "text", "p_billing_city" "text", "p_billing_province" "text", "p_billing_postal_code" "text", "p_billing_country" "text", "p_website" "text", "p_notes" "text", "p_assigned_to" "uuid", "p_next_follow_up_date" "date", "p_created_at" timestamp with time zone, "p_instagram_handle" "text", "p_tiktok_handle" "text", "p_linkedin_url" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_client"("p_client_id" "uuid", "p_company_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_lead_stage" "text", "p_lead_source" "text", "p_industry_sector" "text", "p_urgency" "text", "p_tax_id" "text", "p_legal_name" "text", "p_billing_address" "text", "p_billing_city" "text", "p_billing_province" "text", "p_billing_postal_code" "text", "p_billing_country" "text", "p_website" "text", "p_notes" "text", "p_assigned_to" "uuid", "p_next_follow_up_date" "date", "p_created_at" timestamp with time zone, "p_instagram_handle" "text", "p_tiktok_handle" "text", "p_linkedin_url" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_client_coordinates"("p_client_id" "uuid", "p_latitude" numeric, "p_longitude" numeric, "p_full_address" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38526,8 +33640,6 @@ GRANT ALL ON FUNCTION "public"."update_client"("p_client_id" "uuid", "p_company_
 GRANT ALL ON FUNCTION "public"."update_client_coordinates"("p_client_id" "uuid", "p_latitude" numeric, "p_longitude" numeric, "p_full_address" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_client_coordinates"("p_client_id" "uuid", "p_latitude" numeric, "p_longitude" numeric, "p_full_address" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_client_coordinates"("p_client_id" "uuid", "p_latitude" numeric, "p_longitude" numeric, "p_full_address" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_client_status"("p_client_id" "uuid", "p_new_status" "text", "p_note" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38535,8 +33647,6 @@ GRANT ALL ON FUNCTION "public"."update_client_coordinates"("p_client_id" "uuid",
 GRANT ALL ON FUNCTION "public"."update_client_status"("p_client_id" "uuid", "p_new_status" "text", "p_note" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_client_status"("p_client_id" "uuid", "p_new_status" "text", "p_note" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_client_status"("p_client_id" "uuid", "p_new_status" "text", "p_note" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_external_credit_provider"("p_id" "uuid", "p_name" "text", "p_creditor_account_code" "text", "p_expense_account_code" "text", "p_is_active" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38544,8 +33654,6 @@ GRANT ALL ON FUNCTION "public"."update_client_status"("p_client_id" "uuid", "p_n
 GRANT ALL ON FUNCTION "public"."update_external_credit_provider"("p_id" "uuid", "p_name" "text", "p_creditor_account_code" "text", "p_expense_account_code" "text", "p_is_active" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_external_credit_provider"("p_id" "uuid", "p_name" "text", "p_creditor_account_code" "text", "p_expense_account_code" "text", "p_is_active" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_external_credit_provider"("p_id" "uuid", "p_name" "text", "p_creditor_account_code" "text", "p_expense_account_code" "text", "p_is_active" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_invoice"("p_invoice_id" "uuid", "p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_issue_date" "date", "p_due_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_payment_terms" "text", "p_status" "text", "p_site_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38553,8 +33661,6 @@ GRANT ALL ON FUNCTION "public"."update_external_credit_provider"("p_id" "uuid", 
 GRANT ALL ON FUNCTION "public"."update_invoice"("p_invoice_id" "uuid", "p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_issue_date" "date", "p_due_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_payment_terms" "text", "p_status" "text", "p_site_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_invoice"("p_invoice_id" "uuid", "p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_issue_date" "date", "p_due_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_payment_terms" "text", "p_status" "text", "p_site_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_invoice"("p_invoice_id" "uuid", "p_client_id" "uuid", "p_project_id" "uuid", "p_project_name" "text", "p_issue_date" "date", "p_due_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_payment_terms" "text", "p_status" "text", "p_site_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38562,8 +33668,6 @@ GRANT ALL ON FUNCTION "public"."update_invoice"("p_invoice_id" "uuid", "p_client
 GRANT ALL ON FUNCTION "public"."update_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_discount_percent" numeric, "p_tax_rate" numeric) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_own_user_info"("p_user_id" "uuid", "p_full_name" "text", "p_phone" "text", "p_job_position" "text", "p_theme_preference" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38571,8 +33675,6 @@ GRANT ALL ON FUNCTION "public"."update_invoice_line"("p_line_id" "uuid", "p_conc
 GRANT ALL ON FUNCTION "public"."update_own_user_info"("p_user_id" "uuid", "p_full_name" "text", "p_phone" "text", "p_job_position" "text", "p_theme_preference" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_own_user_info"("p_user_id" "uuid", "p_full_name" "text", "p_phone" "text", "p_job_position" "text", "p_theme_preference" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_own_user_info"("p_user_id" "uuid", "p_full_name" "text", "p_phone" "text", "p_job_position" "text", "p_theme_preference" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_pack_item"("p_item_id" "uuid", "p_quantity" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38580,8 +33682,6 @@ GRANT ALL ON FUNCTION "public"."update_own_user_info"("p_user_id" "uuid", "p_ful
 GRANT ALL ON FUNCTION "public"."update_pack_item"("p_item_id" "uuid", "p_quantity" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_pack_item"("p_item_id" "uuid", "p_quantity" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_pack_item"("p_item_id" "uuid", "p_quantity" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_partner_compensation_run"("p_compensation_run_id" "uuid", "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38589,8 +33689,6 @@ GRANT ALL ON FUNCTION "public"."update_pack_item"("p_item_id" "uuid", "p_quantit
 GRANT ALL ON FUNCTION "public"."update_partner_compensation_run"("p_compensation_run_id" "uuid", "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_partner_compensation_run"("p_compensation_run_id" "uuid", "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_partner_compensation_run"("p_compensation_run_id" "uuid", "p_gross_amount" numeric, "p_irpf_rate" numeric, "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_product"("p_product_id" "uuid", "p_name" "text", "p_description" "text", "p_type" "public"."product_type", "p_base_price" numeric, "p_cost_price" numeric, "p_tax_rate" numeric, "p_stock" integer, "p_is_active" boolean, "p_default_tax_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38598,8 +33696,6 @@ GRANT ALL ON FUNCTION "public"."update_partner_compensation_run"("p_compensation
 GRANT ALL ON FUNCTION "public"."update_product"("p_product_id" "uuid", "p_name" "text", "p_description" "text", "p_type" "public"."product_type", "p_base_price" numeric, "p_cost_price" numeric, "p_tax_rate" numeric, "p_stock" integer, "p_is_active" boolean, "p_default_tax_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_product"("p_product_id" "uuid", "p_name" "text", "p_description" "text", "p_type" "public"."product_type", "p_base_price" numeric, "p_cost_price" numeric, "p_tax_rate" numeric, "p_stock" integer, "p_is_active" boolean, "p_default_tax_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_product"("p_product_id" "uuid", "p_name" "text", "p_description" "text", "p_type" "public"."product_type", "p_base_price" numeric, "p_cost_price" numeric, "p_tax_rate" numeric, "p_stock" integer, "p_is_active" boolean, "p_default_tax_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_product_category"("p_category_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer, "p_is_active" boolean, "p_type" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38607,8 +33703,6 @@ GRANT ALL ON FUNCTION "public"."update_product"("p_product_id" "uuid", "p_name" 
 GRANT ALL ON FUNCTION "public"."update_product_category"("p_category_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer, "p_is_active" boolean, "p_type" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_product_category"("p_category_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer, "p_is_active" boolean, "p_type" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_product_category"("p_category_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer, "p_is_active" boolean, "p_type" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_product_pack"("p_pack_id" "uuid", "p_name" "text", "p_description" "text", "p_discount_percent" numeric, "p_tax_rate" numeric, "p_is_active" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38616,8 +33710,6 @@ GRANT ALL ON FUNCTION "public"."update_product_category"("p_category_id" "uuid",
 GRANT ALL ON FUNCTION "public"."update_product_pack"("p_pack_id" "uuid", "p_name" "text", "p_description" "text", "p_discount_percent" numeric, "p_tax_rate" numeric, "p_is_active" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_product_pack"("p_pack_id" "uuid", "p_name" "text", "p_description" "text", "p_discount_percent" numeric, "p_tax_rate" numeric, "p_is_active" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_product_pack"("p_pack_id" "uuid", "p_name" "text", "p_description" "text", "p_discount_percent" numeric, "p_tax_rate" numeric, "p_is_active" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_product_subcategory"("p_subcategory_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer, "p_is_active" boolean); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38625,8 +33717,6 @@ GRANT ALL ON FUNCTION "public"."update_product_pack"("p_pack_id" "uuid", "p_name
 GRANT ALL ON FUNCTION "public"."update_product_subcategory"("p_subcategory_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer, "p_is_active" boolean) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_product_subcategory"("p_subcategory_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer, "p_is_active" boolean) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_product_subcategory"("p_subcategory_id" "uuid", "p_name" "text", "p_code" "text", "p_description" "text", "p_display_order" integer, "p_is_active" boolean) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_project"("p_project_id" "uuid", "p_client_order_number" "text", "p_local_name" "text", "p_notes" "text", "p_project_address" "text", "p_project_city" "text", "p_status" "text", "p_site_mode" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38634,8 +33724,6 @@ GRANT ALL ON FUNCTION "public"."update_product_subcategory"("p_subcategory_id" "
 GRANT ALL ON FUNCTION "public"."update_project"("p_project_id" "uuid", "p_client_order_number" "text", "p_local_name" "text", "p_notes" "text", "p_project_address" "text", "p_project_city" "text", "p_status" "text", "p_site_mode" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_project"("p_project_id" "uuid", "p_client_order_number" "text", "p_local_name" "text", "p_notes" "text", "p_project_address" "text", "p_project_city" "text", "p_status" "text", "p_site_mode" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_project"("p_project_id" "uuid", "p_client_order_number" "text", "p_local_name" "text", "p_notes" "text", "p_project_address" "text", "p_project_city" "text", "p_status" "text", "p_site_mode" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_project_site"("p_site_id" "uuid", "p_site_name" "text", "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_country" "text", "p_latitude" double precision, "p_longitude" double precision, "p_contact_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_site_reference" "text", "p_floor_area" "text", "p_notes" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38643,8 +33731,6 @@ GRANT ALL ON FUNCTION "public"."update_project"("p_project_id" "uuid", "p_client
 GRANT ALL ON FUNCTION "public"."update_project_site"("p_site_id" "uuid", "p_site_name" "text", "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_country" "text", "p_latitude" double precision, "p_longitude" double precision, "p_contact_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_site_reference" "text", "p_floor_area" "text", "p_notes" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_project_site"("p_site_id" "uuid", "p_site_name" "text", "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_country" "text", "p_latitude" double precision, "p_longitude" double precision, "p_contact_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_site_reference" "text", "p_floor_area" "text", "p_notes" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_project_site"("p_site_id" "uuid", "p_site_name" "text", "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_country" "text", "p_latitude" double precision, "p_longitude" double precision, "p_contact_name" "text", "p_contact_phone" "text", "p_contact_email" "text", "p_site_reference" "text", "p_floor_area" "text", "p_notes" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_purchase_invoice"("p_invoice_id" "uuid", "p_supplier_invoice_number" "text", "p_issue_date" "date", "p_due_date" "date", "p_status" "text", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_manual_beneficiary_name" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38652,8 +33738,6 @@ GRANT ALL ON FUNCTION "public"."update_project_site"("p_site_id" "uuid", "p_site
 GRANT ALL ON FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", "p_supplier_invoice_number" "text", "p_issue_date" "date", "p_due_date" "date", "p_status" "text", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_manual_beneficiary_name" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", "p_supplier_invoice_number" "text", "p_issue_date" "date", "p_due_date" "date", "p_status" "text", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_manual_beneficiary_name" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", "p_supplier_invoice_number" "text", "p_issue_date" "date", "p_due_date" "date", "p_status" "text", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_manual_beneficiary_name" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_purchase_invoice"("p_invoice_id" "uuid", "p_supplier_invoice_number" "text", "p_issue_date" "date", "p_due_date" "date", "p_status" "text", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_manual_beneficiary_name" "text", "p_site_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38661,8 +33745,6 @@ GRANT ALL ON FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", 
 GRANT ALL ON FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", "p_supplier_invoice_number" "text", "p_issue_date" "date", "p_due_date" "date", "p_status" "text", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_manual_beneficiary_name" "text", "p_site_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", "p_supplier_invoice_number" "text", "p_issue_date" "date", "p_due_date" "date", "p_status" "text", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_manual_beneficiary_name" "text", "p_site_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", "p_supplier_invoice_number" "text", "p_issue_date" "date", "p_due_date" "date", "p_status" "text", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_manual_beneficiary_name" "text", "p_site_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_purchase_invoice"("p_invoice_id" "uuid", "p_invoice_number" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_issue_date" "date", "p_due_date" "date", "p_project_id" "uuid", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_status" "text", "p_client_id" "uuid", "p_withholding_amount" numeric, "p_supplier_invoice_number" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38670,8 +33752,6 @@ GRANT ALL ON FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", 
 GRANT ALL ON FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", "p_invoice_number" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_issue_date" "date", "p_due_date" "date", "p_project_id" "uuid", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_status" "text", "p_client_id" "uuid", "p_withholding_amount" numeric, "p_supplier_invoice_number" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", "p_invoice_number" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_issue_date" "date", "p_due_date" "date", "p_project_id" "uuid", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_status" "text", "p_client_id" "uuid", "p_withholding_amount" numeric, "p_supplier_invoice_number" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", "p_invoice_number" "text", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_issue_date" "date", "p_due_date" "date", "p_project_id" "uuid", "p_expense_category" "text", "p_notes" "text", "p_internal_notes" "text", "p_status" "text", "p_client_id" "uuid", "p_withholding_amount" numeric, "p_supplier_invoice_number" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_purchase_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_tax_rate" numeric, "p_discount_percent" numeric); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38679,8 +33759,6 @@ GRANT ALL ON FUNCTION "public"."update_purchase_invoice"("p_invoice_id" "uuid", 
 GRANT ALL ON FUNCTION "public"."update_purchase_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_tax_rate" numeric, "p_discount_percent" numeric) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_purchase_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_tax_rate" numeric, "p_discount_percent" numeric) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_purchase_invoice_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_tax_rate" numeric, "p_discount_percent" numeric) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_purchase_order"("p_order_id" "uuid", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_status" "text", "p_issue_date" "date", "p_expected_start_date" "date", "p_expected_end_date" "date", "p_actual_start_date" "date", "p_actual_end_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_linked_purchase_invoice_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38688,8 +33766,6 @@ GRANT ALL ON FUNCTION "public"."update_purchase_invoice_line"("p_line_id" "uuid"
 GRANT ALL ON FUNCTION "public"."update_purchase_order"("p_order_id" "uuid", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_status" "text", "p_issue_date" "date", "p_expected_start_date" "date", "p_expected_end_date" "date", "p_actual_start_date" "date", "p_actual_end_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_linked_purchase_invoice_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_purchase_order"("p_order_id" "uuid", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_status" "text", "p_issue_date" "date", "p_expected_start_date" "date", "p_expected_end_date" "date", "p_actual_start_date" "date", "p_actual_end_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_linked_purchase_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_purchase_order"("p_order_id" "uuid", "p_supplier_id" "uuid", "p_technician_id" "uuid", "p_project_id" "uuid", "p_status" "text", "p_issue_date" "date", "p_expected_start_date" "date", "p_expected_end_date" "date", "p_actual_start_date" "date", "p_actual_end_date" "date", "p_notes" "text", "p_internal_notes" "text", "p_linked_purchase_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_purchase_order_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit" "text", "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38697,8 +33773,6 @@ GRANT ALL ON FUNCTION "public"."update_purchase_order"("p_order_id" "uuid", "p_s
 GRANT ALL ON FUNCTION "public"."update_purchase_order_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit" "text", "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_purchase_order_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit" "text", "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_purchase_order_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit" "text", "p_unit_price" numeric, "p_tax_rate" numeric, "p_withholding_rate" numeric, "p_discount_percent" numeric, "p_group_name" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_quote"("p_quote_id" "uuid", "p_client_id" "uuid", "p_project_name" "text", "p_valid_until" "date", "p_status" "text", "p_project_id" "uuid", "p_notes" "text", "p_site_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38706,8 +33780,6 @@ GRANT ALL ON FUNCTION "public"."update_purchase_order_line"("p_line_id" "uuid", 
 GRANT ALL ON FUNCTION "public"."update_quote"("p_quote_id" "uuid", "p_client_id" "uuid", "p_project_name" "text", "p_valid_until" "date", "p_status" "text", "p_project_id" "uuid", "p_notes" "text", "p_site_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_quote"("p_quote_id" "uuid", "p_client_id" "uuid", "p_project_name" "text", "p_valid_until" "date", "p_status" "text", "p_project_id" "uuid", "p_notes" "text", "p_site_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_quote"("p_quote_id" "uuid", "p_client_id" "uuid", "p_project_name" "text", "p_valid_until" "date", "p_status" "text", "p_project_id" "uuid", "p_notes" "text", "p_site_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_quote_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38715,8 +33787,6 @@ GRANT ALL ON FUNCTION "public"."update_quote"("p_quote_id" "uuid", "p_client_id"
 GRANT ALL ON FUNCTION "public"."update_quote_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_quote_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_quote_line"("p_line_id" "uuid", "p_concept" "text", "p_description" "text", "p_quantity" numeric, "p_unit_price" numeric, "p_tax_rate" numeric, "p_discount_percent" numeric) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_quote_lines_order"("p_quote_id" "uuid", "p_line_ids" "uuid"[]); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38724,8 +33794,6 @@ GRANT ALL ON FUNCTION "public"."update_quote_line"("p_line_id" "uuid", "p_concep
 GRANT ALL ON FUNCTION "public"."update_quote_lines_order"("p_quote_id" "uuid", "p_line_ids" "uuid"[]) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_quote_lines_order"("p_quote_id" "uuid", "p_line_ids" "uuid"[]) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_quote_lines_order"("p_quote_id" "uuid", "p_line_ids" "uuid"[]) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_site_planning"("p_site_id" "uuid", "p_planned_start_date" "date", "p_planned_days" integer, "p_planned_end_date" "date"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38733,8 +33801,6 @@ GRANT ALL ON FUNCTION "public"."update_quote_lines_order"("p_quote_id" "uuid", "
 GRANT ALL ON FUNCTION "public"."update_site_planning"("p_site_id" "uuid", "p_planned_start_date" "date", "p_planned_days" integer, "p_planned_end_date" "date") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_site_planning"("p_site_id" "uuid", "p_planned_start_date" "date", "p_planned_days" integer, "p_planned_end_date" "date") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_site_planning"("p_site_id" "uuid", "p_planned_start_date" "date", "p_planned_days" integer, "p_planned_end_date" "date") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_supplier"("p_supplier_id" "uuid", "p_company_name" "text", "p_tax_id" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_payment_terms" "text", "p_status" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38742,8 +33808,6 @@ GRANT ALL ON FUNCTION "public"."update_site_planning"("p_site_id" "uuid", "p_pla
 GRANT ALL ON FUNCTION "public"."update_supplier"("p_supplier_id" "uuid", "p_company_name" "text", "p_tax_id" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_payment_terms" "text", "p_status" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_supplier"("p_supplier_id" "uuid", "p_company_name" "text", "p_tax_id" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_payment_terms" "text", "p_status" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_supplier"("p_supplier_id" "uuid", "p_company_name" "text", "p_tax_id" "text", "p_contact_email" "text", "p_contact_phone" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_payment_terms" "text", "p_status" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_tax"("p_tax_id" "uuid", "p_name" "text", "p_code" "text", "p_rate" numeric, "p_description" "text", "p_is_default" boolean, "p_is_active" boolean, "p_display_order" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38751,8 +33815,6 @@ GRANT ALL ON FUNCTION "public"."update_supplier"("p_supplier_id" "uuid", "p_comp
 GRANT ALL ON FUNCTION "public"."update_tax"("p_tax_id" "uuid", "p_name" "text", "p_code" "text", "p_rate" numeric, "p_description" "text", "p_is_default" boolean, "p_is_active" boolean, "p_display_order" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_tax"("p_tax_id" "uuid", "p_name" "text", "p_code" "text", "p_rate" numeric, "p_description" "text", "p_is_default" boolean, "p_is_active" boolean, "p_display_order" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_tax"("p_tax_id" "uuid", "p_name" "text", "p_code" "text", "p_rate" numeric, "p_description" "text", "p_is_default" boolean, "p_is_active" boolean, "p_display_order" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_technician"("p_technician_id" "uuid", "p_company_name" "text", "p_type" "text", "p_legal_name" "text", "p_tax_id" "text", "p_contact_name" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_contact_email" "text", "p_billing_email" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_latitude" numeric, "p_longitude" numeric, "p_specialties" "text"[], "p_hourly_rate" numeric, "p_daily_rate" numeric, "p_iban" "text", "p_payment_terms" "text", "p_status" "text", "p_rating" integer, "p_notes" "text", "p_vat_rate" numeric, "p_withholding_tax_rate" numeric); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38760,8 +33822,6 @@ GRANT ALL ON FUNCTION "public"."update_tax"("p_tax_id" "uuid", "p_name" "text", 
 GRANT ALL ON FUNCTION "public"."update_technician"("p_technician_id" "uuid", "p_company_name" "text", "p_type" "text", "p_legal_name" "text", "p_tax_id" "text", "p_contact_name" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_contact_email" "text", "p_billing_email" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_latitude" numeric, "p_longitude" numeric, "p_specialties" "text"[], "p_hourly_rate" numeric, "p_daily_rate" numeric, "p_iban" "text", "p_payment_terms" "text", "p_status" "text", "p_rating" integer, "p_notes" "text", "p_vat_rate" numeric, "p_withholding_tax_rate" numeric) TO "anon";
 GRANT ALL ON FUNCTION "public"."update_technician"("p_technician_id" "uuid", "p_company_name" "text", "p_type" "text", "p_legal_name" "text", "p_tax_id" "text", "p_contact_name" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_contact_email" "text", "p_billing_email" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_latitude" numeric, "p_longitude" numeric, "p_specialties" "text"[], "p_hourly_rate" numeric, "p_daily_rate" numeric, "p_iban" "text", "p_payment_terms" "text", "p_status" "text", "p_rating" integer, "p_notes" "text", "p_vat_rate" numeric, "p_withholding_tax_rate" numeric) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_technician"("p_technician_id" "uuid", "p_company_name" "text", "p_type" "text", "p_legal_name" "text", "p_tax_id" "text", "p_contact_name" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_contact_email" "text", "p_billing_email" "text", "p_address" "text", "p_city" "text", "p_province" "text", "p_postal_code" "text", "p_country" "text", "p_latitude" numeric, "p_longitude" numeric, "p_specialties" "text"[], "p_hourly_rate" numeric, "p_daily_rate" numeric, "p_iban" "text", "p_payment_terms" "text", "p_status" "text", "p_rating" integer, "p_notes" "text", "p_vat_rate" numeric, "p_withholding_tax_rate" numeric) TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_technician_coordinates"("p_technician_id" "uuid", "p_latitude" numeric, "p_longitude" numeric, "p_full_address" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38769,8 +33829,6 @@ GRANT ALL ON FUNCTION "public"."update_technician"("p_technician_id" "uuid", "p_
 GRANT ALL ON FUNCTION "public"."update_technician_coordinates"("p_technician_id" "uuid", "p_latitude" numeric, "p_longitude" numeric, "p_full_address" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_technician_coordinates"("p_technician_id" "uuid", "p_latitude" numeric, "p_longitude" numeric, "p_full_address" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_technician_coordinates"("p_technician_id" "uuid", "p_latitude" numeric, "p_longitude" numeric, "p_full_address" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_updated_at_column"(); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38778,8 +33836,6 @@ GRANT ALL ON FUNCTION "public"."update_technician_coordinates"("p_technician_id"
 GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_worker"("p_user_id" "uuid", "p_department" "text", "p_job_position" "text", "p_phone" "text", "p_tax_id" "text", "p_iban" "text", "p_irpf_rate" numeric, "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_ss_regime" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38787,8 +33843,6 @@ GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."update_worker"("p_user_id" "uuid", "p_department" "text", "p_job_position" "text", "p_phone" "text", "p_tax_id" "text", "p_iban" "text", "p_irpf_rate" numeric, "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_ss_regime" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_worker"("p_user_id" "uuid", "p_department" "text", "p_job_position" "text", "p_phone" "text", "p_tax_id" "text", "p_iban" "text", "p_irpf_rate" numeric, "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_ss_regime" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_worker"("p_user_id" "uuid", "p_department" "text", "p_job_position" "text", "p_phone" "text", "p_tax_id" "text", "p_iban" "text", "p_irpf_rate" numeric, "p_address" "text", "p_city" "text", "p_postal_code" "text", "p_province" "text", "p_ss_regime" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "upsert_company_contacts"("p_contact_email" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_whatsapp_number" "text", "p_social_networks" "jsonb", "p_business_hours" "text", "p_google_maps_url" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38796,8 +33850,6 @@ GRANT ALL ON FUNCTION "public"."update_worker"("p_user_id" "uuid", "p_department
 GRANT ALL ON FUNCTION "public"."upsert_company_contacts"("p_contact_email" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_whatsapp_number" "text", "p_social_networks" "jsonb", "p_business_hours" "text", "p_google_maps_url" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."upsert_company_contacts"("p_contact_email" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_whatsapp_number" "text", "p_social_networks" "jsonb", "p_business_hours" "text", "p_google_maps_url" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."upsert_company_contacts"("p_contact_email" "text", "p_contact_phone" "text", "p_contact_phone_secondary" "text", "p_whatsapp_number" "text", "p_social_networks" "jsonb", "p_business_hours" "text", "p_google_maps_url" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "upsert_company_preferences"("p_quote_validity_days" integer, "p_invoice_payment_days" integer, "p_default_currency" "text", "p_bank_accounts" "jsonb"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38805,8 +33857,6 @@ GRANT ALL ON FUNCTION "public"."upsert_company_contacts"("p_contact_email" "text
 GRANT ALL ON FUNCTION "public"."upsert_company_preferences"("p_quote_validity_days" integer, "p_invoice_payment_days" integer, "p_default_currency" "text", "p_bank_accounts" "jsonb") TO "anon";
 GRANT ALL ON FUNCTION "public"."upsert_company_preferences"("p_quote_validity_days" integer, "p_invoice_payment_days" integer, "p_default_currency" "text", "p_bank_accounts" "jsonb") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."upsert_company_preferences"("p_quote_validity_days" integer, "p_invoice_payment_days" integer, "p_default_currency" "text", "p_bank_accounts" "jsonb") TO "service_role";
-
-
 --
 -- Name: FUNCTION "upsert_company_settings"("p_legal_name" "text", "p_tax_id" "text", "p_vat_number" "text", "p_commercial_name" "text", "p_company_type" "text", "p_country" "text", "p_fiscal_address" "text", "p_fiscal_postal_code" "text", "p_fiscal_city" "text", "p_fiscal_province" "text", "p_billing_email" "text", "p_billing_phone" "text", "p_website" "text", "p_logo_url" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38814,8 +33864,6 @@ GRANT ALL ON FUNCTION "public"."upsert_company_preferences"("p_quote_validity_da
 GRANT ALL ON FUNCTION "public"."upsert_company_settings"("p_legal_name" "text", "p_tax_id" "text", "p_vat_number" "text", "p_commercial_name" "text", "p_company_type" "text", "p_country" "text", "p_fiscal_address" "text", "p_fiscal_postal_code" "text", "p_fiscal_city" "text", "p_fiscal_province" "text", "p_billing_email" "text", "p_billing_phone" "text", "p_website" "text", "p_logo_url" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."upsert_company_settings"("p_legal_name" "text", "p_tax_id" "text", "p_vat_number" "text", "p_commercial_name" "text", "p_company_type" "text", "p_country" "text", "p_fiscal_address" "text", "p_fiscal_postal_code" "text", "p_fiscal_city" "text", "p_fiscal_province" "text", "p_billing_email" "text", "p_billing_phone" "text", "p_website" "text", "p_logo_url" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."upsert_company_settings"("p_legal_name" "text", "p_tax_id" "text", "p_vat_number" "text", "p_commercial_name" "text", "p_company_type" "text", "p_country" "text", "p_fiscal_address" "text", "p_fiscal_postal_code" "text", "p_fiscal_city" "text", "p_fiscal_province" "text", "p_billing_email" "text", "p_billing_phone" "text", "p_website" "text", "p_logo_url" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "upsert_site_assignment"("p_site_id" "uuid", "p_technician_id" "uuid", "p_role" "text", "p_date_from" "date", "p_date_to" "date", "p_notes" "text", "p_assignment_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38823,8 +33871,6 @@ GRANT ALL ON FUNCTION "public"."upsert_company_settings"("p_legal_name" "text", 
 GRANT ALL ON FUNCTION "public"."upsert_site_assignment"("p_site_id" "uuid", "p_technician_id" "uuid", "p_role" "text", "p_date_from" "date", "p_date_to" "date", "p_notes" "text", "p_assignment_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."upsert_site_assignment"("p_site_id" "uuid", "p_technician_id" "uuid", "p_role" "text", "p_date_from" "date", "p_date_to" "date", "p_notes" "text", "p_assignment_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."upsert_site_assignment"("p_site_id" "uuid", "p_technician_id" "uuid", "p_role" "text", "p_date_from" "date", "p_date_to" "date", "p_notes" "text", "p_assignment_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "v4_get_group_settings"("p_conversation_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38832,8 +33878,6 @@ GRANT ALL ON FUNCTION "public"."upsert_site_assignment"("p_site_id" "uuid", "p_t
 GRANT ALL ON FUNCTION "public"."v4_get_group_settings"("p_conversation_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."v4_get_group_settings"("p_conversation_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."v4_get_group_settings"("p_conversation_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "v4_join_department_conversation"("p_conversation_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38841,8 +33885,6 @@ GRANT ALL ON FUNCTION "public"."v4_get_group_settings"("p_conversation_id" "uuid
 GRANT ALL ON FUNCTION "public"."v4_join_department_conversation"("p_conversation_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."v4_join_department_conversation"("p_conversation_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."v4_join_department_conversation"("p_conversation_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "v4_set_group_settings"("p_conversation_id" "uuid", "p_agent_name" "text", "p_model" "text", "p_auto_mode" boolean, "p_intervention_level" "text", "p_cooldown_minutes" integer); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38850,8 +33892,6 @@ GRANT ALL ON FUNCTION "public"."v4_join_department_conversation"("p_conversation
 GRANT ALL ON FUNCTION "public"."v4_set_group_settings"("p_conversation_id" "uuid", "p_agent_name" "text", "p_model" "text", "p_auto_mode" boolean, "p_intervention_level" "text", "p_cooldown_minutes" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."v4_set_group_settings"("p_conversation_id" "uuid", "p_agent_name" "text", "p_model" "text", "p_auto_mode" boolean, "p_intervention_level" "text", "p_cooldown_minutes" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."v4_set_group_settings"("p_conversation_id" "uuid", "p_agent_name" "text", "p_model" "text", "p_auto_mode" boolean, "p_intervention_level" "text", "p_cooldown_minutes" integer) TO "service_role";
-
-
 --
 -- Name: FUNCTION "validate_invitation_token"("p_token" "text", "p_email" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38859,8 +33899,6 @@ GRANT ALL ON FUNCTION "public"."v4_set_group_settings"("p_conversation_id" "uuid
 GRANT ALL ON FUNCTION "public"."validate_invitation_token"("p_token" "text", "p_email" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."validate_invitation_token"("p_token" "text", "p_email" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."validate_invitation_token"("p_token" "text", "p_email" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "validate_month_consistency"("p_year" integer, "p_month" integer, "p_tolerance" numeric); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38868,8 +33906,6 @@ GRANT ALL ON FUNCTION "public"."validate_invitation_token"("p_token" "text", "p_
 GRANT ALL ON FUNCTION "public"."validate_month_consistency"("p_year" integer, "p_month" integer, "p_tolerance" numeric) TO "anon";
 GRANT ALL ON FUNCTION "public"."validate_month_consistency"("p_year" integer, "p_month" integer, "p_tolerance" numeric) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."validate_month_consistency"("p_year" integer, "p_month" integer, "p_tolerance" numeric) TO "service_role";
-
-
 --
 -- Name: FUNCTION "verify_otp"("p_email" "text", "p_code" "text"); Type: ACL; Schema: public; Owner: postgres
 --
@@ -38877,15 +33913,11 @@ GRANT ALL ON FUNCTION "public"."validate_month_consistency"("p_year" integer, "p
 GRANT ALL ON FUNCTION "public"."verify_otp"("p_email" "text", "p_code" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."verify_otp"("p_email" "text", "p_code" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."verify_otp"("p_email" "text", "p_code" "text") TO "service_role";
-
-
 --
 -- Name: FUNCTION "duplicate_quote"("p_quote_id" "uuid"); Type: ACL; Schema: quotes; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "quotes"."duplicate_quote"("p_quote_id" "uuid") TO "authenticated";
-
-
 --
 -- Name: FUNCTION "can_access_invoice_archive"("p_invoice_id" "uuid"); Type: ACL; Schema: sales; Owner: postgres
 --
@@ -38893,53 +33925,39 @@ GRANT ALL ON FUNCTION "quotes"."duplicate_quote"("p_quote_id" "uuid") TO "authen
 REVOKE ALL ON FUNCTION "sales"."can_access_invoice_archive"("p_invoice_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "sales"."can_access_invoice_archive"("p_invoice_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "sales"."can_access_invoice_archive"("p_invoice_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_invoice_from_quote"("p_quote_id" "uuid"); Type: ACL; Schema: sales; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "sales"."create_invoice_from_quote"("p_quote_id" "uuid") TO "authenticated";
-
-
 --
 -- Name: FUNCTION "generate_purchase_invoice_number"("p_issue_date" "date"); Type: ACL; Schema: sales; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "sales"."generate_purchase_invoice_number"("p_issue_date" "date") TO "authenticated";
-
-
 --
 -- Name: FUNCTION "_crypto_aead_det_decrypt"("message" "bytea", "additional" "bytea", "key_id" bigint, "context" "bytea", "nonce" "bytea"); Type: ACL; Schema: vault; Owner: supabase_admin
 --
 
 GRANT ALL ON FUNCTION "vault"."_crypto_aead_det_decrypt"("message" "bytea", "additional" "bytea", "key_id" bigint, "context" "bytea", "nonce" "bytea") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "vault"."_crypto_aead_det_decrypt"("message" "bytea", "additional" "bytea", "key_id" bigint, "context" "bytea", "nonce" "bytea") TO "service_role";
-
-
 --
 -- Name: FUNCTION "create_secret"("new_secret" "text", "new_name" "text", "new_description" "text", "new_key_id" "uuid"); Type: ACL; Schema: vault; Owner: supabase_admin
 --
 
 GRANT ALL ON FUNCTION "vault"."create_secret"("new_secret" "text", "new_name" "text", "new_description" "text", "new_key_id" "uuid") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "vault"."create_secret"("new_secret" "text", "new_name" "text", "new_description" "text", "new_key_id" "uuid") TO "service_role";
-
-
 --
 -- Name: FUNCTION "update_secret"("secret_id" "uuid", "new_secret" "text", "new_name" "text", "new_description" "text", "new_key_id" "uuid"); Type: ACL; Schema: vault; Owner: supabase_admin
 --
 
 GRANT ALL ON FUNCTION "vault"."update_secret"("secret_id" "uuid", "new_secret" "text", "new_name" "text", "new_description" "text", "new_key_id" "uuid") TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON FUNCTION "vault"."update_secret"("secret_id" "uuid", "new_secret" "text", "new_name" "text", "new_description" "text", "new_key_id" "uuid") TO "service_role";
-
-
 --
 -- Name: TABLE "daily_snapshots"; Type: ACL; Schema: backup; Owner: postgres
 --
 
 GRANT ALL ON TABLE "backup"."daily_snapshots" TO "service_role";
-
-
 --
 -- Name: TABLE "pg_stat_statements"; Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -38947,8 +33965,6 @@ GRANT ALL ON TABLE "backup"."daily_snapshots" TO "service_role";
 REVOKE ALL ON TABLE "extensions"."pg_stat_statements" FROM "postgres";
 GRANT ALL ON TABLE "extensions"."pg_stat_statements" TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON TABLE "extensions"."pg_stat_statements" TO "dashboard_user";
-
-
 --
 -- Name: TABLE "pg_stat_statements_info"; Type: ACL; Schema: extensions; Owner: postgres
 --
@@ -38956,8 +33972,6 @@ GRANT ALL ON TABLE "extensions"."pg_stat_statements" TO "dashboard_user";
 REVOKE ALL ON TABLE "extensions"."pg_stat_statements_info" FROM "postgres";
 GRANT ALL ON TABLE "extensions"."pg_stat_statements_info" TO "postgres" WITH GRANT OPTION;
 GRANT ALL ON TABLE "extensions"."pg_stat_statements_info" TO "dashboard_user";
-
-
 --
 -- Name: TABLE "company_settings"; Type: ACL; Schema: internal; Owner: postgres
 --
@@ -38965,22 +33979,16 @@ GRANT ALL ON TABLE "extensions"."pg_stat_statements_info" TO "dashboard_user";
 GRANT ALL ON TABLE "internal"."company_settings" TO "anon";
 GRANT ALL ON TABLE "internal"."company_settings" TO "authenticated";
 GRANT ALL ON TABLE "internal"."company_settings" TO "service_role";
-
-
 --
 -- Name: SEQUENCE "partner_compensation_number_seq"; Type: ACL; Schema: internal; Owner: postgres
 --
 
 GRANT USAGE ON SEQUENCE "internal"."partner_compensation_number_seq" TO "authenticated";
-
-
 --
 -- Name: TABLE "partner_compensation_runs"; Type: ACL; Schema: internal; Owner: postgres
 --
 
 GRANT SELECT,INSERT,UPDATE ON TABLE "internal"."partner_compensation_runs" TO "authenticated";
-
-
 --
 -- Name: TABLE "scanned_documents"; Type: ACL; Schema: public; Owner: postgres
 --
@@ -38988,8 +33996,6 @@ GRANT SELECT,INSERT,UPDATE ON TABLE "internal"."partner_compensation_runs" TO "a
 GRANT ALL ON TABLE "public"."scanned_documents" TO "anon";
 GRANT ALL ON TABLE "public"."scanned_documents" TO "authenticated";
 GRANT ALL ON TABLE "public"."scanned_documents" TO "service_role";
-
-
 --
 -- Name: TABLE "user_roles"; Type: ACL; Schema: public; Owner: postgres
 --
@@ -38997,45 +34003,33 @@ GRANT ALL ON TABLE "public"."scanned_documents" TO "service_role";
 GRANT ALL ON TABLE "public"."user_roles" TO "anon";
 GRANT ALL ON TABLE "public"."user_roles" TO "authenticated";
 GRANT ALL ON TABLE "public"."user_roles" TO "service_role";
-
-
 --
 -- Name: TABLE "invoices"; Type: ACL; Schema: sales; Owner: postgres
 --
 
 GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "sales"."invoices" TO "authenticated";
-
-
 --
 -- Name: TABLE "invoice_lines"; Type: ACL; Schema: sales; Owner: postgres
 --
 
 GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "sales"."invoice_lines" TO "authenticated";
-
-
 --
 -- Name: TABLE "invoice_sequences"; Type: ACL; Schema: sales; Owner: postgres
 --
 
 GRANT SELECT,INSERT,UPDATE ON TABLE "sales"."invoice_sequences" TO "authenticated";
-
-
 --
 -- Name: TABLE "secrets"; Type: ACL; Schema: vault; Owner: supabase_admin
 --
 
 GRANT SELECT,REFERENCES,DELETE,TRUNCATE ON TABLE "vault"."secrets" TO "postgres" WITH GRANT OPTION;
 GRANT SELECT,DELETE ON TABLE "vault"."secrets" TO "service_role";
-
-
 --
 -- Name: TABLE "decrypted_secrets"; Type: ACL; Schema: vault; Owner: supabase_admin
 --
 
 GRANT SELECT,REFERENCES,DELETE,TRUNCATE ON TABLE "vault"."decrypted_secrets" TO "postgres" WITH GRANT OPTION;
 GRANT SELECT,DELETE ON TABLE "vault"."decrypted_secrets" TO "service_role";
-
-
 --
 -- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: postgres
 --
@@ -39044,8 +34038,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQ
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "service_role";
-
-
 --
 -- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: supabase_admin
 --
@@ -39054,8 +34046,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL 
 ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "service_role";
-
-
 --
 -- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: public; Owner: postgres
 --
@@ -39064,8 +34054,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUN
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "service_role";
-
-
 --
 -- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: public; Owner: supabase_admin
 --
@@ -39074,8 +34062,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL 
 ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "service_role";
-
-
 --
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: postgres
 --
@@ -39084,8 +34070,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
-
-
 --
 -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: supabase_admin
 --
@@ -39094,8 +34078,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL 
 ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL ON TABLES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL ON TABLES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
-
-
 --
 -- Name: issue_graphql_placeholder; Type: EVENT TRIGGER; Schema: -; Owner: supabase_admin
 --
@@ -39103,10 +34085,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin" IN SCHEMA "public" GRANT ALL 
 CREATE EVENT TRIGGER "issue_graphql_placeholder" ON "sql_drop"
          WHEN TAG IN ('DROP EXTENSION')
    EXECUTE FUNCTION "extensions"."set_graphql_placeholder"();
-
-
 ALTER EVENT TRIGGER "issue_graphql_placeholder" OWNER TO "supabase_admin";
-
 --
 -- Name: issue_pg_cron_access; Type: EVENT TRIGGER; Schema: -; Owner: supabase_admin
 --
@@ -39114,10 +34093,7 @@ ALTER EVENT TRIGGER "issue_graphql_placeholder" OWNER TO "supabase_admin";
 CREATE EVENT TRIGGER "issue_pg_cron_access" ON "ddl_command_end"
          WHEN TAG IN ('CREATE EXTENSION')
    EXECUTE FUNCTION "extensions"."grant_pg_cron_access"();
-
-
 ALTER EVENT TRIGGER "issue_pg_cron_access" OWNER TO "supabase_admin";
-
 --
 -- Name: issue_pg_graphql_access; Type: EVENT TRIGGER; Schema: -; Owner: supabase_admin
 --
@@ -39125,10 +34101,7 @@ ALTER EVENT TRIGGER "issue_pg_cron_access" OWNER TO "supabase_admin";
 CREATE EVENT TRIGGER "issue_pg_graphql_access" ON "ddl_command_end"
          WHEN TAG IN ('CREATE FUNCTION')
    EXECUTE FUNCTION "extensions"."grant_pg_graphql_access"();
-
-
 ALTER EVENT TRIGGER "issue_pg_graphql_access" OWNER TO "supabase_admin";
-
 --
 -- Name: issue_pg_net_access; Type: EVENT TRIGGER; Schema: -; Owner: supabase_admin
 --
@@ -39136,33 +34109,23 @@ ALTER EVENT TRIGGER "issue_pg_graphql_access" OWNER TO "supabase_admin";
 CREATE EVENT TRIGGER "issue_pg_net_access" ON "ddl_command_end"
          WHEN TAG IN ('CREATE EXTENSION')
    EXECUTE FUNCTION "extensions"."grant_pg_net_access"();
-
-
 ALTER EVENT TRIGGER "issue_pg_net_access" OWNER TO "supabase_admin";
-
 --
 -- Name: pgrst_ddl_watch; Type: EVENT TRIGGER; Schema: -; Owner: supabase_admin
 --
 
 CREATE EVENT TRIGGER "pgrst_ddl_watch" ON "ddl_command_end"
    EXECUTE FUNCTION "extensions"."pgrst_ddl_watch"();
-
-
 ALTER EVENT TRIGGER "pgrst_ddl_watch" OWNER TO "supabase_admin";
-
 --
 -- Name: pgrst_drop_watch; Type: EVENT TRIGGER; Schema: -; Owner: supabase_admin
 --
 
 CREATE EVENT TRIGGER "pgrst_drop_watch" ON "sql_drop"
    EXECUTE FUNCTION "extensions"."pgrst_drop_watch"();
-
-
 ALTER EVENT TRIGGER "pgrst_drop_watch" OWNER TO "supabase_admin";
-
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict xeChS53ibMyGEMYM0R98XcpGr5VEjxGVCDFa9Csv65eQX1L2xQ5MFeH1EwXdhsM
-
+\unrestrict xeChS53ibMyGEMYM0R98XcpGr5VEjxGVCDFa9Csv65eQX1L2xQ5MFeH1EwXdhsM;

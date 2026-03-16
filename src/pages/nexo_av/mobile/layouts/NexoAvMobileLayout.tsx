@@ -5,7 +5,7 @@ import { ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
-import { Receipt, FileCheck, Truck, UserRound, FileText } from "lucide-react";
+import { Receipt, FileCheck, Truck, UserRound, FileText, Package, Settings } from "lucide-react";
 import { MobileHeader } from "../components/layout/MobileHeader";
 import { BottomNavigation, MoreMenuItem } from "../components/layout/BottomNavigation";
 import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
@@ -210,6 +210,12 @@ const NexoAvMobileLayout = () => {
           const items: MoreMenuItem[] = [];
           if (isAdmin || isManager) {
             items.push({
+              id: 'catalog',
+              label: 'Catálogo',
+              icon: Package,
+              path: `/nexo-av/${userId}/catalog`
+            });
+            items.push({
               id: 'invoices',
               label: 'Facturas',
               icon: FileText,
@@ -238,6 +244,12 @@ const NexoAvMobileLayout = () => {
               label: 'Técnicos',
               icon: UserRound,
               path: `/nexo-av/${userId}/technicians`
+            });
+            items.push({
+              id: 'settings',
+              label: 'Ajustes',
+              icon: Settings,
+              path: `/nexo-av/${userId}/settings`
             });
           }
           return items;

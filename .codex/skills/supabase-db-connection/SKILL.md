@@ -21,9 +21,10 @@ Confirmar a que proyecto Supabase apunta el repo, elegir la via de conexion mas 
 
 ## Revisar primero
 
-- `supabase/config.toml`: fuente canonica de `project_id`.
+- `supabase/config.toml`: fuente canonica de `project_id` (para este repo: `takvthfatlcjsqgssnta`).
 - `src/integrations/supabase/client.ts`: evidencia del `url` y la publishable key usadas por frontend.
 - `.env` y `.env.example`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_DB_URL`, `SUPABASE_ACCESS_TOKEN`.
+- MCP: `.codex/mcp.json` (config en repo) o `~/.cursor/mcp.json` (Cursor); debe incluir la URL con `project_ref=takvthfatlcjsqgssnta` para conectar a la BD de la plataforma.
 - `scripts/nexo/export-remote-schema.ps1`: flujo reutilizable cuando hay `SUPABASE_DB_URL`.
 - `docs/supabase/2026-03-03_historical_migration_drift_diagnosis.md`: contexto del drift historico del remoto antes de usar `db pull` o reparar migraciones.
 
@@ -117,22 +118,85 @@ npx supabase stop
 
 ---
 
+## Configuracion MCP para la plataforma AV TECH/NEXO AV
+
+Este repo apunta al proyecto Supabase de la plataforma NEXO AV. Para que el MCP de Supabase conecte a la BD correcta:
+
+| Parametro | Valor |
+|-----------|-------|
+| **project_ref** | `takvthfatlcjsqgssnta` (fuente: `supabase/config.toml`) |
+| **URL MCP** | `https://mcp.supabase.com/mcp?project_ref=takvthfatlcjsqgssnta` |
+
+### Configuracion en el repo (Codex)
+
+Este proyecto incluye la configuracion MCP en `.codex/mcp.json`. Codex y otros agentes que lean MCP desde el repo deben usar esta ruta.
+
+El archivo define el servidor Supabase apuntando a la BD de la plataforma (`project_ref=takvthfatlcjsqgssnta`).
+
+### Cursor
+
+Cursor usa por defecto `~/.cursor/mcp.json`. Para alinear con este repo, se puede copiar el contenido de `.codex/mcp.json` o enlazar la configuracion. El formato es el mismo.
+
+### Entorno CI / sin navegador
+
+Si el cliente MCP no soporta OAuth (p. ej. en CI), usar autenticacion por token. Añadir en la config del servidor:
+
+```json
+"headers": {
+  "Authorization": "Bearer ${SUPABASE_ACCESS_TOKEN}"
+}
+```
+
+Variables necesarias: `SUPABASE_ACCESS_TOKEN` (crear en [Supabase Dashboard > Account > Access Tokens](https://supabase.com/dashboard/account/tokens)).
+
+### Primer uso y autenticacion
+
+En el primer uso, el cliente MCP redirige a Supabase para OAuth. El usuario debe iniciar sesion y autorizar el acceso. Tras la autorizacion, el MCP queda vinculado al proyecto.
+
+En Cursor: Settings > Cursor Settings > Tools & MCP para comprobar que el servidor esta conectado.
+
+### Opciones adicionales de URL
+
+| Parametro | Uso |
+|-----------|-----|
+| `read_only=true` | Ejecutar queries como usuario read-only (recomendado si solo se consulta). |
+| `features=database,docs` | Limitar herramientas habilitadas (comma-separated). |
+
+Ejemplo read-only: `https://mcp.supabase.com/mcp?project_ref=takvthfatlcjsqgssnta&read_only=true`
+
+---
+
+## Herramientas MCP disponibles (Database)
+
+| Tool | Uso |
+|------|-----|
+| `execute_sql` | Ejecutar SQL (SELECT, etc.). Para DDL usar `apply_migration`. |
+| `apply_migration` | Aplicar migracion DDL. Params: `name` (snake_case), `query` (SQL). |
+| `list_migrations` | Listar migraciones aplicadas. |
+| `list_tables` | Listar tablas del esquema. |
+| `list_extensions` | Listar extensiones PostgreSQL. |
+
+Identificador del servidor en Cursor: `user-supabase` (mapeado desde `supabase` en mcp.json).
+
+---
+
 ## Uso con MCP
 
 Cuando uses herramientas MCP para Supabase:
 
-1. **Primero** revisar el descriptor/schema del tool (`mcps/<server>/tools/*.json`).
-2. Solo después invocar la herramienta MCP.
-3. Si falla, revisar parámetros obligatorios en el schema y reintentar.
+1. **Primero** revisar el descriptor/schema del tool (p. ej. `mcps/user-supabase/tools/*.json` en el proyecto Cursor).
+2. Confirmar que el MCP esta configurado con el `project_ref` correcto (`takvthfatlcjsqgssnta`).
+3. Solo despues invocar la herramienta MCP.
+4. Si falla, revisar parametros obligatorios en el schema y reintentar.
 
-**Servidores MCP esperados:** `user-supabase`, `user-supabase-csm-avtech`
+**Servidores MCP esperados en este proyecto:** `user-supabase` (plataforma NEXO AV), `user-supabase-csm-avtech` (otro proyecto si esta configurado).
 
 **Flujo recomendado con MCP:**
 
 1. Revisar schema del tool a usar.
-2. Ejecutar una **lectura previa** (`SELECT`/listado) para confirmar alcance.
-3. Si hay cambios (`INSERT/UPDATE/DELETE`), mostrar impacto esperado.
-4. Ejecutar cambio solo con confirmación explícita del usuario cuando aplique.
+2. Ejecutar una **lectura previa** (`list_tables`, `execute_sql` con SELECT) para confirmar alcance.
+3. Si hay cambios (`INSERT/UPDATE/DELETE` o DDL), mostrar impacto esperado.
+4. Ejecutar cambio solo con confirmacion explicita del usuario cuando aplique.
 5. Releer datos para verificar resultado.
 
 ---
@@ -198,6 +262,7 @@ Antes de modificar datos o estructura:
 | `permission denied` | Rol sin permisos sobre schema o tabla. |
 | `db pull` bloqueado | Historial de migraciones remoto y repo desalineados. |
 | MCP tool error | Schema no revisado o argumentos incompletos. |
+| MCP no conecta / 401 | Verificar que el cliente MCP esta configurado con la URL correcta y que el usuario ha autorizado OAuth en Supabase; en CI, usar `SUPABASE_ACCESS_TOKEN` en header. |
 | No existe `SUPABASE_DB_URL` | Usar validación por API/PostgREST. |
 | `psql` no esta en PATH | Usar validacion por API o `scripts/nexo/export-remote-schema.ps1` si aplica. |
 

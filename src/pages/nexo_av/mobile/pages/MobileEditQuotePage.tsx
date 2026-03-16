@@ -144,25 +144,6 @@ interface TaxRpcRow {
   is_default: boolean;
 }
 
-interface ProductRpcRow {
-  id: string;
-  type?: string | null;
-  name: string;
-  product_number: string;
-  base_price: number | null;
-  tax_rate: number | null;
-  description?: string | null;
-}
-
-interface PackRpcRow {
-  id: string;
-  name: string;
-  pack_number: string;
-  final_price: number | null;
-  tax_rate: number | null;
-  description?: string | null;
-}
-
 type QuoteLineFieldValue = string | number | undefined | boolean;
 
 const formatCurrency = (amount: number) => {
@@ -407,48 +388,36 @@ const MobileEditQuotePage = () => {
     
     try {
       const keywords = query.toLowerCase().trim().split(/\s+/).filter(k => k.length > 0);
-      
-      const { data: productsData, error: productsError } = await supabase.rpc('list_products', {
-        p_search: keywords[0] || query,
+      const searchTerm = keywords[0] || query;
+
+      const { data: catalogData, error: catalogError } = await supabase.rpc('list_catalog_products_search', {
+        p_search: searchTerm,
+        p_include_inactive: false,
       });
 
-      const { data: packsData, error: packsError } = await supabase.rpc('list_product_packs', {
-        p_search: keywords[0] || query,
-      });
-
-      if (productsError) console.error('Error searching products:', productsError);
-      if (packsError) console.error('Error searching packs:', packsError);
-
-      const items: CatalogItem[] = [];
-
-      if (productsData) {
-        (productsData as ProductRpcRow[]).forEach((p) => {
-          const itemType: 'product' | 'service' = p.type === 'service' ? 'service' : 'product';
-          items.push({
-            id: p.id,
-            type: itemType,
-            name: p.name,
-            code: p.product_number,
-            price: Number(p.base_price) || 0,
-            tax_rate: Number(p.tax_rate) || 21,
-            description: p.description || '',
-          });
-        });
+      if (catalogError) {
+        console.error('Error searching catalog:', catalogError);
+        setSearchResults([]);
+        setShowSearchResults(false);
+        setSearchLoading(false);
+        return;
       }
 
-      if (packsData) {
-        (packsData as PackRpcRow[]).forEach((p) => {
-          items.push({
-            id: p.id,
-            type: 'pack',
-            name: p.name,
-            code: p.pack_number,
-            price: Number(p.final_price) || 0,
-            tax_rate: Number(p.tax_rate) || 21,
-            description: p.description || '',
-          });
-        });
-      }
+      const typeMap: Record<string, 'product' | 'service' | 'pack'> = {
+        PRODUCT: 'product',
+        SERVICE: 'service',
+        BUNDLE: 'pack',
+      };
+
+      const items: CatalogItem[] = (catalogData || []).map((p: { id: string; sku: string; name: string; description: string; product_type: string; sale_price_effective: number; tax_rate: number }) => ({
+        id: p.id,
+        type: typeMap[p.product_type] || 'product',
+        name: p.name || '',
+        code: p.sku || '',
+        price: Number(p.sale_price_effective ?? 0),
+        tax_rate: Number(p.tax_rate ?? 21),
+        description: p.description || '',
+      }));
 
       const filteredItems = items.filter(item => {
         const searchText = `${item.name} ${item.code} ${item.description}`.toLowerCase();
@@ -882,14 +851,14 @@ const MobileEditQuotePage = () => {
                     </button>
                   )}
 
-                  {/* Grupo y Concepto */}
+                  {/* REF y Concepto */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium text-muted-foreground">
-                        Grupo
+                      <Label className="text-xs font-medium text-muted-foreground" title="Nº de producto (aparece como REF en el PDF)">
+                        REF
                       </Label>
                       <Input
-                        placeholder="Grupo"
+                        placeholder="Nº producto"
                         value={line.group_name || ""}
                         onChange={(e) => updateLine(realIndex, 'group_name', e.target.value)}
                         className="bg-card border-border"

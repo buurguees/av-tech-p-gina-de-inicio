@@ -17,6 +17,69 @@ Este archivo se carga al iniciar cada chat para mantener memoria operativa de av
 
 ## Historial
 
+### [2026-03-16] Catalogo mobile responsive con consulta rapida y detalle contextual
+
+- Contexto: el modulo de catalogo seguia siendo solo desktop aunque la ruta existia dentro del layout mobile del ERP.
+- Capacidad desbloqueada: existe `MobileCatalogPage` con paridad adaptada para consulta de `Productos`, `Servicios` y `Packs`, incluyendo busqueda, KPIs por pestaña, tarjetas tactiles y drawer de detalle sin depender de componentes desktop.
+- Impacto operativo: comercial, operativa y direccion ya pueden consultar el catalogo desde movil sin cargar la interfaz desktop; admin y manager lo tienen accesible desde `Mas`, y el resto desde `Ajustes > Catalogo`.
+- Archivos o componentes implicados: `src/pages/nexo_av/mobile/pages/MobileCatalogPage.tsx`, `src/app/routes/NexoRoutes.tsx`, `src/pages/nexo_av/mobile/layouts/NexoAvMobileLayout.tsx`, `src/pages/nexo_av/mobile/pages/MobileSettingsPage.tsx`, `.codex/errores-soluciones.md`.
+- Validacion realizada: `npx tsc --noEmit` OK; `npm run -s build` OK el `2026-03-16`.
+- Como reutilizarlo en el futuro: cualquier modulo desktop que pase a mobile puede seguir este patron: ruta responsive con `createResponsivePage`, acceso explicito desde navegacion mobile, vista de consulta optimizada para dedo y detalle embebido en drawer en lugar de forzar una ficha desktop.
+
+### [2026-03-15] 13 monitores Visiotech en PA-02 CARTELERIA DIGITAL
+
+- Contexto: Alta de 13 monitores SAFIRE/HISENSE de carteleria digital (alto brillo HB y digital signage DS) con costes y especificaciones de visiotechsecurity.com 16/03/2026.
+- Capacidad desbloqueada: migracion `20260315180500_seed_monitores_visiotech_pa02.sql` crea productos PA-02-0036 a PA-02-0048; margen +60%; proveedor Visiotech (PRV-000017); especificaciones en JSON (ref_proveedor, marca, linea, resolucion, brillo_nits, vesa, peso_kg, etc.).
+- Impacto operativo: monitores disponibles en catalogo NEXO bajo PA-02; 6 HB (43"-86"), 6 DS SAFIRE (43"-98"), 1 HISENSE 86"; aplicado via MCP `apply_migration` al no poder ejecutar `db push` por conflictos de historial.
+- Archivos o componentes implicados: `supabase/migrations/20260315180500_seed_monitores_visiotech_pa02.sql`, `catalog.products`, `catalog.next_product_number`.
+- Validacion realizada: 13 productos insertados con SKU PA-02-0036..0048; costes y precios de venta verificados; especificaciones en specifications.
+- Como reutilizarlo en el futuro: para mas productos Visiotech, usar mismo proveedor_id; mantener ref_proveedor en specifications para trazabilidad; margen +60% como estandar salvo excepcion.
+
+### [2026-03-15] Proveedor Visiotech (PRV-000017)
+
+- Contexto: Alta de proveedor mayorista B2B Visiotech (razon social LONG XIANG EXPORTACION IMPORTACION SL) para monitores, soportes y digital signage.
+- Capacidad desbloqueada: migracion `20260315180400_seed_proveedor_visiotech.sql` crea proveedor con NIF B80645518, direccion Madrid, email comercial@visiotechsecurity.com; idempotente por tax_id.
+- Impacto operativo: proveedor disponible en listados y para vincular productos del catalogo; categoria MATERIAL (constraint DB: SOFTWARE, EXTERNAL_SERVICES, MATERIAL).
+- Archivos o componentes implicados: `supabase/migrations/20260315180400_seed_proveedor_visiotech.sql`, `internal.suppliers`.
+- Validacion realizada: proveedor PRV-000017 creado en BD; datos fiscales y contacto verificados.
+- Como reutilizarlo en el futuro: usar categoria MATERIAL para proveedores de hardware; razon social en company_name para facturacion; nombre comercial se puede anadir en UI si se extiende el esquema.
+
+### [2026-03-15] Pack RACK 15U EXTERIOR IP55 FUNCIONAL (PACK-0001)
+
+- Contexto: Tras crear el armario PA-06-0001 y los accesorios PA-06-0002 a PA-06-0009, faltaba un pack vendible con la configuracion minima funcional (armario + regleta + bandeja + guia + 2x panel 1U + ventilador + termostato).
+- Capacidad desbloqueada: migracion `20260315180300_seed_pack_rack_15u_funcional.sql` crea el BUNDLE PACK-0001 con precio suma de componentes (720,66 EUR sin IVA); idempotente para evitar duplicados en re-ejecucion.
+- Impacto operativo: el pack aparece en la pestaña Packs del catalogo NEXO; se puede vender como unidad o desglosar en componentes; `list_catalog_bundles` y `list_catalog_bundle_components` lo exponen.
+- Archivos o componentes implicados: `supabase/migrations/20260315180300_seed_pack_rack_15u_funcional.sql`, `catalog.products` (product_type=BUNDLE), `catalog.product_bundles`.
+- Validacion realizada: pack creado en BD; 7 componentes vinculados (PA-06-0001, 0002, 0003, 0004, 0005x2, 0007, 0008); precio 720,66 EUR.
+- Como reutilizarlo en el futuro: para nuevos packs, crear producto BUNDLE con `create_catalog_product` o INSERT directo; añadir componentes con `add_catalog_bundle_component` o INSERT en `product_bundles`; mantener migraciones idempotentes con `WHERE NOT EXISTS`.
+
+### [2026-03-15] Subcategoria PA-06 RACKS Y ACCESORIOS y normalizacion de taxonomia PA
+
+- Contexto: ARMARIO RACK y productos similares (racks, cabinas, patch, switch) necesitaban una subcategoria propia bajo PRODUCTOS AUDIOVISUALES; ademas las subcategorias PA mezclaban codigos numericos (01-05) y alfanumericos (LCD, ACCE).
+- Capacidad desbloqueada: nueva subcategoria PA-06 RACKS Y ACCESORIOS para rack fisico y accesorios de rack; codigos PA estandarizados a 01..08; sort_order coherente (1..8); PA-04 renombrado a CONTROL, PROCESADO Y CONECTIVIDAD AV; migraciones canonicas 20260315165956 y 20260315170501 con INSERT idempotente.
+- Impacto operativo: productos como ARMARIO RACK se clasifican en PA-06 con SKU PA-06-XXXX; el frontend carga categorias/subcategorias dinamicamente sin hardcodes; criterio de clasificacion documentado en `docs/important/catalog-classification-guide.md`.
+- Archivos o componentes implicados: `supabase/migrations/20260315165956_add_racks_subcategory_and_standardize_codes.sql`, `supabase/migrations/20260315170501_fix_pa_sort_order_and_rename.sql`, `docs/nexo/catalog-classification-guide.md`.
+- Validacion realizada: consulta BD confirmando 01..08 con sort_order 1..8; `migration list --linked` con 20260315165956 y 20260315170501 alineados; frontend sin dependencias de codigos fijos.
+- Como reutilizarlo en el futuro: usar PA-06 para rack fisico y accesorios; PA-04 para control, procesado y conectividad AV; MI para material de instalacion y estructura de montaje; consultar la guia de clasificacion antes de crear categorias nuevas.
+
+### [2026-03-15] Configuracion MCP en .codex/mcp.json para Codex
+
+- Contexto: Codex necesita leer la config MCP desde el repo para conectar a Supabase sin depender de `~/.cursor/mcp.json`.
+- Capacidad desbloqueada: existe `.codex/mcp.json` con el servidor Supabase (`project_ref=takvthfatlcjsqgssnta`) versionado en el repo; se añadio excepcion en `.gitignore` para que este archivo se trackee (solo contiene URL publica, sin tokens).
+- Impacto operativo: Codex y otros agentes que lean MCP desde `.codex/` pueden conectar a la BD de la plataforma usando esta config; la skill `supabase-db-connection` referencia esta ruta como canonica.
+- Archivos o componentes implicados: `.codex/mcp.json`, `.gitignore`, `.codex/skills/supabase-db-connection/SKILL.md`.
+- Validacion realizada: archivo creado con formato JSON valido; excepcion gitignore verificada.
+- Como reutilizarlo en el futuro: configurar Codex para cargar MCP desde `.codex/mcp.json`; si se añade otro proyecto (p. ej. supabase-csm-avtech), extender el objeto `mcpServers` en el mismo archivo.
+
+### [2026-03-15] Skill supabase-db-connection actualizada con configuracion MCP para Codex y Cursor
+
+- Contexto: era necesario que el MCP de Supabase conectara a la BD de la plataforma AV TECH/NEXO AV y que Codex pudiera usar esa conexion.
+- Capacidad desbloqueada: la skill `.codex/skills/supabase-db-connection/SKILL.md` incluye ahora la configuracion MCP explicita: `project_ref=takvthfatlcjsqgssnta`, URL completa, referencia a `.codex/mcp.json` como config en repo, ejemplos para Cursor y para CI (con `SUPABASE_ACCESS_TOKEN`), lista de herramientas (`execute_sql`, `apply_migration`, `list_migrations`, `list_tables`, `list_extensions`) y troubleshooting de conexion MCP.
+- Impacto operativo: cualquier agente (Cursor, Codex u otro cliente MCP) puede configurar el acceso a la BD de la plataforma siguiendo la skill; se evita confusion de project_ref y se documenta la autenticacion OAuth y por token.
+- Archivos o componentes implicados: `.codex/skills/supabase-db-connection/SKILL.md`.
+- Validacion realizada: revision manual de la skill; configuracion alineada con `supabase/config.toml` y con la documentacion oficial de Supabase MCP.
+- Como reutilizarlo en el futuro: cargar `supabase-db-connection` cuando se pida conectar a Supabase, ejecutar SQL o aplicar migraciones; si Codex o un nuevo cliente MCP no conecta, seguir la seccion "Configuracion MCP" y el troubleshooting.
+
 ### [2026-03-14] Navegacion mobile endurecida contra rutas inexistentes
 
 - Contexto: revision de estabilidad de carga en mobile antes de publicar cambios a GitHub y desplegar.
@@ -142,3 +205,65 @@ Este archivo se carga al iniciar cada chat para mantener memoria operativa de av
 - Archivos o componentes implicados: `src/constants/projectStatuses.ts`, `src/pages/nexo_av/desktop/pages/ProjectsPage.tsx`, `src/pages/nexo_av/mobile/pages/MobileProjectsPage.tsx`, `src/pages/nexo_av/desktop/pages/QuotesPage.tsx`, `src/pages/nexo_av/desktop/pages/InvoicesPage.tsx`, `audits/accounting/2026-03-13_main_pages_kpi_audit_report.md`, `audits/accounting/2026-03-13_main_pages_kpi_findings.md`.
 - Validacion realizada: `npm run build` OK el `2026-03-13`; contraste autenticado contra Supabase vivo confirmando `Proyectos` con `12.000,05 EUR` ingresos y `6.487,83 EUR` costes, `Facturas` con `29` emitidas canonicas en Q1 2026 y `Presupuestos` con estado real `18/6/21/3/4/13`.
 - Como reutilizarlo en el futuro: antes de revisar dashboards ejecutivos o Power BI, usar estas tres paginas como baseline visual y revalidar contra las mismas RPCs (`get_project_financial_stats`, `get_sales_invoice_kpi_summary`, `list_quotes`) en lugar de rehacer formulas desde listados raw.
+### [2026-03-15] Skill canonica de inventario, catalogo y operaciones de producto
+
+- Contexto: hacia falta convertir la investigacion de stock, compras, ventas, trazabilidad y datos maestros en una skill reutilizable dentro del repo para futuras implementaciones de ERP y automatizaciones.
+- Capacidad desbloqueada: existe una skill especializada que define datos maestros de producto, flujos `procure-to-pay` y `order-to-cash`, semantica de stock, conteos ciclicos, trazabilidad por lote/serie, KPIs y blueprint de implementacion.
+- Impacto operativo: los agentes ya pueden disenar o auditar modulos de inventario con un contrato funcional estable, sin mezclar catalogo, movimientos fisicos, reservas, compras, ventas y reporting.
+- Archivos o componentes implicados: `.codex/skills/nexo-inventory-product-ops/SKILL.md`, `.codex/skills/nexo-inventory-product-ops/references/product-master-data.md`, `.codex/skills/nexo-inventory-product-ops/references/process-flows.md`, `.codex/skills/nexo-inventory-product-ops/references/kpis-and-controls.md`, `.codex/skills/nexo-inventory-product-ops/references/implementation-blueprint.md`, `.codex/skills/nexo-inventory-product-ops/references/sources.md`, `.codex/skills/INDEX.md`.
+- Validacion realizada: revision manual de consistencia con el patron de skills existente en `.codex/skills/`; estructura creada con `SKILL.md`, `references/` y `agents/openai.yaml`; contenido alineado con fuentes oficiales de GS1, Oracle/NetSuite, Odoo y Shopify.
+- Como reutilizarlo en el futuro: cargar `nexo-inventory-product-ops` antes de modelar productos, stock, compras, ventas, almacenes, lotes, series, devoluciones o dashboards operativos de inventario; combinarla con skills de reporting o integraciones si la tarea cruza dominios.
+
+### [2026-03-15] Numeracion canonica de catalogo V2 por categoria y subcategoria
+
+- Contexto: el catalogo V2 necesitaba dejar atras los SKU manuales o por timestamp para poder crecer con subcategorias reales y packs sin drift entre UI y BD.
+- Capacidad desbloqueada: productos y servicios del catalogo pueden numerarse desde la BD con prefijos de categoria/subcategoria, preview previo en UI, importaciones alineadas y base preparada para reutilizar la misma capa en packs.
+- Impacto operativo: el alta manual ya no depende de que el usuario invente el numero; las importaciones simples y avanzadas pueden delegar la numeracion en la RPC; los packs dejan de requerir `PACK-${Date.now()}` y el modelo `catalog` gana una taxonomia reutilizable con `code` en categorias.
+- Archivos o componentes implicados: `supabase/migrations/20260315153640_auto_assign_catalog_skus_by_category.sql`, `src/pages/nexo_av/desktop/components/catalog/ProductsTab.tsx`, `src/pages/nexo_av/desktop/components/catalog/ProductImportDialog.tsx`, `src/pages/nexo_av/desktop/components/catalog/PacksTab.tsx`, `src/integrations/supabase/types.ts`, `.codex/errores-soluciones.md`.
+- Validacion realizada: `npx supabase migration list --linked` OK con la migracion nueva pendiente solo en local; `npx supabase db push --linked --dry-run` OK detectando solo esa migracion; `npx tsc --noEmit` OK; `npm run -s build` OK el `2026-03-15`.
+- Como reutilizarlo en el futuro: cualquier nuevo flujo de alta, importacion, sincronizacion o packs debe llamar a `create_catalog_product` sin fabricar SKU en frontend; si se amplian categorias o subcategorias, mantener sus `code` estables y reutilizar `preview_catalog_product_sku` para mostrar el numero antes de confirmar.
+
+### [2026-03-15] Ajustes del ERP alineados con la taxonomia canonica de `catalog`
+
+- Contexto: para cerrar el ciclo de numeracion automatica y preparar packs, faltaba que la administracion de categorias/subcategorias dejara de editar el modelo legacy y operara sobre el mismo arbol consumido por catalogo e importaciones.
+- Capacidad desbloqueada: la pestana de Ajustes ya mantiene categorias raiz y subcategorias reales de `catalog.categories`, separadas por dominio `PRODUCT`/`SERVICE`, con importacion Excel contra el mismo contrato canonico.
+- Impacto operativo: administracion, alta manual, importaciones y packs quedan sobre una unica fuente de verdad; los codigos de categoria y subcategoria se pueden gobernar desde UI sin drift con el backend ni con la numeracion de productos.
+- Archivos o componentes implicados: `src/pages/nexo_av/desktop/components/settings/ProductCategoriesTab.tsx`, `src/pages/nexo_av/desktop/components/settings/CategoryImportDialog.tsx`, `.codex/errores-soluciones.md`.
+- Validacion realizada: busqueda estatica sin referencias legacy a `product_category` o `product_subcategory` en la UI de Ajustes; `npx tsc --noEmit` OK; `npm run -s build` OK el `2026-03-15`.
+- Como reutilizarlo en el futuro: cualquier pantalla administrativa o importador nuevo que toque taxonomia debe trabajar con `catalog.categories` usando `code`, `domain` y `parent_id`; si se necesitan nuevas automatizaciones para packs o stock, partir de esta misma estructura en lugar de crear catalogos paralelos.
+
+### [2026-03-15] Subcategoria obligatoria en el alta y la importacion del catalogo
+
+- Contexto: la nueva numeracion canonica por categoria/subcategoria solo queda cerrada si ningun producto o servicio puede seguir creandose colgando directamente de la categoria raiz.
+- Capacidad desbloqueada: el alta manual y las importaciones de catalogo exigen ya una subcategoria valida y crean siempre el producto contra esa hoja del arbol, de modo que el SKU, la clasificacion y la futura logica de packs parten del mismo nivel taxonomico.
+- Impacto operativo: se elimina el caso ambiguo `CAT-00` en la operativa diaria de alta; cualquier referencia nueva queda clasificada en una subcategoria concreta antes de entrar en catalogo.
+- Archivos o componentes implicados: `src/pages/nexo_av/desktop/components/catalog/ProductsTab.tsx`, `src/pages/nexo_av/desktop/components/catalog/ProductImportDialog.tsx`, `.codex/errores-soluciones.md`.
+- Validacion realizada: `rg` confirmando la obligatoriedad de subcategoria en UI e importacion; `npx tsc --noEmit` OK; `npm run -s build` OK el `2026-03-15`.
+- Como reutilizarlo en el futuro: si se abre un nuevo canal de alta masiva, API o sincronizacion, validar siempre `subcategoryId` antes de invocar `create_catalog_product`; si falta subcategoria, rechazar la operacion y no derivarla a la categoria padre.
+
+### [2026-03-16] Listado de packs con base real y dto visible
+
+- Contexto: la tabla de packs seguia dependiendo visualmente de la longitud de la descripcion y usaba `sale_price` como referencia de base, lo que no garantizaba reflejar la suma real de precios individuales de los componentes.
+- Capacidad desbloqueada: `list_catalog_bundles` devuelve ahora `base_price_real` y `visible_discount_percent`, y `PacksTab` muestra columnas de ancho estable con truncado, precio base real, dto visible y exportacion alineada con esos mismos valores.
+- Impacto operativo: el equipo ve en el listado de packs el precio base comercial correcto y el dto real sobre la suma de PVP individuales, sin tablas que se deformen por textos largos.
+- Archivos o componentes implicados: `supabase/migrations/20260316101500_list_catalog_bundles_with_real_base_price.sql`, `src/pages/nexo_av/desktop/components/catalog/PacksTab.tsx`, `src/integrations/supabase/types.ts`.
+- Validacion realizada: `npx tsc --noEmit` OK; `npm run -s build` OK el `2026-03-16`.
+- Como reutilizarlo en el futuro: cualquier listado o exportacion de packs debe consumir `base_price_real` y `visible_discount_percent` como fuente de verdad visual del pack, en lugar de asumir que `sale_price` sigue la suma actual de componentes.
+
+### [2026-03-16] Ficha de pack con pricing manual editable
+
+- Contexto: la vista individual del pack solo mostraba resumen y componentes, pero no permitia fijar manualmente el `precio base pack` ni el `dto` comercial que luego debe usarse en presupuestos y facturas.
+- Capacidad desbloqueada: la ficha del pack permite editar `precio base pack`, `dto. pack %` y `PVP final sin IVA`, con recalculo inmediato entre campos; ademas `update_product_pack` acepta ya `p_sale_price` para persistir ese pricing en `catalog.products`.
+- Impacto operativo: comercial y administracion pueden ajustar el pricing de un pack desde su propia vista sin tocar migraciones ni recalcular descuentos a mano fuera del ERP.
+- Archivos o componentes implicados: `supabase/migrations/20260316113000_update_product_pack_allow_manual_sale_price.sql`, `src/pages/nexo_av/desktop/components/catalog/PacksTab.tsx`, `src/integrations/supabase/types.ts`.
+- Validacion realizada: `npx tsc --noEmit` OK; `npm run -s build` OK el `2026-03-16`.
+- Como reutilizarlo en el futuro: cualquier nueva pantalla de packs debe tratar `sale_price` como base comercial editable y `discount_percent` como dto visible almacenado; el PVP final debe derivarse siempre de ambos.
+
+### [2026-03-16] Historial Supabase de catalogo reconciliado y RPCs de packs desplegadas en vivo
+
+- Contexto: el release gate detecto drift entre repo y BD en catalogo/packs: habia migraciones locales ya reflejadas en schema real pero no en `schema_migrations`, duplicados locales supersedidos por ficheros remotos del `2026-03-16` y dos RPCs clave de packs todavia pendientes en vivo.
+- Capacidad desbloqueada: el proyecto linked vuelve a tener una historia canonica utilizable para `db push`, y el remoto expone ya `list_catalog_bundles` con `base_price_real`/`visible_discount_percent` y `update_product_pack` con `p_sale_price`.
+- Impacto operativo: altas de catalogo, preview de SKU y pricing manual de packs dejan de depender de drift local; el equipo puede desplegar cambios de catalogo sobre una base Supabase alineada y sin reintentar seeds/productos ya existentes.
+- Archivos o componentes implicados: `supabase/migrations/20260315153640_auto_assign_catalog_skus_by_category.sql`, `supabase/migrations/20260315180000_seed_armario_rack_15u_biacom.sql`, `supabase/migrations/20260315180100_seed_servicio_logistica.sql`, `supabase/migrations/20260315180200_seed_accesorios_rack_15u.sql`, `supabase/migrations/20260315180300_seed_pack_rack_15u_funcional.sql`, `supabase/migrations/20260315180400_seed_proveedor_visiotech.sql`, `supabase/migrations/20260316101500_list_catalog_bundles_with_real_base_price.sql`, `supabase/migrations/20260316113000_update_product_pack_allow_manual_sale_price.sql`, `.codex/errores-soluciones.md`.
+- Validacion realizada: `npx supabase migration repair --linked --status applied 20260315153640 20260315180000 20260315180200 --yes` OK; `npx supabase db push --linked --include-all` OK para `15180100`, `15180300`, `15180400`, `16101500` y `16113000`; `npx supabase migration list --linked` alineado; `npx supabase gen types typescript --linked --schema public,catalog` confirmando los contratos remotos nuevos; `npm run build` OK; `npx tsc --noEmit` OK.
+- Como reutilizarlo en el futuro: cuando el repo arrastre drift mixto de seeds y RPCs, separar siempre tres grupos: (1) migraciones ya vivas pero sin historial y no idempotentes, que se reparan como `applied`; (2) migraciones locales supersedidas por timestamps remotos, que se eliminan del repo; y (3) migraciones funcionales realmente pendientes, que se validan con `--dry-run`, se corrigen si fallan y se despliegan al final.

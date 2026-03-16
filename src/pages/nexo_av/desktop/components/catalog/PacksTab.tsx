@@ -2,11 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Download, Search, Trash2, Loader2, Package, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import type { Database } from '@/integrations/supabase/types';
 
 interface Pack {
   id: string;
@@ -16,6 +18,8 @@ interface Pack {
   sale_price: number;
   discount_percent: number;
   sale_price_effective: number;
+  base_price_real: number;
+  visible_discount_percent: number;
   tax_rate: number;
   component_count: number;
   is_active: boolean;
@@ -47,12 +51,32 @@ interface PacksTabProps {
   isAdmin: boolean;
 }
 
+type PackRow = Database['public']['Functions']['list_catalog_bundles']['Returns'][number];
+type PackComponentRow = Database['public']['Functions']['list_catalog_bundle_components']['Returns'][number];
+type CatalogProductRow = Database['public']['Functions']['list_catalog_products']['Returns'][number];
+type UpdateProductPackArgs = Database['public']['Functions']['update_product_pack']['Args'];
+
 const TAX_OPTIONS = [
   { value: '21', label: 'IVA 21%' },
   { value: '10', label: 'IVA 10%' },
   { value: '4', label: 'IVA 4%' },
   { value: '0', label: 'Exento' },
 ];
+
+const mapPackRecord = (p: PackRow): Pack => ({
+  id: p.id,
+  sku: p.sku,
+  name: p.name,
+  description: p.description,
+  sale_price: Number(p.sale_price ?? 0),
+  discount_percent: Number(p.discount_percent ?? 0),
+  sale_price_effective: Number(p.sale_price_effective ?? 0),
+  base_price_real: Number(p.base_price_real ?? p.sale_price ?? 0),
+  visible_discount_percent: Number(p.visible_discount_percent ?? p.discount_percent ?? 0),
+  tax_rate: Number(p.tax_rate ?? 0),
+  component_count: Number(p.component_count ?? 0),
+  is_active: Boolean(p.is_active),
+});
 
 export default function PacksTab({ isAdmin }: PacksTabProps) {
   const [packs, setPacks] = useState<Pack[]>([]);
@@ -68,6 +92,13 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
   const [loadingItems, setLoadingItems] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProductId, setSelectedProductId] = useState('');
+  const [priceBaseInput, setPriceBaseInput] = useState('');
+  const [discountInput, setDiscountInput] = useState('');
+  const [finalPriceInput, setFinalPriceInput] = useState('');
+  const [savingPricing, setSavingPricing] = useState(false);
+  const [packNameInput, setPackNameInput] = useState('');
+  const [packDescriptionInput, setPackDescriptionInput] = useState('');
+  const [savingMetadata, setSavingMetadata] = useState(false);
 
   useEffect(() => {
     loadPacks();
@@ -85,26 +116,40 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     }
   }, [editingCell]);
 
+  useEffect(() => {
+    if (!selectedPack) {
+      setPriceBaseInput('');
+      setDiscountInput('');
+      setFinalPriceInput('');
+      return;
+    }
+
+    setPriceBaseInput(selectedPack.sale_price.toFixed(2));
+    setDiscountInput(selectedPack.discount_percent.toFixed(4));
+    setFinalPriceInput(selectedPack.sale_price_effective.toFixed(2));
+    setPackNameInput(selectedPack.name);
+    setPackDescriptionInput(selectedPack.description || '');
+  }, [selectedPack]);
+
+  const parseNumberInput = (value: string) => {
+    const normalized = value.replace(',', '.');
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
   const loadPacks = async () => {
     setLoading(true);
     try {
-      const { data, error } = await (supabase.rpc as any)('list_catalog_bundles', {
+      const { data, error } = await supabase.rpc('list_catalog_bundles', {
         p_search: search || null
       });
 
       if (error) throw error;
-      setPacks((data || []).map((p: any) => ({
-        id: p.id,
-        sku: p.sku,
-        name: p.name,
-        description: p.description,
-        sale_price: p.sale_price,
-        discount_percent: p.discount_percent ?? 0,
-        sale_price_effective: p.sale_price_effective,
-        tax_rate: p.tax_rate,
-        component_count: p.component_count ?? 0,
-        is_active: p.is_active,
-      })));
+      const mappedPacks = (data || []).map(mapPackRecord);
+      setPacks(mappedPacks);
+      if (selectedPack) {
+        syncSelectedPack(selectedPack.id, mappedPacks);
+      }
     } catch (error) {
       console.error('Error loading packs:', error);
       toast.error('Error al cargar packs');
@@ -115,12 +160,12 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
 
   const loadProducts = async () => {
     try {
-      const { data, error } = await (supabase.rpc as any)('list_catalog_products', {
+      const { data, error } = await supabase.rpc('list_catalog_products', {
         p_domain: 'PRODUCT',
         p_include_inactive: false
       });
       if (error) throw error;
-      setProducts((data || []).map((p: any) => ({
+      setProducts((data || []).map((p: CatalogProductRow) => ({
         id: p.id,
         sku: p.sku,
         name: p.name,
@@ -134,18 +179,18 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
   const loadPackItems = async (packId: string) => {
     setLoadingItems(true);
     try {
-      const { data, error } = await (supabase.rpc as any)('list_catalog_bundle_components', {
+      const { data, error } = await supabase.rpc('list_catalog_bundle_components', {
         p_bundle_product_id: packId
       });
       if (error) throw error;
-      setPackItems((data || []).map((item: any) => ({
+      setPackItems((data || []).map((item: PackComponentRow) => ({
         component_product_id: item.component_product_id,
         sku: item.sku,
         name: item.name,
         quantity: item.quantity,
         unit: item.unit,
-        unit_price: item.unit_price ?? item.sale_price_effective ?? 0,
-        subtotal: item.subtotal ?? (item.quantity * (item.unit_price ?? item.sale_price_effective ?? 0)),
+        unit_price: Number(item.unit_price ?? item.sale_price_effective ?? 0),
+        subtotal: Number(item.subtotal ?? (item.quantity * (item.unit_price ?? item.sale_price_effective ?? 0))),
       })));
     } catch (error) {
       console.error('Error loading pack items:', error);
@@ -162,9 +207,8 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     }
 
     try {
-      const sku = 'PACK-' + Date.now();
-      const { data, error } = await (supabase.rpc as any)('create_catalog_product', {
-        p_sku: sku,
+      const { error } = await supabase.rpc('create_catalog_product', {
+        p_sku: null,
         p_name: 'NUEVO PACK',
         p_product_type: 'BUNDLE',
         p_category_id: null,
@@ -177,7 +221,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
 
       if (error) throw error;
 
-      toast.success(`Pack ${sku} creado`);
+      toast.success('Pack creado');
       await loadPacks();
     } catch (error) {
       console.error('Error creating pack:', error);
@@ -211,6 +255,11 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     setSelectedPack(null);
     setPackItems([]);
     setSelectedProductId('');
+    setPriceBaseInput('');
+    setDiscountInput('');
+    setFinalPriceInput('');
+    setPackNameInput('');
+    setPackDescriptionInput('');
   };
 
   const handleAddProductToPack = async () => {
@@ -222,7 +271,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     if (!selectedPack || !selectedProductId) return;
 
     try {
-      const { error } = await (supabase.rpc as any)('add_catalog_bundle_component', {
+      const { error } = await supabase.rpc('add_catalog_bundle_component', {
         p_bundle_product_id: selectedPack.id,
         p_component_product_id: selectedProductId,
         p_quantity: 1
@@ -248,7 +297,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     if (!selectedPack) return;
 
     try {
-      const { error } = await (supabase.rpc as any)('remove_catalog_bundle_component', {
+      const { error } = await supabase.rpc('remove_catalog_bundle_component', {
         p_bundle_product_id: selectedPack.id,
         p_component_product_id: componentProductId
       });
@@ -271,7 +320,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     if (!selectedPack || quantity < 1) return;
 
     try {
-      const { error } = await (supabase.rpc as any)('add_catalog_bundle_component', {
+      const { error } = await supabase.rpc('add_catalog_bundle_component', {
         p_bundle_product_id: selectedPack.id,
         p_component_product_id: componentProductId,
         p_quantity: quantity
@@ -303,7 +352,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     const pack = packs.find(p => p.id === packId);
     if (!pack) return;
 
-    const updateData: { p_pack_id: string; p_name?: string; p_description?: string | null; p_discount_percent?: number } = { p_pack_id: packId };
+    const updateData: UpdateProductPackArgs = { p_pack_id: packId };
     
     switch (field) {
       case 'name':
@@ -320,7 +369,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
         }
         updateData.p_description = editValue || null;
         break;
-      case 'discount_percent':
+      case 'discount_percent': {
         const discount = parseFloat(editValue) || 0;
         if (discount === pack.discount_percent) {
           cancelEditing();
@@ -328,6 +377,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
         }
         updateData.p_discount_percent = discount;
         break;
+      }
     }
 
     try {
@@ -369,23 +419,121 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     }
   };
 
-  const exportToExcel = () => {
-    const headers = ['Nº Pack', 'Nombre', 'Descripción', 'Precio Base', 'Descuento %', 'Precio Final', 'Impuesto %', 'Precio con IVA', 'Nº Productos'];
-    const rows = packs.map(p => [
+  const syncSelectedPack = (packId: string, nextPacks?: Pack[]) => {
+    const source = nextPacks || packs;
+    const refreshedPack = source.find((pack) => pack.id === packId) || null;
+    setSelectedPack(refreshedPack);
+  };
+
+  const handlePriceBaseChange = (value: string) => {
+    setPriceBaseInput(value);
+    const salePrice = Math.max(parseNumberInput(value), 0);
+    const discountPercent = Math.min(Math.max(parseNumberInput(discountInput), 0), 99.9999);
+    const finalPrice = salePrice * (1 - discountPercent / 100);
+    setFinalPriceInput(finalPrice.toFixed(2));
+  };
+
+  const handleDiscountChange = (value: string) => {
+    setDiscountInput(value);
+    const salePrice = Math.max(parseNumberInput(priceBaseInput), 0);
+    const discountPercent = Math.min(Math.max(parseNumberInput(value), 0), 99.9999);
+    const finalPrice = salePrice * (1 - discountPercent / 100);
+    setFinalPriceInput(finalPrice.toFixed(2));
+  };
+
+  const handleFinalPriceChange = (value: string) => {
+    setFinalPriceInput(value);
+    const salePrice = Math.max(parseNumberInput(priceBaseInput), 0);
+    const finalPrice = Math.max(parseNumberInput(value), 0);
+
+    if (salePrice <= 0) {
+      setDiscountInput('0.0000');
+      return;
+    }
+
+    const discountPercent = Math.min(Math.max((1 - finalPrice / salePrice) * 100, 0), 99.9999);
+    setDiscountInput(discountPercent.toFixed(4));
+  };
+
+  const handleSavePackPricing = async () => {
+    if (!isAdmin || !selectedPack) return;
+
+    const salePrice = Math.max(parseNumberInput(priceBaseInput), 0);
+    const discountPercent = Math.min(Math.max(parseNumberInput(discountInput), 0), 99.9999);
+
+    setSavingPricing(true);
+    try {
+      const { error } = await supabase.rpc('update_product_pack', {
+        p_pack_id: selectedPack.id,
+        p_sale_price: salePrice,
+        p_discount_percent: discountPercent,
+      });
+      if (error) throw error;
+
+      const { data, error: reloadError } = await supabase.rpc('list_catalog_bundles', {
+        p_search: search || null,
+      });
+      if (reloadError) throw reloadError;
+
+      const mappedPacks = (data || []).map(mapPackRecord) as Pack[];
+
+      setPacks(mappedPacks);
+      syncSelectedPack(selectedPack.id, mappedPacks);
+      toast.success('Pricing del pack actualizado');
+    } catch (error) {
+      console.error('Error updating pack pricing:', error);
+      toast.error('Error al actualizar pricing del pack');
+    } finally {
+      setSavingPricing(false);
+    }
+  };
+
+  const renderDiscountCell = (pack: Pack) => {
+    const isEditing = editingCell?.packId === pack.id && editingCell?.field === 'discount_percent';
+
+    if (isEditing && isAdmin) {
+      return (
+        <Input
+          ref={inputRef}
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={saveEdit}
+          onKeyDown={handleKeyDown}
+          type="number"
+          step="0.1"
+          className="h-7 bg-muted/50 border-primary text-foreground text-xs text-right"
+        />
+      );
+    }
+
+    return (
+      <div
+        onClick={() => isAdmin && startEditing(pack.id, 'discount_percent', pack.discount_percent)}
+        className={`px-2 py-1 rounded-lg min-h-[28px] flex items-center justify-end tabular-nums transition-colors ${isAdmin ? 'cursor-pointer hover:bg-muted/50' : 'cursor-default'}`}
+        title={`Dto visible calculado: ${pack.visible_discount_percent.toFixed(1)}%`}
+      >
+        {pack.visible_discount_percent.toFixed(1)} %
+      </div>
+    );
+  };
+
+  const exportPacksToExcel = () => {
+    const headers = ['Nº Pack', 'Nombre', 'Descripcion', 'Precio Base Real', 'Dto. Visible %', 'Precio Final', 'Impuesto %', 'Precio con IVA', 'Nº Productos'];
+    const rows = packs.map((p) => [
       p.sku,
       p.name,
       p.description || '',
-      p.sale_price_effective,
-      p.discount_percent,
-      p.sale_price_effective,
-      p.tax_rate,
+      p.base_price_real.toFixed(2),
+      p.visible_discount_percent.toFixed(1),
+      p.sale_price_effective.toFixed(2),
+      p.tax_rate.toFixed(2),
       (p.sale_price_effective * (1 + p.tax_rate / 100)).toFixed(2),
       p.component_count
     ]);
 
     const csvContent = [
       headers.join('\t'),
-      ...rows.map(row => row.join('\t'))
+      ...rows.map((row) => row.join('\t'))
     ].join('\n');
 
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/tab-separated-values;charset=utf-8' });
@@ -398,32 +546,43 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
     toast.success('Packs exportados');
   };
 
-  const renderEditableCell = (pack: Pack, field: string, value: string | number | null, isNumeric = false, suffix = '') => {
-    const isEditing = editingCell?.packId === pack.id && editingCell?.field === field;
+  const totalBase = packItems.reduce((sum, item) => sum + (item.subtotal ?? 0), 0);
 
-    if (isEditing && isAdmin) {
-      return (
-        <Input
-          ref={inputRef}
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          onBlur={saveEdit}
-          onKeyDown={handleKeyDown}
-          type={isNumeric ? 'number' : 'text'}
-          step={isNumeric ? '0.01' : undefined}
-          className="h-7 bg-muted/50 border-primary text-foreground text-xs"
-        />
-      );
+  const handleSavePackMetadata = async () => {
+    if (!isAdmin || !selectedPack) return;
+
+    const normalizedName = packNameInput.trim().toUpperCase();
+    const normalizedDescription = packDescriptionInput.trim();
+
+    if (!normalizedName) {
+      toast.error('El nombre del pack es obligatorio');
+      return;
     }
 
-    return (
-      <div
-        onClick={() => isAdmin && startEditing(pack.id, field, value ?? '')}
-        className={`px-2 py-1 rounded-lg min-h-[28px] flex items-center transition-colors ${isAdmin ? 'cursor-pointer hover:bg-muted/50' : 'cursor-default'}`}
-      >
-        {isNumeric && value !== null ? Number(value).toFixed(2) + suffix : (value || '-')}
-      </div>
-    );
+    setSavingMetadata(true);
+    try {
+      const { error } = await supabase.rpc('update_product_pack', {
+        p_pack_id: selectedPack.id,
+        p_name: normalizedName,
+        p_description: normalizedDescription || null,
+      });
+      if (error) throw error;
+
+      const { data, error: reloadError } = await supabase.rpc('list_catalog_bundles', {
+        p_search: search || null,
+      });
+      if (reloadError) throw reloadError;
+
+      const mappedPacks = (data || []).map(mapPackRecord) as Pack[];
+      setPacks(mappedPacks);
+      syncSelectedPack(selectedPack.id, mappedPacks);
+      toast.success('Datos del pack actualizados');
+    } catch (error) {
+      console.error('Error updating pack metadata:', error);
+      toast.error('Error al actualizar datos del pack');
+    } finally {
+      setSavingMetadata(false);
+    }
   };
 
   return (
@@ -447,7 +606,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
               Añadir Pack
             </Button>
           )}
-          <Button size="sm" onClick={exportToExcel} variant="outline" className="h-9">
+          <Button size="sm" onClick={exportPacksToExcel} variant="outline" className="h-9">
             <Download className="w-4 h-4" />
             <span className="hidden lg:inline ml-1.5">Exportar</span>
           </Button>
@@ -456,19 +615,19 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
 
       {/* Packs Table */}
       <div className="flex-1 min-h-0 overflow-auto border border-border rounded-lg">
-        <Table>
+        <Table className="table-fixed min-w-[1260px]">
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
               <TableHead className="text-muted-foreground text-xs w-28">Nº Pack</TableHead>
-              <TableHead className="text-muted-foreground text-xs">Nombre</TableHead>
-              <TableHead className="text-muted-foreground text-xs w-40">Descripción</TableHead>
-              <TableHead className="text-muted-foreground text-xs w-24 text-right">P. Base</TableHead>
-              <TableHead className="text-muted-foreground text-xs w-24 text-right">Dto. %</TableHead>
+              <TableHead className="text-muted-foreground text-xs w-72">Nombre</TableHead>
+              <TableHead className="text-muted-foreground text-xs w-80">Descripción</TableHead>
+              <TableHead className="text-muted-foreground text-xs w-28 text-right">P. Base</TableHead>
+              <TableHead className="text-muted-foreground text-xs w-24 text-right">Dto.</TableHead>
               <TableHead className="text-muted-foreground text-xs w-24 text-right">P. Final</TableHead>
               <TableHead className="text-muted-foreground text-xs w-28">Impuesto</TableHead>
-              <TableHead className="text-muted-foreground text-xs w-24 text-right">P. con IVA</TableHead>
+              <TableHead className="text-muted-foreground text-xs w-28 text-right">P. con IVA</TableHead>
               <TableHead className="text-muted-foreground text-xs w-20 text-center">Prods.</TableHead>
-              {isAdmin && <TableHead className="text-muted-foreground text-xs w-20"></TableHead>}
+              {isAdmin && <TableHead className="text-muted-foreground text-xs w-16"></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -487,20 +646,24 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
             ) : (
               packs.map(pack => (
                 <TableRow key={pack.id} className="border-border hover:bg-muted/50 transition-colors">
-                  <TableCell className="text-foreground/70 font-mono text-xs">{pack.sku}</TableCell>
+                  <TableCell className="text-foreground/70 font-mono text-xs whitespace-nowrap">{pack.sku}</TableCell>
                   <TableCell className="text-foreground text-sm">
-                    {renderEditableCell(pack, 'name', pack.name)}
+                    <div className="px-2 py-1 min-h-[28px] w-full truncate whitespace-nowrap overflow-hidden" title={pack.name}>
+                      {pack.name}
+                    </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-xs">
-                    {renderEditableCell(pack, 'description', pack.description)}
+                    <div className="px-2 py-1 min-h-[28px] w-full truncate whitespace-nowrap overflow-hidden" title={pack.description || '-'}>
+                      {pack.description || '-'}
+                    </div>
                   </TableCell>
-                  <TableCell className="text-right text-muted-foreground text-sm tabular-nums">
-                    {pack.sale_price.toFixed(2)} €
+                  <TableCell className="text-right text-muted-foreground text-sm tabular-nums whitespace-nowrap">
+                    {pack.base_price_real.toFixed(2)} €
                   </TableCell>
                   <TableCell className="text-right">
-                    {renderEditableCell(pack, 'discount_percent', pack.discount_percent, true, ' %')}
+                    {renderDiscountCell(pack)}
                   </TableCell>
-                  <TableCell className="text-right text-foreground font-medium text-sm tabular-nums">
+                  <TableCell className="text-right text-foreground font-medium text-sm tabular-nums whitespace-nowrap">
                     {pack.sale_price_effective.toFixed(2)} €
                   </TableCell>
                   <TableCell>
@@ -524,7 +687,7 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
                       <span className="text-muted-foreground text-xs">{pack.tax_rate}%</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right text-foreground font-medium text-sm tabular-nums">
+                  <TableCell className="text-right text-foreground font-medium text-sm tabular-nums whitespace-nowrap">
                     {(pack.sale_price_effective * (1 + pack.tax_rate / 100)).toFixed(2)} €
                   </TableCell>
                   <TableCell className="text-center">
@@ -569,6 +732,41 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
           </DialogHeader>
 
           <div className="space-y-4">
+            {selectedPack && (
+              <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-[1.4fr,1fr] gap-3">
+                  <div className="space-y-1.5">
+                    <div className="text-xs text-muted-foreground">Nombre del pack</div>
+                    <Input
+                      value={packNameInput}
+                      onChange={(e) => setPackNameInput(e.target.value.toUpperCase())}
+                      readOnly={!isAdmin}
+                      className="h-9 bg-muted/50 border-border text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="text-xs text-muted-foreground">Descripción comercial</div>
+                    <Textarea
+                      value={packDescriptionInput}
+                      onChange={(e) => setPackDescriptionInput(e.target.value)}
+                      readOnly={!isAdmin}
+                      rows={2}
+                      className="bg-muted/50 border-border text-sm resize-none"
+                    />
+                  </div>
+                </div>
+
+                {isAdmin && (
+                  <div className="flex justify-end">
+                    <Button onClick={handleSavePackMetadata} disabled={savingMetadata} size="sm">
+                      {savingMetadata ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                      Guardar datos del pack
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Add product to pack */}
             {isAdmin && (
               <div className="flex gap-2">
@@ -663,7 +861,63 @@ export default function PacksTab({ isAdmin }: PacksTabProps) {
               </Table>
             </div>
 
-            {/* Pack summary */}
+            {selectedPack && (
+              <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="space-y-1.5">
+                    <div className="text-xs text-muted-foreground">Base componentes</div>
+                    <Input
+                      value={totalBase.toFixed(2)}
+                      readOnly
+                      className="h-9 bg-muted/50 border-border text-sm tabular-nums"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="text-xs text-muted-foreground">Precio base pack</div>
+                    <Input
+                      value={priceBaseInput}
+                      onChange={(e) => handlePriceBaseChange(e.target.value)}
+                      readOnly={!isAdmin}
+                      inputMode="decimal"
+                      className="h-9 bg-muted/50 border-border text-sm tabular-nums"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="text-xs text-muted-foreground">Dto. pack %</div>
+                    <Input
+                      value={discountInput}
+                      onChange={(e) => handleDiscountChange(e.target.value)}
+                      readOnly={!isAdmin}
+                      inputMode="decimal"
+                      className="h-9 bg-muted/50 border-border text-sm tabular-nums"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="text-xs text-muted-foreground">PVP final sin IVA</div>
+                    <Input
+                      value={finalPriceInput}
+                      onChange={(e) => handleFinalPriceChange(e.target.value)}
+                      readOnly={!isAdmin}
+                      inputMode="decimal"
+                      className="h-9 bg-muted/50 border-border text-sm tabular-nums"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-4">
+                  <div className="text-xs text-muted-foreground">
+                    PVP con IVA: <span className="text-foreground font-semibold tabular-nums">{(parseNumberInput(finalPriceInput) * (1 + selectedPack.tax_rate / 100)).toFixed(2)} €</span>
+                  </div>
+                  {isAdmin && (
+                    <Button onClick={handleSavePackPricing} disabled={savingPricing} size="sm">
+                      {savingPricing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                      Guardar pricing
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
             {selectedPack && (
               <div className="flex justify-end gap-6 text-sm pt-2 border-t border-border">
                 <div className="text-muted-foreground">

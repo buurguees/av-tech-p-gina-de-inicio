@@ -685,8 +685,8 @@ const NewQuotePage = () => {
               <TableHeader>
                 <TableRow className="border-border hover:bg-transparent bg-white/[0.03]">
                   <TableHead className="text-muted-foreground w-16 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
-                  <TableHead className="text-muted-foreground w-24 px-5 py-3 text-xs font-semibold uppercase tracking-wider">
-                    Grupo
+                  <TableHead className="text-muted-foreground w-24 px-5 py-3 text-xs font-semibold uppercase tracking-wider" title="Nº de producto (aparece como REF en el PDF)">
+                    REF
                   </TableHead>
                   <TableHead className="text-muted-foreground min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">
                     Concepto
@@ -750,8 +750,9 @@ const NewQuotePage = () => {
                         <Input
                           value={line.group_name || ""}
                           onChange={(e) => updateLine(actualIndex, "group_name", e.target.value)}
-                          placeholder="Grupo"
+                          placeholder="Nº producto"
                           className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm pl-2 pr-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                          title="Ej: PACK-0001, SP-01-0001. Se rellena automáticamente al buscar con @"
                         />
                       </TableCell>
                       <TableCell className="px-5 py-3.5">

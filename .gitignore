@@ -105,6 +105,8 @@ supabase/.env
 supabase/.env.local
 .supabase/
 mcp.json
+# Excepcion: config MCP en .codex/ (solo URL publica, sin tokens)
+!.codex/mcp.json
 
 # ===================================
 # EDITOR Y HERRAMIENTAS

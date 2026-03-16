@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { 
-  Settings, 
   User,
   Bell,
   Moon,
@@ -12,7 +11,8 @@ import {
   ChevronRight,
   Shield,
   HelpCircle,
-  Info
+  Info,
+  Package
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -124,6 +124,18 @@ const MobileSettingsPage = () => {
           icon: currentTheme === 'dark' ? Moon : Sun,
           onClick: handleThemeToggle,
           toggle: true,
+        },
+      ],
+    },
+    {
+      title: 'Operativa',
+      items: [
+        {
+          id: 'catalog',
+          label: 'Catálogo',
+          description: 'Consulta productos, servicios y packs',
+          icon: Package,
+          onClick: () => navigate(`/nexo-av/${userId}/catalog`),
         },
       ],
     },

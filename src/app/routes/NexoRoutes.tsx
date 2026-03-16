@@ -6,7 +6,6 @@ const NexoLogin = lazy(() => import('@/pages/nexo_av/desktop/pages/Login'));
 const ResponsiveLayout = lazy(() => import('@/pages/nexo_av/layouts/ResponsiveLayout'));
 const NexoAccountSetup = lazy(() => import('@/pages/nexo_av/desktop/pages/AccountSetup'));
 const NexoUsersPage = lazy(() => import('@/pages/nexo_av/desktop/pages/UsersPage'));
-const NexoCatalogPage = lazy(() => import('@/pages/nexo_av/desktop/pages/CatalogPage'));
 const NexoProductDetailPage = lazy(() => import('@/pages/nexo_av/desktop/pages/ProductDetailPage'));
 const NexoTaxDetailPage = lazy(() => import('@/pages/nexo_av/desktop/pages/TaxDetailPage'));
 const NexoAuditPage = lazy(() => import('@/pages/nexo_av/desktop/pages/AuditPage'));
@@ -85,6 +84,10 @@ const ResponsiveInvoicesPage = createResponsivePage(
   () => import('@/pages/nexo_av/desktop/pages/InvoicesPage'),
   () => import('@/pages/nexo_av/mobile/pages/MobileInvoicesPage')
 );
+const ResponsiveCatalogPage = createResponsivePage(
+  () => import('@/pages/nexo_av/desktop/pages/CatalogPage'),
+  () => import('@/pages/nexo_av/mobile/pages/MobileCatalogPage')
+);
 const ResponsiveInvoiceDetailPage = createResponsivePage(
   () => import('@/pages/nexo_av/desktop/pages/InvoiceDetailPage'),
   () => import('@/pages/nexo_av/mobile/pages/MobileInvoiceDetailPage')
@@ -162,7 +165,7 @@ export const nexoRoutes = (
       <Route path="settings/taxes/:taxId" element={<NexoTaxDetailPage />} />
       <Route path="audit" element={<NexoAuditPage />} />
       <Route path="audit/:eventId" element={<NexoAuditEventDetailPage />} />
-      <Route path="catalog" element={<NexoCatalogPage />} />
+      <Route path="catalog" element={<ResponsiveCatalogPage />} />
       <Route path="catalog/:productId" element={<NexoProductDetailPage />} />
       <Route path="calculator" element={<NexoCalculatorPage />} />
       <Route path="mapa" element={<NexoMapPage />} />

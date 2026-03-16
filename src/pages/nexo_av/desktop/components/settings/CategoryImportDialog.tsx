@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,31 +19,33 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Upload, 
-  FileSpreadsheet, 
-  Loader2, 
-  CheckCircle2, 
-  XCircle,
+import {
   AlertTriangle,
+  CheckCircle2,
+  FileSpreadsheet,
+  Loader2,
   Package,
-  Wrench
+  Upload,
+  Wrench,
+  XCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 
-interface ParsedCategory {
-  code: string;
-  name: string;
-  type: 'product' | 'service';
-  subcategories: ParsedSubcategory[];
-}
+type CategoryDomain = 'PRODUCT' | 'SERVICE';
+type ImportStep = 'upload' | 'preview' | 'importing' | 'complete';
 
 interface ParsedSubcategory {
   code: string;
   name: string;
-  type: 'product' | 'service';
   display_order: number;
+}
+
+interface ParsedCategory {
+  code: string;
+  name: string;
+  domain: CategoryDomain;
+  subcategories: ParsedSubcategory[];
 }
 
 interface ImportResult {
@@ -58,11 +60,40 @@ interface CategoryImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onImportComplete: () => void;
-  existingCategories: { code: string; id: string }[];
+  existingCategories: { code: string; id: string; domain: CategoryDomain }[];
   existingSubcategories: { code: string; id: string; category_id: string }[];
 }
 
-type ImportStep = 'upload' | 'preview' | 'importing' | 'complete';
+type ExcelCellLike = { value: unknown };
+type ExcelRowLike = { getCell: (colIndex: number) => ExcelCellLike };
+type ExcelRichText = { richText: { text: string }[] };
+
+const hasRichText = (value: unknown): value is ExcelRichText =>
+  typeof value === 'object' && value !== null && 'richText' in value;
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : 'Error desconocido';
+
+function normalizeCode(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+}
+
+function slugify(parts: string[]) {
+  return parts
+    .join('-')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+}
 
 export function CategoryImportDialog({
   open,
@@ -74,7 +105,7 @@ export function CategoryImportDialog({
   const [step, setStep] = useState<ImportStep>('upload');
   const [parsedData, setParsedData] = useState<ParsedCategory[]>([]);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
-  const [fileName, setFileName] = useState<string>('');
+  const [fileName, setFileName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resetState = () => {
@@ -92,93 +123,77 @@ export function CategoryImportDialog({
     onOpenChange(false);
   };
 
-  const getCellValue = (row: any, colIndex: number): any => {
+  const getCellValue = (row: ExcelRowLike, colIndex: number) => {
     const cell = row.getCell(colIndex);
     if (cell.value === null || cell.value === undefined) return '';
-    // Handle rich text
-    if (typeof cell.value === 'object' && 'richText' in cell.value) {
-      return (cell.value as any).richText.map((r: any) => r.text).join('');
+    if (hasRichText(cell.value)) {
+      return cell.value.richText.map((item) => item.text).join('');
     }
     return cell.value;
   };
 
   const parseExcelFile = async (file: File) => {
     try {
-      // Dynamic import de ExcelJS solo cuando se necesita
       const ExcelJS = (await import('exceljs')).default;
-      
       const arrayBuffer = await file.arrayBuffer();
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load(arrayBuffer);
-      
-      // Buscar la hoja "Control Categorías" o "Control Categorias"
-      const worksheet = workbook.worksheets.find(
-        ws => ws.name.toLowerCase().includes('control categ')
+
+      const worksheet = workbook.worksheets.find((sheet) =>
+        sheet.name.toLowerCase().includes('control categ'),
       );
-      
+
       if (!worksheet) {
         toast.error('No se encontró la hoja "Control Categorías" en el archivo');
         return;
       }
 
-      // Procesar los datos (saltando la primera fila de encabezados)
       const categoriesMap = new Map<string, ParsedCategory>();
 
       worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber === 1) return; // Skip header row
+        if (rowNumber === 1) return;
 
-        const categoryCode = String(getCellValue(row, 1) || '').trim();
+        const categoryCode = normalizeCode(String(getCellValue(row, 1) || '').trim());
         const categoryName = String(getCellValue(row, 2) || '').trim();
-        const subcategoryCode = String(getCellValue(row, 3) || '').trim();
+        const rawSubcategoryCode = String(getCellValue(row, 3) || '').trim();
         const subcategoryName = String(getCellValue(row, 4) || '').trim();
-        // Columna F (índice 6) contiene el tipo
         const typeRaw = String(getCellValue(row, 6) || 'product').trim().toLowerCase();
-        const type: 'product' | 'service' = typeRaw.includes('service') ? 'service' : 'product';
+        const domain: CategoryDomain = typeRaw.includes('service') ? 'SERVICE' : 'PRODUCT';
 
         if (!categoryCode || !categoryName) return;
 
-        // Añadir o actualizar categoría
         if (!categoriesMap.has(categoryCode)) {
           categoriesMap.set(categoryCode, {
             code: categoryCode,
             name: categoryName,
-            type: type, // Usar el tipo de la primera subcategoría encontrada
+            domain,
             subcategories: [],
           });
         }
 
-        // Añadir subcategoría si existe
-        if (subcategoryCode && subcategoryName) {
-          const category = categoriesMap.get(categoryCode)!;
-          // Evitar duplicados de subcategorías
-          if (!category.subcategories.some(s => s.code === subcategoryCode)) {
-            // Extraer el número de subcategoría del código (ej: GR-01 -> 1, GR-02 -> 2)
-            const numberMatch = subcategoryCode.match(/-(\d+)$/);
-            const displayOrder = numberMatch ? parseInt(numberMatch[1], 10) : category.subcategories.length + 1;
-            
-            category.subcategories.push({
-              code: subcategoryCode,
-              name: subcategoryName,
-              type,
-              display_order: displayOrder,
-            });
-            // Actualizar el tipo de categoría si todas las subcategorías son del mismo tipo
-            // O usar el tipo más común
-            const subcategoryTypes = category.subcategories.map(s => s.type);
-            const serviceCount = subcategoryTypes.filter(t => t === 'service').length;
-            const productCount = subcategoryTypes.filter(t => t === 'product').length;
-            // Si hay más servicios, la categoría es de tipo service, sino product
-            category.type = serviceCount > productCount ? 'service' : 'product';
-          }
-        } else {
-          // Si no hay subcategoría, usar el tipo de la fila actual para la categoría
-          const category = categoriesMap.get(categoryCode)!;
-          category.type = type;
-        }
+        const category = categoriesMap.get(categoryCode)!;
+        category.domain = domain;
+
+        if (!rawSubcategoryCode || !subcategoryName) return;
+
+        const cleanedSubcategoryCode = normalizeCode(
+          rawSubcategoryCode.startsWith(`${categoryCode}-`)
+            ? rawSubcategoryCode.slice(categoryCode.length + 1)
+            : rawSubcategoryCode,
+        );
+
+        if (!cleanedSubcategoryCode) return;
+        if (category.subcategories.some((subcategory) => subcategory.code === cleanedSubcategoryCode)) return;
+
+        const numberMatch = rawSubcategoryCode.match(/-(\d+)$/);
+        category.subcategories.push({
+          code: cleanedSubcategoryCode,
+          name: subcategoryName,
+          display_order: numberMatch ? Number.parseInt(numberMatch[1], 10) : category.subcategories.length + 1,
+        });
       });
 
       const categories = Array.from(categoriesMap.values());
-      
       if (categories.length === 0) {
         toast.error('No se encontraron categorías válidas en el archivo');
         return;
@@ -197,35 +212,42 @@ export function CategoryImportDialog({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      parseExcelFile(file);
+      void parseExcelFile(file);
     }
   };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     const file = event.dataTransfer.files?.[0];
-    if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) {
-      parseExcelFile(file);
-    } else {
+    if (!file || (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls'))) {
       toast.error('Por favor, sube un archivo Excel (.xlsx o .xls)');
+      return;
     }
+
+    void parseExcelFile(file);
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
   };
 
-  const isCategoryExisting = (code: string) => {
-    return existingCategories.some(c => c.code.toLowerCase() === code.toLowerCase());
-  };
+  const isCategoryExisting = (code: string) =>
+    existingCategories.some((category) => category.code.toLowerCase() === code.toLowerCase());
 
-  const isSubcategoryExisting = (code: string) => {
-    return existingSubcategories.some(s => s.code.toLowerCase() === code.toLowerCase());
+  const isSubcategoryExisting = (categoryCode: string, subcategoryCode: string) => {
+    const category = existingCategories.find((item) => item.code.toLowerCase() === categoryCode.toLowerCase());
+    if (!category) return false;
+
+    return existingSubcategories.some(
+      (subcategory) =>
+        subcategory.category_id === category.id &&
+        subcategory.code.toLowerCase() === subcategoryCode.toLowerCase(),
+    );
   };
 
   const handleImport = async () => {
     setStep('importing');
-    
+
     const result: ImportResult = {
       categoriesCreated: 0,
       categoriesSkipped: 0,
@@ -234,15 +256,14 @@ export function CategoryImportDialog({
       errors: [],
     };
 
-    // Mapa para guardar los IDs de las categorías creadas
-    const categoryIdMap = new Map<string, string>();
-
-    // Primero, copiar las categorías existentes al mapa
-    existingCategories.forEach(c => {
-      categoryIdMap.set(c.code.toLowerCase(), c.id);
+    const categoryMap = new Map<string, { id: string; domain: CategoryDomain }>();
+    existingCategories.forEach((category) => {
+      categoryMap.set(category.code.toLowerCase(), {
+        id: category.id,
+        domain: category.domain,
+      });
     });
 
-    // Crear categorías
     for (const category of parsedData) {
       if (isCategoryExisting(category.code)) {
         result.categoriesSkipped++;
@@ -250,90 +271,97 @@ export function CategoryImportDialog({
       }
 
       try {
-        const { data, error } = await supabase.rpc('create_product_category', {
+        const { data, error } = await supabase.rpc('create_catalog_category', {
           p_name: category.name,
           p_code: category.code,
           p_description: null,
-          p_display_order: 0,
-          p_type: category.type,
+          p_sort_order: 0,
+          p_slug: slugify([category.code, category.name]),
+          p_domain: category.domain,
         });
 
         if (error) {
           result.errors.push(`Categoría ${category.code}: ${error.message}`);
-        } else {
-          result.categoriesCreated++;
-          categoryIdMap.set(category.code.toLowerCase(), data);
+          continue;
         }
-      } catch (error: any) {
-        result.errors.push(`Categoría ${category.code}: ${error.message}`);
+
+        result.categoriesCreated++;
+        categoryMap.set(category.code.toLowerCase(), {
+          id: data,
+          domain: category.domain,
+        });
+      } catch (error: unknown) {
+        result.errors.push(`Categoría ${category.code}: ${getErrorMessage(error)}`);
       }
     }
 
-    // Crear subcategorías
     for (const category of parsedData) {
-      const categoryId = categoryIdMap.get(category.code.toLowerCase());
-      
-      if (!categoryId) {
+      const categoryInfo = categoryMap.get(category.code.toLowerCase());
+      if (!categoryInfo) {
         result.errors.push(`No se encontró ID para categoría ${category.code}`);
         continue;
       }
 
-      // Ordenar subcategorías por display_order antes de crearlas
       const sortedSubcategories = [...category.subcategories].sort(
-        (a, b) => a.display_order - b.display_order
+        (left, right) => left.display_order - right.display_order,
       );
 
       for (const subcategory of sortedSubcategories) {
-        if (isSubcategoryExisting(subcategory.code)) {
+        if (isSubcategoryExisting(category.code, subcategory.code)) {
           result.subcategoriesSkipped++;
           continue;
         }
 
         try {
-          const { error } = await supabase.rpc('create_product_subcategory', {
-            p_category_id: categoryId,
+          const { error } = await supabase.rpc('create_catalog_category', {
+            p_parent_id: categoryInfo.id,
             p_code: subcategory.code,
             p_name: subcategory.name,
             p_description: null,
-            p_display_order: subcategory.display_order,
+            p_sort_order: subcategory.display_order,
+            p_slug: slugify([category.code, subcategory.code, subcategory.name]),
+            p_domain: categoryInfo.domain,
           });
 
           if (error) {
-            result.errors.push(`Subcategoría ${subcategory.code}: ${error.message}`);
-          } else {
-            result.subcategoriesCreated++;
+            result.errors.push(`Subcategoría ${category.code}-${subcategory.code}: ${error.message}`);
+            continue;
           }
-        } catch (error: any) {
-          result.errors.push(`Subcategoría ${subcategory.code}: ${error.message}`);
+
+          result.subcategoriesCreated++;
+        } catch (error: unknown) {
+          result.errors.push(`Subcategoría ${category.code}-${subcategory.code}: ${getErrorMessage(error)}`);
         }
       }
     }
 
     setImportResult(result);
     setStep('complete');
-    
+
     if (result.categoriesCreated > 0 || result.subcategoriesCreated > 0) {
       onImportComplete();
     }
   };
 
-  const getTotalSubcategories = () => {
-    return parsedData.reduce((acc, cat) => acc + cat.subcategories.length, 0);
-  };
+  const getTotalSubcategories = () =>
+    parsedData.reduce((total, category) => total + category.subcategories.length, 0);
 
-  const getNewCategoriesCount = () => {
-    return parsedData.filter(c => !isCategoryExisting(c.code)).length;
-  };
+  const getNewCategoriesCount = () =>
+    parsedData.filter((category) => !isCategoryExisting(category.code)).length;
 
-  const getNewSubcategoriesCount = () => {
-    return parsedData.reduce((acc, cat) => {
-      return acc + cat.subcategories.filter(s => !isSubcategoryExisting(s.code)).length;
-    }, 0);
-  };
+  const getNewSubcategoriesCount = () =>
+    parsedData.reduce(
+      (total, category) =>
+        total +
+        category.subcategories.filter(
+          (subcategory) => !isSubcategoryExisting(category.code, subcategory.code),
+        ).length,
+      0,
+    );
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-[#1a1a2e] border-white/10 text-white max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="flex max-h-[85vh] max-w-3xl flex-col overflow-hidden border-white/10 bg-[#1a1a2e] text-white">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5 text-orange-500" />
@@ -360,15 +388,11 @@ export function CategoryImportDialog({
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-white/20 rounded-lg p-12 text-center cursor-pointer hover:border-orange-500/50 hover:bg-white/5 transition-colors"
+                className="cursor-pointer rounded-lg border-2 border-dashed border-white/20 p-12 text-center transition-colors hover:border-orange-500/50 hover:bg-white/5"
               >
-                <Upload className="w-12 h-12 mx-auto mb-4 text-white/40" />
-                <p className="text-white/80 mb-2">
-                  Arrastra tu archivo Excel aquí o haz clic para seleccionar
-                </p>
-                <p className="text-white/40 text-sm">
-                  Formatos soportados: .xlsx, .xls
-                </p>
+                <Upload className="mx-auto mb-4 h-12 w-12 text-white/40" />
+                <p className="mb-2 text-white/80">Arrastra tu archivo Excel aquí o haz clic para seleccionar</p>
+                <p className="text-sm text-white/40">Formatos soportados: .xlsx, .xls</p>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -378,12 +402,12 @@ export function CategoryImportDialog({
                 />
               </div>
 
-              <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
-                <h4 className="text-white/80 font-medium mb-2 flex items-center gap-2">
+              <div className="mt-6 rounded-lg border border-white/10 bg-white/5 p-4">
+                <h4 className="mb-2 flex items-center gap-2 font-medium text-white/80">
                   <AlertTriangle className="w-4 h-4 text-yellow-500" />
                   Formato esperado
                 </h4>
-                <ul className="text-white/60 text-sm space-y-1">
+                <ul className="space-y-1 text-sm text-white/60">
                   <li>• Hoja: "Control Categorías"</li>
                   <li>• Columna A: Código de categoría principal</li>
                   <li>• Columna B: Nombre de categoría principal</li>
@@ -401,13 +425,13 @@ export function CategoryImportDialog({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex-1 overflow-hidden flex flex-col min-h-0"
+              className="flex min-h-0 flex-1 flex-col overflow-hidden"
             >
-              <div className="flex items-center gap-4 mb-4 p-3 bg-white/5 rounded-lg border border-white/10 flex-shrink-0">
-                <FileSpreadsheet className="w-8 h-8 text-green-500" />
+              <div className="mb-4 flex flex-shrink-0 items-center gap-4 rounded-lg border border-white/10 bg-white/5 p-3">
+                <FileSpreadsheet className="h-8 w-8 text-green-500" />
                 <div className="flex-1">
-                  <p className="text-white font-medium">{fileName}</p>
-                  <p className="text-white/60 text-sm">
+                  <p className="font-medium text-white">{fileName}</p>
+                  <p className="text-sm text-white/60">
                     {parsedData.length} categorías, {getTotalSubcategories()} subcategorías
                   </p>
                 </div>
@@ -421,87 +445,77 @@ export function CategoryImportDialog({
                 </div>
               </div>
 
-              <ScrollArea className="h-[350px] border border-white/10 rounded-lg">
+              <ScrollArea className="h-[350px] rounded-lg border border-white/10">
                 <Table>
-                  <TableHeader className="sticky top-0 bg-[#1a1a2e] z-10">
+                  <TableHeader className="sticky top-0 z-10 bg-[#1a1a2e]">
                     <TableRow className="border-white/10 hover:bg-transparent">
-                      <TableHead className="text-white/60 w-24">Código Cat.</TableHead>
+                      <TableHead className="w-24 text-white/60">Código Cat.</TableHead>
                       <TableHead className="text-white/60">Categoría</TableHead>
-                      <TableHead className="text-white/60 w-24">Código Sub.</TableHead>
+                      <TableHead className="w-24 text-white/60">Código Sub.</TableHead>
                       <TableHead className="text-white/60">Subcategoría</TableHead>
-                      <TableHead className="text-white/60 w-20">Tipo</TableHead>
-                      <TableHead className="text-white/60 w-24">Estado</TableHead>
+                      <TableHead className="w-20 text-white/60">Tipo</TableHead>
+                      <TableHead className="w-24 text-white/60">Estado</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {parsedData.map((category) => {
-                      // Ordenar subcategorías por display_order para el preview
                       const sortedSubcategories = [...category.subcategories].sort(
-                        (a, b) => a.display_order - b.display_order
+                        (left, right) => left.display_order - right.display_order,
                       );
-                      
-                      return (
-                        <>
-                          {sortedSubcategories.length === 0 ? (
-                            <TableRow key={category.code} className="border-white/10 hover:bg-white/5">
-                              <TableCell className="font-mono text-orange-400">{category.code}</TableCell>
-                              <TableCell className="text-white">{category.name}</TableCell>
-                              <TableCell className="text-white/40">-</TableCell>
-                              <TableCell className="text-white/40">-</TableCell>
-                              <TableCell>-</TableCell>
-                              <TableCell>
-                                {isCategoryExisting(category.code) ? (
-                                  <Badge variant="outline" className="border-yellow-500/50 text-yellow-400 text-xs">
-                                    Existe
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="border-green-500/50 text-green-400 text-xs">
-                                    Nueva
-                                  </Badge>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            sortedSubcategories.map((sub, subIndex) => (
-                            <TableRow 
-                              key={`${category.code}-${sub.code}`} 
-                              className="border-white/10 hover:bg-white/5"
-                            >
-                              <TableCell className="font-mono text-orange-400">
-                                {subIndex === 0 ? category.code : ''}
-                              </TableCell>
-                              <TableCell className="text-white">
-                                {subIndex === 0 ? category.name : ''}
-                              </TableCell>
-                              <TableCell className="font-mono text-blue-400">{sub.code}</TableCell>
-                              <TableCell className="text-white/80">{sub.name}</TableCell>
-                              <TableCell>
-                                {sub.type === 'product' ? (
-                                  <span className="flex items-center gap-1 text-blue-400 text-xs">
-                                    <Package className="w-3 h-3" /> Producto
-                                  </span>
-                                ) : (
-                                  <span className="flex items-center gap-1 text-purple-400 text-xs">
-                                    <Wrench className="w-3 h-3" /> Servicio
-                                  </span>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                {isSubcategoryExisting(sub.code) ? (
-                                  <Badge variant="outline" className="border-yellow-500/50 text-yellow-400 text-xs">
-                                    Existe
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="border-green-500/50 text-green-400 text-xs">
-                                    Nueva
-                                  </Badge>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))
-                          )}
-                        </>
-                      );
+                      const domainLabel =
+                        category.domain === 'PRODUCT' ? (
+                          <span className="flex items-center gap-1 text-xs text-blue-400">
+                            <Package className="w-3 h-3" /> Producto
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-xs text-purple-400">
+                            <Wrench className="w-3 h-3" /> Servicio
+                          </span>
+                        );
+
+                      if (sortedSubcategories.length === 0) {
+                        return (
+                          <TableRow key={category.code} className="border-white/10 hover:bg-white/5">
+                            <TableCell className="font-mono text-orange-400">{category.code}</TableCell>
+                            <TableCell className="text-white">{category.name}</TableCell>
+                            <TableCell className="text-white/40">-</TableCell>
+                            <TableCell className="text-white/40">-</TableCell>
+                            <TableCell>{domainLabel}</TableCell>
+                            <TableCell>
+                              {isCategoryExisting(category.code) ? (
+                                <Badge variant="outline" className="border-yellow-500/50 text-xs text-yellow-400">
+                                  Existe
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-green-500/50 text-xs text-green-400">
+                                  Nueva
+                                </Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+
+                      return sortedSubcategories.map((subcategory, index) => (
+                        <TableRow key={`${category.code}-${subcategory.code}`} className="border-white/10 hover:bg-white/5">
+                          <TableCell className="font-mono text-orange-400">{index === 0 ? category.code : ''}</TableCell>
+                          <TableCell className="text-white">{index === 0 ? category.name : ''}</TableCell>
+                          <TableCell className="font-mono text-blue-400">{subcategory.code}</TableCell>
+                          <TableCell className="text-white/80">{subcategory.name}</TableCell>
+                          <TableCell>{domainLabel}</TableCell>
+                          <TableCell>
+                            {isSubcategoryExisting(category.code, subcategory.code) ? (
+                              <Badge variant="outline" className="border-yellow-500/50 text-xs text-yellow-400">
+                                Existe
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="border-green-500/50 text-xs text-green-400">
+                                Nueva
+                              </Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ));
                     })}
                   </TableBody>
                 </Table>
@@ -517,9 +531,11 @@ export function CategoryImportDialog({
               exit={{ opacity: 0, y: -10 }}
               className="py-12 text-center"
             >
-              <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-orange-500" />
+              <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-orange-500" />
               <p className="text-white/80">Importando datos...</p>
-              <p className="text-white/40 text-sm mt-2">Por favor, espera mientras se procesan las categorías</p>
+              <p className="mt-2 text-sm text-white/40">
+                Por favor, espera mientras se crean categorías y subcategorías.
+              </p>
             </motion.div>
           )}
 
@@ -531,39 +547,37 @@ export function CategoryImportDialog({
               exit={{ opacity: 0, y: -10 }}
               className="py-6"
             >
-              <div className="text-center mb-6">
+              <div className="mb-6 text-center">
                 {importResult.errors.length === 0 ? (
-                  <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-500" />
+                  <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-green-500" />
                 ) : (
-                  <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-yellow-500" />
+                  <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-yellow-500" />
                 )}
-                <h3 className="text-white text-lg font-medium">
-                  Importación Completada
-                </h3>
+                <h3 className="text-lg font-medium text-white">Importación completada</h3>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                  <p className="text-white/60 text-sm mb-1">Categorías</p>
+              <div className="mb-6 grid grid-cols-2 gap-4">
+                <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                  <p className="mb-1 text-sm text-white/60">Categorías</p>
                   <div className="flex items-center gap-4">
-                    <span className="text-green-400 flex items-center gap-1">
+                    <span className="flex items-center gap-1 text-green-400">
                       <CheckCircle2 className="w-4 h-4" />
                       {importResult.categoriesCreated} creadas
                     </span>
-                    <span className="text-yellow-400 flex items-center gap-1">
+                    <span className="flex items-center gap-1 text-yellow-400">
                       <AlertTriangle className="w-4 h-4" />
                       {importResult.categoriesSkipped} omitidas
                     </span>
                   </div>
                 </div>
-                <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                  <p className="text-white/60 text-sm mb-1">Subcategorías</p>
+                <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                  <p className="mb-1 text-sm text-white/60">Subcategorías</p>
                   <div className="flex items-center gap-4">
-                    <span className="text-green-400 flex items-center gap-1">
+                    <span className="flex items-center gap-1 text-green-400">
                       <CheckCircle2 className="w-4 h-4" />
                       {importResult.subcategoriesCreated} creadas
                     </span>
-                    <span className="text-yellow-400 flex items-center gap-1">
+                    <span className="flex items-center gap-1 text-yellow-400">
                       <AlertTriangle className="w-4 h-4" />
                       {importResult.subcategoriesSkipped} omitidas
                     </span>
@@ -572,15 +586,15 @@ export function CategoryImportDialog({
               </div>
 
               {importResult.errors.length > 0 && (
-                <div className="p-4 bg-red-500/10 rounded-lg border border-red-500/30">
-                  <p className="text-red-400 font-medium mb-2 flex items-center gap-2">
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4">
+                  <p className="mb-2 flex items-center gap-2 font-medium text-red-400">
                     <XCircle className="w-4 h-4" />
                     Errores ({importResult.errors.length})
                   </p>
                   <ScrollArea className="h-32">
-                    <ul className="text-red-300/80 text-sm space-y-1">
-                      {importResult.errors.map((error, i) => (
-                        <li key={i}>• {error}</li>
+                    <ul className="space-y-1 text-sm text-red-300/80">
+                      {importResult.errors.map((error, index) => (
+                        <li key={index}>• {error}</li>
                       ))}
                     </ul>
                   </ScrollArea>
@@ -596,14 +610,14 @@ export function CategoryImportDialog({
               Cancelar
             </Button>
           )}
-          
+
           {step === 'preview' && (
             <>
               <Button variant="outline" onClick={resetState} className="border-white/20 text-white hover:bg-white/10">
                 Cambiar archivo
               </Button>
-              <Button 
-                onClick={handleImport} 
+              <Button
+                onClick={() => void handleImport()}
                 className="bg-orange-600 hover:bg-orange-700"
                 disabled={getNewCategoriesCount() === 0 && getNewSubcategoriesCount() === 0}
               >
