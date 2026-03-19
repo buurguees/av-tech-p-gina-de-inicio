@@ -18,5 +18,6 @@ Si un documento define como debe organizarse o evolucionar el repo, debe vivir e
 
 ## Referencias operativas utiles
 
+- Contexto para agentes sobre repo, BD e infraestructura: `docs/architecture/CONTEXTO_REPO_AVTECH_NEXO_PARA_AGENTES.md`
 - SharePoint documental: `docs/sharepoint/SHAREPOINT_ERP_SITE_ESTRUCTURA_DOCUMENTAL.md`
 - Graph + calendarios M365 validados para NEXO: `docs/sharepoint/M365_CALENDARS_NEXO_AV.md`

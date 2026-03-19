@@ -67,6 +67,10 @@ const projects = [
   // Asia Central
   { name: 'Almaty', lat: 43.2220, lng: 76.8512, region: 'Kazajistán', showOnGlobe: true },
   
+  // Asia Meridional
+  { name: 'Bengaluru', lat: 12.9716, lng: 77.5946, region: 'India', showOnGlobe: true },
+  { name: 'Nueva Delhi', lat: 28.6139, lng: 77.2090, region: 'India' },
+  
   // América
   { name: 'Ciudad de México', lat: 19.4326, lng: -99.1332, region: 'México', showOnGlobe: true },
 ];
@@ -79,7 +83,8 @@ const ROTATION_POINTS = [
   { lat: 42, lng: 35, duration: 4000 },   // 4. Mediterráneo/Turquía
   { lat: 35, lng: 48, duration: 4000 },   // 5. Medio Oriente
   { lat: 43, lng: 70, duration: 4000 },   // 6. Asia Central (Kazajistán)
-  { lat: 25, lng: -99, duration: 5000 },  // 7. México (salto rápido)
+  { lat: 20, lng: 78, duration: 4000 },   // 7. India
+  { lat: 25, lng: -99, duration: 5000 },  // 8. México (salto rápido)
 ];
 
 // Vista inicial del globo
@@ -332,6 +337,16 @@ const Alcance = () => {
 
   const [showAllRegions, setShowAllRegions] = useState(false);
 
+  const stats = useMemo(
+    () => [
+      { value: projects.length.toString(), label: 'Ciudades' },
+      { value: '3', label: 'Continentes' },
+      { value: new Set(projects.map((project) => project.region)).size.toString(), label: 'Países' },
+      { value: 'Global', label: 'Presencia' },
+    ],
+    []
+  );
+
   const initialRegions = ['España', 'Reino Unido'];
   const visibleRegions = isMobile && !showAllRegions 
     ? Object.fromEntries(Object.entries(projectsByRegion).filter(([region]) => initialRegions.includes(region)))
@@ -469,12 +484,7 @@ const Alcance = () => {
             transition={{ duration: 0.5, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-8 mt-12 md:mt-16 pt-10 md:pt-12 border-t border-border"
           >
-            {[
-              { value: '50', label: 'Ciudades' },
-              { value: '3', label: 'Continentes' },
-              { value: '18', label: 'Países' },
-              { value: 'Global', label: 'Presencia' },
-            ].map((stat, index) => (
+            {stats.map((stat, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}

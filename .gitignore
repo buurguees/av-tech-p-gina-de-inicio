@@ -224,3 +224,6 @@ SECRETS.txt
 
 # Archivos de Cursor con historial
 .cursor-tutor/
+
+# Claude Code local memory
+.claude/

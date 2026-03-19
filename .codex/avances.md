@@ -17,6 +17,15 @@ Este archivo se carga al iniciar cada chat para mantener memoria operativa de av
 
 ## Historial
 
+### [2026-03-16] Documento canonico de contexto para agentes sobre AV TECH / NEXO AV
+
+- Contexto: hacia falta un briefing estable para Claude, Codex y otros agentes que entran por `src/pages/nexo_av/` pero necesitan entender el repo completo, Git, Supabase, infraestructura y utilidad real de la plataforma.
+- Capacidad desbloqueada: existe `docs/architecture/CONTEXTO_REPO_AVTECH_NEXO_PARA_AGENTES.md` como documento corto y reutilizable que resume naturaleza mixta del repo, flujo repo-first, forma correcta de trabajar la BD en Supabase, infraestructura Firebase/SharePoint/M365 y mapa de entrada por carpetas.
+- Impacto operativo: los agentes ya no tienen que reconstruir desde cero el contexto base del proyecto antes de tocar NEXO AV; se reduce el riesgo de tratar el ERP como una pagina aislada o de ignorar el papel de Supabase y SharePoint en el sistema.
+- Archivos o componentes implicados: `docs/architecture/CONTEXTO_REPO_AVTECH_NEXO_PARA_AGENTES.md`, `docs/README.md`.
+- Validacion realizada: contraste manual contra `AGENTS.md`, `.codex/AGENTS.md`, `.codex/errores-soluciones.md`, `.codex/avances.md`, `docs/important/ARQUITECTURA_PROYECTO_NEXO_AV.md`, `package.json`, `firebase.json`, `supabase/config.toml` y `docs/sharepoint/`.
+- Como reutilizarlo en el futuro: cargar este documento como primer contexto cuando la tarea entre por `src/pages/nexo_av/` o cuando un agente necesite una vista rapida de repo, BD e infraestructura antes de leer documentacion mas profunda.
+
 ### [2026-03-16] Catalogo mobile responsive con consulta rapida y detalle contextual
 
 - Contexto: el modulo de catalogo seguia siendo solo desktop aunque la ruta existia dentro del layout mobile del ERP.
