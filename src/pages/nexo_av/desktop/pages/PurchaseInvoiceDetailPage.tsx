@@ -1027,7 +1027,13 @@ const PurchaseInvoiceDetailPageDesktop = () => {
                         type="date"
                         value={issueDate}
                         onChange={(e) => {
-                          setIssueDate(e.target.value);
+                          const val = e.target.value;
+                          setIssueDate(val);
+                          if (val && !dueDate) {
+                            const d = new Date(val);
+                            d.setDate(d.getDate() + 30);
+                            setDueDate(d.toISOString().slice(0, 10));
+                          }
                           setHasChanges(true);
                         }}
                         disabled={!isEditing || isLocked}

@@ -91,6 +91,7 @@ interface Expense {
   supplier_invoice_number?: string | null;
   document_type: string;
   issue_date: string;
+  due_date?: string | null;
   tax_base: number;
   tax_amount: number;
   total: number;
@@ -288,6 +289,7 @@ const ExpenseDetailPage = () => {
   
   // Form state
   const [issueDate, setIssueDate] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [supplierReference, setSupplierReference] = useState("");
   const [expenseCategory, setExpenseCategory] = useState("");
   const [establishmentName, setEstablishmentName] = useState("");
@@ -361,6 +363,7 @@ const ExpenseDetailPage = () => {
 
       // Set form values
       setIssueDate(exp.issue_date || "");
+      setDueDate(exp.due_date || "");
       setSupplierReference(exp.supplier_invoice_number || "");
       setExpenseCategory(exp.expense_category || "");
       setEstablishmentName(exp.manual_beneficiary_name || "");
@@ -505,7 +508,7 @@ const ExpenseDetailPage = () => {
         p_invoice_id: expenseId,
         p_supplier_invoice_number: supplierReference.trim() || null,
         p_issue_date: issueDate || null,
-        p_due_date: null,
+        p_due_date: dueDate || null,
         p_status: saveStatus,
         p_expense_category: expenseCategory || null,
         p_notes: notes || null,
@@ -1000,14 +1003,33 @@ const ExpenseDetailPage = () => {
                     Datos del Ticket
                   </h4>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs text-muted-foreground">Fecha del Ticket</Label>
                       <Input
                         type="date"
                         value={issueDate}
                         onChange={(e) => {
-                          setIssueDate(e.target.value);
+                          const val = e.target.value;
+                          setIssueDate(val);
+                          if (val && !dueDate) {
+                            const d = new Date(val);
+                            d.setDate(d.getDate() + 30);
+                            setDueDate(d.toISOString().slice(0, 10));
+                          }
+                          setHasChanges(true);
+                        }}
+                        disabled={!isEditing || isLocked}
+                        className="bg-background/50"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Fecha Vencimiento</Label>
+                      <Input
+                        type="date"
+                        value={dueDate}
+                        onChange={(e) => {
+                          setDueDate(e.target.value);
                           setHasChanges(true);
                         }}
                         disabled={!isEditing || isLocked}
