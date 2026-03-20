@@ -10,9 +10,9 @@
   max-width: 100%;
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md, 0.375rem);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--shadow-xs);
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -20,12 +20,12 @@
   max-height: 100%;
 }
 
-/* Header - Más prominente y profesional */
+/* Header — compact, ERP-density */
 .data-list__header {
   display: grid;
-  gap: 1rem;
-  padding: 0.875rem 1.25rem;
-  background: hsl(var(--muted) / 0.4);
+  gap: 0.625rem;
+  padding: 0.4375rem 0.875rem;
+  background: hsl(var(--muted) / 0.5);
   border-bottom: 1px solid hsl(var(--border));
   align-items: center;
   width: 100%;
@@ -41,12 +41,12 @@
 .data-list__header-cell {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
   font-weight: 600;
-  color: hsl(var(--text-secondary));
+  color: hsl(var(--muted-foreground));
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -111,21 +111,41 @@
   overflow-x: hidden;
   flex: 1;
   min-height: 0;
+  /* Scrollbar visible — thin, ERP style */
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
 }
 
-/* Filas - Más altura y espaciado profesional */
+.data-list__body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.data-list__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.data-list__body::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border));
+  border-radius: 2px;
+}
+
+.data-list__body::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Filas — compact ERP density (~36px) */
 .data-list__row {
   display: grid;
-  gap: 1rem;
-  padding: 0.875rem 1.25rem;
-  border-bottom: 1px solid hsl(var(--border) / 0.4);
+  gap: 0.625rem;
+  padding: 0.375rem 0.875rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
   align-items: center;
-  transition: all 0.2s ease;
+  transition: background-color 0.1s ease;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
-  min-height: 56px;
+  min-height: 36px;
   height: auto;
 }
 
@@ -133,8 +153,15 @@
   border-bottom: none;
 }
 
+/* Zebra striping — filas pares con fondo sutil */
+.data-list__row:nth-child(even) {
+  background: hsl(var(--muted) / 0.25);
+}
+
 .data-list__row:hover {
   background: hsl(var(--accent) / 0.08);
+  border-left: 2px solid hsl(var(--primary) / 0.5);
+  padding-left: calc(0.875rem - 2px);
 }
 
 .data-list__row--clickable {
@@ -143,15 +170,17 @@
 
 .data-list__row--clickable:hover {
   background: hsl(var(--primary) / 0.04);
+  border-left: 2px solid hsl(var(--primary));
+  padding-left: calc(0.875rem - 2px);
 }
 
-/* Celdas - Tamaño de fuente mejorado (13px) */
+/* Celdas */
 .data-list__cell {
   display: flex;
   align-items: center;
   min-width: 0;
   font-size: 0.8125rem;
-  line-height: 1.5;
+  line-height: 1.4;
   color: hsl(var(--foreground));
   overflow: hidden;
   text-overflow: ellipsis;
@@ -317,10 +346,10 @@
 /* Footer - Summary row */
 .data-list__footer {
   display: grid;
-  gap: 1rem;
-  padding: 0.75rem 1.25rem;
-  background: hsl(var(--muted) / 0.5);
-  border-top: 2px solid hsl(var(--border));
+  gap: 0.625rem;
+  padding: 0.4375rem 0.875rem;
+  background: hsl(var(--muted) / 0.4);
+  border-top: 1px solid hsl(var(--border));
   align-items: center;
   width: 100%;
   min-width: 0;
@@ -368,8 +397,28 @@ body.nexo-av-theme-dark .data-list__row {
   border-bottom-color: hsl(var(--border) / 0.5);
 }
 
+body.nexo-av-theme-dark .data-list__body {
+  scrollbar-color: hsl(var(--border) / 0.6) transparent;
+}
+
+body.nexo-av-theme-dark .data-list__body::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border) / 0.6);
+}
+
+body.nexo-av-theme-dark .data-list__row:nth-child(even) {
+  background: hsl(var(--muted) / 0.15);
+}
+
 body.nexo-av-theme-dark .data-list__row:hover {
-  background: hsl(var(--primary) / 0.03);
+  background: hsl(var(--primary) / 0.06);
+  border-left: 2px solid hsl(var(--primary) / 0.7);
+  padding-left: calc(0.875rem - 2px);
+}
+
+body.nexo-av-theme-dark .data-list__row--clickable:hover {
+  background: hsl(var(--primary) / 0.08);
+  border-left: 2px solid hsl(var(--primary));
+  padding-left: calc(0.875rem - 2px);
 }
 
 /* Dropdown Menu Styles - Igual que el Avatar */

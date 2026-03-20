@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Building2, Settings2, FileText, Tags, Receipt, Loader2, Banknote, Landmark } from "lucide-react";
-import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import { CompanyDataTab } from "../components/settings/CompanyDataTab";
 import { PreferencesTab } from "../components/settings/PreferencesTab";
 import { TemplatesTab } from "../components/settings/TemplatesTab";
@@ -34,9 +33,6 @@ function SettingsPageDesktop() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [activeTab, setActiveTab] = useState("company");
   const [loading, setLoading] = useState(true);
-
-  // Apply nexo-av theme
-  useNexoAvTheme();
 
   useEffect(() => {
     const checkAuth = async () => {

@@ -17,6 +17,7 @@ import {
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DataList from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
+import CompactKpiCard from "../components/common/CompactKpiCard";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "Todos los estados" },
@@ -130,41 +131,15 @@ const FinancingPageDesktop = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
-      <div className="w-full h-full flex flex-col overflow-hidden">
-        <div className="flex flex-col h-full overflow-hidden">
-          {/* Summary cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 flex-shrink-0">
-            <div className="border rounded-lg p-2 flex flex-col justify-between bg-card/50 border-border">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-emerald-500/10 rounded text-emerald-500">
-                  <FileText className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Operaciones</span>
-              </div>
-              <span className="text-base font-bold text-foreground">{operations.length}</span>
-            </div>
-            <div className="border rounded-lg p-2 flex flex-col justify-between bg-card/50 border-border">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-amber-500/10 rounded text-amber-500">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Pendiente</span>
-              </div>
-              <span className="text-base font-bold text-foreground">{formatCurrency(totalPending)}</span>
-            </div>
-            <div className="border rounded-lg p-2 flex flex-col justify-between bg-card/50 border-border">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-red-500/10 rounded text-red-500">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Vencidas</span>
-              </div>
-              <span className="text-base font-bold text-red-500">{overdueCount}</span>
-            </div>
+    <div className="flex flex-col h-full gap-3 overflow-hidden">
+          {/* KPIs — fila única compacta */}
+          <div className="grid grid-cols-3 gap-2 flex-shrink-0">
+            <CompactKpiCard label="Operaciones" value={String(operations.length)} color="blue" delay={0} />
+            <CompactKpiCard label="Pendiente total" value={formatCurrency(totalPending)} color="amber" delay={0.05} />
+            <CompactKpiCard label="Cuotas vencidas" value={String(overdueCount)} color={overdueCount > 0 ? 'destructive' : 'emerald'} delay={0.1} />
           </div>
 
-          <div className="mb-4 flex-shrink-0">
+          <div className="flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Financiación / Crédito"
               contextInfo={
@@ -193,7 +168,7 @@ const FinancingPageDesktop = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2 mb-4 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -347,8 +322,6 @@ const FinancingPageDesktop = () => {
               />
             </div>
           )}
-        </div>
-      </div>
     </div>
   );
 };

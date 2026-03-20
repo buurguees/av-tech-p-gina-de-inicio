@@ -1,21 +1,20 @@
 /**
  * MobileNewProjectPage - Página para crear nuevo proyecto en móvil
- * VERSIÓN: 1.0 - Formulario completo con misma lógica que desktop
+ * VERSIÓN: 2.0 - Simplificada: un solo campo de nombre en SINGLE_SITE,
+ * mini-formulario por sitio en MULTI_SITE, dirección completa al backend.
  */
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Loader2, 
+import {
+  Loader2,
   ChevronLeft,
   Building2,
   MapPin,
   FileText,
   Users,
-  Calendar,
   Save,
-  AlertCircle,
   Plus,
   X
 } from "lucide-react";
@@ -39,6 +38,15 @@ interface Client {
   lead_stage?: string;
 }
 
+interface SiteFormEntry {
+  name: string;
+  address: string;
+  city: string;
+  postalCode: string;
+}
+
+const emptySite = (): SiteFormEntry => ({ name: "", address: "", city: "", postalCode: "" });
+
 const MobileNewProjectPage = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
@@ -52,42 +60,46 @@ const MobileNewProjectPage = () => {
   const [clientId, setClientId] = useState<string>("");
   const [status, setStatus] = useState("NEGOTIATION");
   const [siteMode, setSiteMode] = useState<"SINGLE_SITE" | "MULTI_SITE">("SINGLE_SITE");
-  const [siteName, setSiteName] = useState("");
-  const [multiSiteNames, setMultiSiteNames] = useState<string[]>([""]);
+
+  // SINGLE_SITE location
   const [projectAddress, setProjectAddress] = useState("");
   const [projectCity, setProjectCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [province, setProvince] = useState("");
   const [country, setCountry] = useState("España");
+
+  // SINGLE_SITE local name
   const [localName, setLocalName] = useState("");
+
+  // MULTI_SITE sites
+  const [multiSites, setMultiSites] = useState<SiteFormEntry[]>([emptySite()]);
+
   const [clientOrderNumber, setClientOrderNumber] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
 
   // Filter out LOST clients
-  const availableClients = useMemo(() => 
-    clients.filter(client => client.lead_stage !== 'LOST'), 
+  const availableClients = useMemo(() =>
+    clients.filter(client => client.lead_stage !== 'LOST'),
     [clients]
   );
 
-  // Get selected client name
-  const selectedClient = useMemo(() => 
-    clientId ? availableClients.find(c => c.id === clientId) : null, 
+  const selectedClient = useMemo(() =>
+    clientId ? availableClients.find(c => c.id === clientId) : null,
     [availableClients, clientId]
   );
 
-  // Generate project name automatically
   const generatedProjectName = useMemo(() => {
     const parts: string[] = [];
-    const firstMultiSiteName = multiSiteNames.find((site) => site.trim())?.trim() || "";
-    const locationName = siteMode === "MULTI_SITE" ? firstMultiSiteName : localName.trim();
+    const isMulti = siteMode === "MULTI_SITE";
+    const locationName = isMulti ? (multiSites[0]?.name.trim() || "") : localName.trim();
+    const cityForName = isMulti ? (multiSites[0]?.city.trim() || "") : projectCity.trim();
     if (selectedClient?.company_name) parts.push(selectedClient.company_name);
     if (clientOrderNumber?.trim()) parts.push(clientOrderNumber.trim());
-    if (projectCity?.trim()) parts.push(projectCity.trim());
+    if (cityForName) parts.push(cityForName);
     if (locationName) parts.push(locationName);
     return parts.join(" - ");
-  }, [selectedClient, clientOrderNumber, projectCity, localName, multiSiteNames, siteMode]);
+  }, [selectedClient, clientOrderNumber, projectCity, localName, multiSites, siteMode]);
 
-  // Get status info
   const statusInfo = useMemo(() => getProjectStatusInfo(status), [status]);
 
   useEffect(() => {
@@ -112,12 +124,27 @@ const MobileNewProjectPage = () => {
     fetchClients();
   }, []);
 
+  const updateMultiSite = (index: number, field: keyof SiteFormEntry, value: string) => {
+    setMultiSites(prev => prev.map((site, i) => i === index ? { ...site, [field]: value } : site));
+  };
+
+  const addMultiSite = () => {
+    setMultiSites(prev => [...prev, emptySite()]);
+  };
+
+  const removeMultiSite = (index: number) => {
+    setMultiSites(prev => {
+      if (prev.length === 1) return prev;
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
   const handleSubmit = async () => {
     if (!clientId) {
-      toast({ 
-        title: "Error", 
-        description: "Debes seleccionar un cliente.", 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: "Debes seleccionar un cliente.",
+        variant: "destructive"
       });
       return;
     }
@@ -125,31 +152,40 @@ const MobileNewProjectPage = () => {
     try {
       setLoading(true);
       const sanitize = (val: string): string | null => val && val.trim() ? val.trim() : null;
-      const cleanedMultiSites = multiSiteNames.map((site) => site.trim()).filter(Boolean);
 
-      if (siteMode === "MULTI_SITE" && cleanedMultiSites.length === 0) {
-        toast({
-          title: "Error",
-          description: "Debes añadir al menos un sitio en modo Multi-Sitio.",
-          variant: "destructive",
-        });
-        return;
+      if (siteMode === "MULTI_SITE") {
+        const hasValidSite = multiSites.some(s => s.name.trim());
+        if (!hasValidSite) {
+          toast({
+            title: "Error",
+            description: "Debes añadir al menos un sitio con nombre en modo Multi-Sitio.",
+            variant: "destructive",
+          });
+          return;
+        }
       }
 
-      const primarySiteName = siteMode === "MULTI_SITE"
-        ? cleanedMultiSites[0]
-        : (sanitize(siteName) || sanitize(localName));
-      const effectiveLocalName = siteMode === "MULTI_SITE"
-        ? (primarySiteName || null)
-        : sanitize(localName);
+      const isMulti = siteMode === "MULTI_SITE";
+      const firstSite = isMulti ? multiSites[0] : null;
+
+      const primarySiteName = isMulti ? sanitize(firstSite?.name || "") : sanitize(localName);
+      const effectiveLocalName = isMulti ? primarySiteName : sanitize(localName);
+      const effectiveCity = isMulti ? sanitize(firstSite?.city || "") : sanitize(projectCity);
+      const effectiveAddress = isMulti ? sanitize(firstSite?.address || "") : sanitize(projectAddress);
+      const effectivePostalCode = isMulti ? sanitize(firstSite?.postalCode || "") : sanitize(postalCode);
+      const effectiveProvince = isMulti ? null : sanitize(province);
+      const effectiveCountry = isMulti ? "España" : (sanitize(country) || "España");
 
       const { data, error } = await supabase.rpc("create_project", {
         p_client_id: clientId,
         p_status: status || "NEGOTIATION",
         p_site_mode: siteMode,
         p_site_name: primarySiteName || null,
-        p_project_address: sanitize(projectAddress),
-        p_project_city: sanitize(projectCity),
+        p_project_address: effectiveAddress,
+        p_project_city: effectiveCity,
+        p_postal_code: effectivePostalCode,
+        p_province: effectiveProvince,
+        p_country: effectiveCountry,
         p_local_name: effectiveLocalName,
         p_client_order_number: sanitize(clientOrderNumber),
         p_notes: sanitize(internalNotes),
@@ -158,31 +194,33 @@ const MobileNewProjectPage = () => {
       if (error) throw error;
 
       const createdProject = Array.isArray(data) ? data[0] : null;
-      if (siteMode === "MULTI_SITE" && createdProject?.project_id && cleanedMultiSites.length > 1) {
-        for (const extraSiteName of cleanedMultiSites.slice(1)) {
+      if (isMulti && createdProject?.project_id && multiSites.length > 1) {
+        for (const extraSite of multiSites.slice(1)) {
+          if (!extraSite.name.trim()) continue;
           const { error: siteError } = await supabase.rpc("create_project_site", {
             p_project_id: createdProject.project_id,
-            p_site_name: extraSiteName,
-            p_city: sanitize(projectCity),
-            p_country: sanitize(country) || "España",
+            p_site_name: extraSite.name.trim(),
+            p_address: sanitize(extraSite.address),
+            p_city: sanitize(extraSite.city),
+            p_postal_code: sanitize(extraSite.postalCode),
+            p_country: "España",
           });
           if (siteError) throw siteError;
         }
       }
 
-      toast({ 
-        title: "Proyecto creado", 
-        description: "El proyecto se ha creado correctamente." 
+      toast({
+        title: "Proyecto creado",
+        description: "El proyecto se ha creado correctamente."
       });
-      
-      // Navegar de vuelta a la lista de proyectos
+
       navigate(`/nexo-av/${userId}/projects`);
     } catch (error: any) {
       console.error("Error creating project:", error);
-      toast({ 
-        title: "Error al crear proyecto", 
-        description: error.message || "No se pudo crear el proyecto.", 
-        variant: "destructive" 
+      toast({
+        title: "Error al crear proyecto",
+        description: error.message || "No se pudo crear el proyecto.",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
@@ -191,21 +229,6 @@ const MobileNewProjectPage = () => {
 
   const handleBack = () => {
     navigate(`/nexo-av/${userId}/projects`);
-  };
-
-  const updateMultiSiteName = (index: number, value: string) => {
-    setMultiSiteNames((prev) => prev.map((site, i) => (i === index ? value : site)));
-  };
-
-  const addMultiSite = () => {
-    setMultiSiteNames((prev) => [...prev, ""]);
-  };
-
-  const removeMultiSite = (index: number) => {
-    setMultiSiteNames((prev) => {
-      if (prev.length === 1) return prev;
-      return prev.filter((_, i) => i !== index);
-    });
   };
 
   return (
@@ -228,7 +251,7 @@ const MobileNewProjectPage = () => {
             <ChevronLeft className="h-4 w-4" />
             <span className="hidden min-[400px]:inline">Atrás</span>
           </button>
-          
+
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-medium text-foreground truncate leading-tight">
               Nuevo Proyecto
@@ -243,12 +266,11 @@ const MobileNewProjectPage = () => {
           {/* ===== SECCIÓN: ASIGNACIÓN ===== */}
           <SectionCard title="Asignación" icon={Users}>
             <div className="space-y-4">
-              {/* Cliente */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground">
                   Cliente <span className="text-destructive">*</span>
                 </Label>
-                <Select 
+                <Select
                   value={clientId || undefined}
                   onValueChange={(value) => setClientId(value)}
                   disabled={loadingClients}
@@ -266,15 +288,11 @@ const MobileNewProjectPage = () => {
                 </Select>
               </div>
 
-              {/* Estado */}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground">
                   Estado inicial
                 </Label>
-                <Select 
-                  value={status}
-                  onValueChange={setStatus}
-                >
+                <Select value={status} onValueChange={setStatus}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
@@ -282,8 +300,8 @@ const MobileNewProjectPage = () => {
                     {PROJECT_STATUSES.map(statusOption => (
                       <SelectItem key={statusOption.value} value={statusOption.value}>
                         <div className="flex items-center gap-2">
-                          <Badge 
-                            variant="outline" 
+                          <Badge
+                            variant="outline"
                             className={cn(statusOption.className, "text-xs px-2 py-0.5")}
                           >
                             {statusOption.label}
@@ -295,8 +313,8 @@ const MobileNewProjectPage = () => {
                 </Select>
                 {status && (
                   <div className="pt-1">
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={cn(statusInfo.className, "text-xs px-2 py-0.5")}
                     >
                       {statusInfo.label}
@@ -307,8 +325,8 @@ const MobileNewProjectPage = () => {
             </div>
           </SectionCard>
 
-          {/* ===== SECCIÓN: MODO DE SITIOS ===== */}
-          <SectionCard title="Instalaciones" icon={MapPin}>
+          {/* ===== SECCIÓN: TIPO E INSTALACIONES ===== */}
+          <SectionCard title="Instalaciones" icon={Building2}>
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground">
@@ -333,28 +351,49 @@ const MobileNewProjectPage = () => {
                 </p>
               </div>
 
+              {/* MULTI_SITE: mini-form per site */}
               {siteMode === "MULTI_SITE" && (
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium text-muted-foreground">
-                    Sitios del proyecto
-                  </Label>
-                  {multiSiteNames.map((site, index) => (
-                    <div key={`mobile-site-${index}`} className="flex items-center gap-2">
+                <div className="space-y-3">
+                  {multiSites.map((site, index) => (
+                    <div key={`mobile-site-${index}`} className="rounded-lg border border-border bg-muted/10 p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-muted-foreground">Sitio {index + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeMultiSite(index)}
+                          className="h-7 w-7 inline-flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+                          aria-label={`Eliminar sitio ${index + 1}`}
+                          disabled={multiSites.length === 1}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
                       <Input
-                        placeholder={`Sitio ${index + 1}`}
-                        value={site}
-                        onChange={(e) => updateMultiSiteName(index, e.target.value)}
+                        placeholder="Nombre del sitio *"
+                        value={site.name}
+                        onChange={(e) => updateMultiSite(index, "name", e.target.value)}
                         className="bg-card border-border"
                       />
-                      <button
-                        type="button"
-                        onClick={() => removeMultiSite(index)}
-                        className="h-9 w-9 inline-flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
-                        aria-label={`Eliminar sitio ${index + 1}`}
-                        disabled={multiSiteNames.length === 1}
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          placeholder="Ciudad"
+                          value={site.city}
+                          onChange={(e) => updateMultiSite(index, "city", e.target.value)}
+                          className="bg-card border-border"
+                        />
+                        <Input
+                          placeholder="Código Postal"
+                          value={site.postalCode}
+                          onChange={(e) => updateMultiSite(index, "postalCode", e.target.value)}
+                          className="bg-card border-border"
+                        />
+                      </div>
+                      <Input
+                        placeholder="Dirección"
+                        value={site.address}
+                        onChange={(e) => updateMultiSite(index, "address", e.target.value)}
+                        className="bg-card border-border"
+                      />
                     </div>
                   ))}
                   <button
@@ -370,84 +409,76 @@ const MobileNewProjectPage = () => {
             </div>
           </SectionCard>
 
-          {/* ===== SECCIÓN: UBICACIÓN ===== */}
-          <SectionCard title="Ubicación" icon={MapPin}>
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  Dirección
-                </Label>
-                <Input 
-                  placeholder="Calle y número del local" 
-                  value={projectAddress} 
-                  onChange={(e) => setProjectAddress(e.target.value)}
-                  className="bg-card border-border"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  Ciudad
-                </Label>
-                <Input 
-                  placeholder="Ciudad" 
-                  value={projectCity} 
-                  onChange={(e) => setProjectCity(e.target.value)}
-                  className="bg-card border-border"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+          {/* ===== SECCIÓN: UBICACIÓN — solo en SINGLE_SITE ===== */}
+          {siteMode === "SINGLE_SITE" && (
+            <SectionCard title="Ubicación" icon={MapPin}>
+              <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-muted-foreground">
-                    Código Postal
-                  </Label>
-                  <Input 
-                    placeholder="08000" 
-                    value={postalCode} 
-                    onChange={(e) => setPostalCode(e.target.value)}
+                  <Label className="text-xs font-medium text-muted-foreground">Dirección</Label>
+                  <Input
+                    placeholder="Calle y número del local"
+                    value={projectAddress}
+                    onChange={(e) => setProjectAddress(e.target.value)}
                     className="bg-card border-border"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-muted-foreground">
-                    Provincia
-                  </Label>
-                  <Input 
-                    placeholder="Provincia" 
-                    value={province} 
-                    onChange={(e) => setProvince(e.target.value)}
+                  <Label className="text-xs font-medium text-muted-foreground">Ciudad</Label>
+                  <Input
+                    placeholder="Ciudad"
+                    value={projectCity}
+                    onChange={(e) => setProjectCity(e.target.value)}
+                    className="bg-card border-border"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">Código Postal</Label>
+                    <Input
+                      placeholder="08000"
+                      value={postalCode}
+                      onChange={(e) => setPostalCode(e.target.value)}
+                      className="bg-card border-border"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">Provincia</Label>
+                    <Input
+                      placeholder="Provincia"
+                      value={province}
+                      onChange={(e) => setProvince(e.target.value)}
+                      className="bg-card border-border"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground">País</Label>
+                  <Input
+                    placeholder="País"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
                     className="bg-card border-border"
                   />
                 </div>
               </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  País
-                </Label>
-                <Input 
-                  placeholder="País" 
-                  value={country} 
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="bg-card border-border"
-                />
-              </div>
-            </div>
-          </SectionCard>
+            </SectionCard>
+          )}
 
           {/* ===== SECCIÓN: INFORMACIÓN DEL PROYECTO ===== */}
           <SectionCard title="Información del Proyecto" icon={FileText}>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className={cn("gap-3", siteMode === "SINGLE_SITE" ? "grid grid-cols-2" : "")}>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-muted-foreground">
                     Nº Pedido Cliente
                   </Label>
-                  <Input 
-                    placeholder="Referencia del cliente" 
-                    value={clientOrderNumber} 
+                  <Input
+                    placeholder="Referencia del cliente"
+                    value={clientOrderNumber}
                     onChange={(e) => setClientOrderNumber(e.target.value)}
                     className="bg-card border-border"
                   />
@@ -458,9 +489,9 @@ const MobileNewProjectPage = () => {
                     <Label className="text-xs font-medium text-muted-foreground">
                       Nombre del Local
                     </Label>
-                    <Input 
-                      placeholder="Ej: Tienda Centro" 
-                      value={localName} 
+                    <Input
+                      placeholder="Ej: Tienda Centro"
+                      value={localName}
                       onChange={(e) => setLocalName(e.target.value)}
                       className="bg-card border-border"
                     />
@@ -472,10 +503,10 @@ const MobileNewProjectPage = () => {
                 <Label className="text-xs font-medium text-muted-foreground">
                   Notas internas
                 </Label>
-                <Textarea 
-                  placeholder="Notas adicionales sobre el proyecto..." 
-                  value={internalNotes} 
-                  onChange={(e) => setInternalNotes(e.target.value)} 
+                <Textarea
+                  placeholder="Notas adicionales sobre el proyecto..."
+                  value={internalNotes}
+                  onChange={(e) => setInternalNotes(e.target.value)}
                   rows={4}
                   className="bg-card border-border resize-none"
                 />

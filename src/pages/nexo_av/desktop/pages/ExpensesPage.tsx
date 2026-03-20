@@ -513,10 +513,9 @@ const ExpensesPageDesktop = () => {
   } = usePagination(sortedExpenses, { pageSize: 50 });
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
-      <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
+    <div className="flex flex-col h-full gap-3">
         {uploadRetryPending && (
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="flex-shrink-0">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Ticket subido pero no guardado</AlertTitle>
             <AlertDescription className="flex flex-wrap items-center gap-2 mt-1">
@@ -534,7 +533,7 @@ const ExpensesPageDesktop = () => {
           </Alert>
         )}
         {!showTechnicalDrafts && hiddenTechnicalDraftsCount > 0 && (
-          <Alert className="mb-4 border-border bg-card text-foreground">
+          <Alert className="flex-shrink-0 border-border bg-card text-foreground">
             <Info className="h-4 w-4" />
             <AlertTitle>Borradores tecnicos ocultos</AlertTitle>
             <AlertDescription>
@@ -546,9 +545,10 @@ const ExpensesPageDesktop = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="flex-1 min-h-0 flex flex-col"
         >
           {/* Summary Metric Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -623,7 +623,7 @@ const ExpensesPageDesktop = () => {
             </motion.div>
           </div>
           {/* Header - Estilo Holded */}
-          <div className="mb-6">
+          <div className="mb-6 shrink-0">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">Gastos</h1>
@@ -1017,7 +1017,6 @@ const ExpensesPageDesktop = () => {
             </>
           )}
         </motion.div>
-      </div>
 
       <AnimatePresence>
         {showScanner && (

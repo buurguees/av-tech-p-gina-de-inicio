@@ -8,6 +8,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import DetailNavigationBar from "../../navigation/DetailNavigationBar";
+import CompactKpiCard from "../../common/CompactKpiCard";
 import { cn } from "@/lib/utils";
 
 interface SiteAgendaItem {
@@ -123,13 +124,13 @@ const ManagerDashboard = () => {
     <div className="w-full h-full flex flex-col">
       <DetailNavigationBar pageTitle="Dashboard" contextInfo="Manager · Centro de instalaciones" />
 
-      <div className="flex-1 overflow-y-auto space-y-4 pb-6">
+      <div className="flex-1 overflow-y-auto px-4 pt-3 space-y-3 pb-6">
         {/* Row 1: KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KpiCard icon={CalendarDays} label="Sites hoy" value={data.kpis.sites_today} color="blue" delay={0.05} />
-          <KpiCard icon={Clock} label="Próximos 7 días" value={data.kpis.sites_next_days} color="cyan" delay={0.1} />
-          <KpiCard icon={MapPin} label="En curso" value={data.kpis.sites_in_progress} color="amber" delay={0.15} />
-          <KpiCard icon={CheckCircle} label="Listos p/ facturar" value={data.kpis.sites_ready_to_invoice} color="emerald" delay={0.2} />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          <CompactKpiCard label="Sites hoy" value={String(data.kpis.sites_today)} color="blue" delay={0.05} />
+          <CompactKpiCard label="Próximos 7 días" value={String(data.kpis.sites_next_days)} color="cyan" delay={0.1} />
+          <CompactKpiCard label="En curso" value={String(data.kpis.sites_in_progress)} color="amber" delay={0.15} />
+          <CompactKpiCard label="Listos p/ facturar" value={String(data.kpis.sites_ready_to_invoice)} color="emerald" delay={0.2} />
         </div>
 
         {/* Filters */}
@@ -172,30 +173,6 @@ const ManagerDashboard = () => {
   );
 };
 
-// Sub-components
-const KpiCard = ({ icon: Icon, label, value, color, delay }: {
-  icon: any; label: string; value: number; color: string; delay: number;
-}) => {
-  const colorMap: Record<string, string> = {
-    blue: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-    cyan: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
-    amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  };
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}>
-      <div className="bg-card/50 border border-border rounded-lg p-3">
-        <div className="flex items-center gap-2 mb-1">
-          <div className={`p-1 rounded ${colorMap[color]}`}>
-            <Icon className="h-3.5 w-3.5" />
-          </div>
-          <span className="text-muted-foreground text-xs font-medium">{label}</span>
-        </div>
-        <div className="text-2xl font-bold text-foreground">{value}</div>
-      </div>
-    </motion.div>
-  );
-};
 
 const SiteAgendaCard = ({ site, userId, navigate }: { site: SiteAgendaItem; userId: string | undefined; navigate: any }) => {
   const cfg = STATUS_CONFIG[site.site_status] || { label: site.site_status, color: "bg-muted text-muted-foreground" };

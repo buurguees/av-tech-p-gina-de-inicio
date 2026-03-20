@@ -12,6 +12,8 @@ const badgeVariants = cva(
         secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm",
         destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80 shadow-sm",
         outline: "text-foreground hover:bg-white/5",
+        /** Variante compacta ERP: 20px alto, texto 10px uppercase, radius 4px */
+        compact: "border-transparent px-[6px] py-0 h-5 text-[10px] font-semibold uppercase tracking-wide rounded",
       },
     },
     defaultVariants: {

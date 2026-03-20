@@ -26,32 +26,18 @@ body.nexo-av-theme-dark {
   color: hsl(var(--foreground));
   font-family: var(--font-sans);
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
   /* Global Layout vars */
-  --header-height: 3.25rem;
-  --sidebar-width: 14rem;
-  --sidebar-width-collapsed: 3.5rem;
+  --header-height: 3rem;
+  --sidebar-width: 12.5rem;
+  --sidebar-width-collapsed: 3rem;
   --main-content-max-width: 1600px;
 }
 
-/* Background Premium Mesh Effect for Dark Mode */
-body.nexo-av-theme-dark::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background:
-    radial-gradient(circle at 15% 15%, hsl(var(--primary) / 0.03) 0%, transparent 40%),
-    radial-gradient(circle at 85% 85%, hsl(var(--status-special) / 0.03) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, hsl(var(--background)) 0%, transparent 100%);
-  z-index: -1;
-  pointer-events: none;
-}
+/* Dark mode — no decorative mesh, clean surface */
 
 /* ============================================
    GLASS UTILITY
@@ -74,6 +60,48 @@ body.nexo-av-theme-dark main.ml-56 {
 }
 
 /* ============================================
+   RESPONSIVE DESKTOP BREAKPOINTS
+   ============================================ */
+
+@media (min-width: 1280px) {
+  body.nexo-av-theme,
+  body.nexo-av-theme-dark {
+    --sidebar-width: 12.5rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  body.nexo-av-theme,
+  body.nexo-av-theme-dark {
+    --sidebar-width: 12.5rem;
+    --main-content-max-width: 1600px;
+  }
+}
+
+@media (min-width: 1920px) {
+  body.nexo-av-theme,
+  body.nexo-av-theme-dark {
+    --sidebar-width: 13rem;
+    --main-content-max-width: 1800px;
+  }
+}
+
+/* ============================================
+   TABLE OVERFLOW - Scroll horizontal en tablas
+   ============================================ */
+body.nexo-av-theme .nexo-table-wrapper,
+body.nexo-av-theme-dark .nexo-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+body.nexo-av-theme .nexo-table-wrapper table,
+body.nexo-av-theme-dark .nexo-table-wrapper table {
+  min-width: 600px;
+}
+
+/* ============================================
    SCROLLBAR - Minimalist
    ============================================ */
 body.nexo-av-theme ::-webkit-scrollbar,
@@ -89,13 +117,13 @@ body.nexo-av-theme-dark ::-webkit-scrollbar-track {
 
 body.nexo-av-theme ::-webkit-scrollbar-thumb,
 body.nexo-av-theme-dark ::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--foreground) / 0.1);
-  border-radius: 10px;
+  background-color: hsl(var(--foreground) / 0.12);
+  border-radius: 4px;
 }
 
 body.nexo-av-theme ::-webkit-scrollbar-thumb:hover,
 body.nexo-av-theme-dark ::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--foreground) / 0.2);
+  background-color: hsl(var(--foreground) / 0.22);
 }
 
 /* ============================================
@@ -157,8 +185,8 @@ body.nexo-av-theme-dark textarea {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Custom Glow Interaction for Dark Mode */
+/* Subtle hover — professional, not flashy */
 body.nexo-av-theme-dark .glass-effect:hover {
-  box-shadow: var(--shadow-md), 0 0 15px hsl(var(--primary) / 0.05);
-  border-color: hsl(var(--primary) / 0.3);
+  border-color: hsl(var(--border) / 1);
+  box-shadow: var(--shadow-sm);
 }

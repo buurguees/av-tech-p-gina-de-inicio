@@ -126,7 +126,7 @@ const FinancingDetailPageDesktop = () => {
 
   if (loading) {
     return (
-      <div className="w-full h-full flex flex-col overflow-hidden p-6">
+      <div className="flex flex-col h-full gap-3 overflow-hidden">
         <DetailNavigationBar
           pageTitle="Financiación"
           backPath={userId ? `/nexo-av/${userId}/financing` : undefined}
@@ -140,7 +140,7 @@ const FinancingDetailPageDesktop = () => {
 
   if (!data?.operation) {
     return (
-      <div className="w-full h-full flex flex-col overflow-hidden p-6">
+      <div className="flex flex-col h-full gap-3 overflow-hidden">
         <DetailNavigationBar
           pageTitle="Financiación"
           backPath={userId ? `/nexo-av/${userId}/financing` : undefined}
@@ -163,11 +163,11 @@ const FinancingDetailPageDesktop = () => {
       case "ACTIVE":
         return "bg-emerald-500/20 text-emerald-400 border-emerald-500/40";
       case "COMPLETED":
-        return "bg-zinc-500/20 text-zinc-300 border-zinc-500/40";
+        return "bg-status-neutral-bg text-status-neutral border-border";
       case "DEFAULT":
         return "bg-red-500/20 text-red-400 border-red-500/40";
       default:
-        return "bg-zinc-500/20 text-zinc-400 border-zinc-500/40";
+        return "bg-status-neutral-bg text-status-neutral border-border";
     }
   };
 
@@ -181,7 +181,7 @@ const FinancingDetailPageDesktop = () => {
           : op.status;
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
+    <div className="flex flex-col h-full gap-3 overflow-hidden">
       <DetailNavigationBar
         pageTitle="Financiación"
         backPath={userId ? `/nexo-av/${userId}/financing` : undefined}
@@ -189,7 +189,7 @@ const FinancingDetailPageDesktop = () => {
 
       <div className="flex-1 overflow-auto space-y-6 mt-4">
         {/* Operation header */}
-        <div className="rounded-lg border border-border bg-zinc-900/30 p-4">
+        <div className="rounded-lg border border-border bg-card/50 p-4">
           <div className="flex flex-wrap items-start gap-6">
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-lg bg-primary/10">
@@ -245,7 +245,7 @@ const FinancingDetailPageDesktop = () => {
               <span>Pagado {formatCurrency(op.total_paid)}</span>
               <span>{progressPercent}%</span>
             </div>
-            <div className="h-2 w-full rounded-full bg-zinc-800 overflow-hidden">
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full rounded-full bg-emerald-500 transition-all"
                 style={{ width: `${Math.min(100, progressPercent)}%` }}
@@ -256,7 +256,7 @@ const FinancingDetailPageDesktop = () => {
 
         {/* Installments table */}
         <div className="rounded-lg border border-border overflow-hidden">
-          <div className="px-4 py-3 border-b border-border bg-zinc-900/50">
+          <div className="px-4 py-3 border-b border-border bg-muted/30">
             <h2 className="font-semibold text-foreground">Cuotas</h2>
           </div>
           <div className="overflow-x-auto">

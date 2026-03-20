@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { FolderKanban, Loader2, Euro, TrendingUp, BarChart3, Target, CheckCircle, Clock, AlertCircle, XCircle } from "lucide-react";
+import CompactKpiCard from "../components/common/CompactKpiCard";
 import { usePagination } from "@/hooks/usePagination";
 import CreateProjectDialog from "../components/projects/CreateProjectDialog";
 import PaginationControls from "../components/common/PaginationControls";
@@ -356,107 +357,19 @@ const ProjectsPageDesktop = () => {
   } = usePagination(sortedProjects, { pageSize: 50 });
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
-      <div className="w-full h-full flex flex-col overflow-hidden">
-        <div className="flex flex-col lg:flex-row gap-6 h-full overflow-hidden">
-          {/* Main Content - Ocupa todo el ancho disponible */}
-          <div className="flex-1 min-w-0 w-full flex flex-col overflow-hidden">
-            <div className="flex flex-col h-full overflow-hidden">
-              {/* KPIs Cards - Diseño compacto en una sola fila */}
-              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-12 gap-2 mb-4 flex-shrink-0">
-                {/* Estados */}
-                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="h-3 w-3 text-blue-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Negoc.</span>
-                  </div>
-                  <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['NEGOTIATION'] || 0}</span>
-                </div>
-                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
-                  <div className="flex items-center gap-1.5">
-                    <FolderKanban className="h-3 w-3 text-yellow-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">En curso</span>
-                  </div>
-                  <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['IN_PROGRESS'] || 0}</span>
-                </div>
-                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
-                  <div className="flex items-center gap-1.5">
-                    <AlertCircle className="h-3 w-3 text-orange-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Pausa</span>
-                  </div>
-                  <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['PAUSED'] || 0}</span>
-                </div>
-                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle className="h-3 w-3 text-violet-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Fin</span>
-                  </div>
-                  <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['COMPLETED'] || 0}</span>
-                </div>
-                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
-                  <div className="flex items-center gap-1.5">
-                    <Euro className="h-3 w-3 text-emerald-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Factur.</span>
-                  </div>
-                  <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['INVOICED'] || 0}</span>
-                </div>
-                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle className="h-3 w-3 text-emerald-600" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Cerrad.</span>
-                  </div>
-                  <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['CLOSED'] || 0}</span>
-                </div>
-                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
-                  <div className="flex items-center gap-1.5">
-                    <XCircle className="h-3 w-3 text-red-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Cancel.</span>
-                  </div>
-                  <span className="text-lg font-bold text-foreground">{projectKPIs.byStatus['CANCELLED'] || 0}</span>
-                </div>
-
-                {/* Métricas financieras */}
-                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
-                  <div className="flex items-center gap-1.5">
-                    <Euro className="h-3 w-3 text-emerald-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Ing. netos</span>
-                  </div>
-                  <span className="text-sm font-bold text-foreground">{formatCurrency(projectKPIs.totalRevenue)}</span>
-                </div>
-                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
-                  <div className="flex items-center gap-1.5">
-                    <Euro className="h-3 w-3 text-orange-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Costes</span>
-                  </div>
-                  <span className="text-sm font-bold text-foreground">{formatCurrency(projectKPIs.totalCosts)}</span>
-                </div>
-                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
-                  <div className="flex items-center gap-1.5">
-                    <TrendingUp className={`h-3 w-3 ${projectKPIs.profitMargin >= 25 ? 'text-emerald-500' : projectKPIs.profitMargin >= 15 ? 'text-amber-500' : 'text-red-500'}`} />
-                    <span className="text-[10px] text-muted-foreground font-medium">Margen</span>
-                  </div>
-                  <span className={`text-sm font-bold ${projectKPIs.profitMargin >= 25 ? 'text-emerald-600' : projectKPIs.profitMargin >= 15 ? 'text-amber-600' : 'text-red-600'}`}>
-                    {projectKPIs.profitMargin.toFixed(1)}%
-                  </span>
-                </div>
-                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
-                  <div className="flex items-center gap-1.5">
-                    <BarChart3 className="h-3 w-3 text-purple-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Ticket</span>
-                  </div>
-                  <span className="text-sm font-bold text-foreground">{formatCurrency(projectKPIs.avgProjectValue)}</span>
-                </div>
-                <div className="bg-card/50 border border-border rounded-lg p-2 flex flex-col justify-between min-h-[60px]">
-                  <div className="flex items-center gap-1.5">
-                    <Target className="h-3 w-3 text-indigo-500" />
-                    <span className="text-[10px] text-muted-foreground font-medium">Aprob.</span>
-                  </div>
-                  <span className="text-sm font-bold text-foreground">{formatCurrency(projectKPIs.totalQuotesValue)}</span>
-                </div>
-              </div>
+    <div className="flex flex-col h-full gap-3 overflow-hidden">
+          {/* KPIs — fila única compacta */}
+          <div className="grid grid-cols-6 gap-2 flex-shrink-0">
+            <CompactKpiCard label="En curso" value={String(projectKPIs.byStatus['IN_PROGRESS'] || 0)} color="blue" delay={0} />
+            <CompactKpiCard label="Finalizados" value={String((projectKPIs.byStatus['COMPLETED'] || 0) + (projectKPIs.byStatus['INVOICED'] || 0) + (projectKPIs.byStatus['CLOSED'] || 0))} color="emerald" delay={0.05} />
+            <CompactKpiCard label="Negociación" value={String(projectKPIs.byStatus['NEGOTIATION'] || 0)} color="amber" delay={0.1} />
+            <CompactKpiCard label="Ingresos netos" value={formatCurrency(projectKPIs.totalRevenue)} color="emerald" delay={0.15} />
+            <CompactKpiCard label="Costes" value={formatCurrency(projectKPIs.totalCosts)} color="amber" delay={0.2} />
+            <CompactKpiCard label="Margen" value={`${projectKPIs.profitMargin.toFixed(1)}%`} color={projectKPIs.profitMargin >= 25 ? 'emerald' : projectKPIs.profitMargin >= 15 ? 'amber' : 'destructive'} delay={0.25} />
+          </div>
 
               {/* DetailNavigationBar */}
-              <div className="mb-6 flex-shrink-0">
+              <div className="flex-shrink-0">
                 <DetailNavigationBar
                   pageTitle="Proyectos"
                   contextInfo={
@@ -705,15 +618,10 @@ const ProjectsPageDesktop = () => {
                   />
                 </div>
               )}
-            </div>
-          </div>
-
           {/* Sidebar Column - Oculto para maximizar el ancho de la tabla */}
           <div className="hidden">
             <ProjectsListSidebar />
           </div>
-        </div>
-      </div>
 
       <CreateProjectDialog
         open={isCreateDialogOpen}

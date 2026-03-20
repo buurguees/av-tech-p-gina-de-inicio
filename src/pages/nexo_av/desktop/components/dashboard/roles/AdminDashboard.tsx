@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   Receipt,
   AlertCircle,
-  FileText,
   FolderKanban,
   TrendingUp,
   Clock,
@@ -12,10 +11,18 @@ import {
   Users,
   CalendarClock,
   Banknote,
+  ArrowRight,
+  CheckCircle2,
+  Target,
+  FileText,
+  BarChart3,
 } from "lucide-react";
+import { PieChart, Pie, Cell, Tooltip as ReTooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import DetailNavigationBar from "../../navigation/DetailNavigationBar";
+import CompactKpiCard from "../../common/CompactKpiCard";
+import { cn } from "@/lib/utils";
 
 interface AdminData {
   period: { start: string; end: string; type: string };
@@ -49,7 +56,7 @@ interface AdminData {
   };
 }
 
-const formatCurrency = (n: number) =>
+const fmt = (n: number) =>
   new Intl.NumberFormat("es-ES", {
     style: "currency",
     currency: "EUR",
@@ -57,10 +64,256 @@ const formatCurrency = (n: number) =>
     maximumFractionDigits: 0,
   }).format(n);
 
+const fmtDate = (d: string) => {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" });
+};
+
+// ─── DashTabBar — navegación por pestañas interna ────────────────────────────
+const DashTabBar = ({
+  tabs,
+  active,
+  onChange,
+}: {
+  tabs: { key: string; label: string; badge?: number; badgeDestructive?: boolean }[];
+  active: string;
+  onChange: (key: string) => void;
+}) => (
+  <div className="flex gap-0.5 bg-muted/60 rounded p-0.5">
+    {tabs.map((t) => (
+      <button
+        key={t.key}
+        onClick={() => onChange(t.key)}
+        className={cn(
+          "flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium rounded transition-all duration-150",
+          active === t.key
+            ? "bg-background text-foreground shadow-sm"
+            : "text-muted-foreground hover:text-foreground"
+        )}
+      >
+        {t.label}
+        {t.badge !== undefined && t.badge > 0 && (
+          <span
+            className={cn(
+              "text-[9px] font-bold px-1 py-px rounded leading-none",
+              t.badgeDestructive
+                ? "bg-destructive/15 text-destructive"
+                : "bg-primary/10 text-primary"
+            )}
+          >
+            {t.badge}
+          </span>
+        )}
+      </button>
+    ))}
+  </div>
+);
+
+// ─── DashSection — sección del dashboard ─────────────────────────────────────
+const DashSection = ({
+  icon: Icon,
+  title,
+  badge,
+  iconClass,
+  children,
+  delay = 0,
+  tabBar,
+}: {
+  icon: any;
+  title: string;
+  badge?: number;
+  iconClass?: string;
+  children: React.ReactNode;
+  delay?: number;
+  tabBar?: React.ReactNode;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 6 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay, duration: 0.2 }}
+    className="flex flex-col bg-card border border-border rounded-md overflow-hidden min-h-0"
+  >
+    {/* Header 32px */}
+    <div className="flex items-center gap-2 px-3 h-8 border-b border-border flex-shrink-0 bg-muted/25">
+      <Icon className={cn("h-3.5 w-3.5 flex-shrink-0", iconClass || "text-muted-foreground")} />
+      <span className="text-[11px] font-semibold text-foreground uppercase tracking-wide leading-none">
+        {title}
+      </span>
+      {badge !== undefined && badge > 0 && (
+        <span className="ml-auto text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-semibold flex-shrink-0">
+          {badge}
+        </span>
+      )}
+    </div>
+    {/* Tab bar opcional — fija, no scrollable */}
+    {tabBar && (
+      <div className="px-3 py-1.5 border-b border-border/50 flex-shrink-0">
+        {tabBar}
+      </div>
+    )}
+    {/* Body scrollable */}
+    <div
+      className="flex-1 min-h-0 overflow-y-auto px-3 py-2 space-y-0"
+      style={{ scrollbarWidth: "thin", scrollbarColor: "hsl(var(--border)) transparent" }}
+    >
+      {children}
+    </div>
+  </motion.div>
+);
+
+// ─── DashRow — fila compacta de dato ─────────────────────────────────────────
+const DashRow = ({
+  label,
+  value,
+  sub,
+  accentValue,
+  badge,
+  onClick,
+}: {
+  label: string;
+  value?: string;
+  sub?: string;
+  accentValue?: string;
+  badge?: string;
+  onClick?: () => void;
+}) => (
+  <div
+    className={cn(
+      "flex items-center justify-between gap-2 min-h-[30px] border-b border-border/40 last:border-0",
+      onClick &&
+        "cursor-pointer hover:bg-muted/40 rounded -mx-1 px-1 transition-colors"
+    )}
+    onClick={onClick}
+  >
+    <div className="flex items-center gap-1.5 min-w-0">
+      {badge && (
+        <span className="text-[9px] font-semibold text-muted-foreground bg-muted px-1 py-0.5 rounded uppercase flex-shrink-0">
+          {badge}
+        </span>
+      )}
+      <span className="text-[12px] text-foreground truncate">{label}</span>
+    </div>
+    <div className="flex flex-col items-end flex-shrink-0">
+      {value && (
+        <span className={cn("text-[12px] font-semibold", accentValue || "text-foreground")}>
+          {value}
+        </span>
+      )}
+      {sub && <span className="text-[10px] text-muted-foreground leading-none">{sub}</span>}
+    </div>
+  </div>
+);
+
+// ─── DashLabel — etiqueta de grupo dentro de sección ─────────────────────────
+const DashLabel = ({ children }: { children: React.ReactNode }) => (
+  <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide pt-1.5 pb-0.5 first:pt-0">
+    {children}
+  </div>
+);
+
+// ─── FinancialDonut — gráfico donut ingresos vs gastos ───────────────────────
+const FinancialDonut = ({
+  revenue,
+  expenses,
+  netResult,
+  netMarginPct,
+  pendingCollection,
+  totalPayments,
+}: {
+  revenue: number;
+  expenses: number;
+  netResult: number;
+  netMarginPct: string;
+  pendingCollection: number;
+  totalPayments: number;
+}) => {
+  const donutData = [
+    { name: "Ingresos netos", value: revenue > 0 ? revenue : 0 },
+    { name: "Gastos", value: expenses > 0 ? expenses : 0 },
+  ];
+  const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-5))"];
+
+  return (
+    <div className="flex flex-col gap-2 h-full">
+      {/* Donut */}
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="w-[90px] h-[90px] flex-shrink-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={donutData}
+                cx="50%"
+                cy="50%"
+                innerRadius={28}
+                outerRadius={42}
+                strokeWidth={0}
+                dataKey="value"
+              >
+                {donutData.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i]} />
+                ))}
+              </Pie>
+              <ReTooltip
+                formatter={(value: number) => fmt(value)}
+                contentStyle={{
+                  background: "hsl(var(--popover))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "6px",
+                  fontSize: "11px",
+                  padding: "4px 8px",
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex flex-col gap-1.5 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: COLORS[0] }} />
+            <span className="text-[11px] text-muted-foreground truncate">Ingresos netos</span>
+            <span className="text-[11px] font-semibold text-foreground ml-auto">{fmt(revenue)}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: COLORS[1] }} />
+            <span className="text-[11px] text-muted-foreground truncate">Gastos</span>
+            <span className="text-[11px] font-semibold text-foreground ml-auto">{fmt(expenses)}</span>
+          </div>
+          <div className="border-t border-border/50 pt-1 mt-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Resultado</span>
+              <span className={cn("text-[12px] font-bold", netResult >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive")}>
+                {fmt(netResult)}
+              </span>
+            </div>
+            <div className="text-[10px] text-muted-foreground">{netMarginPct}% margen neto</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Cobros vs pagos pendientes */}
+      <div className="grid grid-cols-2 gap-1.5 mt-auto">
+        <div className="rounded border border-destructive/20 bg-destructive/5 px-2 py-1.5">
+          <div className="text-[10px] text-muted-foreground leading-none mb-0.5">Por cobrar</div>
+          <div className={cn("text-sm font-bold leading-none", pendingCollection > 0 ? "text-destructive" : "text-muted-foreground")}>
+            {fmt(pendingCollection)}
+          </div>
+        </div>
+        <div className="rounded border border-amber-500/20 bg-amber-500/5 px-2 py-1.5">
+          <div className="text-[10px] text-muted-foreground leading-none mb-0.5">Por pagar</div>
+          <div className={cn("text-sm font-bold leading-none", totalPayments > 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground")}>
+            {fmt(totalPayments)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── AdminDashboard ───────────────────────────────────────────────────────────
 const AdminDashboard = () => {
   const [data, setData] = useState<AdminData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<"quarter" | "year">("quarter");
+  const [treasuryTab, setTreasuryTab] = useState<"cobros" | "pagos">("cobros");
   const navigate = useNavigate();
   const { userId } = useParams();
 
@@ -68,7 +321,9 @@ const AdminDashboard = () => {
     const fetch = async () => {
       setLoading(true);
       try {
-        const { data: result } = await supabase.rpc("dashboard_get_admin_overview", { p_period: period });
+        const { data: result } = await supabase.rpc("dashboard_get_admin_overview", {
+          p_period: period,
+        });
         setData(result as unknown as AdminData);
       } catch (e) {
         console.error(e);
@@ -80,16 +335,19 @@ const AdminDashboard = () => {
   }, [period]);
 
   const PeriodFilter = () => (
-    <div className="flex gap-1.5 bg-secondary/50 rounded-lg p-1 border border-border/50">
+    <div className="flex gap-0.5 bg-muted rounded p-0.5">
       {(["quarter", "year"] as const).map((p) => (
         <button
           key={p}
           onClick={() => setPeriod(p)}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
-            period === p ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-          }`}
+          className={cn(
+            "px-2.5 py-1 text-[11px] font-medium rounded transition-all duration-150",
+            period === p
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
         >
-          {p === "quarter" ? "Trimestre" : "Ano"}
+          {p === "quarter" ? "Trimestre" : "Año"}
         </button>
       ))}
     </div>
@@ -97,274 +355,304 @@ const AdminDashboard = () => {
 
   if (loading || !data) {
     return (
-      <div className="w-full h-full flex flex-col">
-        <DetailNavigationBar pageTitle="Dashboard" contextInfo="Admin · Centro de mando" tools={<PeriodFilter />} />
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          <div className="grid grid-cols-4 gap-3">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+      <div className="w-full h-full flex flex-col overflow-hidden">
+        <DetailNavigationBar
+          pageTitle="Dashboard"
+          contextInfo="Admin · Centro de mando"
+          tools={<PeriodFilter />}
+        />
+        <div className="flex-1 min-h-0 grid grid-rows-[auto_1fr_350px] gap-1.5 pt-2 px-4 pb-2 overflow-hidden">
+          <div className="grid grid-cols-5 gap-1.5">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-10 rounded-md" />
+            ))}
           </div>
-          <Skeleton className="h-48 rounded-xl" />
-          <Skeleton className="h-48 rounded-xl" />
+          <div className="grid grid-cols-3 gap-1.5 min-h-0">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="rounded-md" />
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            <Skeleton className="rounded-md" />
+            <Skeleton className="rounded-md" />
+          </div>
         </div>
       </div>
     );
   }
 
   const k = data.kpis;
+  const cr = data.collection_risk;
+  const ops = data.operations;
+  const up = data.upcoming_payments;
+
   const totalPendingPayments = k.pending_payments_suppliers + k.pending_payroll + k.pending_financing;
   const netResult = k.gross_margin.revenue - k.gross_margin.expenses;
-  const netMarginPct = k.gross_margin.revenue > 0
-    ? ((netResult / k.gross_margin.revenue) * 100).toFixed(1)
-    : "0";
+  const netMarginPct =
+    k.gross_margin.revenue > 0
+      ? ((netResult / k.gross_margin.revenue) * 100).toFixed(1)
+      : "0";
+
+  // Unificar pagos próximos y ordenar por fecha
+  type PaymentItem = { label: string; amount: number; due_date: string; badge: string };
+  const allPayments: PaymentItem[] = [
+    ...up.purchase_invoices.map((p) => ({
+      label: p.supplier_name || p.reference || "Proveedor",
+      amount: p.amount,
+      due_date: p.due_date || "",
+      badge: "COMP",
+    })),
+    ...up.credit_installments.map((p) => ({
+      label: p.provider_name || "Financiación",
+      amount: p.amount,
+      due_date: p.due_date || "",
+      badge: "FIN",
+    })),
+    ...up.payrolls.map((p) => ({
+      label: p.employee_name || "Empleado",
+      amount: p.net_amount,
+      due_date: p.due_date || "",
+      badge: "NOM",
+    })),
+    ...up.partner_compensations.map((p) => ({
+      label: p.partner_name || "Socio",
+      amount: p.net_amount,
+      due_date: p.due_date || "",
+      badge: "SOC",
+    })),
+  ].sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
 
   return (
-    <div className="w-full h-full flex flex-col">
-      <DetailNavigationBar pageTitle="Dashboard" contextInfo="Admin · Centro de mando financiero" tools={<PeriodFilter />} />
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      <DetailNavigationBar
+        pageTitle="Dashboard"
+        contextInfo="Admin · Centro de mando"
+        tools={<PeriodFilter />}
+      />
 
-      <div className="flex-1 overflow-y-auto space-y-4 pb-6">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          <KpiCard
-            icon={Receipt}
-            label={`Facturado bruto (${period === "quarter" ? "Trim." : "Ano"})`}
-            value={formatCurrency(k.invoiced_amount)}
-            sub={`${k.invoiced_count} facturas emitidas`}
+      {/* Cuerpo: grid rows — KPIs / secciones / calendario */}
+      <div className="flex-1 min-h-0 grid grid-rows-[auto_1fr_350px] gap-1.5 pt-2 px-4 pb-2 overflow-hidden">
+
+        {/* ── Fila 1: KPIs ── */}
+        <div className="grid grid-cols-5 gap-1.5">
+          <CompactKpiCard
+            label={`Facturado · ${period === "quarter" ? "Trim." : "Año"}`}
+            value={fmt(k.invoiced_amount)}
+            sub={`${k.invoiced_count} facturas`}
             color="emerald"
             delay={0.05}
           />
-          <KpiCard
-            icon={TrendingUp}
-            label="Ingreso neto"
-            value={formatCurrency(k.invoiced_net_amount)}
-            sub={`IVA: ${formatCurrency(k.invoiced_tax_amount)}`}
+          <CompactKpiCard
+            label="Facturado neto"
+            value={fmt(k.invoiced_net_amount)}
+            sub={`IVA: ${fmt(k.invoiced_tax_amount)}`}
             color="cyan"
-            delay={0.1}
+            delay={0.08}
           />
-          <KpiCard
-            icon={AlertCircle}
-            label="Pendiente cobrar"
-            value={formatCurrency(k.pending_collection)}
+          <CompactKpiCard
+            label="Pendiente cobro"
+            value={fmt(k.pending_collection)}
             sub={`${k.pending_collection_count} facturas`}
             color="destructive"
-            delay={0.15}
+            delay={0.11}
           />
-          <KpiCard
-            icon={CreditCard}
+          <CompactKpiCard
             label="Pagos pendientes"
-            value={formatCurrency(totalPendingPayments)}
-            sub="Proveedores + nominas + cuotas"
+            value={fmt(totalPendingPayments)}
+            sub="Prov. + nóm. + cuotas"
             color="amber"
-            delay={0.2}
+            delay={0.14}
           />
-          <KpiCard
-            icon={TrendingUp}
-            label="Resultado PyG"
-            value={formatCurrency(netResult)}
-            sub={`${netMarginPct}% margen neto`}
-            color="violet"
-            delay={0.25}
+          <CompactKpiCard
+            label="Resultado P&G"
+            value={fmt(netResult)}
+            sub={`${netMarginPct}% margen`}
+            color={netResult >= 0 ? "emerald" : "destructive"}
+            delay={0.17}
           />
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="bg-card/50 border border-border rounded-xl p-4"
-        >
-          <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-destructive" /> Riesgo de cobro
-          </h3>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
-              <div className="text-xs text-muted-foreground mb-1">Vencidas</div>
-              <div className="text-xl font-bold text-destructive">{formatCurrency(data.collection_risk.overdue.amount)}</div>
-              <div className="text-xs text-muted-foreground">{data.collection_risk.overdue.count} facturas</div>
-            </div>
-            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
-              <div className="text-xs text-muted-foreground mb-1">Vencen en 7 dias</div>
-              <div className="text-xl font-bold text-amber-500">{formatCurrency(data.collection_risk.due_7_days.amount)}</div>
-              <div className="text-xs text-muted-foreground">{data.collection_risk.due_7_days.count} facturas</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-xs text-muted-foreground mb-1">Top deudores</div>
-              {data.collection_risk.top_debtors.length === 0 ? (
-                <div className="text-xs text-muted-foreground italic">Sin deudas pendientes</div>
-              ) : (
-                data.collection_risk.top_debtors.slice(0, 5).map((d) => (
-                  <div key={d.client_id} className="flex justify-between items-center text-xs">
-                    <button onClick={() => navigate(`/nexo-av/${userId}/clients/${d.client_id}`)} className="text-foreground hover:text-primary truncate max-w-[140px]">
-                      {d.client_name}
-                    </button>
-                    <span className="font-semibold text-destructive">{formatCurrency(d.total_debt)}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </motion.div>
+        {/* ── Fila 2: secciones — 3 columnas ── */}
+        <div className="grid grid-cols-3 gap-1.5 min-h-0">
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="bg-card/50 border border-border rounded-xl p-4"
-        >
-          <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <CalendarClock className="h-4 w-4 text-amber-500" /> Pagos proximos 7 dias
-          </h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <PaymentList
-              title="Facturas de compra"
-              icon={FileText}
-              items={data.upcoming_payments.purchase_invoices}
-              renderItem={(item) => (
-                <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0">
-                  <div className="truncate max-w-[200px]">
-                    <span className="text-foreground font-medium">{item.supplier_name}</span>
-                    <span className="text-muted-foreground ml-1.5">#{item.reference}</span>
+          {/* S1+S2 fusionadas: Tesorería con tabs Cobros / Pagos */}
+          <DashSection
+            icon={cr.overdue.amount > 0 ? Receipt : CalendarClock}
+            title="Tesorería"
+            iconClass={cr.overdue.amount > 0 ? "text-destructive" : "text-emerald-500"}
+            delay={0.15}
+            tabBar={
+              <DashTabBar
+                tabs={[
+                  {
+                    key: "cobros",
+                    label: "Cobros",
+                    badge: k.pending_collection_count,
+                    badgeDestructive: cr.overdue.amount > 0,
+                  },
+                  {
+                    key: "pagos",
+                    label: "Pagos",
+                    badge: allPayments.length,
+                  },
+                ]}
+                active={treasuryTab}
+                onChange={(k) => setTreasuryTab(k as "cobros" | "pagos")}
+              />
+            }
+          >
+            {treasuryTab === "cobros" ? (
+              <>
+                {/* Mini-cards de riesgo */}
+                <div className="grid grid-cols-2 gap-1.5 mb-2">
+                  <div className="rounded border border-destructive/20 bg-destructive/5 px-2 py-1.5">
+                    <div className="text-[10px] text-muted-foreground leading-none mb-0.5">Vencidas</div>
+                    <div className={cn("text-sm font-bold leading-none", cr.overdue.amount > 0 ? "text-destructive" : "text-muted-foreground")}>
+                      {fmt(cr.overdue.amount)}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground leading-none mt-0.5">{cr.overdue.count} fact.</div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-foreground">{formatCurrency(item.amount)}</div>
-                    <div className="text-[10px] text-muted-foreground">{new Date(item.due_date).toLocaleDateString("es-ES")}</div>
+                  <div className="rounded border border-amber-500/20 bg-amber-500/5 px-2 py-1.5">
+                    <div className="text-[10px] text-muted-foreground leading-none mb-0.5">En 7 días</div>
+                    <div className={cn("text-sm font-bold leading-none", cr.due_7_days.amount > 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground")}>
+                      {fmt(cr.due_7_days.amount)}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground leading-none mt-0.5">{cr.due_7_days.count} fact.</div>
                   </div>
                 </div>
-              )}
-            />
-            <PaymentList
-              title="Cuotas financiacion"
-              icon={Banknote}
-              items={data.upcoming_payments.credit_installments}
-              renderItem={(item) => (
-                <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0">
-                  <div className="truncate max-w-[200px]">
-                    <span className="text-foreground font-medium">{item.provider_name}</span>
-                    <span className="text-muted-foreground ml-1.5">Cuota {item.installment_number}</span>
+                <DashLabel>Top deudores</DashLabel>
+                {cr.top_debtors.length === 0 ? (
+                  <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 py-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                    Sin deudas pendientes
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-foreground">{formatCurrency(item.amount)}</div>
-                    <div className="text-[10px] text-muted-foreground">{new Date(item.due_date).toLocaleDateString("es-ES")}</div>
-                  </div>
-                </div>
-              )}
-            />
-            <PaymentList
-              title="Nominas pendientes"
-              icon={Users}
-              items={data.upcoming_payments.payrolls}
-              renderItem={(item) => (
-                <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0">
-                  <span className="text-foreground font-medium truncate max-w-[200px]">{item.employee_name}</span>
-                  <span className="font-semibold text-foreground">{formatCurrency(item.net_amount)}</span>
-                </div>
-              )}
-            />
-            <PaymentList
-              title="Compensaciones socios"
-              icon={Users}
-              items={data.upcoming_payments.partner_compensations}
-              renderItem={(item) => (
-                <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0">
-                  <span className="text-foreground font-medium truncate max-w-[200px]">{item.partner_name}</span>
-                  <span className="font-semibold text-foreground">{formatCurrency(item.net_amount)}</span>
-                </div>
-              )}
-            />
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45 }}
-          className="grid grid-cols-1 lg:grid-cols-3 gap-3"
-        >
-          <div className="bg-card/50 border border-border rounded-xl p-4 flex flex-col items-center justify-center text-center">
-            <FolderKanban className="h-6 w-6 text-violet-500 mb-2" />
-            <div className="text-2xl font-bold text-foreground">{data.operations.sites_ready_to_invoice}</div>
-            <div className="text-xs text-muted-foreground">Sites listos para facturar</div>
-          </div>
-          <div className="bg-card/50 border border-border rounded-xl p-4 flex flex-col items-center justify-center text-center">
-            <Clock className="h-6 w-6 text-blue-500 mb-2" />
-            <div className="text-2xl font-bold text-foreground">{data.operations.projects_in_progress}</div>
-            <div className="text-xs text-muted-foreground">Proyectos en curso</div>
-          </div>
-          <div className="bg-card/50 border border-border rounded-xl p-4">
-            <div className="text-xs text-muted-foreground mb-2">Presupuestos grandes en negociacion</div>
-            {data.operations.large_quotes_negotiation.length === 0 ? (
-              <div className="text-xs text-muted-foreground italic">Sin presupuestos pendientes</div>
+                ) : (
+                  cr.top_debtors.slice(0, 6).map((d) => (
+                    <DashRow
+                      key={d.client_id}
+                      label={d.client_name}
+                      value={fmt(d.total_debt)}
+                      sub={`${d.invoice_count} fact.`}
+                      accentValue="text-destructive"
+                      onClick={() => navigate(`/nexo-av/${userId}/clients/${d.client_id}`)}
+                    />
+                  ))
+                )}
+              </>
             ) : (
-              <div className="space-y-1.5">
-                {data.operations.large_quotes_negotiation.map((q: any) => (
-                  <button
-                    key={q.id}
-                    onClick={() => navigate(`/nexo-av/${userId}/quotes/${q.id}`)}
-                    className="w-full flex justify-between text-xs hover:bg-secondary/50 rounded px-1 py-1 transition-colors"
-                  >
-                    <span className="text-foreground truncate max-w-[150px]">{q.client_name}</span>
-                    <span className="font-semibold text-primary">{formatCurrency(q.total)}</span>
-                  </button>
-                ))}
-              </div>
+              <>
+                {allPayments.length === 0 ? (
+                  <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 py-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                    Sin pagos próximos
+                  </div>
+                ) : (
+                  allPayments.slice(0, 12).map((p, i) => (
+                    <DashRow
+                      key={i}
+                      label={p.label}
+                      value={fmt(p.amount)}
+                      sub={fmtDate(p.due_date)}
+                      badge={p.badge}
+                    />
+                  ))
+                )}
+              </>
             )}
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  );
-};
+          </DashSection>
 
-const KpiCard = ({ icon: Icon, label, value, sub, color, delay }: {
-  icon: any;
-  label: string;
-  value: string;
-  sub: string;
-  color: string;
-  delay: number;
-}) => {
-  const colorMap: Record<string, string> = {
-    emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    destructive: "bg-destructive/10 text-destructive",
-    amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    cyan: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
-    violet: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
-  };
+          {/* S3: Operaciones activas */}
+          <DashSection
+            icon={FolderKanban}
+            title="Operaciones activas"
+            iconClass="text-violet-500"
+            delay={0.25}
+          >
+            {/* Contadores principales */}
+            <div className="grid grid-cols-2 gap-1.5 mb-2">
+              <div
+                className={cn(
+                  "rounded border px-2 py-1.5 cursor-pointer transition-colors",
+                  ops.sites_ready_to_invoice > 0
+                    ? "border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10"
+                    : "border-border bg-muted/20"
+                )}
+                onClick={() => navigate(`/nexo-av/${userId}/projects`)}
+              >
+                <div className="text-[10px] text-muted-foreground leading-none mb-0.5">Listos a facturar</div>
+                <div className={cn("text-xl font-bold leading-none", ops.sites_ready_to_invoice > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}>
+                  {ops.sites_ready_to_invoice}
+                </div>
+                <div className="text-[10px] text-muted-foreground leading-none mt-0.5">sites</div>
+              </div>
+              <div
+                className="rounded border border-border bg-muted/20 px-2 py-1.5 cursor-pointer hover:bg-muted/40 transition-colors"
+                onClick={() => navigate(`/nexo-av/${userId}/projects`)}
+              >
+                <div className="text-[10px] text-muted-foreground leading-none mb-0.5">En ejecución</div>
+                <div className="text-xl font-bold leading-none text-violet-600 dark:text-violet-400">
+                  {ops.projects_in_progress}
+                </div>
+                <div className="text-[10px] text-muted-foreground leading-none mt-0.5">proyectos</div>
+              </div>
+            </div>
 
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}>
-      <div className="bg-card/50 border border-border rounded-lg p-3">
-        <div className="flex items-center gap-2 mb-1">
-          <div className={`p-1 rounded ${colorMap[color] || colorMap.cyan}`}>
-            <Icon className="h-3.5 w-3.5" />
-          </div>
-          <span className="text-muted-foreground text-xs font-medium">{label}</span>
+            {ops.large_quotes_negotiation.length > 0 && (
+              <>
+                <DashLabel>Negociaciones activas</DashLabel>
+                {ops.large_quotes_negotiation.slice(0, 5).map((q: any) => (
+                  <DashRow
+                    key={q.id}
+                    label={q.client_name}
+                    value={fmt(q.total)}
+                    accentValue="text-primary"
+                    onClick={() => navigate(`/nexo-av/${userId}/quotes/${q.id}`)}
+                  />
+                ))}
+              </>
+            )}
+
+            <button
+              onClick={() => navigate(`/nexo-av/${userId}/projects`)}
+              className="mt-2 flex items-center gap-0.5 text-[11px] text-primary hover:underline"
+            >
+              Ver todos los proyectos <ArrowRight className="h-3 w-3" />
+            </button>
+          </DashSection>
+
+          {/* S4: Resultado financiero — donut ingresos vs gastos */}
+          <DashSection
+            icon={BarChart3}
+            title="Resultado financiero"
+            iconClass="text-violet-500"
+            delay={0.3}
+          >
+            <FinancialDonut
+              revenue={k.gross_margin.revenue}
+              expenses={k.gross_margin.expenses}
+              netResult={netResult}
+              netMarginPct={netMarginPct}
+              pendingCollection={k.pending_collection}
+              totalPayments={totalPendingPayments}
+            />
+          </DashSection>
+
         </div>
-        <div className="text-lg font-bold text-foreground">{value}</div>
-        <div className="text-[10px] text-muted-foreground">{sub}</div>
+
+        {/* ── Fila 3: zona reservada para calendario — 2 columnas ── */}
+        <div className="grid grid-cols-2 gap-1.5 min-h-0">
+          <div className="flex items-center justify-center rounded-md border border-dashed border-border/50 bg-muted/20 text-[11px] text-muted-foreground/50 select-none">
+            Calendario izquierda
+          </div>
+          <div className="flex items-center justify-center rounded-md border border-dashed border-border/50 bg-muted/20 text-[11px] text-muted-foreground/50 select-none">
+            Calendario derecha
+          </div>
+        </div>
+
       </div>
-    </motion.div>
+      {/* fin cuerpo */}
+    </div>
   );
 };
-
-const PaymentList = ({ title, icon: Icon, items, renderItem }: {
-  title: string;
-  icon: any;
-  items: any[];
-  renderItem: (item: any) => React.ReactNode;
-}) => (
-  <div>
-    <div className="flex items-center gap-1.5 mb-2">
-      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-      <span className="text-xs font-medium text-muted-foreground">{title}</span>
-      {items.length > 0 && (
-        <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded-full">{items.length}</span>
-      )}
-    </div>
-    {items.length === 0 ? (
-      <div className="text-xs text-muted-foreground/60 italic">Sin pagos pendientes</div>
-    ) : (
-      <div>{items.map(renderItem)}</div>
-    )}
-  </div>
-);
 
 export default AdminDashboard;

@@ -25,6 +25,7 @@ import CreateTechnicianDialog from "../components/technicians/CreateTechnicianDi
 import DataList, { DataListColumn } from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
 import ConfirmActionDialog from "../components/common/ConfirmActionDialog";
+import CompactKpiCard from "../components/common/CompactKpiCard";
 
 interface Technician {
   id: string;
@@ -358,129 +359,18 @@ const TechniciansPageDesktop = () => {
   }
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
-      <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
-        <div>
-          {/* KPIs Cards - Recuento por Tipo - Optimizado */}
-          <div className="grid grid-cols-3 gap-2 mb-3">
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-blue-500/10 rounded text-blue-600">
-                  <UserRound className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Autónomos</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">
-                  {technicianKPIs.byType['FREELANCER'] || 0}
-                </span>
-                <span className="text-[10px] text-muted-foreground ml-1">
-                  ({technicians.filter(t => t.type === 'FREELANCER' && t.status === 'ACTIVE').length} activos)
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-purple-500/10 rounded text-purple-600">
-                  <Building2 className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Empresas</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">
-                  {technicianKPIs.byType['COMPANY'] || 0}
-                </span>
-                <span className="text-[10px] text-muted-foreground ml-1">
-                  ({technicians.filter(t => t.type === 'COMPANY' && t.status === 'ACTIVE').length} activas)
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-green-500/10 rounded text-green-600">
-                  <Briefcase className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Plantilla</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">
-                  {technicianKPIs.byType['EMPLOYEE'] || 0}
-                </span>
-                <span className="text-[10px] text-muted-foreground ml-1">
-                  ({technicians.filter(t => t.type === 'EMPLOYEE' && t.status === 'ACTIVE').length} activos)
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* KPIs Cards - Costes Mensuales - Optimizado */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-orange-500/10 rounded text-orange-600">
-                  <Euro className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Coste Total/Mes</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">
-                  {formatCurrency(technicianKPIs.monthlyCosts.totalExternal + technicianKPIs.monthlyCosts.totalEmployees)}
-                </span>
-                <div className="flex gap-1 mt-0.5 text-[10px] text-muted-foreground">
-                  <span>Ext: {formatCurrency(technicianKPIs.monthlyCosts.totalExternal)}</span>
-                  <span>•</span>
-                  <span>Pl: {formatCurrency(technicianKPIs.monthlyCosts.totalEmployees)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-blue-500/10 rounded text-blue-600">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Media Autónomos</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">
-                  {formatCurrency(technicianKPIs.monthlyCosts.avgFreelancer)}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-purple-500/10 rounded text-purple-600">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Media Empresas</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">
-                  {formatCurrency(technicianKPIs.monthlyCosts.avgCompany)}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-green-500/10 rounded text-green-600">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Media Plantilla</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">
-                  {formatCurrency(technicianKPIs.monthlyCosts.avgEmployee)}
-                </span>
-              </div>
-            </div>
+    <div className="flex flex-col h-full gap-3 overflow-hidden">
+          {/* KPIs — fila única compacta */}
+          <div className="grid grid-cols-5 gap-2 flex-shrink-0">
+            <CompactKpiCard label="Autónomos" value={String(technicianKPIs.byType['FREELANCER'] || 0)} sub={`${technicians.filter(t => t.type === 'FREELANCER' && t.status === 'ACTIVE').length} activos`} color="blue" delay={0} />
+            <CompactKpiCard label="Empresas" value={String(technicianKPIs.byType['COMPANY'] || 0)} sub={`${technicians.filter(t => t.type === 'COMPANY' && t.status === 'ACTIVE').length} activas`} color="violet" delay={0.05} />
+            <CompactKpiCard label="Plantilla" value={String(technicianKPIs.byType['EMPLOYEE'] || 0)} sub={`${technicians.filter(t => t.type === 'EMPLOYEE' && t.status === 'ACTIVE').length} activos`} color="emerald" delay={0.1} />
+            <CompactKpiCard label="Coste ext./mes" value={formatCurrency(technicianKPIs.monthlyCosts.totalExternal)} color="amber" delay={0.15} />
+            <CompactKpiCard label="Coste plantilla/mes" value={formatCurrency(technicianKPIs.monthlyCosts.totalEmployees)} color="cyan" delay={0.2} />
           </div>
 
           {/* DetailNavigationBar */}
-          <div className="mb-6">
+          <div className="flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Técnicos"
               contextInfo={
@@ -709,8 +599,6 @@ const TechniciansPageDesktop = () => {
               onGoToPage={goToPage}
             />
           )}
-        </div>
-      </div>
 
       <CreateTechnicianDialog
         open={showCreateDialog}

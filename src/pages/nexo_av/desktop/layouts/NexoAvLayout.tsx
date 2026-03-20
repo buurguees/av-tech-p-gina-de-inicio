@@ -26,6 +26,7 @@ import {
   CalendarDays,
   BookOpen,
   FolderOpen,
+  Bell,
 } from "lucide-react";
 
 interface UserInfo {
@@ -65,40 +66,47 @@ const Header = ({
   const navigate = useNavigate();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
-      <div className="w-full h-[3.25rem] px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-full w-full">
-          <PlatformBrand userId={userId} />
+    <header className="fixed top-0 left-0 right-0 z-50 h-[var(--header-height)] bg-background border-b border-border">
+      <div className="h-full flex items-center justify-between px-4 lg:px-5">
+        <PlatformBrand userId={userId} />
 
-          {userInfo && (
-            <div className="flex items-center gap-4">
-              {/* Role Simulator - solo visible para admin real */}
-              {isRealAdmin && (
-                <RoleSimulator
-                  currentRole={simulatedRole as SimulatedRole}
-                  onRoleChange={onSimulatedRoleChange}
-                  isVisible={true}
-                />
-              )}
+        {userInfo && (
+          <div className="flex items-center gap-2">
+            {/* Role Simulator - solo visible para admin real */}
+            {isRealAdmin && (
+              <RoleSimulator
+                currentRole={simulatedRole as SimulatedRole}
+                onRoleChange={onSimulatedRoleChange}
+                isVisible={true}
+              />
+            )}
 
-              <UserInfo
-                name={userInfo.full_name}
-                role={userInfo.roles}
-                align="right"
-              />
-              <UserAvatar
-                fullName={userInfo.full_name}
-                email={userInfo.email}
-                userId={userInfo.user_id}
-                phone={userInfo.phone || ''}
-                position={userInfo.job_position || ''}
-                themePreference={currentTheme}
-                onLogout={onLogout}
-                onThemeChange={onThemeChange}
-              />
-            </div>
-          )}
-        </div>
+            {/* Notification bell — placeholder */}
+            <button
+              type="button"
+              className="relative flex items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              title="Notificaciones (próximamente)"
+            >
+              <Bell className="w-4 h-4" />
+            </button>
+
+            <UserInfo
+              name={userInfo.full_name}
+              role={userInfo.roles}
+              align="right"
+            />
+            <UserAvatar
+              fullName={userInfo.full_name}
+              email={userInfo.email}
+              userId={userInfo.user_id}
+              phone={userInfo.phone || ''}
+              position={userInfo.job_position || ''}
+              themePreference={currentTheme}
+              onLogout={onLogout}
+              onThemeChange={onThemeChange}
+            />
+          </div>
+        )}
       </div>
     </header>
   );
@@ -115,6 +123,17 @@ const NexoAvLayout = () => {
   const [accessDenied, setAccessDenied] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
   const [simulatedRole, setSimulatedRole] = useState<SimulatedRole>(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('nexo-sidebar-collapsed') === 'true';
+  });
+
+  const handleToggleSidebar = () => {
+    setIsSidebarCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('nexo-sidebar-collapsed', String(next));
+      return next;
+    });
+  };
 
   // Apply nexo-av theme
   useNexoAvTheme(currentTheme);
@@ -402,20 +421,25 @@ const NexoAvLayout = () => {
       />
 
       {/* Sidebar - Fijo a la izquierda debajo del header */}
-      <aside className="fixed left-0 top-[3.25rem] z-40 h-[calc(100vh-3.25rem)]" style={{ width: 'var(--sidebar-width, 14rem)' }}>
+      <aside
+        className="fixed left-0 top-[var(--header-height)] z-40 h-[calc(100vh-var(--header-height))] transition-all duration-300"
+        style={{ width: isSidebarCollapsed ? 'var(--sidebar-width-collapsed, 3rem)' : 'var(--sidebar-width, 12.5rem)' }}
+      >
         <Sidebar
           userId={userId}
           modules={modules}
           userRole={isAdmin ? 'admin' : isManager ? 'manager' : isComercial ? 'sales' : isTech ? 'tech' : undefined}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={handleToggleSidebar}
         />
       </aside>
 
       {/* Contenido principal - Anclado al sidebar */}
-      <main 
-        className="bg-background pt-[3.25rem]" 
-        style={{ marginLeft: 'var(--sidebar-width, 14rem)' }}
+      <main
+        className="bg-background pt-[var(--header-height)] transition-all duration-300"
+        style={{ marginLeft: isSidebarCollapsed ? 'var(--sidebar-width-collapsed, 3rem)' : 'var(--sidebar-width, 12.5rem)' }}
       >
-        <div className="h-[calc(100vh-3.25rem)] overflow-y-auto overflow-x-hidden p-5">
+        <div className="h-[calc(100vh-var(--header-height))] overflow-y-auto overflow-x-auto p-4">
           <Outlet />
         </div>
       </main>

@@ -167,7 +167,7 @@ export default function WorkersPage() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6 gap-6">
+    <div className="flex flex-col h-full gap-3 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

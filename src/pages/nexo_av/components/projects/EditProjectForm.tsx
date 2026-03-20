@@ -1,6 +1,9 @@
 /**
  * EditProjectForm - Formulario compartido para editar proyecto
  * Usado por EditProjectDialog (desktop) y EditProjectSheet (mobile)
+ *
+ * Campos editables: estado, ciudad, nombre del local, nº pedido, notas.
+ * La dirección completa (calle, CP, provincia, país) se edita en la tab de Sitios.
  */
 import { useState, useEffect, useMemo, ReactNode } from "react";
 import { useForm } from "react-hook-form";
@@ -68,11 +71,7 @@ const LabeledInput = ({ label, required, children }: LabeledInputProps) => (
 const formSchema = z.object({
   client_id: z.string().min(1, "El cliente es obligatorio"),
   status: z.string().default("PLANNED"),
-  project_address: z.string().optional(),
   project_city: z.string().optional(),
-  postal_code: z.string().optional(),
-  province: z.string().optional(),
-  country: z.string().optional(),
   local_name: z.string().optional(),
   client_order_number: z.string().optional(),
   notes: z.string().max(1000, "Las notas no pueden superar los 1000 caracteres").optional(),
@@ -129,11 +128,7 @@ export const EditProjectForm = ({
     defaultValues: {
       client_id: project.client_id || "",
       status: project.status || "NEGOTIATION",
-      project_address: project.project_address || "",
       project_city: project.project_city || "",
-      postal_code: "",
-      province: "",
-      country: "España",
       local_name: project.local_name || "",
       client_order_number: project.client_order_number || "",
       notes: project.notes || "",
@@ -182,11 +177,7 @@ export const EditProjectForm = ({
     form.reset({
       client_id: project.client_id || "",
       status: project.status || "PLANNED",
-      project_address: project.project_address || "",
       project_city: project.project_city || "",
-      postal_code: "",
-      province: "",
-      country: "España",
       local_name: project.local_name || "",
       client_order_number: project.client_order_number || "",
       notes: project.notes || "",
@@ -201,7 +192,6 @@ export const EditProjectForm = ({
       const updateData = {
         p_project_id: project.id,
         p_status: formValues.status || data.status || project.status,
-        p_project_address: (formValues.project_address || data.project_address || "").trim() || null,
         p_project_city: (formValues.project_city || data.project_city || "").trim() || null,
         p_local_name: (formValues.local_name || data.local_name || "").trim() || null,
         p_client_order_number: (formValues.client_order_number || data.client_order_number || "").trim() || null,
@@ -231,8 +221,8 @@ export const EditProjectForm = ({
         <InlineFormSection title="Asignación" icon={<Users className="h-4 w-4" />} columns={isSheet ? 1 : 2}>
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">Cliente <span className="text-destructive">*</span></label>
-            <Select 
-              value={form.watch("client_id")} 
+            <Select
+              value={form.watch("client_id")}
               onValueChange={(value) => form.setValue("client_id", value, { shouldValidate: true })}
               disabled={true}
             >
@@ -259,21 +249,16 @@ export const EditProjectForm = ({
         </InlineFormSection>
 
         <InlineFormSection title="Ubicación" icon={<MapPin className="h-4 w-4" />}>
-          <LabeledInput label="Dirección">
-            <Input placeholder="Calle y número del local" value={form.watch("project_address") || ""} onChange={(e) => form.setValue("project_address", e.target.value)} />
-          </LabeledInput>
           <LabeledInput label="Ciudad">
-            <Input placeholder="Ciudad" value={form.watch("project_city") || ""} onChange={(e) => form.setValue("project_city", e.target.value)} />
+            <Input
+              placeholder="Ciudad"
+              value={form.watch("project_city") || ""}
+              onChange={(e) => form.setValue("project_city", e.target.value)}
+            />
           </LabeledInput>
-          <LabeledInput label="Código Postal">
-            <Input placeholder="08000" value={form.watch("postal_code") || ""} onChange={(e) => form.setValue("postal_code", e.target.value)} />
-          </LabeledInput>
-          <LabeledInput label="Provincia">
-            <Input placeholder="Provincia" value={form.watch("province") || ""} onChange={(e) => form.setValue("province", e.target.value)} />
-          </LabeledInput>
-          <LabeledInput label="País">
-            <Input placeholder="País" value={form.watch("country") || ""} onChange={(e) => form.setValue("country", e.target.value)} />
-          </LabeledInput>
+          <p className="text-[11px] text-muted-foreground">
+            La dirección completa (calle, CP, provincia) se edita en la pestaña Sitios.
+          </p>
         </InlineFormSection>
 
         <InlineFormSection title="Información del Proyecto" icon={<FileText className="h-4 w-4" />}>

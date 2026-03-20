@@ -17,6 +17,7 @@
 @import './common/platform-brand.css';
 @import './common/form-dialog.css';
 @import './common/data-list.css';
+@import './common/filter-bar.css';
 @import './common/status-selector.css';
 @import './common/locked-indicator.css';
 @import './common/document-pdf-viewer.css';

@@ -27,6 +27,7 @@ import CreateClientDialog from "../components/clients/CreateClientDialog";
 import EditClientDialog from "../components/clients/EditClientDialog";
 import DataList, { DataListColumn, DataListAction } from "../components/common/DataList";
 import SearchBar, { SearchResult } from "../components/common/SearchBar";
+import CompactKpiCard from "../components/common/CompactKpiCard";
 
 interface Client {
   id: string;
@@ -358,174 +359,19 @@ const ClientsPageDesktop = () => {
   }
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
-      <div className="w-full h-full flex flex-col overflow-hidden">
-        <div className="flex flex-col h-full overflow-hidden">
-          {/* KPIs Cards - Recuento por Estado - Optimizado */}
-          <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mb-3 flex-shrink-0">
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-emerald-500/10 rounded text-emerald-600">
-                  <Award className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Recurrentes</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">
-                  {clientKPIs.byStage['RECURRING'] || 0}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-green-500/10 rounded text-green-600">
-                  <Target className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Ganados</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">
-                  {clientKPIs.byStage['WON'] || 0}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-blue-500/10 rounded text-blue-600">
-                  <Users className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">En Negociación</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">
-                  {clientKPIs.byStage['NEGOTIATION'] || 0}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-red-500/10 rounded text-red-600">
-                  <XCircle className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Perdidos</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">
-                  {clientKPIs.byStage['LOST'] || 0}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-violet-500/10 rounded text-violet-600">
-                  <Building2 className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Total</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">
-                  {clientKPIs.totalClients}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* KPIs Cards - Métricas de Negocio - Optimizado */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 flex-shrink-0">
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-purple-500/10 rounded text-purple-600">
-                  <FolderKanban className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Media Proy./Cliente</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">
-                  {clientKPIs.avgProjectsPerClient.toFixed(1)}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-orange-500/10 rounded text-orange-600">
-                  <Euro className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Ticket Medio</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">
-                  {formatCurrency(clientKPIs.avgInvoiceTicket)}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-green-500/10 rounded text-green-600">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Fact. Mensual</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">
-                  {formatCurrency(clientKPIs.monthlyRevenue)}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-cyan-500/10 rounded text-cyan-600">
-                  <BarChart3 className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Media Fact./Cliente</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">
-                  {formatCurrency(clientKPIs.avgRevenuePerClient)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* KPIs Cards - Métricas Mensuales - Optimizado */}
-          <div className="grid grid-cols-2 gap-2 mb-3 flex-shrink-0">
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-blue-500/10 rounded text-blue-600">
-                  <User className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Nuevos (Mes)</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">
-                  {clientKPIs.monthlyNewClients}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-green-500/10 rounded text-green-600">
-                  <Target className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Ganados (Mes)</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">
-                  {clientKPIs.monthlyWonClients}
-                </span>
-              </div>
-            </div>
+    <div className="flex flex-col h-full gap-3 overflow-hidden">
+          {/* KPIs — fila única compacta */}
+          <div className="grid grid-cols-6 gap-2 flex-shrink-0">
+            <CompactKpiCard label="Total clientes" value={String(clientKPIs.totalClients)} color="blue" delay={0} />
+            <CompactKpiCard label="Recurrentes" value={String(clientKPIs.byStage['RECURRING'] || 0)} color="emerald" delay={0.05} />
+            <CompactKpiCard label="Negociación" value={String(clientKPIs.byStage['NEGOTIATION'] || 0)} color="amber" delay={0.1} />
+            <CompactKpiCard label="Ticket medio" value={formatCurrency(clientKPIs.avgInvoiceTicket)} color="cyan" delay={0.15} />
+            <CompactKpiCard label="Fact. mensual" value={formatCurrency(clientKPIs.monthlyRevenue)} color="violet" delay={0.2} />
+            <CompactKpiCard label="Nuevos (mes)" value={String(clientKPIs.monthlyNewClients)} color="cyan" delay={0.25} />
           </div>
 
           {/* DetailNavigationBar */}
-          <div className="mb-6 flex-shrink-0">
+          <div className="flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Clientes"
               contextInfo={
@@ -704,8 +550,6 @@ const ClientsPageDesktop = () => {
               />
             </div>
           )}
-        </div>
-      </div>
 
       <CreateClientDialog
         open={showCreateDialog}

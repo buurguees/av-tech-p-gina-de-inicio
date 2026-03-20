@@ -13,12 +13,23 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Trash2, ChevronUp, ChevronDown, FileText } from "lucide-react";
+import { Loader2, Plus, Trash2, GripVertical, FileText } from "lucide-react";
 import { motion } from "motion/react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import ProductSearchInput from "../components/common/ProductSearchInput";
+import { SortableLineRow } from "../components/documents/SortableLineRow";
+import { useDocumentLines } from "../hooks/useDocumentLines";
 
 // ============= INLINE TYPES =============
 interface Client {
@@ -98,8 +109,22 @@ const NewQuotePage = () => {
   const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
   const [defaultTaxRate, setDefaultTaxRate] = useState(21);
   const [sourceQuoteNumber, setSourceQuoteNumber] = useState<string | null>(null);
-  const [expandedDescriptionIndex, setExpandedDescriptionIndex] = useState<number | null>(null);
-  const [numericInputValues, setNumericInputValues] = useState<Record<string, string>>({});
+
+  const {
+    expandedDescriptionIndex,
+    setExpandedDescriptionIndex,
+    numericInputValues,
+    setNumericInputValues,
+    calculateLineValues,
+    handleNumericInputChange: handleNumericChange,
+    clearNumericInputKey,
+    getNumericDisplayValue,
+    computeTotals,
+  } = useDocumentLines(defaultTaxRate, taxOptions);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
 
   // Load initial data
   useEffect(() => {
@@ -274,34 +299,6 @@ const NewQuotePage = () => {
     }
   };
 
-  // Line calculation helpers
-  const calculateLineValues = useCallback(
-    (line: Partial<DocumentLine>): DocumentLine => {
-      const quantity = line.quantity || 0;
-      const unitPrice = line.unit_price || 0;
-      const discountPercent = line.discount_percent || 0;
-      const taxRate = line.tax_rate ?? defaultTaxRate;
-
-      const subtotal = quantity * unitPrice * (1 - discountPercent / 100);
-      const taxAmount = subtotal * (taxRate / 100);
-      const total = subtotal + taxAmount;
-
-      return {
-        ...line,
-        concept: line.concept || "",
-        description: line.description || "",
-        quantity,
-        unit_price: unitPrice,
-        tax_rate: taxRate,
-        discount_percent: discountPercent,
-        subtotal,
-        tax_amount: taxAmount,
-        total,
-      } as DocumentLine;
-    },
-    [defaultTaxRate]
-  );
-
   const addEmptyLine = useCallback(() => {
     const newLine = calculateLineValues({
       tempId: crypto.randomUUID(),
@@ -331,75 +328,24 @@ const NewQuotePage = () => {
     setLines((prev) => prev.filter((_, i) => i !== index).map((line, i) => ({ ...line, line_order: i + 1 })));
   }, []);
 
-  const moveLine = useCallback((index: number, direction: "up" | "down") => {
-    setLines((prev) => {
-      const newLines = [...prev];
-      const targetIndex = direction === "up" ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= newLines.length) return prev;
-      [newLines[index], newLines[targetIndex]] = [newLines[targetIndex], newLines[index]];
-      return newLines.map((line, i) => ({ ...line, line_order: i + 1 }));
-    });
-  }, []);
-
-  // Parse numeric input (handles . and , as decimal separator)
-  const parseNumericInput = (value: string): number => {
-    if (!value || value === "") return 0;
-    let cleaned = value.trim();
-    const dotCount = (cleaned.match(/\./g) || []).length;
-    const commaCount = (cleaned.match(/,/g) || []).length;
-    if (commaCount > 0) {
-      cleaned = cleaned.replace(/\./g, "").replace(/,/g, ".");
-    } else if (dotCount === 1) {
-      const dotIndex = cleaned.indexOf(".");
-      const afterDot = cleaned.substring(dotIndex + 1);
-      if (afterDot.length <= 2 && /^\d+$/.test(afterDot)) {
-        // keep as is
-      } else {
-        cleaned = cleaned.replace(/\./g, "");
-      }
-    } else if (dotCount > 1) {
-      cleaned = cleaned.replace(/\./g, "");
-    }
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? 0 : num;
-  };
-
-  const formatNumericDisplay = (value: number | string): string => {
-    if (value === "" || value === null || value === undefined) return "";
-    const num = typeof value === "string" ? parseNumericInput(value) : value;
-    if (isNaN(num) || num === 0) return "";
-    return new Intl.NumberFormat("es-ES", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(num);
-  };
-
   const handleNumericInputChange = (
     value: string,
     field: "quantity" | "unit_price" | "discount_percent",
     actualIndex: number
   ) => {
-    const inputKey = `${actualIndex}-${field}`;
-    setNumericInputValues((prev) => ({ ...prev, [inputKey]: value }));
-    if (value === "" || value === null || value === undefined) {
-      updateLine(actualIndex, field, 0);
-      return;
-    }
-    const numericValue = parseNumericInput(value);
-    updateLine(actualIndex, field, numericValue);
+    handleNumericChange(value, field, actualIndex, updateLine as (i: number, f: string, v: number) => void);
   };
 
-  const getNumericDisplayValue = (
-    value: number,
-    field: "quantity" | "unit_price" | "discount_percent",
-    actualIndex: number
-  ): string => {
-    const inputKey = `${actualIndex}-${field}`;
-    const storedValue = numericInputValues[inputKey];
-    if (storedValue !== undefined) return storedValue;
-    if (value === 0) return "";
-    return formatNumericDisplay(value);
-  };
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setLines((prev) => {
+      const oldIndex = prev.findIndex((l) => (l.id || l.tempId) === active.id);
+      const newIndex = prev.findIndex((l) => (l.id || l.tempId) === over.id);
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      return arrayMove(prev, oldIndex, newIndex).map((line, i) => ({ ...line, line_order: i + 1 }));
+    });
+  }, []);
 
   const handleProductSelect = (index: number, item: { name: string; code?: string; price: number; tax_rate?: number; description?: string }) => {
     setLines((prev) => {
@@ -416,34 +362,10 @@ const NewQuotePage = () => {
     });
   };
 
-  // Totals (matching EditQuotePage - taxes by rate)
-  const totals = useMemo(() => {
-    const validLines = lines.filter((l) => l.concept.trim());
-    const subtotal = validLines.reduce((acc, l) => acc + l.subtotal, 0);
-    const total = validLines.reduce((acc, l) => acc + l.total, 0);
-    const taxesByRate: Record<
-      number,
-      { rate: number; amount: number; label: string }
-    > = {};
-    validLines.forEach((line) => {
-      if (line.tax_amount !== 0) {
-        if (!taxesByRate[line.tax_rate]) {
-          const taxOption = taxOptions.find((t) => t.value === line.tax_rate);
-          taxesByRate[line.tax_rate] = {
-            rate: line.tax_rate,
-            amount: 0,
-            label: taxOption?.label || `IVA ${line.tax_rate}%`,
-          };
-        }
-        taxesByRate[line.tax_rate].amount += line.tax_amount;
-      }
-    });
-    return {
-      subtotal,
-      taxes: Object.values(taxesByRate).sort((a, b) => b.rate - a.rate),
-      total,
-    };
-  }, [lines, taxOptions]);
+  const totals = useMemo(
+    () => computeTotals(lines.filter((l) => l.concept.trim())),
+    [lines, computeTotals]
+  );
 
   const handleSave = async () => {
     if (!selectedClientId) {
@@ -519,7 +441,7 @@ const NewQuotePage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-3.25rem)]">
+      <div className="flex items-center justify-center h-[calc(100vh-var(--header-height))]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -528,7 +450,7 @@ const NewQuotePage = () => {
   const availableClients = clients.filter((client) => client.lead_stage !== "LOST");
 
   return (
-    <div className="h-[calc(100vh-3.25rem)] overflow-y-auto bg-background">
+    <div className="h-[calc(100vh-var(--header-height))] overflow-y-auto bg-background">
       <DetailNavigationBar
         pageTitle={sourceQuoteNumber ? `Nueva versión de ${sourceQuoteNumber}` : "Nuevo presupuesto"}
         backPath={`/nexo-av/${userId}/quotes`}
@@ -684,7 +606,7 @@ const NewQuotePage = () => {
             <Table>
               <TableHeader>
                 <TableRow className="border-border hover:bg-transparent bg-white/[0.03]">
-                  <TableHead className="text-muted-foreground w-16 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
+                  <TableHead className="text-muted-foreground w-10 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
                   <TableHead className="text-muted-foreground w-24 px-5 py-3 text-xs font-semibold uppercase tracking-wider" title="Nº de producto (aparece como REF en el PDF)">
                     REF
                   </TableHead>
@@ -712,189 +634,162 @@ const NewQuotePage = () => {
                   <TableHead className="text-muted-foreground w-14 px-5 py-3"></TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {lines.map((line, displayIndex) => {
-                  const actualIndex = displayIndex;
-                  const isFirst = displayIndex === 0;
-                  const isLast = displayIndex === lines.length - 1;
-                  return (
-                    <TableRow
-                      key={line.tempId || line.id || displayIndex}
-                      className="border-border hover:bg-muted/20 transition-colors duration-150 group"
-                    >
-                      <TableCell className="px-5 py-3.5">
-                        <div className="flex flex-col gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => moveLine(actualIndex, "up")}
-                            disabled={isFirst}
-                            className="h-6 w-6 text-muted-foreground/50 hover:text-foreground hover:bg-muted disabled:opacity-20 disabled:cursor-not-allowed"
-                            title="Mover arriba"
-                          >
-                            <ChevronUp className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => moveLine(actualIndex, "down")}
-                            disabled={isLast}
-                            className="h-6 w-6 text-muted-foreground/50 hover:text-foreground hover:bg-muted disabled:opacity-20 disabled:cursor-not-allowed"
-                            title="Mover abajo"
-                          >
-                            <ChevronDown className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        <Input
-                          value={line.group_name || ""}
-                          onChange={(e) => updateLine(actualIndex, "group_name", e.target.value)}
-                          placeholder="Nº producto"
-                          className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm pl-2 pr-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
-                          title="Ej: PACK-0001, SP-01-0001. Se rellena automáticamente al buscar con @"
-                        />
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        <ProductSearchInput
-                          value={line.concept}
-                          onChange={(value) => updateLine(actualIndex, "concept", value)}
-                          onSelectItem={(item) =>
-                            handleProductSelect(actualIndex, {
-                              name: item.name,
-                              code: item.code,
-                              price: item.price,
-                              tax_rate: item.tax_rate,
-                              description: item.description,
-                            })
-                          }
-                          placeholder="@buscar producto"
-                          className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
-                        />
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        {expandedDescriptionIndex === actualIndex ? (
-                          <div className="space-y-2">
-                            <Textarea
-                              value={line.description || ""}
-                              onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
-                              placeholder="Descripción opcional"
-                              className="bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground text-sm px-3 py-2 min-h-[80px] resize-y focus:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
-                              onBlur={() => setExpandedDescriptionIndex(null)}
-                              autoFocus
-                            />
-                          </div>
-                        ) : (
-                          <Input
-                            value={line.description || ""}
-                            onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
-                            onClick={() => setExpandedDescriptionIndex(actualIndex)}
-                            className="bg-transparent border-0 border-b border-border text-foreground placeholder:text-muted-foreground h-auto text-sm pl-2 pr-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors cursor-text"
-                            placeholder="Descripción opcional"
-                            readOnly
-                          />
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={lines.map((l) => l.id || l.tempId || "")}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <TableBody>
+                    {lines.map((line, actualIndex) => (
+                      <SortableLineRow
+                        key={line.tempId || line.id || actualIndex}
+                        id={line.id || line.tempId || String(actualIndex)}
+                        className="border-border hover:bg-muted/20 transition-colors duration-150 group"
+                      >
+                        {(dragHandleProps) => (
+                          <>
+                            <TableCell className="px-3 py-3.5 w-10">
+                              <button
+                                {...dragHandleProps}
+                                className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+                                title="Arrastrar para reordenar"
+                              >
+                                <GripVertical className="h-4 w-4" />
+                              </button>
+                            </TableCell>
+                            <TableCell className="px-5 py-3.5">
+                              <Input
+                                value={line.group_name || ""}
+                                onChange={(e) => updateLine(actualIndex, "group_name", e.target.value)}
+                                placeholder="Nº producto"
+                                className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm pl-2 pr-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                                title="Ej: PACK-0001, SP-01-0001. Se rellena automáticamente al buscar con @"
+                              />
+                            </TableCell>
+                            <TableCell className="px-5 py-3.5">
+                              <ProductSearchInput
+                                value={line.concept}
+                                onChange={(value) => updateLine(actualIndex, "concept", value)}
+                                onSelectItem={(item) =>
+                                  handleProductSelect(actualIndex, {
+                                    name: item.name,
+                                    code: item.code,
+                                    price: item.price,
+                                    tax_rate: item.tax_rate,
+                                    description: item.description,
+                                  })
+                                }
+                                placeholder="@buscar producto"
+                                className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                              />
+                            </TableCell>
+                            <TableCell className="px-5 py-3.5">
+                              {expandedDescriptionIndex === actualIndex ? (
+                                <div className="space-y-2">
+                                  <Textarea
+                                    value={line.description || ""}
+                                    onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
+                                    placeholder="Descripción opcional"
+                                    className="bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground text-sm px-3 py-2 min-h-[80px] resize-y focus:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 rounded-lg"
+                                    onBlur={() => setExpandedDescriptionIndex(null)}
+                                    autoFocus
+                                  />
+                                </div>
+                              ) : (
+                                <Input
+                                  value={line.description || ""}
+                                  onChange={(e) => updateLine(actualIndex, "description", e.target.value)}
+                                  onClick={() => setExpandedDescriptionIndex(actualIndex)}
+                                  className="bg-transparent border-0 border-b border-border text-foreground placeholder:text-muted-foreground h-auto text-sm pl-2 pr-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors cursor-text"
+                                  placeholder="Descripción opcional"
+                                  readOnly
+                                />
+                              )}
+                            </TableCell>
+                            <TableCell className="px-5 py-3.5">
+                              <div className="flex justify-center">
+                                <Input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={getNumericDisplayValue(line.quantity, "quantity", actualIndex)}
+                                  onChange={(e) => handleNumericInputChange(e.target.value, "quantity", actualIndex)}
+                                  onBlur={() => clearNumericInputKey(actualIndex, "quantity")}
+                                  className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                                  placeholder="0"
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell className="px-5 py-3.5">
+                              <Input
+                                type="text"
+                                inputMode="decimal"
+                                value={getNumericDisplayValue(line.unit_price, "unit_price", actualIndex)}
+                                onChange={(e) => handleNumericInputChange(e.target.value, "unit_price", actualIndex)}
+                                onBlur={() => clearNumericInputKey(actualIndex, "unit_price")}
+                                className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-right font-medium px-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                                placeholder="0,00"
+                              />
+                            </TableCell>
+                            <TableCell className="px-5 py-3.5">
+                              <Input
+                                type="text"
+                                inputMode="decimal"
+                                value={getNumericDisplayValue(line.discount_percent || 0, "discount_percent", actualIndex)}
+                                onChange={(e) => handleNumericInputChange(e.target.value, "discount_percent", actualIndex)}
+                                onBlur={() => clearNumericInputKey(actualIndex, "discount_percent")}
+                                className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                                placeholder="0"
+                              />
+                            </TableCell>
+                            <TableCell className="px-5 py-3.5">
+                              <div className="flex justify-center">
+                                <select
+                                  value={String(line.tax_rate)}
+                                  onChange={(e) => updateLine(actualIndex, "tax_rate", parseFloat(e.target.value))}
+                                  className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium px-1 py-2 w-full hover:border-primary/50 focus:border-primary rounded-none transition-colors outline-none"
+                                >
+                                  {taxOptions.map((tax) => (
+                                    <option key={tax.value} value={String(tax.value)}>
+                                      {tax.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-foreground font-semibold text-right text-sm px-5 py-3.5">
+                              {formatCurrency(line.subtotal)}
+                            </TableCell>
+                            <TableCell className="px-5 py-3.5">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeLine(actualIndex)}
+                                className="text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 h-8 w-8 transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </>
                         )}
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        <div className="flex justify-center">
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            value={getNumericDisplayValue(line.quantity, "quantity", actualIndex)}
-                            onChange={(e) => handleNumericInputChange(e.target.value, "quantity", actualIndex)}
-                            onBlur={() => {
-                              const inputKey = `${actualIndex}-quantity`;
-                              setNumericInputValues((prev) => {
-                                const newValues = { ...prev };
-                                delete newValues[inputKey];
-                                return newValues;
-                              });
-                            }}
-                            className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
-                            placeholder="0"
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={getNumericDisplayValue(line.unit_price, "unit_price", actualIndex)}
-                          onChange={(e) => handleNumericInputChange(e.target.value, "unit_price", actualIndex)}
-                          onBlur={() => {
-                            const inputKey = `${actualIndex}-unit_price`;
-                            setNumericInputValues((prev) => {
-                              const newValues = { ...prev };
-                              delete newValues[inputKey];
-                              return newValues;
-                            });
-                          }}
-                          className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-right font-medium px-0 py-2 hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
-                          placeholder="0,00"
-                        />
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={getNumericDisplayValue(line.discount_percent || 0, "discount_percent", actualIndex)}
-                          onChange={(e) =>
-                            handleNumericInputChange(e.target.value, "discount_percent", actualIndex)
-                          }
-                          onBlur={() => {
-                            const inputKey = `${actualIndex}-discount_percent`;
-                            setNumericInputValues((prev) => {
-                              const newValues = { ...prev };
-                              delete newValues[inputKey];
-                              return newValues;
-                            });
-                          }}
-                          className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-primary/50 focus:border-primary focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
-                          placeholder="0"
-                        />
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        <div className="flex justify-center">
-                          <select
-                            value={String(line.tax_rate)}
-                            onChange={(e) => updateLine(actualIndex, "tax_rate", parseFloat(e.target.value))}
-                            className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium px-1 py-2 w-full hover:border-primary/50 focus:border-primary rounded-none transition-colors outline-none"
-                          >
-                            {taxOptions.map((tax) => (
-                              <option key={tax.value} value={String(tax.value)}>
-                                {tax.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-foreground font-semibold text-right text-sm px-5 py-3.5">
-                        {formatCurrency(line.subtotal)}
-                      </TableCell>
-                      <TableCell className="px-5 py-3.5">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeLine(actualIndex)}
-                          className="text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 h-8 w-8 transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {lines.length === 0 && (
-                  <TableRow className="border-border">
-                    <TableCell colSpan={10} className="text-center py-12">
-                      <p className="text-muted-foreground text-sm mb-2">No hay líneas en este presupuesto</p>
-                      <Button variant="link" onClick={addEmptyLine} className="text-primary text-sm">
-                        Añadir primera línea
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
+                      </SortableLineRow>
+                    ))}
+                    {lines.length === 0 && (
+                      <TableRow className="border-border">
+                        <TableCell colSpan={10} className="text-center py-12">
+                          <p className="text-muted-foreground text-sm mb-2">No hay líneas en este presupuesto</p>
+                          <Button variant="link" onClick={addEmptyLine} className="text-primary text-sm">
+                            Añadir primera línea
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </SortableContext>
+              </DndContext>
             </Table>
           </div>
           <div className="p-5 border-t border-border bg-gradient-to-r from-white/5 to-transparent">

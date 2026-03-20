@@ -15,11 +15,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, FileText, ChevronUp, ChevronDown, MapPin } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, FileText, GripVertical, MapPin } from "lucide-react";
 import { motion } from "motion/react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "../components/common/ProductSearchInput";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
+import { SortableLineRow } from "../components/documents/SortableLineRow";
+import { useDocumentLines } from "../hooks/useDocumentLines";
 
 // Estados que bloquean la edición
 const LOCKED_STATES = ["SENT", "APPROVED", "REJECTED", "EXPIRED", "INVOICED"];
@@ -102,10 +113,24 @@ const EditQuotePageDesktop = () => {
   const [lines, setLines] = useState<QuoteLine[]>([]);
   const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
   const [defaultTaxRate, setDefaultTaxRate] = useState(21);
-  const [expandedDescriptionIndex, setExpandedDescriptionIndex] = useState<number | null>(null);
-  const [numericInputValues, setNumericInputValues] = useState<Record<string, string>>({});
   const [dirtyLines, setDirtyLines] = useState<Set<number>>(new Set());
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+
+  const {
+    expandedDescriptionIndex,
+    setExpandedDescriptionIndex,
+    numericInputValues,
+    setNumericInputValues,
+    calculateLineValues: calcLine,
+    handleNumericInputChange: handleNumericChange,
+    clearNumericInputKey,
+    getNumericDisplayValue,
+    computeTotals,
+  } = useDocumentLines(defaultTaxRate, taxOptions);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
   useEffect(() => {
     if (quoteId) {
       fetchQuoteData();
@@ -344,25 +369,7 @@ const EditQuotePageDesktop = () => {
     }
   };
   const calculateLineValues = (line: Partial<QuoteLine>): QuoteLine => {
-    const quantity = line.quantity || 0;
-    const unitPrice = line.unit_price || 0;
-    const discountPercent = line.discount_percent || 0;
-    const taxRate = line.tax_rate || 21;
-    const subtotal = quantity * unitPrice * (1 - discountPercent / 100);
-    const taxAmount = subtotal * (taxRate / 100);
-    const total = subtotal + taxAmount;
-    return {
-      ...line,
-      concept: line.concept || "",
-      description: line.description || "",
-      quantity,
-      unit_price: unitPrice,
-      tax_rate: taxRate,
-      discount_percent: discountPercent,
-      subtotal,
-      tax_amount: taxAmount,
-      total
-    } as QuoteLine;
+    return { ...calcLine(line), description: line.description || "" } as QuoteLine;
   };
   const debounceRef = useRef<Record<string, NodeJS.Timeout>>({});
   const autoSaveLine = async (line: QuoteLine) => {
@@ -495,136 +502,41 @@ const EditQuotePageDesktop = () => {
       setLines(lines.filter((_, i) => i !== index));
     }
   };
-  const moveLine = (index: number, direction: 'up' | 'down') => {
-    const newLines = [...lines];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= newLines.length) return;
-    [newLines[index], newLines[targetIndex]] = [newLines[targetIndex], newLines[index]];
-    setLines(newLines);
-  };
-  const getTotals = () => {
-    const activeLines = lines.filter(l => !l.isDeleted);
-    const subtotal = activeLines.reduce((acc, line) => acc + line.subtotal, 0);
-    const total = activeLines.reduce((acc, line) => acc + line.total, 0);
-
-    // Group taxes by rate - this ensures each tax rate is shown separately
-    const taxesByRate: Record<number, {
-      rate: number;
-      amount: number;
-      label: string;
-    }> = {};
-    activeLines.forEach(line => {
-      // Only include taxes with non-zero amounts
-      if (line.tax_amount !== 0) {
-        if (!taxesByRate[line.tax_rate]) {
-          // Find the label from taxOptions, or use rate percentage as fallback
-          const taxOption = taxOptions.find(t => t.value === line.tax_rate);
-          taxesByRate[line.tax_rate] = {
-            rate: line.tax_rate,
-            amount: 0,
-            label: taxOption?.label || `IVA ${line.tax_rate}%`
-          };
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setLines((prev) => {
+      const visible = prev.filter((l) => !l.isDeleted);
+      const oldIdx = visible.findIndex((l) => (l.id || l.tempId) === active.id);
+      const newIdx = visible.findIndex((l) => (l.id || l.tempId) === over.id);
+      if (oldIdx === -1 || newIdx === -1) return prev;
+      const reordered = arrayMove(visible, oldIdx, newIdx);
+      const result: QuoteLine[] = [];
+      let visibleCursor = 0;
+      for (const line of prev) {
+        if (line.isDeleted) {
+          result.push(line);
+        } else {
+          result.push({ ...reordered[visibleCursor], line_order: visibleCursor + 1 });
+          visibleCursor++;
         }
-        taxesByRate[line.tax_rate].amount += line.tax_amount;
       }
+      return result;
     });
-    return {
-      subtotal,
-      taxes: Object.values(taxesByRate).sort((a, b) => b.rate - a.rate),
-      // Sort by rate descending
-      total
-    };
-  };
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-ES", {
-      style: "currency",
-      currency: "EUR"
-    }).format(amount);
+  }, []);
+
+  const handleNumericInputChange = (
+    value: string,
+    field: "quantity" | "unit_price" | "discount_percent",
+    actualIndex: number
+  ) => {
+    handleNumericChange(value, field, actualIndex, updateLine as (i: number, f: string, v: number) => void);
   };
 
-  // Helper: Parse input value (handles both . and , as decimal separator)
-  const parseNumericInput = (value: string): number => {
-    if (!value || value === '') return 0;
-    let cleaned = value.trim();
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(amount);
 
-    // Count dots and commas
-    const dotCount = (cleaned.match(/\./g) || []).length;
-    const commaCount = (cleaned.match(/,/g) || []).length;
-
-    // If there's a comma, it's definitely the decimal separator (European format)
-    if (commaCount > 0) {
-      // Remove all dots (thousand separators) and replace comma with dot for parsing
-      cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.');
-    } else if (dotCount === 1) {
-      // Single dot: check if it's likely a decimal (has digits after) or thousand separator
-      const dotIndex = cleaned.indexOf('.');
-      const afterDot = cleaned.substring(dotIndex + 1);
-
-      // If there are 1-2 digits after the dot, treat it as decimal separator
-      // Otherwise, treat it as thousand separator
-      if (afterDot.length <= 2 && /^\d+$/.test(afterDot)) {
-        // Decimal separator - keep as is for parsing
-        cleaned = cleaned;
-      } else {
-        // Thousand separator - remove it
-        cleaned = cleaned.replace(/\./g, '');
-      }
-    } else if (dotCount > 1) {
-      // Multiple dots: all are thousand separators, remove them
-      cleaned = cleaned.replace(/\./g, '');
-    }
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? 0 : num;
-  };
-
-  // Helper: Format number for display (with thousand separators and comma decimal)
-  const formatNumericDisplay = (value: number | string): string => {
-    if (value === '' || value === null || value === undefined) return '';
-    const num = typeof value === 'string' ? parseNumericInput(value) : value;
-    if (isNaN(num) || num === 0) return '';
-
-    // Format with thousand separators and comma decimal
-    return new Intl.NumberFormat('es-ES', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(num);
-  };
-
-  // Helper: Handle numeric input change
-  const handleNumericInputChange = (value: string, field: 'quantity' | 'unit_price' | 'discount_percent', actualIndex: number) => {
-    const inputKey = `${actualIndex}-${field}`;
-
-    // Store the raw input value for display
-    setNumericInputValues(prev => ({
-      ...prev,
-      [inputKey]: value
-    }));
-
-    // Allow empty string for clearing
-    if (value === '' || value === null || value === undefined) {
-      updateLine(actualIndex, field, 0);
-      return;
-    }
-
-    // Parse the value (handles both . and , as decimal separator)
-    const numericValue = parseNumericInput(value);
-    updateLine(actualIndex, field, numericValue);
-  };
-
-  // Get display value for numeric input
-  const getNumericDisplayValue = (value: number, field: 'quantity' | 'unit_price' | 'discount_percent', actualIndex: number): string => {
-    const inputKey = `${actualIndex}-${field}`;
-    const storedValue = numericInputValues[inputKey];
-
-    // If user is typing, show what they're typing
-    if (storedValue !== undefined) {
-      return storedValue;
-    }
-
-    // Otherwise format the numeric value
-    if (value === 0) return '';
-    return formatNumericDisplay(value);
-  };
+  const getTotals = () => computeTotals(lines);
   const handleSave = async () => {
     // Verificar que el presupuesto no esté bloqueado
     if (quote && LOCKED_STATES.includes(quote.status)) {
@@ -1012,7 +924,7 @@ const EditQuotePageDesktop = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="border-border/60 hover:bg-transparent bg-muted/20">
-                    <TableHead className="text-muted-foreground w-16 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
+                    <TableHead className="text-muted-foreground w-10 px-5 py-3 text-xs font-semibold uppercase tracking-wider"></TableHead>
                     <TableHead className="text-muted-foreground w-24 px-5 py-3 text-xs font-semibold uppercase tracking-wider" title="Nº de producto (aparece como REF en el PDF)">REF</TableHead>
                     <TableHead className="text-muted-foreground min-w-[300px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Concepto</TableHead>
                     <TableHead className="text-muted-foreground min-w-[250px] px-5 py-3 text-xs font-semibold uppercase tracking-wider">Descripción</TableHead>
@@ -1024,104 +936,91 @@ const EditQuotePageDesktop = () => {
                     <TableHead className="text-muted-foreground w-14 px-5 py-3"></TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {lines.filter(l => !l.isDeleted).map((line, displayIndex) => {
-                  const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
-                  const activeLines = lines.filter(l => !l.isDeleted);
-                  const isFirst = displayIndex === 0;
-                  const isLast = displayIndex === activeLines.length - 1;
-                  return <TableRow key={line.id || line.tempId} className="border-border/60 hover:bg-muted/20 transition-colors duration-150 group">
-                        <TableCell className="px-5 py-3.5">
-                          <div className="flex flex-col gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => moveLine(actualIndex, 'up')} disabled={isFirst} className="h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-20 disabled:cursor-not-allowed" title="Mover arriba">
-                              <ChevronUp className="h-3 w-3" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => moveLine(actualIndex, 'down')} disabled={isLast} className="h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-20 disabled:cursor-not-allowed" title="Mover abajo">
-                              <ChevronDown className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <Input value={line.group_name || ''} onChange={e => updateLine(actualIndex, "group_name", e.target.value)} placeholder="Nº producto" className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm pl-2 pr-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" title="Ej: PACK-0001, SP-01-0001. Se rellena automáticamente al buscar con @" />
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <ProductSearchInput value={line.concept} onChange={value => updateLine(actualIndex, "concept", value)} onSelectItem={item => handleProductSelect(actualIndex, item)} placeholder="@buscar producto" className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" />
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          {expandedDescriptionIndex === actualIndex ? <div className="space-y-2">
-                              <Textarea value={line.description} onChange={e => updateLine(actualIndex, "description", e.target.value)} placeholder="Descripción opcional" className="bg-background border border-border text-foreground placeholder:text-muted-foreground/70 text-sm px-3 py-2 min-h-[80px] resize-y focus:border-primary/60 focus-visible:ring-2 focus-visible:ring-primary/20 rounded-lg" onBlur={() => setExpandedDescriptionIndex(null)} autoFocus />
-                            </div> : <Input value={line.description} onChange={e => updateLine(actualIndex, "description", e.target.value)} onClick={() => setExpandedDescriptionIndex(actualIndex)} className="bg-transparent border-0 border-b border-border text-foreground placeholder:text-muted-foreground/70 h-auto text-sm pl-2 pr-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors cursor-text" placeholder="Descripción opcional" readOnly />}
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <div className="flex justify-center">
-                            <Input type="text" inputMode="numeric" value={getNumericDisplayValue(line.quantity, 'quantity', actualIndex)} onChange={e => handleNumericInputChange(e.target.value, 'quantity', actualIndex)} onBlur={() => {
-                          const inputKey = `${actualIndex}-quantity`;
-                          setNumericInputValues(prev => {
-                            const newValues = {
-                              ...prev
-                            };
-                            delete newValues[inputKey];
-                            return newValues;
-                          });
-                        }} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" placeholder="0" />
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <Input type="text" inputMode="decimal" value={getNumericDisplayValue(line.unit_price, 'unit_price', actualIndex)} onChange={e => handleNumericInputChange(e.target.value, 'unit_price', actualIndex)} onBlur={() => {
-                        const inputKey = `${actualIndex}-unit_price`;
-                        setNumericInputValues(prev => {
-                          const newValues = {
-                            ...prev
-                          };
-                          delete newValues[inputKey];
-                          return newValues;
-                        });
-                      }} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-right font-medium px-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" placeholder="0,00" />
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <Input type="text" inputMode="decimal" value={getNumericDisplayValue(line.discount_percent || 0, 'discount_percent' as any, actualIndex)} onChange={e => handleNumericInputChange(e.target.value, 'discount_percent' as any, actualIndex)} onBlur={() => {
-                        const inputKey = `${actualIndex}-discount_percent`;
-                        setNumericInputValues(prev => {
-                          const newValues = {
-                            ...prev
-                          };
-                          delete newValues[inputKey];
-                          return newValues;
-                        });
-                      }} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" placeholder="0" />
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <div className="flex justify-center">
-                            <select 
-                              value={String(line.tax_rate)} 
-                              onChange={e => updateLine(actualIndex, "tax_rate", parseFloat(e.target.value))}
-                              className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium px-1 py-2 w-full hover:border-primary/50 focus:border-primary rounded-none transition-colors outline-none"
-                            >
-                              {taxOptions.map(tax => (
-                                <option key={tax.value} value={String(tax.value)}>{tax.label}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-foreground font-semibold text-right text-sm px-5 py-3.5">
-                          {formatCurrency(line.subtotal)}
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <Button variant="ghost" size="icon" onClick={() => removeLine(actualIndex)} className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 h-8 w-8 transition-colors">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>;
-                })}
-                  {lines.filter(l => !l.isDeleted).length === 0 && <TableRow className="border-border">
-                      <TableCell colSpan={8} className="text-center py-12">
-                        <p className="text-muted-foreground text-sm mb-2">No hay líneas en este presupuesto</p>
-                        <Button variant="link" onClick={addLine} className="text-orange-500 text-sm">
-                          Añadir primera línea
-                        </Button>
-                      </TableCell>
-                    </TableRow>}
-                </TableBody>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={lines.filter(l => !l.isDeleted).map(l => l.id || l.tempId || "")}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <TableBody>
+                      {lines.filter(l => !l.isDeleted).map((line) => {
+                        const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
+                        return (
+                          <SortableLineRow
+                            key={line.id || line.tempId}
+                            id={line.id || line.tempId || ""}
+                            className="border-border/60 hover:bg-muted/20 transition-colors duration-150 group"
+                          >
+                            {(dragHandleProps) => (
+                              <>
+                                <TableCell className="px-3 py-3.5 w-10">
+                                  <button
+                                    {...dragHandleProps}
+                                    className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+                                    title="Arrastrar para reordenar"
+                                  >
+                                    <GripVertical className="h-4 w-4" />
+                                  </button>
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <Input value={line.group_name || ''} onChange={e => updateLine(actualIndex, "group_name", e.target.value)} placeholder="Nº producto" className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm pl-2 pr-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" title="Ej: PACK-0001, SP-01-0001. Se rellena automáticamente al buscar con @" />
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <ProductSearchInput value={line.concept} onChange={value => updateLine(actualIndex, "concept", value)} onSelectItem={item => handleProductSelect(actualIndex, item)} placeholder="@buscar producto" className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" />
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  {expandedDescriptionIndex === actualIndex
+                                    ? <div className="space-y-2"><Textarea value={line.description} onChange={e => updateLine(actualIndex, "description", e.target.value)} placeholder="Descripción opcional" className="bg-background border border-border text-foreground placeholder:text-muted-foreground/70 text-sm px-3 py-2 min-h-[80px] resize-y focus:border-primary/60 focus-visible:ring-2 focus-visible:ring-primary/20 rounded-lg" onBlur={() => setExpandedDescriptionIndex(null)} autoFocus /></div>
+                                    : <Input value={line.description} onChange={e => updateLine(actualIndex, "description", e.target.value)} onClick={() => setExpandedDescriptionIndex(actualIndex)} className="bg-transparent border-0 border-b border-border text-foreground placeholder:text-muted-foreground/70 h-auto text-sm pl-2 pr-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors cursor-text" placeholder="Descripción opcional" readOnly />
+                                  }
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <div className="flex justify-center">
+                                    <Input type="text" inputMode="numeric" value={getNumericDisplayValue(line.quantity, 'quantity', actualIndex)} onChange={e => handleNumericInputChange(e.target.value, 'quantity', actualIndex)} onBlur={() => clearNumericInputKey(actualIndex, 'quantity')} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" placeholder="0" />
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <Input type="text" inputMode="decimal" value={getNumericDisplayValue(line.unit_price, 'unit_price', actualIndex)} onChange={e => handleNumericInputChange(e.target.value, 'unit_price', actualIndex)} onBlur={() => clearNumericInputKey(actualIndex, 'unit_price')} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-right font-medium px-0 py-2 hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" placeholder="0,00" />
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <Input type="text" inputMode="decimal" value={getNumericDisplayValue(line.discount_percent || 0, 'discount_percent', actualIndex)} onChange={e => handleNumericInputChange(e.target.value, 'discount_percent', actualIndex)} onBlur={() => clearNumericInputKey(actualIndex, 'discount_percent')} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-foreground/20 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors placeholder:text-muted-foreground/70" placeholder="0" />
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <div className="flex justify-center">
+                                    <select value={String(line.tax_rate)} onChange={e => updateLine(actualIndex, "tax_rate", parseFloat(e.target.value))} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium px-1 py-2 w-full hover:border-primary/50 focus:border-primary rounded-none transition-colors outline-none">
+                                      {taxOptions.map(tax => (
+                                        <option key={tax.value} value={String(tax.value)}>{tax.label}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-foreground font-semibold text-right text-sm px-5 py-3.5">
+                                  {formatCurrency(line.subtotal)}
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <Button variant="ghost" size="icon" onClick={() => removeLine(actualIndex)} className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 h-8 w-8 transition-colors">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </>
+                            )}
+                          </SortableLineRow>
+                        );
+                      })}
+                      {lines.filter(l => !l.isDeleted).length === 0 && (
+                        <TableRow className="border-border">
+                          <TableCell colSpan={10} className="text-center py-12">
+                            <p className="text-muted-foreground text-sm mb-2">No hay líneas en este presupuesto</p>
+                            <Button variant="link" onClick={addLine} className="text-orange-500 text-sm">Añadir primera línea</Button>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </SortableContext>
+                </DndContext>
               </Table>
             </div>
             <div className="p-5 border-t border-border bg-muted/20">

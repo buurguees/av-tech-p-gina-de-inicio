@@ -495,10 +495,9 @@ const PurchaseInvoicesPageDesktop = () => {
   } = usePagination(sortedInvoices, { pageSize: 50 });
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
-      <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
+    <div className="flex flex-col h-full gap-3">
         {uploadRetryPending && (
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="flex-shrink-0">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Documento subido pero no guardado</AlertTitle>
             <AlertDescription className="flex flex-wrap items-center gap-2 mt-1">
@@ -515,9 +514,8 @@ const PurchaseInvoicesPageDesktop = () => {
             </AlertDescription>
           </Alert>
         )}
-        <div className="flex flex-col h-full min-h-0 overflow-hidden">
           {/* Summary Metric Cards - Clickable Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 flex-shrink-0">
             <div
               className={cn(
                 "border rounded-lg p-2 cursor-pointer transition-all",
@@ -593,7 +591,7 @@ const PurchaseInvoicesPageDesktop = () => {
           </div>
 
           {/* Header */}
-          <div className="mb-6">
+          <div className="flex-shrink-0">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">Facturas de Compra</h1>
@@ -764,6 +762,52 @@ const PurchaseInvoicesPageDesktop = () => {
                   className="pr-11"
                 />
               </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn("h-8 px-3 text-xs", (dateFrom || dateTo) && (() => {
+                      const y = dateFrom?.slice(0, 7);
+                      return y && dateTo?.slice(0, 7) === y;
+                    })() && "bg-accent")}
+                  >
+                    {dateFrom && dateTo && dateFrom.slice(0, 7) === dateTo.slice(0, 7)
+                      ? new Date(dateFrom).toLocaleDateString("es-ES", { month: "long", year: "numeric" })
+                      : "Mes"}
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="max-h-64 overflow-y-auto">
+                  <DropdownMenuItem
+                    onClick={() => { setDateFrom(null); setDateTo(null); }}
+                    className={cn(!(dateFrom || dateTo) && "bg-accent")}
+                  >
+                    Todos los meses
+                  </DropdownMenuItem>
+                  {Array.from({ length: 24 }, (_, i) => {
+                    const d = new Date();
+                    d.setDate(1);
+                    d.setMonth(d.getMonth() - i);
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, "0");
+                    const from = `${yyyy}-${mm}-01`;
+                    const lastDay = new Date(yyyy, d.getMonth() + 1, 0).getDate();
+                    const to = `${yyyy}-${mm}-${lastDay}`;
+                    const isActive = dateFrom === from && dateTo === to;
+                    return (
+                      <DropdownMenuItem
+                        key={from}
+                        onClick={() => { setDateFrom(from); setDateTo(to); }}
+                        className={cn(isActive && "bg-accent")}
+                      >
+                        {d.toLocaleDateString("es-ES", { month: "long", year: "numeric" })}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <Popover>
                 <PopoverTrigger asChild>
@@ -1071,8 +1115,6 @@ const PurchaseInvoicesPageDesktop = () => {
               )}
             </div>
           )}
-        </div>
-      </div>
 
       <AnimatePresence>
         {showScanner && (

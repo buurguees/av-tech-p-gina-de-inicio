@@ -64,6 +64,16 @@ const LabeledInput = ({ label, required, children }: LabeledInputProps) => (
   </div>
 );
 
+// ============= SITE FORM ENTRY =============
+interface SiteFormEntry {
+  name: string;
+  address: string;
+  city: string;
+  postalCode: string;
+}
+
+const emptySite = (): SiteFormEntry => ({ name: "", address: "", city: "", postalCode: "" });
+
 // ============= MAIN COMPONENT =============
 interface Client {
   id: string;
@@ -93,14 +103,20 @@ const CreateProjectDialog = ({
   const [clientId, setClientId] = useState<string>(preselectedClientId || "");
   const [status, setStatus] = useState("NEGOTIATION");
   const [siteMode, setSiteMode] = useState<"SINGLE_SITE" | "MULTI_SITE">("SINGLE_SITE");
+
+  // SINGLE_SITE location
   const [projectAddress, setProjectAddress] = useState("");
   const [projectCity, setProjectCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [province, setProvince] = useState("");
   const [country, setCountry] = useState("España");
+
+  // SINGLE_SITE local name
   const [localName, setLocalName] = useState("");
-  const [siteName, setSiteName] = useState("");
-  const [multiSiteNames, setMultiSiteNames] = useState<string[]>([""]);
+
+  // MULTI_SITE sites
+  const [multiSites, setMultiSites] = useState<SiteFormEntry[]>([emptySite()]);
+
   const [clientOrderNumber, setClientOrderNumber] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
 
@@ -110,17 +126,18 @@ const CreateProjectDialog = ({
   // Get selected client name
   const selectedClient = useMemo(() => clientId ? availableClients.find(c => c.id === clientId) : null, [availableClients, clientId]);
 
-  // Generate project name automatically
+  // Generate project name preview
   const generatedProjectName = useMemo(() => {
     const parts: string[] = [];
-    const firstMultiSiteName = multiSiteNames.find((site) => site.trim())?.trim() || "";
-    const locationName = siteMode === "MULTI_SITE" ? firstMultiSiteName : localName.trim();
+    const isMulti = siteMode === "MULTI_SITE";
+    const locationName = isMulti ? (multiSites[0]?.name.trim() || "") : localName.trim();
+    const cityForName = isMulti ? (multiSites[0]?.city.trim() || "") : projectCity.trim();
     if (selectedClient?.company_name) parts.push(selectedClient.company_name);
     if (clientOrderNumber?.trim()) parts.push(clientOrderNumber.trim());
-    if (projectCity?.trim()) parts.push(projectCity.trim());
+    if (cityForName) parts.push(cityForName);
     if (locationName) parts.push(locationName);
     return parts.join(" - ");
-  }, [selectedClient, clientOrderNumber, projectCity, localName, multiSiteNames, siteMode]);
+  }, [selectedClient, clientOrderNumber, projectCity, localName, multiSites, siteMode]);
 
   // Convert clients to options for Select
   const clientOptions = useMemo(() => availableClients.map(client => ({ value: client.id, label: client.company_name })), [availableClients]);
@@ -156,23 +173,22 @@ const CreateProjectDialog = ({
       setProvince("");
       setCountry("España");
       setLocalName("");
-      setSiteName("");
-      setMultiSiteNames([""]);
+      setMultiSites([emptySite()]);
       setClientOrderNumber("");
       setInternalNotes("");
     }
   }, [open, preselectedClientId]);
 
-  const updateMultiSiteName = (index: number, value: string) => {
-    setMultiSiteNames((prev) => prev.map((site, i) => (i === index ? value : site)));
+  const updateMultiSite = (index: number, field: keyof SiteFormEntry, value: string) => {
+    setMultiSites(prev => prev.map((site, i) => i === index ? { ...site, [field]: value } : site));
   };
 
   const addMultiSite = () => {
-    setMultiSiteNames((prev) => [...prev, ""]);
+    setMultiSites(prev => [...prev, emptySite()]);
   };
 
   const removeMultiSite = (index: number) => {
-    setMultiSiteNames((prev) => {
+    setMultiSites(prev => {
       if (prev.length === 1) return prev;
       return prev.filter((_, i) => i !== index);
     });
@@ -187,29 +203,38 @@ const CreateProjectDialog = ({
     try {
       setLoading(true);
       const sanitize = (val: string): string | null => val && val.trim() ? val.trim() : null;
-      const cleanedMultiSites = multiSiteNames.map((site) => site.trim()).filter(Boolean);
 
-      if (siteMode === "MULTI_SITE" && cleanedMultiSites.length === 0) {
-        toast({
-          title: "Error",
-          description: "Debes añadir al menos un sitio en modo Multi-Sitio.",
-          variant: "destructive",
-        });
-        return;
+      if (siteMode === "MULTI_SITE") {
+        const hasValidSite = multiSites.some(s => s.name.trim());
+        if (!hasValidSite) {
+          toast({
+            title: "Error",
+            description: "Debes añadir al menos un sitio con nombre en modo Multi-Sitio.",
+            variant: "destructive",
+          });
+          return;
+        }
       }
 
-      const primarySiteName = siteMode === "MULTI_SITE"
-        ? cleanedMultiSites[0]
-        : (sanitize(siteName) || sanitize(localName));
-      const effectiveLocalName = siteMode === "MULTI_SITE"
-        ? (primarySiteName || null)
-        : sanitize(localName);
+      const isMulti = siteMode === "MULTI_SITE";
+      const firstSite = isMulti ? multiSites[0] : null;
+
+      const primarySiteName = isMulti ? sanitize(firstSite?.name || "") : sanitize(localName);
+      const effectiveLocalName = isMulti ? primarySiteName : sanitize(localName);
+      const effectiveCity = isMulti ? sanitize(firstSite?.city || "") : sanitize(projectCity);
+      const effectiveAddress = isMulti ? sanitize(firstSite?.address || "") : sanitize(projectAddress);
+      const effectivePostalCode = isMulti ? sanitize(firstSite?.postalCode || "") : sanitize(postalCode);
+      const effectiveProvince = isMulti ? null : sanitize(province);
+      const effectiveCountry = isMulti ? "España" : (sanitize(country) || "España");
 
       const { data, error } = await supabase.rpc("create_project", {
         p_client_id: clientId,
         p_status: status || "NEGOTIATION",
-        p_project_address: sanitize(projectAddress),
-        p_project_city: sanitize(projectCity),
+        p_project_address: effectiveAddress,
+        p_project_city: effectiveCity,
+        p_postal_code: effectivePostalCode,
+        p_province: effectiveProvince,
+        p_country: effectiveCountry,
         p_local_name: effectiveLocalName,
         p_client_order_number: sanitize(clientOrderNumber),
         p_notes: sanitize(internalNotes),
@@ -220,13 +245,16 @@ const CreateProjectDialog = ({
       if (error) throw error;
 
       const createdProject = Array.isArray(data) ? data[0] : null;
-      if (siteMode === "MULTI_SITE" && createdProject?.project_id && cleanedMultiSites.length > 1) {
-        for (const extraSiteName of cleanedMultiSites.slice(1)) {
+      if (isMulti && createdProject?.project_id && multiSites.length > 1) {
+        for (const extraSite of multiSites.slice(1)) {
+          if (!extraSite.name.trim()) continue;
           const { error: siteError } = await supabase.rpc("create_project_site", {
             p_project_id: createdProject.project_id,
-            p_site_name: extraSiteName,
-            p_city: sanitize(projectCity),
-            p_country: sanitize(country) || "España",
+            p_site_name: extraSite.name.trim(),
+            p_address: sanitize(extraSite.address),
+            p_city: sanitize(extraSite.city),
+            p_postal_code: sanitize(extraSite.postalCode),
+            p_country: "España",
           });
           if (siteError) throw siteError;
         }
@@ -261,7 +289,7 @@ const CreateProjectDialog = ({
                 <label className="text-xs font-medium text-muted-foreground">
                   Cliente <span className="text-destructive">*</span>
                 </label>
-                <Select 
+                <Select
                   value={clientId || undefined}
                   onValueChange={(value) => setClientId(value)}
                   disabled={!!preselectedClientId || loadingClients}
@@ -314,74 +342,93 @@ const CreateProjectDialog = ({
                   <div className="text-xs mt-0.5 opacity-70">Múltiples ubicaciones de instalación</div>
                 </button>
               </div>
-              {siteMode === "SINGLE_SITE" && (
-                <LabeledInput label="Nombre del sitio principal">
-                  <Input placeholder="Ej: Tienda Centro, Oficina Principal..." value={siteName} onChange={(e) => setSiteName(e.target.value)} />
-                </LabeledInput>
+
+              {/* MULTI_SITE: mini-form per site */}
+              {siteMode === "MULTI_SITE" && (
+                <div className="space-y-3">
+                  {multiSites.map((site, index) => (
+                    <div key={`site-${index}`} className="rounded-lg border border-border bg-muted/10 p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-muted-foreground">Sitio {index + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeMultiSite(index)}
+                          className="h-6 w-6 inline-flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+                          aria-label={`Eliminar sitio ${index + 1}`}
+                          disabled={multiSites.length === 1}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <Input
+                        placeholder="Nombre del sitio *"
+                        value={site.name}
+                        onChange={(e) => updateMultiSite(index, "name", e.target.value)}
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          placeholder="Ciudad"
+                          value={site.city}
+                          onChange={(e) => updateMultiSite(index, "city", e.target.value)}
+                        />
+                        <Input
+                          placeholder="Código Postal"
+                          value={site.postalCode}
+                          onChange={(e) => updateMultiSite(index, "postalCode", e.target.value)}
+                        />
+                      </div>
+                      <Input
+                        placeholder="Dirección"
+                        value={site.address}
+                        onChange={(e) => updateMultiSite(index, "address", e.target.value)}
+                      />
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addMultiSite}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Añadir sitio
+                  </button>
+                </div>
               )}
             </InlineFormSection>
 
-            {/* Sección: Ubicación */}
-            <InlineFormSection title="Ubicación" icon={<MapPin className="h-4 w-4" />}>
-              <LabeledInput label="Dirección">
-                <Input placeholder="Calle y número del local" value={projectAddress} onChange={(e) => setProjectAddress(e.target.value)} />
-              </LabeledInput>
-              <LabeledInput label="Ciudad">
-                <Input placeholder="Ciudad" value={projectCity} onChange={(e) => setProjectCity(e.target.value)} />
-              </LabeledInput>
-              <LabeledInput label="Código Postal">
-                <Input placeholder="08000" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
-              </LabeledInput>
-              <LabeledInput label="Provincia">
-                <Input placeholder="Provincia" value={province} onChange={(e) => setProvince(e.target.value)} />
-              </LabeledInput>
-              <LabeledInput label="País">
-                <Input placeholder="País" value={country} onChange={(e) => setCountry(e.target.value)} />
-              </LabeledInput>
-            </InlineFormSection>
+            {/* Sección: Ubicación — solo en SINGLE_SITE */}
+            {siteMode === "SINGLE_SITE" && (
+              <InlineFormSection title="Ubicación" icon={<MapPin className="h-4 w-4" />}>
+                <LabeledInput label="Dirección">
+                  <Input placeholder="Calle y número del local" value={projectAddress} onChange={(e) => setProjectAddress(e.target.value)} />
+                </LabeledInput>
+                <LabeledInput label="Ciudad">
+                  <Input placeholder="Ciudad" value={projectCity} onChange={(e) => setProjectCity(e.target.value)} />
+                </LabeledInput>
+                <div className="grid grid-cols-2 gap-3">
+                  <LabeledInput label="Código Postal">
+                    <Input placeholder="08000" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
+                  </LabeledInput>
+                  <LabeledInput label="Provincia">
+                    <Input placeholder="Provincia" value={province} onChange={(e) => setProvince(e.target.value)} />
+                  </LabeledInput>
+                </div>
+                <LabeledInput label="País">
+                  <Input placeholder="País" value={country} onChange={(e) => setCountry(e.target.value)} />
+                </LabeledInput>
+              </InlineFormSection>
+            )}
 
             {/* Sección: Información del Proyecto */}
             <InlineFormSection title="Información del Proyecto" icon={<FileText className="h-4 w-4" />}>
-              <div className="grid grid-cols-2 gap-3">
+              <div className={cn("gap-3", siteMode === "SINGLE_SITE" ? "grid grid-cols-2" : "")}>
                 <LabeledInput label="Nº Pedido Cliente">
                   <Input placeholder="Referencia del cliente" value={clientOrderNumber} onChange={(e) => setClientOrderNumber(e.target.value)} />
                 </LabeledInput>
-                {siteMode === "SINGLE_SITE" ? (
+                {siteMode === "SINGLE_SITE" && (
                   <LabeledInput label="Nombre del Local">
                     <Input placeholder="Ej: Tienda Centro" value={localName} onChange={(e) => setLocalName(e.target.value)} />
                   </LabeledInput>
-                ) : (
-                  <div className="col-span-2 space-y-2">
-                    <Label className="text-xs font-medium text-muted-foreground">Sitios</Label>
-                    <div className="space-y-2">
-                      {multiSiteNames.map((site, index) => (
-                        <div key={`site-${index}`} className="flex items-center gap-2">
-                          <Input
-                            placeholder={`Sitio ${index + 1}`}
-                            value={site}
-                            onChange={(e) => updateMultiSiteName(index, e.target.value)}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeMultiSite(index)}
-                            className="h-9 w-9 inline-flex items-center justify-center rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
-                            aria-label={`Eliminar sitio ${index + 1}`}
-                            disabled={multiSiteNames.length === 1}
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={addMultiSite}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      Añadir sitio
-                    </button>
-                  </div>
                 )}
               </div>
               <LabeledInput label="Notas internas">

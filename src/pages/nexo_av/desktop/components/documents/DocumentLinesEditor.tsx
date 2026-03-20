@@ -4,6 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Search, GripVertical, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ProductSearchInput from "../common/ProductSearchInput";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export interface DocumentLine {
   id?: string;
@@ -35,6 +50,34 @@ interface DocumentLinesEditorProps {
   className?: string;
 }
 
+// Fila sortable para el grid de DocumentLinesEditor (usa div, no <tr>)
+function SortableRow({
+  id,
+  className,
+  children,
+}: {
+  id: string;
+  className?: string;
+  children: (dragHandleProps: Record<string, unknown>) => React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.4 : 1,
+        position: isDragging ? "relative" : undefined,
+        zIndex: isDragging ? 10 : undefined,
+      }}
+      className={className}
+    >
+      {children({ ...attributes, ...listeners })}
+    </div>
+  );
+}
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("es-ES", {
     minimumFractionDigits: 0,
@@ -51,6 +94,24 @@ export default function DocumentLinesEditor({
   className,
 }: DocumentLinesEditorProps) {
   const [editingValues, setEditingValues] = useState<Record<string, string>>({});
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const oldIndex = lines.findIndex((l) => (l.id || l.tempId) === active.id);
+      const newIndex = lines.findIndex((l) => (l.id || l.tempId) === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+      onLinesChange(
+        arrayMove(lines, oldIndex, newIndex).map((line, i) => ({ ...line, line_order: i + 1 }))
+      );
+    },
+    [lines, onLinesChange]
+  );
 
   const calculateLineValues = useCallback(
     (line: Partial<DocumentLine>): DocumentLine => {
@@ -233,103 +294,125 @@ export default function DocumentLinesEditor({
               <div className="px-2 py-2"></div>
             </div>
           ) : (
-            lines.map((line, index) => (
-              <div
-                key={line.tempId || line.id || index}
-                className="grid grid-cols-[40px_1fr_1fr_100px_100px_120px_100px_40px] items-center hover:bg-muted/30 transition-colors group"
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={lines.map((l) => l.id || l.tempId || "")}
+                strategy={verticalListSortingStrategy}
               >
-                {/* Drag handle */}
-                <div className="px-2 py-3 flex justify-center cursor-grab">
-                  <GripVertical className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground" />
-                </div>
-
-                {/* Concept */}
-                <div className="px-1 py-2">
-                  <ProductSearchInput
-                    value={line.concept}
-                    onChange={(value) => updateLine(index, "concept", value)}
-                    onSelectItem={(item) => handleSelectProduct(index, item)}
-                    placeholder="Concepto o @buscar"
-                    className={cn(inputBase, "flex-1")}
-                  />
-                </div>
-
-                {/* Description */}
-                {showDescription && (
-                  <div className="px-1 py-2">
-                    <textarea
-                      value={line.description || ""}
-                      onChange={(e) => updateLine(index, "description", e.target.value)}
-                      placeholder="Desc"
-                      className={cn(inputBase, "resize-none h-9 py-2")}
-                      rows={1}
-                    />
-                  </div>
-                )}
-
-                {/* Quantity */}
-                <div className="px-1 py-2">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={getDisplayValue(index, "quantity", line.quantity)}
-                    onChange={(e) => {
-                      setEditingValues((prev) => ({ ...prev, [`${index}-quantity`]: e.target.value }));
-                      updateLine(index, "quantity", parseNumber(e.target.value));
-                    }}
-                    onBlur={() => handleNumericBlur(index, "quantity")}
-                    placeholder="1"
-                    className={cn(numericInput, "text-primary font-medium")}
-                  />
-                </div>
-
-                {/* Price */}
-                <div className="px-1 py-2">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={getDisplayValue(index, "unit_price", line.unit_price)}
-                    onChange={(e) => {
-                      setEditingValues((prev) => ({ ...prev, [`${index}-unit_price`]: e.target.value }));
-                      updateLine(index, "unit_price", parseNumber(e.target.value));
-                    }}
-                    onBlur={() => handleNumericBlur(index, "unit_price")}
-                    placeholder="0"
-                    className={cn(numericInput, "text-primary font-medium")}
-                  />
-                </div>
-
-                {/* Tax */}
-                <div className="px-1 py-2 flex justify-center">
-                  <select
-                    value={line.tax_rate.toString()}
-                    onChange={(e) => updateLine(index, "tax_rate", parseFloat(e.target.value))}
-                    className="h-8 px-2 bg-muted border-0 rounded text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                {lines.map((line, index) => (
+                  <SortableRow
+                    key={line.tempId || line.id || index}
+                    id={line.id || line.tempId || String(index)}
+                    className="grid grid-cols-[40px_1fr_1fr_100px_100px_120px_100px_40px] items-center hover:bg-muted/30 transition-colors group"
                   >
-                    {taxOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value.toString()}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    {(dragHandleProps) => (
+                      <>
+                        {/* Drag handle */}
+                        <div className="px-2 py-3 flex justify-center">
+                          <button
+                            {...dragHandleProps}
+                            className="cursor-grab active:cursor-grabbing text-muted-foreground/40 group-hover:text-muted-foreground transition-colors"
+                            title="Arrastrar para reordenar"
+                          >
+                            <GripVertical className="w-4 h-4" />
+                          </button>
+                        </div>
 
-                {/* Total */}
-                <div className="px-3 py-2 text-right text-sm font-medium text-foreground tabular-nums">
-                  {formatCurrency(line.total)}
-                </div>
+                        {/* Concept */}
+                        <div className="px-1 py-2">
+                          <ProductSearchInput
+                            value={line.concept}
+                            onChange={(value) => updateLine(index, "concept", value)}
+                            onSelectItem={(item) => handleSelectProduct(index, item)}
+                            placeholder="Concepto o @buscar"
+                            className={cn(inputBase, "flex-1")}
+                          />
+                        </div>
 
-                {/* Delete */}
-                <div className="px-2 py-2 flex justify-center">
-                  <button
-                    onClick={() => removeLine(index)}
-                    className="p-1 text-muted-foreground/40 hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))
+                        {/* Description */}
+                        {showDescription && (
+                          <div className="px-1 py-2">
+                            <textarea
+                              value={line.description || ""}
+                              onChange={(e) => updateLine(index, "description", e.target.value)}
+                              placeholder="Desc"
+                              className={cn(inputBase, "resize-none h-9 py-2")}
+                              rows={1}
+                            />
+                          </div>
+                        )}
+
+                        {/* Quantity */}
+                        <div className="px-1 py-2">
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={getDisplayValue(index, "quantity", line.quantity)}
+                            onChange={(e) => {
+                              setEditingValues((prev) => ({ ...prev, [`${index}-quantity`]: e.target.value }));
+                              updateLine(index, "quantity", parseNumber(e.target.value));
+                            }}
+                            onBlur={() => handleNumericBlur(index, "quantity")}
+                            placeholder="1"
+                            className={cn(numericInput, "text-primary font-medium")}
+                          />
+                        </div>
+
+                        {/* Price */}
+                        <div className="px-1 py-2">
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={getDisplayValue(index, "unit_price", line.unit_price)}
+                            onChange={(e) => {
+                              setEditingValues((prev) => ({ ...prev, [`${index}-unit_price`]: e.target.value }));
+                              updateLine(index, "unit_price", parseNumber(e.target.value));
+                            }}
+                            onBlur={() => handleNumericBlur(index, "unit_price")}
+                            placeholder="0"
+                            className={cn(numericInput, "text-primary font-medium")}
+                          />
+                        </div>
+
+                        {/* Tax */}
+                        <div className="px-1 py-2 flex justify-center">
+                          <select
+                            value={line.tax_rate.toString()}
+                            onChange={(e) => updateLine(index, "tax_rate", parseFloat(e.target.value))}
+                            className="h-8 px-2 bg-muted border-0 rounded text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                          >
+                            {taxOptions.map((opt) => (
+                              <option key={opt.value} value={opt.value.toString()}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Total */}
+                        <div className="px-3 py-2 text-right text-sm font-medium text-foreground tabular-nums">
+                          {formatCurrency(line.total)}
+                        </div>
+
+                        {/* Delete */}
+                        <div className="px-2 py-2 flex justify-center">
+                          <button
+                            onClick={() => removeLine(index)}
+                            className="p-1 text-muted-foreground/40 hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </SortableRow>
+                ))}
+              </SortableContext>
+            </DndContext>
           )}
 
           {/* Add line row (if there are already lines) */}

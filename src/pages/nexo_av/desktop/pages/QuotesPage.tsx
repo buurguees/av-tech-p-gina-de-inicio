@@ -1,10 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Edit, Trash2, Loader2, Copy } from "lucide-react";
-import { usePagination } from "@/hooks/usePagination";
-import PaginationControls from "../components/common/PaginationControls";
+import { FileText, Edit, Trash2, Loader2, Copy, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { useDebounce } from "@/hooks/useDebounce";
 import { cn, toNumber } from "@/lib/utils";
 import { getStatusInfo } from "@/constants/quoteStatuses";
@@ -71,6 +77,9 @@ const QuotesPageDesktop = () => {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchQuery = useDebounce(searchInput, 500);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [clientFilter, setClientFilter] = useState("all");
+  const [amountRange, setAmountRange] = useState("all");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -223,7 +232,39 @@ const QuotesPageDesktop = () => {
     }
   };
 
-  const sortedQuotes = [...quotes].sort((a, b) => {
+  // Clientes únicos para el dropdown
+  const uniqueClients = useMemo(() => {
+    const seen = new Set<string>();
+    return quotes
+      .filter((q) => q.client_name)
+      .map((q) => q.client_name!)
+      .filter((name) => { if (seen.has(name)) return false; seen.add(name); return true; })
+      .sort((a, b) => a.localeCompare(b, "es"));
+  }, [quotes]);
+
+  // Filtros combinados client-side
+  const monthFilteredQuotes = useMemo(() => {
+    let result = quotes;
+    if (monthFilter !== "all") {
+      result = result.filter((q) => q.issue_date?.startsWith(monthFilter));
+    }
+    if (clientFilter !== "all") {
+      result = result.filter((q) => q.client_name === clientFilter);
+    }
+    if (amountRange !== "all") {
+      result = result.filter((q) => {
+        const t = q.total;
+        if (amountRange === "lt500") return t < 500;
+        if (amountRange === "500-2000") return t >= 500 && t < 2000;
+        if (amountRange === "2000-10000") return t >= 2000 && t < 10000;
+        if (amountRange === "gt10000") return t >= 10000;
+        return true;
+      });
+    }
+    return result;
+  }, [quotes, monthFilter, clientFilter, amountRange]);
+
+  const sortedQuotes = [...monthFilteredQuotes].sort((a, b) => {
     if (!sortColumn) return 0;
 
     let aValue: any;
@@ -263,33 +304,18 @@ const QuotesPageDesktop = () => {
     return 0;
   });
 
-  // Pagination (50 records per page)
-  const {
-    currentPage,
-    totalPages,
-    paginatedData: paginatedQuotes,
-    goToPage,
-    nextPage,
-    prevPage,
-    canGoNext,
-    canGoPrev,
-    startIndex,
-    endIndex,
-    totalItems,
-  } = usePagination(sortedQuotes, { pageSize: 50 });
+  const paginatedQuotes = sortedQuotes;
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
-      <div className="w-full h-full flex flex-col overflow-hidden">
-        <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full gap-3">
           {/* Stats Cards - Clickable Filters */}
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 mb-3 flex-shrink-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 flex-shrink-0">
             <div
               className={cn(
                 "border rounded-lg p-2 cursor-pointer transition-all",
                 statusFilter === 'SENT'
                   ? "bg-card/50 border-blue-500/30 ring-1 ring-blue-500/20"
-                  : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
+                  : "bg-card/50 border-border/60 opacity-70 hover:opacity-100"
               )}
               onClick={() => setStatusFilter(statusFilter === 'SENT' ? null : 'SENT')}
             >
@@ -311,7 +337,7 @@ const QuotesPageDesktop = () => {
                 "border rounded-lg p-2 cursor-pointer transition-all",
                 statusFilter === 'APPROVED'
                   ? "bg-card/50 border-green-500/30 ring-1 ring-green-500/20"
-                  : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
+                  : "bg-card/50 border-border/60 opacity-70 hover:opacity-100"
               )}
               onClick={() => setStatusFilter(statusFilter === 'APPROVED' ? null : 'APPROVED')}
             >
@@ -333,7 +359,7 @@ const QuotesPageDesktop = () => {
                 "border rounded-lg p-2 cursor-pointer transition-all",
                 statusFilter === 'EXPIRED'
                   ? "bg-card/50 border-amber-500/30 ring-1 ring-amber-500/20"
-                  : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
+                  : "bg-card/50 border-border/60 opacity-70 hover:opacity-100"
               )}
               onClick={() => setStatusFilter(statusFilter === 'EXPIRED' ? null : 'EXPIRED')}
             >
@@ -355,7 +381,7 @@ const QuotesPageDesktop = () => {
                 "border rounded-lg p-2 cursor-pointer transition-all",
                 statusFilter === 'DRAFT'
                   ? "bg-card/50 border-purple-500/30 ring-1 ring-purple-500/20"
-                  : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
+                  : "bg-card/50 border-border/60 opacity-70 hover:opacity-100"
               )}
               onClick={() => setStatusFilter(statusFilter === 'DRAFT' ? null : 'DRAFT')}
             >
@@ -377,7 +403,7 @@ const QuotesPageDesktop = () => {
                 "border rounded-lg p-2 cursor-pointer transition-all",
                 statusFilter === 'INVOICED'
                   ? "bg-card/50 border-cyan-500/30 ring-1 ring-cyan-500/20"
-                  : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
+                  : "bg-card/50 border-border/60 opacity-70 hover:opacity-100"
               )}
               onClick={() => setStatusFilter(statusFilter === 'INVOICED' ? null : 'INVOICED')}
             >
@@ -399,7 +425,7 @@ const QuotesPageDesktop = () => {
                 "border rounded-lg p-2 cursor-pointer transition-all",
                 statusFilter === 'REJECTED'
                   ? "bg-card/50 border-rose-500/30 ring-1 ring-rose-500/20"
-                  : "bg-card/30 border-white/5 opacity-60 hover:opacity-80"
+                  : "bg-card/50 border-border/60 opacity-70 hover:opacity-100"
               )}
               onClick={() => setStatusFilter(statusFilter === 'REJECTED' ? null : 'REJECTED')}
             >
@@ -418,7 +444,7 @@ const QuotesPageDesktop = () => {
           </div>
 
           {/* DetailNavigationBar */}
-          <div className="mb-6 flex-shrink-0">
+          <div className="flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Presupuestos"
               contextInfo={
@@ -449,6 +475,106 @@ const QuotesPageDesktop = () => {
                 />
               }
             />
+          </div>
+
+          {/* Barra de filtros */}
+          <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+            {/* Mes */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-8 px-3 text-xs", monthFilter !== "all" && "bg-accent")}>
+                  {monthFilter === "all"
+                    ? "Mes"
+                    : new Date(monthFilter + "-01").toLocaleDateString("es-ES", { month: "long", year: "numeric" })}
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="max-h-64 overflow-y-auto">
+                <DropdownMenuItem onClick={() => setMonthFilter("all")} className={cn(monthFilter === "all" && "bg-accent")}>
+                  Todos los meses
+                </DropdownMenuItem>
+                {Array.from({ length: 24 }, (_, i) => {
+                  const d = new Date();
+                  d.setDate(1);
+                  d.setMonth(d.getMonth() - i);
+                  const key = d.toISOString().slice(0, 7);
+                  return (
+                    <DropdownMenuItem key={key} onClick={() => setMonthFilter(key)} className={cn(monthFilter === key && "bg-accent")}>
+                      {d.toLocaleDateString("es-ES", { month: "long", year: "numeric" })}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Cliente */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-8 px-3 text-xs max-w-[160px]", clientFilter !== "all" && "bg-accent")}>
+                  <span className="truncate">
+                    {clientFilter === "all" ? "Cliente" : clientFilter}
+                  </span>
+                  <ChevronDown className="h-3 w-3 ml-1 flex-shrink-0" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="max-h-64 overflow-y-auto max-w-[240px]">
+                <DropdownMenuItem onClick={() => setClientFilter("all")} className={cn(clientFilter === "all" && "bg-accent")}>
+                  Todos los clientes
+                </DropdownMenuItem>
+                {uniqueClients.map((name) => (
+                  <DropdownMenuItem key={name} onClick={() => setClientFilter(name)} className={cn(clientFilter === name && "bg-accent")}>
+                    <span className="truncate">{name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Importe */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-8 px-3 text-xs", amountRange !== "all" && "bg-accent")}>
+                  {amountRange === "all" ? "Importe" :
+                    amountRange === "lt500" ? "< 500€" :
+                    amountRange === "500-2000" ? "500 – 2.000€" :
+                    amountRange === "2000-10000" ? "2.000 – 10.000€" :
+                    "> 10.000€"}
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => setAmountRange("all")} className={cn(amountRange === "all" && "bg-accent")}>
+                  Todos los importes
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAmountRange("lt500")} className={cn(amountRange === "lt500" && "bg-accent")}>
+                  Menos de 500€
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAmountRange("500-2000")} className={cn(amountRange === "500-2000" && "bg-accent")}>
+                  500€ – 2.000€
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAmountRange("2000-10000")} className={cn(amountRange === "2000-10000" && "bg-accent")}>
+                  2.000€ – 10.000€
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAmountRange("gt10000")} className={cn(amountRange === "gt10000" && "bg-accent")}>
+                  Más de 10.000€
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Limpiar filtros */}
+            {(monthFilter !== "all" || clientFilter !== "all" || amountRange !== "all") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => { setMonthFilter("all"); setClientFilter("all"); setAmountRange("all"); }}
+              >
+                Limpiar filtros
+              </Button>
+            )}
+
+            <span className="text-xs text-muted-foreground ml-auto">
+              {monthFilteredQuotes.length} presupuesto{monthFilteredQuotes.length !== 1 ? "s" : ""}
+            </span>
           </div>
 
           {/* DataList */}
@@ -641,39 +767,19 @@ const QuotesPageDesktop = () => {
             />
           </div>
 
-          {/* Paginación */}
-          {!loading && quotes.length > 0 && totalPages > 1 && (
-            <div className="flex-shrink-0 mt-4">
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={totalPages}
-                startIndex={startIndex}
-                endIndex={endIndex}
-                totalItems={totalItems}
-                canGoPrev={canGoPrev}
-                canGoNext={canGoNext}
-                onPrevPage={prevPage}
-                onNextPage={nextPage}
-                onGoToPage={goToPage}
-              />
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-zinc-900 border-white/10">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">¿Eliminar presupuesto?</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
+            <AlertDialogTitle>¿Eliminar presupuesto?</AlertDialogTitle>
+            <AlertDialogDescription>
               Esta acción eliminará permanentemente el presupuesto {quoteToDelete?.quote_number} y todas sus líneas.
               Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel
-              className="bg-white/5 border-white/10 text-white hover:bg-white/10"
               disabled={deleting}
             >
               Cancelar

@@ -12,9 +12,9 @@
   z-index: 50;
   background-color: hsl(var(--background));
   border-bottom: 1px solid hsl(var(--border));
-  height: var(--header-height, clamp(3rem, 3.25rem, 3.5rem));
-  min-height: var(--header-height, clamp(3rem, 3.25rem, 3.5rem));
-  max-height: var(--header-height, clamp(3rem, 3.25rem, 3.5rem));
+  height: 2.5rem;
+  min-height: 2.5rem;
+  max-height: 2.5rem;
   border-radius: 0;
 }
 
@@ -53,7 +53,6 @@
 
 /* Theme adjustments - Usar variables CSS del sistema */
 body.nexo-av-theme .nexo-header,
-body.nexo-av-theme-light .nexo-header,
 body.nexo-av-theme-dark .nexo-header {
   background-color: hsl(var(--background)) !important;
   border-bottom-color: hsl(var(--border)) !important;

@@ -349,7 +349,16 @@ const ExpenseDetailPage = () => {
       }
 
       setExpense(enrichedExpense);
-      
+
+      // Auto-entrar en edición para gastos nuevos (DRAFT sin número definitivo y sin concepto)
+      const isNewDraft = !exp.internal_purchase_number &&
+        normalizePurchaseDocumentStatus(exp.status) === "DRAFT" &&
+        !exp.manual_beneficiary_name &&
+        !exp.expense_category;
+      if (isNewDraft) {
+        setIsEditing(true);
+      }
+
       // Set form values
       setIssueDate(exp.issue_date || "");
       setSupplierReference(exp.supplier_invoice_number || "");

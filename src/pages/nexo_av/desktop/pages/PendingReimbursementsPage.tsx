@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -43,7 +42,6 @@ function PendingReimbursementsPage() {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { toast } = useToast();
-  useNexoAvTheme();
 
   const [items, setItems] = useState<PendingReimbursement[]>([]);
   const [loading, setLoading] = useState(true);

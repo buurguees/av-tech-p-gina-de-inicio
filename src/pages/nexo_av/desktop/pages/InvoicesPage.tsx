@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,7 @@ import {
 } from "@/constants/salesInvoiceStatuses";
 import DataList from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
+import CompactKpiCard from "../components/common/CompactKpiCard";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -156,6 +157,7 @@ const InvoicesPageDesktop = () => {
   const debouncedSearchQuery = useDebounce(searchInput, 500);
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
+  const [monthFilter, setMonthFilter] = useState("all");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
@@ -238,7 +240,12 @@ const InvoicesPageDesktop = () => {
     setSortDirection("asc");
   };
 
-  const sortedInvoices = [...invoices].sort((a, b) => {
+  const monthFilteredInvoices = useMemo(() => {
+    if (monthFilter === "all") return invoices;
+    return invoices.filter((i) => i.issue_date?.startsWith(monthFilter));
+  }, [invoices, monthFilter]);
+
+  const sortedInvoices = [...monthFilteredInvoices].sort((a, b) => {
     if (!sortColumn) return 0;
 
     let aValue: string | number = "";
@@ -311,41 +318,39 @@ const InvoicesPageDesktop = () => {
     : "Trimestre actual";
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
-      <div className="w-full h-full flex flex-col overflow-hidden">
-        <div className="flex flex-col h-full overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-3 flex-shrink-0">
-            <QuarterKpiCard
-              icon={Receipt}
+    <div className="flex flex-col h-full gap-3">
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-2 flex-shrink-0">
+            <CompactKpiCard
               label="Facturado bruto"
-              value={quarterKpis ? formatCurrency(quarterKpis.billed_gross_total) : "..." }
-              subtitle={summaryLoading ? "Cargando trimestre actual" : `${quarterKpis?.issued_invoice_count || 0} emitidas · ${quarterRangeLabel}`}
+              value={quarterKpis ? formatCurrency(quarterKpis.billed_gross_total) : "—"}
+              sub={summaryLoading ? "Cargando..." : `${quarterKpis?.issued_invoice_count || 0} emitidas · ${quarterRangeLabel}`}
               color="emerald"
+              delay={0.05}
             />
-            <QuarterKpiCard
-              icon={TrendingUp}
+            <CompactKpiCard
               label="Base neta"
-              value={quarterKpis ? formatCurrency(quarterKpis.billed_net_total) : "..." }
-              subtitle={summaryLoading ? "Cargando trimestre actual" : `IVA emitido ${formatCurrency(quarterKpis?.billed_tax_total || 0)}`}
+              value={quarterKpis ? formatCurrency(quarterKpis.billed_net_total) : "—"}
+              sub={summaryLoading ? "Cargando..." : `IVA ${formatCurrency(quarterKpis?.billed_tax_total || 0)}`}
               color="cyan"
+              delay={0.1}
             />
-            <QuarterKpiCard
-              icon={Landmark}
+            <CompactKpiCard
               label="Cobrado"
-              value={quarterKpis ? formatCurrency(quarterKpis.collected_total) : "..." }
-              subtitle={summaryLoading ? "Cargando trimestre actual" : `${quarterKpis?.paid_invoice_count || 0} cobradas por completo`}
+              value={quarterKpis ? formatCurrency(quarterKpis.collected_total) : "—"}
+              sub={summaryLoading ? "Cargando..." : `${quarterKpis?.paid_invoice_count || 0} cobradas`}
               color="violet"
+              delay={0.15}
             />
-            <QuarterKpiCard
-              icon={AlertCircle}
-              label="Pendiente de cobro"
-              value={quarterKpis ? formatCurrency(quarterKpis.pending_total) : "..." }
-              subtitle={summaryLoading ? "Cargando trimestre actual" : `${quarterKpis?.pending_collection_count || 0} emitidas con saldo pendiente`}
+            <CompactKpiCard
+              label="Pendiente cobro"
+              value={quarterKpis ? formatCurrency(quarterKpis.pending_total) : "—"}
+              sub={summaryLoading ? "Cargando..." : `${quarterKpis?.pending_collection_count || 0} con saldo pendiente`}
               color="amber"
+              delay={0.2}
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 flex-shrink-0">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 flex-shrink-0">
             <div
               className={cn(
                 "border rounded-lg p-2 flex flex-col justify-between cursor-pointer transition-all",
@@ -408,7 +413,7 @@ const InvoicesPageDesktop = () => {
             </div>
           </div>
 
-          <div className="mb-4 flex-shrink-0">
+          <div className="flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Facturas"
               contextInfo={
@@ -444,7 +449,7 @@ const InvoicesPageDesktop = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2 mb-4 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -525,8 +530,39 @@ const InvoicesPageDesktop = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn("h-8 px-3 text-xs", monthFilter !== "all" && "bg-accent")}
+                >
+                  {monthFilter === "all"
+                    ? "Mes"
+                    : new Date(monthFilter + "-01").toLocaleDateString("es-ES", { month: "long", year: "numeric" })}
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="max-h-64 overflow-y-auto">
+                <DropdownMenuItem onClick={() => setMonthFilter("all")} className={cn(monthFilter === "all" && "bg-accent")}>
+                  Todos los meses
+                </DropdownMenuItem>
+                {Array.from({ length: 24 }, (_, i) => {
+                  const d = new Date();
+                  d.setDate(1);
+                  d.setMonth(d.getMonth() - i);
+                  const key = d.toISOString().slice(0, 7);
+                  return (
+                    <DropdownMenuItem key={key} onClick={() => setMonthFilter(key)} className={cn(monthFilter === key && "bg-accent")}>
+                      {d.toLocaleDateString("es-ES", { month: "long", year: "numeric" })}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <span className="text-xs text-muted-foreground ml-2">
-              {invoices.length} factura{invoices.length !== 1 ? "s" : ""}
+              {monthFilteredInvoices.length} factura{monthFilteredInvoices.length !== 1 ? "s" : ""}
             </span>
           </div>
 
@@ -800,44 +836,9 @@ const InvoicesPageDesktop = () => {
               />
             </div>
           )}
-        </div>
-      </div>
     </div>
   );
 };
 
-const QuarterKpiCard = ({
-  icon: Icon,
-  label,
-  value,
-  subtitle,
-  color,
-}: {
-  icon: typeof Receipt;
-  label: string;
-  value: string;
-  subtitle: string;
-  color: "emerald" | "cyan" | "violet" | "amber";
-}) => {
-  const colorMap = {
-    emerald: "bg-emerald-500/10 text-emerald-500",
-    cyan: "bg-cyan-500/10 text-cyan-500",
-    violet: "bg-violet-500/10 text-violet-500",
-    amber: "bg-amber-500/10 text-amber-500",
-  };
-
-  return (
-    <div className="border rounded-xl p-3 bg-card/90 border-border">
-      <div className="flex items-center gap-2 mb-2">
-        <div className={cn("p-1.5 rounded-lg", colorMap[color])}>
-          <Icon className="h-4 w-4" />
-        </div>
-        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
-      </div>
-      <div className="text-xl font-bold text-foreground">{value}</div>
-      <div className="text-[11px] text-muted-foreground mt-1">{subtitle}</div>
-    </div>
-  );
-};
 
 export default InvoicesPageDesktop;

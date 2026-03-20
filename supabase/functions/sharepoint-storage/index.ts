@@ -117,6 +117,19 @@ type ArchivePurchaseDocumentRequest = {
   documentId: string;
 };
 
+type AccountingDocumentType = "IVA_EXPORT" | "IRPF_EXPORT" | "PERIOD_CLOSURE" | "REPORT";
+
+type UploadAccountingDocumentRequest = {
+  action: "upload-accounting-document";
+  fileName: string;
+  fileBase64: string;
+  contentType: string;
+  documentType: AccountingDocumentType;
+  year: number;
+  quarter?: number;
+  month?: string; // formato "YYYY-MM"
+};
+
 type RequestBody =
   | UploadSalesPdfRequest
   | DownloadSalesFileRequest
@@ -125,7 +138,8 @@ type RequestBody =
   | PersistSalesMetadataRequest
   | GetPurchaseMetadataRequest
   | DownloadPurchaseFileRequest
-  | ArchivePurchaseDocumentRequest;
+  | ArchivePurchaseDocumentRequest
+  | UploadAccountingDocumentRequest;
 
 function getCorsHeaders(origin: string | null): Record<string, string> {
   let allowedOrigin = ALLOWED_ORIGINS[0];
@@ -211,6 +225,52 @@ async function getPurchasesDriveId(token: string): Promise<string> {
   }
 
   return comprasDrive.id;
+}
+
+async function getContabilidadDriveId(token: string): Promise<string> {
+  const configuredDriveId = Deno.env.get("MS_SHAREPOINT_CONTABILIDAD_DRIVE_ID");
+
+  if (configuredDriveId) {
+    return configuredDriveId;
+  }
+
+  const siteId = getRequiredEnv("MS_SHAREPOINT_SITE_ID");
+  const response = await graphFetch(token, `/sites/${siteId}/drives?$select=id,name`);
+  if (!response.ok) {
+    throw new Error(`Could not resolve Contabilidad drive id: ${response.status} ${await response.text()}`);
+  }
+
+  const payload = await response.json() as { value?: Array<{ id?: string; name?: string }> };
+  const drive = payload.value?.find((d) => (d.name || "").trim().toLowerCase() === "contabilidad");
+
+  if (!drive?.id) {
+    throw new Error("SharePoint library 'Contabilidad' was not found on the configured site");
+  }
+
+  return drive.id;
+}
+
+function buildAccountingPath(
+  documentType: AccountingDocumentType,
+  year: number,
+  quarter?: number,
+  month?: string,
+): string {
+  const yearStr = String(year);
+
+  if (documentType === "IVA_EXPORT") {
+    const q = quarter ?? 1;
+    return `Contabilidad/${yearStr}/Cierres y Gestoria/Trimestral/${yearStr}-T${q}/01_Modelo_303`;
+  }
+
+  if (documentType === "IRPF_EXPORT") {
+    const q = quarter ?? 1;
+    return `Contabilidad/${yearStr}/Cierres y Gestoria/Trimestral/${yearStr}-T${q}/02_Modelo_111`;
+  }
+
+  // PERIOD_CLOSURE and REPORT → monthly path
+  const monthSegment = month ?? `${yearStr}-01`;
+  return `Contabilidad/${yearStr}/Cierres y Gestoria/Mensual/${monthSegment}/07_PyG_y_Cierres`;
 }
 
 function getFileExtension(fileName: string | null | undefined, filePath: string | null | undefined): string {
@@ -1144,6 +1204,44 @@ serve(async (req) => {
       }
 
       return jsonResponse(corsHeaders, { uploadedItems }, 201);
+    }
+
+    if (body.action === "upload-accounting-document") {
+      const graphToken = await getGraphAccessToken();
+      const driveId = await getContabilidadDriveId(graphToken);
+      const folderPath = buildAccountingPath(
+        body.documentType,
+        body.year,
+        body.quarter,
+        body.month,
+      );
+      const fileBytes = Uint8Array.from(atob(body.fileBase64), (char) => char.charCodeAt(0));
+      const item = await uploadFileToDrive(graphToken, driveId, folderPath, body.fileName, fileBytes, body.contentType);
+      const siteId = getRequiredEnv("MS_SHAREPOINT_SITE_ID");
+
+      // Intentar patchear metadata básica (no crítico si falla)
+      if (item.id) {
+        try {
+          await patchDriveItemMetadata(graphToken, driveId, item.id, {
+            TipoDocumento: body.documentType,
+            AnoFiscal: String(body.year),
+            MesFiscal: body.month ?? null,
+            FechaGeneracion: new Date().toISOString(),
+            GeneradoPor: authorizedUser.email,
+            EstadoERP: "Generado",
+          });
+        } catch (metadataError) {
+          console.warn("Accounting metadata patch skipped:", metadataError);
+        }
+      }
+
+      return jsonResponse(corsHeaders, {
+        path: `${folderPath}/${body.fileName}`,
+        sharepointItemId: item.id ?? null,
+        sharepointWebUrl: item.webUrl ?? null,
+        driveId,
+        siteId,
+      }, 201);
     }
 
     return jsonResponse(corsHeaders, { error: "Unsupported action" }, 400);

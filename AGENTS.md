@@ -15,7 +15,7 @@ Este repositorio es la fuente de verdad de la web corporativa AV TECH y del ERP 
 1. Modificar o crear archivos en repo.
 2. Revisar impacto en `src/App.tsx`, páginas desktop/mobile y constantes de negocio.
 3. Validar y revisar cambios localmente (lint, build).
-4. Si hay migraciones Supabase, seguir `.codex/skills/` o `supabase-migration-hygiene`.
+4. Si hay migraciones Supabase, seguir `.claude/skills/` o `supabase-migration-hygiene`.
 5. Verificar que no se rompan flujos de facturación, compras, pagos ni inmutabilidad documental.
 
 ## Reglas de negocio NEXO AV
@@ -32,7 +32,7 @@ Si se detecta que el estado real (BD, SharePoint, Firebase) difiere del repo:
 
 1. Traer la diferencia al repositorio.
 2. Revisar/aprobar el cambio.
-3. Documentar en `.codex/errores-soluciones.md` si fue un incidente.
+3. Documentar en `.claude/errores-soluciones.md` si fue un incidente.
 
 ### Regla específica Supabase / sistemas vivos
 
@@ -44,7 +44,7 @@ Antes de ejecutar cambios en datos o esquema:
 
 ## Registro obligatorio de errores y soluciones
 
-Cada vez que se resuelva un error, registrar obligatoriamente en `.codex/errores-soluciones.md`:
+Cada vez que se resuelva un error, registrar obligatoriamente en `.claude/errores-soluciones.md`:
 
 1. Fecha.
 2. Contexto del error.
@@ -57,7 +57,7 @@ Este archivo se carga obligatoriamente al abrir cada chat.
 
 ## Registro obligatorio de avances
 
-Cada vez que se desbloquee una capacidad relevante, una nueva función reutilizable o conocimiento operativo estable, registrar en `.codex/avances.md`:
+Cada vez que se desbloquee una capacidad relevante, una nueva función reutilizable o conocimiento operativo estable, registrar en `.claude/avances.md`:
 
 1. Fecha.
 2. Contexto.
@@ -71,11 +71,11 @@ Este archivo se carga obligatoriamente al abrir cada chat.
 
 ## Skills de agentes (ruta canónica)
 
-La ubicación canónica de skills es `.codex/skills/`. Cada skill tiene su `SKILL.md` en `.codex/skills/<skill>/SKILL.md`.
+La ubicación canónica de skills es `.claude/skills/`. Cada skill tiene su `SKILL.md` en `.claude/skills/<skill>/SKILL.md`.
 
 Reglas obligatorias:
 
-1. Al iniciar chat, cargar siempre `.codex/skills/INDEX.md` para resolver qué skill aplicar.
+1. Al iniciar chat, cargar siempre `.claude/skills/INDEX.md` para resolver qué skill aplicar.
 2. Cargar después solo el `SKILL.md` estrictamente necesario para la tarea (carga contextual, no masiva).
 3. Si una tarea mezcla dominios (por ejemplo Supabase + SharePoint), cargar los skills mínimos de cada dominio.
 4. Cada skill incluye una "Guía para agentes" con cuándo usarla y cómo integrar con `errores-soluciones.md` y `avances.md`.

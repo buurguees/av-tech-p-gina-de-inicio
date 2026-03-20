@@ -192,3 +192,27 @@ export interface BankAccountWithBalance {
   balance: number;
   accounting_code?: string;
 }
+
+/** Fila de detalle IVA para exportación Modelo 303 */
+export interface VatDetailRow {
+  tipo: "REPERCUTIDO" | "SOPORTADO";
+  invoice_id: string;
+  invoice_number: string;
+  issue_date: string;
+  third_party_name: string | null;
+  third_party_tax_id: string | null;
+  tax_rate: number;
+  base_imponible: number;
+  cuota_iva: number;
+}
+
+/** Fila de retención IRPF a profesionales (facturas de compra) para Modelo 111 */
+export interface ProfessionalIrpfRow {
+  purchase_invoice_id: string;
+  invoice_number: string;
+  issue_date: string;
+  supplier_name: string | null;
+  supplier_tax_id: string | null;
+  subtotal: number;
+  withholding_amount: number;
+}

@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy } from "react";
+import { useState, useEffect, lazy, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2, Save, Loader2, GripVertical, FileText, MapPin } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, GripVertical, FileText, MapPin } from "lucide-react";
 import { motion } from "motion/react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { useToast } from "@/hooks/use-toast";
 import ProductSearchInput from "../components/common/ProductSearchInput";
 import { LOCKED_FINANCE_INVOICE_STATES } from "@/constants/financeStatuses";
-import { useNexoAvTheme } from "../hooks/useNexoAvTheme";
+import { SortableLineRow } from "../components/documents/SortableLineRow";
+import { useDocumentLines } from "../hooks/useDocumentLines";
 
 interface Client {
   id: string;
@@ -56,6 +66,7 @@ interface InvoiceLine {
   subtotal: number;
   tax_amount: number;
   total: number;
+  line_order?: number;
   isNew?: boolean;
   isModified?: boolean;
   isDeleted?: boolean;
@@ -101,7 +112,20 @@ const EditInvoicePageDesktop = () => {
   const [originalLines, setOriginalLines] = useState<InvoiceLine[]>([]);
   const [taxOptions, setTaxOptions] = useState<TaxOption[]>([]);
   const [defaultTaxRate, setDefaultTaxRate] = useState(21);
-  const [numericInputValues, setNumericInputValues] = useState<Record<string, string>>({});
+
+  const {
+    numericInputValues,
+    setNumericInputValues,
+    calculateLineValues: calcLine,
+    handleNumericInputChange: handleNumericChange,
+    clearNumericInputKey,
+    getNumericDisplayValue,
+    computeTotals,
+  } = useDocumentLines(defaultTaxRate, taxOptions);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
 
   useEffect(() => {
     if (invoiceId) {
@@ -303,28 +327,8 @@ const EditInvoicePageDesktop = () => {
     }
   }, [selectedProjectId, projects]);
 
-  const calculateLineValues = (line: Partial<InvoiceLine>): InvoiceLine => {
-    const quantity = line.quantity || 0;
-    const unitPrice = line.unit_price || 0;
-    const discountPercent = line.discount_percent || 0;
-    const taxRate = line.tax_rate || 21;
-
-    const subtotal = quantity * unitPrice * (1 - discountPercent / 100);
-    const taxAmount = subtotal * (taxRate / 100);
-    const total = subtotal + taxAmount;
-
-    return {
-      ...line,
-      concept: line.concept || "",
-      quantity,
-      unit_price: unitPrice,
-      tax_rate: taxRate,
-      discount_percent: discountPercent,
-      subtotal,
-      tax_amount: taxAmount,
-      total,
-    } as InvoiceLine;
-  };
+  const calculateLineValues = (line: Partial<InvoiceLine>): InvoiceLine =>
+    calcLine(line) as InvoiceLine;
 
   const addLine = () => {
     const newLine = calculateLineValues({
@@ -384,122 +388,41 @@ const EditInvoicePageDesktop = () => {
 
   const getVisibleLines = () => lines.filter(l => !l.isDeleted);
 
-  const getTotals = () => {
-    const visibleLines = getVisibleLines();
-    const subtotal = visibleLines.reduce((acc, line) => acc + line.subtotal, 0);
-    const total = visibleLines.reduce((acc, line) => acc + line.total, 0);
+  const getTotals = () => computeTotals(lines);
 
-    const taxesByRate: Record<number, { rate: number; amount: number; label: string }> = {};
-    visibleLines.forEach((line) => {
-      if (line.tax_amount !== 0) {
-        if (!taxesByRate[line.tax_rate]) {
-          const taxOption = taxOptions.find(t => t.value === line.tax_rate);
-          taxesByRate[line.tax_rate] = {
-            rate: line.tax_rate,
-            amount: 0,
-            label: taxOption?.label || `IVA ${line.tax_rate}%`,
-          };
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(amount);
+
+  const handleNumericInputChange = (
+    value: string,
+    field: "quantity" | "unit_price" | "discount_percent",
+    realIndex: number
+  ) => {
+    handleNumericChange(value, field, realIndex, updateLine as (i: number, f: string, v: number) => void);
+  };
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setLines((prev) => {
+      const visible = prev.filter((l) => !l.isDeleted);
+      const oldIdx = visible.findIndex((l) => (l.id || l.tempId) === active.id);
+      const newIdx = visible.findIndex((l) => (l.id || l.tempId) === over.id);
+      if (oldIdx === -1 || newIdx === -1) return prev;
+      const reordered = arrayMove(visible, oldIdx, newIdx);
+      const result: InvoiceLine[] = [];
+      let visibleCursor = 0;
+      for (const line of prev) {
+        if (line.isDeleted) {
+          result.push(line);
+        } else {
+          result.push({ ...reordered[visibleCursor], line_order: visibleCursor + 1 });
+          visibleCursor++;
         }
-        taxesByRate[line.tax_rate].amount += line.tax_amount;
       }
+      return result;
     });
-
-    return {
-      subtotal,
-      taxes: Object.values(taxesByRate).sort((a, b) => b.rate - a.rate),
-      total,
-    };
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-ES", {
-      style: "currency",
-      currency: "EUR",
-    }).format(amount);
-  };
-
-  // Helper: Parse input value (handles both . and , as decimal separator)
-  const parseNumericInput = (value: string): number => {
-    if (!value || value === '') return 0;
-
-    let cleaned = value.trim();
-
-    // Count dots and commas
-    const dotCount = (cleaned.match(/\./g) || []).length;
-    const commaCount = (cleaned.match(/,/g) || []).length;
-
-    // If there's a comma, it's definitely the decimal separator (European format)
-    if (commaCount > 0) {
-      // Remove all dots (thousand separators) and replace comma with dot for parsing
-      cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.');
-    } else if (dotCount === 1) {
-      // Single dot: check if it's likely a decimal (has digits after) or thousand separator
-      const dotIndex = cleaned.indexOf('.');
-      const afterDot = cleaned.substring(dotIndex + 1);
-
-      // If there are 1-2 digits after the dot, treat it as decimal separator
-      // Otherwise, treat it as thousand separator
-      if (afterDot.length <= 2 && /^\d+$/.test(afterDot)) {
-        // Decimal separator - keep as is for parsing
-        cleaned = cleaned;
-      } else {
-        // Thousand separator - remove it
-        cleaned = cleaned.replace(/\./g, '');
-      }
-    } else if (dotCount > 1) {
-      // Multiple dots: all are thousand separators, remove them
-      cleaned = cleaned.replace(/\./g, '');
-    }
-
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? 0 : num;
-  };
-
-  // Helper: Format number for display (with thousand separators and comma decimal)
-  const formatNumericDisplay = (value: number | string): string => {
-    if (value === '' || value === null || value === undefined) return '';
-    const num = typeof value === 'string' ? parseNumericInput(value) : value;
-    if (isNaN(num) || num === 0) return '';
-
-    // Format with thousand separators and comma decimal
-    return new Intl.NumberFormat('es-ES', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(num);
-  };
-
-  // Helper: Handle numeric input change
-  const handleNumericInputChange = (value: string, field: 'quantity' | 'unit_price' | 'discount_percent', realIndex: number) => {
-    const inputKey = `${realIndex}-${field}`;
-
-    // Store the raw input value for display
-    setNumericInputValues(prev => ({ ...prev, [inputKey]: value }));
-
-    // Allow empty string for clearing
-    if (value === '' || value === null || value === undefined) {
-      updateLine(realIndex, field, 0);
-      return;
-    }
-
-    // Parse the value (handles both . and , as decimal separator)
-    const numericValue = parseNumericInput(value);
-    updateLine(realIndex, field, numericValue);
-  };
-
-  // Get display value for numeric input
-  const getNumericDisplayValue = (value: number, field: 'quantity' | 'unit_price' | 'discount_percent', realIndex: number): string => {
-    const inputKey = `${realIndex}-${field}`;
-    const storedValue = numericInputValues[inputKey];
-
-    // If user is typing, show what they're typing
-    if (storedValue !== undefined) {
-      return storedValue;
-    }
-
-    // Otherwise format the numeric value
-    if (value === 0) return '';
-    return formatNumericDisplay(value);
-  };
+  }, []);
 
   const handleSave = async () => {
     if (!selectedClientId) {
@@ -527,7 +450,9 @@ const EditInvoicePageDesktop = () => {
       });
       if (updateError) throw updateError;
 
-      // Process line changes
+      // Process line changes — track resolved IDs for reorder
+      const idMap = new Map<string, string>(); // tempId/id → real id
+
       for (const line of lines) {
         if (line.isDeleted && line.id) {
           // Delete existing line
@@ -536,8 +461,8 @@ const EditInvoicePageDesktop = () => {
           });
           if (error) throw error;
         } else if (line.isNew && !line.isDeleted && line.concept.trim()) {
-          // Add new line
-          const { error } = await supabase.rpc("add_invoice_line", {
+          // Add new line — capture returned UUID
+          const { data: newId, error } = await supabase.rpc("add_invoice_line", {
             p_invoice_id: invoiceId!,
             p_concept: line.concept,
             p_description: null,
@@ -547,6 +472,8 @@ const EditInvoicePageDesktop = () => {
             p_discount_percent: line.discount_percent,
           });
           if (error) throw error;
+          const key = line.tempId || line.id;
+          if (key && newId) idMap.set(key, newId as string);
         } else if (line.isModified && line.id && !line.isDeleted) {
           // Update existing line
           const { error } = await supabase.rpc("update_invoice_line", {
@@ -559,7 +486,28 @@ const EditInvoicePageDesktop = () => {
             p_discount_percent: line.discount_percent,
           });
           if (error) throw error;
+          idMap.set(line.id, line.id);
+        } else if (line.id && !line.isDeleted) {
+          // Existing unmodified line — just track its ID for reorder
+          idMap.set(line.id, line.id);
         }
+      }
+
+      // Persist line order atomically
+      const lineIdsToOrder = lines
+        .filter(l => !l.isDeleted)
+        .map(l => {
+          const key = l.tempId || l.id;
+          return key ? idMap.get(key) ?? l.id : undefined;
+        })
+        .filter((id): id is string => Boolean(id));
+
+      if (lineIdsToOrder.length > 0) {
+        const { error: orderError } = await supabase.rpc("finance_reorder_invoice_lines", {
+          p_invoice_id: invoiceId!,
+          p_line_ids: lineIdsToOrder,
+        });
+        if (orderError) throw orderError;
       }
 
       toast({
@@ -774,112 +722,80 @@ const EditInvoicePageDesktop = () => {
                     <TableHead className="text-muted-foreground w-14 px-5 py-3"></TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {visibleLines.map((line, index) => {
-                    const realIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
-                    return (
-                      <TableRow
-                        key={line.tempId || line.id}
-                        className="border-border hover:bg-muted/40 transition-colors duration-150 group"
-                      >
-                        <TableCell className="text-muted-foreground group-hover:text-foreground px-5 py-3.5 transition-colors">
-                          <GripVertical className="h-4 w-4" />
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <ProductSearchInput
-                            value={line.concept}
-                            onChange={(value) => updateLine(realIndex, "concept", value)}
-                            onSelectItem={(item) => handleProductSelect(realIndex, item)}
-                            placeholder="Concepto o @buscar"
-                            className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-primary/40 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
-                          />
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <div className="flex justify-center">
-                            <Input
-                              type="text"
-                              inputMode="numeric"
-                              value={getNumericDisplayValue(line.quantity, 'quantity', realIndex)}
-                              onChange={(e) => handleNumericInputChange(e.target.value, 'quantity', realIndex)}
-                              onBlur={() => {
-                                const inputKey = `${realIndex}-quantity`;
-                                setNumericInputValues(prev => {
-                                  const newValues = { ...prev };
-                                  delete newValues[inputKey];
-                                  return newValues;
-                                });
-                              }}
-                              className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-primary/40 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
-                              placeholder="0"
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <Input
-                            type="text"
-                            inputMode="decimal"
-                            value={getNumericDisplayValue(line.unit_price, 'unit_price', realIndex)}
-                            onChange={(e) => handleNumericInputChange(e.target.value, 'unit_price', realIndex)}
-                            onBlur={() => {
-                              const inputKey = `${realIndex}-unit_price`;
-                              setNumericInputValues(prev => {
-                                const newValues = { ...prev };
-                                delete newValues[inputKey];
-                                return newValues;
-                              });
-                            }}
-                            className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-right font-medium px-0 py-2 hover:border-primary/40 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
-                            placeholder="0,00"
-                          />
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <Input
-                            type="text"
-                            inputMode="decimal"
-                            value={getNumericDisplayValue(line.discount_percent || 0, 'discount_percent', realIndex)}
-                            onChange={(e) => handleNumericInputChange(e.target.value, 'discount_percent', realIndex)}
-                            onBlur={() => {
-                              const inputKey = `${realIndex}-discount_percent`;
-                              setNumericInputValues(prev => {
-                                const newValues = { ...prev };
-                                delete newValues[inputKey];
-                                return newValues;
-                              });
-                            }}
-                            className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-primary/40 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
-                            placeholder="0"
-                          />
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <div className="flex justify-center">
-                            <select
-                              value={line.tax_rate.toString()}
-                              onChange={(e) => updateLine(realIndex, "tax_rate", parseFloat(e.target.value))}
-                              className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium px-1 py-2 w-full hover:border-primary/50 focus:border-primary rounded-none transition-colors outline-none"
-                            >
-                              {taxOptions.map((opt) => (
-                                <option key={opt.value} value={opt.value.toString()}>{opt.label}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-foreground text-right font-semibold px-5 py-3.5">
-                          {formatCurrency(line.total)}
-                        </TableCell>
-                        <TableCell className="px-5 py-3.5">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeLine(realIndex)}
-                            className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 h-8 w-8 transition-colors"
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={visibleLines.map(l => l.id || l.tempId || "")}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <TableBody>
+                      {visibleLines.map((line) => {
+                        const realIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
+                        return (
+                          <SortableLineRow
+                            key={line.tempId || line.id}
+                            id={line.id || line.tempId || ""}
+                            className="border-border hover:bg-muted/40 transition-colors duration-150 group"
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
+                            {(dragHandleProps) => (
+                              <>
+                                <TableCell className="px-3 py-3.5 w-10">
+                                  <button
+                                    {...dragHandleProps}
+                                    className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+                                    title="Arrastrar para reordenar"
+                                  >
+                                    <GripVertical className="h-4 w-4" />
+                                  </button>
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <ProductSearchInput
+                                    value={line.concept}
+                                    onChange={(value) => updateLine(realIndex, "concept", value)}
+                                    onSelectItem={(item) => handleProductSelect(realIndex, item)}
+                                    placeholder="Concepto o @buscar"
+                                    className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium pl-2 pr-0 py-2 hover:border-primary/40 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors"
+                                  />
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <div className="flex justify-center">
+                                    <Input type="text" inputMode="numeric" value={getNumericDisplayValue(line.quantity, 'quantity', realIndex)} onChange={(e) => handleNumericInputChange(e.target.value, 'quantity', realIndex)} onBlur={() => clearNumericInputKey(realIndex, 'quantity')} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-20 hover:border-primary/40 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors" placeholder="0" />
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <Input type="text" inputMode="decimal" value={getNumericDisplayValue(line.unit_price, 'unit_price', realIndex)} onChange={(e) => handleNumericInputChange(e.target.value, 'unit_price', realIndex)} onBlur={() => clearNumericInputKey(realIndex, 'unit_price')} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-right font-medium px-0 py-2 hover:border-primary/40 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors" placeholder="0,00" />
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <Input type="text" inputMode="decimal" value={getNumericDisplayValue(line.discount_percent || 0, 'discount_percent', realIndex)} onChange={(e) => handleNumericInputChange(e.target.value, 'discount_percent', realIndex)} onBlur={() => clearNumericInputKey(realIndex, 'discount_percent')} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm text-center font-medium px-0 py-2 w-12 mx-auto hover:border-primary/40 focus:border-primary/60 focus-visible:ring-0 focus-visible:shadow-none rounded-none transition-colors" placeholder="0" />
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <div className="flex justify-center">
+                                    <select value={line.tax_rate.toString()} onChange={(e) => updateLine(realIndex, "tax_rate", parseFloat(e.target.value))} className="bg-transparent border-0 border-b border-border text-foreground h-auto text-sm font-medium px-1 py-2 w-full hover:border-primary/50 focus:border-primary rounded-none transition-colors outline-none">
+                                      {taxOptions.map((opt) => (
+                                        <option key={opt.value} value={opt.value.toString()}>{opt.label}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-foreground text-right font-semibold px-5 py-3.5">
+                                  {formatCurrency(line.total)}
+                                </TableCell>
+                                <TableCell className="px-5 py-3.5">
+                                  <Button variant="ghost" size="icon" onClick={() => removeLine(realIndex)} className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 h-8 w-8 transition-colors">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </>
+                            )}
+                          </SortableLineRow>
+                        );
+                      })}
+                    </TableBody>
+                  </SortableContext>
+                </DndContext>
               </Table>
             </div>
 

@@ -1,0 +1,152 @@
+/* ============================================
+   FILTER BAR
+   Barra de filtros compacta para páginas de listado ERP
+   Altura objetivo: 36px, font 12px, gap 6px
+   ============================================ */
+
+/* Contenedor principal de la barra de filtros */
+.nexo-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  min-height: 36px;
+}
+
+/* Permite que la barra se desborde en varias filas en pantallas pequeñas */
+.nexo-filter-bar--wrap {
+  flex-wrap: wrap;
+}
+
+/* Input de búsqueda dentro de la barra */
+.nexo-filter-bar__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 180px;
+  flex: 1;
+  max-width: 280px;
+}
+
+.nexo-filter-bar__search-icon {
+  position: absolute;
+  left: 0.5rem;
+  width: 0.875rem;
+  height: 0.875rem;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.nexo-filter-bar__search-input {
+  width: 100%;
+  height: 2rem !important;            /* 32px */
+  padding: 0 0.5rem 0 1.875rem !important;
+  font-size: 0.75rem !important;
+  border-radius: var(--radius-sm, 0.25rem) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.nexo-filter-bar__search-input:focus {
+  border-color: hsl(var(--primary)) !important;
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1) !important;
+}
+
+.nexo-filter-bar__search-input::placeholder {
+  color: hsl(var(--muted-foreground) / 0.6);
+}
+
+/* Separador vertical */
+.nexo-filter-bar__sep {
+  width: 1px;
+  height: 1.25rem;
+  background: hsl(var(--border));
+  flex-shrink: 0;
+  margin: 0 0.125rem;
+}
+
+/* Botón de filtro compacto (trigger de dropdown) */
+.nexo-filter-bar__btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  height: 2rem !important;            /* 32px */
+  padding: 0 0.625rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  border-radius: var(--radius-sm, 0.25rem) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--muted-foreground)) !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nexo-filter-bar__btn:hover {
+  border-color: hsl(var(--border-strong, var(--border))) !important;
+  color: hsl(var(--foreground)) !important;
+  background: hsl(var(--accent) / 0.5) !important;
+}
+
+/* Estado activo: filtro aplicado */
+.nexo-filter-bar__btn--active {
+  border-color: hsl(var(--primary) / 0.4) !important;
+  background: hsl(var(--primary) / 0.08) !important;
+  color: hsl(var(--primary)) !important;
+}
+
+.nexo-filter-bar__btn--active:hover {
+  background: hsl(var(--primary) / 0.12) !important;
+}
+
+/* Botón de reset (icono) */
+.nexo-filter-bar__reset {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 2rem !important;
+  height: 2rem !important;
+  padding: 0 !important;
+  border-radius: var(--radius-sm, 0.25rem) !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: hsl(var(--muted-foreground)) !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.nexo-filter-bar__reset:hover {
+  background: hsl(var(--accent) / 0.5) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Icono chevron en botones de filtro */
+.nexo-filter-bar__chevron {
+  width: 0.75rem;
+  height: 0.75rem;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+/* Contador de resultados */
+.nexo-filter-bar__count {
+  font-size: 0.6875rem;
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: 0.5rem;
+}
+
+/* Dark mode — scrollbar y ajustes */
+body.nexo-av-theme-dark .nexo-filter-bar__search-input {
+  background: hsl(var(--muted) / 0.3) !important;
+}

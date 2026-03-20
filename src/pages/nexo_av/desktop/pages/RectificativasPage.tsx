@@ -178,10 +178,8 @@ const RectificativasPageDesktop = () => {
     inv.original_invoice_id ?? inv.id;
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
-      <div className="w-full h-full flex flex-col overflow-hidden">
-        <div className="flex flex-col h-full overflow-hidden">
-          <div className="mb-4 flex-shrink-0">
+    <div className="flex flex-col h-full gap-3 overflow-hidden">
+          <div className="flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Facturas rectificativas"
               contextInfo={
@@ -355,8 +353,6 @@ const RectificativasPageDesktop = () => {
               />
             </div>
           )}
-        </div>
-      </div>
     </div>
   );
 };

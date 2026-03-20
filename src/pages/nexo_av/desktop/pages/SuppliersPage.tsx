@@ -25,6 +25,7 @@ import DetailActionButton from "../components/navigation/DetailActionButton";
 import DataList from "../components/common/DataList";
 import SearchBar from "../components/common/SearchBar";
 import { getCategoryInfo } from "@/constants/supplierConstants";
+import CompactKpiCard from "../components/common/CompactKpiCard";
 
 interface Supplier {
   id: string;
@@ -324,110 +325,17 @@ const SuppliersPageDesktop = () => {
   }
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
-      <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
-        <div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-blue-500/10 rounded text-blue-600">
-                  <Building2 className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Total</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">{suppliers.length}</span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-green-500/10 rounded text-green-600">
-                  <CheckCircle className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Activos</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">{supplierKPIs.byStatus.ACTIVE || 0}</span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-primary/10 rounded text-primary">
-                  <XCircle className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Inactivos</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">{supplierKPIs.byStatus.INACTIVE || 0}</span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-red-500/10 rounded text-red-600">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Bloqueados</span>
-              </div>
-              <div>
-                <span className="text-lg font-bold text-foreground">{supplierKPIs.byStatus.BLOCKED || 0}</span>
-              </div>
-            </div>
+    <div className="flex flex-col h-full gap-3 overflow-hidden">
+          {/* KPIs — fila única compacta */}
+          <div className="grid grid-cols-5 gap-2 flex-shrink-0">
+            <CompactKpiCard label="Total proveedores" value={String(suppliers.length)} color="blue" delay={0} />
+            <CompactKpiCard label="Activos" value={String(supplierKPIs.byStatus.ACTIVE || 0)} color="emerald" delay={0.05} />
+            <CompactKpiCard label="Costes mensuales" value={formatCurrency(supplierKPIs.monthlyCosts)} color="amber" delay={0.1} />
+            <CompactKpiCard label="Ticket medio" value={formatCurrency(supplierKPIs.avgInvoiceTicket)} color="cyan" delay={0.15} />
+            <CompactKpiCard label="Pend. de pago" value={formatCurrency(supplierKPIs.totalPendingPayments)} color={supplierKPIs.totalPendingPayments > 0 ? 'destructive' : 'emerald'} delay={0.2} />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-orange-500/10 rounded text-orange-600">
-                  <Euro className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Costes Mensuales</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">{formatCurrency(supplierKPIs.monthlyCosts)}</span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-purple-500/10 rounded text-purple-600">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Media Coste/Prov.</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">{formatCurrency(supplierKPIs.avgCostPerSupplier)}</span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-cyan-500/10 rounded text-cyan-600">
-                  <BarChart3 className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Ticket Medio</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">{formatCurrency(supplierKPIs.avgInvoiceTicket)}</span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-border rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-red-500/10 rounded text-red-600">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-[9px] px-1.5 py-0.5 font-medium">Pendientes</span>
-              </div>
-              <div>
-                <span className="text-base font-bold text-foreground">{formatCurrency(supplierKPIs.totalPendingPayments)}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-6">
+          <div className="flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Proveedores"
               contextInfo={
@@ -610,8 +518,6 @@ const SuppliersPageDesktop = () => {
               onGoToPage={goToPage}
             />
           )}
-        </div>
-      </div>
 
       <CreateSupplierDialog
         open={isCreateDialogOpen}

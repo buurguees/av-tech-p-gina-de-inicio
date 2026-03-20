@@ -221,11 +221,10 @@ const AuditPageDesktop = () => {
   }
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
-      <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
+    <div className="flex flex-col h-full gap-3 overflow-hidden">
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 flex-shrink-0">
             <Card className="border border-border">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
@@ -283,7 +282,7 @@ const AuditPageDesktop = () => {
         )}
 
         {/* Filters */}
-        <Card className="border border-border mb-6">
+        <Card className="border border-border flex-shrink-0">
           <CardHeader className="pb-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
@@ -512,7 +511,6 @@ const AuditPageDesktop = () => {
             )}
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 };

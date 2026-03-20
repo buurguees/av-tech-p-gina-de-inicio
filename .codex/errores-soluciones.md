@@ -127,3 +127,18 @@ Este archivo se carga al iniciar cada chat para mantener memoria operativa de er
 - Solucion aplicada: se convirtio `invoices/new` en ruta responsive con `MobileNewInvoicePage`; se añadió soporte de deep-link y sincronizacion de pestañas en `MobileProjectDetailPage` y `MobileClientDetailPage`; se corrigieron los CTAs de nueva factura para enviar `returnTo` al contexto correcto; `MobileNewInvoicePage` ahora puede resolver `clientId` a partir de `projectId` y vuelve al origen operativo; y `MobileHeader` reconoce rutas de facturas, compras y gastos.
 - Validacion realizada: `npx tsc --noEmit` OK; `npm run -s build` OK el `2026-03-16`; `npx eslint` acotado confirma que no quedan errores nuevos en `MobileNewInvoicePage`, aunque persiste deuda previa de `no-explicit-any` y hooks en `MobileProjectDetailPage` y `MobilePlanningTab`.
 - Medidas para evitar recurrencia: cualquier CTA mobile hacia formularios de negocio debe pasar contexto de retorno (`returnTo`) cuando exista boton atras propio; si una pantalla mobile usa pestañas navegables, debe soportar `?tab=` para deep-links y retorno desde flujos secundarios; y ninguna ruta operativa nueva debe quedar desktop-only cuando ya exista entry point mobile.
+
+### [2026-03-19] Módulo de gastos: listado fijo, líneas, contabilidad y SharePoint
+
+- Contexto: el módulo de gastos presentaba 4 problemas: (1) el listado desktop solo mostraba ~3 tickets sin poder hacer scroll; (2) los gastos nuevos no permitían editar líneas sin pulsar «Editar» primero; (3) la función contable `create_invoice_purchase_entry` usaba siempre cuenta 627000 en lugar de 629.x según categoría; (4) la aprobación falla si el período contable está cerrado.
+- Causa raíz:
+  - Listado fijo: el `motion.div` en `ExpensesPage.tsx` no tenía `flex-1 min-h-0 flex flex-col`, por lo que el contenedor de la tabla con `overflow-auto` no tenía contexto flex para expandirse y el `overflow-hidden` del padre cortaba el contenido.
+  - Líneas: los gastos nuevos (DRAFT, sin concepto ni categoría) no auto-entraban en modo edición; el usuario debía descubrir el botón «Editar».
+  - Contabilidad: `accounting.create_invoice_purchase_entry` hardcodeaba `627000` para todos los tickets, ignorando `expense_category` que mapea a `629.1`–`629.9`.
+  - Aprobación/período: `check_journal_entry_period_not_closed` bloquea el asiento si la fecha del ticket cae en mes cerrado. Error ya manejado en UI con mensaje explícito; el usuario debe cambiar la fecha del ticket o reabrir el período.
+- Solución aplicada:
+  - `ExpensesPage.tsx`: añadido `className="flex-1 min-h-0 flex flex-col"` al `motion.div` y `shrink-0` al grid de KPIs y al div de cabecera/filtros.
+  - `ExpenseDetailPage.tsx`: auto-entrada en modo edición cuando `status=DRAFT`, sin `internal_purchase_number` y sin `manual_beneficiary_name`/`expense_category`.
+  - Migración `20260319100000_fix_expense_ticket_account_by_category.sql`: `CREATE OR REPLACE FUNCTION accounting.create_invoice_purchase_entry` usando CASE de `expense_category` para determinar la cuenta 629.x; fallback `627000` si sin categoría.
+- Validación realizada: `npx tsc --noEmit` OK; migración aplicada en live con `apply_migration` OK.
+- Medidas para evitar recurrencia: (1) cualquier contenedor principal de listado con scroll debe tener su padre con `flex flex-col` explícito; (2) formularios nuevos en DRAFT deben auto-entrar en edición si no tienen datos; (3) las funciones de asiento contable de compras deben leer `expense_category` al mapear cuentas del grupo 629; (4) al aprobar un ticket con fecha en mes pasado, advertir al usuario antes de intentarlo.

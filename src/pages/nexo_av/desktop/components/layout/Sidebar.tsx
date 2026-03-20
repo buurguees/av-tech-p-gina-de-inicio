@@ -5,6 +5,7 @@ import {
   Home,
   LucideIcon,
   ChevronRight,
+  ChevronLeft,
   MapPin,
   CalendarDays,
   Users,
@@ -27,6 +28,8 @@ import {
   HandCoins,
   ScrollText,
   FolderOpen,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import "../../styles/components/layout/sidebar.css";
@@ -43,6 +46,8 @@ interface SidebarProps {
   userId: string | undefined;
   modules: Module[];
   userRole?: string;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 interface FolderItem {
@@ -60,7 +65,7 @@ interface Folder {
   items: FolderItem[];
 }
 
-const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
+const Sidebar = ({ userId, modules, userRole, isCollapsed = false, onToggleCollapse }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [openFolderId, setOpenFolderId] = useState<string | null>(null);
@@ -326,7 +331,23 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
   }, [location.pathname, userId]);
 
   return (
-    <aside className="nexo-sidebar">
+    <aside className={cn("nexo-sidebar", isCollapsed && "nexo-sidebar--collapsed")}>
+      {/* Botón de colapsar/expandir */}
+      {onToggleCollapse && (
+        <button
+          type="button"
+          className="nexo-sidebar__collapse-btn"
+          onClick={onToggleCollapse}
+          title={isCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
+        >
+          {isCollapsed ? (
+            <PanelLeftOpen className="nexo-sidebar__icon" />
+          ) : (
+            <PanelLeftClose className="nexo-sidebar__icon" />
+          )}
+        </button>
+      )}
+
       <nav className="nexo-sidebar__nav">
         {/* Sección Principal - Scrollable */}
         <div className="nexo-sidebar__main">
@@ -338,9 +359,10 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
               isActive(`/nexo-av/${userId}/dashboard`) && "nexo-sidebar__item--active"
             )}
             whileTap={{ scale: 0.98 }}
+            title={isCollapsed ? "Dashboard" : undefined}
           >
             <Home className="nexo-sidebar__icon" />
-            <span className="nexo-sidebar__text">Dashboard</span>
+            {!isCollapsed && <span className="nexo-sidebar__text">Dashboard</span>}
           </motion.button>
 
           {/* Divider */}
@@ -354,6 +376,31 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
             const isOpen = openFolderId === folder.id;
             const folderActive = isFolderActive(folder);
             const FolderIcon = folder.icon;
+
+            // En modo colapsado, mostrar directamente los items de la carpeta como iconos
+            if (isCollapsed) {
+              return folder.items
+                .filter(item => item.available)
+                .map((item) => {
+                  const ItemIcon = item.icon;
+                  const active = isActive(item.path);
+                  return (
+                    <motion.button
+                      key={item.id}
+                      type="button"
+                      onClick={() => navigate(item.path)}
+                      className={cn(
+                        "nexo-sidebar__item",
+                        active && "nexo-sidebar__item--active"
+                      )}
+                      whileTap={{ scale: 0.98 }}
+                      title={item.title}
+                    >
+                      <ItemIcon className="nexo-sidebar__icon" />
+                    </motion.button>
+                  );
+                });
+            }
 
             return (
               <div key={folder.id} className="nexo-sidebar__folder">
@@ -434,9 +481,10 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                     active && "nexo-sidebar__item--active"
                   )}
                   whileTap={{ scale: 0.98 }}
+                  title={isCollapsed ? module.title : undefined}
                 >
                   <Icon className="nexo-sidebar__icon" />
-                  <span className="nexo-sidebar__text">{module.title}</span>
+                  {!isCollapsed && <span className="nexo-sidebar__text">{module.title}</span>}
                 </motion.button>
               );
             })}
@@ -462,9 +510,10 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                         active && "nexo-sidebar__item--active"
                       )}
                       whileTap={{ scale: 0.98 }}
+                      title={isCollapsed ? module.title : undefined}
                     >
                       <Icon className="nexo-sidebar__icon" />
-                      <span className="nexo-sidebar__text">{module.title}</span>
+                      {!isCollapsed && <span className="nexo-sidebar__text">{module.title}</span>}
                     </motion.button>
                   );
                 })}
@@ -477,6 +526,31 @@ const Sidebar = ({ userId, modules, userRole }: SidebarProps) => {
                 const isOpen = openFolderId === folder.id;
                 const folderActive = isFolderActive(folder);
                 const FolderIcon = folder.icon;
+
+                // En modo colapsado, mostrar items directamente
+                if (isCollapsed) {
+                  return folder.items
+                    .filter(item => item.available)
+                    .map((item) => {
+                      const ItemIcon = item.icon;
+                      const active = isActive(item.path);
+                      return (
+                        <motion.button
+                          key={item.id}
+                          type="button"
+                          onClick={() => navigate(item.path)}
+                          className={cn(
+                            "nexo-sidebar__item",
+                            active && "nexo-sidebar__item--active"
+                          )}
+                          whileTap={{ scale: 0.98 }}
+                          title={item.title}
+                        >
+                          <ItemIcon className="nexo-sidebar__icon" />
+                        </motion.button>
+                      );
+                    });
+                }
 
                 return (
                   <div key={folder.id} className="nexo-sidebar__folder">

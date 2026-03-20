@@ -36,6 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
 import DetailActionButton from "../components/navigation/DetailActionButton";
 import DataList from "../components/common/DataList";
+import CompactKpiCard from "../components/common/CompactKpiCard";
 
 interface PurchaseOrder {
   id: string;
@@ -239,82 +240,17 @@ const PurchaseOrdersPageDesktop = () => {
   } = usePagination(sortedOrders, { pageSize: 50 });
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden p-6">
-      <div className="w-full h-full flex flex-col overflow-hidden">
-        <div className="flex flex-col h-full overflow-hidden">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3 flex-shrink-0">
-            <div className="bg-card/50 border border-white/10 rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-blue-500/10 rounded text-blue-500">
-                  <TrendingDown className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-xs font-medium">Coste Estimado</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-base font-bold text-foreground">
-                  {formatCurrency(stats.totalEstimado)}
-                </span>
-                <span className="text-[10px] text-muted-foreground">
-                  ({orders.length} pedidos)
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-white/10 rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-orange-500/10 rounded text-orange-500">
-                  <Clock className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-xs font-medium">Pendientes</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-base font-bold text-foreground">
-                  {stats.pendientes}
-                </span>
-                <span className="text-[10px] text-muted-foreground">
-                  por aprobar
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-white/10 rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-green-500/10 rounded text-green-500">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-xs font-medium">Aprobados</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-base font-bold text-foreground">
-                  {stats.aprobados}
-                </span>
-                <span className="text-[10px] text-muted-foreground">
-                  en curso
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-card/50 border border-white/10 rounded-lg p-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="p-1 bg-purple-500/10 rounded text-purple-500">
-                  <FileText className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-muted-foreground text-xs font-medium">Completados</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-base font-bold text-foreground">
-                  {stats.completados}
-                </span>
-                <span className="text-[10px] text-muted-foreground">
-                  finalizados
-                </span>
-              </div>
-            </div>
+    <div className="flex flex-col h-full gap-3">
+          {/* KPIs — fila única compacta */}
+          <div className="grid grid-cols-4 gap-2 flex-shrink-0">
+            <CompactKpiCard label="Coste estimado" value={formatCurrency(stats.totalEstimado)} sub={`${orders.length} pedidos`} color="blue" delay={0} />
+            <CompactKpiCard label="Pendientes" value={String(stats.pendientes)} sub="por aprobar" color="amber" delay={0.05} />
+            <CompactKpiCard label="Aprobados" value={String(stats.aprobados)} sub="en curso" color="emerald" delay={0.1} />
+            <CompactKpiCard label="Completados" value={String(stats.completados)} sub="finalizados" color="violet" delay={0.15} />
           </div>
 
           {/* DetailNavigationBar */}
-          <div className="mb-6 flex-shrink-0">
+          <div className="flex-shrink-0">
             <DetailNavigationBar
               pageTitle="Pedidos de Compra"
               contextInfo={
@@ -530,22 +466,19 @@ const PurchaseOrdersPageDesktop = () => {
               />
             </div>
           )}
-        </div>
-      </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-zinc-900 border-white/10">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">¿Eliminar pedido de compra?</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
+            <AlertDialogTitle>¿Eliminar pedido de compra?</AlertDialogTitle>
+            <AlertDialogDescription>
               Esta acción eliminará permanentemente el pedido {orderToDelete?.po_number} y todas sus líneas.
               Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel
-              className="bg-white/5 border-white/10 text-white hover:bg-white/10"
               disabled={deleting}
             >
               Cancelar

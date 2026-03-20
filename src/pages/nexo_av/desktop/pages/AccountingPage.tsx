@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -44,12 +43,12 @@ import {
   Eye,
   Filter,
   Plus,
+  BarChart3,
   UserCog,
   Briefcase,
   ChevronRight,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { format, startOfYear, startOfQuarter, startOfMonth, endOfMonth, endOfQuarter, endOfYear } from "date-fns";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import CreatePayrollDialog from "../components/accounting/CreatePayrollDialog";
@@ -64,6 +63,8 @@ import BankTransferDialog from "../components/accounting/BankTransferDialog";
 import TaxPaymentDialog from "../components/accounting/TaxPaymentDialog";
 import ManualMovementDialog from "../components/accounting/ManualMovementDialog";
 import BankDetailView from "../components/accounting/BankDetailView";
+import AccountingPeriodFilter from "../components/accounting/AccountingPeriodFilter";
+import { useAccountingData } from "../hooks/useAccountingData";
 
 import type {
   BalanceSheetItem,
@@ -83,71 +84,15 @@ import type {
   IRPFModel111Summary,
   CompanyBankAccount,
   PeriodProfitSummary,
+  VatDetailRow,
+  ProfessionalIrpfRow,
 } from "../types/accounting";
 
 const AccountingPage = () => {
   const { userId } = useParams<{ userId: string }>();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  // Filtros de fecha
-  const [filterType, setFilterType] = useState<"year" | "quarter" | "month">("year");
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedQuarter, setSelectedQuarter] = useState(Math.floor((new Date().getMonth() + 3) / 3));
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [balanceDate, setBalanceDate] = useState(format(new Date(), "yyyy-MM-dd"));
-
-  // Calcular fechas según filtro
-  const getPeriodDates = () => {
-    const year = selectedYear;
-    let start: Date, end: Date;
-
-    if (filterType === "year") {
-      start = startOfYear(new Date(year, 0, 1));
-      end = endOfYear(new Date(year, 0, 1));
-    } else if (filterType === "quarter") {
-      const quarterStartMonth = (selectedQuarter - 1) * 3;
-      start = startOfQuarter(new Date(year, quarterStartMonth, 1));
-      end = endOfQuarter(new Date(year, quarterStartMonth, 1));
-    } else {
-      start = startOfMonth(new Date(year, selectedMonth - 1, 1));
-      end = endOfMonth(new Date(year, selectedMonth - 1, 1));
-    }
-
-    return {
-      start: format(start, "yyyy-MM-dd"),
-      end: format(end, "yyyy-MM-dd"),
-    };
-  };
-
-  const periodDates = getPeriodDates();
-
-  // Datos
-  const [balanceSheet, setBalanceSheet] = useState<BalanceSheetItem[]>([]);
-  const [periodProfitSummary, setPeriodProfitSummary] = useState<PeriodProfitSummary | null>(null);
-  const [profitLoss, setProfitLoss] = useState<ProfitLossItem[]>([]);
-  const [clientBalances, setClientBalances] = useState<ClientBalance[]>([]);
-  const [supplierBalances, setSupplierBalances] = useState<SupplierTechnicianBalance[]>([]);
-  const [vatSummary, setVatSummary] = useState<VATSummary | null>(null);
-  const [irpfSummary, setIrpfSummary] = useState<number>(0);
-  const [corporateTaxSummary, setCorporateTaxSummary] = useState<CorporateTaxSummary | null>(null);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
-  const [chartOfAccounts, setChartOfAccounts] = useState<ChartOfAccount[]>([]);
-  const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>([]);
-  const [partnerCompensations, setPartnerCompensations] = useState<PartnerCompensationRun[]>([]);
-  const [payrollPayments, setPayrollPayments] = useState<PayrollPayment[]>([]);
-  const [irpfByPeriod, setIrpfByPeriod] = useState<IRPFByPeriod[]>([]);
-  const [irpfByPerson, setIrpfByPerson] = useState<IRPFByPerson[]>([]);
-  const [irpfModel111Summary, setIrpfModel111Summary] = useState<IRPFModel111Summary | null>(null);
-  const [companyBankAccounts, setCompanyBankAccounts] = useState<CompanyBankAccount[]>([]);
-  const [periodsForClosure, setPeriodsForClosure] = useState<PeriodForClosure[]>([]);
-  const [loadingPeriods, setLoadingPeriods] = useState(false);
-  const [periodActionLoading, setPeriodActionLoading] = useState<string | null>(null);
-
-  // Diálogos
+  // Estado UI — diálogos
   const [createPayrollDialogOpen, setCreatePayrollDialogOpen] = useState(false);
   const [createCompensationDialogOpen, setCreateCompensationDialogOpen] = useState(false);
   const [createPaymentDialogOpen, setCreatePaymentDialogOpen] = useState(false);
@@ -157,635 +102,14 @@ const AccountingPage = () => {
   const [taxPaymentDialogOpen, setTaxPaymentDialogOpen] = useState(false);
   const [manualExpenseDialogOpen, setManualExpenseDialogOpen] = useState(false);
   const [manualIncomeDialogOpen, setManualIncomeDialogOpen] = useState(false);
-  
-  // Estado para saldos de bancos por cuenta
-  const [bankAccountBalances, setBankAccountBalances] = useState<Record<string, number>>({});
-  
-  // Estado para códigos contables de bancos
-  const [bankAccountCodes, setBankAccountCodes] = useState<Record<string, string>>({});
-  
-  // Banco seleccionado para vista detalle
   const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
   const [banksSectionOpen, setBanksSectionOpen] = useState(false);
 
-  // Cálculos del dashboard - usando datos reales
-  const totalRevenue = periodProfitSummary?.total_revenue ?? profitLoss
-    .filter((item) => item.account_type === "REVENUE")
-    .reduce((sum, item) => sum + item.amount, 0);
-
-  // Gastos operativos (excluyendo provisiones de IS - cuenta 630xxx)
-  const operatingExpenses = periodProfitSummary?.operating_expenses ?? profitLoss
-    .filter((item) => item.account_type === "EXPENSE" && !item.account_code.startsWith("630"))
-    .reduce((sum, item) => sum + item.amount, 0);
-
-  // Total gastos incluyendo provisiones
-  const totalExpenses = profitLoss
-    .filter((item) => item.account_type === "EXPENSE")
-    .reduce((sum, item) => sum + item.amount, 0);
-
-  // BAI = Ingresos - Gastos Operativos (antes de IS)
-  const profitBeforeTax = periodProfitSummary?.profit_before_tax ?? (totalRevenue - operatingExpenses);
-  const corporateTax = periodProfitSummary?.corporate_tax_amount ?? corporateTaxSummary?.tax_amount ?? 0;
-  const netProfit = periodProfitSummary?.net_profit ?? (profitBeforeTax - corporateTax);
-
-  // Tesorería - suma de TODAS las cuentas 572xxx (no solo la primera)
-  const bankBalance = balanceSheet
-    .filter((item) => item.account_code.startsWith("572"))
-    .reduce((sum, item) => sum + (item.net_balance || 0), 0);
-  const clientsPending = clientBalances.reduce((sum, c) => sum + Math.max(0, c.net_balance), 0);
-  // suppliersPending ya incluye proveedores Y técnicos (get_supplier_technician_balances)
-  const suppliersPending = supplierBalances.reduce((sum, s) => sum + Math.max(0, Math.abs(s.net_balance)), 0);
-  const availableCash = bankBalance - suppliersPending;
-
-  const fetchBalanceSheet = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("get_balance_sheet", {
-        p_as_of_date: balanceDate,
-      });
-      if (error) throw error;
-      setBalanceSheet(data || []);
-    } catch (error: any) {
-      console.error("Error fetching balance sheet:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar el balance de situación",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchProfitLoss = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("get_profit_loss", {
-        p_period_start: periodDates.start,
-        p_period_end: periodDates.end,
-      });
-      if (error) throw error;
-      setProfitLoss(data || []);
-    } catch (error: any) {
-      console.error("Error fetching profit loss:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar la cuenta de resultados",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPeriodProfitSummary = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("get_period_profit_summary", {
-        p_start: periodDates.start,
-        p_end: periodDates.end,
-      });
-      if (error) throw error;
-      setPeriodProfitSummary((data?.[0] as PeriodProfitSummary | undefined) || null);
-    } catch (error: any) {
-      console.error("Error fetching period profit summary:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar el resumen canonico de PyG",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPeriodsForClosure = async () => {
-    setLoadingPeriods(true);
-    try {
-      const { data, error } = await supabase.rpc("list_periods_for_closure", {
-        p_months_back: 24,
-      });
-      if (error) throw error;
-      setPeriodsForClosure((data || []) as PeriodForClosure[]);
-    } catch (error: any) {
-      console.error("Error fetching periods for closure:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar el listado de periodos",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingPeriods(false);
-    }
-  };
-
-  const handleOpenPeriod = async (year: number, month: number) => {
-    const key = `${year}-${month}`;
-    setPeriodActionLoading(key);
-    try {
-      const { error } = await supabase.rpc("open_period", { p_year: year, p_month: month });
-      if (error) throw error;
-      toast({ title: "Periodo reabierto", description: `Se puede volver a registrar en ${format(new Date(year, month - 1, 1), "MMMM yyyy", { locale: es })}.` });
-      await fetchPeriodsForClosure();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo reabrir el periodo",
-        variant: "destructive",
-      });
-    } finally {
-      setPeriodActionLoading(null);
-    }
-  };
-
-  const handleClosePeriod = async (year: number, month: number) => {
-    const key = `${year}-${month}`;
-    setPeriodActionLoading(key);
-    try {
-      const { error } = await supabase.rpc("close_period", { p_year: year, p_month: month });
-      if (error) throw error;
-      toast({ title: "Periodo cerrado", description: `Contabilidad de ${format(new Date(year, month - 1, 1), "MMMM yyyy", { locale: es })} cerrada.` });
-      await fetchPeriodsForClosure();
-      if (activeTab === "profit-loss") fetchProfitLoss();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo cerrar el periodo",
-        variant: "destructive",
-      });
-    } finally {
-      setPeriodActionLoading(null);
-    }
-  };
-
-  const fetchClientBalances = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("get_client_balances", {
-        p_as_of_date: balanceDate,
-      });
-      if (error) throw error;
-      setClientBalances(data || []);
-    } catch (error: any) {
-      console.error("Error fetching client balances:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar saldos de clientes",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSupplierBalances = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("get_supplier_technician_balances", {
-        p_as_of_date: balanceDate,
-      });
-      if (error) throw error;
-      setSupplierBalances(data || []);
-    } catch (error: any) {
-      console.error("Error fetching supplier balances:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar saldos de proveedores/técnicos",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchVATSummary = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("get_vat_summary", {
-        p_period_start: periodDates.start,
-        p_period_end: periodDates.end,
-      });
-      if (error) throw error;
-      setVatSummary(data?.[0] || null);
-    } catch (error: any) {
-      console.error("Error fetching VAT summary:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar resumen de IVA",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchIRPFSummary = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("get_irpf_summary", {
-        p_period_start: periodDates.start,
-        p_period_end: periodDates.end,
-      });
-      if (error) throw error;
-      // get_irpf_summary devuelve un número directamente, no un objeto
-      setIrpfSummary(typeof data === 'number' ? data : 0);
-    } catch (error: any) {
-      console.error("Error fetching IRPF summary:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar resumen de IRPF",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCorporateTaxSummary = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("get_corporate_tax_summary", {
-        p_period_start: periodDates.start,
-        p_period_end: periodDates.end,
-      });
-      if (error) throw error;
-      setCorporateTaxSummary(data?.[0] || null);
-    } catch (error: any) {
-      console.error("Error fetching corporate tax summary:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar resumen de Impuesto de Sociedades",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchJournalEntries = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("list_journal_entries", {
-        p_start_date: periodDates.start,
-        p_end_date: periodDates.end,
-        p_limit: 1000,
-        p_offset: 0,
-      });
-      if (error) throw error;
-      setJournalEntries(data || []);
-    } catch (error: any) {
-      console.error("Error fetching journal entries:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar asientos contables",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchChartOfAccounts = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("list_chart_of_accounts", {
-        p_only_active: true,
-      });
-      if (error) throw error;
-      setChartOfAccounts((data || []).map((item: any) => ({
-        account_code: item.account_code,
-        account_name: item.account_name,
-        account_type: item.account_type,
-        is_active: item.is_active,
-        description: item.description,
-      })));
-    } catch (error: any) {
-      console.error("Error fetching chart of accounts:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar plan contable",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPayrollRuns = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("list_payroll_runs", {
-        p_period_year: selectedYear,
-        p_period_month: filterType === "month" ? selectedMonth : null,
-        p_limit: 1000,
-      });
-      if (error) throw error;
-      setPayrollRuns(data || []);
-    } catch (error: any) {
-      console.error("Error fetching payroll runs:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar nóminas",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPartnerCompensations = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("list_partner_compensation_runs", {
-        p_period_year: selectedYear,
-        p_period_month: filterType === "month" ? selectedMonth : null,
-        p_limit: 1000,
-      });
-      if (error) throw error;
-      setPartnerCompensations(data || []);
-    } catch (error: any) {
-      console.error("Error fetching partner compensations:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar retribuciones",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPayrollPayments = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("list_payroll_payments", {
-        p_start_date: periodDates.start,
-        p_end_date: periodDates.end,
-        p_limit: 1000,
-      });
-      if (error) throw error;
-      setPayrollPayments(data || []);
-    } catch (error: any) {
-      console.error("Error fetching payroll payments:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar pagos",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchIRPFByPeriod = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("get_irpf_by_period", {
-        p_period_start: periodDates.start,
-        p_period_end: periodDates.end,
-      });
-      if (error) throw error;
-      setIrpfByPeriod(data || []);
-    } catch (error: any) {
-      console.error("Error fetching IRPF by period:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar IRPF por período",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchIRPFByPerson = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("get_irpf_by_person", {
-        p_period_start: periodDates.start,
-        p_period_end: periodDates.end,
-      });
-      if (error) throw error;
-      setIrpfByPerson(data || []);
-    } catch (error: any) {
-      console.error("Error fetching IRPF by person:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar IRPF por persona",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchIRPFModel111Summary = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("get_irpf_model_111_summary", {
-        p_period_start: periodDates.start,
-        p_period_end: periodDates.end,
-      });
-      if (error) throw error;
-      setIrpfModel111Summary(data?.[0] || null);
-    } catch (error: any) {
-      console.error("Error fetching IRPF Model 111 summary:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Error al cargar resumen IRPF Modelo 111",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCompanyBankAccounts = async () => {
-    try {
-      // Usar list_company_bank_accounts (internal) para coincidir con BankTransferDialog
-      // y tener accounting_code correcto - evita que Revolut no muestre el positivo en traspasos
-      const { data, error } = await (supabase.rpc as any)("list_company_bank_accounts");
-      if (error) throw error;
-      if (data && Array.isArray(data)) {
-        const accounts: CompanyBankAccount[] = data
-          .filter((a: any) => a.is_active !== false)
-          .map((a: any) => ({
-            id: a.id,
-            holder: a.holder_name || "",
-            bank: a.bank_name || "",
-            iban: a.iban || "",
-            notes: a.notes || "",
-            accounting_code: a.accounting_code || "",
-          }));
-        setCompanyBankAccounts(accounts);
-        // Códigos contables directos - no hace falta get_bank_account_code
-        const codes: Record<string, string> = {};
-        accounts.forEach((acc) => {
-          if (acc.accounting_code) codes[acc.id] = acc.accounting_code;
-        });
-        setBankAccountCodes(codes);
-      }
-    } catch (error: any) {
-      console.error("Error fetching company bank accounts:", error);
-      // Fallback a preferencias si list_company_bank_accounts falla
-      try {
-        const { data: prefs } = await supabase.rpc("get_company_preferences");
-        if (prefs?.[0]?.bank_accounts) {
-          const fallback = Array.isArray(prefs[0].bank_accounts)
-            ? (prefs[0].bank_accounts as unknown as CompanyBankAccount[])
-            : [];
-          setCompanyBankAccounts(fallback);
-        }
-      } catch (_) {}
-    }
-  };
-
-  const fetchBankAccountBalances = async () => {
-    try {
-      const { data, error } = await (supabase.rpc as any)("list_bank_accounts_with_balances", {
-        p_as_of_date: balanceDate,
-      });
-      if (error) throw error;
-      
-      if (data && Array.isArray(data)) {
-        const balances: Record<string, number> = {};
-        data.forEach((item: any) => {
-          if (item.bank_account_id) {
-            balances[item.bank_account_id] = item.balance || 0;
-          }
-        });
-        setBankAccountBalances(balances);
-      }
-    } catch (error: any) {
-      console.error("Error fetching bank account balances:", error);
-    }
-  };
-
-  const fetchBankAccountCodes = async () => {
-    try {
-      const codes: Record<string, string> = {};
-      for (const account of companyBankAccounts) {
-        const { data, error } = await (supabase.rpc as any)("get_bank_account_code", {
-          p_bank_account_id: account.id,
-        });
-        if (!error && data) {
-          codes[account.id] = data;
-        }
-      }
-      setBankAccountCodes(codes);
-    } catch (error: any) {
-      console.error("Error fetching bank account codes:", error);
-    }
-  };
-
-  const loadAllData = async () => {
-    await Promise.all([
-      fetchBalanceSheet(),
-      fetchPeriodProfitSummary(),
-      fetchProfitLoss(),
-      fetchClientBalances(),
-      fetchSupplierBalances(),
-      fetchVATSummary(),
-      fetchIRPFSummary(),
-      fetchCorporateTaxSummary(),
-      fetchJournalEntries(),
-      fetchChartOfAccounts(),
-      fetchCompanyBankAccounts(),
-      fetchBankAccountBalances(),
-    ]);
-  };
-
-  useEffect(() => {
-    if (activeTab === "dashboard") {
-      loadAllData();
-    } else if (activeTab === "journal") {
-      fetchJournalEntries();
-    } else if (activeTab === "chart") {
-      fetchChartOfAccounts();
-      fetchBalanceSheet();
-    } else if (activeTab === "clients") {
-      fetchClientBalances();
-    } else if (activeTab === "suppliers") {
-      fetchSupplierBalances();
-    } else if (activeTab === "taxes") {
-      fetchVATSummary();
-      fetchIRPFSummary();
-      fetchPeriodProfitSummary();
-      fetchCorporateTaxSummary();
-    } else if (activeTab === "profit-loss") {
-      fetchPeriodProfitSummary();
-      fetchProfitLoss();
-      fetchPeriodsForClosure();
-    } else if (activeTab === "balance") {
-      fetchBalanceSheet();
-    } else if (activeTab === "all-payroll") {
-      fetchPayrollRuns();
-      fetchPartnerCompensations();
-    } else if (activeTab === "payroll") {
-      fetchPayrollRuns();
-    } else if (activeTab === "compensations") {
-      fetchPartnerCompensations();
-    } else if (activeTab === "payroll-payments") {
-      fetchPayrollPayments();
-    } else if (activeTab === "irpf-reports") {
-      fetchIRPFByPeriod();
-      fetchIRPFByPerson();
-      fetchIRPFModel111Summary();
-    } else if (activeTab.startsWith("bank-")) {
-      // Vista de banco individual
-      fetchBankAccountCodes();
-    }
-  }, [activeTab, filterType, selectedYear, selectedQuarter, selectedMonth, balanceDate]);
-
-  // Cargar códigos de cuentas solo si faltan (fallback desde preferencias)
-  useEffect(() => {
-    if (companyBankAccounts.length > 0 && !companyBankAccounts.every((a) => a.accounting_code)) {
-      fetchBankAccountCodes();
-    }
-  }, [companyBankAccounts]);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-ES", {
-      style: "currency",
-      currency: "EUR",
-    }).format(amount);
-  };
-
-  const handleViewDocument = (referenceType: string | null, referenceId: string | null) => {
-    if (!referenceId) return;
-
-    if (referenceType === "invoice") {
-      navigate(`/nexo-av/${userId}/invoices/${referenceId}`);
-    } else if (referenceType === "purchase_invoice") {
-      navigate(`/nexo-av/${userId}/purchase-invoices/${referenceId}`);
-    }
-  };
-
-  const getAccountTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      ASSET: "Activo",
-      LIABILITY: "Pasivo",
-      EQUITY: "Patrimonio",
-      REVENUE: "Ingreso",
-      EXPENSE: "Gasto",
-      TAX: "Impuesto",
-    };
-    return labels[type] || type;
-  };
-
-  const getEntryTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      INVOICE_SALE: "Factura Venta",
-      INVOICE_PURCHASE: "Factura Compra",
-      PAYMENT_RECEIVED: "Pago Recibido",
-      PAYMENT_MADE: "Pago Realizado",
-      TAX_SETTLEMENT: "Liquidación Impuestos",
-      TAX_PROVISION: "Provisión Impuestos",
-      MANUAL: "Manual",
-      ADJUSTMENT: "Ajuste",
-    };
-    return labels[type] || type;
-  };
+  const { filters, state, computed, actions } = useAccountingData(activeTab, userId);
+  const { filterType, setFilterType, selectedYear, setSelectedYear, selectedQuarter, setSelectedQuarter, selectedMonth, setSelectedMonth, balanceDate, setBalanceDate, periodDates } = filters;
+  const { loading, balanceSheet, periodProfitSummary, profitLoss, clientBalances, supplierBalances, vatSummary, irpfSummary, corporateTaxSummary, journalEntries, chartOfAccounts, payrollRuns, partnerCompensations, payrollPayments, irpfByPeriod, irpfByPerson, irpfModel111Summary, companyBankAccounts, periodsForClosure, loadingPeriods, periodActionLoading, bankAccountBalances, bankAccountCodes, vatDetail, professionalIrpf, loadingExport, showVatDetail, setShowVatDetail, uploadingVat, uploadingIrpf, vatSharepointUrl, irpfSharepointUrl } = state;
+  const { totalRevenue, operatingExpenses, totalExpenses, profitBeforeTax, corporateTax, netProfit, bankBalance, clientsPending, suppliersPending, availableCash } = computed;
+  const { loadAllData, fetchBalanceSheet, fetchProfitLoss, fetchJournalEntries, fetchBankAccountBalances, fetchPayrollRuns, fetchPartnerCompensations, fetchPayrollPayments, handleOpenPeriod, handleClosePeriod, exportVatExcel, exportIrpfCsv, uploadVatToSharePoint, uploadIrpfToSharePoint, formatCurrency, getAccountTypeLabel, getEntryTypeLabel, handleViewDocument } = actions;
 
   return (
     <div className="AccountingPage w-full h-full flex flex-col">
@@ -793,213 +117,145 @@ const AccountingPage = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar fijo a la izquierda */}
         <aside className="w-48 border-r bg-card/50 flex-shrink-0 overflow-y-auto">
-          <nav className="p-3 space-y-1">
-            <button
-              onClick={() => setActiveTab("dashboard")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "dashboard"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <FileText className="h-3.5 w-3.5" />
-              Resumen
-            </button>
-            <button
-              onClick={() => setActiveTab("journal")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "journal"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <BookOpen className="h-3.5 w-3.5" />
-              Libro Diario
-            </button>
-            <button
-              onClick={() => setActiveTab("cash")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "cash"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <Wallet className="h-3.5 w-3.5" />
-              Libro de Caja
-            </button>
-            <button
-              onClick={() => setActiveTab("chart")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "chart"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <FileText className="h-3.5 w-3.5" />
-              Plan Contable
-            </button>
-            <button
-              onClick={() => setActiveTab("clients")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "clients"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <Users className="h-4 w-4" />
-              Clientes
-            </button>
-            <button
-              onClick={() => setActiveTab("suppliers")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "suppliers"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <Building2 className="h-4 w-4" />
-              Proveedores
-            </button>
-            <button
-              onClick={() => setActiveTab("taxes")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "taxes"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <Percent className="h-4 w-4" />
-              Impuestos
-            </button>
-            <button
-              onClick={() => setActiveTab("profit-loss")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "profit-loss"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <TrendingUp className="h-3.5 w-3.5" />
-              PyG
-            </button>
-            <button
-              onClick={() => setActiveTab("balance")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "balance"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <Wallet className="h-3.5 w-3.5" />
-              Balance
-            </button>
-            
-            {/* Sección Bancos - Expandible */}
+          <nav className="p-2 space-y-0.5">
+
+            {/* ── Contabilidad ── */}
+            <div className="px-2 pt-3 pb-1">
+              <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">Contabilidad</span>
+            </div>
+            {[
+              { id: "dashboard", label: "Resumen", Icon: FileText },
+              { id: "journal",   label: "Libro Diario", Icon: BookOpen },
+              { id: "cash",      label: "Libro de Caja", Icon: Wallet },
+              { id: "chart",     label: "Plan Contable", Icon: FileText },
+            ].map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  activeTab === id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                {label}
+              </button>
+            ))}
+
+            {/* ── Terceros ── */}
+            <div className="px-2 pt-4 pb-1">
+              <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">Terceros</span>
+            </div>
+            {[
+              { id: "clients",   label: "Clientes",    Icon: Users },
+              { id: "suppliers", label: "Proveedores",  Icon: Building2 },
+            ].map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  activeTab === id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                {label}
+              </button>
+            ))}
+
+            {/* ── Fiscal ── */}
+            <div className="px-2 pt-4 pb-1">
+              <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">Fiscal</span>
+            </div>
+            {[
+              { id: "taxes",       label: "Impuestos", Icon: Percent },
+              { id: "profit-loss", label: "PyG",       Icon: TrendingUp },
+              { id: "balance",     label: "Balance",   Icon: Wallet },
+            ].map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  activeTab === id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                {label}
+              </button>
+            ))}
+
+            {/* ── Bancos (expandible, dinámico) ── */}
             {companyBankAccounts.length > 0 && (
               <>
-                <div className="pt-4 pb-2">
+                <div className="px-2 pt-4 pb-1">
                   <button
                     onClick={() => setBanksSectionOpen(!banksSectionOpen)}
-                    className="w-full flex items-center gap-2 px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
+                    className="w-full flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest hover:text-muted-foreground transition-colors"
                   >
                     <ChevronRight className={`h-3 w-3 transition-transform ${banksSectionOpen ? "rotate-90" : ""}`} />
                     Bancos
                   </button>
                 </div>
-                {banksSectionOpen && (
-                  <div className="space-y-0.5">
-                    {companyBankAccounts.map((bank) => {
-                      const bankTabId = `bank-${bank.id}`;
-                      const isActive = activeTab === bankTabId;
-                      const accountCode = bankAccountCodes[bank.id];
-                      const bankBalance = bankAccountBalances[bank.id] || 0;
-                      
-                      return (
-                        <button
-                          key={bank.id}
-                          onClick={() => setActiveTab(bankTabId)}
-                          className={`w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                            isActive
-                              ? "bg-primary text-primary-foreground"
-                              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <CreditCard className="h-3.5 w-3.5 flex-shrink-0" />
-                            <span className="truncate">{bank.bank}</span>
-                          </div>
-                          {accountCode && (
-                            <span className={`text-[10px] font-mono ${isActive ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                              {formatCurrency(bankBalance)}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                {banksSectionOpen && companyBankAccounts.map((bank) => {
+                  const bankTabId = `bank-${bank.id}`;
+                  const isBankActive = activeTab === bankTabId;
+                  const bankBal = bankAccountBalances[bank.id] || 0;
+                  return (
+                    <button
+                      key={bank.id}
+                      onClick={() => setActiveTab(bankTabId)}
+                      className={`w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                        isBankActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <CreditCard className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span className="truncate">{bank.bank}</span>
+                      </div>
+                      <span className={`text-[10px] font-mono shrink-0 ${isBankActive ? "text-primary-foreground/70" : "text-muted-foreground/70"}`}>
+                        {formatCurrency(bankBal)}
+                      </span>
+                    </button>
+                  );
+                })}
               </>
             )}
-            <div className="pt-4 pb-2">
-              <div className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Nóminas
-              </div>
+
+            {/* ── Nóminas ── */}
+            <div className="px-2 pt-4 pb-1">
+              <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">Nóminas</span>
             </div>
-            <button
-              onClick={() => setActiveTab("all-payroll")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "all-payroll"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <Receipt className="h-3.5 w-3.5" />
-              Todas
-            </button>
-            <button
-              onClick={() => setActiveTab("payroll")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "payroll"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <Briefcase className="h-3.5 w-3.5" />
-              Empleados
-            </button>
-            <button
-              onClick={() => setActiveTab("compensations")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "compensations"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <UserCog className="h-3.5 w-3.5" />
-              Retribuciones
-            </button>
-            <button
-              onClick={() => setActiveTab("payroll-payments")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "payroll-payments"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <CreditCard className="h-4 w-4" />
-              Pagos
-            </button>
-            <button
-              onClick={() => setActiveTab("irpf-reports")}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                activeTab === "irpf-reports"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              <Receipt className="h-4 w-4" />
-              Informes IRPF
-            </button>
+            {[
+              { id: "all-payroll",      label: "Todas",          Icon: Receipt },
+              { id: "payroll",          label: "Empleados",       Icon: Briefcase },
+              { id: "compensations",    label: "Retribuciones",   Icon: UserCog },
+              { id: "payroll-payments", label: "Pagos",           Icon: CreditCard },
+              { id: "irpf-reports",     label: "Informes IRPF",   Icon: Receipt },
+            ].map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  activeTab === id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                {label}
+              </button>
+            ))}
+
+            {/* ── Informes ── */}
+            <div className="px-2 pt-4 pb-1">
+              <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest">Informes</span>
+            </div>
             <button
               onClick={() => setActiveTab("reports")}
               className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
@@ -1008,9 +264,10 @@ const AccountingPage = () => {
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
             >
-              <FileText className="h-4 w-4" />
+              <BarChart3 className="h-3.5 w-3.5 flex-shrink-0" />
               Informes
             </button>
+
           </nav>
         </aside>
 
@@ -1024,110 +281,21 @@ const AccountingPage = () => {
                 <p className="text-xs text-muted-foreground mt-1">Gestión contable y financiera</p>
               </div>
               
-              {/* Controles de filtro - Estilo Dashboard */}
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1.5 bg-secondary/50 rounded-lg p-1 border border-border/50">
-                  <button
-                    onClick={() => setFilterType("year")}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
-                      filterType === "year" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Año
-                  </button>
-                  <button
-                    onClick={() => setFilterType("quarter")}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
-                      filterType === "quarter" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Trimestre
-                  </button>
-                  <button
-                    onClick={() => setFilterType("month")}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
-                      filterType === "month" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Mes
-                  </button>
-                </div>
-
-                {filterType === "year" && (
-                  <Input
-                    type="number"
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                    className="w-20 h-8 text-xs"
-                    placeholder="Año"
-                  />
-                )}
-
-                {filterType === "quarter" && (
-                  <>
-                    <Input
-                      type="number"
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                      className="w-20 h-8 text-xs"
-                      placeholder="Año"
-                    />
-                    <Select value={selectedQuarter.toString()} onValueChange={(v) => setSelectedQuarter(parseInt(v))}>
-                      <SelectTrigger className="w-24 h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Q1</SelectItem>
-                        <SelectItem value="2">Q2</SelectItem>
-                        <SelectItem value="3">Q3</SelectItem>
-                        <SelectItem value="4">Q4</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </>
-                )}
-
-                {filterType === "month" && (
-                  <>
-                    <Input
-                      type="number"
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                      className="w-20 h-8 text-xs"
-                      placeholder="Año"
-                    />
-                    <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
-                      <SelectTrigger className="w-32 h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-                          <SelectItem key={month} value={month.toString()}>
-                            {format(new Date(selectedYear, month - 1, 1), "MMMM", { locale: es })}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </>
-                )}
-
-                <Input
-                  id="balance-date"
-                  type="date"
-                  value={balanceDate}
-                  onChange={(e) => setBalanceDate(e.target.value)}
-                  className="w-36 h-8 text-xs"
-                />
-
-                <Button onClick={loadAllData} disabled={loading} size="sm" variant="outline" className="h-8 text-xs">
-                  {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Filter className="h-3 w-3 mr-1" />}
-                  Actualizar
-                </Button>
-
-                <Button variant="outline" size="sm" className="h-8 text-xs">
-                  <Download className="h-3 w-3 mr-1" />
-                  Exportar
-                </Button>
-              </div>
+              {/* Controles de filtro */}
+              <AccountingPeriodFilter
+                filterType={filterType}
+                setFilterType={setFilterType}
+                selectedYear={selectedYear}
+                setSelectedYear={setSelectedYear}
+                selectedQuarter={selectedQuarter}
+                setSelectedQuarter={setSelectedQuarter}
+                selectedMonth={selectedMonth}
+                setSelectedMonth={setSelectedMonth}
+                balanceDate={balanceDate}
+                setBalanceDate={setBalanceDate}
+                loading={loading}
+                onRefresh={loadAllData}
+              />
             </div>
 
             {/* Contenido con tabs */}
@@ -1879,6 +1047,16 @@ const AccountingPage = () => {
                 ) : (
                   <p className="text-sm text-muted-foreground">No hay datos disponibles</p>
                 )}
+                {vatSummary && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full mt-2 text-xs"
+                    onClick={() => setShowVatDetail((v) => !v)}
+                  >
+                    {showVatDetail ? "Ocultar detalle" : "Ver detalle por factura"}
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
@@ -1948,6 +1126,65 @@ const AccountingPage = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* E3: Detalle IVA por factura (desplegable) */}
+          {showVatDetail && vatDetail.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Detalle IVA por Factura — Modelo 303</CardTitle>
+                <CardDescription>
+                  {format(new Date(periodDates.start), "dd/MM/yyyy")} al {format(new Date(periodDates.end), "dd/MM/yyyy")}
+                  {" · "}
+                  <button className="underline text-blue-600" onClick={exportVatExcel} disabled={loadingExport}>
+                    {loadingExport ? "Generando Excel..." : "Descargar Excel"}
+                  </button>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Nº Factura</TableHead>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Contraparte</TableHead>
+                      <TableHead>NIF</TableHead>
+                      <TableHead className="text-right">Tipo IVA</TableHead>
+                      <TableHead className="text-right">Base</TableHead>
+                      <TableHead className="text-right">Cuota</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {vatDetail.map((row, i) => (
+                      <TableRow key={i} className={row.tipo === "SOPORTADO" ? "bg-red-50/30" : ""}>
+                        <TableCell>
+                          <Badge variant={row.tipo === "REPERCUTIDO" ? "default" : "secondary"}>
+                            {row.tipo === "REPERCUTIDO" ? "Rep." : "Sop."}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">{row.invoice_number}</TableCell>
+                        <TableCell>{row.issue_date}</TableCell>
+                        <TableCell className="max-w-[180px] truncate">{row.third_party_name ?? "—"}</TableCell>
+                        <TableCell className="font-mono text-xs">{row.third_party_tax_id ?? "—"}</TableCell>
+                        <TableCell className="text-right">{row.tax_rate}%</TableCell>
+                        <TableCell className="text-right">{formatCurrency(Number(row.base_imponible))}</TableCell>
+                        <TableCell className="text-right font-semibold">{formatCurrency(Number(row.cuota_iva))}</TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="border-t-2 font-bold bg-muted/50">
+                      <TableCell colSpan={6}>Totales</TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(vatDetail.reduce((s, r) => s + Number(r.base_imponible), 0))}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(vatDetail.reduce((s, r) => s + Number(r.cuota_iva), 0))}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* 7. CUENTA DE RESULTADOS */}
@@ -2844,10 +2081,32 @@ const AccountingPage = () => {
         <TabsContent value="irpf-reports" className="space-y-4">
           <div className="flex items-center justify-between">
             <CardTitle>Informes IRPF - Modelo 111</CardTitle>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Exportar CSV
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={exportIrpfCsv}>
+                <Download className="h-4 w-4 mr-2" />
+                Exportar CSV
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={uploadIrpfToSharePoint}
+                disabled={uploadingIrpf}
+              >
+                {uploadingIrpf ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4 mr-2" />
+                )}
+                {uploadingIrpf ? "Subiendo..." : "Guardar en SharePoint"}
+              </Button>
+              {irpfSharepointUrl && (
+                <a href={irpfSharepointUrl} target="_blank" rel="noopener noreferrer">
+                  <Button variant="ghost" size="sm">
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </a>
+              )}
+            </div>
           </div>
 
           {/* Resumen Modelo 111 */}
@@ -2959,6 +2218,56 @@ const AccountingPage = () => {
               </Table>
             </CardContent>
           </Card>
+
+          {/* IRPF Profesionales (facturas de compra con retención) */}
+          {professionalIrpf.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>IRPF Profesionales (casillas 04-06 Modelo 111)</CardTitle>
+                <CardDescription>
+                  Retenciones IRPF en facturas de compra a profesionales —{" "}
+                  {format(new Date(periodDates.start), "dd/MM/yyyy")} al {format(new Date(periodDates.end), "dd/MM/yyyy")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nº Factura</TableHead>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Proveedor</TableHead>
+                      <TableHead>NIF</TableHead>
+                      <TableHead className="text-right">Base</TableHead>
+                      <TableHead className="text-right">Retención IRPF</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {professionalIrpf.map((row) => (
+                      <TableRow key={row.purchase_invoice_id}>
+                        <TableCell className="font-mono">{row.invoice_number}</TableCell>
+                        <TableCell>{row.issue_date}</TableCell>
+                        <TableCell>{row.supplier_name ?? "—"}</TableCell>
+                        <TableCell className="font-mono">{row.supplier_tax_id ?? "—"}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(Number(row.subtotal))}</TableCell>
+                        <TableCell className="text-right font-semibold text-orange-600">
+                          {formatCurrency(Number(row.withholding_amount))}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="border-t-2 font-bold">
+                      <TableCell colSpan={4}>Total Profesionales</TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(professionalIrpf.reduce((s, r) => s + Number(r.subtotal), 0))}
+                      </TableCell>
+                      <TableCell className="text-right text-orange-600">
+                        {formatCurrency(professionalIrpf.reduce((s, r) => s + Number(r.withholding_amount), 0))}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* 9. INFORMES Y EXPORTACIONES */}
@@ -2978,10 +2287,31 @@ const AccountingPage = () => {
                   <FileText className="h-4 w-4 mr-2" />
                   Exportar PyG (PDF)
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button variant="outline" className="w-full justify-start" onClick={exportVatExcel} disabled={loadingExport}>
                   <FileText className="h-4 w-4 mr-2" />
-                  Exportar IVA (Excel)
+                  {loadingExport ? "Generando..." : "Exportar IVA (Excel)"}
                 </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={uploadVatToSharePoint}
+                  disabled={uploadingVat}
+                >
+                  {uploadingVat ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4 mr-2" />
+                  )}
+                  {uploadingVat ? "Subiendo..." : "Subir IVA a SharePoint"}
+                </Button>
+                {vatSharepointUrl && (
+                  <a href={vatSharepointUrl} target="_blank" rel="noopener noreferrer" className="w-full">
+                    <Button variant="ghost" className="w-full justify-start text-blue-600">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Ver en SharePoint
+                    </Button>
+                  </a>
+                )}
                 <Button variant="outline" className="w-full justify-start">
                   <FileText className="h-4 w-4 mr-2" />
                   Exportar Saldos Terceros (CSV)
