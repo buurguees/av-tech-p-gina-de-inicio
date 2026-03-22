@@ -2,15 +2,16 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { 
-  ScanLine, 
-  Loader2, 
+import {
+  ScanLine,
+  Loader2,
   Camera,
   FileText,
   Image,
   Upload,
   ChevronRight,
-  Clock
+  Clock,
+  FolderOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +30,8 @@ interface ScannedDocument {
   created_by: string | null;
   assigned_to_id: string | null;
   assigned_to_type: string | null;
+  suggested_project_id: string | null;
+  suggested_project_name: string | null;
 }
 
 const MobileScannerPage = () => {
@@ -57,6 +60,7 @@ const MobileScannerPage = () => {
       setDocuments(data || []);
     } catch (error) {
       console.error('Error fetching documents:', error);
+      toast({ title: "Error al cargar los documentos", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -292,7 +296,7 @@ const MobileScannerPage = () => {
           Documentos sin asignar
         </h2>
         
-        <div className="flex-1 overflow-y-auto space-y-2 pb-4">
+        <div className="flex-1 overflow-y-auto space-y-2 pb-20">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -343,6 +347,13 @@ const MobileScannerPage = () => {
                       <Clock className="h-3 w-3" />
                       {formatDate(doc.created_at)}
                     </div>
+
+                    {doc.suggested_project_name && (
+                      <div className="flex items-center gap-1 mt-1.5 text-xs text-blue-600 dark:text-blue-400">
+                        <FolderOpen className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{doc.suggested_project_name}</span>
+                      </div>
+                    )}
                   </div>
                   
                   <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />

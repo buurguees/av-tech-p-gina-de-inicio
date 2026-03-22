@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 import TasksWidget from "../../desktop/components/dashboard/widgets/TasksWidget";
 import NotificationsWidget from "../../desktop/components/dashboard/widgets/NotificationsWidget";
 
@@ -253,13 +254,20 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
   const [data, setData] = useState<AdminData | null>(null);
   const [period, setPeriod] = useState<"quarter" | "year">("quarter");
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
-      const { data: r } = await supabase.rpc("dashboard_get_admin_overview", { p_period: period });
-      setData(r as unknown as AdminData);
-      setLoading(false);
+      try {
+        const { data: r, error } = await supabase.rpc("dashboard_get_admin_overview", { p_period: period });
+        if (error) throw error;
+        setData(r as unknown as AdminData);
+      } catch {
+        toast({ title: "Error al cargar el dashboard", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
     };
     fetch();
   }, [period]);
@@ -442,13 +450,20 @@ const MobileManagerDashboard = ({ userName, userId, navigate }: DashboardProps) 
   const [data, setData] = useState<ManagerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
-      const { data: r } = await supabase.rpc("dashboard_get_manager_overview", { p_days_ahead: 7 });
-      setData(r as unknown as ManagerData);
-      setLoading(false);
+      try {
+        const { data: r, error } = await supabase.rpc("dashboard_get_manager_overview", { p_days_ahead: 7 });
+        if (error) throw error;
+        setData(r as unknown as ManagerData);
+      } catch {
+        toast({ title: "Error al cargar el dashboard", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
     };
     fetch();
   }, []);
@@ -525,14 +540,21 @@ const MobileManagerDashboard = ({ userName, userId, navigate }: DashboardProps) 
 const MobileCommercialDashboard = ({ userName, userId, navigate }: DashboardProps) => {
   const [data, setData] = useState<CommercialData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: r } = await supabase.rpc("dashboard_get_commercial_overview", { p_user_id: user?.id || null });
-      setData(r as unknown as CommercialData);
-      setLoading(false);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { data: r, error } = await supabase.rpc("dashboard_get_commercial_overview", { p_user_id: user?.id || null });
+        if (error) throw error;
+        setData(r as unknown as CommercialData);
+      } catch {
+        toast({ title: "Error al cargar el dashboard", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
     };
     fetch();
   }, []);
@@ -619,14 +641,21 @@ const MobileCommercialDashboard = ({ userName, userId, navigate }: DashboardProp
 const MobileTechnicianDashboard = ({ userName, userId, navigate }: DashboardProps) => {
   const [data, setData] = useState<TechnicianData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: r } = await supabase.rpc("dashboard_get_technician_overview", { p_user_id: user?.id || null });
-      setData(r as unknown as TechnicianData);
-      setLoading(false);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { data: r, error } = await supabase.rpc("dashboard_get_technician_overview", { p_user_id: user?.id || null });
+        if (error) throw error;
+        setData(r as unknown as TechnicianData);
+      } catch {
+        toast({ title: "Error al cargar el dashboard", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
     };
     fetch();
   }, []);

@@ -22,6 +22,7 @@ import {
   getPaymentStatusInfo,
 } from "@/constants/purchaseInvoiceStatuses";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface Expense {
   id: string;
@@ -41,6 +42,7 @@ interface Expense {
 const MobileExpensesPage = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,6 +101,7 @@ const MobileExpensesPage = () => {
       setExpenses(list);
     } catch (e) {
       console.error("Error fetching expenses:", e);
+      toast({ title: "Error al cargar los gastos", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -112,7 +115,7 @@ const MobileExpensesPage = () => {
     new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(amount);
 
   const formatDate = (date: string | null) => {
-    if (!date) return "â€”";
+    if (!date) return "—";
     return new Date(date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
   };
 
@@ -206,10 +209,10 @@ const MobileExpensesPage = () => {
             <p className="text-muted-foreground">No hay tickets / gastos</p>
             <p className="text-muted-foreground text-sm">
               {searchInput
-                ? "Prueba con otra bÃºsqueda"
+                ? "Prueba con otra búsqueda"
                 : hiddenTechnicalDraftsCount > 0 && !showTechnicalDrafts
-                  ? "Solo hay borradores tecnicos vacios ocultos"
-                  : "AÃºn no se han registrado gastos"}
+                  ? "Solo hay borradores técnicos vacíos ocultos"
+                  : "Aún no se han registrado gastos"}
             </p>
           </div>
         ) : (
@@ -257,7 +260,7 @@ const MobileExpensesPage = () => {
                     {/* Project */}
                     {exp.project_name && (
                       <p className="text-sm text-muted-foreground truncate">
-                        ðŸ“ {exp.project_name}
+                        📁 {exp.project_name}
                       </p>
                     )}
 

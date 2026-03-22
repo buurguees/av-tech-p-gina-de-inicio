@@ -224,25 +224,3 @@ body.nexo-av-theme-dark .data-list__cell--bold .data-list__cell-content {
   font-weight: 400 !important;
 }
 
-/* ============================================
-   ELIMINAR TODOS LOS BOLD EN MOBILE
-   Solo afecta elementos de texto
-   ============================================ */
-body.nexo-av-theme h1, body.nexo-av-theme h2, body.nexo-av-theme h3, body.nexo-av-theme h4, body.nexo-av-theme h5, body.nexo-av-theme h6,
-body.nexo-av-theme-dark h1, body.nexo-av-theme-dark h2, body.nexo-av-theme-dark h3, body.nexo-av-theme-dark h4, body.nexo-av-theme-dark h5, body.nexo-av-theme-dark h6,
-body.nexo-av-theme p, body.nexo-av-theme span, body.nexo-av-theme div, body.nexo-av-theme li, body.nexo-av-theme td, body.nexo-av-theme th,
-body.nexo-av-theme-dark p, body.nexo-av-theme-dark span, body.nexo-av-theme-dark div, body.nexo-av-theme-dark li, body.nexo-av-theme-dark td, body.nexo-av-theme-dark th,
-body.nexo-av-theme button, body.nexo-av-theme label, body.nexo-av-theme a,
-body.nexo-av-theme-dark button, body.nexo-av-theme-dark label, body.nexo-av-theme-dark a {
-  font-weight: 400 !important;
-}
-
-/* Eliminar bold de clases específicas */
-body.nexo-av-theme [class*="font-bold"],
-body.nexo-av-theme-dark [class*="font-bold"],
-body.nexo-av-theme [class*="font-semibold"],
-body.nexo-av-theme-dark [class*="font-semibold"],
-body.nexo-av-theme [class*="bold"],
-body.nexo-av-theme-dark [class*="bold"] {
-  font-weight: 400 !important;
-}

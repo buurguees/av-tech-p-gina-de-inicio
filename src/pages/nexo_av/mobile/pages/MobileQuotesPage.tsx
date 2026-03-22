@@ -194,7 +194,7 @@ const MobileQuotesPage = () => {
       </div>
 
       {/* Quotes List */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pb-4">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pb-20">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

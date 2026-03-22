@@ -12,6 +12,7 @@ import {
   Search,
   ScanLine,
   MoreVertical,
+  FolderOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
@@ -44,6 +45,8 @@ interface ScannedDocument {
   notes: string | null;
   created_at: string;
   created_by: string | null;
+  suggested_project_id: string | null;
+  suggested_project_name: string | null;
 }
 
 const ScannerPage = () => {
@@ -407,6 +410,14 @@ const ScannerPage = () => {
                     >
                       {doc.status === "ASSIGNED" ? "Asignado" : "Sin asignar"}
                     </div>
+
+                    {/* Project pre-assignment badge (set from mobile scanner) */}
+                    {doc.suggested_project_name && doc.status === "UNASSIGNED" && (
+                      <div className="mt-2 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 max-w-full">
+                        <FolderOpen className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{doc.suggested_project_name}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions */}

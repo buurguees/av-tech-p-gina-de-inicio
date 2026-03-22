@@ -80,7 +80,7 @@ const MobilePurchaseInvoicesPage = () => {
     new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(amount);
 
   const formatDate = (date: string | null) => {
-    if (!date) return "â€”";
+    if (!date) return "—";
     return new Date(date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
   };
 
@@ -146,7 +146,7 @@ const MobilePurchaseInvoicesPage = () => {
             <FileText className="h-16 w-16 text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No hay facturas de compra</p>
             <p className="text-muted-foreground text-sm">
-              {searchInput ? "Prueba con otra bÃºsqueda" : "AÃºn no se han registrado facturas de compra"}
+              {searchInput ? "Prueba con otra búsqueda" : "Aún no se han registrado facturas de compra"}
             </p>
           </div>
         ) : (
@@ -188,7 +188,7 @@ const MobilePurchaseInvoicesPage = () => {
                     {/* Project */}
                     {inv.project_name && (
                       <p className="text-sm text-muted-foreground truncate">
-                        ðŸ“ {inv.project_name}
+                        📁 {inv.project_name}
                       </p>
                     )}
 

@@ -68,10 +68,41 @@ const MobileSettingsPage = () => {
     // Apply theme to document immediately
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
 
-    toast({
-      title: "Tema actualizado",
-      description: `Tema ${newTheme === 'dark' ? 'oscuro' : 'claro'} activado`,
-    });
+    // Persist to DB via Edge Function (same as UserAvatar)
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+
+      if (session && supabaseUrl) {
+        const response = await fetch(`${supabaseUrl}/functions/v1/admin-users`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            action: 'update_own_info',
+            userId,
+            theme_preference: newTheme,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al guardar el tema');
+        }
+      }
+
+      toast({
+        title: "Tema actualizado",
+        description: `Tema ${newTheme === 'dark' ? 'oscuro' : 'claro'} activado`,
+      });
+    } catch {
+      toast({
+        title: "Tema no guardado",
+        description: "El cambio se aplica solo en esta sesión.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleLogout = async () => {

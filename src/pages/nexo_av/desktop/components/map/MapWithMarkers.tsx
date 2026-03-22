@@ -20,6 +20,12 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
+// Bounding box aproximado de España peninsular + Baleares + Canarias
+const SPAIN_BOUNDS: L.LatLngBoundsExpression = [
+  [27.5, -18.2], // SW — incluye Canarias
+  [43.8, 4.5],   // NE — incluye Baleares
+];
+
 const createMarkerIcon = (color = "#3B82F6") => {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28"><path fill="${color}" stroke="#fff" stroke-width="1.5" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
   return L.divIcon({
@@ -42,44 +48,50 @@ export interface MapItem {
 
 interface MapWithMarkersProps {
   items: MapItem[];
-  center?: [number, number];
-  zoom?: number;
   markerColor?: string;
   getMarkerColor?: (item: MapItem) => string;
   renderTooltip: (item: MapItem) => React.ReactNode;
   loading?: boolean;
 }
 
-function FitMapToItems({
-  items,
-  fallbackCenter,
-  fallbackZoom,
-}: {
-  items: MapItem[];
-  fallbackCenter: [number, number];
-  fallbackZoom: number;
-}) {
+/** Llama a invalidateSize() al montar y cada vez que el contenedor cambia de tamaño.
+ *  Necesario para que Leaflet rellene correctamente el contenedor flex/tab. */
+function MapAutoResize() {
+  const map = useMap();
+  useEffect(() => {
+    // Invalidación inicial (el contenedor puede estar recién visible)
+    const t = setTimeout(() => map.invalidateSize(), 50);
+
+    // Invalidar si el contenedor cambia de dimensiones (resize del panel o cambio de tab)
+    const container = map.getContainer();
+    const observer = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    observer.observe(container);
+
+    return () => {
+      clearTimeout(t);
+      observer.disconnect();
+    };
+  }, [map]);
+  return null;
+}
+
+/** Ajusta la vista al conjunto de markers. Si no hay markers, muestra España. */
+function FitMapToItems({ items }: { items: MapItem[] }) {
   const map = useMap();
 
   useEffect(() => {
     if (items.length === 0) {
-      map.setView(fallbackCenter, fallbackZoom, {
-        animate: true,
-        duration: 0.3,
-      });
+      map.fitBounds(SPAIN_BOUNDS, { animate: false, padding: [0, 0] });
       return;
     }
 
     if (items.length === 1) {
-      const single = items[0];
-      map.setView(
-        [single.latitude, single.longitude],
-        Math.max(fallbackZoom, 11),
-        {
-          animate: true,
-          duration: 0.3,
-        },
-      );
+      map.setView([items[0].latitude, items[0].longitude], 12, {
+        animate: true,
+        duration: 0.4,
+      });
       return;
     }
 
@@ -87,65 +99,18 @@ function FitMapToItems({
       items.map((item) => [item.latitude, item.longitude] as [number, number]),
     );
     map.fitBounds(bounds, {
-      padding: [40, 40],
-      maxZoom: 12,
+      padding: [48, 48],
+      maxZoom: 13,
       animate: true,
-      duration: 0.3,
+      duration: 0.4,
     });
-  }, [fallbackCenter, fallbackZoom, items, map]);
+  }, [items, map]);
 
   return null;
 }
 
-function MapContent({
-  items,
-  center,
-  zoom,
-  markerColor,
-  getMarkerColor,
-  renderTooltip,
-}: MapWithMarkersProps) {
-  return (
-    <>
-      <FitMapToItems
-        items={items}
-        fallbackCenter={center ?? DEFAULT_CENTER}
-        fallbackZoom={zoom ?? DEFAULT_ZOOM}
-      />
-      {items.map((item) => {
-        const color = getMarkerColor
-          ? getMarkerColor(item)
-          : (markerColor ?? "#3B82F6");
-        return (
-          <Marker
-            key={item.id}
-            position={[item.latitude, item.longitude]}
-            icon={createMarkerIcon(color)}
-            eventHandlers={{ click: () => {} }}
-          >
-            <Tooltip
-              direction="top"
-              offset={[0, -14]}
-              opacity={1}
-              permanent={false}
-              interactive
-            >
-              {renderTooltip(item)}
-            </Tooltip>
-          </Marker>
-        );
-      })}
-    </>
-  );
-}
-
-const DEFAULT_CENTER: [number, number] = [40.2, -3.5];
-const DEFAULT_ZOOM = 6;
-
 export default function MapWithMarkers({
   items,
-  center = DEFAULT_CENTER,
-  zoom = DEFAULT_ZOOM,
   markerColor = "#3B82F6",
   getMarkerColor,
   renderTooltip,
@@ -153,24 +118,36 @@ export default function MapWithMarkers({
 }: MapWithMarkersProps) {
   if (loading) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-muted/30">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+      <div className="flex h-full w-full items-center justify-center bg-muted/20">
+        <div className="h-7 w-7 animate-spin rounded-full border-2 border-border border-t-primary" />
       </div>
     );
   }
 
   return (
-    <div className="relative h-full w-full" style={{ minHeight: 280 }}>
+    <div className="h-full w-full">
       <style>{`
         .custom-marker { background: transparent; border: none; }
-        .leaflet-tooltip { padding: 6px 10px; border-radius: 6px; font-size: 12px; max-width: 280px; }
-        .leaflet-container { z-index: 1; font-family: inherit; height: 100% !important; width: 100% !important; }
+        .leaflet-tooltip {
+          padding: 6px 10px;
+          border-radius: 6px;
+          font-size: 12px;
+          max-width: 280px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          border: 1px solid rgba(0,0,0,0.08);
+        }
+        .leaflet-container {
+          z-index: 1;
+          font-family: inherit;
+          height: 100% !important;
+          width: 100% !important;
+          border-radius: inherit;
+        }
       `}</style>
       <MapContainer
-        center={center}
-        zoom={zoom}
+        bounds={SPAIN_BOUNDS}
         className="h-full w-full"
-        style={{ height: "100%", width: "100%", minHeight: "280px" }}
+        style={{ height: "100%", width: "100%" }}
         scrollWheelZoom
         zoomControl
       >
@@ -178,14 +155,30 @@ export default function MapWithMarkers({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <MapContent
-          items={items}
-          center={center}
-          zoom={zoom}
-          markerColor={markerColor}
-          getMarkerColor={getMarkerColor}
-          renderTooltip={renderTooltip}
-        />
+        <MapAutoResize />
+        <FitMapToItems items={items} />
+        {items.map((item) => {
+          const color = getMarkerColor
+            ? getMarkerColor(item)
+            : (markerColor ?? "#3B82F6");
+          return (
+            <Marker
+              key={item.id}
+              position={[item.latitude, item.longitude]}
+              icon={createMarkerIcon(color)}
+            >
+              <Tooltip
+                direction="top"
+                offset={[0, -14]}
+                opacity={1}
+                permanent={false}
+                interactive
+              >
+                {renderTooltip(item)}
+              </Tooltip>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </div>
   );

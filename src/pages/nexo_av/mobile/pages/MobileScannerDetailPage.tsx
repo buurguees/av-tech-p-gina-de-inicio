@@ -2,16 +2,20 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Loader2, 
+import {
+  Loader2,
   ChevronLeft,
   Save,
   FileText,
   AlertCircle,
-  Image as ImageIcon,
   MapPin,
+  Euro,
+  CalendarDays,
+  Tag,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -29,6 +33,9 @@ interface ScannedDocument {
   file_type: string;
   status: string;
   created_at: string;
+  suggested_project_id: string | null;
+  suggested_site_id: string | null;
+  suggested_project_name: string | null;
 }
 
 interface Project {
@@ -45,13 +52,27 @@ interface ProjectSite {
   is_default: boolean;
 }
 
+const EXPENSE_CATEGORIES = [
+  { value: "FUEL", label: "Combustible" },
+  { value: "MEALS", label: "Comidas" },
+  { value: "TOLLS", label: "Peajes" },
+  { value: "PARKING", label: "Parking" },
+  { value: "MATERIALS", label: "Materiales" },
+  { value: "TRANSPORT", label: "Transporte" },
+  { value: "OTHER", label: "Otros" },
+] as const;
+
+function todayIso() {
+  return new Date().toISOString().split("T")[0];
+}
+
 // File preview component
 const FilePreview = ({ filePath }: { filePath: string }) => {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  
+
   const normalizedPath = filePath.trim().replace(/^\//, '');
   const isPdf = normalizedPath.toLowerCase().endsWith('.pdf');
   const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(normalizedPath);
@@ -150,23 +171,28 @@ const MobileScannerDetailPage = () => {
   const { userId, documentId } = useParams<{ userId: string; documentId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [document, setDocument] = useState<ScannedDocument | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectSiteMode, setProjectSiteMode] = useState<string | null>(null);
   const [projectSites, setProjectSites] = useState<ProjectSite[]>([]);
-  
-  // Form state
-  const [documentType, setDocumentType] = useState<"EXPENSE" | "INVOICE">("EXPENSE");
+
+  // Project/site selection (existing)
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+
+  // New: quick expense fields
+  const [docType, setDocType] = useState<"TICKET" | "INVOICE">("TICKET");
+  const [expenseCategory, setExpenseCategory] = useState<string>("");
+  const [concept, setConcept] = useState<string>("");
+  const [issueDate, setIssueDate] = useState<string>(todayIso());
+  const [totalAmount, setTotalAmount] = useState<string>("");
 
   // Fetch document
   const fetchDocument = useCallback(async () => {
     if (!documentId) return;
-    
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -174,16 +200,13 @@ const MobileScannerDetailPage = () => {
         .select("*")
         .eq("id", documentId)
         .single();
-      
       if (error) throw error;
-      setDocument(data);
-    } catch (error: any) {
+      setDocument(data as ScannedDocument);
+      if (data.suggested_project_id) setSelectedProjectId(data.suggested_project_id);
+      if (data.suggested_site_id) setSelectedSiteId(data.suggested_site_id);
+    } catch (error: unknown) {
       console.error("Error fetching document:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo cargar el documento",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "No se pudo cargar el documento", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -192,10 +215,7 @@ const MobileScannerDetailPage = () => {
   // Fetch projects
   const fetchProjects = useCallback(async () => {
     try {
-      const { data, error } = await supabase.rpc('list_projects', {
-        p_search: null
-      });
-
+      const { data, error } = await supabase.rpc('list_projects', { p_search: null });
       if (error) throw error;
       setProjects(data || []);
     } catch (error) {
@@ -216,7 +236,6 @@ const MobileScannerDetailPage = () => {
         setSelectedSiteId("");
         return;
       }
-
       try {
         const { data: projectData, error: projectError } = await supabase.rpc("get_project", { p_project_id: selectedProjectId });
         if (projectError) throw projectError;
@@ -244,99 +263,126 @@ const MobileScannerDetailPage = () => {
         setSelectedSiteId("");
       }
     };
-
     void fetchProjectSites();
   }, [selectedProjectId]);
 
+  const canCreateDraft = !!(selectedProjectId && issueDate && totalAmount && parseFloat(totalAmount) > 0);
+
   const handleSave = async () => {
-    if (!document) return;
+    if (!document || !documentId) return;
 
     if (!document.file_path?.trim()) {
-      toast({
-        title: "Documento obligatorio",
-        description: "Este documento no tiene archivo asociado. No se puede asignar. Es obligatorio tener el documento para el control de gastos.",
-        variant: "destructive",
-      });
+      toast({ title: "Documento sin archivo", description: "Este documento no tiene archivo asociado.", variant: "destructive" });
+      return;
+    }
+    if (selectedProjectId && projectSiteMode === "MULTI_SITE" && !selectedSiteId) {
+      toast({ title: "Sitio obligatorio", description: "Selecciona un sitio para este proyecto multi-sitio.", variant: "destructive" });
       return;
     }
 
-    if (projectSiteMode === "MULTI_SITE" && !selectedSiteId) {
-      toast({
-        title: "Sitio obligatorio",
-        description: "Selecciona un sitio para este proyecto multi-sitio.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    setSaving(true);
     try {
-      setSaving(true);
+      // --- PATH A: crear borrador de gasto directamente ---
+      if (canCreateDraft) {
+        const amount = parseFloat(totalAmount);
+        const categoryLabel = EXPENSE_CATEGORIES.find(c => c.value === expenseCategory)?.label ?? "Ticket";
+        const lineConcept = concept.trim() || categoryLabel;
 
-      const { data: invoiceNumber, error: numError } = await (supabase.rpc as any)(documentType === "EXPENSE" ? "get_next_ticket_number" : "get_next_factura_borr_number");
-      if (numError || !invoiceNumber) throw new Error(numError?.message || "No se pudo obtener el número");
+        // 1. Obtener número de borrador
+        const { data: ticketNumber, error: numErr } = await (supabase.rpc as any)(
+          docType === "TICKET" ? "get_next_ticket_number" : "get_next_factura_borr_number"
+        );
+        if (numErr) throw numErr;
 
-      const { data: invoiceData, error: invoiceError } = await (supabase.rpc as any)("create_purchase_invoice", {
-        p_invoice_number: invoiceNumber,
-        p_document_type: documentType,
-        p_project_id: selectedProjectId || null,
-        p_file_path: document.file_path,
-        p_file_name: document.file_name,
-        p_site_id: selectedProjectId ? (selectedSiteId || null) : null,
-      });
+        // 2. Crear el gasto/factura borrador
+        const { data: invoiceId, error: invoiceErr } = await (supabase.rpc as any)(
+          "create_purchase_invoice",
+          {
+            p_invoice_number: ticketNumber,
+            p_document_type: docType === "TICKET" ? "EXPENSE" : "INVOICE",
+            p_status: "PENDING_VALIDATION",
+            p_project_id: selectedProjectId || null,
+            p_site_id: selectedSiteId || null,
+            p_expense_category: expenseCategory || null,
+            p_issue_date: issueDate,
+            p_notes: concept.trim() || null,
+            p_file_path: document.file_path,
+            p_file_name: document.file_name,
+          }
+        );
+        if (invoiceErr) throw invoiceErr;
 
-      if (invoiceError) throw invoiceError;
+        // 3. Añadir línea con importe total (sin IVA desglosado — desktop puede revisar)
+        await supabase.rpc("add_purchase_invoice_line", {
+          p_invoice_id: invoiceId,
+          p_concept: lineConcept,
+          p_quantity: 1,
+          p_unit_price: amount,
+          p_tax_rate: 0,
+          p_withholding_tax_rate: 0,
+          p_discount_percent: 0,
+        });
 
-      const purchaseInvoiceId = invoiceData;
+        // 4. Marcar documento como ASIGNADO
+        await supabase
+          .from("scanned_documents")
+          .update({
+            status: "ASSIGNED",
+            assigned_to_type: docType === "TICKET" ? "EXPENSE" : "PURCHASE_INVOICE",
+            assigned_to_id: invoiceId,
+          } as any)
+          .eq("id", documentId);
 
-      // Update scanned document status
-      const { error: updateError } = await supabase
-        .from("scanned_documents")
-        .update({
-          status: "ASSIGNED",
-          assigned_to_type: documentType === "EXPENSE" ? "EXPENSE" : "PURCHASE_INVOICE",
-          assigned_to_id: purchaseInvoiceId,
-        })
-        .eq("id", documentId);
+        toast({
+          title: "Gasto creado",
+          description: `${ticketNumber} — listo para revisar desde el ordenador.`,
+        });
 
-      if (updateError) throw updateError;
+      // --- PATH B: solo vincular proyecto (comportamiento original) ---
+      } else {
+        const foundProject = projects.find((p) => p.id === selectedProjectId);
+        const suggestedProjectName = foundProject
+          ? `${foundProject.project_name} (${foundProject.project_number})`
+          : null;
 
-      toast({
-        title: "Éxito",
-        description: documentType === "EXPENSE" 
-          ? "Ticket creado correctamente. Pendiente de entrada de datos."
-          : "Factura de compra creada correctamente. Pendiente de entrada de datos.",
-      });
+        const { error: updateError } = await supabase
+          .from("scanned_documents")
+          .update({
+            suggested_project_id: selectedProjectId || null,
+            suggested_site_id: selectedSiteId || null,
+            suggested_project_name: suggestedProjectName,
+          } as any)
+          .eq("id", documentId);
 
-      // Navigate back to scanner
+        if (updateError) throw updateError;
+
+        toast({
+          title: selectedProjectId ? "Proyecto vinculado" : "Cambios guardados",
+          description: selectedProjectId
+            ? "Completa proveedor, importe y fecha desde el escáner de escritorio."
+            : "El documento queda pendiente de completar.",
+        });
+      }
+
       navigate(`/nexo-av/${userId}/scanner`);
     } catch (error: any) {
       console.error("Error saving document:", error);
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo guardar el documento",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message || "No se pudo guardar el documento", variant: "destructive" });
     } finally {
       setSaving(false);
     }
   };
 
+  // --- Loading / error states ---
   if (loading) {
     return (
       <div className="w-full h-full flex flex-col">
         <div className="flex-shrink-0 px-4 py-3 border-b border-border">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(`/nexo-av/${userId}/scanner`)}
-              className="h-8 w-8"
-            >
+            <Button variant="ghost" size="icon" onClick={() => navigate(`/nexo-av/${userId}/scanner`)} className="h-8 w-8">
               <ChevronLeft className="h-5 w-5" />
             </Button>
-            <div className="flex-1">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            </div>
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center">
@@ -351,17 +397,10 @@ const MobileScannerDetailPage = () => {
       <div className="w-full h-full flex flex-col">
         <div className="flex-shrink-0 px-4 py-3 border-b border-border">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(`/nexo-av/${userId}/scanner`)}
-              className="h-8 w-8"
-            >
+            <Button variant="ghost" size="icon" onClick={() => navigate(`/nexo-av/${userId}/scanner`)} className="h-8 w-8">
               <ChevronLeft className="h-5 w-5" />
             </Button>
-            <div className="flex-1">
-              <h2 className="text-base font-semibold">Documento no encontrado</h2>
-            </div>
+            <h2 className="text-base font-semibold">Documento no encontrado</h2>
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center">
@@ -381,12 +420,7 @@ const MobileScannerDetailPage = () => {
       {/* Header */}
       <div className="flex-shrink-0 px-4 py-3 border-b border-border">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(`/nexo-av/${userId}/scanner`)}
-            className="h-8 w-8"
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate(`/nexo-av/${userId}/scanner`)} className="h-8 w-8">
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1 min-w-0">
@@ -399,15 +433,21 @@ const MobileScannerDetailPage = () => {
               className={cn(
                 "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full shrink-0",
                 "text-sm font-medium leading-none",
-                "bg-primary text-primary-foreground",
-                "active:scale-95 transition-all duration-200",
-                "shadow-sm",
+                canCreateDraft
+                  ? "bg-emerald-500 text-white"
+                  : "bg-primary text-primary-foreground",
+                "active:scale-95 transition-all duration-200 shadow-sm",
                 "disabled:opacity-50 disabled:cursor-not-allowed"
               )}
               style={{ touchAction: 'manipulation' }}
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
+              ) : canCreateDraft ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span className="hidden min-[400px]:inline">Crear gasto</span>
+                </>
               ) : (
                 <>
                   <Save className="h-4 w-4" />
@@ -420,52 +460,140 @@ const MobileScannerDetailPage = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-5 pb-20">
+
         {/* Preview */}
         <div className="space-y-2">
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Vista Previa del documento (obligatorio para control de gastos)
+            Vista previa
           </Label>
           <div className="bg-card border border-border rounded-xl p-3">
             <FilePreview filePath={document.file_path} />
           </div>
         </div>
 
+        {isAssigned && (
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center">
+            <CheckCircle2 className="h-6 w-6 text-emerald-500 mx-auto mb-1" />
+            <p className="text-sm font-medium text-emerald-600">Documento procesado</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Este documento ya ha sido asignado.</p>
+          </div>
+        )}
+
         {!isAssigned && (
           <>
-            {/* Document Type */}
+            {/* Tipo de documento */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Tipo de Documento
+                Tipo de documento
               </Label>
-              <Select 
-                value={documentType}
-                onValueChange={(value) => setDocumentType(value as "EXPENSE" | "INVOICE")}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="EXPENSE">Ticket</SelectItem>
-                  <SelectItem value="INVOICE">Factura</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                {documentType === "EXPENSE" 
-                  ? "Se creará un gasto en estado Pendiente"
-                  : "Se creará una factura de compra en estado Pendiente"}
-              </p>
+              <div className="flex gap-2">
+                {(["TICKET", "INVOICE"] as const).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setDocType(type)}
+                    className={cn(
+                      "flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all",
+                      docType === type
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card text-muted-foreground border-border"
+                    )}
+                    style={{ touchAction: 'manipulation' }}
+                  >
+                    {type === "TICKET" ? "🧾 Ticket / Gasto" : "📄 Factura"}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Project Selection */}
+            {/* Categoría */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                <Tag className="h-3.5 w-3.5" />
+                Categoría {docType === "TICKET" ? "(opcional)" : ""}
+              </Label>
+              <Select value={expenseCategory} onValueChange={setExpenseCategory}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccionar categoría..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {EXPENSE_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Concepto / Comercio */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Proyecto (Opcional)
+                {docType === "TICKET" ? "Comercio / Establecimiento (opcional)" : "Concepto (opcional)"}
               </Label>
-              <Select 
-                value={selectedProjectId}
-                onValueChange={setSelectedProjectId}
-              >
+              <Input
+                value={concept}
+                onChange={(e) => setConcept(e.target.value)}
+                placeholder={docType === "TICKET" ? "Repsol, McDonald's, Leroy Merlin..." : "Descripción breve..."}
+                className="bg-card border-border"
+              />
+            </div>
+
+            {/* Fecha + Importe en fila */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  Fecha
+                </Label>
+                <Input
+                  type="date"
+                  value={issueDate}
+                  onChange={(e) => setIssueDate(e.target.value)}
+                  className="bg-card border-border"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                  <Euro className="h-3.5 w-3.5" />
+                  Importe total
+                </Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  value={totalAmount}
+                  onChange={(e) => setTotalAmount(e.target.value)}
+                  placeholder="0,00"
+                  className="bg-card border-border"
+                />
+              </div>
+            </div>
+
+            {/* Indicador de modo: crear borrador vs solo vincular */}
+            {canCreateDraft ? (
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
+                <p className="text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed font-medium">
+                  ✓ Se creará un borrador de gasto con proyecto, categoría e importe. Solo necesitarás revisarlo desde el ordenador.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-border bg-muted/30 px-4 py-3">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {selectedProjectId
+                    ? "Añade importe y fecha para crear el borrador directamente. O guarda solo la vinculación al proyecto."
+                    : "Selecciona un proyecto y, opcionalmente, rellena importe y fecha para crear el borrador de gasto."}
+                </p>
+              </div>
+            )}
+
+            {/* Proyecto */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Proyecto (opcional)
+              </Label>
+              <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Seleccionar proyecto..." />
                 </SelectTrigger>
@@ -485,6 +613,7 @@ const MobileScannerDetailPage = () => {
               </Select>
             </div>
 
+            {/* Sitio (multi-site) */}
             {selectedProjectId && projectSiteMode === "MULTI_SITE" && projectSites.length > 0 && (
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
@@ -506,6 +635,7 @@ const MobileScannerDetailPage = () => {
               </div>
             )}
 
+            {/* Sitio (single-site, solo lectura) */}
             {selectedProjectId && projectSiteMode === "SINGLE_SITE" && projectSites.length > 0 && (
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
@@ -518,14 +648,6 @@ const MobileScannerDetailPage = () => {
               </div>
             )}
           </>
-        )}
-
-        {isAssigned && (
-          <div className="bg-muted/50 border border-border rounded-xl p-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              Este documento ya ha sido asignado y procesado.
-            </p>
-          </div>
         )}
       </div>
     </div>

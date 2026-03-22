@@ -65,6 +65,9 @@ interface ScannedDocument {
   notes: string | null;
   created_at: string;
   created_by: string | null;
+  suggested_project_id: string | null;
+  suggested_site_id: string | null;
+  suggested_project_name: string | null;
 }
 
 interface Supplier {
@@ -312,6 +315,11 @@ const ScannerDetailPage = () => {
       
       setDocument(data as ScannedDocument);
       setNotes(data.notes || "");
+      // Pre-fill project if the technician pre-assigned one from the mobile scanner
+      if (data.suggested_project_id) {
+        setSelectedProjectId(data.suggested_project_id);
+        setProjectSearchValue(data.suggested_project_name || "");
+      }
       
     } catch (error: any) {
       console.error("Error fetching document:", error);

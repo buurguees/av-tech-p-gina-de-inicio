@@ -103,23 +103,23 @@ interface ClientMapRow {
   longitude: number | string | null;
 }
 
-interface TechnicianListRow {
+interface TechnicianMapRow {
   id: string;
   technician_number: string;
   company_name: string;
   type: string;
+  contact_name?: string | null;
   city?: string | null;
   province?: string | null;
+  postal_code?: string | null;
   contact_email?: string | null;
   contact_phone?: string | null;
-}
-
-interface TechnicianMapRow extends TechnicianListRow {
   address?: string | null;
-  postal_code?: string | null;
-  country?: string | null;
   latitude?: number | string | null;
   longitude?: number | string | null;
+  specialties?: string[] | null;
+  status?: string | null;
+  rating?: number | null;
 }
 
 const getClientStageInfo = (stage: string) =>
@@ -257,6 +257,13 @@ const MapPage = () => {
         const coords = await geocodeFullAddress(client.full_address);
         if (!coords) continue;
 
+        // Persistir coordenadas geocodificadas para acelerar cargas futuras
+        void supabase.rpc("update_client_coordinates", {
+          p_client_id: client.id,
+          p_lat: coords.lat,
+          p_lon: coords.lon,
+        });
+
         items.push({
           id: client.id,
           name: client.company_name,
@@ -281,62 +288,18 @@ const MapPage = () => {
   const fetchTechnicians = useCallback(async () => {
     setTechniciansLoading(true);
     try {
-      const [
-        { data: listData, error: listError },
-        { data: mapData, error: mapError },
-      ] = await Promise.all([
-        supabase.rpc("list_technicians", {
-          p_search: null,
-          p_type: null,
-          p_status: null,
-          p_specialty: null,
-        }),
-        supabase.rpc("list_technicians_for_map", {
-          p_type: null,
-          p_status: null,
-          p_specialty: null,
-        }),
-      ]);
+      const { data, error } = await supabase.rpc("list_technicians_for_map", {
+        p_type: null,
+        p_status: null,
+        p_specialty: null,
+      });
+      if (error) throw error;
 
-      if (listError) throw listError;
-      if (mapError)
-        console.error("Error fetching technician coordinates:", mapError);
-
-      const baseRows = ((listData as TechnicianListRow[]) ?? []).map(
-        (technician) => ({
-          ...technician,
-          address: null,
-          postal_code: null,
-          country: null,
-          latitude: null,
-          longitude: null,
-        }),
-      );
-      const mapRows = (mapData as TechnicianMapRow[]) ?? [];
-
-      const mergedById = new Map<string, TechnicianMapRow>();
-      for (const technician of baseRows) {
-        mergedById.set(technician.id, technician);
-      }
-      for (const technician of mapRows) {
-        const previous = mergedById.get(technician.id);
-        mergedById.set(technician.id, {
-          ...(previous ?? {}),
-          ...technician,
-          city: technician.city ?? previous?.city ?? null,
-          province: technician.province ?? previous?.province ?? null,
-          contact_email:
-            technician.contact_email ?? previous?.contact_email ?? null,
-          contact_phone:
-            technician.contact_phone ?? previous?.contact_phone ?? null,
-        });
-      }
-
-      const merged = Array.from(mergedById.values());
-      setTechnicians(merged);
+      const rows = (data as TechnicianMapRow[]) ?? [];
+      setTechnicians(rows);
 
       const items: MapItem[] = [];
-      for (const technician of merged) {
+      for (const technician of rows) {
         const latitude = toNullableNumber(technician.latitude);
         const longitude = toNullableNumber(technician.longitude);
         const address = buildStructuredAddress(technician);
@@ -370,6 +333,13 @@ const MapPage = () => {
           );
         }
         if (!coords) continue;
+
+        // Persistir coordenadas geocodificadas para acelerar cargas futuras
+        void supabase.rpc("update_technician_coordinates", {
+          p_technician_id: technician.id,
+          p_lat: coords.lat,
+          p_lon: coords.lon,
+        });
 
         items.push({
           id: technician.id,
@@ -520,6 +490,15 @@ const MapPage = () => {
 
           if (!coords) continue;
 
+          // Persistir coordenadas geocodificadas en el sitio para acelerar cargas futuras
+          if (bestSite) {
+            void supabase.rpc("update_project_site_coordinates", {
+              p_site_id: bestSite.id,
+              p_lat: coords.lat,
+              p_lon: coords.lon,
+            });
+          }
+
           items.push({
             id: project.id,
             name: project.project_name || project.project_number,
@@ -562,8 +541,9 @@ const MapPage = () => {
     (activeTab === "tecnicos" && techniciansLoading);
 
   return (
-    <div className="map-page flex h-full min-h-0 w-full flex-col overflow-hidden">
-      <div className="mb-4 flex-shrink-0">
+    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
+      {/* Cabecera compacta */}
+      <div className="mb-2 flex-shrink-0">
         <DetailNavigationBar
           pageTitle="Mapa"
           contextInfo={
@@ -578,293 +558,248 @@ const MapPage = () => {
         />
       </div>
 
+      {/* Área de contenido — ocupa todo el espacio restante */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
           className="flex h-full min-h-0 flex-col"
         >
-          <TabsList className="mb-0 h-11 w-full flex-shrink-0 justify-start gap-0 rounded-none border-b border-border bg-transparent p-0">
+          {/* Barra de tabs */}
+          <TabsList className="h-10 w-full flex-shrink-0 justify-start gap-0 rounded-none border-b border-border bg-transparent p-0">
             {MAP_TABS.map(({ value, label, icon: Icon }) => (
               <TabsTrigger
                 key={value}
                 value={value}
-                className="rounded-none border-b-2 border-transparent px-4 py-2.5 data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                className="rounded-none border-b-2 border-transparent px-4 py-2 text-sm data-[state=active]:border-primary data-[state=active]:bg-transparent"
               >
-                <Icon className="mr-2 h-4 w-4" />
+                <Icon className="mr-1.5 h-3.5 w-3.5" />
                 {label}
               </TabsTrigger>
             ))}
           </TabsList>
 
+          {/* Contenido de cada tab — mapa + sidebar */}
           {MAP_TABS.map(({ value, listTitle, color }) => (
             <TabsContent
               key={value}
               value={value}
-              className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden pt-4"
+              className="mt-0 flex min-h-0 flex-1 overflow-hidden pt-3"
             >
-              <div className="flex min-h-0 flex-1 flex-row gap-4 overflow-hidden">
-                <div className="relative min-h-[300px] min-w-0 flex-1 overflow-hidden rounded-lg border border-border bg-muted/20">
-                  <div className="absolute inset-0 h-full w-full">
-                    {value === "proyectos" && (
-                      <>
-                        <MapWithMarkers
-                          items={projectMapItems}
-                          markerColor={color}
-                          getMarkerColor={(item) =>
-                            getProjectStatusInfo(String(item.status ?? ""))
-                              .markerColorHex ?? color
-                          }
-                          loading={mapLoading}
-                          renderTooltip={(item) => (
-                            <div className="p-1 text-left">
-                              <p className="font-semibold text-foreground">
-                                {item.name}
-                              </p>
-                              {item.project_number && (
-                                <p className="text-xs text-muted-foreground">
-                                  N. {String(item.project_number)}
-                                </p>
-                              )}
-                              {item.client_name && (
-                                <p className="text-xs text-muted-foreground">
-                                  Cliente: {String(item.client_name)}
-                                </p>
-                              )}
-                              {item.site_name && (
-                                <p className="text-xs text-muted-foreground">
-                                  Sitio: {String(item.site_name)}
-                                </p>
-                              )}
-                              {item.address && (
-                                <p className="text-xs text-muted-foreground">
-                                  {String(item.address)}
-                                </p>
-                              )}
-                              {String(item.location_precision) ===
-                                "approximate" && (
-                                <p className="mt-1 text-xs font-medium text-amber-700">
-                                  Ubicacion aproximada
-                                </p>
-                              )}
-                              {item.status && (
-                                <p className="mt-1 text-xs">
-                                  Estado:{" "}
-                                  <span className="font-medium">
-                                    {
-                                      getProjectStatusInfo(String(item.status))
-                                        .label
-                                    }
-                                  </span>
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        />
-                        {!projectsLoading &&
-                          !projectsGeocoding &&
-                          projects.length === 0 && (
-                            <div className="absolute inset-0 z-[400] flex items-center justify-center rounded-lg bg-muted/30">
-                              <p className="px-4 text-center text-sm text-muted-foreground">
-                                No hay proyectos para mostrar.
-                              </p>
-                            </div>
-                          )}
-                        {!projectsLoading &&
-                          !projectsGeocoding &&
-                          projects.length > 0 &&
-                          projectMapItems.length === 0 && (
-                            <div className="absolute inset-0 z-[400] flex items-center justify-center rounded-lg bg-muted/30">
-                              <p className="max-w-md px-4 text-center text-sm text-muted-foreground">
-                                Para ubicar proyectos en el mapa hace falta al
-                                menos una direccion de sitio o una
-                                ciudad/provincia valida.
-                              </p>
-                            </div>
-                          )}
-                      </>
-                    )}
+              <div className="flex min-h-0 w-full flex-1 gap-3 overflow-hidden">
 
-                    {value === "clientes" && (
-                      <>
-                        <MapWithMarkers
-                          items={clientMapItems}
-                          markerColor={color}
-                          loading={mapLoading}
-                          renderTooltip={(item) => {
-                            const stageInfo = getClientStageInfo(
-                              String(item.lead_stage ?? ""),
-                            );
-                            return (
-                              <div className="p-1 text-left">
-                                <p className="font-semibold text-foreground">
-                                  {item.name}
-                                </p>
-                                <p className="text-xs">
-                                  Estado:{" "}
-                                  <span className="font-medium">
-                                    {stageInfo.label}
-                                  </span>
-                                </p>
-                                {item.address && (
-                                  <p className="text-xs text-muted-foreground">
-                                    {String(item.address)}
-                                  </p>
-                                )}
-                                {String(item.location_precision) ===
-                                  "approximate" && (
-                                  <p className="mt-1 text-xs font-medium text-amber-700">
-                                    Ubicacion aproximada
-                                  </p>
-                                )}
-                              </div>
-                            );
-                          }}
-                        />
-                        {!clientsLoading && clients.length === 0 && (
-                          <div className="absolute inset-0 z-[400] flex items-center justify-center rounded-lg bg-muted/30">
-                            <p className="px-4 text-center text-sm text-muted-foreground">
-                              No hay clientes para mostrar.
+                {/* Mapa */}
+                <div className="relative min-w-0 flex-1 overflow-hidden rounded-lg border border-border bg-muted/20">
+                  {value === "proyectos" && (
+                    <>
+                      <MapWithMarkers
+                        items={projectMapItems}
+                        markerColor={color}
+                        getMarkerColor={(item) =>
+                          getProjectStatusInfo(String(item.status ?? ""))
+                            .markerColorHex ?? color
+                        }
+                        loading={mapLoading}
+                        renderTooltip={(item) => (
+                          <div className="space-y-0.5 text-left">
+                            <p className="font-semibold leading-tight text-foreground">
+                              {item.project_number
+                                ? `${String(item.project_number)} — `
+                                : ""}
+                              {item.name}
                             </p>
+                            {item.client_name && (
+                              <p className="text-xs text-muted-foreground">
+                                {String(item.client_name)}
+                              </p>
+                            )}
+                            {item.address && (
+                              <p className="text-xs text-muted-foreground">
+                                {String(item.address)}
+                              </p>
+                            )}
+                            {item.status && (
+                              <p className="text-xs font-medium" style={{ color }}>
+                                {getProjectStatusInfo(String(item.status)).label}
+                              </p>
+                            )}
+                            {String(item.location_precision) === "approximate" && (
+                              <p className="text-[10px] text-amber-600">
+                                Ubicación aproximada
+                              </p>
+                            )}
                           </div>
                         )}
-                        {!clientsLoading &&
-                          clients.length > 0 &&
-                          clientMapItems.length === 0 && (
-                            <div className="absolute inset-0 z-[400] flex items-center justify-center rounded-lg bg-muted/30">
-                              <p className="max-w-md px-4 text-center text-sm text-muted-foreground">
-                                Para ubicar clientes en el mapa hace falta una
-                                direccion valida o coordenadas guardadas.
-                              </p>
-                            </div>
-                          )}
-                      </>
-                    )}
+                      />
+                      {!projectsLoading && !projectsGeocoding && projects.length === 0 && (
+                        <div className="absolute inset-0 z-[400] flex items-center justify-center bg-muted/30">
+                          <p className="text-sm text-muted-foreground">
+                            No hay proyectos para mostrar.
+                          </p>
+                        </div>
+                      )}
+                      {!projectsLoading && !projectsGeocoding && projects.length > 0 && projectMapItems.length === 0 && (
+                        <div className="absolute inset-0 z-[400] flex items-center justify-center bg-muted/30">
+                          <p className="max-w-xs px-4 text-center text-sm text-muted-foreground">
+                            Ningún proyecto tiene dirección o ciudad registrada.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
 
-                    {value === "tecnicos" && (
-                      <>
-                        <MapWithMarkers
-                          items={technicianMapItems}
-                          markerColor={color}
-                          loading={mapLoading}
-                          renderTooltip={(item) => (
-                            <div className="max-w-[260px] p-1 text-left">
-                              <p className="font-semibold text-foreground">
+                  {value === "clientes" && (
+                    <>
+                      <MapWithMarkers
+                        items={clientMapItems}
+                        markerColor={color}
+                        loading={mapLoading}
+                        renderTooltip={(item) => {
+                          const stageInfo = getClientStageInfo(String(item.lead_stage ?? ""));
+                          return (
+                            <div className="space-y-0.5 text-left">
+                              <p className="font-semibold leading-tight text-foreground">
                                 {item.name}
+                              </p>
+                              <p className="text-xs font-medium" style={{ color }}>
+                                {stageInfo.label}
                               </p>
                               {item.address && (
                                 <p className="text-xs text-muted-foreground">
                                   {String(item.address)}
                                 </p>
                               )}
-                              {String(item.location_precision) ===
-                                "approximate" && (
-                                <p className="mt-1 text-xs font-medium text-amber-700">
-                                  Ubicacion aproximada
-                                </p>
-                              )}
-                              {item.type && (
-                                <p className="text-xs">
-                                  Tipo: {String(item.type)}
+                              {String(item.location_precision) === "approximate" && (
+                                <p className="text-[10px] text-amber-600">
+                                  Ubicación aproximada
                                 </p>
                               )}
                             </div>
-                          )}
-                        />
-                        {!techniciansLoading && technicians.length === 0 && (
-                          <div className="absolute inset-0 z-[400] flex items-center justify-center rounded-lg bg-muted/30">
-                            <p className="px-4 text-center text-sm text-muted-foreground">
-                              No hay tecnicos para mostrar.
+                          );
+                        }}
+                      />
+                      {!clientsLoading && clients.length === 0 && (
+                        <div className="absolute inset-0 z-[400] flex items-center justify-center bg-muted/30">
+                          <p className="text-sm text-muted-foreground">
+                            No hay clientes para mostrar.
+                          </p>
+                        </div>
+                      )}
+                      {!clientsLoading && clients.length > 0 && clientMapItems.length === 0 && (
+                        <div className="absolute inset-0 z-[400] flex items-center justify-center bg-muted/30">
+                          <p className="max-w-xs px-4 text-center text-sm text-muted-foreground">
+                            Ningún cliente tiene dirección registrada.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {value === "tecnicos" && (
+                    <>
+                      <MapWithMarkers
+                        items={technicianMapItems}
+                        markerColor={color}
+                        loading={mapLoading}
+                        renderTooltip={(item) => (
+                          <div className="space-y-0.5 text-left">
+                            <p className="font-semibold leading-tight text-foreground">
+                              {item.name}
                             </p>
+                            {item.type && (
+                              <p className="text-xs font-medium" style={{ color }}>
+                                {String(item.type)}
+                              </p>
+                            )}
+                            {item.address && (
+                              <p className="text-xs text-muted-foreground">
+                                {String(item.address)}
+                              </p>
+                            )}
+                            {String(item.location_precision) === "approximate" && (
+                              <p className="text-[10px] text-amber-600">
+                                Ubicación aproximada
+                              </p>
+                            )}
                           </div>
                         )}
-                        {!techniciansLoading &&
-                          technicians.length > 0 &&
-                          technicianMapItems.length === 0 && (
-                            <div className="absolute inset-0 z-[400] flex items-center justify-center rounded-lg bg-muted/30">
-                              <p className="max-w-md px-4 text-center text-sm text-muted-foreground">
-                                Para ubicar tecnicos en el mapa hace falta al
-                                menos una direccion o una ciudad/provincia
-                                valida.
-                              </p>
-                            </div>
-                          )}
-                      </>
-                    )}
-                  </div>
+                      />
+                      {!techniciansLoading && technicians.length === 0 && (
+                        <div className="absolute inset-0 z-[400] flex items-center justify-center bg-muted/30">
+                          <p className="text-sm text-muted-foreground">
+                            No hay técnicos para mostrar.
+                          </p>
+                        </div>
+                      )}
+                      {!techniciansLoading && technicians.length > 0 && technicianMapItems.length === 0 && (
+                        <div className="absolute inset-0 z-[400] flex items-center justify-center bg-muted/30">
+                          <p className="max-w-xs px-4 text-center text-sm text-muted-foreground">
+                            Ningún técnico pudo ser geolocalizdo.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
-                <div className="flex min-h-0 w-[360px] min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
-                  <div className="border-b border-border p-3">
-                    <h3 className="text-sm font-semibold text-foreground">
-                      Listado
-                    </h3>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
+                {/* Sidebar de listado */}
+                <div className="flex w-72 min-w-0 flex-shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
+                  <div className="flex-shrink-0 border-b border-border px-3 py-2.5">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       {listTitle}
                     </p>
                   </div>
 
                   <ScrollArea className="min-h-0 flex-1">
-                    <div className="space-y-2 p-3">
+                    <div className="space-y-px p-2">
+
+                      {/* — Proyectos — */}
                       {value === "proyectos" &&
                         (projectsLoading ? (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm">
-                              Cargando proyectos...
-                            </span>
+                          <div className="flex items-center gap-2 px-2 py-3 text-muted-foreground">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span className="text-xs">Cargando...</span>
                           </div>
                         ) : projects.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">
-                            No hay proyectos para mostrar.
+                          <p className="px-2 py-3 text-xs text-muted-foreground">
+                            Sin proyectos.
                           </p>
                         ) : (
                           projects.map((project) => {
-                            const statusInfo = getProjectStatusInfo(
-                              project.status,
-                            );
+                            const statusInfo = getProjectStatusInfo(project.status);
                             const mapItem = projectMapItemById.get(project.id);
                             return (
                               <button
                                 key={project.id}
                                 type="button"
-                                className="w-full rounded-md border border-transparent px-3 py-2 text-left transition-colors hover:border-border hover:bg-accent"
+                                className="w-full rounded-md px-2.5 py-2 text-left transition-colors hover:bg-accent"
                                 onClick={() =>
-                                  navigate(
-                                    `/nexo-av/${userId}/projects/${project.id}`,
-                                  )
+                                  navigate(`/nexo-av/${userId}/projects/${project.id}`)
                                 }
                               >
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-                                    {project.project_number} -{" "}
-                                    {project.project_name || "Sin nombre"}
+                                <div className="flex items-center gap-1.5">
+                                  <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+                                    {project.project_number} · {project.project_name || "Sin nombre"}
                                   </p>
                                   <Badge
                                     variant="outline"
-                                    className={cn(
-                                      statusInfo.className,
-                                      "shrink-0 px-1.5 py-0 text-[10px]",
-                                    )}
+                                    className={cn(statusInfo.className, "shrink-0 px-1 py-0 text-[9px]")}
                                   >
                                     {statusInfo.label}
                                   </Badge>
-                                  {String(mapItem?.location_precision) ===
-                                    "approximate" && (
+                                  {String(mapItem?.location_precision) === "approximate" && (
                                     <Badge
                                       variant="outline"
-                                      className="shrink-0 border-amber-500/30 bg-amber-500/20 px-1.5 py-0 text-[10px] text-amber-700"
+                                      className="shrink-0 border-amber-500/30 bg-amber-500/10 px-1 py-0 text-[9px] text-amber-700"
                                     >
-                                      Aproximado
+                                      ~
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                                  {project.client_name || "Sin cliente"} |{" "}
-                                  {String(
-                                    mapItem?.address ??
-                                      project.project_city ??
-                                      "Sin ubicacion de sitio",
+                                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                                  {project.client_name || "Sin cliente"}
+                                  {(mapItem?.address ?? project.project_city) && (
+                                    <> · {String(mapItem?.address ?? project.project_city)}</>
                                   )}
                                 </p>
                               </button>
@@ -872,66 +807,52 @@ const MapPage = () => {
                           })
                         ))}
 
+                      {/* — Clientes — */}
                       {value === "clientes" &&
                         (clientsLoading ? (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm">
-                              Cargando clientes...
-                            </span>
+                          <div className="flex items-center gap-2 px-2 py-3 text-muted-foreground">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span className="text-xs">Cargando...</span>
                           </div>
                         ) : clients.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">
-                            No hay clientes para mostrar.
+                          <p className="px-2 py-3 text-xs text-muted-foreground">
+                            Sin clientes.
                           </p>
                         ) : (
                           clients.map((client) => {
-                            const stageInfo = getClientStageInfo(
-                              client.lead_stage,
-                            );
+                            const stageInfo = getClientStageInfo(client.lead_stage);
                             const mapItem = clientMapItemById.get(client.id);
                             return (
                               <button
                                 key={client.id}
                                 type="button"
-                                className="w-full rounded-md border border-transparent px-3 py-2 text-left transition-colors hover:border-border hover:bg-accent"
+                                className="w-full rounded-md px-2.5 py-2 text-left transition-colors hover:bg-accent"
                                 onClick={() =>
-                                  navigate(
-                                    `/nexo-av/${userId}/clients/${client.id}`,
-                                  )
+                                  navigate(`/nexo-av/${userId}/clients/${client.id}`)
                                 }
                               >
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                                <div className="flex items-center gap-1.5">
+                                  <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
                                     {client.company_name}
                                   </p>
                                   <Badge
                                     variant="outline"
-                                    className={cn(
-                                      stageInfo.color,
-                                      "shrink-0 px-1.5 py-0 text-[10px]",
-                                    )}
+                                    className={cn(stageInfo.color, "shrink-0 px-1 py-0 text-[9px]")}
                                   >
                                     {stageInfo.label}
                                   </Badge>
-                                  {String(mapItem?.location_precision) ===
-                                    "approximate" && (
+                                  {String(mapItem?.location_precision) === "approximate" && (
                                     <Badge
                                       variant="outline"
-                                      className="shrink-0 border-amber-500/30 bg-amber-500/20 px-1.5 py-0 text-[10px] text-amber-700"
+                                      className="shrink-0 border-amber-500/30 bg-amber-500/10 px-1 py-0 text-[9px] text-amber-700"
                                     >
-                                      Aproximado
+                                      ~
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                                  {client.full_address || "Sin direccion"}
-                                </p>
-                                {(client.contact_email ||
-                                  client.contact_phone) && (
-                                  <p className="truncate text-xs text-muted-foreground">
-                                    {client.contact_email ||
-                                      client.contact_phone}
+                                {client.full_address && (
+                                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                                    {client.full_address}
                                   </p>
                                 )}
                               </button>
@@ -939,79 +860,73 @@ const MapPage = () => {
                           })
                         ))}
 
+                      {/* — Técnicos — */}
                       {value === "tecnicos" &&
                         (techniciansLoading ? (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm">
-                              Cargando tecnicos...
-                            </span>
+                          <div className="flex items-center gap-2 px-2 py-3 text-muted-foreground">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span className="text-xs">Cargando...</span>
                           </div>
                         ) : technicians.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">
-                            No hay tecnicos.
+                          <p className="px-2 py-3 text-xs text-muted-foreground">
+                            Sin técnicos.
                           </p>
                         ) : (
                           technicians.map((technician) => {
-                            const mapItem = technicianMapItemById.get(
-                              technician.id,
+                            const mapItem = technicianMapItemById.get(technician.id);
+                            const location = joinAddressParts(
+                              technician.city,
+                              technician.province,
                             );
                             return (
                               <button
                                 key={technician.id}
                                 type="button"
-                                className="w-full rounded-md border border-transparent px-3 py-2 text-left transition-colors hover:border-border hover:bg-accent"
+                                className="w-full rounded-md px-2.5 py-2 text-left transition-colors hover:bg-accent"
                                 onClick={() =>
-                                  navigate(
-                                    `/nexo-av/${userId}/technicians/${technician.id}`,
-                                  )
+                                  navigate(`/nexo-av/${userId}/technicians/${technician.id}`)
                                 }
                               >
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                                <div className="flex items-center gap-1.5">
+                                  <p className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
                                     {technician.company_name}
                                   </p>
                                   <Badge
                                     variant="outline"
-                                    className="shrink-0 border-amber-500/30 bg-amber-500/20 px-1.5 py-0 text-[10px] text-amber-700"
+                                    className="shrink-0 border-amber-500/30 bg-amber-500/10 px-1 py-0 text-[9px] text-amber-700"
                                   >
                                     {technician.type}
                                   </Badge>
-                                  {String(mapItem?.location_precision) ===
-                                    "approximate" && (
+                                  {mapItem == null ? (
                                     <Badge
                                       variant="outline"
-                                      className="shrink-0 border-amber-500/30 bg-amber-500/20 px-1.5 py-0 text-[10px] text-amber-700"
+                                      className="shrink-0 border-muted-foreground/20 bg-muted/40 px-1 py-0 text-[9px] text-muted-foreground"
                                     >
-                                      Aproximado
+                                      —
                                     </Badge>
-                                  )}
+                                  ) : String(mapItem.location_precision) === "approximate" ? (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-amber-500/30 bg-amber-500/10 px-1 py-0 text-[9px] text-amber-700"
+                                    >
+                                      ~
+                                    </Badge>
+                                  ) : null}
                                 </div>
-                                <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                                  {String(
-                                    mapItem?.address ||
-                                      buildStructuredAddress(technician) ||
-                                      joinAddressParts(
-                                        technician.city,
-                                        technician.province,
-                                      ) ||
-                                      "Sin direccion",
-                                  )}
-                                </p>
-                                {(technician.contact_email ||
-                                  technician.contact_phone) && (
-                                  <p className="truncate text-xs text-muted-foreground">
-                                    {technician.contact_email ||
-                                      technician.contact_phone}
+                                {location && (
+                                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                                    {location}
                                   </p>
                                 )}
                               </button>
                             );
                           })
                         ))}
+
                     </div>
                   </ScrollArea>
                 </div>
+
               </div>
             </TabsContent>
           ))}

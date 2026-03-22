@@ -235,7 +235,7 @@ const MobileClientsPage = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col overflow-hidden">
       {/* Fixed Header Section: KPIs + Search - Always visible, never scrolls */}
       <div className="sticky top-0 z-20 flex-shrink-0 py-3 bg-background/95 backdrop-blur-sm border-b border-border/40 -mx-4 px-4 mb-2">
         {/* KPI Cards - Compact: Icon + Number/Value */}
@@ -352,7 +352,7 @@ const MobileClientsPage = () => {
       </div>
 
       {/* Clients List - Scrollable area */}
-      <div className="flex-1 min-h-0 space-y-2 pt-1 pb-4 w-full">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pt-1 pb-20 w-full">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

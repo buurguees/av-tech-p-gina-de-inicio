@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
 import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo, normalizeSalesDocumentStatus } from "@/constants/salesInvoiceStatuses";
+import { useToast } from "@/hooks/use-toast";
 
 interface Invoice {
   id: string;
@@ -42,6 +43,7 @@ interface Invoice {
 const MobileInvoicesPage = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,6 +96,7 @@ const MobileInvoicesPage = () => {
       setInvoiceStats({ pending, issued, paid });
     } catch (error) {
       console.error('Error fetching invoices:', error);
+      toast({ title: "Error al cargar las facturas", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -182,7 +185,7 @@ const MobileInvoicesPage = () => {
       </div>
 
       {/* Invoices List */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pb-4">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pb-20">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

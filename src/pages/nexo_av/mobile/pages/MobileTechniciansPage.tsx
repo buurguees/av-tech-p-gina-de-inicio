@@ -118,7 +118,7 @@ const MobileTechniciansPage = () => {
             <Input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Buscar tÃ©cnicos..."
+              placeholder="Buscar técnicos..."
               className="pl-9 h-8 bg-card border-border text-sm"
             />
           </div>
@@ -134,9 +134,9 @@ const MobileTechniciansPage = () => {
         ) : technicians.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <UserRound className="h-16 w-16 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No hay tÃ©cnicos</p>
+            <p className="text-muted-foreground">No hay técnicos</p>
             <p className="text-muted-foreground text-sm">
-              {searchInput ? "Prueba con otra bÃºsqueda" : "AÃºn no se han registrado tÃ©cnicos"}
+              {searchInput ? "Prueba con otra búsqueda" : "Aún no se han registrado técnicos"}
             </p>
           </div>
         ) : (
@@ -189,7 +189,7 @@ const MobileTechniciansPage = () => {
                     <div className="flex items-center gap-3 mt-1">
                       {tech.city && (
                         <span className="text-xs text-muted-foreground/70">
-                          ðŸ“ {tech.city}
+                          📍 {tech.city}
                         </span>
                       )}
                       {tech.contact_phone && (

@@ -116,7 +116,7 @@ const MobileSuppliersPage = () => {
             <Truck className="h-16 w-16 text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No hay proveedores</p>
             <p className="text-muted-foreground text-sm">
-              {searchInput ? "Prueba con otra bÃºsqueda" : "AÃºn no se han registrado proveedores"}
+              {searchInput ? "Prueba con otra búsqueda" : "Aún no se han registrado proveedores"}
             </p>
           </div>
         ) : (
@@ -157,7 +157,7 @@ const MobileSuppliersPage = () => {
                     <div className="flex items-center gap-3 mt-1">
                       {sup.city && (
                         <span className="text-xs text-muted-foreground/70">
-                          ðŸ“ {sup.city}
+                          📍 {sup.city}
                         </span>
                       )}
                       {sup.phone && (

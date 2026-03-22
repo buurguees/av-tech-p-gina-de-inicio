@@ -85,7 +85,10 @@ export async function geocodeFullAddress(
 }
 
 /**
- * Approximate fallback by locality. Used only when there is no precise address.
+ * Approximate fallback by locality. Cascades through three strategies:
+ *   1. city + province  (most precise)
+ *   2. city alone       (avoids wrong province data)
+ *   3. province alone   (last resort — places the pin in the right region)
  */
 export async function geocodeLocality(
   city?: string | null,
@@ -97,9 +100,28 @@ export async function geocodeLocality(
   const postalPart = (postalCode && String(postalCode).trim()) || "";
   if (!cityPart && !provincePart) return null;
 
-  const locality = [postalPart, cityPart].filter(Boolean).join(" ");
-  const full = [locality, provincePart, "Espana"].filter(Boolean).join(", ");
-  return runGeocodeQuery(full);
+  // 1. city + province (or postal + city + province)
+  if (cityPart && provincePart) {
+    const locality = [postalPart, cityPart].filter(Boolean).join(" ");
+    const full = [locality, provincePart, "Espana"].filter(Boolean).join(", ");
+    const result = await runGeocodeQuery(full);
+    if (result) return result;
+  }
+
+  // 2. city alone (handles wrong province data like "Caín, Málaga")
+  if (cityPart) {
+    const locality = [postalPart, cityPart].filter(Boolean).join(" ");
+    const full = [locality, "Espana"].filter(Boolean).join(", ");
+    const result = await runGeocodeQuery(full);
+    if (result) return result;
+  }
+
+  // 3. province alone (last resort — at least shows the right region)
+  if (provincePart) {
+    return runGeocodeQuery(`${provincePart}, Espana`);
+  }
+
+  return null;
 }
 
 export function clearGeocodeCache() {

@@ -25,7 +25,7 @@ import {
 import { 
   Receipt, Plus, Loader2, RefreshCw, ShoppingCart, CreditCard, Star, TrendingUp, Eye
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface Tax {
@@ -53,6 +53,7 @@ interface TaxFormData {
 
 export function TaxesTab() {
   const navigate = useNavigate();
+  const { userId } = useParams<{ userId: string }>();
   const [taxes, setTaxes] = useState<Tax[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -215,7 +216,7 @@ export function TaxesTab() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate(`/nexo-av/${window.location.pathname.split('/')[2]}/settings/taxes/${tax.id}`)}
+                onClick={() => navigate(`/nexo-av/${userId}/settings/taxes/${tax.id}`)}
               >
                 <Eye className="w-4 h-4 mr-2" />
                 Ver detalles
