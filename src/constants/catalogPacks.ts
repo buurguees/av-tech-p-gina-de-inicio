@@ -1,12 +1,6 @@
 import catalogImage1 from '@/assets/catalog/pantalla-led-interior.png';
 import catalogImage2 from '@/assets/catalog/mupys-led.png';
 import catalogImage4 from '@/assets/catalog/lcd-techo.png';
-import hb43 from '@/assets/packs/HB-43.png';
-import hb49 from '@/assets/packs/HB-49.png';
-import hb55 from '@/assets/packs/HB-55.png';
-import hb65 from '@/assets/packs/HB-65.png';
-import hb75 from '@/assets/packs/HB-75.png';
-import hb86 from '@/assets/packs/HB-86.jpeg';
 import d6043 from '@/assets/packs/D60-43.png';
 import d6050 from '@/assets/packs/D60-50.png';
 import d6075 from '@/assets/packs/D60-75.png';
@@ -14,6 +8,14 @@ import d6085 from '@/assets/packs/D60-85.png';
 import d6096 from '@/assets/packs/D60-96.png';
 import project5 from '@/assets/projects/project-5.png';
 import project7 from '@/assets/projects/project-7.jpg';
+
+// Imágenes HB servidas como estáticos desde public/ — URLs estables sin hash de Vite
+const hb43 = '/catalog/hb/HB-43.png';
+const hb49 = '/catalog/hb/HB-49.png';
+const hb55 = '/catalog/hb/HB-55.png';
+const hb65 = '/catalog/hb/HB-65.png';
+const hb75 = '/catalog/hb/HB-75.png';
+const hb86 = '/catalog/hb/HB-86.jpeg';
 
 export interface ProductCardData {
   id: string;
