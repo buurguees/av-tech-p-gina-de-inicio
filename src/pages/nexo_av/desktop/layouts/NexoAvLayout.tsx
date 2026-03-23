@@ -27,6 +27,7 @@ import {
   BookOpen,
   FolderOpen,
   Bell,
+  Tag,
 } from "lucide-react";
 
 interface UserInfo {
@@ -369,6 +370,15 @@ const NexoAvLayout = () => {
       borderColor: 'border-red-500/30',
       available: isAdmin,
       path: `/nexo-av/${userId}/audit`,
+    },
+    {
+      id: 'tarifas',
+      title: 'Tarifas',
+      icon: Tag,
+      color: 'from-violet-500/20 to-violet-600/10',
+      borderColor: 'border-violet-500/30',
+      available: isAdmin || isManager,
+      path: `/nexo-av/${userId}/tarifas`,
     },
     {
       id: 'accounting',

@@ -1,7 +1,9 @@
 import { useState, useCallback, useMemo } from "react";
+import { useDisplacementRules } from "@/pages/nexo_av/shared/hooks/useDisplacementRules";
+import { useCompanionRules } from "@/pages/nexo_av/shared/hooks/useCompanionRules";
 import { parseDecimalInput } from "@/pages/nexo_av/utils/parseDecimalInput";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, GripVertical, ChevronDown } from "lucide-react";
+import { Plus, Trash2, GripVertical, ChevronDown, Clock, Link2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ProductSearchInput from "../common/ProductSearchInput";
 import {
@@ -55,7 +57,6 @@ interface DocumentLinesEditorProps {
 // Columnas: [drag | concepto | cant | precio | dto% | impuesto | total | delete]
 const GRID = "grid-cols-[20px_1fr_76px_96px_60px_108px_88px_30px]";
 
-// SortableRow: wrapper puro de drag, no gestiona estilos de grid
 function SortableRow({
   id,
   children,
@@ -94,6 +95,8 @@ const fmt = (n: number) =>
     maximumFractionDigits: 2,
   }).format(n);
 
+// ─── Component ───────────────────────────────────────────────────────────────
+
 export default function DocumentLinesEditor({
   lines,
   onLinesChange,
@@ -103,6 +106,21 @@ export default function DocumentLinesEditor({
 }: DocumentLinesEditorProps) {
   const [editingValues, setEditingValues] = useState<Record<string, string>>({});
   const [expandedLines, setExpandedLines] = useState<Set<string>>(new Set());
+
+  const {
+    config: displacementConfig,
+    suppressedRef,
+    setSuppressedKmKeys,
+    resolveHours,
+    isDisplacementChild,
+  } = useDisplacementRules();
+
+  const {
+    suppressedRef: companionSuppressedRef,
+    setSuppressedTriggerKeys: setCompanionSuppressedKeys,
+    findRuleForTrigger,
+    isCompanionChild,
+  } = useCompanionRules();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -177,20 +195,145 @@ export default function DocumentLinesEditor({
     (index: number, field: keyof DocumentLine, value: unknown) => {
       const updated = [...lines];
       updated[index] = calculateLineValues({ ...updated[index], [field]: value });
+
+      // Lógica de desplazamiento: cuando cambia la cantidad en la línea de km
+      const cfg = displacementConfig;
+      if (field === "quantity" && cfg && updated[index].product_id === cfg.kmProductId) {
+        const km = value as number;
+        const parentKey = updated[index].id || updated[index].tempId || String(index);
+
+        // Si el usuario descartó las horas para esta línea, respetar su decisión
+        if (suppressedRef.current.has(parentKey)) {
+          onLinesChange(updated);
+          return;
+        }
+
+        const hours = resolveHours(km);
+        const hoursIdx = updated.findIndex(
+          (l, i) => i !== index && l.product_id === cfg.hoursProductId
+        );
+
+        if (hours > 0) {
+          const baseHours =
+            hoursIdx >= 0
+              ? updated[hoursIdx]
+              : {
+                  tempId: crypto.randomUUID(),
+                  concept: cfg.hoursProductName,
+                  description: "",
+                  unit_price: cfg.hoursUnitPrice,
+                  tax_rate: cfg.hoursTaxRate,
+                  discount_percent: 0,
+                  product_id: cfg.hoursProductId,
+                  line_order: updated.length + 1,
+                };
+          const newHoursLine = calculateLineValues({ ...baseHours, quantity: hours });
+          if (hoursIdx >= 0) {
+            updated[hoursIdx] = newHoursLine;
+            // Asegurar que la sub-sección esté justo después del km
+            if (hoursIdx !== index + 1) {
+              const [removed] = updated.splice(hoursIdx, 1);
+              updated.splice(index + 1, 0, removed);
+            }
+          } else {
+            updated.splice(index + 1, 0, newHoursLine);
+          }
+        } else if (hoursIdx >= 0) {
+          updated.splice(hoursIdx, 1);
+        }
+
+        onLinesChange(updated.map((l, i) => ({ ...l, line_order: i + 1 })));
+        return;
+      }
+
+      // Lógica de acompañante: cuando cambia la cantidad en una línea trigger
+      if (field === "quantity" && updated[index].product_id) {
+        const rule = findRuleForTrigger(updated[index].product_id!);
+        if (rule) {
+          const triggerKey = updated[index].id || updated[index].tempId || String(index);
+          if (!companionSuppressedRef.current.has(triggerKey)) {
+            const newQty = value as number;
+            const companionIdx = index + 1;
+            if (
+              companionIdx < updated.length &&
+              updated[companionIdx].product_id === rule.companionProductId
+            ) {
+              const newCompanionQty = newQty * rule.quantityRatio;
+              updated[companionIdx] = calculateLineValues({
+                ...updated[companionIdx],
+                quantity: newCompanionQty,
+                unit_price: rule.companionSalePrice,
+              });
+            }
+          }
+        }
+      }
+
       onLinesChange(updated);
     },
-    [lines, onLinesChange, calculateLineValues]
+    [lines, onLinesChange, calculateLineValues, displacementConfig, findRuleForTrigger, companionSuppressedRef]
   );
 
   const removeLine = useCallback(
     (index: number) => {
-      onLinesChange(
-        lines
-          .filter((_, i) => i !== index)
-          .map((line, i) => ({ ...line, line_order: i + 1 }))
-      );
+      const cfg = displacementConfig;
+      let filtered = lines.filter((_, i) => i !== index);
+
+      if (cfg) {
+        if (lines[index]?.product_id === cfg.kmProductId) {
+          // Eliminar km → también eliminar la sub-sección de horas adjunta
+          filtered = filtered.filter((l) => l.product_id !== cfg.hoursProductId);
+          // Limpiar supresión para esa clave
+          const removedKey = lines[index].id || lines[index].tempId;
+          if (removedKey) {
+            setSuppressedKmKeys((prev) => {
+              const next = new Set(prev);
+              next.delete(removedKey);
+              return next;
+            });
+          }
+        } else if (isDisplacementChild(lines, index, cfg)) {
+          // El usuario descarta manualmente la sub-sección de horas
+          const parentLine = lines[index - 1];
+          const parentKey = parentLine?.id || parentLine?.tempId;
+          if (parentKey) {
+            setSuppressedKmKeys((prev) => new Set([...prev, parentKey]));
+          }
+        }
+      }
+
+      // Lógica de acompañante
+      const removedLine = lines[index];
+      if (removedLine?.product_id) {
+        const rule = findRuleForTrigger(removedLine.product_id);
+        if (rule) {
+          // Es un trigger: eliminar también el companion justo después
+          filtered = filtered.filter((_, i) => {
+            const originalIdx = i >= index ? i + 1 : i;
+            return !(originalIdx === index + 1 && lines[index + 1]?.product_id === rule.companionProductId);
+          });
+          // Limpiar supresión
+          const triggerKey = removedLine.id || removedLine.tempId;
+          if (triggerKey) {
+            setCompanionSuppressedKeys((prev) => {
+              const next = new Set(prev);
+              next.delete(triggerKey);
+              return next;
+            });
+          }
+        } else if (isCompanionChild(lines, index)) {
+          // Es un companion: suprimir para la línea trigger anterior
+          const parentLine = lines[index - 1];
+          const parentKey = parentLine?.id || parentLine?.tempId;
+          if (parentKey) {
+            setCompanionSuppressedKeys((prev) => new Set([...prev, parentKey]));
+          }
+        }
+      }
+
+      onLinesChange(filtered.map((line, i) => ({ ...line, line_order: i + 1 })));
     },
-    [lines, onLinesChange]
+    [lines, onLinesChange, displacementConfig, findRuleForTrigger, isCompanionChild, setCompanionSuppressedKeys]
   );
 
   const handleSelectProduct = useCallback(
@@ -207,14 +350,50 @@ export default function DocumentLinesEditor({
         tax_rate: item.tax_rate,
         product_id: item.id,
       });
-      onLinesChange(updated);
-      // Auto-expande si el producto tiene descripción
+
+      // Auto-añadir companion si hay regla y no está suprimida
+      if (item.id) {
+        const rule = findRuleForTrigger(item.id);
+        if (rule) {
+          const triggerKey = updated[index].id || updated[index].tempId || String(index);
+          if (!companionSuppressedRef.current.has(triggerKey)) {
+            const triggerQty = updated[index].quantity;
+            const companionQty = triggerQty * rule.quantityRatio;
+            const companionLine = calculateLineValues({
+              tempId: crypto.randomUUID(),
+              concept: rule.companionName,
+              description: "",
+              quantity: companionQty,
+              unit_price: rule.companionSalePrice,
+              tax_rate: rule.companionTaxRate,
+              discount_percent: 0,
+              product_id: rule.companionProductId,
+              line_order: updated.length + 1,
+            });
+            // Reemplazar companion existente o insertar justo después
+            const existingCompanionIdx = updated.findIndex(
+              (l, i) => i > index && l.product_id === rule.companionProductId
+            );
+            if (existingCompanionIdx >= 0) {
+              updated[existingCompanionIdx] = companionLine;
+              if (existingCompanionIdx !== index + 1) {
+                const [removed] = updated.splice(existingCompanionIdx, 1);
+                updated.splice(index + 1, 0, removed);
+              }
+            } else {
+              updated.splice(index + 1, 0, companionLine);
+            }
+          }
+        }
+      }
+
+      onLinesChange(updated.map((l, i) => ({ ...l, line_order: i + 1 })));
       if (item.description) {
         const key = updated[index].id || updated[index].tempId || String(index);
         setExpandedLines((prev) => new Set([...prev, key]));
       }
     },
-    [lines, onLinesChange, calculateLineValues]
+    [lines, onLinesChange, calculateLineValues, findRuleForTrigger, companionSuppressedRef]
   );
 
   const getDisplayValue = (index: number, field: string, value: number): string => {
@@ -240,7 +419,7 @@ export default function DocumentLinesEditor({
     });
   };
 
-  // Totales agrupados por tasa de impuesto
+  // Totales (excluir sub-secciones para que no dupliquen — en realidad sí se incluyen porque son líneas facturables)
   const totals = useMemo(() => {
     const subtotal = lines.reduce((acc, l) => acc + l.subtotal, 0);
     const total = lines.reduce((acc, l) => acc + l.total, 0);
@@ -260,9 +439,13 @@ export default function DocumentLinesEditor({
     return { subtotal, total, taxGroups: [...taxMap.values()] };
   }, [lines, taxOptions]);
 
-  // Estilos base de inputs
   const inputBase = "h-8 px-2 bg-transparent border-0 text-sm focus:outline-none focus:ring-0 w-full";
   const numInput = cn(inputBase, "text-right tabular-nums font-medium text-foreground");
+
+  // IDs de líneas normales (no sub-secciones) para el contexto de drag
+  const sortableIds = lines
+    .filter((_, i) => !isDisplacementChild(lines, i, displacementConfig) && !isCompanionChild(lines, i))
+    .map((l) => l.id || l.tempId || "");
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -294,7 +477,6 @@ export default function DocumentLinesEditor({
         {/* Filas */}
         <div className="divide-y divide-border/50">
           {lines.length === 0 ? (
-            /* Estado vacío — clic para añadir */
             <div
               className={`grid ${GRID} items-center cursor-pointer hover:bg-muted/20 transition-colors`}
               onClick={addLine}
@@ -312,18 +494,125 @@ export default function DocumentLinesEditor({
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={lines.map((l) => l.id || l.tempId || "")}
+                items={sortableIds}
                 strategy={verticalListSortingStrategy}
               >
                 {lines.map((line, index) => {
                   const lineKey = line.id || line.tempId || String(index);
+                  const isChild = isDisplacementChild(lines, index);
+                  const isCompChild = isCompanionChild(lines, index);
+
+                  // ── Sub-sección de acompañante ─────────────────────────────
+                  if (isCompChild) {
+                    return (
+                      <div key={`${lineKey}-companion`} className={`grid ${GRID} items-center bg-muted/20 border-l-2 border-l-blue-400/50`}>
+                        {/* Conector visual */}
+                        <div className="flex justify-center">
+                          <div className="w-px h-full bg-border/40" />
+                        </div>
+
+                        {/* Concepto con icono */}
+                        <div className="px-1 py-2 flex items-center gap-1.5 min-w-0 pl-3">
+                          <Link2 className="w-3 h-3 text-blue-400/70 shrink-0" />
+                          <span className="text-xs text-muted-foreground font-medium truncate">
+                            {line.concept}
+                          </span>
+                        </div>
+
+                        {/* Cantidad */}
+                        <div className="py-2 text-right text-xs text-muted-foreground tabular-nums pr-2">
+                          {line.quantity}
+                        </div>
+
+                        {/* Precio */}
+                        <div className="py-2 text-right text-xs text-muted-foreground tabular-nums pr-2">
+                          {line.unit_price}€
+                        </div>
+
+                        {/* Dto — vacío */}
+                        <div />
+
+                        {/* Impuesto — vacío */}
+                        <div />
+
+                        {/* Total */}
+                        <div className="px-2 py-2 text-right text-xs font-semibold text-muted-foreground tabular-nums">
+                          {line.total.toFixed(2)}€
+                        </div>
+
+                        {/* Descartar */}
+                        <div className="flex justify-center py-2">
+                          <button
+                            onClick={() => removeLine(index)}
+                            className="p-1 text-muted-foreground/25 hover:text-muted-foreground/60 transition-colors"
+                            title="No incluir producto acompañante en este documento"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // ── Sub-sección de desplazamiento ─────────────────────────
+                  if (isChild) {
+                    return (
+                      <div key={lineKey} className={`grid ${GRID} items-center bg-muted/20 border-l-2 border-l-orange-300/50`}>
+                        {/* Conector visual */}
+                        <div className="flex justify-center">
+                          <div className="w-px h-full bg-border/40" />
+                        </div>
+
+                        {/* Concepto con icono */}
+                        <div className="px-1 py-2 flex items-center gap-1.5 min-w-0 pl-3">
+                          <Clock className="w-3 h-3 text-orange-400/70 shrink-0" />
+                          <span className="text-xs text-muted-foreground font-medium truncate">
+                            {line.concept}
+                          </span>
+                        </div>
+
+                        {/* Cantidad */}
+                        <div className="py-2 text-right text-xs text-muted-foreground tabular-nums pr-2">
+                          {fmt(line.quantity)} h
+                        </div>
+
+                        {/* Precio */}
+                        <div className="py-2 text-right text-xs text-muted-foreground tabular-nums pr-2">
+                          {fmt(line.unit_price)}€
+                        </div>
+
+                        {/* Dto — vacío */}
+                        <div />
+
+                        {/* Impuesto — vacío */}
+                        <div />
+
+                        {/* Total */}
+                        <div className="px-2 py-2 text-right text-xs font-semibold text-muted-foreground tabular-nums">
+                          {fmt(line.total)}€
+                        </div>
+
+                        {/* Descartar */}
+                        <div className="flex justify-center py-2">
+                          <button
+                            onClick={() => removeLine(index)}
+                            className="p-1 text-muted-foreground/25 hover:text-muted-foreground/60 transition-colors"
+                            title="No cobrar horas de desplazamiento en este documento"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // ── Fila normal ───────────────────────────────────────────
                   const isExpanded = expandedLines.has(lineKey);
 
                   return (
                     <SortableRow key={lineKey} id={lineKey}>
                       {(dragHandleProps) => (
                         <div className="group">
-                          {/* Fila principal */}
                           <div
                             className={`grid ${GRID} items-center hover:bg-muted/25 transition-colors`}
                           >
@@ -338,7 +627,7 @@ export default function DocumentLinesEditor({
                               </button>
                             </div>
 
-                            {/* Concepto + toggle descripción */}
+                            {/* Concepto */}
                             <div className="px-1 py-1.5 flex items-center gap-0.5 min-w-0">
                               <ProductSearchInput
                                 value={line.concept}
@@ -477,7 +766,7 @@ export default function DocumentLinesEditor({
             </DndContext>
           )}
 
-          {/* Fila añadir línea (cuando ya hay líneas) */}
+          {/* Añadir línea */}
           {lines.length > 0 && (
             <div
               className={`grid ${GRID} items-center cursor-pointer hover:bg-muted/20 transition-colors`}

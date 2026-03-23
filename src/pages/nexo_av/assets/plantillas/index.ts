@@ -29,3 +29,11 @@ export type {
   PurchaseOrderLine as PurchaseOrderPDFLine,
   CompanySettingsForPO,
 } from './PurchaseOrderPDFDocument';
+
+export { RateCardPDFDocument } from './RateCardPDFDocument';
+export type {
+  RateCardPDFDocumentProps,
+  RateCardForPDF,
+  RateCardLineForPDF,
+  CompanySettingsForRateCard,
+} from './RateCardPDFDocument';

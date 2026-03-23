@@ -30,6 +30,7 @@ import {
   FolderOpen,
   PanelLeftClose,
   PanelLeftOpen,
+  Tag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import "../../styles/components/layout/sidebar.css";
@@ -214,6 +215,13 @@ const Sidebar = ({ userId, modules, userRole, isCollapsed = false, onToggleColla
       icon: Wrench,
       path: `/nexo-av/${userId}/technicians`,
       available: getModule('projects')?.available || false,
+    },
+    {
+      id: 'tarifas',
+      title: 'Tarifas',
+      icon: Tag,
+      path: `/nexo-av/${userId}/tarifas`,
+      available: isAdminOrManager,
     },
     {
       id: 'suppliers',

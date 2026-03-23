@@ -2,12 +2,12 @@
  * MobileEditQuotePage - Página para editar presupuesto en móvil
  * Misma estructura que MobileNewQuotePage pero cargando datos existentes
  */
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Loader2, 
+import {
+  Loader2,
   ChevronLeft,
   Save,
   Plus,
@@ -15,8 +15,13 @@ import {
   ChevronDown,
   Package,
   Wrench,
-  Boxes
+  Boxes,
+  Clock,
+  Link2,
+  X
 } from "lucide-react";
+import { useDisplacementRules } from "@/pages/nexo_av/shared/hooks/useDisplacementRules";
+import { useCompanionRules } from "@/pages/nexo_av/shared/hooks/useCompanionRules";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -83,6 +88,7 @@ interface QuoteLine {
   subtotal: number;
   tax_amount: number;
   total: number;
+  product_id?: string;
   isNew?: boolean;
   isModified?: boolean;
   isDeleted?: boolean;
@@ -177,6 +183,21 @@ const MobileEditQuotePage = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
+
+  const {
+    config: displacementConfig,
+    suppressedRef,
+    setSuppressedKmKeys,
+    resolveHours,
+    isDisplacementChild,
+  } = useDisplacementRules();
+
+  const {
+    suppressedRef: companionSuppressedRef,
+    setSuppressedTriggerKeys: setCompanionSuppressedKeys,
+    findRuleForTrigger,
+    isCompanionChild,
+  } = useCompanionRules();
 
   useEffect(() => {
     if (quoteId) {
@@ -456,6 +477,7 @@ const MobileEditQuotePage = () => {
       subtotal,
       tax_amount: taxAmount,
       total,
+      product_id: line.product_id,
       isNew: line.isNew,
       isModified: line.isModified,
       isDeleted: line.isDeleted,
@@ -480,32 +502,136 @@ const MobileEditQuotePage = () => {
     setLines(prev => {
       const updated = [...prev];
       const line = updated[index];
-      const updatedLine = calculateLineValues({ 
-        ...line, 
+      updated[index] = calculateLineValues({
+        ...line,
         [field]: value,
-        isModified: line.id ? true : line.isModified, // Mark as modified if it has an ID
+        isModified: line.id ? true : line.isModified,
       });
-      updated[index] = updatedLine;
+
+      const cfg = displacementConfig;
+      if (field === "quantity" && cfg && updated[index].product_id === cfg.kmProductId) {
+        const km = value as number;
+        const parentKey = updated[index].id || updated[index].tempId || String(index);
+        if (!suppressedRef.current.has(parentKey)) {
+          const hours = resolveHours(km);
+          const hoursIdx = updated.findIndex((l, i) => i !== index && l.product_id === cfg.hoursProductId);
+          if (hours > 0) {
+            const baseHours =
+              hoursIdx >= 0
+                ? updated[hoursIdx]
+                : {
+                    tempId: crypto.randomUUID(),
+                    concept: cfg.hoursProductName,
+                    description: "",
+                    unit_price: cfg.hoursUnitPrice,
+                    tax_rate: cfg.hoursTaxRate,
+                    discount_percent: 0,
+                    product_id: cfg.hoursProductId,
+                    group_name: "",
+                    isNew: true,
+                  };
+            const newHoursLine = calculateLineValues({ ...baseHours, quantity: hours });
+            if (hoursIdx >= 0) {
+              updated[hoursIdx] = newHoursLine;
+              if (hoursIdx !== index + 1) {
+                const [removed] = updated.splice(hoursIdx, 1);
+                updated.splice(index + 1, 0, removed);
+              }
+            } else {
+              updated.splice(index + 1, 0, newHoursLine);
+            }
+          } else if (hoursIdx >= 0) {
+            updated.splice(hoursIdx, 1);
+          }
+        }
+      }
+
+      // Lógica de acompañante: actualizar cantidad companion si cambia qty del trigger
+      if (field === "quantity" && updated[index].product_id) {
+        const rule = findRuleForTrigger(updated[index].product_id!);
+        if (rule) {
+          const triggerKey = updated[index].id || updated[index].tempId || String(index);
+          if (!companionSuppressedRef.current.has(triggerKey)) {
+            const newQty = value as number;
+            const companionIdx = index + 1;
+            if (
+              companionIdx < updated.length &&
+              updated[companionIdx].product_id === rule.companionProductId &&
+              !updated[companionIdx].isDeleted
+            ) {
+              updated[companionIdx] = calculateLineValues({
+                ...updated[companionIdx],
+                quantity: newQty * rule.quantityRatio,
+                unit_price: rule.companionSalePrice,
+                isModified: updated[companionIdx].id ? true : updated[companionIdx].isModified,
+              });
+            }
+          }
+        }
+      }
+
       return updated;
     });
-  }, [calculateLineValues]);
+  }, [calculateLineValues, displacementConfig, resolveHours, suppressedRef, findRuleForTrigger, companionSuppressedRef]);
 
   const removeLine = useCallback((index: number) => {
     setLines(prev => {
       const updated = [...prev];
       const line = updated[index];
-      
+      let result: QuoteLine[];
+
       if (line.id) {
         // Mark for deletion if it exists in DB
-        updated[index] = { ...line, isDeleted: true };
+        result = updated.map((l, i) => i === index ? { ...l, isDeleted: true } : l);
       } else {
         // Remove from array if it's a new line
-        return prev.filter((_, i) => i !== index);
+        result = prev.filter((_, i) => i !== index);
       }
-      
-      return updated;
+
+      if (displacementConfig) {
+        if (line.product_id === displacementConfig.kmProductId) {
+          result = result.map((l) =>
+            l.product_id === displacementConfig.hoursProductId ? { ...l, isDeleted: true } : l
+          );
+          const removedKey = line.id || line.tempId;
+          if (removedKey) {
+            setSuppressedKmKeys((s) => { const n = new Set(s); n.delete(removedKey); return n; });
+          }
+        } else if (isDisplacementChild(prev, index)) {
+          const parentLine = prev[index - 1];
+          const parentKey = parentLine?.id || parentLine?.tempId;
+          if (parentKey) setSuppressedKmKeys((s) => new Set([...s, parentKey]));
+        }
+      }
+
+      // Lógica de acompañante
+      if (line.product_id) {
+        const rule = findRuleForTrigger(line.product_id);
+        if (rule) {
+          // Marcar o eliminar el companion justo después
+          result = result.map((l, i) => {
+            if (i === index + 1 && l.product_id === rule.companionProductId && !l.isDeleted) {
+              return l.id ? { ...l, isDeleted: true } : l;
+            }
+            return l;
+          });
+          // Para líneas sin id (nuevas), filtrarlas
+          result = result.filter((l, i) => {
+            if (i === index + 1 && l.product_id === rule.companionProductId && !l.id) return false;
+            return true;
+          });
+          const triggerKey = line.id || line.tempId;
+          if (triggerKey) setCompanionSuppressedKeys((s) => { const n = new Set(s); n.delete(triggerKey); return n; });
+        } else if (isCompanionChild(prev, index)) {
+          const parentLine = prev[index - 1];
+          const parentKey = parentLine?.id || parentLine?.tempId;
+          if (parentKey) setCompanionSuppressedKeys((s) => new Set([...s, parentKey]));
+        }
+      }
+
+      return result;
     });
-  }, []);
+  }, [displacementConfig, isDisplacementChild, setSuppressedKmKeys, findRuleForTrigger, isCompanionChild, setCompanionSuppressedKeys]);
 
   const handleSelectCatalogItem = (item: CatalogItem, lineIndex: number) => {
     setLines(prev => {
@@ -518,8 +644,43 @@ const MobileEditQuotePage = () => {
         tax_rate: item.tax_rate,
         description: item.description || line.description,
         group_name: item.code || line.group_name,
+        product_id: item.id,
         isModified: line.id ? true : line.isModified,
       });
+
+      // Auto-añadir companion si hay regla y no está suprimida
+      if (item.id) {
+        const rule = findRuleForTrigger(item.id);
+        if (rule) {
+          const triggerKey = updated[lineIndex].id || updated[lineIndex].tempId || String(lineIndex);
+          if (!companionSuppressedRef.current.has(triggerKey)) {
+            const triggerQty = updated[lineIndex].quantity;
+            const companionLine = calculateLineValues({
+              tempId: crypto.randomUUID(),
+              group_name: "",
+              concept: rule.companionName,
+              description: "",
+              quantity: triggerQty * rule.quantityRatio,
+              unit_price: rule.companionSalePrice,
+              tax_rate: rule.companionTaxRate,
+              discount_percent: 0,
+              product_id: rule.companionProductId,
+              isNew: true,
+            });
+            const existingCompIdx = updated.findIndex((l, i) => i > lineIndex && l.product_id === rule.companionProductId && !l.isDeleted);
+            if (existingCompIdx >= 0) {
+              updated[existingCompIdx] = { ...companionLine, id: updated[existingCompIdx].id, isNew: false, isModified: true };
+              if (existingCompIdx !== lineIndex + 1) {
+                const [removed] = updated.splice(existingCompIdx, 1);
+                updated.splice(lineIndex + 1, 0, removed);
+              }
+            } else {
+              updated.splice(lineIndex + 1, 0, companionLine);
+            }
+          }
+        }
+      }
+
       return updated;
     });
     setShowSearchResults(false);
@@ -835,6 +996,59 @@ const MobileEditQuotePage = () => {
           {/* ===== BLOQUES DE LÍNEAS ===== */}
           {visibleLines.map((line, index) => {
             const realIndex = lines.findIndex(l => l.tempId === line.tempId);
+            const isChild = isDisplacementChild(lines, realIndex);
+            const isCompChild = isCompanionChild(lines, realIndex);
+
+            // ── Sub-sección de acompañante ──────────────────────────
+            if (isCompChild) {
+              return (
+                <div key={`${line.tempId}-companion`} className="ml-4 border-l-2 border-l-blue-400/50 pl-3">
+                  <div className="bg-muted/10 border border-blue-300/30 rounded-xl p-3 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Link2 className="h-3.5 w-3.5 text-blue-400/70 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-muted-foreground truncate">{line.concept}</p>
+                        <p className="text-xs text-muted-foreground/60 tabular-nums">{line.quantity} · {formatCurrency(line.subtotal)}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => removeLine(realIndex)}
+                      className="p-1.5 text-muted-foreground/40 hover:text-muted-foreground/70 rounded-lg transition-colors flex-shrink-0"
+                      style={{ touchAction: 'manipulation' }}
+                      title="No incluir producto acompañante en este documento"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
+            // ── Sub-sección de desplazamiento ──────────────────────
+            if (isChild) {
+              return (
+                <div key={`${line.tempId}-child`} className="ml-4 border-l-2 border-l-orange-300/50 pl-3">
+                  <div className="bg-muted/10 border border-orange-300/30 rounded-xl p-3 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Clock className="h-3.5 w-3.5 text-orange-400/70 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-muted-foreground truncate">{line.concept}</p>
+                        <p className="text-xs text-muted-foreground/60 tabular-nums">{line.quantity} h · {formatCurrency(line.subtotal)}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => removeLine(realIndex)}
+                      className="p-1.5 text-muted-foreground/40 hover:text-muted-foreground/70 rounded-lg transition-colors flex-shrink-0"
+                      style={{ touchAction: 'manipulation' }}
+                      title="No cobrar horas de desplazamiento en este documento"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div key={line.tempId} className="space-y-3">
                 {/* Bloque de línea */}

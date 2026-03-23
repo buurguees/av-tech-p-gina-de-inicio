@@ -33,16 +33,18 @@ import {
   Play,
   Square,
   CheckCircle,
-  Receipt,
-  Eye,
   Loader2,
-  CalendarCheck,
   ClipboardList,
   Lock,
   ChevronDown,
   ChevronUp,
   Filter,
 } from "lucide-react";
+import {
+  STATUS_COLORS,
+  STATUS_LABELS,
+  STATUS_CTA,
+} from "@/constants/siteStatuses";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -104,24 +106,6 @@ interface MobilePlanningTabProps {
 }
 
 // ─── Status helpers ──────────────────────────────────
-const STATUS_COLORS: Record<string, string> = {
-  PLANNED: "bg-muted text-muted-foreground",
-  SCHEDULED: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
-  IN_PROGRESS: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
-  READY_TO_INVOICE: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
-  INVOICED: "bg-violet-500/15 text-violet-700 dark:text-violet-400",
-  CLOSED: "bg-muted text-muted-foreground",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  PLANNED: "Planificado",
-  SCHEDULED: "Programado",
-  IN_PROGRESS: "En ejecución",
-  READY_TO_INVOICE: "Listo p/ facturar",
-  INVOICED: "Facturado",
-  CLOSED: "Cerrado",
-};
-
 const FILTER_STATUSES = [
   { value: "ALL", label: "Todos" },
   { value: "PLANNED", label: "Planificado" },
@@ -131,15 +115,6 @@ const FILTER_STATUSES = [
   { value: "INVOICED", label: "Facturado" },
   { value: "CLOSED", label: "Cerrado" },
 ];
-
-const STATUS_CTA: Record<string, { label: string; icon: React.ElementType }> = {
-  PLANNED: { label: "Planificar", icon: CalendarCheck },
-  SCHEDULED: { label: "Asignar equipo", icon: Users },
-  IN_PROGRESS: { label: "Marcar fin", icon: Square },
-  READY_TO_INVOICE: { label: "Crear factura", icon: Receipt },
-  INVOICED: { label: "Ver factura", icon: Eye },
-  CLOSED: { label: "Ver resumen", icon: Eye },
-};
 
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(n);

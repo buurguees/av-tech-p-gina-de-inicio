@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, Save, Loader2, FileText, GripVertical, MapPin, ChevronDown } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, FileText, GripVertical, MapPin, ChevronDown, Clock, Link2, X } from "lucide-react";
 import { motion } from "motion/react";
 import {
   DndContext,
@@ -30,6 +30,8 @@ import ProductSearchInput from "../components/common/ProductSearchInput";
 import { QUOTE_STATUSES, getStatusInfo } from "@/constants/quoteStatuses";
 import { SortableLineRow } from "../components/documents/SortableLineRow";
 import { useDocumentLines } from "../hooks/useDocumentLines";
+import { useDisplacementRules } from "@/pages/nexo_av/shared/hooks/useDisplacementRules";
+import { useCompanionRules } from "@/pages/nexo_av/shared/hooks/useCompanionRules";
 
 // Estados que bloquean la edición
 const LOCKED_STATES = ["SENT", "APPROVED", "REJECTED", "EXPIRED", "INVOICED"];
@@ -64,6 +66,7 @@ interface QuoteLine {
   total: number;
   line_order?: number;
   group_name?: string;
+  product_id?: string;
   isNew?: boolean;
   isModified?: boolean;
   isDeleted?: boolean;
@@ -136,6 +139,21 @@ const EditQuotePageDesktop = () => {
     getNumericDisplayValue,
     computeTotals,
   } = useDocumentLines(defaultTaxRate, taxOptions);
+
+  const {
+    config: displacementConfig,
+    suppressedRef,
+    setSuppressedKmKeys,
+    resolveHours,
+    isDisplacementChild,
+  } = useDisplacementRules();
+
+  const {
+    suppressedRef: companionSuppressedRef,
+    setSuppressedTriggerKeys: setCompanionSuppressedKeys,
+    findRuleForTrigger,
+    isCompanionChild,
+  } = useCompanionRules();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -452,16 +470,88 @@ const EditQuotePageDesktop = () => {
     setLines([...lines, newLine]);
   };
   const updateLine = (index: number, field: keyof QuoteLine, value: any) => {
-    const updatedLines = [...lines];
-    const updatedLine = calculateLineValues({
-      ...updatedLines[index],
-      [field]: value,
-      isModified: !updatedLines[index].isNew
-    });
-    updatedLines[index] = updatedLine;
-    setLines(updatedLines);
+    setLines((prev) => {
+      const updated = [...prev];
+      updated[index] = calculateLineValues({
+        ...updated[index],
+        [field]: value,
+        isModified: !updated[index].isNew,
+      });
 
-    // Debounced Auto-Save
+      const cfg = displacementConfig;
+      if (field === "quantity" && cfg && updated[index].product_id === cfg.kmProductId) {
+        const km = value as number;
+        const parentKey = updated[index].id || updated[index].tempId || String(index);
+        if (!suppressedRef.current.has(parentKey)) {
+          const hours = resolveHours(km);
+          const hoursIdx = updated.findIndex((l, i) => i !== index && l.product_id === cfg.hoursProductId);
+          if (hours > 0) {
+            const baseHours =
+              hoursIdx >= 0
+                ? updated[hoursIdx]
+                : {
+                    tempId: crypto.randomUUID(),
+                    concept: cfg.hoursProductName,
+                    description: "",
+                    unit_price: cfg.hoursUnitPrice,
+                    tax_rate: cfg.hoursTaxRate,
+                    discount_percent: 0,
+                    product_id: cfg.hoursProductId,
+                    group_name: "",
+                    line_order: updated.length + 1,
+                    isNew: true,
+                  };
+            const newHoursLine = calculateLineValues({ ...baseHours, quantity: hours });
+            if (hoursIdx >= 0) {
+              updated[hoursIdx] = newHoursLine;
+              if (hoursIdx !== index + 1) {
+                const [removed] = updated.splice(hoursIdx, 1);
+                updated.splice(index + 1, 0, removed);
+              }
+            } else {
+              updated.splice(index + 1, 0, newHoursLine);
+            }
+          } else if (hoursIdx >= 0) {
+            updated.splice(hoursIdx, 1);
+          }
+          return updated.map((l, i) => ({ ...l, line_order: i + 1 }));
+        }
+      }
+
+      // Lógica de acompañante: actualizar cantidad companion si cambia qty del trigger
+      if (field === "quantity" && updated[index].product_id) {
+        const rule = findRuleForTrigger(updated[index].product_id!);
+        if (rule) {
+          const triggerKey = updated[index].id || updated[index].tempId || String(index);
+          if (!companionSuppressedRef.current.has(triggerKey)) {
+            const newQty = value as number;
+            const companionIdx = index + 1;
+            if (
+              companionIdx < updated.length &&
+              updated[companionIdx].product_id === rule.companionProductId &&
+              !updated[companionIdx].isDeleted
+            ) {
+              const newCompanionQty = newQty * rule.quantityRatio;
+              updated[companionIdx] = calculateLineValues({
+                ...updated[companionIdx],
+                quantity: newCompanionQty,
+                unit_price: rule.companionSalePrice,
+                isModified: updated[companionIdx].id ? true : updated[companionIdx].isModified,
+              });
+            }
+          }
+        }
+      }
+
+      return updated;
+    });
+
+    // Debounced Auto-Save — accedemos a la línea actualizada tras el setState
+    const updatedLine = calculateLineValues({
+      ...lines[index],
+      [field]: value,
+      isModified: !lines[index]?.isNew,
+    });
     const uniqueKey = updatedLine.id || updatedLine.tempId;
     if (uniqueKey) {
       if (debounceRef.current[uniqueKey]) clearTimeout(debounceRef.current[uniqueKey]);
@@ -471,8 +561,8 @@ const EditQuotePageDesktop = () => {
     }
   };
   const handleProductSelect = (index: number, item: {
-    id: string;
-    type: string;
+    id?: string;
+    type?: string;
     name: string;
     code: string;
     price: number;
@@ -491,25 +581,101 @@ const EditQuotePageDesktop = () => {
       tax_rate: item.tax_rate || defaultTaxRate,
       quantity: currentQuantity,
       group_name: item.code || updatedLines[index].group_name,
-      isModified: !updatedLines[index].isNew
+      product_id: item.id,
+      isModified: !updatedLines[index].isNew,
     };
     updatedLines[index] = calculateLineValues(lineData);
-    setLines(updatedLines);
+
+    // Auto-añadir companion si hay regla y no está suprimida
+    if (item.id) {
+      const rule = findRuleForTrigger(item.id);
+      if (rule) {
+        const triggerKey = updatedLines[index].id || updatedLines[index].tempId || String(index);
+        if (!companionSuppressedRef.current.has(triggerKey)) {
+          const companionLine = calculateLineValues({
+            tempId: crypto.randomUUID(),
+            concept: rule.companionName,
+            description: "",
+            quantity: currentQuantity * rule.quantityRatio,
+            unit_price: rule.companionSalePrice,
+            tax_rate: rule.companionTaxRate,
+            discount_percent: 0,
+            product_id: rule.companionProductId,
+            line_order: updatedLines.length + 1,
+            isNew: true,
+          });
+          const existingCompIdx = updatedLines.findIndex((l, i) => i > index && l.product_id === rule.companionProductId && !l.isDeleted);
+          if (existingCompIdx >= 0) {
+            updatedLines[existingCompIdx] = { ...companionLine, id: updatedLines[existingCompIdx].id, isNew: false, isModified: true };
+            if (existingCompIdx !== index + 1) {
+              const [removed] = updatedLines.splice(existingCompIdx, 1);
+              updatedLines.splice(index + 1, 0, removed);
+            }
+          } else {
+            updatedLines.splice(index + 1, 0, companionLine);
+          }
+        }
+      }
+    }
+
+    setLines(updatedLines.map((l, i) => ({ ...l, line_order: i + 1 })));
   };
   const removeLine = (index: number) => {
-    const line = lines[index];
-    if (line.id) {
-      // Mark existing line for deletion
-      const updatedLines = [...lines];
-      updatedLines[index] = {
-        ...line,
-        isDeleted: true
-      };
-      setLines(updatedLines);
-    } else {
-      // Remove new line completely
-      setLines(lines.filter((_, i) => i !== index));
-    }
+    setLines((prev) => {
+      const line = prev[index];
+      let filtered: QuoteLine[];
+
+      if (line.id) {
+        // Mark existing line for deletion
+        filtered = prev.map((l, i) => i === index ? { ...l, isDeleted: true } : l);
+      } else {
+        // Remove new line completely
+        filtered = prev.filter((_, i) => i !== index);
+      }
+
+      if (displacementConfig) {
+        if (line.product_id === displacementConfig.kmProductId) {
+          filtered = filtered.map((l) =>
+            l.product_id === displacementConfig.hoursProductId ? { ...l, isDeleted: true } : l
+          );
+          const removedKey = line.id || line.tempId;
+          if (removedKey) {
+            setSuppressedKmKeys((s) => { const n = new Set(s); n.delete(removedKey); return n; });
+          }
+        } else if (isDisplacementChild(prev, index)) {
+          const parentLine = prev[index - 1];
+          const parentKey = parentLine?.id || parentLine?.tempId;
+          if (parentKey) setSuppressedKmKeys((s) => new Set([...s, parentKey]));
+        }
+      }
+
+      // Lógica de acompañante
+      if (line.product_id) {
+        const rule = findRuleForTrigger(line.product_id);
+        if (rule) {
+          // Es un trigger: marcar companion como eliminado
+          filtered = filtered.map((l, i) => {
+            if (i === index + 1 && l.product_id === rule.companionProductId && !l.isDeleted) {
+              return l.id ? { ...l, isDeleted: true } : l;
+            }
+            return l;
+          });
+          // Para líneas sin id (nuevas), filtrarlas
+          filtered = filtered.filter((l, i) => {
+            if (i === index + 1 && l.product_id === rule.companionProductId && !l.id) return false;
+            return true;
+          });
+          const triggerKey = line.id || line.tempId;
+          if (triggerKey) setCompanionSuppressedKeys((s) => { const n = new Set(s); n.delete(triggerKey); return n; });
+        } else if (isCompanionChild(prev, index)) {
+          const parentLine = prev[index - 1];
+          const parentKey = parentLine?.id || parentLine?.tempId;
+          if (parentKey) setCompanionSuppressedKeys((s) => new Set([...s, parentKey]));
+        }
+      }
+
+      return filtered;
+    });
   };
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -951,7 +1117,7 @@ const EditQuotePageDesktop = () => {
                   onDragStart={() => setExpandedDescs(new Set())}
                 >
                   <SortableContext
-                    items={lines.filter(l => !l.isDeleted).map(l => l.id || l.tempId || "")}
+                    items={lines.filter((l, i) => !l.isDeleted && !isDisplacementChild(lines, i) && !isCompanionChild(lines, i)).map(l => l.id || l.tempId || "")}
                     strategy={verticalListSortingStrategy}
                   >
                     <TableBody>
@@ -959,6 +1125,99 @@ const EditQuotePageDesktop = () => {
                         const actualIndex = lines.findIndex(l => (l.id || l.tempId) === (line.id || line.tempId));
                         const lineKey = line.id || line.tempId || String(actualIndex);
                         const isExpanded = expandedDescs.has(lineKey);
+                        const isChild = isDisplacementChild(lines, actualIndex);
+                        const isCompChild = isCompanionChild(lines, actualIndex);
+
+                        // ── Sub-sección de acompañante ──────────────────────────
+                        if (isCompChild) {
+                          return (
+                            <TableRow
+                              key={`${lineKey}-companion`}
+                              className="border-l-2 border-l-blue-400/50 bg-muted/10 hover:bg-muted/20"
+                            >
+                              <TableCell className="px-3 py-2 w-10">
+                                <div className="flex justify-center">
+                                  <div className="w-px h-4 bg-border/40" />
+                                </div>
+                              </TableCell>
+                              <TableCell className="px-5 py-2 text-xs text-muted-foreground/40">—</TableCell>
+                              <TableCell className="px-5 py-2">
+                                <div className="flex items-center gap-1.5">
+                                  <Link2 className="h-3 w-3 text-blue-400/70 shrink-0" />
+                                  <span className="text-xs text-muted-foreground font-medium">{line.concept}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="px-5 py-2 text-center text-xs text-muted-foreground tabular-nums">
+                                {line.quantity}
+                              </TableCell>
+                              <TableCell className="px-5 py-2 text-right text-xs text-muted-foreground tabular-nums">
+                                {new Intl.NumberFormat("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(line.unit_price)}€
+                              </TableCell>
+                              <TableCell />
+                              <TableCell />
+                              <TableCell className="px-5 py-2 text-right text-xs font-semibold text-muted-foreground tabular-nums">
+                                {formatCurrency(line.subtotal)}
+                              </TableCell>
+                              <TableCell className="px-5 py-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeLine(actualIndex)}
+                                  className="h-7 w-7 text-muted-foreground/30 hover:text-muted-foreground/70"
+                                  title="No incluir producto acompañante en este documento"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        }
+
+                        // ── Sub-sección de desplazamiento ──────────────────────
+                        if (isChild) {
+                          return (
+                            <TableRow
+                              key={`${lineKey}-child`}
+                              className="border-l-2 border-l-orange-300/50 bg-muted/10 hover:bg-muted/20"
+                            >
+                              <TableCell className="px-3 py-2 w-10">
+                                <div className="flex justify-center">
+                                  <div className="w-px h-4 bg-border/40" />
+                                </div>
+                              </TableCell>
+                              <TableCell className="px-5 py-2 text-xs text-muted-foreground/40">—</TableCell>
+                              <TableCell className="px-5 py-2">
+                                <div className="flex items-center gap-1.5">
+                                  <Clock className="h-3 w-3 text-orange-400/70 shrink-0" />
+                                  <span className="text-xs text-muted-foreground font-medium">{line.concept}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="px-5 py-2 text-center text-xs text-muted-foreground tabular-nums">
+                                {line.quantity} h
+                              </TableCell>
+                              <TableCell className="px-5 py-2 text-right text-xs text-muted-foreground tabular-nums">
+                                {new Intl.NumberFormat("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(line.unit_price)}€
+                              </TableCell>
+                              <TableCell />
+                              <TableCell />
+                              <TableCell className="px-5 py-2 text-right text-xs font-semibold text-muted-foreground tabular-nums">
+                                {formatCurrency(line.subtotal)}
+                              </TableCell>
+                              <TableCell className="px-5 py-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeLine(actualIndex)}
+                                  className="h-7 w-7 text-muted-foreground/30 hover:text-muted-foreground/70"
+                                  title="No cobrar horas de desplazamiento en este documento"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        }
+
                         return (
                           <Fragment key={lineKey}>
                             <SortableLineRow

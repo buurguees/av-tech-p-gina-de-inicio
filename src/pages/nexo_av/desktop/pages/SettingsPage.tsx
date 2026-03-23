@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Settings2, FileText, Tags, Receipt, Loader2, Banknote, Landmark } from "lucide-react";
+import { Building2, Settings2, FileText, Tags, Receipt, Loader2, Banknote, Landmark, Car, Link2 } from "lucide-react";
 import { CompanyDataTab } from "../components/settings/CompanyDataTab";
 import { PreferencesTab } from "../components/settings/PreferencesTab";
 import { TemplatesTab } from "../components/settings/TemplatesTab";
@@ -9,6 +9,8 @@ import { TaxesTab } from "../components/settings/TaxesTab";
 import { ProductCategoriesTab } from "../components/settings/ProductCategoriesTab";
 import { PayrollSettingsTab } from "../components/settings/PayrollSettingsTab";
 import { ExternalCreditProvidersTab } from "../components/settings/ExternalCreditProvidersTab";
+import { DisplacementRulesTab } from "../components/settings/DisplacementRulesTab";
+import { CompanionRulesTab } from "../components/settings/CompanionRulesTab";
 import TabNav, { TabItem } from "../components/navigation/TabNav";
 
 interface UserInfo {
@@ -24,6 +26,8 @@ const SETTINGS_TABS: TabItem[] = [
   { value: "categories", label: "Categorías", icon: Tags },
   { value: "taxes", label: "Impuestos", icon: Receipt },
   { value: "templates", label: "Plantillas", icon: FileText },
+  { value: "displacement", label: "Reglas km", icon: Car },
+  { value: "companion", label: "Vinculados", icon: Link2 },
 ];
 
 function SettingsPageDesktop() {
@@ -101,6 +105,10 @@ function SettingsPageDesktop() {
         return <TaxesTab />;
       case "templates":
         return <TemplatesTab />;
+      case "displacement":
+        return <DisplacementRulesTab />;
+      case "companion":
+        return <CompanionRulesTab />;
       default:
         return <CompanyDataTab />;
     }

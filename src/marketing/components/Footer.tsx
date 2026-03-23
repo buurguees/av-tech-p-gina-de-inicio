@@ -107,6 +107,15 @@ const Footer = () => {
             >
               NEXO AV
             </Link>
+            <a
+              href="https://nexoav-csm.web.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors text-xs md:text-sm px-3 py-3 min-h-[44px] min-w-[44px] flex items-center justify-center font-medium"
+              aria-label="NEXO CSM - Plataforma de gestión de contenidos"
+            >
+              NEXO CSM
+            </a>
           </div>
         </div>
       </div>

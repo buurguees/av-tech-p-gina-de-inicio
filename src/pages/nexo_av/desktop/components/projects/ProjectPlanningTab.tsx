@@ -33,14 +33,18 @@ import {
   FileText,
   Loader2,
   ChevronRight,
-  CalendarCheck,
   ClipboardList,
-  Receipt,
-  Eye,
   Filter,
   Lock,
 } from "lucide-react";
 import { format } from "date-fns";
+import {
+  SITE_STATUSES,
+  STATUS_COLORS,
+  STATUS_LABELS,
+  STATUS_CTA,
+  isSiteLocked,
+} from "@/constants/siteStatuses";
 
 // ─── Types ───────────────────────────────────────────
 interface PlanSite {
@@ -99,34 +103,6 @@ interface ProjectPlanningTabProps {
 }
 
 // ─── Status helpers ──────────────────────────────────
-const SITE_STATUSES = [
-  { value: "ALL", label: "Todos" },
-  { value: "PLANNED", label: "Planificado" },
-  { value: "SCHEDULED", label: "Programado" },
-  { value: "IN_PROGRESS", label: "En ejecución" },
-  { value: "READY_TO_INVOICE", label: "Listo p/ facturar" },
-  { value: "INVOICED", label: "Facturado" },
-  { value: "CLOSED", label: "Cerrado" },
-] as const;
-
-const STATUS_COLORS: Record<string, string> = {
-  PLANNED: "bg-muted text-muted-foreground",
-  SCHEDULED: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
-  IN_PROGRESS: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
-  READY_TO_INVOICE: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
-  INVOICED: "bg-violet-500/15 text-violet-700 dark:text-violet-400",
-  CLOSED: "bg-muted text-muted-foreground",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  PLANNED: "Planificado",
-  SCHEDULED: "Programado",
-  IN_PROGRESS: "En ejecución",
-  READY_TO_INVOICE: "Listo para facturar",
-  INVOICED: "Facturado",
-  CLOSED: "Cerrado",
-};
-
 const StatusBadge = ({ status }: { status: string }) => (
   <Badge className={`${STATUS_COLORS[status] || "bg-muted text-muted-foreground"} border-0 text-xs`}>
     {STATUS_LABELS[status] || status}
@@ -135,16 +111,6 @@ const StatusBadge = ({ status }: { status: string }) => (
 
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(n);
-
-// CTA label & icon per status
-const STATUS_CTA: Record<string, { label: string; icon: React.ElementType }> = {
-  PLANNED: { label: "Planificar", icon: CalendarCheck },
-  SCHEDULED: { label: "Asignar equipo", icon: Users },
-  IN_PROGRESS: { label: "Marcar fin", icon: Square },
-  READY_TO_INVOICE: { label: "Crear factura", icon: Receipt },
-  INVOICED: { label: "Ver factura", icon: Eye },
-  CLOSED: { label: "Ver resumen", icon: Eye },
-};
 
 // ─── Main Component ──────────────────────────────────
 const ProjectPlanningTab = ({ projectId, siteMode }: ProjectPlanningTabProps) => {

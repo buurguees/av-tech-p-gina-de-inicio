@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Boxes, ChevronDown, ChevronLeft, Loader2, Package, Plus, Save, Trash2, Wrench } from "lucide-react";
+import { Boxes, ChevronDown, ChevronLeft, Clock, Link2, Loader2, Package, Plus, Save, Trash2, Wrench, X } from "lucide-react";
+import { useDisplacementRules } from "@/pages/nexo_av/shared/hooks/useDisplacementRules";
+import { useCompanionRules } from "@/pages/nexo_av/shared/hooks/useCompanionRules";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +50,21 @@ const MobileNewInvoicePage = () => {
   const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
   const [loadingSites, setLoadingSites] = useState(false);
 
+  const {
+    config: displacementConfig,
+    suppressedRef,
+    setSuppressedKmKeys,
+    resolveHours,
+    isDisplacementChild,
+  } = useDisplacementRules();
+
+  const {
+    suppressedRef: companionSuppressedRef,
+    setSuppressedTriggerKeys: setCompanionSuppressedKeys,
+    findRuleForTrigger,
+    isCompanionChild,
+  } = useCompanionRules();
+
   const calculateLine = useCallback((line: Partial<InvoiceLine>): InvoiceLine => {
     const quantity = line.quantity || 0;
     const unitPrice = line.unit_price || 0;
@@ -78,9 +95,66 @@ const MobileNewInvoicePage = () => {
     setLines((prev) => {
       const next = [...prev];
       next[index] = calculateLine({ ...next[index], [field]: value });
+
+      const cfg = displacementConfig;
+      if (field === "quantity" && cfg && next[index].product_id === cfg.kmProductId) {
+        const km = value as number;
+        const parentKey = next[index].tempId || String(index);
+        if (!suppressedRef.current.has(parentKey)) {
+          const hours = resolveHours(km);
+          const hoursIdx = next.findIndex((l, i) => i !== index && l.product_id === cfg.hoursProductId);
+          if (hours > 0) {
+            const baseHours =
+              hoursIdx >= 0
+                ? next[hoursIdx]
+                : {
+                    tempId: crypto.randomUUID(),
+                    concept: cfg.hoursProductName,
+                    description: "",
+                    unit_price: cfg.hoursUnitPrice,
+                    tax_rate: cfg.hoursTaxRate,
+                    discount_percent: 0,
+                    product_id: cfg.hoursProductId,
+                  };
+            const newHoursLine = calculateLine({ ...baseHours, quantity: hours });
+            if (hoursIdx >= 0) {
+              next[hoursIdx] = newHoursLine;
+              if (hoursIdx !== index + 1) {
+                const [removed] = next.splice(hoursIdx, 1);
+                next.splice(index + 1, 0, removed);
+              }
+            } else {
+              next.splice(index + 1, 0, newHoursLine);
+            }
+          } else if (hoursIdx >= 0) {
+            next.splice(hoursIdx, 1);
+          }
+        }
+      }
+
       return next;
     });
-  }, [calculateLine]);
+  }, [calculateLine, displacementConfig, resolveHours, suppressedRef]);
+
+  const removeLine = useCallback((index: number) => {
+    setLines((prev) => {
+      let filtered = prev.filter((_, i) => i !== index);
+      if (displacementConfig) {
+        if (prev[index]?.product_id === displacementConfig.kmProductId) {
+          filtered = filtered.filter((l) => l.product_id !== displacementConfig.hoursProductId);
+          const removedKey = prev[index].tempId;
+          if (removedKey) {
+            setSuppressedKmKeys((s) => { const n = new Set(s); n.delete(removedKey); return n; });
+          }
+        } else if (isDisplacementChild(prev, index)) {
+          const parentLine = prev[index - 1];
+          const parentKey = parentLine?.tempId;
+          if (parentKey) setSuppressedKmKeys((s) => new Set([...s, parentKey]));
+        }
+      }
+      return filtered;
+    });
+  }, [displacementConfig, isDisplacementChild, setSuppressedKmKeys]);
 
   const loadSites = useCallback(async (projectId: string, preferredSiteId: string) => {
     setLoadingSites(true);
@@ -333,10 +407,38 @@ const MobileNewInvoicePage = () => {
             </div>
           </div>
 
-          {lines.map((line, index) => (
+          {lines.map((line, index) => {
+            const isChild = isDisplacementChild(lines, index);
+
+            // ── Sub-sección de desplazamiento ──────────────────────
+            if (isChild) {
+              return (
+                <div key={`${line.tempId}-child`} className="ml-4 border-l-2 border-l-orange-300/50 pl-3">
+                  <div className="bg-muted/10 border border-orange-300/30 rounded-xl p-3 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Clock className="h-3.5 w-3.5 text-orange-400/70 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-muted-foreground truncate">{line.concept}</p>
+                        <p className="text-xs text-muted-foreground/60 tabular-nums">{line.quantity} h · {formatCurrency(line.subtotal)}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => removeLine(index)}
+                      className="p-1.5 text-muted-foreground/40 hover:text-muted-foreground/70 rounded-lg transition-colors flex-shrink-0"
+                      style={{ touchAction: "manipulation" }}
+                      title="No cobrar horas de desplazamiento en este documento"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
             <div key={line.tempId} className="space-y-3">
               <div className="bg-card border border-border rounded-xl p-4 space-y-3 relative">
-                {lines.length > 1 && <button onClick={() => setLines((prev) => prev.filter((_, currentIndex) => currentIndex !== index))} className="absolute top-3 right-3 p-1.5 text-destructive hover:bg-destructive/10 rounded-lg transition-colors z-10" style={{ touchAction: "manipulation" }} aria-label="Eliminar línea"><Trash2 className="h-4 w-4" /></button>}
+                {lines.length > 1 && <button onClick={() => removeLine(index)} className="absolute top-3 right-3 p-1.5 text-destructive hover:bg-destructive/10 rounded-lg transition-colors z-10" style={{ touchAction: "manipulation" }} aria-label="Eliminar línea"><Trash2 className="h-4 w-4" /></button>}
                 <div className="space-y-1.5 relative">
                   <Label className="text-xs font-medium text-muted-foreground">Concepto</Label>
                   <div className="relative">
@@ -381,7 +483,8 @@ const MobileNewInvoicePage = () => {
               </div>
               <button onClick={addEmptyLine} className={cn("w-full p-3 border-2 border-dashed border-border rounded-xl", "bg-card hover:bg-muted/50 transition-colors", "flex items-center justify-center gap-2", "text-sm font-medium text-muted-foreground")} style={{ touchAction: "manipulation" }}><Plus className="h-4 w-4" /><span>Agregar línea</span></button>
             </div>
-          ))}
+            );
+          })}
 
           {lines.some((line) => line.concept.trim()) && (
             <div className="bg-card border border-border rounded-xl p-4 space-y-2">

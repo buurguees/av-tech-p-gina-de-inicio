@@ -41,7 +41,23 @@ export interface PurchaseOrderForPDF {
   po_number: string;
   supplier_name: string | null;
   supplier_tax_id: string | null;
+  supplier_address: string | null;
+  supplier_city: string | null;
+  supplier_postal_code: string | null;
+  supplier_province: string | null;
+  supplier_country: string | null;
+  supplier_email: string | null;
+  supplier_phone: string | null;
   technician_name: string | null;
+  technician_tax_id: string | null;
+  technician_address: string | null;
+  technician_city: string | null;
+  technician_postal_code: string | null;
+  technician_province: string | null;
+  technician_country: string | null;
+  technician_email: string | null;
+  technician_phone: string | null;
+  technician_contact_name: string | null;
   status: string;
   issue_date: string | null;
   expected_start_date: string | null;
@@ -55,6 +71,7 @@ export interface PurchaseOrderForPDF {
   notes: string | null;
   project_number: string | null;
   project_name: string | null;
+  project_local_name: string | null;
   site_name?: string | null;
 }
 
@@ -326,20 +343,6 @@ const styles = StyleSheet.create({
     color: "#444",
     lineHeight: 1.4,
   },
-  disclaimerBox: {
-    marginTop: 16,
-    padding: 10,
-    backgroundColor: "#fef3c7",
-    borderRadius: 4,
-    borderLeftWidth: 3,
-    borderLeftColor: "#d97706",
-  },
-  disclaimerText: {
-    fontSize: 8,
-    color: "#78350f",
-    lineHeight: 1.4,
-    fontStyle: "italic",
-  },
   footer: {
     position: "absolute",
     bottom: 30,
@@ -398,14 +401,6 @@ const groupTaxesByRate = (lines: PurchaseOrderLine[]) => {
     .sort((a, b) => b.rate - a.rate);
 };
 
-const formatProjectNumber = (num: string | null | undefined) => {
-  if (!num) return "";
-  const match = num.match(/(\d{6})$/);
-  return match?.[1] || num;
-};
-
-const cleanProjectName = (name: string | null | undefined) =>
-  (name || "").replace(/^\d{6}\s*-\s*/, "").trim();
 
 export const PurchaseOrderPDFDocument = ({
   order,
@@ -417,10 +412,19 @@ export const PurchaseOrderPDFDocument = ({
   const hasWithholding = order.withholding_amount > 0;
   const hasIrpfColumn = lines.some((l) => l.withholding_rate > 0);
   const taxes = groupTaxesByRate(lines);
-  const supplierLabel = order.supplier_name ? "Proveedor" : "Técnico";
+  const isSupplier = Boolean(order.supplier_name);
+  const supplierLabel = isSupplier ? "Proveedor" : "Técnico";
   const supplierName = order.supplier_name || order.technician_name || "—";
-  const hasDates = Boolean(order.expected_start_date || order.expected_end_date);
-  const hasProject = Boolean(order.project_name);
+  const supplierTaxId = isSupplier ? order.supplier_tax_id : order.technician_tax_id;
+  const supplierAddress = isSupplier ? order.supplier_address : order.technician_address;
+  const supplierCity = isSupplier ? order.supplier_city : order.technician_city;
+  const supplierPostalCode = isSupplier ? order.supplier_postal_code : order.technician_postal_code;
+  const supplierProvince = isSupplier ? order.supplier_province : order.technician_province;
+  const supplierCountry = isSupplier ? order.supplier_country : order.technician_country;
+  const supplierEmail = isSupplier ? order.supplier_email : order.technician_email;
+  const supplierPhone = isSupplier ? order.supplier_phone : order.technician_phone;
+  const supplierContactName = !isSupplier ? order.technician_contact_name : null;
+  const hasProject = Boolean(order.project_number);
 
   const resolvedHash =
     documentHash ||
@@ -488,8 +492,28 @@ export const PurchaseOrderPDFDocument = ({
           <View style={styles.supplierBox}>
             <Text style={styles.boxTitle}>{supplierLabel}</Text>
             <Text style={styles.boxName}>{supplierName}</Text>
-            {Boolean(order.supplier_tax_id) && (
-              <Text style={styles.boxDetail}>NIF/CIF: {order.supplier_tax_id}</Text>
+            {Boolean(supplierContactName) && (
+              <Text style={styles.boxDetail}>Contacto: {supplierContactName}</Text>
+            )}
+            {Boolean(supplierTaxId) && (
+              <Text style={styles.boxDetail}>NIF/CIF: {supplierTaxId}</Text>
+            )}
+            {Boolean(supplierAddress) && (
+              <Text style={styles.boxDetail}>{supplierAddress}</Text>
+            )}
+            {Boolean(supplierPostalCode || supplierCity) && (
+              <Text style={styles.boxDetail}>
+                {[supplierPostalCode, supplierCity, supplierProvince].filter(Boolean).join(" ")}
+              </Text>
+            )}
+            {Boolean(supplierCountry && supplierCountry !== "ES" && supplierCountry !== "España") && (
+              <Text style={styles.boxDetail}>{supplierCountry}</Text>
+            )}
+            {Boolean(supplierPhone) && (
+              <Text style={styles.boxDetail}>Tel: {supplierPhone}</Text>
+            )}
+            {Boolean(supplierEmail) && (
+              <Text style={styles.boxDetail}>{supplierEmail}</Text>
             )}
           </View>
         </View>
@@ -498,36 +522,13 @@ export const PurchaseOrderPDFDocument = ({
         {hasProject && (
           <View style={styles.projectBox}>
             <View style={styles.projectGroup}>
-              <Text style={styles.projectLabel}>Proyecto</Text>
-              <Text style={styles.projectValue}>
-                {formatProjectNumber(order.project_number)
-                  ? `${formatProjectNumber(order.project_number)} — `
-                  : ""}
-                {cleanProjectName(order.project_name)}
-              </Text>
+              <Text style={styles.projectLabel}>Nº Proyecto</Text>
+              <Text style={styles.projectValue}>{order.project_number}</Text>
             </View>
-            {Boolean(order.site_name) && (
+            {Boolean(order.project_local_name) && (
               <View style={styles.projectGroup}>
-                <Text style={styles.projectLabel}>Sitio / Ubicación</Text>
-                <Text style={styles.projectValue}>{order.site_name}</Text>
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* Fechas previstas */}
-        {hasDates && (
-          <View style={styles.datesBox}>
-            {Boolean(order.expected_start_date) && (
-              <View style={styles.dateGroup}>
-                <Text style={styles.dateLabel}>Inicio previsto</Text>
-                <Text style={styles.dateValue}>{formatDate(order.expected_start_date)}</Text>
-              </View>
-            )}
-            {Boolean(order.expected_end_date) && (
-              <View style={styles.dateGroup}>
-                <Text style={styles.dateLabel}>Fin previsto</Text>
-                <Text style={styles.dateValue}>{formatDate(order.expected_end_date)}</Text>
+                <Text style={styles.projectLabel}>Nombre del Local</Text>
+                <Text style={styles.projectValue}>{order.project_local_name}</Text>
               </View>
             )}
           </View>
@@ -616,14 +617,6 @@ export const PurchaseOrderPDFDocument = ({
             </View>
           )}
 
-          {/* Disclaimer fiscal */}
-          <View style={styles.disclaimerBox}>
-            <Text style={styles.disclaimerText}>
-              Este documento es una estimación operativa de compra y no tiene validez como documento
-              fiscal. No genera asientos contables. La factura oficial del proveedor es el único
-              documento con efecto fiscal y contable.
-            </Text>
-          </View>
         </View>
 
         {/* Footer */}

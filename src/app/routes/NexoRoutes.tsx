@@ -12,7 +12,10 @@ const NexoAuditPage = lazy(() => import('@/pages/nexo_av/desktop/pages/AuditPage
 const NexoAuditEventDetailPage = lazy(() => import('@/pages/nexo_av/desktop/pages/AuditEventDetailPage'));
 const NexoCalculatorPage = lazy(() => import('@/pages/nexo_av/desktop/pages/CalculatorPage'));
 const NexoMapPage = lazy(() => import('@/pages/nexo_av/desktop/pages/MapPage'));
-const NexoCalendarPage = lazy(() => import('@/pages/nexo_av/desktop/pages/CalendarPage'));
+const ResponsiveCalendarPage = createResponsivePage(
+  () => import('@/pages/nexo_av/desktop/pages/CalendarPage'),
+  () => import('@/pages/nexo_av/mobile/pages/MobileCalendarPage')
+);
 const NexoAccountingPage = lazy(() => import('@/pages/nexo_av/desktop/pages/AccountingPage'));
 const NexoMonthlyPyGDetailPage = lazy(() => import('@/pages/nexo_av/desktop/pages/MonthlyPyGDetailPage'));
 const NexoDeveloperPage = lazy(() => import('@/pages/nexo_av/desktop/pages/DeveloperPage'));
@@ -27,6 +30,8 @@ const NexoNewPurchaseOrderPage = lazy(() => import('@/pages/nexo_av/desktop/page
 const NexoPendingReimbursementsPage = lazy(() => import('@/pages/nexo_av/desktop/pages/PendingReimbursementsPage'));
 const NexoFinancingPage = lazy(() => import('@/pages/nexo_av/desktop/pages/FinancingPage'));
 const NexoFinancingDetailPage = lazy(() => import('@/pages/nexo_av/desktop/pages/FinancingDetailPage'));
+const NexoRateCardsPage = lazy(() => import('@/pages/nexo_av/desktop/pages/RateCardsPage'));
+const NexoRateCardDetailPage = lazy(() => import('@/pages/nexo_av/desktop/pages/RateCardDetailPage'));
 const NexoReportsPage = lazy(() => import('@/pages/nexo_av/desktop/pages/ReportsPage'));
 const NexoRectificativasPage = lazy(() => import('@/pages/nexo_av/desktop/pages/RectificativasPage'));
 const NexoNewInvoicePage = lazy(() => import('@/pages/nexo_av/desktop/pages/NewInvoicePage'));
@@ -173,7 +178,7 @@ export const nexoRoutes = (
       <Route path="catalog/:productId" element={<NexoProductDetailPage />} />
       <Route path="calculator" element={<NexoCalculatorPage />} />
       <Route path="mapa" element={<NexoMapPage />} />
-      <Route path="calendario" element={<NexoCalendarPage />} />
+      <Route path="calendario" element={<ResponsiveCalendarPage />} />
       <Route path="technicians" element={<ResponsiveTechniciansPage />} />
       <Route path="technicians/:technicianId" element={<ResponsiveTechnicianDetailPage />} />
       <Route path="suppliers" element={<ResponsiveSuppliersPage />} />
@@ -205,6 +210,8 @@ export const nexoRoutes = (
       <Route path="rectificativas" element={<NexoRectificativasPage />} />
       <Route path="financing" element={<NexoFinancingPage />} />
       <Route path="financing/:operationId" element={<NexoFinancingDetailPage />} />
+      <Route path="tarifas" element={<NexoRateCardsPage />} />
+      <Route path="tarifas/:rateCardId" element={<NexoRateCardDetailPage />} />
       <Route path="*" element={<ResponsiveNotFound />} />
     </Route>
     <Route path="/nexo-av/dashboard" element={<NexoLogin />} />

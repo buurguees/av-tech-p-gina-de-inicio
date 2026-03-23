@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, Fragment } from "react";
+import { useState, useEffect, useCallback, useMemo, Fragment, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Trash2, GripVertical, FileText, ChevronDown } from "lucide-react";
+import { Loader2, Plus, Trash2, GripVertical, FileText, ChevronDown, Clock, Link2, X } from "lucide-react";
 import { motion } from "motion/react";
 import {
   DndContext,
@@ -29,6 +29,8 @@ import DetailActionButton from "../components/navigation/DetailActionButton";
 import ProductSearchInput from "../components/common/ProductSearchInput";
 import { SortableLineRow } from "../components/documents/SortableLineRow";
 import { useDocumentLines } from "../hooks/useDocumentLines";
+import { useDisplacementRules } from "@/pages/nexo_av/shared/hooks/useDisplacementRules";
+import { useCompanionRules } from "@/pages/nexo_av/shared/hooks/useCompanionRules";
 
 // ============= INLINE TYPES =============
 interface Client {
@@ -72,6 +74,7 @@ interface DocumentLine {
   total: number;
   group_name?: string;
   line_order?: number;
+  product_id?: string;
 }
 
 // ============= UTILITY FUNCTIONS =============
@@ -130,6 +133,21 @@ const NewQuotePage = () => {
     getNumericDisplayValue,
     computeTotals,
   } = useDocumentLines(defaultTaxRate, taxOptions);
+
+  const {
+    config: displacementConfig,
+    suppressedRef,
+    setSuppressedKmKeys,
+    resolveHours,
+    isDisplacementChild,
+  } = useDisplacementRules();
+
+  const {
+    suppressedRef: companionSuppressedRef,
+    setSuppressedTriggerKeys: setCompanionSuppressedKeys,
+    findRuleForTrigger,
+    isCompanionChild,
+  } = useCompanionRules();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -323,19 +341,114 @@ const NewQuotePage = () => {
   }, [calculateLineValues, defaultTaxRate, lines.length]);
 
   const updateLine = useCallback(
-    (index: number, field: keyof DocumentLine, value: any) => {
+    (index: number, field: keyof DocumentLine | string, value: any) => {
       setLines((prev) => {
         const updated = [...prev];
         updated[index] = calculateLineValues({ ...updated[index], [field]: value });
+
+        const cfg = displacementConfig;
+        if (field === "quantity" && cfg && updated[index].product_id === cfg.kmProductId) {
+          const km = value as number;
+          const parentKey = updated[index].id || updated[index].tempId || String(index);
+          if (!suppressedRef.current.has(parentKey)) {
+            const hours = resolveHours(km);
+            const hoursIdx = updated.findIndex((l, i) => i !== index && l.product_id === cfg.hoursProductId);
+            if (hours > 0) {
+              const baseHours = hoursIdx >= 0
+                ? updated[hoursIdx]
+                : {
+                    tempId: crypto.randomUUID(),
+                    concept: cfg.hoursProductName,
+                    description: "",
+                    unit_price: cfg.hoursUnitPrice,
+                    tax_rate: cfg.hoursTaxRate,
+                    discount_percent: 0,
+                    product_id: cfg.hoursProductId,
+                    group_name: "",
+                    line_order: updated.length + 1,
+                  };
+              const newHoursLine = calculateLineValues({ ...baseHours, quantity: hours });
+              if (hoursIdx >= 0) {
+                updated[hoursIdx] = newHoursLine;
+                if (hoursIdx !== index + 1) {
+                  const [removed] = updated.splice(hoursIdx, 1);
+                  updated.splice(index + 1, 0, removed);
+                }
+              } else {
+                updated.splice(index + 1, 0, newHoursLine);
+              }
+            } else if (hoursIdx >= 0) {
+              updated.splice(hoursIdx, 1);
+            }
+            return updated.map((l, i) => ({ ...l, line_order: i + 1 }));
+          }
+        }
+
+        // Lógica de acompañante: actualizar cantidad companion si cambia qty del trigger
+        if (field === "quantity" && updated[index].product_id) {
+          const rule = findRuleForTrigger(updated[index].product_id!);
+          if (rule) {
+            const triggerKey = updated[index].id || updated[index].tempId || String(index);
+            if (!companionSuppressedRef.current.has(triggerKey)) {
+              const newQty = value as number;
+              const companionIdx = index + 1;
+              if (
+                companionIdx < updated.length &&
+                updated[companionIdx].product_id === rule.companionProductId
+              ) {
+                const newCompanionQty = newQty * rule.quantityRatio;
+                updated[companionIdx] = calculateLineValues({
+                  ...updated[companionIdx],
+                  quantity: newCompanionQty,
+                  unit_price: rule.companionSalePrice,
+                });
+              }
+            }
+          }
+        }
+
         return updated;
       });
     },
-    [calculateLineValues]
+    [calculateLineValues, displacementConfig, resolveHours, suppressedRef, findRuleForTrigger, companionSuppressedRef]
   );
 
   const removeLine = useCallback((index: number) => {
-    setLines((prev) => prev.filter((_, i) => i !== index).map((line, i) => ({ ...line, line_order: i + 1 })));
-  }, []);
+    setLines((prev) => {
+      let filtered = prev.filter((_, i) => i !== index);
+      if (displacementConfig) {
+        if (prev[index]?.product_id === displacementConfig.kmProductId) {
+          filtered = filtered.filter((l) => l.product_id !== displacementConfig.hoursProductId);
+          const removedKey = prev[index].id || prev[index].tempId;
+          if (removedKey) {
+            setSuppressedKmKeys((s) => { const n = new Set(s); n.delete(removedKey); return n; });
+          }
+        } else if (isDisplacementChild(prev, index)) {
+          const parentLine = prev[index - 1];
+          const parentKey = parentLine?.id || parentLine?.tempId;
+          if (parentKey) setSuppressedKmKeys((s) => new Set([...s, parentKey]));
+        }
+      }
+      // Lógica de acompañante
+      const removedLine = prev[index];
+      if (removedLine?.product_id) {
+        const rule = findRuleForTrigger(removedLine.product_id);
+        if (rule) {
+          filtered = filtered.filter((_, i) => {
+            const origIdx = i >= index ? i + 1 : i;
+            return !(origIdx === index + 1 && prev[index + 1]?.product_id === rule.companionProductId);
+          });
+          const triggerKey = removedLine.id || removedLine.tempId;
+          if (triggerKey) setCompanionSuppressedKeys((s) => { const n = new Set(s); n.delete(triggerKey); return n; });
+        } else if (isCompanionChild(prev, index)) {
+          const parentLine = prev[index - 1];
+          const parentKey = parentLine?.id || parentLine?.tempId;
+          if (parentKey) setCompanionSuppressedKeys((s) => new Set([...s, parentKey]));
+        }
+      }
+      return filtered.map((line, i) => ({ ...line, line_order: i + 1 }));
+    });
+  }, [displacementConfig, isDisplacementChild, setSuppressedKmKeys, findRuleForTrigger, isCompanionChild, setCompanionSuppressedKeys]);
 
   const handleNumericInputChange = (
     value: string,
@@ -356,7 +469,7 @@ const NewQuotePage = () => {
     });
   }, []);
 
-  const handleProductSelect = (index: number, item: { name: string; code?: string; price: number; tax_rate?: number; description?: string }) => {
+  const handleProductSelect = (index: number, item: { id?: string; name: string; code?: string; price: number; tax_rate?: number; description?: string }) => {
     setLines((prev) => {
       const updated = [...prev];
       updated[index] = calculateLineValues({
@@ -366,8 +479,42 @@ const NewQuotePage = () => {
         unit_price: item.price,
         tax_rate: item.tax_rate ?? defaultTaxRate,
         group_name: item.code || updated[index].group_name,
+        product_id: item.id,
       });
-      return updated;
+
+      // Auto-añadir companion si hay regla y no está suprimida
+      if (item.id) {
+        const rule = findRuleForTrigger(item.id);
+        if (rule) {
+          const triggerKey = updated[index].id || updated[index].tempId || String(index);
+          if (!companionSuppressedRef.current.has(triggerKey)) {
+            const triggerQty = updated[index].quantity;
+            const companionLine = calculateLineValues({
+              tempId: crypto.randomUUID(),
+              concept: rule.companionName,
+              description: "",
+              quantity: triggerQty * rule.quantityRatio,
+              unit_price: rule.companionSalePrice,
+              tax_rate: rule.companionTaxRate,
+              discount_percent: 0,
+              product_id: rule.companionProductId,
+              line_order: updated.length + 1,
+            });
+            const existingCompIdx = updated.findIndex((l, i) => i > index && l.product_id === rule.companionProductId);
+            if (existingCompIdx >= 0) {
+              updated[existingCompIdx] = companionLine;
+              if (existingCompIdx !== index + 1) {
+                const [removed] = updated.splice(existingCompIdx, 1);
+                updated.splice(index + 1, 0, removed);
+              }
+            } else {
+              updated.splice(index + 1, 0, companionLine);
+            }
+          }
+        }
+      }
+
+      return updated.map((l, i) => ({ ...l, line_order: i + 1 }));
     });
   };
 
@@ -647,13 +794,106 @@ const NewQuotePage = () => {
                 onDragStart={() => setExpandedDescs(new Set())}
               >
                 <SortableContext
-                  items={lines.map((l) => l.id || l.tempId || "")}
+                  items={lines.filter((_, i) => !isDisplacementChild(lines, i) && !isCompanionChild(lines, i)).map((l) => l.id || l.tempId || "")}
                   strategy={verticalListSortingStrategy}
                 >
                   <TableBody>
                     {lines.map((line, actualIndex) => {
                       const lineKey = line.id || line.tempId || String(actualIndex);
                       const isExpanded = expandedDescs.has(lineKey);
+                      const isChild = isDisplacementChild(lines, actualIndex);
+                      const isCompChild = isCompanionChild(lines, actualIndex);
+
+                      // ── Sub-sección de acompañante ──────────────────────────
+                      if (isCompChild) {
+                        return (
+                          <TableRow
+                            key={`${lineKey}-companion`}
+                            className="border-l-2 border-l-blue-400/50 bg-muted/10 hover:bg-muted/20"
+                          >
+                            <TableCell className="px-3 py-2 w-10">
+                              <div className="flex justify-center">
+                                <div className="w-px h-4 bg-border/40" />
+                              </div>
+                            </TableCell>
+                            <TableCell className="px-5 py-2 text-xs text-muted-foreground/40">—</TableCell>
+                            <TableCell className="px-5 py-2">
+                              <div className="flex items-center gap-1.5">
+                                <Link2 className="h-3 w-3 text-blue-400/70 shrink-0" />
+                                <span className="text-xs text-muted-foreground font-medium">{line.concept}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="px-5 py-2 text-center text-xs text-muted-foreground tabular-nums">
+                              {line.quantity}
+                            </TableCell>
+                            <TableCell className="px-5 py-2 text-right text-xs text-muted-foreground tabular-nums">
+                              {new Intl.NumberFormat("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(line.unit_price)}€
+                            </TableCell>
+                            <TableCell />
+                            <TableCell />
+                            <TableCell className="px-5 py-2 text-right text-xs font-semibold text-muted-foreground tabular-nums">
+                              {formatCurrency(line.subtotal)}
+                            </TableCell>
+                            <TableCell className="px-5 py-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeLine(actualIndex)}
+                                className="h-7 w-7 text-muted-foreground/30 hover:text-muted-foreground/70"
+                                title="No incluir producto acompañante en este documento"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+
+                      // ── Sub-sección de desplazamiento ──────────────────────
+                      if (isChild) {
+                        return (
+                          <TableRow
+                            key={`${lineKey}-child`}
+                            className="border-l-2 border-l-orange-300/50 bg-muted/10 hover:bg-muted/20"
+                          >
+                            <TableCell className="px-3 py-2 w-10">
+                              <div className="flex justify-center">
+                                <div className="w-px h-4 bg-border/40" />
+                              </div>
+                            </TableCell>
+                            <TableCell className="px-5 py-2 text-xs text-muted-foreground/40">—</TableCell>
+                            <TableCell className="px-5 py-2">
+                              <div className="flex items-center gap-1.5">
+                                <Clock className="h-3 w-3 text-orange-400/70 shrink-0" />
+                                <span className="text-xs text-muted-foreground font-medium">{line.concept}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="px-5 py-2 text-center text-xs text-muted-foreground tabular-nums">
+                              {line.quantity} h
+                            </TableCell>
+                            <TableCell className="px-5 py-2 text-right text-xs text-muted-foreground tabular-nums">
+                              {new Intl.NumberFormat("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(line.unit_price)}€
+                            </TableCell>
+                            <TableCell />
+                            <TableCell />
+                            <TableCell className="px-5 py-2 text-right text-xs font-semibold text-muted-foreground tabular-nums">
+                              {formatCurrency(line.subtotal)}
+                            </TableCell>
+                            <TableCell className="px-5 py-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeLine(actualIndex)}
+                                className="h-7 w-7 text-muted-foreground/30 hover:text-muted-foreground/70"
+                                title="No cobrar horas de desplazamiento en este documento"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+
                       return (
                         <Fragment key={lineKey}>
                           <SortableLineRow
@@ -687,6 +927,7 @@ const NewQuotePage = () => {
                                       onChange={(value) => updateLine(actualIndex, "concept", value)}
                                       onSelectItem={(item) =>
                                         handleProductSelect(actualIndex, {
+                                          id: item.id,
                                           name: item.name,
                                           code: item.code,
                                           price: item.price,
