@@ -308,12 +308,24 @@ const FinancialDonut = ({
   );
 };
 
+interface TopProduct {
+  product_id: string;
+  sku: string;
+  name: string;
+  product_type: string;
+  category_name: string;
+  sales_count: number;
+  total_qty: number;
+  sales_total: number;
+}
+
 // ─── AdminDashboard ───────────────────────────────────────────────────────────
 const AdminDashboard = () => {
   const [data, setData] = useState<AdminData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<"quarter" | "year">("quarter");
   const [treasuryTab, setTreasuryTab] = useState<"cobros" | "pagos">("cobros");
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const navigate = useNavigate();
   const { userId } = useParams();
 
@@ -321,10 +333,12 @@ const AdminDashboard = () => {
     const fetch = async () => {
       setLoading(true);
       try {
-        const { data: result } = await supabase.rpc("dashboard_get_admin_overview", {
-          p_period: period,
-        });
+        const [{ data: result }, { data: top }] = await Promise.all([
+          supabase.rpc("dashboard_get_admin_overview", { p_period: period }),
+          supabase.rpc("get_top_selling_products", { p_limit: 5 }),
+        ]);
         setData(result as unknown as AdminData);
+        setTopProducts((top || []) as TopProduct[]);
       } catch (e) {
         console.error(e);
       } finally {
@@ -639,11 +653,36 @@ const AdminDashboard = () => {
 
         </div>
 
-        {/* ── Fila 3: zona reservada para calendario — 2 columnas ── */}
+        {/* ── Fila 3: Top ventas + calendario ── */}
         <div className="grid grid-cols-2 gap-1.5 min-h-0">
-          <div className="flex items-center justify-center rounded-md border border-dashed border-border/50 bg-muted/20 text-[11px] text-muted-foreground/50 select-none">
-            Calendario izquierda
-          </div>
+
+          {/* Top 5 más vendidos */}
+          <DashSection
+            icon={TrendingUp}
+            title="Top 5 más vendidos"
+            iconClass="text-primary"
+            delay={0.35}
+          >
+            {topProducts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full py-6 text-muted-foreground/40 gap-1.5">
+                <TrendingUp className="h-6 w-6" />
+                <span className="text-[11px]">Sin datos de ventas aún</span>
+              </div>
+            ) : (
+              topProducts.map((p, i) => (
+                <DashRow
+                  key={p.product_id}
+                  badge={`#${i + 1}`}
+                  label={p.name}
+                  sub={`${Number(p.sales_count)} venta${Number(p.sales_count) !== 1 ? 's' : ''} · ${p.sku}`}
+                  value={fmt(Number(p.sales_total))}
+                  accentValue="text-primary"
+                  onClick={() => navigate(`/nexo-av/${userId}/catalog/${p.product_id}`)}
+                />
+              ))
+            )}
+          </DashSection>
+
           <div className="flex items-center justify-center rounded-md border border-dashed border-border/50 bg-muted/20 text-[11px] text-muted-foreground/50 select-none">
             Calendario derecha
           </div>

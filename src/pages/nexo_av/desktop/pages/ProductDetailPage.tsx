@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, Loader2, Package, Wrench, ShieldAlert, LayoutDashboard, FileText, Calendar, ImageIcon, Upload, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Package, Wrench, ShieldAlert, LayoutDashboard, FileText, Calendar, ImageIcon, Upload, Trash2, X, TrendingUp, ExternalLink } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import DetailNavigationBar from '../components/navigation/DetailNavigationBar';
 import TabNav, { TabItem } from '../components/navigation/TabNav';
@@ -41,6 +42,22 @@ interface Product {
   has_low_stock_alert: boolean;
   created_at: string;
   updated_at: string;
+}
+
+interface SaleLine {
+  line_id: string;
+  invoice_id: string;
+  invoice_number: string;
+  issue_date: string | null;
+  client_name: string;
+  project_name: string;
+  quantity: number;
+  unit_price: number;
+  discount_percent: number;
+  subtotal: number;
+  tax_rate: number;
+  total: number;
+  invoice_status: string;
 }
 
 interface UserInfo {
@@ -89,10 +106,13 @@ export default function ProductDetailPage() {
   const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
   const imgInputRef = useRef<HTMLInputElement>(null);
 
+  const [salesHistory, setSalesHistory] = useState<SaleLine[]>([]);
+  const [salesLoading, setSalesLoading] = useState(false);
+
   const tabs: TabItem[] = [
     { value: 'resumen', label: 'Resumen', icon: LayoutDashboard },
     { value: 'imagenes', label: 'Imágenes', icon: ImageIcon },
-    { value: 'por-asignar-2', label: 'Por asignar', icon: Calendar },
+    { value: 'ventas', label: 'Ventas', icon: TrendingUp },
     { value: 'por-asignar-3', label: 'Por asignar', icon: Package },
   ];
 
@@ -176,7 +196,7 @@ export default function ProductDetailPage() {
         setName(found.name);
         setDescription(found.description || '');
         setCostPrice(String(found.cost_price ?? ''));
-        setBasePrice(String(found.sale_price_effective ?? found.sale_price));
+        setBasePrice(String(found.sale_price ?? ''));
         setTaxId(found.tax_rate_id || '');
         setTaxRate(String(found.tax_rate ?? 21));
         setStock(String(found.stock_quantity ?? 0));
@@ -249,6 +269,17 @@ export default function ProductDetailPage() {
   useEffect(() => {
     if (productId && activeTab === 'imagenes') loadProductImages();
   }, [productId, activeTab, loadProductImages]);
+
+  useEffect(() => {
+    if (!productId || activeTab !== 'ventas') return;
+    const loadSales = async () => {
+      setSalesLoading(true);
+      const { data, error } = await supabase.rpc('get_product_sales_history', { p_product_id: productId });
+      if (!error && data) setSalesHistory(data as SaleLine[]);
+      setSalesLoading(false);
+    };
+    loadSales();
+  }, [productId, activeTab]);
 
   const priceWithTax = (parseFloat(basePrice) || 0) * (1 + (parseFloat(taxRate) || 0) / 100);
 
@@ -614,9 +645,99 @@ export default function ProductDetailPage() {
                 )}
               </div>
             )}
-            {activeTab === 'por-asignar-2' && (
-              <div className="p-6">
-                <p className="text-muted-foreground">Por asignar - Se trabajará más adelante</p>
+            {activeTab === 'ventas' && (
+              <div className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-primary" />
+                    Historial de ventas
+                    {!salesLoading && (
+                      <span className="text-sm font-normal text-muted-foreground">({salesHistory.length} {salesHistory.length === 1 ? 'línea' : 'líneas'})</span>
+                    )}
+                  </h2>
+                </div>
+
+                {salesLoading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : salesHistory.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
+                    <TrendingUp className="w-12 h-12 opacity-20" />
+                    <p className="text-sm">Sin ventas registradas para este {isProductType ? 'producto' : 'servicio'}</p>
+                    <p className="text-xs opacity-60">Las ventas aparecerán aquí cuando se use en facturas con referencia al catálogo</p>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-border overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border bg-muted/40">
+                          <th className="text-left px-4 py-3 font-medium text-muted-foreground">Factura</th>
+                          <th className="text-left px-4 py-3 font-medium text-muted-foreground">Fecha</th>
+                          <th className="text-left px-4 py-3 font-medium text-muted-foreground">Cliente</th>
+                          <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden xl:table-cell">Proyecto</th>
+                          <th className="text-right px-4 py-3 font-medium text-muted-foreground">Cant.</th>
+                          <th className="text-right px-4 py-3 font-medium text-muted-foreground">P. Unit.</th>
+                          <th className="text-right px-4 py-3 font-medium text-muted-foreground">Total</th>
+                          <th className="text-center px-4 py-3 font-medium text-muted-foreground">Estado</th>
+                          <th className="px-4 py-3" />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {salesHistory.map((row, i) => {
+                          const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+                            DRAFT:      { label: 'Borrador',  variant: 'outline' },
+                            ISSUED:     { label: 'Emitida',   variant: 'default' },
+                            SENT:       { label: 'Enviada',   variant: 'secondary' },
+                            PARTIAL:    { label: 'Parcial',   variant: 'secondary' },
+                            PAID:       { label: 'Cobrada',   variant: 'default' },
+                            OVERDUE:    { label: 'Vencida',   variant: 'destructive' },
+                            CANCELLED:  { label: 'Anulada',   variant: 'destructive' },
+                            RECTIFIED:  { label: 'Rectif.',   variant: 'outline' },
+                          };
+                          const status = statusMap[row.invoice_status] ?? { label: row.invoice_status, variant: 'outline' as const };
+                          const fmt = (n: number) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+                          return (
+                            <tr key={row.line_id} className={`border-b border-border last:border-0 hover:bg-muted/30 transition-colors ${i % 2 === 0 ? '' : 'bg-muted/10'}`}>
+                              <td className="px-4 py-3 font-mono text-xs font-medium text-foreground">{row.invoice_number}</td>
+                              <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                                {row.issue_date ? new Date(row.issue_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                              </td>
+                              <td className="px-4 py-3 text-foreground max-w-[180px] truncate" title={row.client_name}>{row.client_name}</td>
+                              <td className="px-4 py-3 text-muted-foreground max-w-[160px] truncate hidden xl:table-cell" title={row.project_name}>{row.project_name || '—'}</td>
+                              <td className="px-4 py-3 text-right tabular-nums">{parseFloat(String(row.quantity)).toLocaleString('es-ES')}</td>
+                              <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{fmt(row.unit_price)} €</td>
+                              <td className="px-4 py-3 text-right tabular-nums font-medium">{fmt(row.total)} €</td>
+                              <td className="px-4 py-3 text-center">
+                                <Badge variant={status.variant} className="text-xs">{status.label}</Badge>
+                              </td>
+                              <td className="px-4 py-3">
+                                <button
+                                  onClick={() => navigate(`/nexo-av/${userId}/invoices/${row.invoice_id}`)}
+                                  className="text-muted-foreground hover:text-foreground transition-colors"
+                                  title="Ver factura"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                      <tfoot>
+                        <tr className="bg-muted/30 border-t border-border">
+                          <td colSpan={6} className="px-4 py-3 text-sm font-medium text-muted-foreground text-right">Total facturado</td>
+                          <td className="px-4 py-3 text-right tabular-nums font-semibold text-foreground">
+                            {new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+                              salesHistory.reduce((acc, r) => acc + Number(r.total), 0)
+                            )} €
+                          </td>
+                          <td colSpan={2} />
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
             {activeTab === 'por-asignar-3' && (

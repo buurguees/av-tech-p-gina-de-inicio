@@ -374,10 +374,11 @@ const MobileScannerDetailPage = () => {
   };
 
   // --- Loading / error states ---
+
   if (loading) {
     return (
-      <div className="w-full h-full flex flex-col">
-        <div className="flex-shrink-0 px-4 py-3 border-b border-border">
+      <div className="mobile-page-viewport">
+        <div className="flex-shrink-0 py-3 border-b border-border">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate(`/nexo-av/${userId}/scanner`)} className="h-8 w-8">
               <ChevronLeft className="h-5 w-5" />
@@ -394,8 +395,8 @@ const MobileScannerDetailPage = () => {
 
   if (!document) {
     return (
-      <div className="w-full h-full flex flex-col">
-        <div className="flex-shrink-0 px-4 py-3 border-b border-border">
+      <div className="mobile-page-viewport">
+        <div className="flex-shrink-0 py-3 border-b border-border">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate(`/nexo-av/${userId}/scanner`)} className="h-8 w-8">
               <ChevronLeft className="h-5 w-5" />
@@ -415,10 +416,12 @@ const MobileScannerDetailPage = () => {
 
   const isAssigned = document.status === "ASSIGNED";
 
+  const canSave = canCreateDraft || !!selectedProjectId;
+
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden">
+    <div className="mobile-page-viewport">
       {/* Header */}
-      <div className="flex-shrink-0 px-4 py-3 border-b border-border">
+      <div className="flex-shrink-0 py-3 border-b border-border">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate(`/nexo-av/${userId}/scanner`)} className="h-8 w-8">
             <ChevronLeft className="h-5 w-5" />
@@ -429,7 +432,7 @@ const MobileScannerDetailPage = () => {
           {!isAssigned && (
             <button
               onClick={handleSave}
-              disabled={saving || !document.file_path?.trim()}
+              disabled={saving || !document.file_path?.trim() || !canSave}
               className={cn(
                 "h-11 min-w-11 px-3 min-[400px]:px-4 flex items-center justify-center gap-1.5 rounded-full shrink-0",
                 "text-sm font-medium leading-none",
@@ -460,7 +463,7 @@ const MobileScannerDetailPage = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-5 pb-20">
+      <div className="flex-1 min-h-0 overflow-y-auto py-4 space-y-5 pb-4">
 
         {/* Preview */}
         <div className="space-y-2">

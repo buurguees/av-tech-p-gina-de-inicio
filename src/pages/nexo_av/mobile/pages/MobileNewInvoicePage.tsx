@@ -18,6 +18,7 @@ interface CatalogItem { id: string; type: "product" | "service" | "pack"; name: 
 interface InvoiceLine {
   tempId: string; concept: string; description: string; quantity: number; unit_price: number;
   tax_rate: number; discount_percent: number; subtotal: number; tax_amount: number; total: number;
+  product_id?: string;
 }
 interface ProjectContext { client_id: string | null }
 
@@ -65,6 +66,7 @@ const MobileNewInvoicePage = () => {
       subtotal,
       tax_amount: taxAmount,
       total: subtotal + taxAmount,
+      product_id: line.product_id,
     };
   }, [defaultTaxRate]);
 
@@ -79,6 +81,22 @@ const MobileNewInvoicePage = () => {
       return next;
     });
   }, [calculateLine]);
+
+  const loadSites = useCallback(async (projectId: string, preferredSiteId: string) => {
+    setLoadingSites(true);
+    const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
+    setLoadingSites(false);
+    if (error) return void console.error("Error fetching sites:", error);
+    const nextSites = ((data || []) as ProjectSite[]).filter((site) => site.is_active);
+    setSites(nextSites);
+    const project = projects.find((item) => item.id === projectId);
+    if (project?.site_mode === "SINGLE_SITE" && nextSites.length > 0) {
+      const defaultSite = nextSites.find((site) => site.is_default) || nextSites[0];
+      setSelectedSiteId(defaultSite.id);
+      return;
+    }
+    if (preferredSiteId && nextSites.some((site) => site.id === preferredSiteId)) setSelectedSiteId(preferredSiteId);
+  }, [projects]);
 
   useEffect(() => {
     const init = async () => {
@@ -144,22 +162,6 @@ const MobileNewInvoicePage = () => {
     return ((data || [])[0] as ProjectContext | undefined) || null;
   };
 
-  const loadSites = useCallback(async (projectId: string, preferredSiteId: string) => {
-    setLoadingSites(true);
-    const { data, error } = await supabase.rpc("list_project_sites", { p_project_id: projectId });
-    setLoadingSites(false);
-    if (error) return void console.error("Error fetching sites:", error);
-    const nextSites = ((data || []) as ProjectSite[]).filter((site) => site.is_active);
-    setSites(nextSites);
-    const project = projects.find((item) => item.id === projectId);
-    if (project?.site_mode === "SINGLE_SITE" && nextSites.length > 0) {
-      const defaultSite = nextSites.find((site) => site.is_default) || nextSites[0];
-      setSelectedSiteId(defaultSite.id);
-      return;
-    }
-    if (preferredSiteId && nextSites.some((site) => site.id === preferredSiteId)) setSelectedSiteId(preferredSiteId);
-  }, [projects]);
-
   const loadTaxes = async () => {
     const { data, error } = await supabase.rpc("list_taxes", { p_tax_type: "sales" });
     if (error) {
@@ -197,6 +199,7 @@ const MobileNewInvoicePage = () => {
     updateLine(index, "concept", item.name);
     updateLine(index, "unit_price", item.price);
     updateLine(index, "tax_rate", item.tax_rate);
+    updateLine(index, "product_id", item.id);
     if (item.description) updateLine(index, "description", item.description);
     setShowSearchResults(false);
     setActiveSearchIndex(null);
@@ -249,6 +252,7 @@ const MobileNewInvoicePage = () => {
           p_unit_price: line.unit_price,
           p_tax_rate: line.tax_rate,
           p_discount_percent: line.discount_percent,
+          p_product_id: line.product_id || null,
         });
         if (lineError) throw lineError;
       }

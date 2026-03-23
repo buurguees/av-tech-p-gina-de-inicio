@@ -89,7 +89,7 @@
 /* === DROPDOWN === */
 .searchable-select__dropdown {
   position: fixed;
-  z-index: 99999;
+  z-index: 9999;
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: 0.75rem;

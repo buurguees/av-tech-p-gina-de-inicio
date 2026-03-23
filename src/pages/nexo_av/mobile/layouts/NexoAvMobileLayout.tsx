@@ -159,7 +159,7 @@ const NexoAvMobileLayout = () => {
 
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-[100dvh] bg-background flex items-center justify-center p-4">
         <div className="text-center space-y-4">
           <ShieldAlert className="h-16 w-16 text-destructive mx-auto" />
           <h1 className="text-2xl font-bold text-foreground">Acceso Denegado</h1>
@@ -174,7 +174,7 @@ const NexoAvMobileLayout = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-background flex items-center justify-center">
         <div className="animate-pulse">
           <div className="h-12 w-12 bg-primary/20 rounded-lg" />
         </div>
@@ -183,7 +183,7 @@ const NexoAvMobileLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-[100dvh] bg-background">
       {/* Mobile Header */}
       <MobileHeader
         userId={userId}

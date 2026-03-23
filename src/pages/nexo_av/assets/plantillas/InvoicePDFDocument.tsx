@@ -50,6 +50,7 @@ export interface Invoice {
   notes: string | null;
   created_at: string;
   archived_record_hash?: string | null;
+  source_quote_number?: string | null;
 }
 
 export interface Project {
@@ -336,6 +337,28 @@ const styles = StyleSheet.create({
     color: "#333",
     fontFamily: "Courier",
   },
+  sourceQuoteBox: {
+    marginBottom: 12,
+    padding: 8,
+    backgroundColor: "#fffbeb",
+    borderRadius: 4,
+    borderLeftWidth: 3,
+    borderLeftColor: "#f59e0b",
+    flexDirection: "row",
+    gap: 6,
+  },
+  sourceQuoteLabel: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#92400e",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  sourceQuoteValue: {
+    fontSize: 9,
+    color: "#78350f",
+    fontWeight: "bold",
+  },
   observationsBox: {
     marginBottom: 12,
     padding: 8,
@@ -616,79 +639,90 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
           ))}
         </View>
 
-        {/* Totals */}
-        <View style={styles.totalsContainer}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Base imponible</Text>
-            <Text style={styles.totalValue}>{formatCurrency(subtotal)}</Text>
-          </View>
-          {taxes.map((tax) => (
-            <View key={tax.rate} style={styles.totalRow}>
-              <Text style={styles.totalLabel}>IVA {tax.rate}%</Text>
-              <Text style={styles.totalValue}>{formatCurrency(tax.amount)}</Text>
+        {/* Totals + Payment — bloque sin corte entre páginas */}
+        <View wrap={false}>
+          {/* Totals */}
+          <View style={styles.totalsContainer}>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Base imponible</Text>
+              <Text style={styles.totalValue}>{formatCurrency(subtotal)}</Text>
             </View>
-          ))}
-          <View style={styles.grandTotalRow}>
-            <Text style={styles.grandTotalLabel}>Total</Text>
-            <Text style={styles.grandTotalValue}>{formatCurrency(total)}</Text>
-          </View>
-        </View>
-
-        {/* Payment Information Section */}
-        <View style={styles.paymentSection}>
-          {/* Observations */}
-          {Boolean(invoice.notes) && (
-            <View style={styles.observationsBox}>
-              <Text style={styles.observationsTitle}>Observaciones</Text>
-              <Text style={styles.observationsText}>{invoice.notes}</Text>
+            {taxes.map((tax) => (
+              <View key={tax.rate} style={styles.totalRow}>
+                <Text style={styles.totalLabel}>IVA {tax.rate}%</Text>
+                <Text style={styles.totalValue}>{formatCurrency(tax.amount)}</Text>
+              </View>
+            ))}
+            <View style={styles.grandTotalRow}>
+              <Text style={styles.grandTotalLabel}>Total</Text>
+              <Text style={styles.grandTotalValue}>{formatCurrency(total)}</Text>
             </View>
-          )}
+          </View>
 
-          {/* Payment Details Grid */}
-          <View style={styles.paymentInfoGrid}>
-            {/* Vencimientos */}
-            {Boolean(invoice.due_date) && (
-              <View style={styles.paymentInfoColumn}>
-                <Text style={styles.paymentColumnTitle}>Vencimientos</Text>
-                <Text style={styles.paymentColumnValue}>
-                  {formatDate(invoice.due_date)}
-                </Text>
-                <Text style={styles.paymentColumnValueBold}>
-                  {formatCurrency(total)}
-                </Text>
+          {/* Payment Information Section */}
+          <View style={styles.paymentSection}>
+            {/* Referencia al presupuesto origen */}
+            {Boolean(invoice.source_quote_number) && (
+              <View style={styles.sourceQuoteBox}>
+                <Text style={styles.sourceQuoteLabel}>Generada desde presupuesto:</Text>
+                <Text style={styles.sourceQuoteValue}>{invoice.source_quote_number}</Text>
               </View>
             )}
 
-            {/* Método de pago */}
-            <View style={styles.paymentInfoColumn}>
-              <Text style={styles.paymentColumnTitle}>Método de pago</Text>
-              <Text style={styles.paymentColumnValue}>
-                Transferencia bancaria
-              </Text>
-            </View>
+            {/* Observations */}
+            {Boolean(invoice.notes) && (
+              <View style={styles.observationsBox}>
+                <Text style={styles.observationsTitle}>Observaciones</Text>
+                <Text style={styles.observationsText}>{invoice.notes}</Text>
+              </View>
+            )}
 
-            {/* Cuenta bancaria */}
-            {bankAccount && (
-              <View style={styles.paymentInfoColumn}>
-                <Text style={styles.paymentColumnTitle}>Cuenta bancaria</Text>
-                {Boolean(bankAccount.iban) && (
-                  <Text style={styles.paymentColumnValueBold}>
-                    IBAN: {bankAccount.iban}
-                  </Text>
-                )}
-                {Boolean(swiftBic) && (
+            {/* Payment Details Grid */}
+            <View style={styles.paymentInfoGrid}>
+              {/* Vencimientos */}
+              {Boolean(invoice.due_date) && (
+                <View style={styles.paymentInfoColumn}>
+                  <Text style={styles.paymentColumnTitle}>Vencimientos</Text>
                   <Text style={styles.paymentColumnValue}>
-                    SWIFT/BIC: {swiftBic}
+                    {formatDate(invoice.due_date)}
                   </Text>
-                )}
-              </View>
-            )}
-          </View>
+                  <Text style={styles.paymentColumnValueBold}>
+                    {formatCurrency(total)}
+                  </Text>
+                </View>
+              )}
 
-          {/* Legal Note */}
-          <Text style={styles.legalNote}>
-            Esta factura se emite conforme a la normativa fiscal vigente.
-          </Text>
+              {/* Método de pago */}
+              <View style={styles.paymentInfoColumn}>
+                <Text style={styles.paymentColumnTitle}>Método de pago</Text>
+                <Text style={styles.paymentColumnValue}>
+                  Transferencia bancaria
+                </Text>
+              </View>
+
+              {/* Cuenta bancaria */}
+              {bankAccount && (
+                <View style={styles.paymentInfoColumn}>
+                  <Text style={styles.paymentColumnTitle}>Cuenta bancaria</Text>
+                  {Boolean(bankAccount.iban) && (
+                    <Text style={styles.paymentColumnValueBold}>
+                      IBAN: {bankAccount.iban}
+                    </Text>
+                  )}
+                  {Boolean(swiftBic) && (
+                    <Text style={styles.paymentColumnValue}>
+                      SWIFT/BIC: {swiftBic}
+                    </Text>
+                  )}
+                </View>
+              )}
+            </View>
+
+            {/* Legal Note */}
+            <Text style={styles.legalNote}>
+              Esta factura se emite conforme a la normativa fiscal vigente.
+            </Text>
+          </View>
         </View>
 
         {/* Footer */}

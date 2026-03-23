@@ -34,6 +34,7 @@ export interface DocumentLine {
   total: number;
   group_name?: string;
   line_order?: number;
+  product_id?: string;
 }
 
 export interface TaxOption {
@@ -195,7 +196,7 @@ export default function DocumentLinesEditor({
   const handleSelectProduct = useCallback(
     (
       index: number,
-      item: { name: string; price: number; tax_rate: number; description?: string }
+      item: { id?: string; name: string; price: number; tax_rate: number; description?: string }
     ) => {
       const updated = [...lines];
       updated[index] = calculateLineValues({
@@ -204,6 +205,7 @@ export default function DocumentLinesEditor({
         description: item.description ?? "",
         unit_price: item.price,
         tax_rate: item.tax_rate,
+        product_id: item.id,
       });
       onLinesChange(updated);
       // Auto-expande si el producto tiene descripción

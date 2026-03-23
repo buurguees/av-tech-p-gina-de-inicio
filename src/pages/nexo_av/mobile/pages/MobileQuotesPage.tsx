@@ -112,7 +112,7 @@ const MobileQuotesPage = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden">
+    <div className="mobile-page-viewport">
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-2 mb-4 flex-shrink-0">
         <div className="bg-card border border-border rounded-xl p-2.5">
@@ -194,7 +194,7 @@ const MobileQuotesPage = () => {
       </div>
 
       {/* Quotes List */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pb-20">
+      <div className="mobile-scroll-area space-y-2">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

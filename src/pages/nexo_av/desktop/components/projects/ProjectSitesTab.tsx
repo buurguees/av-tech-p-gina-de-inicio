@@ -13,7 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Plus, Pencil, Star, Archive, Loader2 } from "lucide-react";
+import { MapPin, Plus, Pencil, Star, Archive, Loader2, Hash } from "lucide-react";
 
 interface ProjectSite {
   id: string;
@@ -33,6 +33,7 @@ interface ProjectSite {
   longitude: number | null;
   is_default: boolean;
   is_active: boolean;
+  client_order_number: string | null;
 }
 
 interface ProjectSitesTabProps {
@@ -61,6 +62,7 @@ const ProjectSitesTab = ({ projectId, siteMode }: ProjectSitesTabProps) => {
   const [formContactEmail, setFormContactEmail] = useState("");
   const [formNotes, setFormNotes] = useState("");
   const [formFloorArea, setFormFloorArea] = useState("");
+  const [formClientOrderNumber, setFormClientOrderNumber] = useState("");
 
   useEffect(() => {
     fetchSites();
@@ -83,7 +85,7 @@ const ProjectSitesTab = ({ projectId, siteMode }: ProjectSitesTabProps) => {
     setFormName(""); setFormRef(""); setFormAddress(""); setFormCity("");
     setFormPostalCode(""); setFormProvince(""); setFormCountry("España");
     setFormContactName(""); setFormContactPhone(""); setFormContactEmail("");
-    setFormNotes(""); setFormFloorArea("");
+    setFormNotes(""); setFormFloorArea(""); setFormClientOrderNumber("");
     setEditingSite(null);
   };
 
@@ -106,6 +108,7 @@ const ProjectSitesTab = ({ projectId, siteMode }: ProjectSitesTabProps) => {
     setFormContactEmail(site.contact_email || "");
     setFormNotes(site.notes || "");
     setFormFloorArea(site.floor_area || "");
+    setFormClientOrderNumber(site.client_order_number || "");
     setDialogOpen(true);
   };
 
@@ -134,6 +137,7 @@ const ProjectSitesTab = ({ projectId, siteMode }: ProjectSitesTabProps) => {
           p_contact_email: sanitize(formContactEmail),
           p_notes: sanitize(formNotes),
           p_floor_area: sanitize(formFloorArea),
+          p_client_order_number: siteMode === "MULTI_SITE" ? (formClientOrderNumber.trim() || null) : null,
         });
         if (error) throw error;
         toast({ title: "Sitio actualizado" });
@@ -152,6 +156,7 @@ const ProjectSitesTab = ({ projectId, siteMode }: ProjectSitesTabProps) => {
           p_contact_email: sanitize(formContactEmail),
           p_notes: sanitize(formNotes),
           p_floor_area: sanitize(formFloorArea),
+          p_client_order_number: siteMode === "MULTI_SITE" ? (formClientOrderNumber.trim() || null) : null,
         });
         if (error) throw error;
         toast({ title: "Sitio creado" });
@@ -266,6 +271,11 @@ const ProjectSitesTab = ({ projectId, siteMode }: ProjectSitesTabProps) => {
                 {(site.city || site.postal_code) && (
                   <p>{[site.postal_code, site.city, site.province].filter(Boolean).join(", ")}</p>
                 )}
+                {site.client_order_number && (
+                  <p className="text-xs font-medium text-foreground/80 flex items-center gap-1">
+                    <Hash className="h-3 w-3" /> Nº Pedido: {site.client_order_number}
+                  </p>
+                )}
                 {site.site_reference && <p className="text-xs">Ref: {site.site_reference}</p>}
                 {site.contact_name && <p className="text-xs mt-1">Contacto: {site.contact_name} {site.contact_phone ? `· ${site.contact_phone}` : ""}</p>}
                 {site.floor_area && <p className="text-xs">Superficie: {site.floor_area}</p>}
@@ -312,6 +322,19 @@ const ProjectSitesTab = ({ projectId, siteMode }: ProjectSitesTabProps) => {
                 <Input value={formRef} onChange={(e) => setFormRef(e.target.value)} placeholder="Código interno" />
               </div>
             </div>
+
+            {siteMode === "MULTI_SITE" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1">
+                  <Hash className="h-3 w-3" /> Nº Pedido Cliente
+                </Label>
+                <Input
+                  value={formClientOrderNumber}
+                  onChange={(e) => setFormClientOrderNumber(e.target.value)}
+                  placeholder="Referencia del pedido del cliente para este sitio"
+                />
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <Label className="text-xs">Dirección</Label>

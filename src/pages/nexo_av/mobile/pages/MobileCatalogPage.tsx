@@ -231,7 +231,7 @@ const MobileCatalogPage = () => {
 
   return (
     <>
-      <div className="w-full h-full flex flex-col overflow-hidden">
+      <div className="mobile-page-viewport">
         <div className="sticky top-0 z-20 flex-shrink-0 bg-background/95 backdrop-blur-sm border-b border-border/40 -mx-4 px-4 pb-4 pt-2">
           <div className="grid grid-cols-3 gap-2 rounded-2xl border border-border bg-card/95 p-2 shadow-sm">
             {TABS.map((tab) => {
@@ -289,7 +289,7 @@ const MobileCatalogPage = () => {
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pb-20 pt-3">
+        <div className="mobile-scroll-area space-y-3 pt-3">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

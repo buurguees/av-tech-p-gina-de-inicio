@@ -346,7 +346,10 @@ const MobileDocumentScanner: React.FC<MobileDocumentScannerProps> = ({
       </div>
 
       {/* Controls */}
-      <div className="flex-shrink-0 px-6 py-6 bg-black/80 backdrop-blur-md flex flex-col items-center gap-4">
+      <div
+        className="flex-shrink-0 px-6 bg-black/80 backdrop-blur-md flex flex-col items-center gap-4"
+        style={{ paddingTop: '1.5rem', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         {!capturedImage ? (
           <>
             <Button

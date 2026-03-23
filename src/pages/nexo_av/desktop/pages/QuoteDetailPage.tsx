@@ -347,7 +347,7 @@ const QuoteDetailPageDesktop = () => {
           p_project_id: quoteInfo.project_id,
         });
         if (!projectError && projectData && projectData.length > 0) {
-          const proj = {
+          const proj: Project = {
             project_number: projectData[0].project_number,
             project_name: projectData[0].project_name,
             project_address: projectData[0].project_address,
@@ -356,6 +356,18 @@ const QuoteDetailPageDesktop = () => {
             client_order_number: projectData[0].client_order_number,
             site_name: quoteInfo.site_name || null,
           };
+          // For MULTI_SITE: use site-level client_order_number if available
+          if (quoteInfo.site_id && quoteInfo.project_id) {
+            const { data: sitesData } = await supabase.rpc("list_project_sites", {
+              p_project_id: quoteInfo.project_id,
+            });
+            const matchingSite = ((sitesData || []) as any[]).find(
+              (s) => s.id === quoteInfo.site_id
+            );
+            if (matchingSite?.client_order_number) {
+              proj.client_order_number = matchingSite.client_order_number;
+            }
+          }
           setProject(proj);
           fetchedProject = proj;
         }
@@ -556,34 +568,9 @@ const QuoteDetailPageDesktop = () => {
     navigate(`/nexo-av/${userId}/quotes/new?sourceQuoteId=${quoteId}`);
   };
 
-  const handleInvoice = async () => {
+  const handleInvoice = () => {
     if (!quote) return;
-
-    try {
-      const { data, error } = await supabase.rpc("create_invoice_from_quote", {
-        p_quote_id: quoteId!,
-      });
-
-      if (error) throw error;
-      if (!data || data.length === 0) throw new Error("No se pudo crear la factura");
-
-      const invoiceId = data[0].invoice_id;
-      const invoiceNumber = data[0].invoice_number;
-
-      toast({
-        title: "Factura creada",
-        description: `Se ha generado la factura ${invoiceNumber}`,
-      });
-
-      navigate(`/nexo-av/${userId}/invoices/${invoiceId}`);
-    } catch (error: any) {
-      console.error("Error creating invoice:", error);
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo crear la factura",
-        variant: "destructive",
-      });
-    }
+    navigate(`/nexo-av/${userId}/invoices/new?sourceQuoteId=${quoteId}`);
   };
 
   const formatCurrency = (amount: number) => {
@@ -804,8 +791,17 @@ const QuoteDetailPageDesktop = () => {
               loading={updatingStatus}
             />
 
-            {/* Estado SENT: mostrar "Nueva Versión" y "Facturar" */}
+            {/* Estado SENT: solo mostrar "Nueva Versión" */}
             {quote?.status === "SENT" && (
+              <DetailActionButton
+                actionType="new_version"
+                onClick={handleCreateNewVersion}
+                disabled={creatingVersion}
+              />
+            )}
+
+            {/* Estado APPROVED: mostrar "Nueva Versión" y "Facturar" */}
+            {quote?.status === "APPROVED" && (
               <>
                 <DetailActionButton
                   actionType="new_version"
@@ -817,15 +813,6 @@ const QuoteDetailPageDesktop = () => {
                   onClick={handleInvoice}
                 />
               </>
-            )}
-
-            {/* Estado APPROVED: solo mostrar "Nueva Versión" */}
-            {quote?.status === "APPROVED" && (
-              <DetailActionButton
-                actionType="new_version"
-                onClick={handleCreateNewVersion}
-                disabled={creatingVersion}
-              />
             )}
 
             {/* Estado REJECTED: solo mostrar "Nueva Versión" */}

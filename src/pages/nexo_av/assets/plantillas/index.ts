@@ -14,10 +14,18 @@ export type {
 } from './QuotePDFDocument';
 
 export { InvoicePDFDocument } from './InvoicePDFDocument';
-export type { 
-  InvoicePDFDocumentProps, 
-  Invoice, 
-  InvoiceLine, 
-  BankAccount, 
-  CompanyPreferences 
+export type {
+  InvoicePDFDocumentProps,
+  Invoice,
+  InvoiceLine,
+  BankAccount,
+  CompanyPreferences
 } from './InvoicePDFDocument';
+
+export { PurchaseOrderPDFDocument } from './PurchaseOrderPDFDocument';
+export type {
+  PurchaseOrderPDFDocumentProps,
+  PurchaseOrderForPDF,
+  PurchaseOrderLine as PurchaseOrderPDFLine,
+  CompanySettingsForPO,
+} from './PurchaseOrderPDFDocument';

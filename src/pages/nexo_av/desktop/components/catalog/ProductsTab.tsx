@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Download, Search, Loader2, Upload, FileSpreadsheet, Eye, Power, Archive, Package } from 'lucide-react';
+import { Plus, Download, Search, Loader2, Upload, FileSpreadsheet, Eye, Power, Archive, Package, TrendingUp } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -45,6 +45,8 @@ interface Product {
   min_stock_alert: number | null;
   is_active: boolean;
   has_low_stock_alert: boolean;
+  sales_count?: number;
+  sales_total?: number;
 }
 
 interface Category {
@@ -155,6 +157,12 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
     { key: 'cost_price', label: isProductTab ? 'Coste' : 'Coste Ref.', align: 'right' as const, width: 'minmax(90px, 0.9fr)', priority: 6, render: (p) => <span className="text-muted-foreground tabular-nums">{(p.cost_price ?? 0).toFixed(2)} €</span> },
     { key: 'sale_price_effective', label: 'Precio Base', align: 'right' as const, width: 'minmax(90px, 0.9fr)', priority: 6, render: (p) => <span className="text-foreground tabular-nums">{p.sale_price_effective.toFixed(2)} €</span> },
     { key: 'tax_rate', label: 'IVA', align: 'center' as const, width: '70px', priority: 6, render: (p) => <Badge variant="outline" className="text-[10px] px-1.5 py-0 w-12 justify-center">{p.tax_rate}%</Badge> },
+    {
+      key: 'sales_count', label: 'Ventas', align: 'right' as const, width: 'minmax(90px, 0.9fr)', priority: 5,
+      render: (p) => (p.sales_count ?? 0) > 0
+        ? <span className="flex items-center justify-end gap-1 tabular-nums text-primary font-medium"><TrendingUp className="w-3 h-3 opacity-70" />{p.sales_count}</span>
+        : <span className="text-muted-foreground/40 text-xs">—</span>
+    },
   ].flat();
 
   const catalogActions: DataListAction<Product>[] = [
@@ -261,15 +269,32 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('list_catalog_products', {
-        p_domain: catalogDomain,
-        p_category_id: filterCategory !== 'all' ? filterCategory : null,
-        p_search: search || null,
-        p_include_inactive: true
-      });
+      const [{ data, error }, { data: salesData }] = await Promise.all([
+        supabase.rpc('list_catalog_products', {
+          p_domain: catalogDomain,
+          p_category_id: filterCategory !== 'all' ? filterCategory : null,
+          p_search: search || null,
+          p_include_inactive: true
+        }),
+        supabase.rpc('get_catalog_sales_summary'),
+      ]);
 
       if (error) throw error;
-      setProducts((data || []) as CatalogProductRow[]);
+
+      const salesMap = new Map<string, { sales_count: number; sales_total: number }>(
+        (salesData || []).map((s: { product_id: string; sales_count: number; sales_total: number }) => [
+          s.product_id,
+          { sales_count: Number(s.sales_count), sales_total: Number(s.sales_total) },
+        ])
+      );
+
+      const enriched = (data || []).map((p: CatalogProductRow) => ({
+        ...p,
+        sales_count: salesMap.get(p.id)?.sales_count ?? 0,
+        sales_total: salesMap.get(p.id)?.sales_total ?? 0,
+      }));
+
+      setProducts(enriched as unknown as Product[]);
     } catch (error) {
       console.error('Error loading products:', error);
       toast.error(`Error al cargar ${isProductTab ? 'productos' : 'servicios'}`);
@@ -301,7 +326,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
     }
 
     if (!formData.subcategoryId) {
-      toast.error('La subcategorÃ­a es obligatoria');
+      toast.error('La subcategoría es obligatoria');
       return;
     }
 
@@ -544,7 +569,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
 
         const normalizedSubCode = String(subCode || '').trim().toUpperCase();
         if (!normalizedSubCode) {
-          console.error(`SubcategorÃ­a obligatoria en fila ${i + 2}`);
+          console.error(`Subcategoría obligatoria en fila ${i + 2}`);
           errors++;
           continue;
         }
@@ -553,7 +578,7 @@ export default function ProductsTab({ isAdmin, filterType }: ProductsTabProps) {
           s => s.parent_id === category.id && (`${category.code}-${s.code}` === normalizedSubCode || s.code === normalizedSubCode)
         );
         if (!subcategory) {
-          console.error(`SubcategorÃ­a no encontrada: ${normalizedSubCode}`);
+          console.error(`Subcategoría no encontrada: ${normalizedSubCode}`);
           errors++;
           continue;
         }

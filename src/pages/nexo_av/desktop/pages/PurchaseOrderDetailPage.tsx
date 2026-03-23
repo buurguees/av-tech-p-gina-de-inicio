@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import DetailNavigationBar from "../components/navigation/DetailNavigationBar";
@@ -8,8 +9,8 @@ import { DetailInfoBlock, DetailInfoHeader, DetailInfoSummary, MetricCard } from
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import StatusSelector from "../components/common/StatusSelector";
-import { 
-  PURCHASE_ORDER_STATUSES, 
+import {
+  PURCHASE_ORDER_STATUSES,
   getPurchaseOrderStatusInfo,
   canEditPurchaseOrder,
   canApprovePurchaseOrder,
@@ -18,6 +19,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import PurchaseOrderLinesEditor from "../components/purchases/PurchaseOrderLinesEditor";
 import ConvertPOToInvoiceDialog from "../components/purchases/ConvertPOToInvoiceDialog";
+import DocumentPDFViewer from "../components/common/DocumentPDFViewer";
+import { PurchaseOrderPDFDocument } from "@/pages/nexo_av/assets/plantillas/PurchaseOrderPDFDocument";
+import type { PurchaseOrderForPDF, PurchaseOrderPDFLine, CompanySettingsForPO } from "@/pages/nexo_av/assets/plantillas/PurchaseOrderPDFDocument";
+import { archivePurchaseOrderDocument, buildPurchaseOrderArchiveFileName } from "@/pages/nexo_av/shared/lib/purchaseOrderArchive";
 import {
   LayoutDashboard,
   FileText,
@@ -36,6 +41,10 @@ import {
   ExternalLink,
   ArrowRight,
   MapPin,
+  Eye,
+  Loader2,
+  CloudUpload,
+  Cloud,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -75,6 +84,12 @@ interface PurchaseOrderDetail {
   site_id?: string | null;
   site_name?: string | null;
   site_city?: string | null;
+  // Archivado SharePoint
+  archived_pdf_path?: string | null;
+  archived_pdf_file_name?: string | null;
+  sharepoint_item_id?: string | null;
+  sharepoint_web_url?: string | null;
+  archived_at?: string | null;
 }
 
 const PurchaseOrderDetailPageDesktop = () => {
@@ -86,17 +101,52 @@ const PurchaseOrderDetailPageDesktop = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("detalle");
   const [approving, setApproving] = useState(false);
+  const [archiving, setArchiving] = useState(false);
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
+
+  // Datos para la vista previa PDF — carga lazy al activar el tab
+  const [pdfLines, setPdfLines] = useState<PurchaseOrderPDFLine[]>([]);
+  const [pdfCompany, setPdfCompany] = useState<CompanySettingsForPO | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfLoaded, setPdfLoaded] = useState(false);
 
   const tabs: TabItem[] = [
     { value: "detalle", label: "Detalle", icon: LayoutDashboard },
     { value: "lineas", label: "Líneas", icon: FileText },
+    { value: "vista-previa", label: "Vista previa", icon: Eye },
     { value: "historico", label: "Histórico", icon: History, align: "right" },
   ];
 
   useEffect(() => {
     fetchOrder();
   }, [orderId]);
+
+  // Carga lazy de datos para el PDF al activar el tab de vista previa
+  useEffect(() => {
+    if (activeTab !== "vista-previa" || pdfLoaded || !orderId) return;
+
+    const loadPdfData = async () => {
+      setPdfLoading(true);
+      try {
+        const [linesResult, companyResult] = await Promise.all([
+          supabase.rpc("get_purchase_order_lines" as any, { p_order_id: orderId }),
+          supabase.rpc("get_company_settings" as any),
+        ]);
+        if (linesResult.data) setPdfLines((linesResult.data as any[]) as PurchaseOrderPDFLine[]);
+        if (companyResult.data) {
+          const c = Array.isArray(companyResult.data) ? companyResult.data[0] : companyResult.data;
+          if (c) setPdfCompany(c as CompanySettingsForPO);
+        }
+        setPdfLoaded(true);
+      } catch (err) {
+        console.error("Error loading PDF data:", err);
+      } finally {
+        setPdfLoading(false);
+      }
+    };
+
+    loadPdfData();
+  }, [activeTab, pdfLoaded, orderId]);
 
   const fetchOrder = async () => {
     if (!orderId) return;
@@ -178,8 +228,70 @@ const PurchaseOrderDetailPageDesktop = () => {
 
       toast({
         title: "Pedido aprobado",
-        description: "El pedido de compra ha sido aprobado correctamente",
+        description: "Generando PDF y archivando en SharePoint...",
       });
+
+      // Archivar en SharePoint después de la aprobación
+      try {
+        setArchiving(true);
+
+        // Cargar datos necesarios para el PDF si no están en memoria
+        const [linesResult, companyResult] = await Promise.all([
+          supabase.rpc("get_purchase_order_lines" as any, { p_order_id: order.id }),
+          supabase.rpc("get_company_settings" as any),
+        ]);
+
+        const lines = ((linesResult.data as any[]) || []) as PurchaseOrderPDFLine[];
+        const companyRaw = Array.isArray(companyResult.data)
+          ? companyResult.data[0]
+          : companyResult.data;
+        const company = companyRaw as CompanySettingsForPO | null;
+
+        const approvedOrder: PurchaseOrderForPDF = {
+          ...order,
+          status: "APPROVED",
+        };
+
+        const fileName = buildPurchaseOrderArchiveFileName({
+          poNumber: order.po_number,
+          issueDate: order.issue_date,
+        });
+
+        const pdfDoc = React.createElement(PurchaseOrderPDFDocument, {
+          order: approvedOrder,
+          lines,
+          company,
+        });
+
+        await archivePurchaseOrderDocument({
+          orderId: order.id,
+          poNumber: order.po_number,
+          issueDate: order.issue_date,
+          fileName,
+          pdfDocument: pdfDoc,
+          supplierName: order.supplier_name || order.technician_name,
+          projectNumber: order.project_number,
+        });
+
+        toast({
+          title: "Archivado en SharePoint",
+          description: `${fileName} guardado en Compras/Pedidos de Compra`,
+        });
+
+        // Actualizar datos del PDF en memoria
+        setPdfLines(lines);
+        if (company) setPdfCompany(company);
+        setPdfLoaded(true);
+      } catch (archiveErr: any) {
+        console.warn("Error archivando en SharePoint:", archiveErr);
+        toast({
+          title: "Pedido aprobado",
+          description: "No se pudo archivar en SharePoint. Puedes intentarlo desde la pestaña Vista previa.",
+        });
+      } finally {
+        setArchiving(false);
+      }
+
       fetchOrder();
     } catch (error: any) {
       console.error("Error approving order:", error);
@@ -356,11 +468,15 @@ const PurchaseOrderDetailPageDesktop = () => {
                   {canApprovePurchaseOrder(order.status) && (
                     <Button
                       onClick={handleApprove}
-                      disabled={approving}
+                      disabled={approving || archiving}
                       className="bg-green-600 hover:bg-green-700"
                     >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      {approving ? "Aprobando..." : "Aprobar Pedido"}
+                      {(approving || archiving) ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      {archiving ? "Archivando..." : approving ? "Aprobando..." : "Aprobar Pedido"}
                     </Button>
                   )}
                   
@@ -384,6 +500,31 @@ const PurchaseOrderDetailPageDesktop = () => {
                 readOnly={!canEditPurchaseOrder(order.status)}
                 onLinesChange={fetchOrder}
               />
+            )}
+
+            {activeTab === "vista-previa" && order && (
+              <div className="h-full flex flex-col">
+                {pdfLoading ? (
+                  <div className="flex-1 flex items-center justify-center gap-3 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Cargando datos del PDF...
+                  </div>
+                ) : (
+                  <DocumentPDFViewer
+                    document={React.createElement(PurchaseOrderPDFDocument, {
+                      order: order as PurchaseOrderForPDF,
+                      lines: pdfLines,
+                      company: pdfCompany,
+                    })}
+                    fileName={buildPurchaseOrderArchiveFileName({
+                      poNumber: order.po_number,
+                      issueDate: order.issue_date,
+                    }).replace(".pdf", "")}
+                    defaultShowPreview={true}
+                    className="h-full"
+                  />
+                )}
+              </div>
             )}
 
             {activeTab === "historico" && (
@@ -480,6 +621,30 @@ const PurchaseOrderDetailPageDesktop = () => {
                         <div>
                           <span className="text-muted-foreground text-xs uppercase">Sitio de instalación</span>
                           <p className="font-medium">{order.site_name}{order.site_city ? ` — ${order.site_city}` : ""}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Archivado SharePoint */}
+                    {order?.archived_at && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <Cloud className="w-4 h-4 text-green-500 mt-0.5" />
+                        <div>
+                          <span className="text-muted-foreground text-xs uppercase">Archivado</span>
+                          <p className="font-medium text-green-400 text-xs">SharePoint</p>
+                          {order.sharepoint_web_url ? (
+                            <a
+                              href={order.sharepoint_web_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline flex items-center gap-1 mt-0.5"
+                            >
+                              Ver en SharePoint
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">{order.archived_pdf_file_name}</p>
+                          )}
                         </div>
                       </div>
                     )}

@@ -247,7 +247,7 @@ const MobileScannerPage = () => {
         />
       )}
       
-      <div className="w-full h-full flex flex-col overflow-hidden">
+      <div className="mobile-page-viewport">
         {/* Hidden file input */}
         <input
           ref={fileInputRef}
@@ -296,7 +296,7 @@ const MobileScannerPage = () => {
           Documentos sin asignar
         </h2>
         
-        <div className="flex-1 overflow-y-auto space-y-2 pb-20">
+        <div className="mobile-scroll-area space-y-2">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

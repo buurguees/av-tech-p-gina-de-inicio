@@ -1,20 +1,14 @@
-﻿/* ============================================
-   NEXO AV MOBILE - GLOBAL STYLES
-   Base styles, layout variables, and imports
-   
-   IMPORTANT: Import order matters!
-   1. Variables must come first
-   2. Typography second
-   3. Components last (they use variables)
+/* ============================================
+   NEXO AV MOBILE — GLOBAL STYLES
+   Único punto de entrada CSS para toda la capa mobile.
+   Orden de import obligatorio:
+     1. variables  — custom properties (tema + layout tokens)
+     2. typography — estilos de texto semánticos
+     3. components — componentes específicos (nav, badges…)
    ============================================ */
 
-/* Variables - Theme colors and design tokens */
 @import './base/variables.css';
-
-/* Typography - Headings and text styles */
 @import './base/typography-safe.css';
-
-/* Components - All component-specific styles */
 @import './components/index.css';
 
 /* ============================================
@@ -28,8 +22,7 @@ body.nexo-av-theme {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Prevenir zoom en inputs en iOS */
-  -webkit-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%; /* Prevenir zoom de texto en iOS */
 }
 
 body.nexo-av-theme-dark {
@@ -38,80 +31,149 @@ body.nexo-av-theme-dark {
 }
 
 /* ============================================
-   MOBILE TYPOGRAPHY OVERRIDE
-   Use Roboto for all text in mobile
+   MOBILE TYPOGRAPHY — Forzar Roboto en pantallas pequeñas
    ============================================ */
 @media (max-width: 550px) {
-  body, body.nexo-av-theme, body.nexo-av-theme-dark {
+  body,
+  body.nexo-av-theme,
+  body.nexo-av-theme-dark {
     font-family: var(--font-sans) !important;
   }
-  
-  h1, h2, h3, h4, h5, h6, p, span, a, button, input, label {
+
+  h1, h2, h3, h4, h5, h6,
+  p, span, a, button, input, label {
     font-family: var(--font-sans) !important;
   }
 }
 
 /* ============================================
-   LAYOUT VARIABLES
-   ============================================ */
-body.nexo-av-theme,
-body.nexo-av-theme-dark {
-  --mobile-header-height: 5rem;
-  --mobile-bottom-nav-height: 5.5rem;
-  --mobile-bottom-nav-extra-gap: 14px;
-  --mobile-padding: 1rem;
-  --mobile-touch-target: 44px; /* TamaÃ±o mÃ­nimo tÃ¡ctil */
-  --mobile-border-radius: 12px;
-}
-
-/* ============================================
-   MAIN CONTENT AREA
+   LAYOUT PRINCIPAL — .mobile-main-content
+   Contenedor raíz de todas las páginas del ERP mobile.
+   Generado por NexoAvMobileLayout → <main class="mobile-main-content">.
+   paddingTop se aplica vía inline style para incluir safe-area-inset-top.
    ============================================ */
 .mobile-main-content {
   width: 100%;
   min-height: calc(100dvh - var(--mobile-header-height));
   padding:
-    0
-    var(--mobile-padding)
-    calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom, 0px) + var(--mobile-bottom-nav-extra-gap))
-    var(--mobile-padding);
+    0                                             /* top — sobreescrito inline con safe-area */
+    var(--mobile-padding)                         /* right */
+    calc(
+      var(--mobile-bottom-nav-height)
+      + env(safe-area-inset-bottom, 0px)
+      + var(--mobile-bottom-nav-extra-gap, 14px)
+    )                                             /* bottom — clearance para bottom nav */
+    var(--mobile-padding);                        /* left */
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling iOS */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================
+   MOBILE PAGE VIEWPORT
+   Contenedor para páginas con scroll interno propio
+   (listas con buscador fijo, detalle con header fijo…).
+   Usa altura exacta = viewport visible entre header y bottom nav.
+   Usar en lugar de "w-full h-full flex flex-col overflow-hidden".
+   ============================================ */
+.mobile-page-viewport {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: calc(
+    100dvh
+    - var(--mobile-header-height)
+    - env(safe-area-inset-top, 0px)
+    - var(--mobile-bottom-nav-height)
+    - env(safe-area-inset-bottom, 0px)
+    - var(--mobile-bottom-nav-extra-gap, 14px)
+  );
+}
+
+/* ============================================
+   MOBILE SCROLL AREA
+   Área de scroll interna dentro de .mobile-page-viewport.
+   Usar en lugar de "flex-1 min-h-0 overflow-y-auto pb-20".
+   Añadir clases de espacio (space-y-2, pt-3…) según necesidad.
+   ============================================ */
+.mobile-scroll-area {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 1rem; /* respiro visual en el último elemento */
 }
 
 /* ============================================
    TOUCH OPTIMIZATIONS
+   touch-action ya definido globalmente aquí; no repetir inline.
    ============================================ */
-button, a, [role="button"] {
-  min-height: var(--mobile-touch-target);
+button,
+a,
+[role="button"] {
+  min-height: var(--mobile-touch-target);  /* 44px — WCAG AA táctil */
   min-width: var(--mobile-touch-target);
   touch-action: manipulation; /* Elimina delay de 300ms en iOS */
 }
 
-/* Prevenir selecciÃ³n de texto accidental */
-button, .mobile-card {
+/* ============================================
+   INPUT — PREVENCIÓN DE ZOOM EN iOS
+   iOS hace zoom automático cuando font-size < 16px.
+   Forzamos mínimo 16px en todos los campos de texto dentro
+   del tema mobile, respetando el resto de estilos Tailwind.
+   ============================================ */
+body.nexo-av-theme input[type="text"],
+body.nexo-av-theme input[type="email"],
+body.nexo-av-theme input[type="number"],
+body.nexo-av-theme input[type="search"],
+body.nexo-av-theme input[type="tel"],
+body.nexo-av-theme input[type="date"],
+body.nexo-av-theme input[type="password"],
+body.nexo-av-theme input[type="url"],
+body.nexo-av-theme textarea,
+body.nexo-av-theme select,
+body.nexo-av-theme-dark input[type="text"],
+body.nexo-av-theme-dark input[type="email"],
+body.nexo-av-theme-dark input[type="number"],
+body.nexo-av-theme-dark input[type="search"],
+body.nexo-av-theme-dark input[type="tel"],
+body.nexo-av-theme-dark input[type="date"],
+body.nexo-av-theme-dark input[type="password"],
+body.nexo-av-theme-dark input[type="url"],
+body.nexo-av-theme-dark textarea,
+body.nexo-av-theme-dark select {
+  font-size: 1rem; /* 16px — umbral mínimo para evitar zoom iOS */
+}
+
+/* ============================================
+   PREVENIR SELECCIÓN DE TEXTO ACCIDENTAL
+   ============================================ */
+button,
+.mobile-card {
   -webkit-user-select: none;
   user-select: none;
 }
 
 /* ============================================
-   SCROLLBAR STYLING (Mobile)
+   SCROLLBAR STYLING (webkit)
    ============================================ */
-.mobile-main-content::-webkit-scrollbar {
+.mobile-main-content::-webkit-scrollbar,
+.mobile-scroll-area::-webkit-scrollbar {
   width: 4px;
 }
 
-.mobile-main-content::-webkit-scrollbar-track {
+.mobile-main-content::-webkit-scrollbar-track,
+.mobile-scroll-area::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.mobile-main-content::-webkit-scrollbar-thumb {
+.mobile-main-content::-webkit-scrollbar-thumb,
+.mobile-scroll-area::-webkit-scrollbar-thumb {
   background: hsl(var(--muted));
   border-radius: 2px;
 }
 
-.mobile-main-content::-webkit-scrollbar-thumb:hover {
+.mobile-main-content::-webkit-scrollbar-thumb:hover,
+.mobile-scroll-area::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
-
-

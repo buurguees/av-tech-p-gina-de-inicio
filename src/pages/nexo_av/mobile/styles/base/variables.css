@@ -53,6 +53,7 @@ body.nexo-av-theme {
   /* Mobile Layout Variables */
   --mobile-header-height: 5rem;
   --mobile-bottom-nav-height: 5.5rem;
+  --mobile-bottom-nav-extra-gap: 14px; /* overridden by JS: 22px iPhone, 18px iPad, 10px Android */
   --mobile-padding: 1rem;
   --mobile-touch-target: 44px;
   --mobile-border-radius: 12px;
@@ -125,6 +126,7 @@ body.nexo-av-theme-dark {
   /* Mobile Layout Variables */
   --mobile-header-height: 5rem;
   --mobile-bottom-nav-height: 5.5rem;
+  --mobile-bottom-nav-extra-gap: 14px;
   --mobile-padding: 1rem;
   --mobile-touch-target: 44px;
   --mobile-border-radius: 12px;

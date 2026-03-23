@@ -1244,6 +1244,44 @@ serve(async (req) => {
       }, 201);
     }
 
+    if (body.action === "upload-purchase-order-pdf") {
+      const graphToken = await getGraphAccessToken();
+      const driveId = await getPurchasesDriveId(graphToken);
+      const fileBytes = Uint8Array.from(atob(body.pdfBase64), (char) => char.charCodeAt(0));
+      const siteId = getRequiredEnv("MS_SHAREPOINT_SITE_ID");
+
+      const item = await uploadFileToDrive(
+        graphToken,
+        driveId,
+        body.folderPath,
+        body.fileName,
+        fileBytes,
+        "application/pdf",
+      );
+
+      if (body.metadata && item.id) {
+        try {
+          await patchDriveItemMetadata(graphToken, driveId, item.id, body.metadata);
+        } catch (metadataError) {
+          console.warn("PO SharePoint metadata patch skipped:", metadataError);
+        }
+      }
+
+      return jsonResponse(corsHeaders, {
+        uploadedItems: [
+          {
+            id: item.id,
+            name: item.name,
+            path: `${body.folderPath}/${body.fileName}`,
+            webUrl: item.webUrl ?? null,
+            eTag: item.eTag ?? null,
+            driveId,
+            siteId,
+          },
+        ],
+      }, 201);
+    }
+
     return jsonResponse(corsHeaders, { error: "Unsupported action" }, 400);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";

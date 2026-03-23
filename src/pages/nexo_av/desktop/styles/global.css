@@ -50,16 +50,6 @@ body.nexo-av-theme-dark {
 }
 
 /* ============================================
-   MAIN CONTENT AREA
-   ============================================ */
-body.nexo-av-theme main.ml-56,
-body.nexo-av-theme-dark main.ml-56 {
-  width: 100%;
-  height: 100%;
-  padding-top: 0;
-}
-
-/* ============================================
    RESPONSIVE DESKTOP BREAKPOINTS
    ============================================ */
 
@@ -171,6 +161,8 @@ body.nexo-av-theme-dark label {
 
 /* ============================================
    TRANSITIONS - Global defaults
+   Solo propiedades específicas para evitar
+   transiciones inesperadas al cambiar el tema.
    ============================================ */
 body.nexo-av-theme button,
 body.nexo-av-theme a,
@@ -182,7 +174,7 @@ body.nexo-av-theme-dark a,
 body.nexo-av-theme-dark input,
 body.nexo-av-theme-dark select,
 body.nexo-av-theme-dark textarea {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
 /* Subtle hover — professional, not flashy */

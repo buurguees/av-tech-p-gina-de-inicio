@@ -196,6 +196,7 @@ export const EditProjectForm = ({
         p_local_name: (formValues.local_name || data.local_name || "").trim() || null,
         p_client_order_number: (formValues.client_order_number || data.client_order_number || "").trim() || null,
         p_notes: (formValues.notes || data.notes || "").trim() || null,
+        p_project_name: generatedProjectName || null,
       };
 
       const { error, data: result } = await supabase.rpc("update_project", updateData);

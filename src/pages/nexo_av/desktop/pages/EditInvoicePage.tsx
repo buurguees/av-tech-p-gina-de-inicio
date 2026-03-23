@@ -195,6 +195,7 @@ const EditInvoicePageDesktop = () => {
           tax_amount: number;
           total: number;
           line_order?: number;
+          product_id?: string;
         }) => ({
           id: l.id,
           concept: l.concept,
@@ -207,6 +208,7 @@ const EditInvoicePageDesktop = () => {
           tax_amount: l.tax_amount,
           total: l.total,
           line_order: l.line_order,
+          product_id: l.product_id || undefined,
         })
       );
 
@@ -356,6 +358,7 @@ const EditInvoicePageDesktop = () => {
           p_unit_price: line.unit_price,
           p_tax_rate: line.tax_rate,
           p_discount_percent: line.discount_percent,
+          p_product_id: line.product_id || null,
         });
         if (error) throw error;
         const key = line.tempId || "";
@@ -371,6 +374,7 @@ const EditInvoicePageDesktop = () => {
           p_unit_price: line.unit_price,
           p_tax_rate: line.tax_rate,
           p_discount_percent: line.discount_percent,
+          p_product_id: line.product_id || null,
         });
         if (error) throw error;
       }

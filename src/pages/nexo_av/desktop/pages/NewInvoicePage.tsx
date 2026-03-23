@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Save, Loader2, FileText, MapPin } from "lucide-react";
+import { Save, Loader2, FileText, MapPin, Link2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useToast } from "@/hooks/use-toast";
 import DocumentLinesEditor, {
@@ -33,6 +33,17 @@ interface ProjectSite {
   is_default: boolean;
 }
 
+interface ApprovedQuote {
+  id: string;
+  quote_number: string;
+  client_id: string;
+  client_name: string;
+  total: number;
+}
+
+const formatCurrencyShort = (amount: number) =>
+  new Intl.NumberFormat("es-ES", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount) + " €";
+
 const NewInvoicePage = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
@@ -40,6 +51,11 @@ const NewInvoicePage = () => {
   const { toast } = useToast();
 
   const [saving, setSaving] = useState(false);
+  const [selectedSourceQuoteId, setSelectedSourceQuoteId] = useState<string>(
+    () => searchParams.get("sourceQuoteId") || ""
+  );
+  const [approvedQuotes, setApprovedQuotes] = useState<ApprovedQuote[]>([]);
+  const pendingSiteIdRef = useRef<string>("");
 
   // Cliente / Proyecto / Sitio
   const [clients, setClients] = useState<{ id: string; company_name: string }[]>([]);
@@ -69,13 +85,14 @@ const NewInvoicePage = () => {
   useEffect(() => {
     fetchClients();
     fetchSaleTaxes();
+    fetchApprovedQuotes();
     const urlClientId = searchParams.get("clientId");
     if (urlClientId) setSelectedClientId(urlClientId);
   }, [searchParams]);
 
-  // Añadir una línea vacía al cargar los impuestos por primera vez
+  // Añadir una línea vacía al cargar los impuestos por primera vez (solo si no venimos de un presupuesto)
   useEffect(() => {
-    if (taxOptions.length > 0 && lines.length === 0) {
+    if (taxOptions.length > 0 && lines.length === 0 && !selectedSourceQuoteId) {
       setLines([
         {
           tempId: crypto.randomUUID(),
@@ -94,6 +111,52 @@ const NewInvoicePage = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taxOptions]);
+
+  // Pre-rellenar desde presupuesto origen
+  const loadFromQuote = useCallback(async (quoteId: string) => {
+    if (!quoteId || taxOptions.length === 0) return;
+    try {
+      const { data: quoteData, error: quoteError } = await supabase.rpc("get_quote", {
+        p_quote_id: quoteId,
+      });
+      if (quoteError) throw quoteError;
+      const q = quoteData?.[0] as any;
+      if (!q) return;
+
+      setSelectedClientId(q.client_id);
+      if (q.project_id) setSelectedProjectId(q.project_id);
+      if (q.site_id) pendingSiteIdRef.current = q.site_id;
+
+      const { data: linesData, error: linesError } = await supabase.rpc("get_quote_lines", {
+        p_quote_id: quoteId,
+      });
+      if (linesError) throw linesError;
+
+      const mappedLines = ((linesData || []) as any[]).map((l, idx) => ({
+        tempId: crypto.randomUUID(),
+        concept: l.concept,
+        description: l.description || "",
+        quantity: l.quantity,
+        unit_price: l.unit_price,
+        tax_rate: l.tax_rate,
+        discount_percent: l.discount_percent ?? 0,
+        subtotal: l.subtotal,
+        tax_amount: l.tax_amount,
+        total: l.total,
+        line_order: idx + 1,
+      }));
+      setLines(mappedLines);
+    } catch (e) {
+      console.error("Error loading quote data for invoice:", e);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taxOptions]);
+
+  useEffect(() => {
+    if (!selectedSourceQuoteId || taxOptions.length === 0) return;
+    void loadFromQuote(selectedSourceQuoteId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSourceQuoteId, taxOptions]);
 
   // Proyectos al cambiar cliente
   useEffect(() => {
@@ -141,6 +204,26 @@ const NewInvoicePage = () => {
     }
   };
 
+  const fetchApprovedQuotes = async () => {
+    try {
+      const { data, error } = await supabase.rpc("list_quotes", { p_search: null });
+      if (error) throw error;
+      setApprovedQuotes(
+        ((data || []) as any[])
+          .filter((q) => q.status === "APPROVED")
+          .map((q) => ({
+            id: q.id,
+            quote_number: q.quote_number,
+            client_id: q.client_id,
+            client_name: q.client_name || "",
+            total: q.total ?? 0,
+          }))
+      );
+    } catch (e) {
+      console.error("Error fetching approved quotes:", e);
+    }
+  };
+
   const fetchClientProjects = async (clientId: string) => {
     setLoadingProjects(true);
     try {
@@ -180,9 +263,13 @@ const NewInvoicePage = () => {
         }));
       setProjectSites(sites);
       const proj = projects.find((p) => p.id === projectId);
+      const prefSite = pendingSiteIdRef.current;
+      pendingSiteIdRef.current = "";
       if (proj?.site_mode === "SINGLE_SITE" && sites.length > 0) {
         const def = sites.find((s) => s.is_default) || sites[0];
         setSelectedSiteId(def.id);
+      } else if (prefSite && sites.some((s) => s.id === prefSite)) {
+        setSelectedSiteId(prefSite);
       } else {
         setSelectedSiteId("");
       }
@@ -242,6 +329,7 @@ const NewInvoicePage = () => {
           p_issue_date: issueDate,
           p_due_date: dueDate,
           p_site_id: selectedSiteId || null,
+          p_source_quote_id: selectedSourceQuoteId || null,
         }
       );
       if (invoiceError) throw invoiceError;
@@ -257,7 +345,8 @@ const NewInvoicePage = () => {
           p_quantity: line.quantity,
           p_unit_price: line.unit_price,
           p_tax_rate: line.tax_rate,
-          p_discount_percent: line.discount_percent,
+          p_discount_percent: line.discount_percent ?? 0,
+          p_product_id: line.product_id || null,
         });
         if (lineError) throw lineError;
       }
@@ -283,11 +372,17 @@ const NewInvoicePage = () => {
     lines,
     projects,
     userId,
+    selectedSourceQuoteId,
     navigate,
     toast,
   ]);
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
+
+  // Filtrar presupuestos aprobados por cliente si hay uno seleccionado
+  const filteredApprovedQuotes = selectedClientId
+    ? approvedQuotes.filter((q) => q.client_id === selectedClientId)
+    : approvedQuotes;
 
   return (
     <div className="w-full">
@@ -302,7 +397,9 @@ const NewInvoicePage = () => {
             <div>
               <h1 className="text-base md:text-2xl font-bold text-foreground">Nueva factura</h1>
               <p className="text-muted-foreground text-[10px] md:text-sm hidden md:block">
-                El número se asignará automáticamente al guardar
+                {selectedSourceQuoteId
+                  ? "Datos copiados del presupuesto — revisa antes de guardar"
+                  : "El número se asignará automáticamente al guardar"}
               </p>
             </div>
             <Button
@@ -332,6 +429,44 @@ const NewInvoicePage = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              {/* Presupuesto origen */}
+              <div className="space-y-1.5 col-span-2 md:col-span-4">
+                <Label className="text-muted-foreground text-[10px] md:text-xs flex items-center gap-1">
+                  <Link2 className="h-3 w-3" /> Presupuesto origen
+                  <span className="text-muted-foreground/60">(opcional)</span>
+                </Label>
+                <Select
+                  value={selectedSourceQuoteId || "__none__"}
+                  onValueChange={(v) => {
+                    const quoteId = v === "__none__" ? "" : v;
+                    setSelectedSourceQuoteId(quoteId);
+                    if (quoteId) {
+                      void loadFromQuote(quoteId);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="h-8 md:h-9 text-xs md:text-sm rounded-xl">
+                    <SelectValue placeholder="Vincular a un presupuesto aprobado..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— Sin presupuesto origen —</SelectItem>
+                    {filteredApprovedQuotes.length === 0 && selectedClientId && (
+                      <SelectItem value="__empty__" disabled>
+                        Sin presupuestos aprobados para este cliente
+                      </SelectItem>
+                    )}
+                    {filteredApprovedQuotes.map((q) => (
+                      <SelectItem key={q.id} value={q.id}>
+                        {q.quote_number}
+                        {q.client_name ? ` — ${q.client_name}` : ""}
+                        {" · "}
+                        {formatCurrencyShort(q.total)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Cliente */}
               <div className="space-y-1.5 col-span-2 md:col-span-1">
                 <Label className="text-muted-foreground text-[10px] md:text-xs">Cliente</Label>
@@ -342,6 +477,11 @@ const NewInvoicePage = () => {
                     setSelectedProjectId("");
                     setSelectedSiteId("");
                     setProjectSites([]);
+                    // Si el cliente cambia manualmente y no coincide con el del presupuesto origen, limpiar el enlace
+                    const linkedQuote = approvedQuotes.find((q) => q.id === selectedSourceQuoteId);
+                    if (linkedQuote && linkedQuote.client_id !== v) {
+                      setSelectedSourceQuoteId("");
+                    }
                   }}
                 >
                   <SelectTrigger className="h-8 md:h-9 text-xs md:text-sm rounded-xl">

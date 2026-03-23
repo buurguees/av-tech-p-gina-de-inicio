@@ -121,7 +121,10 @@ const NexoAvLayout = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [accessDenied, setAccessDenied] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>(() => {
+    const stored = localStorage.getItem('nexo-theme');
+    return (stored === 'dark' || stored === 'light') ? stored : 'light';
+  });
   const [simulatedRole, setSimulatedRole] = useState<SimulatedRole>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     return localStorage.getItem('nexo-sidebar-collapsed') === 'true';
@@ -183,6 +186,7 @@ const NexoAvLayout = () => {
 
         // Set theme preference
         const theme = (currentUserInfo.theme_preference || 'light') as 'light' | 'dark';
+        localStorage.setItem('nexo-theme', theme);
         setCurrentTheme(theme);
 
         setUserInfo(currentUserInfo);
@@ -414,7 +418,10 @@ const NexoAvLayout = () => {
         userInfo={userInfo}
         currentTheme={currentTheme}
         onLogout={handleLogout}
-        onThemeChange={setCurrentTheme}
+        onThemeChange={(theme) => {
+                localStorage.setItem('nexo-theme', theme);
+                setCurrentTheme(theme);
+              }}
         isRealAdmin={!!isRealAdmin}
         simulatedRole={simulatedRole}
         onSimulatedRoleChange={(role) => setSimulatedRole(role as SimulatedRole)}

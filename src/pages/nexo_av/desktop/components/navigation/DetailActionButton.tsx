@@ -35,7 +35,7 @@ const DetailActionButton = ({
         };
       case "technicians":
         return {
-          label: "Asignar TÃ©cnicos",
+          label: "Asignar Técnicos",
           icon: <Users className="detail-action-button__icon" />,
           variant: "default" as const,
         };
@@ -53,7 +53,7 @@ const DetailActionButton = ({
         };
       case "new_version":
         return {
-          label: "Nueva VersiÃ³n",
+          label: "Nueva Versión",
           icon: <Copy className="detail-action-button__icon" />,
           variant: "default" as const,
         };
@@ -119,7 +119,7 @@ const DetailActionButton = ({
         };
       default:
         return {
-          label: "AcciÃ³n",
+          label: "Acción",
           icon: <Plus className="detail-action-button__icon" />,
           variant: "default" as const,
         };

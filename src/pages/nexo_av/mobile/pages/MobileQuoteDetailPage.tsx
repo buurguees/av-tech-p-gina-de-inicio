@@ -27,7 +27,6 @@ import {
   Receipt,
   TrendingUp,
   Copy,
-  Receipt as ReceiptIcon,
   Clock,
   type LucideIcon
 } from "lucide-react";
@@ -532,34 +531,6 @@ const MobileQuoteDetailPage = () => {
     navigate(`/nexo-av/${userId}/quotes/new?sourceQuoteId=${quoteId}`);
   };
 
-  const handleInvoice = async () => {
-    if (!quote) return;
-    try {
-      const { data, error } = await supabase.rpc("create_invoice_from_quote", {
-        p_quote_id: quoteId!,
-      });
-      if (error) throw error;
-      if (!data || data.length === 0) throw new Error("No se pudo crear la factura");
-
-      const invoiceId = data[0].invoice_id;
-      const invoiceNumber = data[0].invoice_number;
-
-      toast({
-        title: "Factura creada",
-        description: `Se ha generado la factura ${invoiceNumber}`,
-      });
-
-      navigate(`/nexo-av/${userId}/invoices/${invoiceId}`);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "No se pudo crear la factura";
-      console.error("Error creating invoice:", error);
-      toast({
-        title: "Error",
-        description: message,
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleBack = () => {
     navigate(`/nexo-av/${userId}/quotes`);
@@ -639,11 +610,6 @@ const MobileQuoteDetailPage = () => {
         label: 'Nueva Versión',
         icon: Copy,
         onClick: handleCreateNewVersion,
-      });
-      buttons.push({
-        label: 'Facturar',
-        icon: ReceiptIcon,
-        onClick: handleInvoice,
       });
     } else if (quote.status === 'APPROVED' || quote.status === 'REJECTED' || quote.status === 'EXPIRED') {
       buttons.push({

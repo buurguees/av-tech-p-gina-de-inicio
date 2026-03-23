@@ -375,7 +375,7 @@ const InvoiceDetailPageDesktop = () => {
         if (!projectError && projectData) {
           const projectInfo = Array.isArray(projectData) ? projectData[0] : projectData;
           if (projectInfo) {
-            const proj = {
+            const proj: Project = {
               project_number: projectInfo.project_number,
               project_name: projectInfo.project_name,
               project_address: projectInfo.project_address,
@@ -384,6 +384,18 @@ const InvoiceDetailPageDesktop = () => {
               client_order_number: projectInfo.client_order_number,
               site_name: invoiceInfo.site_name || null,
             };
+            // For MULTI_SITE: use site-level client_order_number if available
+            if (invoiceInfo.site_id) {
+              const { data: sitesData } = await supabase.rpc("list_project_sites", {
+                p_project_id: invoiceInfo.project_id,
+              });
+              const matchingSite = ((sitesData || []) as any[]).find(
+                (s) => s.id === invoiceInfo.site_id
+              );
+              if (matchingSite?.client_order_number) {
+                proj.client_order_number = matchingSite.client_order_number;
+              }
+            }
             setProject(proj);
             fetchedProject = proj;
           }
