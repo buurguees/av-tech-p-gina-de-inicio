@@ -85,10 +85,13 @@ function required(env: EnvMap, key: string): string {
 function sanitizeSegment(value: string | null | undefined): string {
   return (value ?? "")
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[<>:"/\\|?*#%&{}~]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/[\u0300-\u036f]/g, "")       // strip accents
+    .replace(/[<>:"/\\|?*#%&{}~]/g, " ")   // replace invalid chars
+    .replace(/\s+/g, " ")                   // collapse whitespace
+    .trim()
+    .replace(/\.+$/, "")                    // trailing dots (SharePoint rejects them)
+    .trim()                                 // trim again after removing dots
+    .slice(0, 128);                         // max 128 chars per SharePoint segment limit
 }
 
 function parseOptions(): SyncOptions {
@@ -384,7 +387,7 @@ async function ensureDriveFolderPath(token: string, driveId: string, folderPath:
     });
 
     if (!createResponse.ok && createResponse.status !== 409) {
-      throw new Error(`Graph folder create failed: ${createResponse.status} ${await createResponse.text()}`);
+      throw new Error(`Graph folder create failed on segment "${segment}" (path: "${currentPath}"): ${createResponse.status} ${await createResponse.text()}`);
     }
   }
 }
@@ -639,15 +642,26 @@ async function main() {
   const graphToken = await getGraphToken(env);
   const candidates = await getCandidates(client, options);
   const summary: UploadSummary[] = [];
+  const errors: Array<{ id: string; number: string | null; error: string }> = [];
 
   for (const candidate of candidates) {
-    summary.push(await syncPurchaseRecord(client, env, graphToken, archivedByEmail, candidate, options.dryRun));
+    try {
+      const result = await syncPurchaseRecord(client, env, graphToken, archivedByEmail, candidate, options.dryRun);
+      summary.push(result);
+      console.error(`[OK] ${result.number || candidate.id} → ${result.primaryFolderPath}/${result.fileName}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      errors.push({ id: candidate.id, number: candidate.internal_purchase_number || candidate.invoice_number, error: message });
+      console.error(`[ERROR] ${candidate.internal_purchase_number || candidate.invoice_number || candidate.id}: ${message}`);
+    }
   }
 
   console.log(JSON.stringify({
     dryRun: options.dryRun,
     syncedCount: summary.length,
+    errorCount: errors.length,
     summary,
+    errors,
   }, null, 2));
 }
 

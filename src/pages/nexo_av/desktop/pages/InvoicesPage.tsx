@@ -36,6 +36,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Invoice {
   id: string;
@@ -160,6 +170,8 @@ const InvoicesPageDesktop = () => {
   const [monthFilter, setMonthFilter] = useState("all");
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     void fetchInvoices();
@@ -227,6 +239,31 @@ const InvoicesPageDesktop = () => {
       });
     } finally {
       setSummaryLoading(false);
+    }
+  };
+
+  const handleDeleteInvoice = async (invoice: Invoice) => {
+    try {
+      setDeleting(true);
+      const { error } = await supabase.rpc("finance_cancel_invoice", {
+        p_invoice_id: invoice.id,
+        p_reason: "Borrador eliminado por el usuario",
+      });
+      if (error) throw error;
+      toast({
+        title: "Factura eliminada",
+        description: `El borrador ${invoice.preliminary_number || invoice.invoice_number} ha sido eliminado`,
+      });
+      void fetchInvoices();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar la factura",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setInvoiceToDelete(null);
     }
   };
 
@@ -770,7 +807,7 @@ const InvoicesPageDesktop = () => {
                 {
                   label: "Eliminar",
                   variant: "destructive",
-                  onClick: () => {},
+                  onClick: (invoice) => setInvoiceToDelete(invoice),
                   condition: (invoice) => getInvoiceDocumentStatus(invoice) === "DRAFT",
                 },
               ]}
@@ -836,6 +873,29 @@ const InvoicesPageDesktop = () => {
               />
             </div>
           )}
+
+      <AlertDialog open={!!invoiceToDelete} onOpenChange={(open) => { if (!open) setInvoiceToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar borrador?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminará permanentemente el borrador{" "}
+              {invoiceToDelete ? displayInvoiceNumber(invoiceToDelete.invoice_number, invoiceToDelete.preliminary_number, invoiceToDelete.status) : ""}
+              . Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => invoiceToDelete && handleDeleteInvoice(invoiceToDelete)}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

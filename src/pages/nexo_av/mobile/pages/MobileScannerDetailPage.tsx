@@ -305,12 +305,25 @@ const MobileScannerDetailPage = () => {
             p_site_id: selectedSiteId || null,
             p_expense_category: expenseCategory || null,
             p_issue_date: issueDate,
-            p_notes: concept.trim() || null,
+            // Para TICKET el concepto va a manual_beneficiary_name (ver paso 2b).
+            // Para INVOICE lo usamos como nota descriptiva.
+            p_notes: docType === "INVOICE" ? (concept.trim() || null) : null,
             p_file_path: document.file_path,
             p_file_name: document.file_name,
           }
         );
         if (invoiceErr) throw invoiceErr;
+
+        // 2b. Para tickets, guardar el comercio/establecimiento en el campo correcto
+        if (docType === "TICKET" && concept.trim()) {
+          const { error: beneficiaryErr } = await (supabase.rpc as any)("update_purchase_invoice", {
+            p_invoice_id: invoiceId,
+            p_manual_beneficiary_name: concept.trim(),
+          });
+          if (beneficiaryErr) {
+            console.warn("No se pudo guardar el comercio/establecimiento:", beneficiaryErr);
+          }
+        }
 
         // 3. Añadir línea con importe total (sin IVA desglosado — desktop puede revisar)
         await supabase.rpc("add_purchase_invoice_line", {

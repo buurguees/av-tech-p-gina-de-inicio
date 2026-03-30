@@ -399,6 +399,10 @@ const ExpenseDetailPage = () => {
         tax_amount: l.tax_amount,
         total: l.total,
       })));
+      // unit_price en la DB es SIEMPRE el precio base (sin IVA).
+      // El toggle debe arrancar en false para no distorsionar la visualización
+      // ni corromper valores al editar líneas de tickets ya guardados.
+      setPriceIncludesTax(false);
       
     } catch (error: any) {
       console.error("Error fetching expense:", error);

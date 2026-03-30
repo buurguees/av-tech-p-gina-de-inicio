@@ -64,6 +64,7 @@
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "firebase": "^12.7.0",
+    "framer-motion": "^12.38.0",
     "globe.gl": "^2.45.0",
     "input-otp": "^1.4.2",
     "jscanify": "^1.4.2",

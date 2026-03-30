@@ -362,6 +362,13 @@ const TicketLinesEditor: React.FC<TicketLinesEditorProps> = ({
         )}
       </div>
 
+      {!disabled && lines.some(l => l.tax_rate === 0) && (
+        <div className="text-xs px-3 py-1.5 rounded-md inline-flex items-center gap-1.5 bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+          <span>⚠️</span>
+          <span>Hay líneas con IVA al 0%. Verifica que sea correcto antes de aprobar.</span>
+        </div>
+      )}
+
       <div className="border border-white/10 rounded-lg overflow-hidden">
         <Table>
           <TableHeader>

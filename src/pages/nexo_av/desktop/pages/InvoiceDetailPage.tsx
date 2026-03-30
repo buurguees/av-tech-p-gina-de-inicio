@@ -780,6 +780,36 @@ const InvoiceDetailPageDesktop = () => {
             {/* Estado DRAFT: mostrar "Editar" y "Emitir" (solo admin/manager puede emitir) */}
             {invoice?.status === "DRAFT" && (
               <>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={deleting}
+                      className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                    >
+                      {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 mr-1" />}
+                      Eliminar
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Eliminar borrador?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Se eliminará permanentemente el borrador {displayNumber}. Esta acción no se puede deshacer.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteInvoice}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Eliminar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 <DetailActionButton
                   actionType="edit"
                   onClick={() => navigate(`/nexo-av/${userId}/invoices/${invoiceId}/edit`)}

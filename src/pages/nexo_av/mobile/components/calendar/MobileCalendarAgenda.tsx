@@ -2,10 +2,17 @@ import {
   isToday,
   isTomorrow,
   isThisWeek,
-  isNextWeek,
+  startOfWeek,
+  addWeeks,
   format,
   parseISO,
 } from "date-fns";
+
+const isNextWeek = (date: Date, options?: { weekStartsOn?: 0|1|2|3|4|5|6 }) => {
+  const nextWeekStart = addWeeks(startOfWeek(new Date(), options), 1);
+  const nextWeekEnd   = addWeeks(startOfWeek(new Date(), options), 2);
+  return date >= nextWeekStart && date < nextWeekEnd;
+};
 import { es } from "date-fns/locale";
 import { useNavigate, useParams } from "react-router-dom";
 import { MapPin, Users, ChevronRight } from "lucide-react";
